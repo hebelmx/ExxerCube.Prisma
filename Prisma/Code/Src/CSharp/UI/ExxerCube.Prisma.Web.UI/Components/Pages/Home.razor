@@ -14,72 +14,59 @@
             machine learning and computer vision in extracting structured data from legal documents.
         </MudText>
 
-        <!-- Feature Cards -->
+        <!-- Main Features -->
         <MudGrid Class="mb-6">
-            <MudItem xs="12" md="4">
-                <MudCard Elevation="2" Class="h-100">
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="3" Class="h-100">
                     <MudCardHeader>
-                        <MudText Typo="Typo.h6">
+                        <MudText Typo="Typo.h5">
                             <MudIcon Icon="@Icons.Material.Filled.DocumentScanner" Class="mr-2" />
                             Document Processing
                         </MudText>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudText Typo="Typo.body2">
+                        <MudText Typo="Typo.body1" Class="mb-4">
                             Upload legal documents and watch as our AI-powered OCR system extracts key information 
-                            including expediente numbers, causes, dates, and monetary amounts.
+                            including expediente numbers, causes, dates, and monetary amounts with high accuracy.
                         </MudText>
+                        <MudChipSet T="string">
+                            <MudChip T="string" Color="Color.Primary">PDF Support</MudChip>
+                            <MudChip T="string" Color="Color.Secondary">Image Processing</MudChip>
+                            <MudChip T="string" Color="Color.Tertiary">Real-time Results</MudChip>
+                        </MudChipSet>
                     </MudCardContent>
                     <MudCardActions>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
                                    Href="ocr-demo" StartIcon="@Icons.Material.Filled.PlayArrow">
-                            Try Demo
+                            Process Documents
                         </MudButton>
                     </MudCardActions>
                 </MudCard>
             </MudItem>
             
-            <MudItem xs="12" md="4">
-                <MudCard Elevation="2" Class="h-100">
+            <MudItem xs="12" md="6">
+                <MudCard Elevation="3" Class="h-100">
                     <MudCardHeader>
-                        <MudText Typo="Typo.h6">
+                        <MudText Typo="Typo.h5">
                             <MudIcon Icon="@Icons.Material.Filled.Analytics" Class="mr-2" />
-                            Real-Time Analytics
+                            Performance Analytics
                         </MudText>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudText Typo="Typo.body2">
+                        <MudText Typo="Typo.body1" Class="mb-4">
                             Monitor processing performance with real-time metrics, success rates, 
                             and confidence scores. Track system health and processing queue status.
                         </MudText>
+                        <MudChipSet T="string">
+                            <MudChip T="string" Color="Color.Info">Real-time Metrics</MudChip>
+                            <MudChip T="string" Color="Color.Success">Success Tracking</MudChip>
+                            <MudChip T="string" Color="Color.Warning">Performance Monitoring</MudChip>
+                        </MudChipSet>
                     </MudCardContent>
                     <MudCardActions>
-                        <MudButton Variant="Variant.Filled" Color="Color.Info" 
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Large"
                                    Href="dashboard" StartIcon="@Icons.Material.Filled.Analytics">
-                            View Dashboard
-                        </MudButton>
-                    </MudCardActions>
-                </MudCard>
-            </MudItem>
-            
-            <MudItem xs="12" md="4">
-                <MudCard Elevation="2" Class="h-100">
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">
-                            <MudIcon Icon="@Icons.Material.Filled.Psychology" Class="mr-2" />
-                            AI-Powered Extraction
-                        </MudText>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudText Typo="Typo.body2">
-                            Advanced machine learning algorithms extract structured data with high accuracy. 
-                            Support for multiple document formats including PDF, PNG, JPG, and TIFF.
-                        </MudText>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton Variant="Variant.Filled" Color="Color.Success" 
-                                   Href="ocr-demo" StartIcon="@Icons.Material.Filled.Psychology">
-                            Learn More
+                            View Analytics
                         </MudButton>
                     </MudCardActions>
                 </MudCard>
@@ -116,24 +103,7 @@
             </MudItem>
         </MudGrid>
 
-        <!-- Quick Start -->
-        <MudDivider Class="my-6" />
-        <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
-            <MudIcon Icon="@Icons.Material.Filled.RocketLaunch" Class="mr-2" />
-            Quick Start
-        </MudText>
-        
-        <MudAlert Severity="Severity.Info" Class="mb-4">
-            <MudText Typo="Typo.body1">
-                <strong>Ready to get started?</strong> Upload a legal document to see the OCR pipeline in action. 
-                The system will extract key information and provide real-time processing updates.
-            </MudText>
-        </MudAlert>
-        
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" 
-                   Href="ocr-demo" StartIcon="@Icons.Material.Filled.DocumentScanner">
-            Start Document Processing Demo
-        </MudButton>
+
     </MudPaper>
 </MudContainer>
 
