@@ -6,6 +6,8 @@ using ExxerCube.Prisma.Domain.Common;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+
 namespace ExxerCube.Prisma.Infrastructure.Python;
 
 /// <summary>
@@ -93,12 +95,32 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     /// </summary>
     /// <param name="imageData">The image data to process.</param>
     /// <returns>A result containing the processed image or an error.</returns>
-    public Task<Result<ImageData>> BinarizeAsync(ImageData imageData)
+    public async Task<Result<ImageData>> BinarizeAsync(ImageData imageData)
     {
         _logger.LogInformation("Binarizing image {SourcePath}", imageData.SourcePath);
-        // TODO: Implement binarization using Python interop service
-        // For now, return the original image
-        return Task.FromResult(Result<ImageData>.Success(imageData));
+        
+        try
+        {
+            // Call Python binarization module through interop service
+            var result = await _pythonInteropService.BinarizeAsync(imageData);
+            
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Image binarization completed for {SourcePath}", imageData.SourcePath);
+            }
+            else
+            {
+                _logger.LogWarning("Image binarization failed for {SourcePath}: {Error}", 
+                    imageData.SourcePath, result.Error ?? "Unknown error");
+            }
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during image binarization for {SourcePath}", imageData.SourcePath);
+            return Result<ImageData>.Failure($"Image binarization failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -106,12 +128,37 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     /// </summary>
     /// <param name="text">The text to process.</param>
     /// <returns>A result containing the extracted expediente or an error.</returns>
-    public Task<Result<string?>> ExtractExpedienteAsync(string text)
+    public async Task<Result<string?>> ExtractExpedienteAsync(string text)
     {
         _logger.LogInformation("Extracting expediente from text");
-        // TODO: Implement expediente extraction using Python interop service
-        // For now, return a placeholder
-        return Task.FromResult(Result<string?>.Success("EXP-2024-001"));
+        
+        try
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Result<string?>.Success(null);
+            }
+            
+            // Call Python expediente extraction module through interop service
+            var result = await _pythonInteropService.ExtractExpedienteAsync(text);
+            
+            if (result.IsSuccess)
+            {
+                var expediente = result.Value;
+                _logger.LogInformation("Expediente extraction completed: {Expediente}", expediente);
+                return Result<string?>.Success(expediente);
+            }
+            else
+            {
+                _logger.LogWarning("Expediente extraction failed: {Error}", result.Error ?? "Unknown error");
+                return Result<string?>.Success(null); // Return null instead of failure for missing expediente
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during expediente extraction");
+            return Result<string?>.Failure($"Expediente extraction failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -119,12 +166,37 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     /// </summary>
     /// <param name="text">The text to process.</param>
     /// <returns>A result containing the extracted causa or an error.</returns>
-    public Task<Result<string?>> ExtractCausaAsync(string text)
+    public async Task<Result<string?>> ExtractCausaAsync(string text)
     {
         _logger.LogInformation("Extracting causa from text");
-        // TODO: Implement causa extraction using Python interop service
-        // For now, return a placeholder
-        return Task.FromResult(Result<string?>.Success("Civil"));
+        
+        try
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Result<string?>.Success(null);
+            }
+            
+            // Call Python section extraction module for causa
+            var result = await _pythonInteropService.ExtractCausaAsync(text);
+            
+            if (result.IsSuccess)
+            {
+                var causa = result.Value;
+                _logger.LogInformation("Causa extraction completed: {Causa}", causa);
+                return Result<string?>.Success(causa);
+            }
+            else
+            {
+                _logger.LogWarning("Causa extraction failed: {Error}", result.Error ?? "Unknown error");
+                return Result<string?>.Success(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during causa extraction");
+            return Result<string?>.Failure($"Causa extraction failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -132,12 +204,38 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     /// </summary>
     /// <param name="text">The text to process.</param>
     /// <returns>A result containing the extracted accion solicitada or an error.</returns>
-    public Task<Result<string?>> ExtractAccionSolicitadaAsync(string text)
+    public async Task<Result<string?>> ExtractAccionSolicitadaAsync(string text)
     {
         _logger.LogInformation("Extracting accion solicitada from text");
-        // TODO: Implement accion solicitada extraction using Python interop service
-        // For now, return a placeholder
-        return Task.FromResult(Result<string?>.Success("Compensación"));
+        
+        try
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Result<string?>.Success(null);
+            }
+            
+            // Call Python section extraction module for accion solicitada
+            var result = await _pythonInteropService.ExtractAccionSolicitadaAsync(text);
+            
+            if (result.IsSuccess)
+            {
+                var accion = result.Value;
+                _logger.LogInformation("Accion solicitada extraction completed: {Accion}", accion);
+                return Result<string?>.Success(accion);
+            }
+            else
+            {
+                var errorMessage = result.Error ?? "Unknown error";
+                _logger.LogWarning("Accion solicitada extraction failed: {Error}", errorMessage);
+                return Result<string?>.Success(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during accion solicitada extraction");
+            return Result<string?>.Failure($"Accion solicitada extraction failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -145,12 +243,37 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     /// </summary>
     /// <param name="text">The text to process.</param>
     /// <returns>A result containing the extracted dates or an error.</returns>
-    public Task<Result<List<string>>> ExtractDatesAsync(string text)
+    public async Task<Result<List<string>>> ExtractDatesAsync(string text)
     {
         _logger.LogInformation("Extracting dates from text");
-        // TODO: Implement date extraction using Python interop service
-        // For now, return a placeholder
-        return Task.FromResult(Result<List<string>>.Success(new List<string> { "2024-01-15" }));
+        
+        try
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Result<List<string>>.Success(new List<string>());
+            }
+            
+            // Call Python date extraction module through interop service
+            var result = await _pythonInteropService.ExtractDatesAsync(text);
+            
+            if (result.IsSuccess)
+            {
+                var dates = result.Value;
+                _logger.LogInformation("Date extraction completed: {DateCount} dates found", dates.Count);
+                return Result<List<string>>.Success(dates);
+            }
+            else
+            {
+                _logger.LogWarning("Date extraction failed: {Error}", result.Error ?? "Unknown error");
+                return Result<List<string>>.Success(new List<string>());
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during date extraction");
+            return Result<List<string>>.Failure($"Date extraction failed: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -158,14 +281,37 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     /// </summary>
     /// <param name="text">The text to process.</param>
     /// <returns>A result containing the extracted amounts or an error.</returns>
-    public Task<Result<List<AmountData>>> ExtractAmountsAsync(string text)
+    public async Task<Result<List<AmountData>>> ExtractAmountsAsync(string text)
     {
         _logger.LogInformation("Extracting amounts from text");
-        // TODO: Implement amount extraction using Python interop service
-        // For now, return a placeholder
-        return Task.FromResult(Result<List<AmountData>>.Success(new List<AmountData> 
-        { 
-            new AmountData { Value = 1000.00m, Currency = "MXN" } 
-        }));
+        
+        try
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Result<List<AmountData>>.Success(new List<AmountData>());
+            }
+            
+            // Call Python amount extraction module through interop service
+            var result = await _pythonInteropService.ExtractAmountsAsync(text);
+            
+            if (result.IsSuccess)
+            {
+                var amounts = result.Value;
+                _logger.LogInformation("Amount extraction completed: {AmountCount} amounts found", amounts.Count);
+                return Result<List<AmountData>>.Success(amounts);
+            }
+            else
+            {
+                var errorMessage = result.Error ?? "Unknown error";
+                _logger.LogWarning("Amount extraction failed: {Error}", errorMessage);
+                return Result<List<AmountData>>.Success(new List<AmountData>());
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during amount extraction");
+            return Result<List<AmountData>>.Failure($"Amount extraction failed: {ex.Message}");
+        }
     }
 }

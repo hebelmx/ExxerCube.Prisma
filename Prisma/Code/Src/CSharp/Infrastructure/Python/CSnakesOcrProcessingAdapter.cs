@@ -16,7 +16,7 @@ namespace ExxerCube.Prisma.Infrastructure.Python;
 /// CSnakes-based OCR processing adapter that provides type-safe Python integration.
 /// Implements Railway Oriented Programming for error handling and maintains clean architecture.
 /// </summary>
-public class CSnakesOcrProcessingAdapter : IPythonInteropService, IDisposable
+public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreprocessor, IOcrExecutor, IFieldExtractor, IDisposable
 {
     private readonly ILogger<CSnakesOcrProcessingAdapter> _logger;
     private readonly string _pythonModulesPath;
@@ -385,6 +385,620 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IDisposable
             {
                 _logger.LogError(ex, "Error deskewing image {SourcePath}", imageData.SourcePath);
                 return Result<ImageData>.Failure($"Image deskewing failed: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Binarizes an image using the Python binarization module.
+    /// </summary>
+    /// <param name="imageData">The image data to binarize.</param>
+    /// <returns>A result containing the binarized image or an error.</returns>
+    public async Task<Result<ImageData>> BinarizeAsync(ImageData imageData)
+    {
+        if (imageData == null) throw new ArgumentNullException(nameof(imageData));
+
+        _logger.LogInformation("Binarizing image {SourcePath} using Python binarization module", imageData.SourcePath);
+        
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Create temporary file for the image data
+                var tempInputPath = Path.GetTempFileName() + ".png";
+                var tempOutputDir = Path.Combine(Path.GetTempPath(), $"binarize_output_{Guid.NewGuid()}");
+                
+                try
+                {
+                    // Write image data to temporary file
+                    File.WriteAllBytes(tempInputPath, imageData.Data);
+                    
+                    // Create output directory
+                    Directory.CreateDirectory(tempOutputDir);
+                    
+                    // Call Python binarization module
+                    var pythonScriptPath = Path.Combine(_pythonModulesPath, "image_binarizer.py");
+                    var arguments = $"\"{pythonScriptPath}\" --input \"{tempInputPath}\" --output \"{tempOutputDir}\" --method adaptive_gaussian";
+                    
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _pythonExecutablePath,
+                        Arguments = arguments,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(pythonScriptPath)
+                    };
+                    
+                    using var process = new Process { StartInfo = startInfo };
+                    process.Start();
+                    
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+                    
+                    process.WaitForExit(30000);
+                    
+                    if (process.ExitCode != 0)
+                    {
+                        _logger.LogError("Python binarization failed with exit code {ExitCode}. Error: {Error}", process.ExitCode, error);
+                        return Result<ImageData>.Failure($"Python binarization failed: {error}");
+                    }
+                    
+                    // Read the binarized image
+                    var outputPath = Path.Combine(tempOutputDir, Path.GetFileName(tempInputPath));
+                    if (!File.Exists(outputPath))
+                    {
+                        _logger.LogError("Python binarization did not generate expected output file: {OutputPath}", outputPath);
+                        return Result<ImageData>.Failure("Python binarization did not generate expected output file");
+                    }
+                    
+                    var binarizedData = File.ReadAllBytes(outputPath);
+                    
+                    var binarizedImage = new ImageData
+                    {
+                        Data = binarizedData,
+                        SourcePath = imageData.SourcePath,
+                        PageNumber = imageData.PageNumber,
+                        TotalPages = imageData.TotalPages
+                    };
+
+                    _logger.LogInformation("Image binarization completed for {SourcePath}", imageData.SourcePath);
+                    return Result<ImageData>.Success(binarizedImage);
+                }
+                finally
+                {
+                    // Cleanup temporary files
+                    try
+                    {
+                        if (File.Exists(tempInputPath))
+                            File.Delete(tempInputPath);
+                        
+                        if (Directory.Exists(tempOutputDir))
+                            Directory.Delete(tempOutputDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to cleanup temporary files");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error binarizing image {SourcePath}", imageData.SourcePath);
+                return Result<ImageData>.Failure($"Image binarization failed: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Extracts expediente (case file number) from text using the Python expediente extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted expediente or an error.</returns>
+    public async Task<Result<string?>> ExtractExpedienteAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            _logger.LogInformation("Text is null or empty, returning null expediente");
+            return Result<string?>.Success(null);
+        }
+
+        _logger.LogInformation("Extracting expediente from text using Python expediente extractor");
+        
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Create temporary file for the text
+                var tempInputPath = Path.GetTempFileName() + ".txt";
+                var tempOutputDir = Path.Combine(Path.GetTempPath(), $"expediente_output_{Guid.NewGuid()}");
+                
+                try
+                {
+                    // Write text to temporary file
+                    File.WriteAllText(tempInputPath, text);
+                    
+                    // Create output directory
+                    Directory.CreateDirectory(tempOutputDir);
+                    
+                    // Call Python expediente extraction module
+                    var pythonScriptPath = Path.Combine(_pythonModulesPath, "..", "expediente_cli.py");
+                    var arguments = $"\"{pythonScriptPath}\" --input \"{tempInputPath}\" --output \"{tempOutputDir}\"";
+                    
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _pythonExecutablePath,
+                        Arguments = arguments,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(pythonScriptPath)
+                    };
+                    
+                    using var process = new Process { StartInfo = startInfo };
+                    process.Start();
+                    
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+                    
+                    process.WaitForExit(30000);
+                    
+                    if (process.ExitCode != 0)
+                    {
+                        _logger.LogError("Python expediente extraction failed with exit code {ExitCode}. Error: {Error}", process.ExitCode, error);
+                        return Result<string?>.Failure($"Python expediente extraction failed: {error}");
+                    }
+                    
+                    // Read the extracted expediente
+                    var outputPath = Path.Combine(tempOutputDir, "expediente.txt");
+                    if (!File.Exists(outputPath))
+                    {
+                        _logger.LogWarning("No expediente found in text");
+                        return Result<string?>.Success(null);
+                    }
+                    
+                    var expediente = File.ReadAllText(outputPath).Trim();
+                    
+                    if (string.IsNullOrWhiteSpace(expediente))
+                    {
+                        return Result<string?>.Success(null);
+                    }
+
+                    _logger.LogInformation("Expediente extraction completed: {Expediente}", expediente);
+                    return Result<string?>.Success(expediente);
+                }
+                finally
+                {
+                    // Cleanup temporary files
+                    try
+                    {
+                        if (File.Exists(tempInputPath))
+                            File.Delete(tempInputPath);
+                        
+                        if (Directory.Exists(tempOutputDir))
+                            Directory.Delete(tempOutputDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to cleanup temporary files");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting expediente from text");
+                return Result<string?>.Failure($"Expediente extraction failed: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Extracts causa (cause) from text using the Python section extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted causa or an error.</returns>
+    public async Task<Result<string?>> ExtractCausaAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Text cannot be null or empty", nameof(text));
+
+        _logger.LogInformation("Extracting causa from text using Python section extractor");
+        
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Create temporary file for the text
+                var tempInputPath = Path.GetTempFileName() + ".txt";
+                var tempOutputDir = Path.Combine(Path.GetTempPath(), $"causa_output_{Guid.NewGuid()}");
+                
+                try
+                {
+                    // Write text to temporary file
+                    File.WriteAllText(tempInputPath, text);
+                    
+                    // Create output directory
+                    Directory.CreateDirectory(tempOutputDir);
+                    
+                    // Call Python causa extraction module
+                    var pythonScriptPath = Path.Combine(_pythonModulesPath, "..", "causa_cli.py");
+                    var arguments = $"\"{pythonScriptPath}\" --input \"{tempInputPath}\" --output \"{tempOutputDir}\"";
+                    
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _pythonExecutablePath,
+                        Arguments = arguments,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(pythonScriptPath)
+                    };
+                    
+                    using var process = new Process { StartInfo = startInfo };
+                    process.Start();
+                    
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+                    
+                    process.WaitForExit(30000);
+                    
+                    if (process.ExitCode != 0)
+                    {
+                        _logger.LogError("Python causa extraction failed with exit code {ExitCode}. Error: {Error}", process.ExitCode, error);
+                        return Result<string?>.Failure($"Python causa extraction failed: {error}");
+                    }
+                    
+                    // Read the extracted causa
+                    var outputPath = Path.Combine(tempOutputDir, "causa.txt");
+                    if (!File.Exists(outputPath))
+                    {
+                        _logger.LogWarning("No causa found in text");
+                        return Result<string?>.Success(null);
+                    }
+                    
+                    var causa = File.ReadAllText(outputPath).Trim();
+                    
+                    if (string.IsNullOrWhiteSpace(causa))
+                    {
+                        return Result<string?>.Success(null);
+                    }
+
+                    _logger.LogInformation("Causa extraction completed: {Causa}", causa);
+                    return Result<string?>.Success(causa);
+                }
+                finally
+                {
+                    // Cleanup temporary files
+                    try
+                    {
+                        if (File.Exists(tempInputPath))
+                            File.Delete(tempInputPath);
+                        
+                        if (Directory.Exists(tempOutputDir))
+                            Directory.Delete(tempOutputDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to cleanup temporary files");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting causa from text");
+                return Result<string?>.Failure($"Causa extraction failed: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Extracts accion solicitada (requested action) from text using the Python section extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted accion solicitada or an error.</returns>
+    public async Task<Result<string?>> ExtractAccionSolicitadaAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Text cannot be null or empty", nameof(text));
+
+        _logger.LogInformation("Extracting accion solicitada from text using Python section extractor");
+        
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Create temporary file for the text
+                var tempInputPath = Path.GetTempFileName() + ".txt";
+                var tempOutputDir = Path.Combine(Path.GetTempPath(), $"accion_output_{Guid.NewGuid()}");
+                
+                try
+                {
+                    // Write text to temporary file
+                    File.WriteAllText(tempInputPath, text);
+                    
+                    // Create output directory
+                    Directory.CreateDirectory(tempOutputDir);
+                    
+                    // Call Python accion solicitada extraction module
+                    var pythonScriptPath = Path.Combine(_pythonModulesPath, "..", "accion_solicitada_cli.py");
+                    var arguments = $"\"{pythonScriptPath}\" --input \"{tempInputPath}\" --output \"{tempOutputDir}\"";
+                    
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _pythonExecutablePath,
+                        Arguments = arguments,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(pythonScriptPath)
+                    };
+                    
+                    using var process = new Process { StartInfo = startInfo };
+                    process.Start();
+                    
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+                    
+                    process.WaitForExit(30000);
+                    
+                    if (process.ExitCode != 0)
+                    {
+                        _logger.LogError("Python accion solicitada extraction failed with exit code {ExitCode}. Error: {Error}", process.ExitCode, error);
+                        return Result<string?>.Failure($"Python accion solicitada extraction failed: {error}");
+                    }
+                    
+                    // Read the extracted accion solicitada
+                    var outputPath = Path.Combine(tempOutputDir, "accion_solicitada.txt");
+                    if (!File.Exists(outputPath))
+                    {
+                        _logger.LogWarning("No accion solicitada found in text");
+                        return Result<string?>.Success(null);
+                    }
+                    
+                    var accion = File.ReadAllText(outputPath).Trim();
+                    
+                    if (string.IsNullOrWhiteSpace(accion))
+                    {
+                        return Result<string?>.Success(null);
+                    }
+
+                    _logger.LogInformation("Accion solicitada extraction completed: {Accion}", accion);
+                    return Result<string?>.Success(accion);
+                }
+                finally
+                {
+                    // Cleanup temporary files
+                    try
+                    {
+                        if (File.Exists(tempInputPath))
+                            File.Delete(tempInputPath);
+                        
+                        if (Directory.Exists(tempOutputDir))
+                            Directory.Delete(tempOutputDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to cleanup temporary files");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting accion solicitada from text");
+                return Result<string?>.Failure($"Accion solicitada extraction failed: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Extracts dates from text using the Python date extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted dates or an error.</returns>
+    public async Task<Result<List<string>>> ExtractDatesAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Text cannot be null or empty", nameof(text));
+
+        _logger.LogInformation("Extracting dates from text using Python date extractor");
+        
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Create temporary file for the text
+                var tempInputPath = Path.GetTempFileName() + ".txt";
+                var tempOutputDir = Path.Combine(Path.GetTempPath(), $"dates_output_{Guid.NewGuid()}");
+                
+                try
+                {
+                    // Write text to temporary file
+                    File.WriteAllText(tempInputPath, text);
+                    
+                    // Create output directory
+                    Directory.CreateDirectory(tempOutputDir);
+                    
+                    // Call Python date extraction module
+                    var pythonScriptPath = Path.Combine(_pythonModulesPath, "..", "date_cli.py");
+                    var arguments = $"\"{pythonScriptPath}\" --input \"{tempInputPath}\" --output \"{tempOutputDir}\"";
+                    
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _pythonExecutablePath,
+                        Arguments = arguments,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(pythonScriptPath)
+                    };
+                    
+                    using var process = new Process { StartInfo = startInfo };
+                    process.Start();
+                    
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+                    
+                    process.WaitForExit(30000);
+                    
+                    if (process.ExitCode != 0)
+                    {
+                        _logger.LogError("Python date extraction failed with exit code {ExitCode}. Error: {Error}", process.ExitCode, error);
+                        return Result<List<string>>.Failure($"Python date extraction failed: {error}");
+                    }
+                    
+                    // Read the extracted dates
+                    var outputPath = Path.Combine(tempOutputDir, "dates.txt");
+                    if (!File.Exists(outputPath))
+                    {
+                        _logger.LogWarning("No dates found in text");
+                        return Result<List<string>>.Success(new List<string>());
+                    }
+                    
+                    var datesContent = File.ReadAllText(outputPath).Trim();
+                    
+                    if (string.IsNullOrWhiteSpace(datesContent))
+                    {
+                        return Result<List<string>>.Success(new List<string>());
+                    }
+                    
+                    var dates = datesContent.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(d => d.Trim())
+                        .Where(d => !string.IsNullOrWhiteSpace(d))
+                        .ToList();
+
+                    _logger.LogInformation("Date extraction completed: {DateCount} dates found", dates.Count);
+                    return Result<List<string>>.Success(dates);
+                }
+                finally
+                {
+                    // Cleanup temporary files
+                    try
+                    {
+                        if (File.Exists(tempInputPath))
+                            File.Delete(tempInputPath);
+                        
+                        if (Directory.Exists(tempOutputDir))
+                            Directory.Delete(tempOutputDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to cleanup temporary files");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting dates from text");
+                return Result<List<string>>.Failure($"Date extraction failed: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Extracts monetary amounts from text using the Python amount extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted amounts or an error.</returns>
+    public async Task<Result<List<AmountData>>> ExtractAmountsAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Text cannot be null or empty", nameof(text));
+
+        _logger.LogInformation("Extracting amounts from text using Python amount extractor");
+        
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Create temporary file for the text
+                var tempInputPath = Path.GetTempFileName() + ".txt";
+                var tempOutputDir = Path.Combine(Path.GetTempPath(), $"amounts_output_{Guid.NewGuid()}");
+                
+                try
+                {
+                    // Write text to temporary file
+                    File.WriteAllText(tempInputPath, text);
+                    
+                    // Create output directory
+                    Directory.CreateDirectory(tempOutputDir);
+                    
+                    // Call Python amount extraction module
+                    var pythonScriptPath = Path.Combine(_pythonModulesPath, "..", "amount_cli.py");
+                    var arguments = $"\"{pythonScriptPath}\" --input \"{tempInputPath}\" --output \"{tempOutputDir}\"";
+                    
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = _pythonExecutablePath,
+                        Arguments = arguments,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(pythonScriptPath)
+                    };
+                    
+                    using var process = new Process { StartInfo = startInfo };
+                    process.Start();
+                    
+                    var output = process.StandardOutput.ReadToEnd();
+                    var error = process.StandardError.ReadToEnd();
+                    
+                    process.WaitForExit(30000);
+                    
+                    if (process.ExitCode != 0)
+                    {
+                        _logger.LogError("Python amount extraction failed with exit code {ExitCode}. Error: {Error}", process.ExitCode, error);
+                        return Result<List<AmountData>>.Failure($"Python amount extraction failed: {error}");
+                    }
+                    
+                    // Read the extracted amounts
+                    var outputPath = Path.Combine(tempOutputDir, "amounts.json");
+                    if (!File.Exists(outputPath))
+                    {
+                        _logger.LogWarning("No amounts found in text");
+                        return Result<List<AmountData>>.Success(new List<AmountData>());
+                    }
+                    
+                    var amountsContent = File.ReadAllText(outputPath);
+                    var pythonAmounts = JsonSerializer.Deserialize<List<PythonAmount>>(amountsContent);
+                    
+                    if (pythonAmounts == null || pythonAmounts.Count == 0)
+                    {
+                        return Result<List<AmountData>>.Success(new List<AmountData>());
+                    }
+                    
+                    var amounts = pythonAmounts.Select(a => new AmountData
+                    {
+                        Value = (decimal)a.value,
+                        Currency = a.currency,
+                        OriginalText = ""
+                    }).ToList();
+
+                    _logger.LogInformation("Amount extraction completed: {AmountCount} amounts found", amounts.Count);
+                    return Result<List<AmountData>>.Success(amounts);
+                }
+                finally
+                {
+                    // Cleanup temporary files
+                    try
+                    {
+                        if (File.Exists(tempInputPath))
+                            File.Delete(tempInputPath);
+                        
+                        if (Directory.Exists(tempOutputDir))
+                            Directory.Delete(tempOutputDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to cleanup temporary files");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting amounts from text");
+                return Result<List<AmountData>>.Failure($"Amount extraction failed: {ex.Message}");
             }
         });
     }

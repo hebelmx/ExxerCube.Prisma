@@ -1,0 +1,28 @@
+{
+  "stryker-config": {
+    "packageManager": "dotnet",
+    "reporters": ["html", "cleartext", "progress"],
+    "testRunner": "dotnet",
+    "coverageAnalysis": "perTest",
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "mutate": ["**/*.cs"],
+    "excludedMutations": ["string"],
+    "testProjects": ["Tests/ExxerCube.Prisma.Tests.csproj"],
+    "projectName": "ExxerCube.Prisma",
+    "solution": "ExxerCube.Prisma.sln",
+    "targetFramework": "net10.0",
+    "verbosity": "info",
+    "logLevel": "info",
+    "maxConcurrentTestRunners": 4,
+    "timeoutMs": 30000,
+    "timeoutMsPerTest": 10000,
+    "dashboardUrl": "https://dashboard.stryker-mutator.io",
+    "dashboardApiKey": "",
+    "projectVersion": "1.0.0",
+    "moduleName": "ExxerCube.Prisma"
+  }
+}

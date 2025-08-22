@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document contains user stories for Sprint 5 to complete the TODO items identified in the codebase and implement the quality assurance roadmap. The focus is on replacing mock implementations with real Python modules, completing field extraction methods, and implementing comprehensive testing and monitoring.
+This document contains user stories for Sprint 5 to complete the TODO items identified in the codebase and implement the quality assurance roadmap. The focus is on replacing mock implementations with real Python modules, completing field extraction methods, and implementing comprehensive testing and monitoring. **Updated for current state analysis and comprehensive quality assurance implementation.**
 
 ## Epic 1: Complete Python Integration Implementation
 
@@ -90,9 +90,9 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 
 ## Epic 2: Comprehensive Testing Implementation
 
-### US-004: Implement Test Coverage Analysis and Monitoring
+### US-004: Configure Test Coverage Analysis and Monitoring
 **Priority**: High  
-**Story Points**: 4  
+**Story Points**: 2  
 **Category**: Testing
 
 **As a** developer  
@@ -100,9 +100,8 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 **So that** we can ensure code quality and identify testing gaps
 
 **Acceptance Criteria**:
-- [ ] Install and configure coverage tools (coverlet.collector)
-- [ ] Set up coverage reporting in CI/CD pipeline
 - [ ] Configure coverage thresholds (90%+ overall, 95%+ domain)
+- [ ] Set up coverage reporting in CI/CD pipeline
 - [ ] Generate coverage reports for each build
 - [ ] Implement coverage trend monitoring
 - [ ] Add coverage badges to README
@@ -110,7 +109,7 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 - [ ] Create coverage gap analysis reports
 
 **Technical Notes**:
-- Use coverlet.collector for coverage collection
+- Use existing coverlet.collector configuration
 - Configure coverage exclusions for generated code
 - Set up coverage reporting in GitHub Actions
 - Implement coverage trend analysis
@@ -375,7 +374,7 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 3. **US-003**: Implement circuit breaker pattern
 
 ### Phase 2: Testing Implementation (Weeks 2-3)
-1. **US-004**: Implement test coverage analysis
+1. **US-004**: Configure test coverage analysis
 2. **US-005**: Implement mutation testing
 3. **US-006**: Implement end-to-end testing
 
@@ -403,6 +402,8 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 - [ ] Health check endpoints are functional
 - [ ] File upload security is implemented
 - [ ] Performance monitoring is active
+- [ ] E2E tests are implemented and passing
+- [ ] Quality gates are passing
 
 ### Quality Success Criteria
 - [ ] No build warnings (TreatWarningsAsErrors)
@@ -411,6 +412,8 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 - [ ] Security vulnerabilities are addressed
 - [ ] Performance requirements are met
 - [ ] Documentation is complete and up-to-date
+- [ ] Mutation testing is configured and passing
+- [ ] Coverage thresholds are maintained
 
 ### Business Success Criteria
 - [ ] System processes documents with real OCR capabilities
@@ -419,6 +422,7 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 - [ ] Dashboard provides accurate performance insights
 - [ ] System is production-ready with monitoring
 - [ ] Error handling provides good user experience
+- [ ] Quality assurance is automated and reliable
 
 ## Risk Mitigation
 
@@ -426,6 +430,7 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 - **Python Integration Complexity**: Mitigate with thorough testing and circuit breaker pattern
 - **Performance Impact**: Mitigate with performance monitoring and optimization
 - **Test Reliability**: Mitigate with proper test isolation and cleanup
+- **Quality Tool Integration**: Mitigate with phased implementation approach
 
 ### Business Risks
 - **Timeline Delays**: Mitigate with phased implementation approach
@@ -456,6 +461,7 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 - [ ] No breaking changes introduced
 - [ ] Performance impact is acceptable
 - [ ] Security review is completed
+- [ ] Quality gates are passing
 
 ### For Sprint 5
 - [ ] All user stories are completed
@@ -465,3 +471,11 @@ This document contains user stories for Sprint 5 to complete the TODO items iden
 - [ ] Monitoring is active and functional
 - [ ] Documentation is complete
 - [ ] Team knowledge transfer is completed
+- [ ] Quality assurance is automated
+
+## Quality Assurance Roadmap
+
+1. **Week 1-2**: Complete Python integration implementation
+2. **Week 2-3**: Implement comprehensive testing (real modules, E2E, mutation)
+3. **Week 3-4**: Add quality gates and monitoring
+4. **Week 4**: Final testing and production readiness

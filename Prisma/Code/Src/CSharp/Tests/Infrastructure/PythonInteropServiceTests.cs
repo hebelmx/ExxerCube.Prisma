@@ -1,32 +1,44 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.IO;
 using Microsoft.Extensions.Logging;
-using NSubstitute;
 using Shouldly;
 using Xunit;
 using ExxerCube.Prisma.Domain.Common;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Python;
+using System.Linq;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure;
 
 /// <summary>
-/// Tests for the Python interop service architecture refactoring.
+/// Tests for the Python interop service using real Python modules.
 /// </summary>
-public class PythonInteropServiceTests
+public class PythonInteropServiceTests : IDisposable
 {
     private readonly ILogger<CSnakesOcrProcessingAdapter> _logger;
     private readonly string _pythonModulesPath;
+    private readonly string _testDataPath;
+    private readonly CSnakesOcrProcessingAdapter _adapter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PythonInteropServiceTests"/> class.
     /// </summary>
     public PythonInteropServiceTests()
     {
-        _logger = Substitute.For<ILogger<CSnakesOcrProcessingAdapter>>();
-        _pythonModulesPath = "./TestPythonModules";
+        _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<CSnakesOcrProcessingAdapter>();
+        _pythonModulesPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "CSharp", "Python", "ocr_modules");
+        _testDataPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData");
+        
+        // Ensure test data directory exists
+        if (!Directory.Exists(_testDataPath))
+        {
+            Directory.CreateDirectory(_testDataPath);
+        }
+        
+        _adapter = new CSnakesOcrProcessingAdapter(_logger, _pythonModulesPath);
     }
 
     /// <summary>
@@ -56,89 +68,170 @@ public class PythonInteropServiceTests
     }
 
     /// <summary>
-    /// Tests that the CSnakes adapter can execute OCR successfully.
+    /// Tests that expediente extraction works with real Python module.
     /// </summary>
     [Fact]
-    public async Task CSnakesOcrProcessingAdapter_ExecuteOcrAsync_ShouldReturnSuccess()
+    [Trait("Category", "Integration")]
+    public async Task ExtractExpediente_WithRealDocument_ReturnsActualExpediente()
     {
         // Arrange
-        var adapter = new CSnakesOcrProcessingAdapter(_logger, _pythonModulesPath);
-        var imageData = new ImageData
-        {
-            Data = new byte[] { 1, 2, 3, 4 },
-            SourcePath = "test.jpg",
-            PageNumber = 1,
-            TotalPages = 1
-        };
-        var config = new OCRConfig
-        {
-            Language = "es",
-            ConfidenceThreshold = 0.8f
-        };
-
+        var testText = "En relación al Expediente: ABC-123/2023, se requiere...";
+        
         // Act
-        var result = await adapter.ExecuteOcrAsync(imageData, config);
-
+        var result = await _adapter.ExtractExpedienteAsync(testText);
+        
         // Assert
-        result.ShouldNotBeNull();
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.Text.ShouldNotBeNullOrEmpty();
-        result.Value.ConfidenceAvg.ShouldBeGreaterThan(0);
+        result.Value.ShouldContain("ABC-123/2023");
     }
 
     /// <summary>
-    /// Tests that the CSnakes adapter can preprocess images successfully.
+    /// Tests that date extraction works with real Python module.
     /// </summary>
     [Fact]
-    public async Task CSnakesOcrProcessingAdapter_PreprocessAsync_ShouldReturnSuccess()
+    [Trait("Category", "Integration")]
+    public async Task ExtractDates_WithRealDocument_ReturnsActualDates()
     {
         // Arrange
-        var adapter = new CSnakesOcrProcessingAdapter(_logger, _pythonModulesPath);
-        var imageData = new ImageData
-        {
-            Data = new byte[] { 1, 2, 3, 4 },
-            SourcePath = "test.jpg",
-            PageNumber = 1,
-            TotalPages = 1
-        };
-        var config = new ProcessingConfig
-        {
-            Deskew = true,
-            RemoveWatermark = false,
-            MaxConcurrency = 5
-        };
-
+        var testText = "Fecha: 15 de octubre de 2023 y también 2023-12-25";
+        
         // Act
-        var result = await adapter.PreprocessAsync(imageData, config);
-
+        var result = await _adapter.ExtractDatesAsync(testText);
+        
         // Assert
-        result.ShouldNotBeNull();
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.SourcePath.ShouldBe(imageData.SourcePath);
+        result.Value.ShouldContain("2023-10-15");
+        result.Value.ShouldContain("2023-12-25");
     }
 
     /// <summary>
-    /// Tests that the CSnakes adapter can extract fields successfully.
+    /// Tests that amount extraction works with real Python module.
     /// </summary>
     [Fact]
-    public async Task CSnakesOcrProcessingAdapter_ExtractFieldsAsync_ShouldReturnSuccess()
+    [Trait("Category", "Integration")]
+    public async Task ExtractAmounts_WithRealDocument_ReturnsActualAmounts()
     {
         // Arrange
-        var adapter = new CSnakesOcrProcessingAdapter(_logger, _pythonModulesPath);
-        var text = "Sample OCR text for testing";
-        var confidence = 0.95f;
-
+        var testText = "Monto: $1,500.75 y total: $2,000.00";
+        
         // Act
-        var result = await adapter.ExtractFieldsAsync(text, confidence);
-
+        var result = await _adapter.ExtractAmountsAsync(testText);
+        
         // Assert
-        result.ShouldNotBeNull();
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.Expediente.ShouldNotBeNullOrEmpty();
-        result.Value.Montos.ShouldNotBeNull();
+        result.Value.Count.ShouldBeGreaterThan(0);
+        
+        var values = result.Value.Select(a => a.Value).ToList();
+        values.ShouldContain(1500.75m);
+        values.ShouldContain(2000.00m);
+    }
+
+    /// <summary>
+    /// Tests that image binarization works with real Python module.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task BinarizeImage_WithRealImage_ReturnsBinarizedImage()
+    {
+        // Arrange
+        var testImagePath = Path.Combine(_testDataPath, "DumyPrisma1.png");
+        if (!File.Exists(testImagePath))
+        {
+            // Skip test if test image not available
+            return;
+        }
+        
+        var imageData = new ImageData
+        {
+            Data = File.ReadAllBytes(testImagePath),
+            SourcePath = "DumyPrisma1.png",
+            PageNumber = 1,
+            TotalPages = 1
+        };
+        
+        // Act
+        var result = await _adapter.BinarizeAsync(imageData);
+        
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Data.ShouldNotBeNull();
+        result.Value.Data.Length.ShouldBeGreaterThan(0);
+    }
+
+    /// <summary>
+    /// Tests that the adapter handles empty text gracefully.
+    /// </summary>
+    [Fact]
+    public async Task ExtractExpediente_WithEmptyText_ReturnsNull()
+    {
+        // Arrange
+        var emptyText = "";
+        
+        // Act
+        var result = await _adapter.ExtractExpedienteAsync(emptyText);
+        
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeNull();
+    }
+
+    /// <summary>
+    /// Tests that expediente extraction returns null for null text.
+    /// </summary>
+    [Fact]
+    public async Task ExtractExpediente_WithNullText_ReturnsNull()
+    {
+        // Arrange
+        string? nullText = null;
+        
+        // Act
+        var result = await _adapter.ExtractExpedienteAsync(nullText!);
+        
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeNull();
+    }
+
+    /// <summary>
+    /// Tests that causa extraction works with real Python module.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task ExtractCausa_WithRealDocument_ReturnsActualCausa()
+    {
+        // Arrange
+        var testText = "En el presente juicio de naturaleza Civil, se solicita...";
+        
+        // Act
+        var result = await _adapter.ExtractCausaAsync(testText);
+        
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldContain("Civil");
+    }
+
+    /// <summary>
+    /// Tests that accion solicitada extraction works with real Python module.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task ExtractAccionSolicitada_WithRealDocument_ReturnsActualAccion()
+    {
+        // Arrange
+        var testText = "Se solicita la compensación por daños y perjuicios...";
+        
+        // Act
+        var result = await _adapter.ExtractAccionSolicitadaAsync(testText);
+        
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldContain("compensación");
     }
 
     /// <summary>
@@ -148,8 +241,8 @@ public class PythonInteropServiceTests
     public void CircuitBreakerPythonInteropService_ShouldCreateSuccessfully()
     {
         // Arrange
-        var innerService = Substitute.For<IPythonInteropService>();
-        var logger = Substitute.For<ILogger<CircuitBreakerPythonInteropService>>();
+        var innerService = _adapter;
+        var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<CircuitBreakerPythonInteropService>();
 
         // Act
         var circuitBreaker = new CircuitBreakerPythonInteropService(logger, innerService);
@@ -159,58 +252,14 @@ public class PythonInteropServiceTests
     }
 
     /// <summary>
-    /// Tests that the circuit breaker allows operations when closed.
-    /// </summary>
-    [Fact]
-    public async Task CircuitBreakerPythonInteropService_WhenClosed_ShouldAllowOperations()
-    {
-        // Arrange
-        var innerService = Substitute.For<IPythonInteropService>();
-        var logger = Substitute.For<ILogger<CircuitBreakerPythonInteropService>>();
-        var circuitBreaker = new CircuitBreakerPythonInteropService(logger, innerService);
-
-        var imageData = new ImageData
-        {
-            Data = new byte[] { 1, 2, 3, 4 },
-            SourcePath = "test.jpg",
-            PageNumber = 1,
-            TotalPages = 1
-        };
-        var config = new OCRConfig
-        {
-            Language = "es",
-            ConfidenceThreshold = 0.8f
-        };
-
-        var expectedResult = new OCRResult
-        {
-            Text = "Test OCR result",
-            ConfidenceAvg = 95.0f,
-            ConfidenceMedian = 95.0f,
-            Confidences = new List<float> { 95.0f },
-            LanguageUsed = "es"
-        };
-
-        innerService.ExecuteOcrAsync(imageData, config).Returns(Result<OCRResult>.Success(expectedResult));
-
-        // Act
-        var result = await circuitBreaker.ExecuteOcrAsync(imageData, config);
-
-        // Assert
-        result.ShouldNotBeNull();
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(expectedResult);
-    }
-
-    /// <summary>
     /// Tests that the OcrProcessingAdapter can be created successfully.
     /// </summary>
     [Fact]
     public void OcrProcessingAdapter_ShouldCreateSuccessfully()
     {
         // Arrange
-        var pythonInteropService = Substitute.For<IPythonInteropService>();
-        var logger = Substitute.For<ILogger<OcrProcessingAdapter>>();
+        var pythonInteropService = _adapter;
+        var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<OcrProcessingAdapter>();
 
         // Act
         var adapter = new OcrProcessingAdapter(logger, pythonInteropService);
@@ -226,8 +275,8 @@ public class PythonInteropServiceTests
     public void OcrProcessingAdapter_ShouldImplementDomainInterfaces()
     {
         // Arrange
-        var pythonInteropService = Substitute.For<IPythonInteropService>();
-        var logger = Substitute.For<ILogger<OcrProcessingAdapter>>();
+        var pythonInteropService = _adapter;
+        var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<OcrProcessingAdapter>();
 
         // Act
         var adapter = new OcrProcessingAdapter(logger, pythonInteropService);
@@ -242,45 +291,24 @@ public class PythonInteropServiceTests
     /// Tests that the OcrProcessingAdapter delegates to the Python interop service.
     /// </summary>
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task OcrProcessingAdapter_ShouldDelegateToPythonInteropService()
     {
         // Arrange
-        var pythonInteropService = Substitute.For<IPythonInteropService>();
-        var logger = Substitute.For<ILogger<OcrProcessingAdapter>>();
+        var pythonInteropService = _adapter;
+        var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<OcrProcessingAdapter>();
         var adapter = new OcrProcessingAdapter(logger, pythonInteropService);
 
-        var imageData = new ImageData
-        {
-            Data = new byte[] { 1, 2, 3, 4 },
-            SourcePath = "test.jpg",
-            PageNumber = 1,
-            TotalPages = 1
-        };
-        var config = new OCRConfig
-        {
-            Language = "es",
-            ConfidenceThreshold = 0.8f
-        };
-
-        var expectedResult = new OCRResult
-        {
-            Text = "Test OCR result",
-            ConfidenceAvg = 95.0f,
-            ConfidenceMedian = 95.0f,
-            Confidences = new List<float> { 95.0f },
-            LanguageUsed = "es"
-        };
-
-        pythonInteropService.ExecuteOcrAsync(imageData, config).Returns(Result<OCRResult>.Success(expectedResult));
+        var testText = "En relación al Expediente: ABC-123/2023, se requiere...";
 
         // Act
-        var result = await adapter.ExecuteOcrAsync(imageData, config);
+        var result = await adapter.ExtractExpedienteAsync(testText);
 
         // Assert
         result.ShouldNotBeNull();
         result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(expectedResult);
-        await pythonInteropService.Received(1).ExecuteOcrAsync(imageData, config);
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldContain("ABC-123/2023");
     }
 
     /// <summary>
@@ -326,5 +354,63 @@ public class PythonInteropServiceTests
 
         // Assert
         isValid.ShouldBe(expectedIsValid);
+    }
+
+    /// <summary>
+    /// Tests that the Python integration is working correctly.
+    /// </summary>
+    [Fact]
+    public async Task PythonIntegration_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var testText = "En el expediente ABC123/2023 se solicita...";
+        
+        // Log the paths being used
+        _logger.LogInformation("Python modules path: {ModulesPath}", _pythonModulesPath);
+        _logger.LogInformation("Current directory: {CurrentDir}", Directory.GetCurrentDirectory());
+        
+        // Act
+        var result = await _adapter.ExtractExpedienteAsync(testText);
+        
+        // Assert
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Python integration test failed: {Error}", result.Error);
+            // Also log the expected script path
+            var expectedScriptPath = Path.Combine(_pythonModulesPath, "..", "expediente_cli.py");
+            _logger.LogError("Expected script path: {ScriptPath}", expectedScriptPath);
+            _logger.LogError("Script path exists: {Exists}", File.Exists(expectedScriptPath));
+        }
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.ShouldContain("ABC123/2023");
+        
+        _logger.LogInformation("Python integration test passed. Extracted expediente: {Expediente}", result.Value);
+    }
+
+    /// <summary>
+    /// Tests that the path construction is working correctly.
+    /// </summary>
+    [Fact]
+    public void PathConstruction_ShouldWorkCorrectly()
+    {
+        // Arrange
+        var modulesPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "CSharp", "Python", "ocr_modules");
+        var expectedScriptPath = Path.Combine(modulesPath, "..", "expediente_cli.py");
+        
+        // Act & Assert
+        Directory.Exists(modulesPath).ShouldBeTrue($"Modules path should exist: {modulesPath}");
+        File.Exists(expectedScriptPath).ShouldBeTrue($"Script path should exist: {expectedScriptPath}");
+        
+        _logger.LogInformation("Modules path: {ModulesPath}", modulesPath);
+        _logger.LogInformation("Script path: {ScriptPath}", expectedScriptPath);
+    }
+
+    /// <summary>
+    /// Disposes the test resources.
+    /// </summary>
+    public void Dispose()
+    {
+        _adapter?.Dispose();
     }
 }

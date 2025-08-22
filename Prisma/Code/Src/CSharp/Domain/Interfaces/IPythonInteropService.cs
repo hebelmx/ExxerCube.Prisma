@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using ExxerCube.Prisma.Domain.Common;
 using ExxerCube.Prisma.Domain.Entities;
 
@@ -47,4 +48,46 @@ public interface IPythonInteropService
     /// <param name="imageData">The image data to process.</param>
     /// <returns>A result containing the processed image or an error.</returns>
     Task<Result<ImageData>> DeskewAsync(ImageData imageData);
+
+    /// <summary>
+    /// Binarizes an image using the Python binarization module.
+    /// </summary>
+    /// <param name="imageData">The image data to binarize.</param>
+    /// <returns>A result containing the binarized image or an error.</returns>
+    Task<Result<ImageData>> BinarizeAsync(ImageData imageData);
+
+    /// <summary>
+    /// Extracts expediente (case file number) from text using the Python expediente extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted expediente or an error.</returns>
+    Task<Result<string?>> ExtractExpedienteAsync(string text);
+
+    /// <summary>
+    /// Extracts causa (cause) from text using the Python section extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted causa or an error.</returns>
+    Task<Result<string?>> ExtractCausaAsync(string text);
+
+    /// <summary>
+    /// Extracts accion solicitada (requested action) from text using the Python section extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted accion solicitada or an error.</returns>
+    Task<Result<string?>> ExtractAccionSolicitadaAsync(string text);
+
+    /// <summary>
+    /// Extracts dates from text using the Python date extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted dates or an error.</returns>
+    Task<Result<List<string>>> ExtractDatesAsync(string text);
+
+    /// <summary>
+    /// Extracts monetary amounts from text using the Python amount extractor.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted amounts or an error.</returns>
+    Task<Result<List<AmountData>>> ExtractAmountsAsync(string text);
 }

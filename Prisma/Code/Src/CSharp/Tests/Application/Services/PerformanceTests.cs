@@ -69,6 +69,10 @@ public class PerformanceTests : IDisposable
         stopwatch.Stop();
 
         // Assert
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Processing failed: {Error}", result.Error);
+        }
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Count.ShouldBe(10);
         
@@ -108,6 +112,10 @@ public class PerformanceTests : IDisposable
         stopwatch.Stop();
 
         // Assert
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Processing failed: {Error}", result.Error);
+        }
         result.IsSuccess.ShouldBeTrue();
         
         // Performance requirement: <120 seconds per document (realistic for Python OCR)
@@ -135,6 +143,10 @@ public class PerformanceTests : IDisposable
         stopwatch.Stop();
 
         // Assert
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Processing failed: {Error}", result.Error);
+        }
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Count.ShouldBe(5);
         
@@ -166,6 +178,10 @@ public class PerformanceTests : IDisposable
         stopwatch.Stop();
 
         // Assert
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Processing failed: {Error}", result.Error);
+        }
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Count.ShouldBe(6);
         
@@ -194,6 +210,10 @@ public class PerformanceTests : IDisposable
         var memoryIncrease = finalMemory - initialMemory;
 
         // Assert
+        if (!result.IsSuccess)
+        {
+            _logger.LogError("Processing failed: {Error}", result.Error);
+        }
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Count.ShouldBe(3);
         
@@ -226,7 +246,15 @@ public class PerformanceTests : IDisposable
         complexStopwatch.Stop();
 
         // Assert
+        if (!simpleResult.IsSuccess)
+        {
+            _logger.LogError("Processing failed: {Error}", simpleResult.Error);
+        }
         simpleResult.IsSuccess.ShouldBeTrue();
+        if (!complexResult.IsSuccess)
+        {
+            _logger.LogError("Processing failed: {Error}", complexResult.Error);
+        }
         complexResult.IsSuccess.ShouldBeTrue();
         
         // Complex document should take longer but not exponentially longer
@@ -267,6 +295,10 @@ public class PerformanceTests : IDisposable
             var result = await _processingService.ProcessDocumentAsync(imageData, config);
             stopwatch.Stop();
             
+            if (!result.IsSuccess)
+            {
+                _logger.LogError("Processing failed: {Error}", result.Error);
+            }
             result.IsSuccess.ShouldBeTrue();
             processingTimes.Add(stopwatch.Elapsed.TotalSeconds);
             
