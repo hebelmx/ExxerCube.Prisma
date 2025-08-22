@@ -1,0 +1,12 @@
+<Project>
+	<PropertyGroup>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<!-- Set output path for all projects to a central bin directory outside the solution folder -->
+		<OutputPath>$(SolutionDir)../bin/$(Configuration)/$(MSBuildProjectName)/</OutputPath>
+	</PropertyGroup>
+</Project>

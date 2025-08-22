@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+	<ItemGroup>
+		<PackageVersion Include="CSnakes.Runtime" Version="1.2.1" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-preview.7.25380.108" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-preview.7.25380.108" />
+		<PackageVersion Include="pythonnet" Version="3.1.0-preview2024-09-06" />
+		<PackageVersion Include="System.Drawing.Common" Version="10.0.0-preview.7.25380.108" />
+		<PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+		<PackageVersion Include="xunit.v3" Version="3.0.1" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+		<PackageVersion Include="xunit.analyzers" Version="1.24.0" />
+		<PackageVersion Include="Shouldly" Version="4.3.0" />
+		<PackageVersion Include="NSubstitute" Version="5.3.0" />
+		<PackageVersion Include="coverlet.collector" Version="6.0.4" />
+		<PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0-preview.7.25380.108" />
+
+		<PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.0-preview.7.25380.108" />
+		<PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0-preview.7.25380.108" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-preview.7.25380.108" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0-preview.7.25380.108" />
+		<PackageVersion Include="MudBlazor" Version="8.11" />
+		<PackageVersion Include="Extensions.MudBlazor.StaticInput" Version="3.2.1" />
+	</ItemGroup>
+</Project>

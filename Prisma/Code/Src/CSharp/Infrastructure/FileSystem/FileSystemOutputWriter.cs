@@ -1,0 +1,273 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using ExxerCube.Prisma.Domain.Common;
+using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Interfaces;
+
+namespace ExxerCube.Prisma.Infrastructure.FileSystem;
+
+/// <summary>
+/// File system output writer adapter that implements IOutputWriter with Railway Oriented Programming.
+/// </summary>
+public class FileSystemOutputWriter : IOutputWriter
+{
+    private readonly ILogger<FileSystemOutputWriter> _logger;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FileSystemOutputWriter"/> class.
+    /// </summary>
+    /// <param name="logger">The logger.</param>
+    public FileSystemOutputWriter(ILogger<FileSystemOutputWriter> logger)
+    {
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Writes a processing result to the specified output path.
+    /// </summary>
+    /// <param name="result">The processing result to write.</param>
+    /// <param name="outputPath">The output file path.</param>
+    /// <returns>A result indicating success or failure.</returns>
+    public async Task<Result<bool>> WriteResultAsync(ProcessingResult result, string outputPath)
+    {
+        try
+        {
+            _logger.LogInformation("Writing processing result to {OutputPath}", outputPath);
+
+            // Validate output path
+            var validationResult = ValidateOutputPath(outputPath);
+            if (!validationResult.IsSuccess)
+            {
+                return Result<bool>.Failure(validationResult.Error!);
+            }
+
+            // Determine output format based on file extension
+            var extension = Path.GetExtension(outputPath).ToLowerInvariant();
+            switch (extension)
+            {
+                case ".json":
+                    return await WriteJsonAsync(result, outputPath);
+                case ".txt":
+                    return await WriteTextAsync(result, outputPath);
+                default:
+                    return Result<bool>.Failure($"Unsupported output format: {extension}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing processing result to {OutputPath}", outputPath);
+            return Result<bool>.Failure($"Failed to write result: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Writes multiple processing results to a directory.
+    /// </summary>
+    /// <param name="results">The list of processing results to write.</param>
+    /// <param name="outputDirectory">The output directory path.</param>
+    /// <returns>A result indicating success or failure.</returns>
+    public async Task<Result<bool>> WriteResultsAsync(IEnumerable<ProcessingResult> results, string outputDirectory)
+    {
+        try
+        {
+            _logger.LogInformation("Writing {ResultCount} processing results to directory {OutputDirectory}", 
+                results.Count(), outputDirectory);
+
+            if (!Directory.Exists(outputDirectory))
+            {
+                Directory.CreateDirectory(outputDirectory);
+            }
+
+            var resultsList = results.ToList();
+            var errors = new List<string>();
+
+            foreach (var result in resultsList)
+            {
+                var fileName = Path.GetFileNameWithoutExtension(result.SourcePath);
+                var jsonPath = Path.Combine(outputDirectory, $"{fileName}.json");
+                var textPath = Path.Combine(outputDirectory, $"{fileName}.txt");
+
+                var jsonResult = await WriteJsonAsync(result, jsonPath);
+                var textResult = await WriteTextAsync(result, textPath);
+
+                if (!jsonResult.IsSuccess)
+                {
+                    errors.Add($"Failed to write JSON for {fileName}: {jsonResult.Error}");
+                }
+
+                if (!textResult.IsSuccess)
+                {
+                    errors.Add($"Failed to write text for {fileName}: {textResult.Error}");
+                }
+            }
+
+            if (errors.Any())
+            {
+                _logger.LogWarning("Some results failed to write: {ErrorCount} errors", errors.Count);
+                return Result<bool>.Failure($"Some results failed to write: {string.Join("; ", errors)}");
+            }
+
+            _logger.LogInformation("Successfully wrote {ResultCount} processing results to directory {OutputDirectory}", 
+                resultsList.Count, outputDirectory);
+            return Result<bool>.Success(true);
+        }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error writing processing results to directory {OutputDirectory}", outputDirectory);
+                return Result<bool>.Failure($"Failed to write results: {ex.Message}");
+            }
+    }
+
+    /// <summary>
+    /// Writes results in JSON format.
+    /// </summary>
+    /// <param name="result">The processing result to write.</param>
+    /// <param name="outputPath">The output file path.</param>
+    /// <returns>A result indicating success or failure.</returns>
+    public async Task<Result<bool>> WriteJsonAsync(ProcessingResult result, string outputPath)
+    {
+        try
+        {
+            _logger.LogInformation("Writing JSON result to {OutputPath}", outputPath);
+
+            var jsonSettings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+
+            var json = JsonConvert.SerializeObject(result, jsonSettings);
+            await File.WriteAllTextAsync(outputPath, json);
+
+            _logger.LogInformation("Successfully wrote JSON result to {OutputPath}", outputPath);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing JSON result to {OutputPath}", outputPath);
+            return Result<bool>.Failure($"Failed to write JSON: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Writes results in text format.
+    /// </summary>
+    /// <param name="result">The processing result to write.</param>
+    /// <param name="outputPath">The output file path.</param>
+    /// <returns>A result indicating success or failure.</returns>
+    public async Task<Result<bool>> WriteTextAsync(ProcessingResult result, string outputPath)
+    {
+        try
+        {
+            _logger.LogInformation("Writing text result to {OutputPath}", outputPath);
+
+            var textLines = new List<string>
+            {
+                $"Processing Result for: {result.SourcePath}",
+                $"Page Number: {result.PageNumber}",
+                "",
+                "OCR Result:",
+                $"Text: {result.OCRResult.Text}",
+                $"Confidence Average: {result.OCRResult.ConfidenceAvg:F2}%",
+                $"Confidence Median: {result.OCRResult.ConfidenceMedian:F2}%",
+                $"Language Used: {result.OCRResult.LanguageUsed}",
+                "",
+                "Extracted Fields:",
+                $"Expediente: {result.ExtractedFields.Expediente ?? "Not found"}",
+                $"Causa: {result.ExtractedFields.Causa ?? "Not found"}",
+                $"Acción Solicitada: {result.ExtractedFields.AccionSolicitada ?? "Not found"}",
+                "",
+                "Dates:",
+            };
+
+            if (result.ExtractedFields.Fechas.Any())
+            {
+                foreach (var date in result.ExtractedFields.Fechas)
+                {
+                    textLines.Add($"  - {date}");
+                }
+            }
+            else
+            {
+                textLines.Add("  - No dates found");
+            }
+
+            textLines.Add("");
+            textLines.Add("Monetary Amounts:");
+
+            if (result.ExtractedFields.Montos.Any())
+            {
+                foreach (var amount in result.ExtractedFields.Montos)
+                {
+                    textLines.Add($"  - {amount.Value:C} {amount.Currency} (from: {amount.OriginalText})");
+                }
+            }
+            else
+            {
+                textLines.Add("  - No amounts found");
+            }
+
+            if (result.ProcessingErrors.Any())
+            {
+                textLines.Add("");
+                textLines.Add("Processing Errors:");
+                foreach (var error in result.ProcessingErrors)
+                {
+                    textLines.Add($"  - {error}");
+                }
+            }
+
+            await File.WriteAllLinesAsync(outputPath, textLines);
+
+            _logger.LogInformation("Successfully wrote text result to {OutputPath}", outputPath);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing text result to {OutputPath}", outputPath);
+            return Result<bool>.Failure($"Failed to write text: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Validates the output path for writing.
+    /// </summary>
+    /// <param name="outputPath">The output path to validate.</param>
+    /// <returns>A result indicating validation success or failure.</returns>
+    private Result<bool> ValidateOutputPath(string outputPath)
+    {
+        if (string.IsNullOrWhiteSpace(outputPath))
+        {
+            return Result<bool>.Failure("Output path cannot be null or empty");
+        }
+
+        // Check for path traversal attacks
+        var normalizedPath = Path.GetFullPath(outputPath);
+        if (!normalizedPath.Equals(outputPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return Result<bool>.Failure("Invalid output path");
+        }
+
+        try
+        {
+            // Ensure directory exists
+            var directory = Path.GetDirectoryName(outputPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.Failure($"Cannot create output directory: {ex.Message}");
+        }
+    }
+}
