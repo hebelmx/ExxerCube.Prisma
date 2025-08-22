@@ -3,7 +3,10 @@ Expediente (case file) extraction module.
 Single Responsibility: Extract case file identifiers from text.
 """
 import re
+import argparse
+import sys
 from typing import Optional, List, Tuple
+from pathlib import Path
 
 
 def normalize_expediente_format(expediente: str) -> str:
@@ -181,3 +184,45 @@ def extract_expediente(text: str,
         return f"{best_expediente} [Context: {best_context}]"
     else:
         return best_expediente
+
+
+def main():
+    """
+    Command-line interface for expediente extraction.
+    """
+    parser = argparse.ArgumentParser(description='Extract expediente from text file')
+    parser.add_argument('--input', required=True, help='Input text file path')
+    parser.add_argument('--output', required=True, help='Output directory path')
+    
+    args = parser.parse_args()
+    
+    try:
+        # Read input file
+        with open(args.input, 'r', encoding='utf-8') as f:
+            text = f.read()
+        
+        # Extract expediente
+        expediente = extract_expediente(text)
+        
+        # Create output directory
+        output_dir = Path(args.output)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Write result
+        output_file = output_dir / "expediente.txt"
+        if expediente:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(expediente)
+            print(f"Expediente extracted: {expediente}")
+        else:
+            # Create empty file to indicate no expediente found
+            output_file.touch()
+            print("No expediente found")
+            
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

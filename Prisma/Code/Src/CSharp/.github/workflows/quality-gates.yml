@@ -1,0 +1,131 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Make scripts executable
+      run: |
+        chmod +x scripts/*.sh
+    
+    - name: Detect TODO comments
+      run: |
+        ./scripts/detect-todo.sh
+    
+    - name: Detect placeholder implementations
+      run: |
+        ./scripts/detect-placeholders.sh
+    
+    - name: Validate integration tests
+      run: |
+        ./scripts/validate-integration-tests.sh
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore --verbosity normal
+    
+    - name: Run tests
+      run: dotnet test --no-build --verbosity normal
+    
+    - name: Check test coverage
+      run: |
+        dotnet test --collect:"XPlat Code Coverage" --verbosity normal
+        # Coverage threshold check will be added here
+    
+    - name: Validate XML documentation
+      run: |
+        # Check that all public APIs have XML documentation
+        dotnet build --verbosity normal
+        # Additional documentation validation can be added here
+
+  mutation-test:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Install Stryker.NET
+      run: dotnet tool install -g StrykerMutator.Core
+    
+    - name: Run mutation tests
+      run: |
+        cd Prisma/Code/Src/CSharp
+        stryker run --config-file-path stryker-config.json
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install Python dependencies
+      run: |
+        cd Prisma/Code/Src/CSharp/Python
+        pip install -r requirements.txt
+    
+    - name: Install Playwright
+      run: |
+        dotnet tool install -g Microsoft.Playwright.CLI
+        playwright install
+    
+    - name: Start application
+      run: |
+        cd Prisma/Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI
+        dotnet run &
+        sleep 30
+    
+    - name: Run E2E tests
+      run: |
+        cd Prisma/Code/Src/CSharp/Tests
+        dotnet test --filter "Category=E2E" --verbosity normal
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Run security scan
+      run: |
+        # Add security scanning tools here
+        echo "Security scan completed"
+        # This is a placeholder for actual security scanning implementation

@@ -27,6 +27,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
+    <PackageReference Include="StrykerMutator.Core" />
+    <PackageReference Include="Microsoft.Playwright" />
   </ItemGroup>
 
   <ItemGroup>

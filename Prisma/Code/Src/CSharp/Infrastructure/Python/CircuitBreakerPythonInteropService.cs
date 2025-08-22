@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ExxerCube.Prisma.Domain.Common;
@@ -89,6 +90,66 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     public async Task<Result<ImageData>> DeskewAsync(ImageData imageData)
     {
         return await ExecuteWithCircuitBreakerAsync(() => _innerService.DeskewAsync(imageData), "image deskewing");
+    }
+
+    /// <summary>
+    /// Binarizes an image with circuit breaker protection.
+    /// </summary>
+    /// <param name="imageData">The image data to process.</param>
+    /// <returns>A result containing the processed image or an error.</returns>
+    public async Task<Result<ImageData>> BinarizeAsync(ImageData imageData)
+    {
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.BinarizeAsync(imageData), "image binarization");
+    }
+
+    /// <summary>
+    /// Extracts expediente from text with circuit breaker protection.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted expediente or an error.</returns>
+    public async Task<Result<string?>> ExtractExpedienteAsync(string text)
+    {
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractExpedienteAsync(text), "expediente extraction");
+    }
+
+    /// <summary>
+    /// Extracts causa from text with circuit breaker protection.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted causa or an error.</returns>
+    public async Task<Result<string?>> ExtractCausaAsync(string text)
+    {
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractCausaAsync(text), "causa extraction");
+    }
+
+    /// <summary>
+    /// Extracts accion solicitada from text with circuit breaker protection.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted accion solicitada or an error.</returns>
+    public async Task<Result<string?>> ExtractAccionSolicitadaAsync(string text)
+    {
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractAccionSolicitadaAsync(text), "accion solicitada extraction");
+    }
+
+    /// <summary>
+    /// Extracts dates from text with circuit breaker protection.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted dates or an error.</returns>
+    public async Task<Result<List<string>>> ExtractDatesAsync(string text)
+    {
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractDatesAsync(text), "date extraction");
+    }
+
+    /// <summary>
+    /// Extracts amounts from text with circuit breaker protection.
+    /// </summary>
+    /// <param name="text">The text to process.</param>
+    /// <returns>A result containing the extracted amounts or an error.</returns>
+    public async Task<Result<List<AmountData>>> ExtractAmountsAsync(string text)
+    {
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractAmountsAsync(text), "amount extraction");
     }
 
     /// <summary>
