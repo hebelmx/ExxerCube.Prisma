@@ -26,6 +26,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
   </ItemGroup>
 
   <ItemGroup>

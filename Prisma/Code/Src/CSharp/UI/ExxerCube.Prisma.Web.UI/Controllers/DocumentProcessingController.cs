@@ -49,11 +49,11 @@ public class DocumentProcessingController : ControllerBase
                 return BadRequest("No file provided");
             }
 
-            // Validate file size (10MB limit)
-            const long maxFileSize = 10 * 1024 * 1024; // 10MB
+            // Validate file size (20MB limit for legal documents)
+            const long maxFileSize = 20 * 1024 * 1024; // 20MB
             if (file.Length > maxFileSize)
             {
-                return BadRequest($"File size exceeds limit. Maximum size: 10MB");
+                return BadRequest($"File size exceeds limit. Maximum size: 20MB");
             }
 
             // Validate file type

@@ -1,0 +1,32 @@
+{
+  "SourcePath": "DumyPrisma1.png",
+  "PageNumber": 1,
+  "OCRResult": {
+    "Text": "Sample OCR text from CSnakes",
+    "ConfidenceAvg": 95,
+    "ConfidenceMedian": 95,
+    "Confidences": [
+      95,
+      94,
+      96
+    ],
+    "LanguageUsed": "es"
+  },
+  "ExtractedFields": {
+    "Expediente": "EXP-2024-001",
+    "Causa": "Civil",
+    "AccionSolicitada": "Compensaci\u00F3n",
+    "Fechas": [
+      "2024-01-15"
+    ],
+    "Montos": [
+      {
+        "Currency": "MXN",
+        "Value": 1000.00,
+        "OriginalText": ""
+      }
+    ]
+  },
+  "OutputPath": null,
+  "ProcessingErrors": []
+}

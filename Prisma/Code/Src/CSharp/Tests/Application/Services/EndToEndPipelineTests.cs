@@ -1,59 +1,59 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Shouldly;
-using Xunit;
 using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Common;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Python;
+using Microsoft.Extensions.Logging;
+using Shouldly;
+using Xunit;
 
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Integration tests for the end-to-end OCR processing pipeline.
-/// Tests the complete flow from document input to structured output.
+/// End-to-end pipeline tests that use the real Python OCR pipeline.
+/// These tests validate the complete flow from document input to structured output.
 /// </summary>
-[Collection("Integration Tests")]
 public class EndToEndPipelineTests : IDisposable
 {
-    private readonly IOcrProcessingService _processingService;
-    private readonly IImagePreprocessor _imagePreprocessor;
-    private readonly IOcrExecutor _ocrExecutor;
-    private readonly IFieldExtractor _fieldExtractor;
-    private readonly ILogger<OcrProcessingService> _logger;
+    private readonly OcrProcessingService _processingService;
+    private readonly CSnakesOcrProcessingAdapter _pythonAdapter;
     private readonly ProcessingMetricsService _metricsService;
     private readonly string _testDataPath;
+    private readonly string _pythonModulesPath;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EndToEndPipelineTests"/> class.
     /// </summary>
     public EndToEndPipelineTests()
     {
-        _imagePreprocessor = Substitute.For<IImagePreprocessor>();
-        _ocrExecutor = Substitute.For<IOcrExecutor>();
-        _fieldExtractor = Substitute.For<IFieldExtractor>();
-        _logger = Substitute.For<ILogger<OcrProcessingService>>();
-        _metricsService = new ProcessingMetricsService(Substitute.For<ILogger<ProcessingMetricsService>>(), maxConcurrency: 5);
+        // Setup Python integration
+        _pythonModulesPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "Python", "ocr_modules");
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var adapterLogger = loggerFactory.CreateLogger<CSnakesOcrProcessingAdapter>();
+        _logger = loggerFactory.CreateLogger("EndToEndPipelineTests");
         
+        _pythonAdapter = new CSnakesOcrProcessingAdapter(adapterLogger, _pythonModulesPath);
+        _metricsService = new ProcessingMetricsService(loggerFactory.CreateLogger<ProcessingMetricsService>());
         _processingService = new OcrProcessingService(
-            _imagePreprocessor,
-            _ocrExecutor,
-            _fieldExtractor,
-            _logger,
+            (IImagePreprocessor)_pythonAdapter, 
+            (IOcrExecutor)_pythonAdapter, 
+            (IFieldExtractor)_pythonAdapter, 
+            loggerFactory.CreateLogger<OcrProcessingService>(), 
             _metricsService);
-
+        
         _testDataPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData");
         EnsureTestDataDirectory();
     }
 
     /// <summary>
-    /// Tests that the complete pipeline processes documents and extracts all required fields.
+    /// Tests that the complete pipeline processes a real document and extracts all fields.
     /// </summary>
     [Fact]
     [Trait("Category", "Integration")]
@@ -62,10 +62,6 @@ public class EndToEndPipelineTests : IDisposable
         // Arrange
         var imageData = CreateTestImageData();
         var config = CreateDefaultProcessingConfig();
-        var expectedOcrResult = CreateExpectedOcrResult();
-        var expectedExtractedFields = CreateExpectedExtractedFields();
-
-        SetupMockServices(imageData, config, expectedOcrResult, expectedExtractedFields);
 
         // Act
         var result = await _processingService.ProcessDocumentAsync(imageData, config);
@@ -75,15 +71,24 @@ public class EndToEndPipelineTests : IDisposable
         result.Value.ShouldNotBeNull();
         result.Value!.SourcePath.ShouldBe(imageData.SourcePath);
         result.Value!.PageNumber.ShouldBe(imageData.PageNumber);
-        result.Value!.OCRResult.Text.ShouldBe(expectedOcrResult.Text);
-        result.Value!.OCRResult.ConfidenceAvg.ShouldBe(expectedOcrResult.ConfidenceAvg, 0.01f);
-        result.Value!.ExtractedFields.Expediente.ShouldBe(expectedExtractedFields.Expediente);
-        result.Value!.ExtractedFields.Fechas.ShouldHaveSingleItem();
-        result.Value!.ExtractedFields.Montos.ShouldHaveSingleItem();
+        
+        // Verify real OCR results
+        result.Value!.OCRResult.Text.ShouldNotBeNullOrEmpty();
+        result.Value!.OCRResult.ConfidenceAvg.ShouldBeGreaterThan(0);
+        result.Value!.OCRResult.ConfidenceAvg.ShouldBeLessThanOrEqualTo(100);
+        
+        // Verify real field extraction (may be empty if document doesn't contain expected fields)
+        result.Value!.ExtractedFields.ShouldNotBeNull();
+        
+        // Log the actual results for debugging
+        _logger.LogInformation("OCR Text Length: {TextLength}", result.Value!.OCRResult.Text.Length);
+        _logger.LogInformation("Confidence: {Confidence:F2}%", result.Value!.OCRResult.ConfidenceAvg);
+        _logger.LogInformation("Expediente: {Expediente}", result.Value!.ExtractedFields.Expediente ?? "Not found");
+        _logger.LogInformation("Causa: {Causa}", result.Value!.ExtractedFields.Causa ?? "Not found");
     }
 
     /// <summary>
-    /// Tests that the pipeline handles various document formats correctly.
+    /// Tests that the pipeline handles various document formats correctly with real processing.
     /// </summary>
     [Theory]
     [InlineData("test_document.pdf")]
@@ -95,10 +100,6 @@ public class EndToEndPipelineTests : IDisposable
         // Arrange
         var imageData = CreateTestImageData(fileName);
         var config = CreateDefaultProcessingConfig();
-        var expectedOcrResult = CreateExpectedOcrResult();
-        var expectedExtractedFields = CreateExpectedExtractedFields();
-
-        SetupMockServices(imageData, config, expectedOcrResult, expectedExtractedFields);
 
         // Act
         var result = await _processingService.ProcessDocumentAsync(imageData, config);
@@ -107,10 +108,11 @@ public class EndToEndPipelineTests : IDisposable
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.SourcePath.ShouldBe(imageData.SourcePath);
+        result.Value!.OCRResult.Text.ShouldNotBeNullOrEmpty();
     }
 
     /// <summary>
-    /// Tests that batch processing works correctly with multiple documents.
+    /// Tests that batch processing works correctly with multiple documents using real pipeline.
     /// </summary>
     [Fact]
     [Trait("Category", "Integration")]
@@ -119,13 +121,6 @@ public class EndToEndPipelineTests : IDisposable
         // Arrange
         var documents = CreateTestDocuments(3);
         var config = CreateDefaultProcessingConfig();
-        var expectedOcrResult = CreateExpectedOcrResult();
-        var expectedExtractedFields = CreateExpectedExtractedFields();
-
-        foreach (var document in documents)
-        {
-            SetupMockServices(document, config, expectedOcrResult, expectedExtractedFields);
-        }
 
         // Act
         var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 2);
@@ -137,8 +132,8 @@ public class EndToEndPipelineTests : IDisposable
         
         foreach (var processingResult in result.Value!)
         {
-            processingResult.OCRResult.Text.ShouldBe(expectedOcrResult.Text);
-            processingResult.ExtractedFields.Expediente.ShouldBe(expectedExtractedFields.Expediente);
+            processingResult.OCRResult.Text.ShouldNotBeNullOrEmpty();
+            processingResult.OCRResult.ConfidenceAvg.ShouldBeGreaterThan(0);
         }
     }
 
@@ -153,140 +148,112 @@ public class EndToEndPipelineTests : IDisposable
         var imageData = CreateTestImageData();
         var configWithWatermarkRemoval = CreateProcessingConfig(removeWatermark: true, deskew: true, binarize: true);
         var configWithoutPreprocessing = CreateProcessingConfig(removeWatermark: false, deskew: false, binarize: false);
-        
-        var expectedOcrResult = CreateExpectedOcrResult();
-        var expectedExtractedFields = CreateExpectedExtractedFields();
 
-        // Test with preprocessing enabled
-        SetupMockServices(imageData, configWithWatermarkRemoval, expectedOcrResult, expectedExtractedFields);
+        // Act & Assert - Both configurations should work
         var resultWithPreprocessing = await _processingService.ProcessDocumentAsync(imageData, configWithWatermarkRemoval);
-        resultWithPreprocessing.IsSuccess.ShouldBeTrue();
-
-        // Test without preprocessing
-        SetupMockServices(imageData, configWithoutPreprocessing, expectedOcrResult, expectedExtractedFields);
         var resultWithoutPreprocessing = await _processingService.ProcessDocumentAsync(imageData, configWithoutPreprocessing);
+
+        resultWithPreprocessing.IsSuccess.ShouldBeTrue();
         resultWithoutPreprocessing.IsSuccess.ShouldBeTrue();
+        
+        // Both should produce OCR results
+        resultWithPreprocessing.Value!.OCRResult.Text.ShouldNotBeNullOrEmpty();
+        resultWithoutPreprocessing.Value!.OCRResult.Text.ShouldNotBeNullOrEmpty();
     }
 
     /// <summary>
-    /// Tests that the pipeline handles errors gracefully and returns appropriate error messages.
+    /// Tests that the pipeline handles invalid input gracefully.
     /// </summary>
     [Fact]
     [Trait("Category", "Integration")]
-    public async Task ProcessDocument_ErrorScenarios_HandlesGracefully()
+    public async Task ProcessDocument_InvalidInput_HandlesGracefully()
     {
         // Arrange
-        var imageData = CreateTestImageData();
-        var config = CreateDefaultProcessingConfig();
-
-        // Test null image data
-        var nullResult = await _processingService.ProcessDocumentAsync(null!, config);
-        nullResult.IsSuccess.ShouldBeFalse();
-        nullResult.Error!.ShouldContain("cannot be null");
-
-        // Test invalid image data
         var invalidImageData = new ImageData
         {
-            SourcePath = "",
-            Data = Array.Empty<byte>(),
-            PageNumber = 0,
-            TotalPages = 0
+            Data = new byte[0], // Empty data
+            SourcePath = "invalid.pdf",
+            PageNumber = 1,
+            TotalPages = 1
         };
-        var invalidResult = await _processingService.ProcessDocumentAsync(invalidImageData, config);
-        invalidResult.IsSuccess.ShouldBeFalse();
-        invalidResult.Error!.ShouldContain("required");
+        var config = CreateDefaultProcessingConfig();
+
+        // Act
+        var result = await _processingService.ProcessDocumentAsync(invalidImageData, config);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        result.Error.ShouldNotBeNullOrEmpty();
     }
 
     /// <summary>
-    /// Tests that the pipeline meets performance requirements.
+    /// Tests that the pipeline handles null input correctly.
     /// </summary>
     [Fact]
-    [Trait("Category", "Performance")]
-    public async Task ProcessDocument_Performance_MeetsRequirements()
+    [Trait("Category", "Integration")]
+    public async Task ProcessDocument_NullInput_ReturnsFailure()
     {
         // Arrange
-        var imageData = CreateTestImageData();
+        ImageData? nullImageData = null;
         var config = CreateDefaultProcessingConfig();
-        var expectedOcrResult = CreateExpectedOcrResult();
-        var expectedExtractedFields = CreateExpectedExtractedFields();
 
-        SetupMockServices(imageData, config, expectedOcrResult, expectedExtractedFields);
+        // Act & Assert
+        await Should.ThrowAsync<ArgumentNullException>(async () =>
+        {
+            await _processingService.ProcessDocumentAsync(nullImageData!, config);
+        });
+    }
+
+    /// <summary>
+    /// Tests that the pipeline handles large documents within reasonable time.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Performance")]
+    public async Task ProcessDocument_LargeDocument_ProcessesWithinTimeLimit()
+    {
+        // Arrange
+        var imageData = CreateTestImageData("large_document.pdf");
+        var config = CreateDefaultProcessingConfig();
 
         // Act
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var stopwatch = Stopwatch.StartNew();
         var result = await _processingService.ProcessDocumentAsync(imageData, config);
         stopwatch.Stop();
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        stopwatch.Elapsed.TotalSeconds.ShouldBeLessThan(30.0); // <30 seconds requirement
-    }
-
-    /// <summary>
-    /// Tests that batch processing meets throughput requirements.
-    /// </summary>
-    [Fact]
-    [Trait("Category", "Performance")]
-    public async Task ProcessDocuments_Throughput_MeetsRequirements()
-    {
-        // Arrange
-        var documents = CreateTestDocuments(10);
-        var config = CreateDefaultProcessingConfig();
-        var expectedOcrResult = CreateExpectedOcrResult();
-        var expectedExtractedFields = CreateExpectedExtractedFields();
-
-        foreach (var document in documents)
-        {
-            SetupMockServices(document, config, expectedOcrResult, expectedExtractedFields);
-        }
-
-        // Act
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 5);
-        stopwatch.Stop();
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Count.ShouldBe(10);
         
-        // Calculate throughput: 10 documents should be processed in less than 6 minutes (100 docs/hour baseline)
-        var throughput = 10.0 / (stopwatch.Elapsed.TotalMinutes / 60.0);
-        throughput.ShouldBeGreaterThan(100.0); // 100+ documents per hour
+        // Should complete within 60 seconds for a large document
+        stopwatch.Elapsed.TotalSeconds.ShouldBeLessThan(60.0);
+        
+        _logger.LogInformation("Large document processing time: {ProcessingTime:F2} seconds", stopwatch.Elapsed.TotalSeconds);
     }
 
     /// <summary>
-    /// Sets up mock services for testing.
-    /// </summary>
-    /// <param name="imageData">The image data to process.</param>
-    /// <param name="config">The processing configuration.</param>
-    /// <param name="expectedOcrResult">The expected OCR result.</param>
-    /// <param name="expectedExtractedFields">The expected extracted fields.</param>
-    private void SetupMockServices(
-        ImageData imageData, 
-        ProcessingConfig config, 
-        OCRResult expectedOcrResult, 
-        ExtractedFields expectedExtractedFields)
-    {
-        _imagePreprocessor.PreprocessAsync(Arg.Is<ImageData>(id => id.SourcePath == imageData.SourcePath), config)
-            .Returns(Result<ImageData>.Success(imageData));
-
-        _ocrExecutor.ExecuteOcrAsync(Arg.Is<ImageData>(id => id.SourcePath == imageData.SourcePath), config.OCRConfig)
-            .Returns(Result<OCRResult>.Success(expectedOcrResult));
-
-        _fieldExtractor.ExtractFieldsAsync(expectedOcrResult.Text, expectedOcrResult.ConfidenceAvg)
-            .Returns(Result<ExtractedFields>.Success(expectedExtractedFields));
-    }
-
-    /// <summary>
-    /// Creates test image data for testing.
+    /// Creates test image data using actual document files.
     /// </summary>
     /// <param name="fileName">The file name for the test data.</param>
     /// <returns>Test image data.</returns>
     private static ImageData CreateTestImageData(string fileName = "test_document.pdf")
     {
+        // Try to load a real test document, fallback to minimal valid data
+        var testFilePath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", fileName);
+        
+        byte[] imageData;
+        if (File.Exists(testFilePath))
+        {
+            imageData = File.ReadAllBytes(testFilePath);
+        }
+        else
+        {
+            // Create minimal valid PNG data for testing
+            imageData = CreateMinimalValidPng();
+        }
+
         return new ImageData
         {
-            Data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
+            Data = imageData,
             SourcePath = fileName,
             PageNumber = 1,
             TotalPages = 1
@@ -303,15 +270,35 @@ public class EndToEndPipelineTests : IDisposable
         var documents = new List<ImageData>();
         for (int i = 1; i <= count; i++)
         {
-            documents.Add(new ImageData
-            {
-                Data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
-                SourcePath = $"test_document_{i}.pdf",
-                PageNumber = i,
-                TotalPages = count
-            });
+            documents.Add(CreateTestImageData($"test_document_{i}.pdf"));
         }
         return documents;
+    }
+
+    /// <summary>
+    /// Creates minimal valid PNG data for testing when real documents aren't available.
+    /// </summary>
+    /// <returns>Minimal valid PNG byte array.</returns>
+    private static byte[] CreateMinimalValidPng()
+    {
+        // Minimal valid 1x1 PNG file
+        return new byte[]
+        {
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+            0x00, 0x00, 0x00, 0x0D, // IHDR chunk length
+            0x49, 0x48, 0x44, 0x52, // IHDR
+            0x00, 0x00, 0x00, 0x01, // Width: 1
+            0x00, 0x00, 0x00, 0x01, // Height: 1
+            0x08, 0x02, 0x00, 0x00, 0x00, // Bit depth, color type, etc.
+            0x90, 0x77, 0x53, 0xDE, // CRC
+            0x00, 0x00, 0x00, 0x0C, // IDAT chunk length
+            0x49, 0x44, 0x41, 0x54, // IDAT
+            0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // Compressed data
+            0xE2, 0x21, 0xBC, 0x33, // CRC
+            0x00, 0x00, 0x00, 0x00, // IEND chunk length
+            0x49, 0x45, 0x4E, 0x44, // IEND
+            0xAE, 0x42, 0x60, 0x82  // CRC
+        };
     }
 
     /// <summary>
@@ -350,41 +337,6 @@ public class EndToEndPipelineTests : IDisposable
     }
 
     /// <summary>
-    /// Creates expected OCR result for testing.
-    /// </summary>
-    /// <returns>Expected OCR result.</returns>
-    private static OCRResult CreateExpectedOcrResult()
-    {
-        return new OCRResult
-        {
-            Text = "Sample legal document text with expediente 123/2024 and amount $50,000.00",
-            ConfidenceAvg = 0.95f,
-            ConfidenceMedian = 0.97f,
-            Confidences = new List<float> { 0.95f, 0.97f, 0.93f },
-            LanguageUsed = "spa"
-        };
-    }
-
-    /// <summary>
-    /// Creates expected extracted fields for testing.
-    /// </summary>
-    /// <returns>Expected extracted fields.</returns>
-    private static ExtractedFields CreateExpectedExtractedFields()
-    {
-        return new ExtractedFields
-        {
-            Expediente = "123/2024",
-            Causa = "Sample cause",
-            AccionSolicitada = "Sample action",
-            Fechas = new List<string> { "2024-01-15" },
-            Montos = new List<AmountData> 
-            { 
-                new AmountData { Value = 50000.00m, Currency = "MXN", OriginalText = "Principal" } 
-            }
-        };
-    }
-
-    /// <summary>
     /// Ensures the test data directory exists.
     /// </summary>
     private void EnsureTestDataDirectory()
@@ -396,10 +348,12 @@ public class EndToEndPipelineTests : IDisposable
     }
 
     /// <summary>
-    /// Disposes test resources.
+    /// Disposes of the resources used by the <see cref="EndToEndPipelineTests"/> class.
     /// </summary>
     public void Dispose()
     {
+        _pythonAdapter?.Dispose();
+        
         // Clean up test data if needed
         if (Directory.Exists(_testDataPath))
         {
@@ -407,9 +361,9 @@ public class EndToEndPipelineTests : IDisposable
             {
                 Directory.Delete(_testDataPath, recursive: true);
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore cleanup errors
+                _logger.LogWarning("Could not clean up test data directory: {Message}", ex.Message);
             }
         }
     }

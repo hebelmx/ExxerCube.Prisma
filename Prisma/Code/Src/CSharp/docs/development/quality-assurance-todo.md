@@ -2,6 +2,21 @@
 
 ## 📋 **Section 0: Current State Gap Analysis**
 
+### ✅ **LATEST UPDATES (January 2025)**
+
+**File Upload Limits Enhanced**
+- **Previous Limit**: 512KB (Blazor default security limit)  
+- **Current Limit**: 20MB (optimized for legal document processing)
+- **Rationale**: 
+  - Single page scanned PDFs: 200KB - 2MB
+  - High-quality scans: 1MB - 5MB  
+  - Multi-page legal documents: 1MB - 15MB
+  - Buffer for large complex documents: Up to 20MB
+- **Files Updated**:
+  - `OCRDemo.razor`: Client-side validation and file stream limits
+  - `DocumentProcessingController.cs`: Server-side validation  
+  - UI messaging updated to reflect 20MB limit
+
 ### **🔍 COMPREHENSIVE GAP ANALYSIS REPORT**
 
 #### **🚨 CRITICAL BLOCKERS (FIXED)**
