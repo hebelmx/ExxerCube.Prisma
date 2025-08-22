@@ -1,8 +1,11 @@
 @page "/dashboard"
 @using ExxerCube.Prisma.Web.UI.Models
 @using Microsoft.AspNetCore.SignalR.Client
+@using ExxerCube.Prisma.Application.Services
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject ProcessingMetricsService MetricsService
+@inject HealthCheckService HealthCheckService
 
 <PageTitle>OCR Processing Dashboard</PageTitle>
 
@@ -204,7 +207,7 @@
     protected override async Task OnInitializedAsync()
     {
         await InitializeSignalR();
-        LoadSampleData();
+        await LoadRealData();
     }
 
     private async Task InitializeSignalR()
@@ -231,25 +234,68 @@
         StateHasChanged();
     }
 
-    private void LoadSampleData()
+    private async Task LoadRealData()
     {
-        // Sample data for demonstration
+        try
+        {
+            // Load dashboard metrics from API
+            var response = await Http.GetAsync("api/Metrics/dashboard");
+            if (response.IsSuccessStatusCode)
+            {
+                metrics = await response.Content.ReadFromJsonAsync<DashboardMetrics>() ?? new DashboardMetrics();
+            }
+            else
+            {
+                Snackbar.Add("Failed to load dashboard metrics", Severity.Warning);
+                LoadFallbackData();
+            }
+
+            // Load processing trends
+            var trendsResponse = await Http.GetAsync("api/Metrics/processing-trends");
+            if (trendsResponse.IsSuccessStatusCode)
+            {
+                var trends = await trendsResponse.Content.ReadFromJsonAsync<object>();
+                // Process trends data for charts
+                UpdateChartData(trends ?? new object());
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading dashboard data: {ex.Message}", Severity.Error);
+            LoadFallbackData();
+        }
+    }
+
+    private void LoadFallbackData()
+    {
+        // Fallback data if API fails
         metrics = new DashboardMetrics
         {
-            TotalDocumentsProcessed = 156,
-            SuccessRate = 94.2,
-            AverageProcessingTime = 12.5,
-            AverageConfidence = 87.3,
-            DocumentsInQueue = 3,
-            RecentErrors = new List<string>
-            {
-                "Invalid file format: unsupported.pdf",
-                "OCR processing timeout: large_document.tiff",
-                "Memory allocation failed: corrupted_image.jpg"
-            }
+            TotalDocumentsProcessed = 0,
+            SuccessRate = 0,
+            AverageProcessingTime = 0,
+            AverageConfidence = 0,
+            DocumentsInQueue = 0,
+            RecentErrors = new List<string>()
         };
 
-        // Sample chart data
+        timeLabels = new string[] { "No Data" };
+        processingTimeSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Processing Time (s)", Data = new double[] { 0 } }
+        };
+
+        successErrorSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Success", Data = new double[] { 0 } },
+            new ChartSeries { Name = "Errors", Data = new double[] { 0 } }
+        };
+    }
+
+    private void UpdateChartData(object trends)
+    {
+        // TODO: Implement chart data update based on real trends
+        // For now, use basic fallback data
         timeLabels = new string[] { "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00" };
         processingTimeSeries = new List<ChartSeries>
         {
@@ -258,8 +304,42 @@
 
         successErrorSeries = new List<ChartSeries>
         {
-            new ChartSeries { Name = "Success", Data = new double[] { 94.2 } },
-            new ChartSeries { Name = "Errors", Data = new double[] { 5.8 } }
+            new ChartSeries { Name = "Success", Data = new double[] { metrics.SuccessRate } },
+            new ChartSeries { Name = "Errors", Data = new double[] { 100 - metrics.SuccessRate } }
+        };
+    }
+
+    private void UpdateChartDataWithRealTrends(List<ProcessingEvent> recentEvents)
+    {
+        if (!recentEvents.Any())
+        {
+            UpdateChartData(new object());
+            return;
+        }
+
+        // Group events by hour for time series
+        var hourlyData = recentEvents
+            .GroupBy(e => e.Timestamp.ToString("HH:00"))
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        timeLabels = hourlyData.Select(g => g.Key).ToArray();
+        var processingTimes = hourlyData.Select(g => g.Average(e => e.ProcessingTimeSeconds)).ToArray();
+
+        processingTimeSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Processing Time (s)", Data = processingTimes }
+        };
+
+        // Calculate success vs error rates
+        var totalEvents = recentEvents.Count;
+        var successfulEvents = recentEvents.Count(e => e.IsSuccess);
+        var errorEvents = totalEvents - successfulEvents;
+
+        successErrorSeries = new List<ChartSeries>
+        {
+            new ChartSeries { Name = "Success", Data = new double[] { successfulEvents } },
+            new ChartSeries { Name = "Errors", Data = new double[] { errorEvents } }
         };
     }
 
