@@ -1,6 +1,8 @@
 @page "/ocr-demo"
 @using ExxerCube.Prisma.Web.UI.Models
 @using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Application.Services
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Text.Json
 @inject IJSRuntime JSRuntime
@@ -235,48 +237,94 @@
         try
         {
             isProcessing = true;
-            processingStatus = "Uploading...";
-            processingMessage = "Preparing document for processing";
+            processingStatus = "Processing...";
+            processingMessage = "Starting OCR processing";
             processingProgress = 0;
             errorMessage = "";
             processingResult = null;
-            currentJobId = null;
+            currentJobId = Guid.NewGuid().ToString();
 
             StateHasChanged();
 
-            // Create form data
-            var formData = new MultipartFormDataContent();
-            var fileContent = new StreamContent(selectedFile.OpenReadStream());
-            formData.Add(fileContent, "file", selectedFile.Name);
+            // Create processing context for metrics
+            using var processingContext = await MetricsService.StartProcessingAsync(currentJobId, selectedFile.Name);
 
-            // Upload and start processing
-            var response = await Http.PostAsync("api/DocumentProcessing/upload", formData);
-            
-            if (response.IsSuccessStatusCode)
+            // Read file content
+            using var stream = selectedFile.OpenReadStream();
+            var imageData = new ImageData
             {
-                var result = await response.Content.ReadFromJsonAsync<ProcessingResponse>();
-                if (result != null)
+                SourcePath = selectedFile.Name,
+                Data = await ReadStreamToBytes(stream),
+                PageNumber = 1,
+                TotalPages = 1
+            };
+
+            // Create processing configuration
+            var config = new ProcessingConfig
+            {
+                OCRConfig = new OCRConfig
                 {
-                    currentJobId = result.JobId;
-                    processingStatus = result.Status;
-                    processingMessage = result.Message;
-                    StateHasChanged();
-                }
+                    Language = "spa",
+                    ConfidenceThreshold = 80.0f
+                },
+                RemoveWatermark = true,
+                Deskew = true,
+                Binarize = true,
+                ExtractSections = true,
+                NormalizeText = true
+            };
+
+            // Process document directly using service
+            processingStatus = "Extracting text...";
+            processingProgress = 30;
+            StateHasChanged();
+
+            var result = await OcrService.ProcessDocumentAsync(imageData, config);
+
+            if (result.IsSuccess)
+            {
+                processingResult = result.Value;
+                processingStatus = "Completed";
+                processingProgress = 100;
+                processingMessage = "Document processed successfully";
+                
+                // Record successful completion
+                await MetricsService.CompleteProcessingAsync(processingContext, processingResult, true);
+                
+                jsonResult = JsonSerializer.Serialize(processingResult, new JsonSerializerOptions { WriteIndented = true });
+                Snackbar.Add("Document processed successfully!", Severity.Success);
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Upload failed: {error}";
-                isProcessing = false;
-                StateHasChanged();
+                errorMessage = result.Error ?? "Processing failed";
+                processingStatus = "Failed";
+                processingProgress = 0;
+                
+                // Record error
+                await MetricsService.RecordErrorAsync(processingContext, errorMessage);
+                
+                Snackbar.Add($"Processing failed: {errorMessage}", Severity.Error);
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"Error processing document: {ex.Message}";
+            processingStatus = "Failed";
+            processingProgress = 0;
+            Snackbar.Add($"Processing failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
             isProcessing = false;
             StateHasChanged();
         }
+    }
+
+    private async Task<byte[]> ReadStreamToBytes(Stream stream)
+    {
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        return memoryStream.ToArray();
     }
 
     private void OnProcessingStatusUpdated(string jobId, string status, int progress, string message)

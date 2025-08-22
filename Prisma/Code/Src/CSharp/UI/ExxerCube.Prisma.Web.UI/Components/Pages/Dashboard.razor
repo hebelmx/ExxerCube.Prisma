@@ -238,26 +238,26 @@
     {
         try
         {
-            // Load dashboard metrics from API
-            var response = await Http.GetAsync("api/Metrics/dashboard");
-            if (response.IsSuccessStatusCode)
+            // Get metrics directly from service (proper production architecture)
+            var statistics = await MetricsService.GetCurrentStatisticsAsync();
+            var recentEvents = MetricsService.GetRecentEvents(10);
+            
+            metrics = new DashboardMetrics
             {
-                metrics = await response.Content.ReadFromJsonAsync<DashboardMetrics>() ?? new DashboardMetrics();
-            }
-            else
-            {
-                Snackbar.Add("Failed to load dashboard metrics", Severity.Warning);
-                LoadFallbackData();
-            }
+                TotalDocumentsProcessed = statistics.TotalDocumentsProcessed,
+                SuccessRate = statistics.SuccessRate * 100, // Convert to percentage
+                AverageProcessingTime = statistics.AverageProcessingTime,
+                AverageConfidence = statistics.AverageConfidence * 100, // Convert to percentage
+                DocumentsInQueue = MetricsService.ActiveProcessingCount,
+                RecentErrors = recentEvents
+                    .Where(e => !e.IsSuccess && !string.IsNullOrEmpty(e.ErrorMessage))
+                    .Select(e => e.ErrorMessage!)
+                    .Take(5)
+                    .ToList()
+            };
 
-            // Load processing trends
-            var trendsResponse = await Http.GetAsync("api/Metrics/processing-trends");
-            if (trendsResponse.IsSuccessStatusCode)
-            {
-                var trends = await trendsResponse.Content.ReadFromJsonAsync<object>();
-                // Process trends data for charts
-                UpdateChartData(trends ?? new object());
-            }
+            // Update chart data with real trends
+            UpdateChartDataWithRealTrends(recentEvents);
         }
         catch (Exception ex)
         {
@@ -268,7 +268,7 @@
 
     private void LoadFallbackData()
     {
-        // Fallback data if API fails
+        // Fallback data if service fails
         metrics = new DashboardMetrics
         {
             TotalDocumentsProcessed = 0,
@@ -292,28 +292,11 @@
         };
     }
 
-    private void UpdateChartData(object trends)
-    {
-        // TODO: Implement chart data update based on real trends
-        // For now, use basic fallback data
-        timeLabels = new string[] { "9:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00" };
-        processingTimeSeries = new List<ChartSeries>
-        {
-            new ChartSeries { Name = "Processing Time (s)", Data = new double[] { 15.2, 12.8, 11.5, 13.1, 14.2, 12.9, 11.8 } }
-        };
-
-        successErrorSeries = new List<ChartSeries>
-        {
-            new ChartSeries { Name = "Success", Data = new double[] { metrics.SuccessRate } },
-            new ChartSeries { Name = "Errors", Data = new double[] { 100 - metrics.SuccessRate } }
-        };
-    }
-
     private void UpdateChartDataWithRealTrends(List<ProcessingEvent> recentEvents)
     {
         if (!recentEvents.Any())
         {
-            UpdateChartData(new object());
+            LoadFallbackData();
             return;
         }
 
