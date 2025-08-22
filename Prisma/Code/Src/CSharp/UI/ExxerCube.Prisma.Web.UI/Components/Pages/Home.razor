@@ -1,59 +1,140 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>ExxerCube Prisma - OCR Processing System</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor and the .NET 9 Template!</MudText>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h3" GutterBottom="true" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Class="mr-2" />
+            ExxerCube Prisma OCR Processing System
+        </MudText>
+        
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Welcome to the advanced OCR document processing system. This platform demonstrates the power of 
+            machine learning and computer vision in extracting structured data from legal documents.
+        </MudText>
 
-<MudAlert Severity="Severity.Normal" ContentAlignment="HorizontalAlignment.Start">
-    You can find documentation and examples on our website here:
-    <MudLink Href="https://mudblazor.com" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        <b>www.mudblazor.com</b>
-    </MudLink>
-</MudAlert>
+        <!-- Feature Cards -->
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="2" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.DocumentScanner" Class="mr-2" />
+                            Document Processing
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2">
+                            Upload legal documents and watch as our AI-powered OCR system extracts key information 
+                            including expediente numbers, causes, dates, and monetary amounts.
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                                   Href="ocr-demo" StartIcon="@Icons.Material.Filled.PlayArrow">
+                            Try Demo
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+            
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="2" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.Analytics" Class="mr-2" />
+                            Real-Time Analytics
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2">
+                            Monitor processing performance with real-time metrics, success rates, 
+                            and confidence scores. Track system health and processing queue status.
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" 
+                                   Href="dashboard" StartIcon="@Icons.Material.Filled.Analytics">
+                            View Dashboard
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+            
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="2" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.Psychology" Class="mr-2" />
+                            AI-Powered Extraction
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2">
+                            Advanced machine learning algorithms extract structured data with high accuracy. 
+                            Support for multiple document formats including PDF, PNG, JPG, and TIFF.
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" 
+                                   Href="ocr-demo" StartIcon="@Icons.Material.Filled.Psychology">
+                            Learn More
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">Interactivity in this Template</MudText>
-<br />
-<MudText Typo="Typo.body2">
-    When you opt for the "Global" Interactivity Location, <br />
-    the render modes are defined in App.razor and consequently apply to all child components.<br />
-    In this case, providers are globally set in the MainLayout.<br />
-    <br />
-    On the other hand, if you choose the "Per page/component" Interactivity Location,<br />
-    it is necessary to include the <br />
-    <br />
-    &lt;MudPopoverProvider /&gt; <br />
-    &lt;MudDialogProvider /&gt; <br />
-    &lt;MudSnackbarProvider /&gt; <br />
-    <br />
-    components on every interactive page.<br />
-    <br />
-    If a render mode is not specified for a page, it defaults to Server-Side Rendering (SSR),<br />
-    similar to this page. While MudBlazor allows pages to be rendered in SSR,<br />
-    please note that interactive features, such as buttons and dropdown menus, will not be functional.
-</MudText>
+        <!-- Technology Stack -->
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Build" Class="mr-2" />
+            Technology Stack
+        </MudText>
+        
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudChip T="string" Color="Color.Primary" Size="Size.Large" Icon="@Icons.Material.Filled.Code">
+                    .NET 10
+                </MudChip>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudChip T="string" Color="Color.Secondary" Size="Size.Large" Icon="@Icons.Material.Filled.Code">
+                    Python OCR
+                </MudChip>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudChip T="string" Color="Color.Tertiary" Size="Size.Large" Icon="@Icons.Material.Filled.Web">
+                    MudBlazor
+                </MudChip>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudChip T="string" Color="Color.Info" Size="Size.Large" Icon="@Icons.Material.Filled.SignalCellular4Bar">
+                    SignalR
+                </MudChip>
+            </MudItem>
+        </MudGrid>
 
-<br />
-<MudText Typo="Typo.h5" GutterBottom="true">What's New in Blazor with the Release of .NET 9</MudText>
-<br />
+        <!-- Quick Start -->
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.RocketLaunch" Class="mr-2" />
+            Quick Start
+        </MudText>
+        
+        <MudAlert Severity="Severity.Info" Class="mb-4">
+            <MudText Typo="Typo.body1">
+                <strong>Ready to get started?</strong> Upload a legal document to see the OCR pipeline in action. 
+                The system will extract key information and provide real-time processing updates.
+            </MudText>
+        </MudAlert>
+        
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" 
+                   Href="ocr-demo" StartIcon="@Icons.Material.Filled.DocumentScanner">
+            Start Document Processing Demo
+        </MudButton>
+    </MudPaper>
+</MudContainer>
 
-<MudText Typo="Typo.h6" GutterBottom="true">Prerendering</MudText>
-<MudText Typo="Typo.body2" GutterBottom="true">
-    If you're exploring the features of .NET 9 Blazor,<br /> you might be pleasantly surprised to learn that each page is prerendered on the server,<br /> regardless of the selected render mode.<br /><br />
-    This means that you'll need to inject all necessary services on the server,<br /> even when opting for the wasm (WebAssembly) render mode.<br /><br />
-    This prerendering functionality is crucial to ensuring that WebAssembly mode feels fast and responsive,<br /> especially when it comes to initial page load times.<br /><br />
-    For more information on how to detect prerendering and leverage the RenderContext, you can refer to the following link:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issuecomment-1783568121" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>
 
-<br />
-<MudText Typo="Typo.h6" GutterBottom="true">InteractiveAuto</MudText>
-<MudText Typo="Typo.body2">
-    A discussion on how to achieve this can be found here:
-    <MudLink Href="https://github.com/dotnet/aspnetcore/issues/51468#issue-1950424116" Target="_blank" Typo="Typo.body2" Color="Color.Primary">
-        More details
-    </MudLink>
-</MudText>

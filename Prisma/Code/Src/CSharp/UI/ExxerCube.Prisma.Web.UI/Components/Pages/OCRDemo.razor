@@ -1,0 +1,362 @@
+@page "/ocr-demo"
+@using ExxerCube.Prisma.Web.UI.Models
+@using ExxerCube.Prisma.Domain.Entities
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Text.Json
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+
+<PageTitle>OCR Document Processing Demo</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Class="pa-4" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.DocumentScanner" Class="mr-2" />
+            OCR Document Processing Demo
+        </MudText>
+        
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Upload a document to see the OCR pipeline in action. This demo uses the actual OCR processing service with real-time updates.
+        </MudText>
+
+        <!-- Document Upload Section -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Class="mr-2" />
+                    Document Upload
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudFileUpload T="IBrowserFile" FilesChanged="OnFilesChanged" Accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp" />
+                
+                @if (selectedFile != null)
+                {
+                    <MudChip T="string" Color="Color.Success" Class="mt-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Class="mr-1" />
+                        @selectedFile.Name (@FormatFileSize(selectedFile.Size))
+                    </MudChip>
+                    
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                               Class="mt-3" OnClick="ProcessDocument" Disabled="isProcessing">
+                        <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Class="mr-2" />
+                        Process Document
+                    </MudButton>
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Processing Status Section -->
+        @if (isProcessing || currentJobId != null)
+        {
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Sync" Class="mr-2" />
+                        Processing Status
+                    </MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudProgressLinear Value="@processingProgress" Color="Color.Primary" Class="mb-3" />
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        <strong>Status:</strong> @processingStatus
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        <strong>Message:</strong> @processingMessage
+                    </MudText>
+                    @if (currentJobId != null)
+                    {
+                        <MudText Typo="Typo.body2">
+                            <strong>Job ID:</strong> @currentJobId
+                        </MudText>
+                    }
+                </MudCardContent>
+            </MudCard>
+        }
+
+        <!-- Results Section -->
+        @if (processingResult != null)
+        {
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+                        Processing Results
+                    </MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
+                        <MudTabPanel Text="Extracted Fields">
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="processingResult.ExtractedFields.Expediente" 
+                                                 Label="Expediente" ReadOnly="true" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField @bind-Value="processingResult.ExtractedFields.Causa" 
+                                                 Label="Causa" ReadOnly="true" Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField @bind-Value="processingResult.ExtractedFields.AccionSolicitada" 
+                                                 Label="Acción Solicitada" ReadOnly="true" Variant="Variant.Outlined" 
+                                                 Lines="3" />
+                                </MudItem>
+                                
+                                @if (processingResult.ExtractedFields.Fechas.Any())
+                                {
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.subtitle2" Class="mb-2">Fechas Encontradas:</MudText>
+                                        <MudChipSet T="string">
+                                            @foreach (var fecha in processingResult.ExtractedFields.Fechas)
+                                            {
+                                                <MudChip T="string" Color="Color.Info">@fecha</MudChip>
+                                            }
+                                        </MudChipSet>
+                                    </MudItem>
+                                }
+                                
+                                @if (processingResult.ExtractedFields.Montos.Any())
+                                {
+                                    <MudItem xs="12">
+                                        <MudText Typo="Typo.subtitle2" Class="mb-2">Montos Encontrados:</MudText>
+                                        <MudChipSet T="string">
+                                            @foreach (var monto in processingResult.ExtractedFields.Montos)
+                                            {
+                                                <MudChip T="string" Color="Color.Success">@monto.Value @monto.Currency</MudChip>
+                                            }
+                                        </MudChipSet>
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        </MudTabPanel>
+                        
+                        <MudTabPanel Text="OCR Details">
+                            <MudGrid>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Value="@(processingResult.OCRResult.ConfidenceAvg.ToString("F2"))" 
+                                                 Label="Average Confidence (%)" ReadOnly="true" 
+                                                 Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Value="@(processingResult.OCRResult.Text.Length.ToString())" 
+                                                 Label="Characters Extracted" ReadOnly="true" 
+                                                 Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudTextField Value="@processingResult.OCRResult.Text" 
+                                                 Label="Extracted Text" ReadOnly="true" Variant="Variant.Outlined" 
+                                                 Lines="10" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudTabPanel>
+                        
+                        <MudTabPanel Text="Raw JSON">
+                            <MudTextField Value="@jsonResult" Label="JSON Result" ReadOnly="true" 
+                                         Variant="Variant.Outlined" Lines="15" />
+                        </MudTabPanel>
+                    </MudTabs>
+                    
+                    <MudDivider Class="my-4" />
+                    
+                    <MudButtonGroup Variant="Variant.Outlined" Color="Color.Primary">
+                        <MudButton OnClick="DownloadJson" StartIcon="@Icons.Material.Filled.Download">
+                            Download JSON
+                        </MudButton>
+                        <MudButton OnClick="DownloadText" StartIcon="@Icons.Material.Filled.Download">
+                            Download Text
+                        </MudButton>
+                    </MudButtonGroup>
+                </MudCardContent>
+            </MudCard>
+        }
+
+        <!-- Error Section -->
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                <MudText Typo="Typo.body1">
+                    <strong>Error:</strong> @errorMessage
+                </MudText>
+            </MudAlert>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private IBrowserFile? selectedFile;
+    private bool isProcessing = false;
+    private string? currentJobId;
+    private string processingStatus = "";
+    private string processingMessage = "";
+    private int processingProgress = 0;
+    private ProcessingResult? processingResult;
+    private string errorMessage = "";
+    private string jsonResult = "";
+    private HubConnection? hubConnection;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitializeSignalR();
+    }
+
+    private async Task InitializeSignalR()
+    {
+        try
+        {
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(Navigation.ToAbsoluteUri("/processingHub"))
+                .Build();
+
+            hubConnection.On<string, string, int, string>("ProcessingStatusUpdated", OnProcessingStatusUpdated);
+            hubConnection.On<string, ProcessingResult>("ProcessingComplete", OnProcessingComplete);
+            hubConnection.On<string, string>("ProcessingError", OnProcessingError);
+
+            await hubConnection.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to connect to real-time updates: {ex.Message}", Severity.Warning);
+        }
+    }
+
+    private void OnFilesChanged(IBrowserFile file)
+    {
+        selectedFile = file;
+        StateHasChanged();
+    }
+
+    private async Task ProcessDocument()
+    {
+        if (selectedFile == null) return;
+
+        try
+        {
+            isProcessing = true;
+            processingStatus = "Uploading...";
+            processingMessage = "Preparing document for processing";
+            processingProgress = 0;
+            errorMessage = "";
+            processingResult = null;
+            currentJobId = null;
+
+            StateHasChanged();
+
+            // Create form data
+            var formData = new MultipartFormDataContent();
+            var fileContent = new StreamContent(selectedFile.OpenReadStream());
+            formData.Add(fileContent, "file", selectedFile.Name);
+
+            // Upload and start processing
+            var response = await Http.PostAsync("api/DocumentProcessing/upload", formData);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ProcessingResponse>();
+                if (result != null)
+                {
+                    currentJobId = result.JobId;
+                    processingStatus = result.Status;
+                    processingMessage = result.Message;
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Upload failed: {error}";
+                isProcessing = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing document: {ex.Message}";
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnProcessingStatusUpdated(string jobId, string status, int progress, string message)
+    {
+        if (jobId == currentJobId)
+        {
+            processingStatus = status;
+            processingProgress = progress;
+            processingMessage = message;
+            StateHasChanged();
+        }
+    }
+
+    private void OnProcessingComplete(string jobId, ProcessingResult result)
+    {
+        if (jobId == currentJobId)
+        {
+            processingResult = result;
+            processingStatus = "Completed";
+            processingProgress = 100;
+            processingMessage = "Processing completed successfully";
+            isProcessing = false;
+            jsonResult = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            StateHasChanged();
+            
+            Snackbar.Add("Document processed successfully!", Severity.Success);
+        }
+    }
+
+    private void OnProcessingError(string jobId, string error)
+    {
+        if (jobId == currentJobId)
+        {
+            errorMessage = error;
+            processingStatus = "Failed";
+            processingProgress = 0;
+            isProcessing = false;
+            StateHasChanged();
+            
+            Snackbar.Add($"Processing failed: {error}", Severity.Error);
+        }
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    private async Task DownloadJson()
+    {
+        if (processingResult != null)
+        {
+            var json = JsonSerializer.Serialize(processingResult, new JsonSerializerOptions { WriteIndented = true });
+            var fileName = $"ocr_result_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            await JSRuntime.InvokeVoidAsync("downloadFile", json, fileName, "application/json");
+        }
+    }
+
+    private async Task DownloadText()
+    {
+        if (processingResult != null)
+        {
+            var text = processingResult.OCRResult.Text;
+            var fileName = $"ocr_text_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+            await JSRuntime.InvokeVoidAsync("downloadFile", text, fileName, "text/plain");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
