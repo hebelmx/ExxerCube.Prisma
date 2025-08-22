@@ -1,27 +1,28 @@
-@page "/ocr-demo"
-@using ExxerCube.Prisma.Web.UI.Models
-@using ExxerCube.Prisma.Domain.Entities
-@using ExxerCube.Prisma.Domain.Interfaces
+@page "/document-processing"
 @using ExxerCube.Prisma.Application.Services
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Domain.Entities
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Text.Json
-@inject IJSRuntime JSRuntime
-@inject NavigationManager Navigation
-@inject ISnackbar Snackbar
+@using Microsoft.JSInterop
 @inject IOcrProcessingService OcrService
 @inject ProcessingMetricsService MetricsService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 
-<PageTitle>OCR Document Processing Demo</PageTitle>
+<PageTitle>Document Processing</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudPaper Class="pa-4" Elevation="3">
+    <MudPaper Class="pa-6" Elevation="3">
         <MudText Typo="Typo.h4" Class="mb-4">
-            <MudIcon Icon="@Icons.Material.Filled.DocumentScanner" Class="mr-2" />
-            OCR Document Processing Demo
+            Document Processing
         </MudText>
         
-        <MudText Typo="Typo.body1" Class="mb-6">
-            Upload a document to see the OCR pipeline in action. This demo uses the actual OCR processing service with real-time updates.
+        <MudText Typo="Typo.body2" Class="mb-3">
+            Upload a document to process with our advanced OCR pipeline. The system will extract key information and provide real-time processing updates.
         </MudText>
 
         <!-- Document Upload Section -->
@@ -33,7 +34,11 @@
                 </MudText>
             </MudCardHeader>
             <MudCardContent>
-                <MudFileUpload T="IBrowserFile" FilesChanged="OnFilesChanged" Accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp" />
+                <MudText Typo="Typo.body2" Class="mb-3">
+                    Select a document to process. Supported formats: PDF, PNG, JPG, JPEG, TIFF, BMP (Max: 20MB)
+                </MudText>
+                
+                <InputFile OnChange="OnFileSelected" accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp" class="form-control" />
                 
                 @if (selectedFile != null)
                 {
@@ -47,6 +52,12 @@
                         <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Class="mr-2" />
                         Process Document
                     </MudButton>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                        No file selected. Please choose a document to upload.
+                    </MudText>
                 }
             </MudCardContent>
         </MudCard>
@@ -202,6 +213,23 @@
     protected override async Task OnInitializedAsync()
     {
         await InitializeSignalR();
+        
+        // Test service availability
+        try
+        {
+            if (OcrService != null)
+            {
+                Snackbar.Add("OCR Service is available", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("OCR Service is not available", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Service initialization error: {ex.Message}", Severity.Error);
+        }
     }
 
     private async Task InitializeSignalR()
@@ -224,15 +252,43 @@
         }
     }
 
-    private void OnFilesChanged(IBrowserFile file)
+    private void OnFileSelected(InputFileChangeEventArgs e)
     {
-        selectedFile = file;
-        StateHasChanged();
+        try
+        {
+            // Validate file size (20MB limit for legal documents)
+            const long maxFileSize = 20971520; // 20MB
+            if (e.File.Size > maxFileSize)
+            {
+                Snackbar.Add($"File size ({FormatFileSize(e.File.Size)}) exceeds the maximum allowed size of 20MB", Severity.Error);
+                selectedFile = null;
+                StateHasChanged();
+                return;
+            }
+
+            selectedFile = e.File;
+            Snackbar.Add($"File selected: {e.File.Name} ({FormatFileSize(e.File.Size)})", Severity.Info);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error selecting file: {ex.Message}", Severity.Error);
+        }
     }
 
     private async Task ProcessDocument()
     {
-        if (selectedFile == null) return;
+        if (selectedFile == null)
+        {
+            Snackbar.Add("No file selected. Please select a file first.", Severity.Warning);
+            return;
+        }
+
+        if (OcrService == null)
+        {
+            Snackbar.Add("OCR Service is not available. Please check service configuration.", Severity.Error);
+            return;
+        }
 
         try
         {
@@ -249,8 +305,8 @@
             // Create processing context for metrics
             using var processingContext = await MetricsService.StartProcessingAsync(currentJobId, selectedFile.Name);
 
-            // Read file content
-            using var stream = selectedFile.OpenReadStream();
+            // Read file content (max size: 20MB for multi-page legal documents)
+            using var stream = selectedFile.OpenReadStream(maxAllowedSize: 20971520);
             var imageData = new ImageData
             {
                 SourcePath = selectedFile.Name,
