@@ -108,3 +108,4 @@ The project requires seamless integration between C# and Python modules for OCR 
 ---
 
 **Note**: This ADR supersedes any previous decisions regarding Python-C# interoperability and establishes CSnakes as the standard approach for this project.
+

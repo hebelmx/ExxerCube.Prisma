@@ -49,6 +49,13 @@ public class DocumentProcessingController : ControllerBase
                 return BadRequest("No file provided");
             }
 
+            // Validate file size (10MB limit)
+            const long maxFileSize = 10 * 1024 * 1024; // 10MB
+            if (file.Length > maxFileSize)
+            {
+                return BadRequest($"File size exceeds limit. Maximum size: 10MB");
+            }
+
             // Validate file type
             var allowedExtensions = new[] { ".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp" };
             var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
@@ -56,6 +63,21 @@ public class DocumentProcessingController : ControllerBase
             if (!allowedExtensions.Contains(fileExtension))
             {
                 return BadRequest($"Unsupported file type. Allowed types: {string.Join(", ", allowedExtensions)}");
+            }
+
+            // Validate content type
+            var allowedContentTypes = new[] { 
+                "application/pdf", 
+                "image/png", 
+                "image/jpeg", 
+                "image/jpg", 
+                "image/tiff", 
+                "image/bmp" 
+            };
+            
+            if (!allowedContentTypes.Contains(file.ContentType.ToLowerInvariant()))
+            {
+                return BadRequest($"Invalid content type: {file.ContentType}");
             }
 
             var jobId = Guid.NewGuid().ToString();

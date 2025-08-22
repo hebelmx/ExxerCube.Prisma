@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
             return new ProcessingMetricsService(logger, pythonConfiguration.MaxConcurrency);
         });
 
-        services.AddSingleton<HealthCheckService>();
+        services.AddScoped<HealthCheckService>();
 
         // Register domain interfaces with their implementations
         services.AddScoped<IOcrProcessingService>(provider =>

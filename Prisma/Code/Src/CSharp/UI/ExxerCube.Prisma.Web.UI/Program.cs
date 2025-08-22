@@ -16,8 +16,8 @@ builder.Services.AddMudServices();
 // Add SignalR for real-time updates
 builder.Services.AddSignalR();
 
-// Register SignalR hub as singleton
-builder.Services.AddSingleton<ProcessingHub>();
+// Register SignalR hub as scoped (SignalR hubs are scoped by default)
+builder.Services.AddScoped<ProcessingHub>();
 
 // Add OCR processing services
 var pythonModulesPath = Path.Combine(builder.Environment.ContentRootPath, "..", "..", "Python", "ocr_modules");
@@ -34,6 +34,16 @@ builder.Services.AddOcrProcessingServices(pythonConfig);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// Add API controllers
+builder.Services.AddControllers();
+
+// Add HttpClient for API calls with proper configuration
+builder.Services.AddHttpClient("api", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7062/");
+    client.Timeout = TimeSpan.FromMinutes(5);
+});
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
@@ -77,6 +87,9 @@ app.UseHttpsRedirection();
 
 
 app.UseAntiforgery();
+
+// Map API controllers
+app.MapControllers();
 
 // Map SignalR hub
 app.MapHub<ProcessingHub>("/processingHub");
