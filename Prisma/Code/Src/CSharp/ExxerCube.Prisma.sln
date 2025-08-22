@@ -1,0 +1,54 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Domain", "Domain\ExxerCube.Prisma.Domain.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Application", "Application\ExxerCube.Prisma.Application.csproj", "{17D5045C-AFBD-4494-B7F6-5188CBDAA649}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Infrastructure", "Infrastructure\ExxerCube.Prisma.Infrastructure.csproj", "{8F7D5164-4D3A-4A03-B0E1-26DC5C8FAA9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests", "Tests\ExxerCube.Prisma.Tests.csproj", "{AF4B7CD4-67C2-428E-90F5-04DA11F8007F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Web.UI", "UI\ExxerCube.Prisma.Web.UI\ExxerCube.Prisma.Web.UI.csproj", "{217B7541-5A6B-43E8-1430-765D9F66AA89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17D5045C-AFBD-4494-B7F6-5188CBDAA649}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17D5045C-AFBD-4494-B7F6-5188CBDAA649}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17D5045C-AFBD-4494-B7F6-5188CBDAA649}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17D5045C-AFBD-4494-B7F6-5188CBDAA649}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F7D5164-4D3A-4A03-B0E1-26DC5C8FAA9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F7D5164-4D3A-4A03-B0E1-26DC5C8FAA9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F7D5164-4D3A-4A03-B0E1-26DC5C8FAA9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F7D5164-4D3A-4A03-B0E1-26DC5C8FAA9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF4B7CD4-67C2-428E-90F5-04DA11F8007F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF4B7CD4-67C2-428E-90F5-04DA11F8007F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF4B7CD4-67C2-428E-90F5-04DA11F8007F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF4B7CD4-67C2-428E-90F5-04DA11F8007F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{217B7541-5A6B-43E8-1430-765D9F66AA89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{217B7541-5A6B-43E8-1430-765D9F66AA89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{217B7541-5A6B-43E8-1430-765D9F66AA89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{217B7541-5A6B-43E8-1430-765D9F66AA89}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9F4D9C48-36D8-465A-9065-D491D435A0F6}
+	EndGlobalSection
+EndGlobal

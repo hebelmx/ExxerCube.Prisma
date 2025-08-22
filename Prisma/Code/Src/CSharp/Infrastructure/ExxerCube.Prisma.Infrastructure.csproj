@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFramework>net10.0</TargetFramework>
+	<LangVersion>latest</LangVersion>
+	<Nullable>enable</Nullable>
+	  <WarningsNotAsErrors>NU1202</WarningsNotAsErrors>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<WarningsAsErrors />
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+	<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="CSnakes.Runtime" />
+	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+	<PackageReference Include="pythonnet" />
+	<PackageReference Include="System.Drawing.Common" />
+	<PackageReference Include="Newtonsoft.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
+	<ProjectReference Include="..\Application\ExxerCube.Prisma.Application.csproj" />
+  </ItemGroup>
+
+</Project>

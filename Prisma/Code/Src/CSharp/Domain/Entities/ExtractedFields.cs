@@ -1,0 +1,58 @@
+using System.Collections.Generic;
+
+namespace ExxerCube.Prisma.Domain.Entities;
+
+/// <summary>
+/// Represents structured data extracted from OCR text.
+/// </summary>
+public class ExtractedFields
+{
+    /// <summary>
+    /// Gets or sets the expediente (file number) extracted from the document.
+    /// </summary>
+    public string? Expediente { get; set; }
+
+    /// <summary>
+    /// Gets or sets the causa (cause) extracted from the document.
+    /// </summary>
+    public string? Causa { get; set; }
+
+    /// <summary>
+    /// Gets or sets the accion solicitada (requested action) extracted from the document.
+    /// </summary>
+    public string? AccionSolicitada { get; set; }
+
+    /// <summary>
+    /// Gets or sets the list of dates extracted from the document.
+    /// </summary>
+    public List<string> Fechas { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the list of monetary amounts extracted from the document.
+    /// </summary>
+    public List<AmountData> Montos { get; set; } = new();
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExtractedFields"/> class.
+    /// </summary>
+    public ExtractedFields()
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExtractedFields"/> class with specified values.
+    /// </summary>
+    /// <param name="expediente">The expediente value.</param>
+    /// <param name="causa">The causa value.</param>
+    /// <param name="accionSolicitada">The accion solicitada value.</param>
+    /// <param name="fechas">The list of dates.</param>
+    /// <param name="montos">The list of monetary amounts.</param>
+    public ExtractedFields(string? expediente, string? causa, string? accionSolicitada, List<string> fechas, List<AmountData> montos)
+    {
+        Expediente = expediente;
+        Causa = causa;
+        AccionSolicitada = accionSolicitada;
+        Fechas = fechas;
+        Montos = montos;
+    }
+}
