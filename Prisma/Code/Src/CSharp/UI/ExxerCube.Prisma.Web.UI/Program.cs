@@ -16,9 +16,20 @@ builder.Services.AddMudServices();
 // Add SignalR for real-time updates
 builder.Services.AddSignalR();
 
+// Register SignalR hub as singleton
+builder.Services.AddSingleton<ProcessingHub>();
+
 // Add OCR processing services
 var pythonModulesPath = Path.Combine(builder.Environment.ContentRootPath, "..", "..", "Python", "ocr_modules");
-builder.Services.AddOcrProcessingServices(pythonModulesPath, maxConcurrency: 5);
+var pythonConfig = new ExxerCube.Prisma.Infrastructure.Python.PythonConfiguration
+{
+    ModulesPath = pythonModulesPath,
+    PythonExecutablePath = "python",
+    MaxConcurrency = 5,
+    OperationTimeoutSeconds = 30,
+    EnableDebugging = builder.Environment.IsDevelopment()
+};
+builder.Services.AddOcrProcessingServices(pythonConfig);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

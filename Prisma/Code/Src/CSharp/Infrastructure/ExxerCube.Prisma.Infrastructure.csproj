@@ -18,7 +18,6 @@
 	<PackageReference Include="CSnakes.Runtime" />
 	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-	<PackageReference Include="pythonnet" />
 	<PackageReference Include="System.Drawing.Common" />
 	<PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>

@@ -16,16 +16,18 @@ public static class ServiceCollectionExtensions
     /// Adds OCR processing services to the service collection.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <param name="pythonModulesPath">The path to the Python modules.</param>
-    /// <param name="maxConcurrency">The maximum number of concurrent processing operations.</param>
+    /// <param name="pythonConfiguration">The Python configuration.</param>
     /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddOcrProcessingServices(this IServiceCollection services, string pythonModulesPath, int maxConcurrency = 5)
+    public static IServiceCollection AddOcrProcessingServices(this IServiceCollection services, PythonConfiguration pythonConfiguration)
     {
+        // Register Python configuration
+        services.AddSingleton(pythonConfiguration);
+
         // Register metrics and monitoring services
         services.AddSingleton<ProcessingMetricsService>(provider =>
         {
             var logger = provider.GetRequiredService<ILogger<ProcessingMetricsService>>();
-            return new ProcessingMetricsService(logger, maxConcurrency);
+            return new ProcessingMetricsService(logger, pythonConfiguration.MaxConcurrency);
         });
 
         services.AddSingleton<HealthCheckService>();
@@ -42,23 +44,37 @@ public static class ServiceCollectionExtensions
             return new OcrProcessingService(imagePreprocessor, ocrExecutor, fieldExtractor, logger, metricsService);
         });
         
-        // Register Python adapter as multiple interfaces
-        services.AddScoped<IOcrExecutor>(provider => 
+        // Register Python interop service (CSnakes-based with circuit breaker)
+        services.AddScoped<IPythonInteropService>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<PythonOcrProcessingAdapter>>();
-            return new PythonOcrProcessingAdapter(logger, pythonModulesPath);
+            var logger = provider.GetRequiredService<ILogger<CSnakesOcrProcessingAdapter>>();
+            var config = provider.GetRequiredService<PythonConfiguration>();
+            var innerService = new CSnakesOcrProcessingAdapter(logger, config.ModulesPath);
+            
+            var circuitBreakerLogger = provider.GetRequiredService<ILogger<CircuitBreakerPythonInteropService>>();
+            return new CircuitBreakerPythonInteropService(circuitBreakerLogger, innerService);
         });
-        
-        services.AddScoped<IImagePreprocessor>(provider => 
+
+        // Register domain interface implementations using the abstract Python interop service
+        services.AddScoped<IOcrExecutor>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<PythonOcrProcessingAdapter>>();
-            return new PythonOcrProcessingAdapter(logger, pythonModulesPath);
+            var logger = provider.GetRequiredService<ILogger<OcrProcessingAdapter>>();
+            var pythonInteropService = provider.GetRequiredService<IPythonInteropService>();
+            return new OcrProcessingAdapter(logger, pythonInteropService);
         });
-        
-        services.AddScoped<IFieldExtractor>(provider => 
+
+        services.AddScoped<IImagePreprocessor>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<PythonOcrProcessingAdapter>>();
-            return new PythonOcrProcessingAdapter(logger, pythonModulesPath);
+            var logger = provider.GetRequiredService<ILogger<OcrProcessingAdapter>>();
+            var pythonInteropService = provider.GetRequiredService<IPythonInteropService>();
+            return new OcrProcessingAdapter(logger, pythonInteropService);
+        });
+
+        services.AddScoped<IFieldExtractor>(provider =>
+        {
+            var logger = provider.GetRequiredService<ILogger<OcrProcessingAdapter>>();
+            var pythonInteropService = provider.GetRequiredService<IPythonInteropService>();
+            return new OcrProcessingAdapter(logger, pythonInteropService);
         });
 
         // Register file system adapters
