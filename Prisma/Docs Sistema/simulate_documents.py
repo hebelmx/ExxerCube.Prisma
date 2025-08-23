@@ -28,22 +28,36 @@ def create_base_image(text, width=800, height=1000):
     return image
 
 def add_watermark(image, text):
-    watermark = Image.new('RGBA', image.size, (255, 255, 255, 0))
-    draw = ImageDraw.Draw(watermark)
+    # Create a transparent layer for the watermark
+    watermark_layer = Image.new('RGBA', image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(watermark_layer)
+    
     try:
         font = ImageFont.truetype("arial.ttf", 50)
     except IOError:
         font = ImageFont.load_default()
 
-    text_width, text_height = draw.textsize(text, font=font)
-    x = (image.width - text_width) / 2
-    y = (image.height - text_height) / 2
-    
-    draw.text((x, y), text, font=font, fill=(255, 0, 0, 128))
-    watermark = watermark.rotate(45, expand=1)
-    
+    # Get text size
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Create a separate image for the text
+    text_image = Image.new('RGBA', (text_width, text_height), (0, 0, 0, 0))
+    text_draw = ImageDraw.Draw(text_image)
+    text_draw.text((0, 0), text, font=font, fill=(255, 0, 0, 128))
+
+    # Rotate the text image
+    rotated_text = text_image.rotate(45, expand=True, resample=Image.BICUBIC)
+
+    # Paste the rotated text onto the watermark layer
+    x = (image.width - rotated_text.width) // 2
+    y = (image.height - rotated_text.height) // 2
+    watermark_layer.paste(rotated_text, (x, y), rotated_text)
+
+    # Composite the watermark with the original image
     img_rgba = image.convert("RGBA")
-    img_watermarked = Image.alpha_composite(img_rgba, watermark)
+    img_watermarked = Image.alpha_composite(img_rgba, watermark_layer)
     
     return img_watermarked.convert("RGB")
 
