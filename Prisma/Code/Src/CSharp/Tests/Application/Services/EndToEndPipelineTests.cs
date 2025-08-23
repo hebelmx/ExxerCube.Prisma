@@ -12,6 +12,7 @@ using ExxerCube.Prisma.Infrastructure.Python;
 using Microsoft.Extensions.Logging;
 using Shouldly;
 using Xunit;
+using ExxerCube.Prisma.Tests.TestData;
 
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
@@ -60,7 +61,7 @@ public class EndToEndPipelineTests : IDisposable
     public async Task ProcessDocument_CompletePipeline_ExtractsAllFields()
     {
         // Arrange
-        var imageData = CreateTestImageData();
+        var imageData = TestImageDataGenerator.CreateSimpleTestData();
         var config = CreateDefaultProcessingConfig();
 
         // Act
@@ -98,7 +99,7 @@ public class EndToEndPipelineTests : IDisposable
     public async Task ProcessDocument_VariousFormats_ProcessesSuccessfully(string fileName)
     {
         // Arrange
-        var imageData = CreateTestImageData(fileName);
+        var imageData = TestImageDataGenerator.CreateFromTextFile(fileName);
         var config = CreateDefaultProcessingConfig();
 
         // Act
@@ -108,7 +109,12 @@ public class EndToEndPipelineTests : IDisposable
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.SourcePath.ShouldBe(imageData.SourcePath);
+        
+        // Verify OCR processing worked
         result.Value!.OCRResult.Text.ShouldNotBeNullOrEmpty();
+        result.Value!.OCRResult.ConfidenceAvg.ShouldBeGreaterThan(0);
+        
+        _logger.LogInformation("Processed {FileName} successfully", fileName);
     }
 
     /// <summary>
