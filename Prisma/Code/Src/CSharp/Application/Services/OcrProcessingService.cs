@@ -52,12 +52,19 @@ public class OcrProcessingService : IOcrProcessingService
     /// <returns>A result containing the processing result or an error.</returns>
     public async Task<Result<ProcessingResult>> ProcessDocumentAsync(ImageData imageData, ProcessingConfig config)
     {
+        // Validate input first - throw ArgumentNullException for null inputs
+        if (imageData == null)
+            throw new ArgumentNullException(nameof(imageData));
+        
+        if (config == null)
+            throw new ArgumentNullException(nameof(config));
+
         var documentId = Guid.NewGuid().ToString();
         ProcessingContext? processingContext = null;
 
         try
         {
-            // Validate input first
+            // Validate image data content
             var validationResult = ValidateImageData(imageData);
             if (!validationResult.IsSuccess)
             {
@@ -137,6 +144,13 @@ public class OcrProcessingService : IOcrProcessingService
         ProcessingConfig config, 
         int maxConcurrency = 5)
     {
+        // Validate inputs
+        if (imageDataList == null)
+            throw new ArgumentNullException(nameof(imageDataList));
+        
+        if (config == null)
+            throw new ArgumentNullException(nameof(config));
+
         var imageDataArray = imageDataList.ToArray();
         _logger.LogInformation("Starting batch processing of {DocumentCount} documents", imageDataArray.Length);
 
