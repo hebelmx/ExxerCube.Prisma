@@ -1,74 +1,144 @@
-##Project Title:
+# Project Title:
 **Automated Preprocessing Pipeline for Scanned Documents with Unknown Visual Characteristics**
 
-##1. Project Overview
+## 1. Project Overview
 This project addresses the challenge of preprocessing highly variable scanned documents originating from diverse sources across Mexico. These documents exhibit a wide range of visual degradation—from medium to very poor quality—and possess unpredictable content structures and noise patterns. In some cases, even human interpretation requires magnification tools.
 The objective is to design and validate a preprocessing pipeline that can dynamically adapt to the unique characteristics of each scanned document, improving their readiness for downstream Optical Character Recognition (OCR) without altering the underlying textual content.
 
-##2. Problem Statement
+## 2. Problem Statement
 Manual preprocessing is infeasible due to:
-The scale and heterogeneity of the documents
-
-
-The lack of prior metadata describing quality or format
-
-
-The presence of visual obstructions like RGB watermarks, overlays, and stains
-
+*   The scale and heterogeneity of the documents.
+*   The lack of prior metadata describing quality or format.
+*   The presence of visual obstructions like RGB watermarks, overlays, and stains.
 
 An automated approach is needed to intelligently assess and enhance each image before OCR is applied.
 
-##3. Methodology
-3.1. Synthetic Document Generation
-Generate a diverse corpus of synthetic (dummy) document images with controlled properties (e.g., contrast, noise, watermark types).
+## 3. Methodology
+3.1. **Synthetic Document Generation:** Generate a diverse corpus of synthetic (dummy) document images with controlled properties (e.g., contrast, noise, watermark types). These will serve as the testbed for pipeline development and evaluation.
 
+## 4. Tasks
 
-These will serve as the testbed for pipeline development and evaluation.
+### Task 1: Extract Legal and Financial Terms
+**Goal:** Extract a curated list of Spanish legal and financial terms from the provided reference documents.
+**Input:**
+*   `Articulo142.pdf`
+*   `SIARA_Manual_Civiles_v01.pdf`
+*   `LUC.pdf`
+*   `LACP.pdf`
+*   `LRASCAP.pdf`
+*   `LeyInstTecnFinanciera.pdf`
+*   `LeyInstCredito.pdf`
+**Output:** A list of Spanish legal and financial terms relevant to court-ordered financial requirements.
 
-##4. Tasks
+### Task 2: Generate Fictitious Requirements Corpus
+**Goal:** Generate a corpus of text of fictitious requirements for concept testing.
+**Input:** The legal documents from Task 1.
+**Output:** A collection of text-based requirements with the following characteristics:
+*   Diverse wording, simulating different writing styles ("junior lawyers from distinct Mexican cosmologies").
+*   Inclusion of errors: typographical, minor legalese errors, and redaction/wording issues.
+*   Inclusion of well-redacted examples.
 
-4.1 Task 1
-**Task Asigment**
+### Task 3: Classify Requirements and Propose JSON Structure
+**Goal:** Generate a classification of all possible requirements and a corresponding JSON schema.
+**Input:** The legal documents from Task 1.
+**Output:**
+1.  A classification of requirements in a tree format structure.
+2.  A proposed JSON structure for the output of the information.
 
-#Provided a curated list of legal terms for court ordered finantial requirments
-Read the reference documents to extract a curated list of spanish legal terms who can be presents on the reference documents to use
-on the pipeline to solve the present project, Articulo142.pdf, SIARA_Manual_Civiles_v01.pdf, LUC.pdf, LACP.pdf, LRASCAP.pdf,LeyInstTecnFinanciera.pdf,LeyInstCredito.pdf 
-an example of a requirment is provided, DumyPrisma1.md please not this is a fictional requirment, the pdf documents are the source of thrut as they are the law
-this sample is just provided as an example or how the document are exhibited on two paragraphs and with a water mark hash on red
-crossing the document beenig this a text document is not visible on this way so a image is also provided. DumyPrisma1.png Please noticed this is also
-a fiticious document.
-
-4.2 Task 2
-**Task Asigment**
-
-Generate a corpus of text of fictitios requirments acording to the Articulo142.pdf, SIARA_Manual_Civiles_v01.pdf, with data ficticious but reasonable sounded
-in order to make concept test, the requirments must be diverse worded as junior lawers providing from distinc mexican cosmologies, with some errors
-of each type typograical, legalese (small errors) and redaction, and also very good redacted documents must be provided.
-
-4.3 Task 3
-**Task Asigment**
-
-Generate a clasification of all posible requirments acording to the Articulo142.pdf, SIARA_Manual_Civiles_v01.pdf.
-This clasification must be generated on a tree format structure and must be acompanaided of a proposed json structured output of the information or requirment 
-needed.
-
-4.4 Task 4
-**Task Asigment**
-
-Generate a corpus of text of fictitios requirments acording to the Articulo142.pdf, SIARA_Manual_Civiles_v01.pdf, with data ficticious but reasonable sounded
-in order to make concept test, the requirments must be diverse worded as junior lawers providing from distinc mexican cosmologies, with some errors
-of each type typograical, legalese (small errors) and redaction, and also very good redacted documents must be provided.
-Each document must be acompanaided of a fictiuous hash to generate a watermarks overlays. At least 999 hundres requirments must be generated. on a simple txt or md file
-separated by a clear makr
-
+### Task 4: Generate Large Corpus with Hashes
+**Goal:** Generate a large corpus of 999 fictitious requirements, each with a fictitious hash.
+**Input:** The legal documents from Task 1.
+**Output:** A single `.md` file named `corpus_requerimientos.md` containing 999 requirements in the following format:
+```
 <--Start Requirment--->
 **requirment**
-(Text of the requeriment )
+(Text of the requeriment)
 **Hash**
-(Generated hash )
+(Generated hash)
 <--End Requirment--->
+```
 
-4.2 Task 5
-**Task Asigment**
-Write a script to simulate the printing, scaning and deterioring of the  document with the watermark, the input will be the output from the task 4
-and the ouput will be a series of Fixutures001 to Fixtures999, both pdf and png files format are required 
+### Task 5: Simulate Document Degradation
+**Goal:** Write a Python script to simulate the printing, scanning, and deterioration of the documents from Task 4.
+**Input:** The `corpus_requerimientos.md` file generated in Task 4.
+**Output:** A Python script that generates a series of PNG and PDF files named `Fixtures001` to `Fixtures999`. The script should perform the following transformations:
+*   Render the requirement text onto an image.
+*   Overlay a watermark using the hash from the input file. The watermark should be red and cross the document.
+*   Apply a variety of deterioration effects, such as noise, blur, contrast/brightness changes, rotation/skew, and stains.
+ 
+
+
+
+  Extracted Legal and Financial Terms
+
+
+  Leyes y Disposiciones (Laws and Provisions)
+   * Ley de Instituciones de Crédito
+   * Ley de Ahorro y Crédito Popular
+   * Ley de Uniones de Crédito
+   * Ley para Regular las Actividades de las Sociedades Cooperativas de Ahorro y Préstamo
+   * Ley de Fondos de Inversión
+   * Ley para Regular las Instituciones de Tecnología Financiera (Ley Fintech)
+   * Disposiciones de Carácter General
+
+
+  Autoridades y Entidades (Authorities and Entities)
+   * Comisión Nacional Bancaria y de Valores (CNBV)
+   * Secretaría de Hacienda y Crédito Público (SHCP)
+   * Autoridades Judiciales, Hacendarias Federales y Administrativas
+   * Fiscal General de la República
+   * Procurador General de Justicia Militar
+   * Tesorero de la Federación
+   * Auditoría Superior de la Federación
+   * Banco de México
+
+
+  Instituciones Financieras (Financial Institutions)
+   * Instituciones de Crédito
+   * Uniones de Crédito
+   * Sociedades Financieras Populares y Comunitarias
+   * Sociedades Cooperativas de Ahorro y Préstamo
+   * Fondos de Inversión
+   * Instituciones de Tecnología Financiera (ITF)
+
+
+  Términos Judiciales y Legales (Judicial and Legal Terms)
+   * Requerimiento de información
+   * Orden de aseguramiento
+   * Desbloqueo de cuentas
+   * Transferencia de fondos
+   * Secreto financiero
+   * Averiguación previa / Carpeta de investigación
+   * Cuerpo del delito / Probable responsabilidad
+   * Indiciado / Acusado
+   * Providencia dictada en juicio
+   * Litigio / Concurso mercantil / Quiebra
+   * Firma autógrafa / Firma electrónica
+   * Fundado y motivado
+   * Precepto legal / Hipótesis normativa
+   * RFC / CURP / Domicilio
+
+
+  Actores (Actors)
+   * Cliente / Usuario / Socio / Accionista
+   * Depositante / Deudor / Titular / Beneficiario
+   * Representante legal
+   * Servidor público
+   * Consejo de Administración / Director General / Comisario / Auditor externo
+
+
+  Operaciones y Documentos (Operations and Documents)
+   * Operaciones o servicios
+   * Saldos / Contratos / Estados de cuenta
+   * Cheques / Fichas de depósito
+   * Operaciones electrónicas / Transferencia / CLABE
+   * Órdenes de pago
+   * Factoraje financiero / Arrendamiento financiero
+   * Fideicomisos de garantía
+   * Obligaciones subordinadas
+
+
+  Sistemas y Plataformas (Systems and Platforms)
+   * SIARA (Sistema de Atención de Requerimientos de Autoridad)
+   * Portal de Gestión Documental
+   * Correo electrónico
