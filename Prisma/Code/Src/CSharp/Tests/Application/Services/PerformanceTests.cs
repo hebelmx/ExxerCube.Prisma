@@ -12,12 +12,13 @@ using ExxerCube.Prisma.Infrastructure.Python;
 using Microsoft.Extensions.Logging;
 using Shouldly;
 using Xunit;
+using ExxerCube.Prisma.Tests.TestData;
 
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Performance tests that use the real Python OCR pipeline to measure actual processing performance.
-/// These tests validate that the system meets real-world performance requirements.
+/// Performance tests for the OCR processing pipeline.
+/// These tests validate that the system meets performance requirements.
 /// </summary>
 public class PerformanceTests : IDisposable
 {
@@ -53,77 +54,60 @@ public class PerformanceTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that batch processing meets real throughput requirements with actual Python processing.
-    /// </summary>
-    [Fact]
-    [Trait("Category", "Performance")]
-    public async Task ProcessDocuments_BatchProcessing_MeetsThroughputRequirements()
-    {
-        // Arrange
-        var documents = CreateTestDocuments(10);
-        var config = CreateDefaultProcessingConfig();
-
-        // Act
-        var stopwatch = Stopwatch.StartNew();
-        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 5);
-        stopwatch.Stop();
-
-        // Assert
-        if (!result.IsSuccess)
-        {
-            _logger.LogError("Processing failed: {Error}", result.Error);
-        }
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Count.ShouldBe(10);
-        
-        // Performance requirements: 10 documents should be processed in less than 10 minutes (600 seconds)
-        // This is realistic for real Python OCR processing
-        stopwatch.Elapsed.TotalSeconds.ShouldBeLessThan(600.0);
-        
-        // Calculate throughput: should be at least 10 documents per hour (very conservative)
-        var throughput = 10.0 / (stopwatch.Elapsed.TotalMinutes / 60.0);
-        throughput.ShouldBeGreaterThan(10.0);
-        
-        _logger.LogInformation("Batch processing time: {ProcessingTime:F2} seconds", stopwatch.Elapsed.TotalSeconds);
-        _logger.LogInformation("Throughput: {Throughput:F2} documents per hour", throughput);
-        
-        // Log individual document processing times
-        foreach (var processingResult in result.Value!)
-        {
-            _logger.LogInformation("Document {SourcePath}: {TextLength} characters, {Confidence:F2}% confidence", 
-                processingResult.SourcePath, processingResult.OCRResult.Text.Length, processingResult.OCRResult.ConfidenceAvg);
-        }
-    }
-
-    /// <summary>
-    /// Tests that individual document processing meets time requirements with real Python processing.
+    /// Tests that single document processing meets time requirements.
     /// </summary>
     [Fact]
     [Trait("Category", "Performance")]
     public async Task ProcessDocument_SingleDocument_MeetsTimeRequirements()
     {
         // Arrange
-        var imageData = CreateTestImageData();
+        var imageData = TestImageDataGenerator.CreateSimpleTestData();
         var config = CreateDefaultProcessingConfig();
+        var stopwatch = Stopwatch.StartNew();
 
         // Act
-        var stopwatch = Stopwatch.StartNew();
         var result = await _processingService.ProcessDocumentAsync(imageData, config);
         stopwatch.Stop();
 
         // Assert
-        if (!result.IsSuccess)
-        {
-            _logger.LogError("Processing failed: {Error}", result.Error);
-        }
         result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
         
-        // Performance requirement: <120 seconds per document (realistic for Python OCR)
-        stopwatch.Elapsed.TotalSeconds.ShouldBeLessThan(120.0);
+        // Performance assertion: should complete within 30 seconds
+        stopwatch.ElapsedMilliseconds.ShouldBeLessThan(30000);
         
-        _logger.LogInformation("Single document processing time: {ProcessingTime:F2} seconds", stopwatch.Elapsed.TotalSeconds);
-        _logger.LogInformation("OCR Text Length: {TextLength}", result.Value!.OCRResult.Text.Length);
-        _logger.LogInformation("Confidence: {Confidence:F2}%", result.Value!.OCRResult.ConfidenceAvg);
+        _logger.LogInformation("Single document processing completed in {ElapsedMs}ms", stopwatch.ElapsedMilliseconds);
+    }
+
+    /// <summary>
+    /// Tests that batch processing meets throughput requirements.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "Performance")]
+    public async Task ProcessDocuments_BatchProcessing_MeetsThroughputRequirements()
+    {
+        // Arrange
+        var documents = Enumerable.Range(1, 10)
+            .Select(i => TestImageDataGenerator.CreateSimpleTestData())
+            .ToList();
+        var config = CreateDefaultProcessingConfig();
+        var stopwatch = Stopwatch.StartNew();
+
+        // Act
+        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 5);
+        stopwatch.Stop();
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Count.ShouldBe(10); // All documents should be processed successfully
+        
+        // Performance assertion: should complete within 60 seconds for 10 documents
+        stopwatch.ElapsedMilliseconds.ShouldBeLessThan(60000);
+        
+        var throughput = documents.Count / (stopwatch.ElapsedMilliseconds / 1000.0);
+        _logger.LogInformation("Batch processing completed {DocumentCount} documents in {ElapsedMs}ms (throughput: {Throughput:F2} docs/sec)", 
+            documents.Count, stopwatch.ElapsedMilliseconds, throughput);
     }
 
     /// <summary>
