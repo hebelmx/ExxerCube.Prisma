@@ -83,6 +83,9 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
                         WorkingDirectory = Path.GetDirectoryName(pythonScriptPath)
                     };
                     
+                    // Set TESSDATA_PREFIX environment variable for Tesseract 5.5.0
+                    startInfo.EnvironmentVariables["TESSDATA_PREFIX"] = @"C:\Program Files\Tesseract-OCR\tessdata\";
+                    
                     using var process = new Process { StartInfo = startInfo };
                     process.Start();
                     
