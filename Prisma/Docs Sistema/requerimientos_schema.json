@@ -1,0 +1,95 @@
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Esquema de Requerimiento de Autoridad Financiera",
+  "description": "Define la estructura para un requerimiento estandarizado enviado a la CNBV.",
+  "type": "object",
+  "properties": {
+    "idRequerimiento": {
+      "description": "Identificador único del requerimiento, generado por el sistema.",
+      "type": "string",
+      "pattern": "^[A-Z0-9]{5,10}/[0-9]{4}/[0-9]{6}$"
+    },
+    "fecha": {
+      "description": "Fecha de emisión del requerimiento.",
+      "type": "string",
+      "format": "date"
+    },
+    "autoridadEmisora": {
+      "description": "Nombre de la autoridad que emite el requerimiento.",
+      "type": "string"
+    },
+    "expediente": {
+      "description": "Número de expediente o causa judicial asociada.",
+      "type": "string"
+    },
+    "tipoRequerimiento": {
+      "description": "Clasificación principal del requerimiento.",
+      "type": "string",
+      "enum": [
+        "Informacion",
+        "Ejecucion",
+        "Especial"
+      ]
+    },
+    "subtipoRequerimiento": {
+      "description": "Subclasificación del requerimiento.",
+      "type": "string"
+    },
+    "fundamentoLegal": {
+      "description": "Artículos y leyes que fundamentan la solicitud.",
+      "type": "string"
+    },
+    "motivacion": {
+      "description": "Breve descripción del motivo del requerimiento (ej. Juicio Ejecutivo Mercantil, Providencia Precautoria, etc.).",
+      "type": "string"
+    },
+    "partes": {
+      "description": "Personas involucradas en el requerimiento.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombreCompleto": {"type": "string"},
+          "rfc": {"type": "string"},
+          "curp": {"type": "string"},
+          "caracter": {
+            "type": "string",
+            "enum": ["Actor", "Demandado", "Tercero", "Investigado"]
+          }
+        },
+        "required": ["nombreCompleto", "caracter"]
+      }
+    },
+    "detalle": {
+      "description": "Contenido específico de la solicitud.",
+      "type": "object",
+      "properties": {
+        "descripcion": {
+          "description": "Texto completo y detallado de lo que se solicita.",
+          "type": "string"
+        },
+        "monto": {
+          "description": "Monto monetario relevante para el requerimiento (ej. para aseguramientos).",
+          "type": "number"
+        },
+        "moneda": {"type": "string", "default": "MXN"},
+        "activoVirtual": {
+          "description": "Nombre del activo virtual, si aplica.",
+          "type": "string"
+        }
+      },
+      "required": ["descripcion"]
+    }
+  },
+  "required": [
+    "idRequerimiento",
+    "fecha",
+    "autoridadEmisora",
+    "expediente",
+    "tipoRequerimiento",
+    "fundamentoLegal",
+    "partes",
+    "detalle"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "expediente": null,
+  "causa": null,
+  "accion_solicitada": null,
+  "fechas": [],
+  "montos": [
+    {
+      "currency": "MXN",
+      "value": 3.0,
+      "original_text": "$ 3"
+    },
+    {
+      "currency": "MXN",
+      "value": 5.0,
+      "original_text": "$5"
+    },
+    {
+      "currency": "MXN",
+      "value": 4.0,
+      "original_text": "$4"
+    },
+    {
+      "currency": "MXN",
+      "value": 1.0,
+      "original_text": "$01"
+    }
+  ],
+  "metadata": {
+    "source_path": "Fixtures\\Fixtures001.png",
+    "page_number": 1,
+    "ocr_confidence_avg": 47.353591160220994,
+    "ocr_confidence_median": 51.0,
+    "language_used": "spa",
+    "processing_errors": []
+  }
+}

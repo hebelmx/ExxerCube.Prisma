@@ -100,7 +100,7 @@ class ProcessingResult(BaseModel):
     
     source_path: str
     page_number: int
-    ocr_result: OCRResult
+    ocr_result: Optional[OCRResult] = None
     extracted_fields: ExtractedFields
     output_path: Optional[str] = None
     processing_errors: List[str] = Field(default_factory=list)
