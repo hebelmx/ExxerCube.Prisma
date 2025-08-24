@@ -1,0 +1,41 @@
+# AI Document Extractors Requirements
+
+# Core dependencies
+torch>=2.0.0
+transformers>=4.35.0
+Pillow>=10.0.0
+numpy>=1.24.0
+pydantic>=2.0.0
+
+# Model-specific dependencies
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
+python-doctr>=0.7.0
+tensorflow>=2.13.0  # For DocTR
+
+# Vision-language models
+accelerate>=0.25.0
+sentencepiece>=0.1.99
+protobuf>=3.20.0
+
+# Utilities
+psutil>=5.9.0
+tqdm>=4.65.0
+requests>=2.31.0
+
+# Optional GPU acceleration
+flash-attn>=2.0.0  # Requires specific CUDA version
+
+# Development dependencies
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+pre-commit>=3.3.0
+
+# Documentation
+mkdocs>=1.5.0
+mkdocs-material>=9.0.0
+mkdocstrings>=0.23.0

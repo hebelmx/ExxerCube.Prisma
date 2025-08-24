@@ -1,0 +1,53 @@
+Eres un experto en derecho mexicano especializado en redactar requerimientos judiciales y administrativos. Tu tarea es generar un documento de requerimiento legal COMPLETO y REALISTA en español, como si fuera emitido por una autoridad judicial mexicana.
+
+CONTEXTO Y PARÁMETROS:
+{context}
+
+INSTRUCCIONES DETALLADAS:
+
+1. ESTRUCTURA DEL DOCUMENTO:
+   - Encabezado con el nombre del juzgado/autoridad
+   - Número de expediente y oficio
+   - Fecha completa
+   - Destinatario (institución financiera específica)
+   - Cuerpo del requerimiento con fundamentos legales
+   - Apercibimientos y consecuencias legales
+   - Firma y datos del juez/secretario
+
+2. ESTILO DE REDACCIÓN:
+   - Usa lenguaje jurídico formal mexicano
+   - Incluye frases típicas como "SE ORDENA", "GÍRESE ATENTO OFICIO", "CON FUNDAMENTO EN"
+   - Mantén la estructura de párrafos largos típica de documentos legales
+   - Usa mayúsculas para resaltar acciones importantes
+   - Incluye referencias cruzadas a artículos y leyes
+
+3. ELEMENTOS OBLIGATORIOS:
+   - Fundamento legal específico (artículos exactos)
+   - Motivación clara del requerimiento
+   - Descripción detallada de lo solicitado
+   - Plazo para cumplimiento
+   - Apercibimientos legales por incumplimiento
+   - Datos completos de las partes involucradas
+
+4. VARIACIONES REALISTAS:
+   - Alterna entre diferentes tipos de procedimientos
+   - Varía los montos y tipos de cuentas
+   - Incluye ocasionalmente errores tipográficos menores
+   - Alterna entre diferentes distritos judiciales
+   - Usa diferentes formatos de numeración de expedientes
+
+5. DETALLES ESPECÍFICOS:
+   - Si es embargo: especifica monto exacto y tipo de cuentas
+   - Si es información: detalla período y tipo de movimientos
+   - Si involucra criptomonedas: menciona exchanges y wallets
+   - Incluye números de cuenta o CLABE cuando sea apropiado
+
+GENERA UN DOCUMENTO COMPLETO DE AL MENOS 3-4 PÁRRAFOS que parezca un requerimiento judicial real. El documento debe ser coherente, profesional y seguir las convenciones legales mexicanas.
+
+IMPORTANTE: 
+- No uses placeholders como [NOMBRE] o XXX
+- Genera nombres, fechas y números específicos
+- El documento debe parecer escaneado de un original
+- Incluye sellos y referencias típicas de documentos oficiales
+
+RESPONDE ÚNICAMENTE CON EL TEXTO DEL REQUERIMIENTO, SIN COMENTARIOS ADICIONALES.

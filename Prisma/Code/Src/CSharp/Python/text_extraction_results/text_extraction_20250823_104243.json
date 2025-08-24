@@ -1,0 +1,68 @@
+[
+  {
+    "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture130.png",
+    "timestamp": "2025-08-23T10:41:22.600910",
+    "extractors": {
+      "DocTR": {
+        "raw_text": "PODER JUDICIAL DE LA FEDERACION\nJUZGADO DE EJECUCION DE SANCIONES\nEXPEDIENTE: PROC:567/2024\nOFICIO: 8117/20259\nFECHA: 2025-06-28\nBanco Sabadell, S.A,e\nPRESENTE\nSAUSA QUE MOTIVA EL REQUERIMIENTO\nCon fundamento en lo dispuesto porel Articulo_434 del Codigo Nacional de Procedimientos Penales, dentro del\npumero PROC-567/2024, relativo al Acci@n-Reivindicatoria, promovido por Ana Patricia Pérez Sânchez\nexpediente\nen contra de Roberto Gonzalez-Martinezzy en cumplimiento al acuerdo dictado con fecha\n2025:07-19, SEORDENAS\nACCIONS PSOLICITADA 23943\n- LoPe\nrequieretala institucion bancaria Banco Sabadell, S.A para ques dentro 5 deltérmino\nde TRESDIAS HABILES contados a partir de la recepcion delpresente,\nproceda a realizar LIBERACION DE FONDOS,sobre las cuentas quetel demandado\nRoberto Gonzalez Martinez tenga-gllegare astener en esauinstitucion.ya sean, lentas\nde ahorros chequesainversion gcualquier.otro instrumento\n>\n0\nfinanciero. ge\nAC\n5\nBede\nr\n2\na\n7\nLa institucion debera informar por escrito a este\nI\njuzgado sobrêel\no\naoe\ncumplimiento.de lo ordenado, detallando los pumeros de Cuenta afectados,\nsaldos existentes y las acciones-peilizadasses\nRE\nahA0\nAPERCIBIMIENTO\npo1\ngede\n5\nSe apercibe a la institucion bancaria queten caso deno dar\na loordenado.en el presente\noficio, sele impondra una multa equivalente\naCIEN UNIDADESDE MEDIDA Y ACTUALIZACION, sin perjuicio de demas\n0\n-\nlas\nH1\nsanciones que resulten aplicables conforme a la\n/\nleysa5\nTAC\nAsi lo acordoy firma ebC. JuezSegundo Beda\nde lo Mefcantil delPrimer\n-\nDistrito Judicial en el Estado, quien actua con Secretario deAcuerdos\nZ\nautoriza y da fe.\n8\n-\nATENTAMENTE\nJuzgado de Ejecucion de Sancionesac\nLIC. ROBERTO GONZALEZ MARTINEZ\nI\nJUEZ\n7\nLIC. GABRIELAI HERRERA NAVARRO\nSECRETARIO DE ACUERDOS",
+        "processing_time": 3.6172657012939453,
+        "confidence": 0.684,
+        "lines_count": 71,
+        "characters_count": 1758,
+        "words_count": 252
+      },
+      "PaddleOCR": {
+        "raw_text": "",
+        "processing_time": 19.772618293762207,
+        "confidence": 0.0,
+        "lines_count": 0,
+        "characters_count": 0,
+        "words_count": 0
+      }
+    }
+  },
+  {
+    "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture044.png",
+    "timestamp": "2025-08-23T10:41:58.462001",
+    "extractors": {
+      "DocTR": {
+        "raw_text": "PODER JUDIC IAL DE LAFEDERACION\nJUZGADO SEPTIMODE LOLABORAL\nEXPEDIENTE 8901 2023\nOFIC IO: 7369 2025\nFECHA: 2024-10-22\nJP Morgaot Bance 0, SA.\nPRESENTE\nCAUSA QUE MOTIVA EL REQUERIMIENTO\nCon fundamenzo en lo disporsto porel Articulo 143 de lal\nlones de ( redito, dentro del expediente\nnumero 8901/2023, relativo al Juicio Ordinano Metc. antil. promov ido por Patric ld Gomez Alvarado\nen contal de Ana Patnc  Perez Sand hez, y en cumplimiento al ac uerdo dictado con techa\n2024-12-03, SE ORDE NA\nACCION SOLIC ITADA\nSe requietea la instituc con band andlP Morgan Banc OSA para que dentro del término\nde TRESDIAS HABILES contados a partir de la rece 1on del presente.\nproceda d realizar EMBARGO EJECUTIVO sobre fas cuentas que el demandado\nAna Patrici Id Pérez Sanchez tenga o legare a tener en es instituc top, Va sean cuentas\nde ahorto, cheques.fhversion 0 cualquier ptro instrutento financtero.\nHASTA PORCA CANTIDAD DES. S00,000.00CNY\nLa unsfituc Ion debera informar por exnto d este jurgado sobre el\ncumplimiento de lo ordenido, detallando los nuimeros de cuenta afectados,\nSuldos eustentes V lasace iones realizadas,\nAPERC IBIMIENTO\nSe apercibe a la iostituc ion bahc ana que en caso de Do dar cumplimiento\na la ordenado en el presette ofic 10, se le impondra una multa equiv, alerte\naCIEN UNIDADESDE MEDIDA Y AC TUALIZAC ION, sn pertie 10 de las demas\nsanc iones que resulten aplic ables contogne a la ley\nAsi lo acordo  firma elc. Juez Primero\nde lo Mertantil del Primer\nDistrito Judic sal en el Estado, quien actia con Secfetano de Acuerdos que\nautoriza y da fe.\nATENTAMENTE\nJuzgado Septimo de lo Laboral\nLIC RIC ARDX SANC HE 1 DC OMINGUEZ\nJUEZ\nLIC CARLOS EDU ARDO VAZQUEZ ROJAS\nSEC RETARIOI DE ACUERDOS",
+        "processing_time": 3.8539230823516846,
+        "confidence": 0.835,
+        "lines_count": 38,
+        "characters_count": 1706,
+        "words_count": 289
+      },
+      "PaddleOCR": {
+        "raw_text": "",
+        "processing_time": 16.47499442100525,
+        "confidence": 0.0,
+        "lines_count": 0,
+        "characters_count": 0,
+        "words_count": 0
+      }
+    }
+  },
+  {
+    "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture013.png",
+    "timestamp": "2025-08-23T10:42:18.791060",
+    "extractors": {
+      "DocTR": {
+        "raw_text": "PODER JUDICIAL DE LA FEDERACION\nSALA PENAL DEL TRIBUNAL SUPERIOR\nEXPEDIENTE: 6789/2023\nOFICIO: 5711/202500\nFECHA: 2025-03-07\n8 -\nCI BancogsA.\nPRESENTE\n-eo\n-\n%\nge\nAUSA QUE MOTIVA EL REQUERIMIENTO\nCon'fundamento en lo dispuesto porel Articulo 1391 del Codigo de Comercio, dentro del expediente\nhumero 6789/2023, relativo al Medida Cautelàr, promgvido por Ricardo Sânchez Dominguez\nen contra de Roberto Gonzalez-Martinez,) en cumplimiento al acuerdo dictado con fecha\n2024-11-15, SEORDENAN\nSAFE\nPee\nACCIONSOLICURDA\ne\n&\n2\nSe requiereala institucion bancatiaCI BancoS.A. para que dentro.del térmige\n9 de TRESDIAS HABILES contados a partir de la recepcion del.presente,\nproceda a realizar DEPOSITOS EN GARANTIASobre las cuentas quetel demandado\nRaberto Gonzalez Martinez tenga olegare\nen 3\na\najener C\nesainstitucion.ya sean,euèntas\nde ahorro/cheques, inversion gcualquier otro instrumento financiero.\ne\n-\n-\nN\n0\nSTee\nLa institucion debera informar por escrito a este,\n7\njuzgado sobrèel\ncuoplimientade lo ordenado, detallando los agmeros de Glienta afegtados,\nsaldos existentes y, las acciones fealizadas.2e\nAPERCIBIMBENTO s9e\n51e2\n98\nSe apercibe a la institucion bancaria queen caso deno dar curplimiente\na loordenado en el presente oficio,sele\nuna\n/\nimpondra muitie equivalênte\n/\nDARCIENT UNIDADESDE MEDIDA Y ACTOALIZACION, sin perjuicio de demas\nsancionès resulten aplicables\na la\nl\nque\nconforme leys\n-\nAsil lo acordoy firmael Juez-segundo\nde lo Civil del Primer\nSetuen\nDistrito. Judicial en el Estado, quien actua con Segretario deAcuerdos\nI\nautoriza y da fe. CuOe CAPOe\n-\nATENTAMENTE\nSala Penal del Tribunal Superior\nCopOr\nLIC. MIGUEL ANGEL CASTRO FLORES\nI\nJUEZ\n2\nMARTINEZ\n7\nLIC. ANTONIO\nCERVANTES\nSECRETARIO DE ACUERDOS",
+        "processing_time": 3.807173252105713,
+        "confidence": 0.691,
+        "lines_count": 78,
+        "characters_count": 1717,
+        "words_count": 254
+      },
+      "PaddleOCR": {
+        "raw_text": "",
+        "processing_time": 21.23439908027649,
+        "confidence": 0.0,
+        "lines_count": 0,
+        "characters_count": 0,
+        "words_count": 0
+      }
+    }
+  }
+]

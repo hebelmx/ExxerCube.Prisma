@@ -1,0 +1,30 @@
+# Test Data Generator Requirements
+
+# Document generation
+Pillow>=10.0.0
+reportlab>=4.0.0
+numpy>=1.24.0
+
+# Text generation
+faker>=19.0.0
+lorem>=0.1.1
+
+# JSON processing
+pydantic>=2.0.0
+jsonschema>=4.19.0
+
+# Utilities
+tqdm>=4.65.0
+requests>=2.31.0
+
+# Optional: AI text generation
+ollama>=0.1.0  # For AI-powered corpus generation
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Development tools
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0

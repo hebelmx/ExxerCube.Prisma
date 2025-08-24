@@ -1,0 +1,74 @@
+[
+  {
+    "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture130.png",
+    "timestamp": "2025-08-23T10:34:38.537721",
+    "models": {
+      "DocTR": {
+        "fecha": "2025-06-28",
+        "autoridadEmisora": "unknown",
+        "expediente": "PROC",
+        "tipoRequerimiento": "OFICIO",
+        "subtipoRequerimiento": "unknown",
+        "fundamentoLegal": "unknown",
+        "motivacion": "unknown",
+        "partes": [],
+        "detalle": {
+          "descripcion": "unknown",
+          "monto": null,
+          "moneda": "unknown",
+          "activoVirtual": "unknown"
+        },
+        "_metadata": {
+          "model": "DocTR",
+          "processing_time": 3.52,
+          "raw_text_length": 1758,
+          "ocr_confidence": 0.684,
+          "lines_extracted": 71,
+          "raw_text_preview": "PODER JUDICIAL DE LA FEDERACION\nJUZGADO DE EJECUCION DE SANCIONES\nEXPEDIENTE: PROC:567/2024\nOFICIO: 8117/20259\nFECHA: 2025-06-28\nBanco Sabadell, S.A,e\nPRESENTE\nSAUSA QUE MOTIVA EL REQUERIMIENTO\nCon fundamento en lo dispuesto porel Articulo_434 del Codigo Nacional de Procedimientos Penales, dentro de..."
+        },
+        "processing_time": 7.556033372879028
+      },
+      "SmolVLM": {
+        "error": "Model returned non-dict result: <class 'str'>",
+        "model": "SmolVLM",
+        "processing_time": 74.06479024887085
+      }
+    }
+  },
+  {
+    "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture044.png",
+    "timestamp": "2025-08-23T10:36:00.158588",
+    "models": {
+      "DocTR": {
+        "fecha": "2024-10-22",
+        "autoridadEmisora": "unknown",
+        "expediente": "8901",
+        "tipoRequerimiento": "REQUERIMIENTO",
+        "subtipoRequerimiento": "unknown",
+        "fundamentoLegal": "unknown",
+        "motivacion": "unknown",
+        "partes": [],
+        "detalle": {
+          "descripcion": "unknown",
+          "monto": null,
+          "moneda": "unknown",
+          "activoVirtual": "unknown"
+        },
+        "_metadata": {
+          "model": "DocTR",
+          "processing_time": 3.79,
+          "raw_text_length": 1706,
+          "ocr_confidence": 0.835,
+          "lines_extracted": 38,
+          "raw_text_preview": "PODER JUDIC IAL DE LAFEDERACION\nJUZGADO SEPTIMODE LOLABORAL\nEXPEDIENTE 8901 2023\nOFIC IO: 7369 2025\nFECHA: 2024-10-22\nJP Morgaot Bance 0, SA.\nPRESENTE\nCAUSA QUE MOTIVA EL REQUERIMIENTO\nCon fundamenzo en lo disporsto porel Articulo 143 de lal\nlones de ( redito, dentro del expediente\nnumero 8901/2023,..."
+        },
+        "processing_time": 3.7858548164367676
+      },
+      "SmolVLM": {
+        "error": "Model returned non-dict result: <class 'smolvlm_extractor.Requerimiento'>",
+        "model": "SmolVLM",
+        "processing_time": 238.66014504432678
+      }
+    }
+  }
+]
