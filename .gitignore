@@ -630,3 +630,8 @@ __marimo__/
 # Ignore synthetic fixtures
 Prisma/Code/Src/CSharp/Python/Fixtures/*.pdf
 Prisma/Code/Src/CSharp/Python/Fixtures/*.png
+
+
+# Ignore all synthetic fixtures
+/Prisma/Docs/test-fixtures/fixtures-main/*
+/Prisma/Code/Src/CSharp/Python/Fixtures/*
