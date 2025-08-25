@@ -65,7 +65,9 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
                 };
 
                 // Execute OCR using CSnakes-generated interface
-                var result = _ocrWrapper.ExecuteOcr(imageData.Data, configDict);
+                using var pyConfigDict = PyObject.From(configDict);
+                var pyReadOnlyDict = pyConfigDict.As<IReadOnlyDictionary<string, PyObject>>();
+                var result = _ocrWrapper.ExecuteOcr(imageData.Data, pyReadOnlyDict);
                 
                 // Result is already a dictionary
                 var resultDict = result as IDictionary<string, object> ?? new Dictionary<string, object>();
@@ -316,7 +318,8 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             try
             {
                 var amounts = _ocrWrapper.ExtractAmountsFromText(text);
-                var result = ConvertAmountsFromPython(amounts);
+                var amountsList = amounts as IList<object> ?? new List<object>();
+                var result = ConvertAmountsFromPython(amountsList);
                 return Result<List<AmountData>>.Success(result);
             }
             catch (Exception ex)
@@ -342,21 +345,19 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
     /// <summary>
     /// Converts Python amount data to C# AmountData objects.
     /// </summary>
-    private static List<AmountData> ConvertAmountsFromPython(PyObject pythonAmounts)
+    private static List<AmountData> ConvertAmountsFromPython(IList<object> pythonAmounts)
     {
         var amounts = new List<AmountData>();
 
-        var amountsList = pythonAmounts.As<List<PyObject>>();
-        if (amountsList != null)
+        foreach (var amountObj in pythonAmounts)
         {
-            foreach (var amountObj in amountsList)
+            if (amountObj is IDictionary<string, object> amountDict)
             {
-                var amountDict = amountObj.AsReadOnlyDictionary();
                 var amount = new AmountData
                 {
-                    Value = amountDict.TryGetValue("value", out var val) ? val.As<decimal>() : 0.0m,
-                    Currency = amountDict.TryGetValue("currency", out var curr) ? curr.As<string>() ?? "" : "",
-                    OriginalText = amountDict.TryGetValue("original_text", out var orig) ? orig.As<string>() ?? "" : ""
+                    Value = amountDict.TryGetValue("value", out var val) ? Convert.ToDecimal(val) : 0.0m,
+                    Currency = amountDict.TryGetValue("currency", out var curr) ? curr?.ToString() ?? "" : "",
+                    OriginalText = amountDict.TryGetValue("original_text", out var orig) ? orig?.ToString() ?? "" : ""
                 };
                 amounts.Add(amount);
             }
