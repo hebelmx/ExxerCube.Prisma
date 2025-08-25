@@ -1,0 +1,19 @@
+"""
+PaddleOCR Modular Extractor - Clean separation using modules.
+"""
+
+from typing import Dict, Any, Optional
+from PIL import Image
+import numpy as np
+
+from .base_extractor_v2 import ModularExtractor
+
+
+class PaddleModularExtractor(ModularExtractor):
+    """
+    PaddleOCR extractor using modular architecture.
+    Single Responsibility: Coordinate PaddleOCR-specific extraction.
+    """
+    
+    def _initialize_extractor(self):
+        """Initialize PaddleOCR-specific components."""\n        # Get configuration\n        extractor_config = self.config_manager.get_extractor_config('paddleocr')\n        \n        self.use_angle_cls = extractor_config.get('use_angle_cls', True)\n        self.lang = extractor_config.get('lang', 'es')\n        self.use_gpu = extractor_config.get('use_gpu', True)\n        \n        # Load PaddleOCR model\n        self._load_components()\n    \n    def _load_components(self):\n        \"\"\"Load PaddleOCR model.\"\"\"\n        with self.performance_monitor.track_operation(\"model_loading\"):\n            from paddleocr import PaddleOCR\n            \n            self.ocr_model = PaddleOCR(\n                use_angle_cls=self.use_angle_cls,\n                lang=self.lang,\n                use_gpu=self.use_gpu,\n                show_log=False\n            )\n    \n    def _extract_text(self, image: Image.Image) -> str:\n        \"\"\"\n        Extract text using PaddleOCR through TextExtractor.\n        \n        Args:\n            image: PIL Image\n            \n        Returns:\n            Extracted text\n        \"\"\"\n        with self.performance_monitor.track_operation(\n            \"text_extraction\",\n            model_type=\"paddleocr\"\n        ):\n            # Convert PIL image to numpy array\n            image_array = np.array(image)\n            \n            # Use TextExtractor module for OCR\n            raw_text = self.text_extractor.extract_with_ocr_model(\n                model=self.ocr_model,\n                image=image_array\n            )\n            \n            # Apply post-processing if needed\n            return self._post_process_text(raw_text)\n    \n    def _post_process_text(self, text: str) -> str:\n        \"\"\"\n        Post-process extracted text to improve parsing.\n        \n        Args:\n            text: Raw extracted text\n            \n        Returns:\n            Processed text\n        \"\"\"\n        # Apply Spanish legal document specific processing\n        lines = text.split('\\n')\n        processed_lines = []\n        \n        for line in lines:\n            line = line.strip()\n            if line:\n                # Common patterns in Spanish legal documents\n                line = line.replace('Núm.', 'Numero:')\n                line = line.replace('No.', 'Numero:')\n                line = line.replace('Expediente:', 'expediente:')\n                line = line.replace('Fecha:', 'fecha:')\n                processed_lines.append(line)\n        \n        # Try to create a JSON-like structure\n        if processed_lines:\n            json_like = '{\\n'\n            for line in processed_lines:\n                if ':' in line:\n                    key, value = line.split(':', 1)\n                    key = key.strip().replace(' ', '_').lower()\n                    value = value.strip()\n                    json_like += f'  \"{key}\": \"{value}\",\\n'\n            json_like = json_like.rstrip(',\\n') + '\\n}'\n            return json_like\n        \n        return text\n    \n    @property\n    def device_info(self) -> Dict[str, Any]:\n        \"\"\"Get PaddleOCR-specific information.\"\"\"\n        base_info = super().device_info\n        base_info.update({\n            \"model_type\": \"paddleocr\",\n            \"use_angle_cls\": self.use_angle_cls,\n            \"language\": self.lang,\n            \"use_gpu\": self.use_gpu\n        })\n        return base_info

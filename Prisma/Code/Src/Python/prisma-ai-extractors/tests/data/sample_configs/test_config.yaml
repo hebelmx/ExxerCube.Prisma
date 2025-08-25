@@ -1,0 +1,89 @@
+# Test configuration for prisma-ai-extractors
+# This configuration is optimized for testing with mocks and fast execution
+
+extractors:
+  smolvlm:
+    model_id: "test-smolvlm-model"
+    max_new_tokens: 128
+    temperature: 0.0
+    device: "cpu"
+    dtype: "float32"
+    use_flash_attention: false
+  
+  paddle:
+    use_angle_cls: false
+    lang: "es"
+    use_gpu: false
+    show_log: false
+    det_db_thresh: 0.3
+    det_db_box_thresh: 0.6
+    det_db_unclip_ratio: 1.5
+    det_max_side_len: 960
+    rec_batch_num: 6
+  
+  doctr:
+    det_arch: "db_resnet50"
+    reco_arch: "crnn_vgg16_bn"
+    pretrained: false
+    assume_straight_pages: true
+    straighten_pages: false
+    preserve_aspect_ratio: true
+    symmetric_pad: true
+  
+  got_ocr2:
+    model_path: "test-got-ocr2-model"
+    device: "cpu"
+    dtype: "float32"
+    max_length: 4096
+
+processing:
+  batch_size: 1
+  timeout: 30  # Reduced for testing
+  max_image_size: 1024
+  retry_attempts: 2
+  max_concurrent: 2
+  memory_limit_mb: 2048
+
+validation:
+  required_fields:
+    - "fecha"
+    - "autoridadEmisora"
+  allow_unknown: true
+  strict_mode: false
+  date_formats:
+    - "%Y-%m-%d"
+    - "%d/%m/%Y"
+    - "%d-%m-%Y"
+  
+performance:
+  enable_monitoring: true
+  track_memory: true
+  track_gpu_memory: false  # Disabled for CPU testing
+  profile_operations: false
+  memory_limit_mb: 1024
+  gpu_memory_fraction: 0.5
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: null
+  max_file_size: "10MB"
+  backup_count: 3
+  enable_console: true
+
+testing:
+  mock_models: true
+  use_cpu_only: true
+  disable_gpu: true
+  fast_mode: true
+  skip_slow_tests: false
+  enable_benchmarks: false
+  test_data_path: "tests/data"
+  fixture_path: "tests/data/fixtures"
+  output_path: "tests/data/outputs"
+
+debug:
+  save_intermediate_results: false
+  verbose_errors: true
+  enable_profiling: false
+  trace_operations: false
