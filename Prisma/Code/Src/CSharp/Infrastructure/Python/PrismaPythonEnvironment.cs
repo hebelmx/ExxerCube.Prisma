@@ -57,9 +57,9 @@ public static class PrismaPythonEnvironment
 
                     services
                             .WithPython()
-                            .WithHome(appDataPath)
+                            .WithHome(Directory.GetCurrentDirectory()) // CSnakes will find the Python files
                             .WithVirtualEnvironment(venvPath)
-                            .WithPipInstaller() // Use pip to install packages from requirements.txt
+                            .WithUvInstaller() // Use pip to install packages from requirements.txt
                             .FromRedistributable(); // Download Python 3.12 and store it locally
                 });
 

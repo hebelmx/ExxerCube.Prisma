@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+   <!-- "Target framework centrally manged do not add another here  -->
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-ExxerCube.Prisma.Web.UI-889a571d-e37b-47ea-b986-9e8601044c7a</UserSecretsId>

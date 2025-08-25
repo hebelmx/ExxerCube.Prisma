@@ -1,5 +1,10 @@
 <Project>
 	<PropertyGroup>
+
+		<!-- Target framework centrally manged do not add another on projects -->
+
+		<TargetFramework>net9.0</TargetFramework>
+
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>

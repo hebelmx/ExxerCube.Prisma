@@ -47,8 +47,8 @@ public static class ServiceCollectionExtensions
         // Register Python interop service (CSnakes-based with circuit breaker)
         services.AddScoped<IPythonInteropService>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<CSnakesOcrProcessingAdapter>>();
-            var innerService = new CSnakesOcrProcessingAdapter(logger);
+            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+            var innerService = new PrismaOcrWrapperAdapter(logger);
             
             var circuitBreakerLogger = provider.GetRequiredService<ILogger<CircuitBreakerPythonInteropService>>();
             return new CircuitBreakerPythonInteropService(circuitBreakerLogger, innerService);

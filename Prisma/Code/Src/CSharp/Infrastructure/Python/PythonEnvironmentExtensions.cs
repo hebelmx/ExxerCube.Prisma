@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Python.Wrappers;
 using CSnakes.Runtime;
 
 namespace ExxerCube.Prisma.Infrastructure.Python;
@@ -27,35 +26,31 @@ public static class PythonEnvironmentExtensions
         });
 
         // Register CSnakes wrapper services
-        services.AddScoped<ExxerCube.Prisma.Infrastructure.Python.Wrappers.IPrismaOcrWrapper>(provider =>
-        {
-            return PrismaOcrWrapper.Create();
-        });
 
-        // Register the main CSnakes OCR processing adapter
+        // Register the main Prisma OCR wrapper adapter
         services.AddScoped<IPythonInteropService>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<CSnakesOcrProcessingAdapter>>();
-            return new CSnakesOcrProcessingAdapter(logger);
+            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+            return new PrismaOcrWrapperAdapter(logger);
         });
 
         // Register other interfaces with the same adapter
         services.AddScoped<IImagePreprocessor>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<CSnakesOcrProcessingAdapter>>();
-            return new CSnakesOcrProcessingAdapter(logger);
+            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+            return new PrismaOcrWrapperAdapter(logger);
         });
 
         services.AddScoped<IOcrExecutor>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<CSnakesOcrProcessingAdapter>>();
-            return new CSnakesOcrProcessingAdapter(logger);
+            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+            return new PrismaOcrWrapperAdapter(logger);
         });
 
         services.AddScoped<IFieldExtractor>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<CSnakesOcrProcessingAdapter>>();
-            return new CSnakesOcrProcessingAdapter(logger);
+            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+            return new PrismaOcrWrapperAdapter(logger);
         });
 
         return services;

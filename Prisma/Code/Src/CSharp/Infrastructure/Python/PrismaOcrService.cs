@@ -126,7 +126,7 @@ public class PrismaOcrService : IOcrProcessingService
             }
 
             // Extract successful results
-            var successfulResults = taskResults.Where(r => r.IsSuccess).Select(r => r.Value).ToList();
+            var successfulResults = taskResults.Where(r => r.IsSuccess).Select(r => r.Value!).ToList();
             
             _logger.LogInformation("Batch OCR processing completed successfully for {Count} images", successfulResults.Count);
             return Result<List<ProcessingResult>>.Success(successfulResults);

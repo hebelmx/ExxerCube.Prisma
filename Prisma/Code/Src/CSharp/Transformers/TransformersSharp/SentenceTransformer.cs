@@ -82,7 +82,6 @@ public class SentenceTransformer(PyObject transformerObject) : IEmbeddingGenerat
             }
 
             return embeddings;
-
         }, cancellationToken);
     }
 

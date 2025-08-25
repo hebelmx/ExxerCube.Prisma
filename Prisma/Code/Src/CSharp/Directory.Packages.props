@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <ItemGroup>
-    <PackageVersion Include="CSnakes.Runtime" Version="2.0.0-beta.268" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Polly" Version="8.6.3" />
-    <PackageVersion Include="System.Drawing.Common" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageVersion Include="xunit.v3" Version="3.0.1" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
-    <PackageVersion Include="xunit.analyzers" Version="1.24.0" />
-    <PackageVersion Include="Shouldly" Version="4.3.0" />
-    <PackageVersion Include="NSubstitute" Version="5.3.0" />
-    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="Meziantou.Extensions.Logging.Xunit.v3" Version="1.1.12" />
-    <PackageVersion Include="StrykerMutator.Core" Version="0.9.0" />
-    <PackageVersion Include="Microsoft.Playwright" Version="1.54.0" />
-    <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="MudBlazor" Version="8.11" />
-    <PackageVersion Include="Extensions.MudBlazor.StaticInput" Version="3.2.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0-preview.7.25380.108" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.8.0" />
-    <PackageVersion Include="Microsoft.ML.Tokenizers" Version="2.0.0-preview.25373.1" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageVersion Include="CSnakes.Runtime" Version="1.2.1" />
+
+		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.Logging" Version="9.0.8" />
+		<PackageVersion Include="Polly" Version="8.6.3" />
+		<PackageVersion Include="System.Drawing.Common" Version="9.0.8" />
+		<PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+		<PackageVersion Include="xunit.v3" Version="3.0.1" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+		<PackageVersion Include="xunit.analyzers" Version="1.24.0" />
+		<PackageVersion Include="Shouldly" Version="4.3.0" />
+		<PackageVersion Include="NSubstitute" Version="5.3.0" />
+		<PackageVersion Include="coverlet.collector" Version="6.0.4" />
+		<PackageVersion Include="Meziantou.Extensions.Logging.Xunit.v3" Version="1.1.12" />
+		<PackageVersion Include="StrykerMutator.Core" Version="0.9.0" />
+		<PackageVersion Include="Microsoft.Playwright" Version="1.54.0" />
+		<PackageVersion Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.8" />
+		<PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8" />
+		<PackageVersion Include="MudBlazor" Version="8.11" />
+		<PackageVersion Include="Extensions.MudBlazor.StaticInput" Version="3.2.1" />
+		<PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.8" />
+		<PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.8.0" />
+		<PackageVersion Include="Microsoft.ML.Tokenizers" Version="2.0.0-preview.25373.1" />
+	</ItemGroup>
 </Project>

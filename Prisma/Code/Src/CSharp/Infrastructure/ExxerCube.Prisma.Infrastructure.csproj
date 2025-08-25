@@ -1,17 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>net10.0</TargetFramework>
+	<!-- "Target framework centrally manged do not add another here"  -->
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	  <NoWarn>NU1605;1008</NoWarn>
-	<!-- CSnakes Configuration -->
-	<EmbedPythonSources>true</EmbedPythonSources>
-	<DefaultPythonItems>true</DefaultPythonItems>
-	<PythonRoot>Python</PythonRoot>
-	<WarningsNotAsErrors>NU1605;1008</WarningsNotAsErrors>
+	  <NoWarn>NU1605;1008;CS1591</NoWarn>
+	<WarningsNotAsErrors>NU1605;1008;CS1591</WarningsNotAsErrors>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Python\python\*.py" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="Python\python\*.py" SourceItemType="Python">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AdditionalFiles>
+  </ItemGroup>
 
   <ItemGroup>
 	<PackageReference Include="CSnakes.Runtime" />
@@ -28,6 +34,10 @@
   <ItemGroup>
 	<ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
 	<ProjectReference Include="..\Application\ExxerCube.Prisma.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Python\Wrappers\" />
   </ItemGroup>
 
 </Project>

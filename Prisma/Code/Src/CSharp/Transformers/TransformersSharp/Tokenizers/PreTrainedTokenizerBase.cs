@@ -70,7 +70,7 @@ public class PreTrainedTokenizerBase : Tokenizer
         return TransformerEnvironment.TransformersWrapper.TokenizerTextAsNdarray(TokenizerObject, text).AsInt64ReadOnlySpan();
     }
 
-    #region Microsoft.ML.Tokenizers.Tokenizer
+    // Microsoft.ML.Tokenizers.Tokenizer
 
     /// <summary>
     /// Encodes the given text into a sequence of tokens with their corresponding offsets.
@@ -148,5 +148,5 @@ public class PreTrainedTokenizerBase : Tokenizer
         return OperationStatus.Done;
     }
 
-    #endregion Microsoft.ML.Tokenizers.Tokenizer
+    // Microsoft.ML.Tokenizers.Tokenizer
 }
