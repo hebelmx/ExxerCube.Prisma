@@ -8,6 +8,9 @@ namespace TransformersSharp.Pipelines
     /// </summary>
     public class Pipeline
     {
+        /// <summary>
+        /// Gets the device type the pipeline is running on.
+        /// </summary>
         public string DeviceType { get; private set; }
 
         internal PyObject PipelineObject { get; }
@@ -29,6 +32,10 @@ namespace TransformersSharp.Pipelines
         }
 
         private PreTrainedTokenizerBase? _tokenizer = null;
+        
+        /// <summary>
+        /// Gets the tokenizer associated with this pipeline.
+        /// </summary>
         public PreTrainedTokenizerBase Tokenizer
         {
             get

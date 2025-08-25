@@ -3,17 +3,41 @@ using TransformersSharp.Models;
 
 namespace TransformersSharp.Pipelines;
 
+/// <summary>
+/// A pipeline for image classification tasks using transformer models.
+/// </summary>
 public class ImageClassificationPipeline : Pipeline
 {
+    /// <summary>
+    /// Represents the result of an image classification.
+    /// </summary>
+    /// <summary>
+    /// Represents the result of an image classification.
+    /// </summary>
     public struct ClassificationResult
     {
+        /// <summary>
+        /// Gets or sets the classification label.
+        /// </summary>
         public string Label { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the confidence score for the classification.
+        /// </summary>
         public float Score { get; set; }
     }
 
     internal ImageClassificationPipeline(PyObject pipelineObject) : base(pipelineObject)
     {
     }
+    /// <summary>
+    /// Creates a new instance of the <see cref="ImageClassificationPipeline"/> class from a model.
+    /// </summary>
+    /// <param name="model">The model name or path to use for image classification.</param>
+    /// <param name="torchDtype">The torch data type to use for the model.</param>
+    /// <param name="device">The device to run the model on.</param>
+    /// <param name="trustRemoteCode">Whether to trust remote code when loading the model.</param>
+    /// <returns>A new instance of <see cref="ImageClassificationPipeline"/>.</returns>
     public static ImageClassificationPipeline FromModel(string model, TorchDtype? torchDtype = null, string? device = null, bool trustRemoteCode = false)
     {
         return new ImageClassificationPipeline(TransformerEnvironment.TransformersWrapper.Pipeline(
