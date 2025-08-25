@@ -16,8 +16,8 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Python;
 /// </summary>
 public class CSnakesOcrProcessingAdapterTests : IDisposable
 {
-    private readonly ILogger<CSnakesOcrProcessingAdapter> _loggerMock;
-    private readonly IPrismaOcrWrapper _ocrWrapperMock;
+    private readonly ILogger<CSnakesOcrProcessingAdapter> _logger;
+    private readonly IPrismaOcrWrapper _ocrWrapper;
     private readonly CSnakesOcrProcessingAdapter _adapter;
 
     /// <summary>
@@ -25,12 +25,12 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
     /// </summary>
     public CSnakesOcrProcessingAdapterTests()
     {
-        _loggerMock = Substitute.For<ILogger<CSnakesOcrProcessingAdapter>>();
-        _ocrWrapperMock = Substitute.For<IPrismaOcrWrapper>();
-        
+        _logger = Substitute.For<ILogger<CSnakesOcrProcessingAdapter>>();
+        _ocrWrapper = Substitute.For<IPrismaOcrWrapper>();
+
         // Create adapter with mocked wrapper for testing
         // Note: The current implementation throws NotImplementedException, so we'll test the fallback behavior
-        _adapter = new CSnakesOcrProcessingAdapter(_loggerMock);
+        _adapter = new CSnakesOcrProcessingAdapter(_logger);
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
             ["language_used"] = "spa"
         };
 
-        _ocrWrapperMock.ExecuteOcr(Arg.Any<byte[]>(), Arg.Any<Dictionary<string, object>>()).Returns(expectedResult);
+        _ocrWrapper.ExecuteOcr(Arg.Any<byte[]>(), Arg.Any<Dictionary<string, object>>()).Returns(expectedResult);
 
         // Act
         var result = await _adapter.ExecuteOcrAsync(imageData, config);
@@ -110,7 +110,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
             ["language_used"] = "spa"
         };
 
-        _ocrWrapperMock.ExecuteOcr(Arg.Any<byte[]>(), Arg.Any<Dictionary<string, object>>()).Returns(errorResult);
+        _ocrWrapper.ExecuteOcr(Arg.Any<byte[]>(), Arg.Any<Dictionary<string, object>>()).Returns(errorResult);
 
         // Act
         var result = await _adapter.ExecuteOcrAsync(imageData, config);
@@ -148,7 +148,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
             }
         };
 
-        _ocrWrapperMock.ExtractFieldsFromText(text, confidence).Returns(expectedResult);
+        _ocrWrapper.ExtractFieldsFromText(text, confidence).Returns(expectedResult);
 
         // Act
         var result = await _adapter.ExtractFieldsAsync(text, confidence);
@@ -168,7 +168,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         // Arrange
         var text = "Test document with expediente EXP-2024-001";
 
-        _ocrWrapperMock.ExtractExpedienteFromText(text).Returns("EXP-2024-001");
+        _ocrWrapper.ExtractExpedienteFromText(text).Returns("EXP-2024-001");
 
         // Act
         var result = await _adapter.ExtractExpedienteAsync(text);
@@ -206,7 +206,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         // Arrange
         var text = "Test document with causa information";
 
-        _ocrWrapperMock.ExtractCausaFromText(text).Returns("Test causa");
+        _ocrWrapper.ExtractCausaFromText(text).Returns("Test causa");
 
         // Act
         var result = await _adapter.ExtractCausaAsync(text);
@@ -226,7 +226,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         // Arrange
         var text = "Test document with accion solicitada";
 
-        _ocrWrapperMock.ExtractAccionSolicitadaFromText(text).Returns("Test accion");
+        _ocrWrapper.ExtractAccionSolicitadaFromText(text).Returns("Test accion");
 
         // Act
         var result = await _adapter.ExtractAccionSolicitadaAsync(text);
@@ -247,7 +247,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         var text = "Test document with dates 2024-01-01 and 2024-01-15";
         var expectedDates = new List<string> { "2024-01-01", "2024-01-15" };
 
-        _ocrWrapperMock.ExtractDatesFromText(text).Returns(expectedDates);
+        _ocrWrapper.ExtractDatesFromText(text).Returns(expectedDates);
 
         // Act
         var result = await _adapter.ExtractDatesAsync(text);
@@ -282,7 +282,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
             }
         };
 
-        _ocrWrapperMock.ExtractAmountsFromText(text).Returns(expectedAmounts);
+        _ocrWrapper.ExtractAmountsFromText(text).Returns(expectedAmounts);
 
         // Act
         var result = await _adapter.ExtractAmountsAsync(text);
@@ -299,7 +299,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
     public void Constructor_WithValidLogger_ShouldInitializeSuccessfully()
     {
         // Arrange & Act
-        var adapter = new CSnakesOcrProcessingAdapter(_loggerMock);
+        var adapter = new CSnakesOcrProcessingAdapter(_logger);
 
         // Assert
         Assert.NotNull(adapter);
@@ -326,7 +326,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         var config = new OCRConfig { Language = "spa" };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => 
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _adapter.ExecuteOcrAsync(null!, config));
     }
 
@@ -341,7 +341,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         var imageData = new ImageData { Data = new byte[] { 1, 2, 3 } };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => 
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _adapter.ExecuteOcrAsync(imageData, null!));
     }
 
@@ -353,7 +353,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
     public async Task ExtractFieldsAsync_WithEmptyText_ShouldThrowArgumentException()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             _adapter.ExtractFieldsAsync("", 85.5f));
     }
 
