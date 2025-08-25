@@ -48,8 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPythonInteropService>(provider =>
         {
             var logger = provider.GetRequiredService<ILogger<CSnakesOcrProcessingAdapter>>();
-            var config = provider.GetRequiredService<PythonConfiguration>();
-            var innerService = new CSnakesOcrProcessingAdapter(logger, config.ModulesPath);
+            var innerService = new CSnakesOcrProcessingAdapter(logger);
             
             var circuitBreakerLogger = provider.GetRequiredService<ILogger<CircuitBreakerPythonInteropService>>();
             return new CircuitBreakerPythonInteropService(circuitBreakerLogger, innerService);
