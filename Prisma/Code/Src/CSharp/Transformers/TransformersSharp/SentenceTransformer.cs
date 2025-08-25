@@ -4,8 +4,20 @@ using System.Numerics.Tensors;
 
 namespace TransformersSharp;
 
+/// <summary>
+/// A sentence transformer that generates embeddings for text using transformer models.
+/// </summary>
 public class SentenceTransformer(PyObject transformerObject) : IEmbeddingGenerator<string, Embedding<float>>
 {
+    /// <summary>
+    /// Creates a new instance of the <see cref="SentenceTransformer"/> class from a model.
+    /// </summary>
+    /// <param name="model">The model name or path to use for sentence transformation.</param>
+    /// <param name="device">The device to run the model on.</param>
+    /// <param name="cacheDir">The directory to cache the model in.</param>
+    /// <param name="revision">The model revision to use.</param>
+    /// <param name="trustRemoteCode">Whether to trust remote code when loading the model.</param>
+    /// <returns>A new instance of <see cref="SentenceTransformer"/>.</returns>
     public static SentenceTransformer FromModel(string model, string? device = null, string? cacheDir = null, string? revision = null, bool trustRemoteCode = false)
     {
         return new SentenceTransformer(TransformerEnvironment.SentenceTransformersWrapper.SentenceTransformer(
@@ -16,17 +28,32 @@ public class SentenceTransformer(PyObject transformerObject) : IEmbeddingGenerat
             trustRemoteCode));
     }
 
+    /// <summary>
+    /// Disposes the sentence transformer and releases resources.
+    /// </summary>
     public void Dispose()
     {
         transformerObject.Dispose();
     }
 
+    /// <summary>
+    /// Generates an embedding for a single sentence.
+    /// </summary>
+    /// <param name="sentence">The sentence to generate an embedding for.</param>
+    /// <returns>The embedding as a float array.</returns>
     public float[] Generate(string sentence)
     {
         var result = TransformerEnvironment.SentenceTransformersWrapper.EncodeSentence(transformerObject, sentence);
         return result.AsFloatReadOnlySpan().ToArray();
     }
 
+    /// <summary>
+    /// Generates embeddings for multiple sentences asynchronously.
+    /// </summary>
+    /// <param name="values">The sentences to generate embeddings for.</param>
+    /// <param name="options">Optional embedding generation options.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    /// <returns>A task that represents the asynchronous operation and contains the generated embeddings.</returns>
     public Task<GeneratedEmbeddings<Embedding<float>>> GenerateAsync(IEnumerable<string> values, EmbeddingGenerationOptions? options = null, CancellationToken cancellationToken = default)
     {
         return Task.Run(() =>
@@ -59,6 +86,13 @@ public class SentenceTransformer(PyObject transformerObject) : IEmbeddingGenerat
         }, cancellationToken);
     }
 
+    /// <summary>
+    /// Gets a service of the specified type and optional key.
+    /// </summary>
+    /// <param name="serviceType">The type of service to retrieve.</param>
+    /// <param name="serviceKey">Optional service key.</param>
+    /// <returns>The service instance if found; otherwise, null.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when serviceType is null.</exception>
     public object? GetService(Type serviceType, object? serviceKey = null) =>
         serviceType is null ? throw new ArgumentNullException(nameof(serviceType)) :
         serviceKey is not null ? null :

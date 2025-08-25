@@ -3,6 +3,9 @@ using TransformersSharp.Tokenizers;
 
 namespace TransformersSharp.Pipelines
 {
+    /// <summary>
+    /// Base class for transformer pipelines.
+    /// </summary>
     public class Pipeline
     {
         public string DeviceType { get; private set; }

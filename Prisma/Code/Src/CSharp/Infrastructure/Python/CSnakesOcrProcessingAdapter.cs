@@ -385,12 +385,6 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
         {
             try
             {
-                if (_ocrWrapper == null)
-                {
-                    _logger.LogWarning("CSnakes wrapper not available, returning fallback result");
-                    return Result<string?>.Failure("CSnakes integration not yet fully implemented. Use the process-based adapter for now.");
-                }
-
                 var accion = _ocrWrapper.ExtractAccionSolicitadaFromText(text);
                 
                 if (string.IsNullOrWhiteSpace(accion))
@@ -425,12 +419,6 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
         {
             try
             {
-                if (_ocrWrapper == null)
-                {
-                    _logger.LogWarning("CSnakes wrapper not available, returning fallback result");
-                    return Result<List<string>>.Failure("CSnakes integration not yet fully implemented. Use the process-based adapter for now.");
-                }
-
                 var dates = _ocrWrapper.ExtractDatesFromText(text);
                 
                 if (dates == null || dates.Count == 0)
@@ -465,12 +453,6 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
         {
             try
             {
-                if (_ocrWrapper == null)
-                {
-                    _logger.LogWarning("CSnakes wrapper not available, returning fallback result");
-                    return Result<List<AmountData>>.Failure("CSnakes integration not yet fully implemented. Use the process-based adapter for now.");
-                }
-
                 var pythonAmounts = _ocrWrapper.ExtractAmountsFromText(text);
                 
                 if (pythonAmounts == null || pythonAmounts.Count == 0)

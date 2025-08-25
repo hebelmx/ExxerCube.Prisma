@@ -5,6 +5,9 @@ using TransformersSharp.Pipelines;
 
 namespace TransformersSharp
 {
+    /// <summary>
+    /// Provides a static environment for transformer models and utilities.
+    /// </summary>
     public static class TransformerEnvironment
     {
         private static readonly IPythonEnvironment? _env;
@@ -77,6 +80,14 @@ namespace TransformersSharp
             wrapperModule.HuggingfaceLogin(token);
         }
 
+        /// <summary>
+        /// Creates a new pipeline for the specified task and model.
+        /// </summary>
+        /// <param name="task">The task to perform (e.g., "text-generation", "image-classification").</param>
+        /// <param name="model">The model to use for the pipeline.</param>
+        /// <param name="tokenizer">The tokenizer to use for the pipeline.</param>
+        /// <param name="torchDtype">The torch data type to use.</param>
+        /// <returns>A new pipeline instance.</returns>
         public static Pipeline Pipeline(string? task = null, string? model = null, string? tokenizer = null, TorchDtype? torchDtype = null)
         {
             var wrapperModule = Env.TransformersWrapper();
@@ -86,6 +97,9 @@ namespace TransformersSharp
             return new Pipeline(pipeline);
         }
 
+        /// <summary>
+        /// Disposes the transformer environment and releases resources.
+        /// </summary>
         public static void Dispose()
         {
             _env?.Dispose();

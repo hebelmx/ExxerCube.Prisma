@@ -24,5 +24,7 @@
     <PackageVersion Include="MudBlazor" Version="8.11" />
     <PackageVersion Include="Extensions.MudBlazor.StaticInput" Version="3.2.1" />
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0-preview.7.25380.108" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.8.0" />
+    <PackageVersion Include="Microsoft.ML.Tokenizers" Version="2.0.0-preview.25373.1" />
   </ItemGroup>
 </Project>
