@@ -38,7 +38,7 @@ public class PythonInteropServiceTests : IDisposable
             Directory.CreateDirectory(_testDataPath);
         }
         
-        _adapter = new CSnakesOcrProcessingAdapter(_logger, _pythonModulesPath);
+                    _adapter = new CSnakesOcrProcessingAdapter(_logger);
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class PythonInteropServiceTests : IDisposable
     public void CSnakesOcrProcessingAdapter_ShouldCreateSuccessfully()
     {
         // Act
-        var adapter = new CSnakesOcrProcessingAdapter(_logger, _pythonModulesPath);
+        var adapter = new CSnakesOcrProcessingAdapter(_logger);
 
         // Assert
         adapter.ShouldNotBeNull();
@@ -61,7 +61,7 @@ public class PythonInteropServiceTests : IDisposable
     public void CSnakesOcrProcessingAdapter_ShouldImplementIPythonInteropService()
     {
         // Act
-        var adapter = new CSnakesOcrProcessingAdapter(_logger, _pythonModulesPath);
+        var adapter = new CSnakesOcrProcessingAdapter(_logger);
 
         // Assert
         adapter.ShouldBeAssignableTo<IPythonInteropService>();

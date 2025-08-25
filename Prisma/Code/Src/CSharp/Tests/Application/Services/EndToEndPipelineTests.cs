@@ -40,7 +40,7 @@ public class EndToEndPipelineTests : IDisposable
         var adapterLogger = loggerFactory.CreateLogger<CSnakesOcrProcessingAdapter>();
         _logger = loggerFactory.CreateLogger("EndToEndPipelineTests");
         
-        _pythonAdapter = new CSnakesOcrProcessingAdapter(adapterLogger, _pythonModulesPath);
+                    _pythonAdapter = new CSnakesOcrProcessingAdapter(adapterLogger);
         _metricsService = new ProcessingMetricsService(loggerFactory.CreateLogger<ProcessingMetricsService>());
         _processingService = new OcrProcessingService(
             (IImagePreprocessor)_pythonAdapter, 

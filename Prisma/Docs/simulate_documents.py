@@ -8,26 +8,11 @@ def parse_requirements(file_path):
         content = f.read()
     
     requirements = []
+    req_pattern = re.compile(r'<--Start Requirment--->\n\*\*requirment\*\*\n(.*?)\n\*\*Hash\*\*\n(.*?)\n<--End Requirment--->', re.DOTALL)
+    matches = req_pattern.findall(content)
     
-    # Split content by "## Ejemplo" to separate different examples
-    examples = re.split(r'## Ejemplo \d+:', content)
-    
-    for i, example in enumerate(examples[1:], 1):  # Skip first empty part
-        if not example.strip():
-            continue
-            
-        # Extract the title and content
-        lines = example.strip().split('\n')
-        title = lines[0].strip()
-        
-        # Get the full content of this example
-        doc_text = example.strip()
-        
-        # Generate a hash for this document
-        import hashlib
-        hash_line = hashlib.md5(doc_text.encode()).hexdigest().upper()
-        
-        requirements.append((doc_text, hash_line))
+    for req_text, req_hash in matches:
+        requirements.append((req_text.strip(), req_hash.strip()))
         
     return requirements
 
@@ -43,24 +28,36 @@ def create_base_image(text, width=800, height=1000):
     return image
 
 def add_watermark(image, text):
-    watermark = Image.new('RGBA', image.size, (255, 255, 255, 0))
-    draw = ImageDraw.Draw(watermark)
+    # Create a transparent layer for the watermark
+    watermark_layer = Image.new('RGBA', image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(watermark_layer)
+    
     try:
         font = ImageFont.truetype("arial.ttf", 50)
     except IOError:
         font = ImageFont.load_default()
 
+    # Get text size
     bbox = draw.textbbox((0, 0), text, font=font)
     text_width = bbox[2] - bbox[0]
     text_height = bbox[3] - bbox[1]
-    x = (image.width - text_width) / 2
-    y = (image.height - text_height) / 2
-    
-    draw.text((x, y), text, font=font, fill=(255, 0, 0, 128))
-    watermark = watermark.rotate(45, expand=False)
-    
+
+    # Create a separate image for the text
+    text_image = Image.new('RGBA', (text_width, text_height), (0, 0, 0, 0))
+    text_draw = ImageDraw.Draw(text_image)
+    text_draw.text((0, 0), text, font=font, fill=(255, 0, 0, 128))
+
+    # Rotate the text image
+    rotated_text = text_image.rotate(45, expand=True, resample=Image.BICUBIC)
+
+    # Paste the rotated text onto the watermark layer
+    x = (image.width - rotated_text.width) // 2
+    y = (image.height - rotated_text.height) // 2
+    watermark_layer.paste(rotated_text, (x, y), rotated_text)
+
+    # Composite the watermark with the original image
     img_rgba = image.convert("RGBA")
-    img_watermarked = Image.alpha_composite(img_rgba, watermark)
+    img_watermarked = Image.alpha_composite(img_rgba, watermark_layer)
     
     return img_watermarked.convert("RGB")
 
@@ -99,7 +96,7 @@ def apply_deterioration(image):
     return image
 
 def main():
-    input_file = 'fictitious_requerimientos_raw.md'
+    input_file = 'corpus_requerimientos.md'
     output_dir = 'Fixtures'
     
     if not os.path.exists(output_dir):

@@ -1,13 +1,6 @@
-# Auto-generated requirements for smolvlm_extractor.py agent
-# Remove or edit as needed
-torch
-transformers
-pydantic
+opencv-python
 pillow
-flash-attn --no-build-isolation
-num2words==0.5.14
-tochvision
-huggingface_hub[cli]
-huggingface_hub[hf_xet]
-huggingface_hub 
-hf-xet
+pytesseract
+numpy
+unidecode
+pdf2image

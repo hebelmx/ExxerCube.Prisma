@@ -625,16 +625,3 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-
-
-# Ignore synthetic fixtures
-Prisma/Code/Src/CSharp/Python/Fixtures/*.pdf
-Prisma/Code/Src/CSharp/Python/Fixtures/*.png
-
-
-# Ignore all synthetic fixtures
-Prisma/Docs/test-fixtures/fixtures-main/*
-Prisma/Code/Src/CSharp/Python/Fixtures/*
-# Ignore all synthetic fixtures
-/Prisma/Docs/test-fixtures/fixtures-main/*
-/Prisma/Code/Src/CSharp/Python/Fixtures/*
