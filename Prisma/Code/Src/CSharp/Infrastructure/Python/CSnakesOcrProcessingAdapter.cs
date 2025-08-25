@@ -33,11 +33,10 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
             _ocrWrapper = PrismaOcrWrapper.Create();
             _logger.LogInformation("Initializing CSnakes OCR processing adapter with proper CSnakes integration");
         }
-        catch (NotImplementedException)
+        catch (Exception ex)
         {
-            _logger.LogWarning("CSnakes integration not yet fully implemented. Using fallback mode.");
-            // For now, we'll use a null wrapper and handle it in the methods
-            _ocrWrapper = null!;
+            _logger.LogError(ex, "Failed to initialize CSnakes OCR processing adapter: {Message}", ex.Message);
+            throw;
         }
     }
 
@@ -58,12 +57,6 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
         {
             try
             {
-                if (_ocrWrapper == null)
-                {
-                    _logger.LogWarning("CSnakes wrapper not available, returning fallback result");
-                    return Result<OCRResult>.Failure("CSnakes integration not yet fully implemented. Use the process-based adapter for now.");
-                }
-
                 // Convert config to dictionary for Python
                 var configDict = new Dictionary<string, object>
                 {
@@ -160,12 +153,6 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
         {
             try
             {
-                if (_ocrWrapper == null)
-                {
-                    _logger.LogWarning("CSnakes wrapper not available, returning fallback result");
-                    return Result<ExtractedFields>.Failure("CSnakes integration not yet fully implemented. Use the process-based adapter for now.");
-                }
-
                 // Extract fields using CSnakes
                 var result = _ocrWrapper.ExtractFieldsFromText(text, confidence);
 
@@ -330,12 +317,6 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
         {
             try
             {
-                if (_ocrWrapper == null)
-                {
-                    _logger.LogWarning("CSnakes wrapper not available, returning fallback result");
-                    return Result<string?>.Failure("CSnakes integration not yet fully implemented. Use the process-based adapter for now.");
-                }
-
                 var expediente = _ocrWrapper.ExtractExpedienteFromText(text);
                 
                 if (string.IsNullOrWhiteSpace(expediente))
@@ -370,12 +351,6 @@ public class CSnakesOcrProcessingAdapter : IPythonInteropService, IImagePreproce
         {
             try
             {
-                if (_ocrWrapper == null)
-                {
-                    _logger.LogWarning("CSnakes wrapper not available, returning fallback result");
-                    return Result<string?>.Failure("CSnakes integration not yet fully implemented. Use the process-based adapter for now.");
-                }
-
                 var causa = _ocrWrapper.ExtractCausaFromText(text);
                 
                 if (string.IsNullOrWhiteSpace(causa))
