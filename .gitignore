@@ -633,5 +633,8 @@ Prisma/Code/Src/CSharp/Python/Fixtures/*.png
 
 
 # Ignore all synthetic fixtures
+Prisma/Docs/test-fixtures/fixtures-main/*
+Prisma/Code/Src/CSharp/Python/Fixtures/*
+# Ignore all synthetic fixtures
 /Prisma/Docs/test-fixtures/fixtures-main/*
 /Prisma/Code/Src/CSharp/Python/Fixtures/*
