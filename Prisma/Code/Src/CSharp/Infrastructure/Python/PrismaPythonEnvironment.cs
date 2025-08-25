@@ -23,7 +23,7 @@ public static class PrismaPythonEnvironment
             IHostBuilder builder = Host.CreateDefaultBuilder()
                 .ConfigureServices(services =>
                 {
-                    // Use Local AppData folder for Python installation
+                    // Use Local App Data folder for Python installation
                     string appDataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PrismaPython");
 
                     // Create the directory if it doesn't exist
@@ -59,7 +59,7 @@ public static class PrismaPythonEnvironment
                             .WithPython()
                             .WithHome(appDataPath)
                             .WithVirtualEnvironment(venvPath)
-                            .WithUvInstaller()
+                            .WithPipInstaller() // Use pip to install packages from requirements.txt
                             .FromRedistributable(); // Download Python 3.12 and store it locally
                 });
 
@@ -73,21 +73,6 @@ public static class PrismaPythonEnvironment
     /// Gets the Python environment instance.
     /// </summary>
     public static IPythonEnvironment Env => _env ?? throw new InvalidOperationException("Python environment is not initialized.");
-
-    /// <summary>
-    /// Gets the Prisma OCR wrapper for CSnakes integration.
-    /// </summary>
-    internal static IPrismaOcrWrapper PrismaOcrWrapper => Env.PrismaOcrWrapper();
-
-    /// <summary>
-    /// Gets the field extraction wrapper for CSnakes integration.
-    /// </summary>
-    internal static IPrismaOcrWrapper FieldExtractionWrapper => Env.PrismaOcrWrapper();
-
-    /// <summary>
-    /// Gets the image processing wrapper for CSnakes integration.
-    /// </summary>
-    internal static IPrismaOcrWrapper ImageProcessingWrapper => Env.PrismaOcrWrapper();
 
     /// <summary>
     /// Disposes the Python environment and releases resources.

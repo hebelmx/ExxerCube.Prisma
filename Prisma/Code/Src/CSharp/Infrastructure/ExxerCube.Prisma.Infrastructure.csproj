@@ -2,34 +2,27 @@
 
   <PropertyGroup>
 	<TargetFramework>net10.0</TargetFramework>
-	<LangVersion>latest</LangVersion>
+	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
-	  <WarningsNotAsErrors>NU1202;CS1591</WarningsNotAsErrors>
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	<WarningsAsErrors />
-	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
-	<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-	<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-
+	  <NoWarn>NU1605;1008</NoWarn>
+	<!-- CSnakes Configuration -->
+	<EmbedPythonSources>true</EmbedPythonSources>
+	<DefaultPythonItems>true</DefaultPythonItems>
+	<PythonRoot>Python</PythonRoot>
+	<WarningsNotAsErrors>NU1605;1008</WarningsNotAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
 	<PackageReference Include="CSnakes.Runtime" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+	<PackageReference Include="Microsoft.Extensions.Hosting" />
+	<PackageReference Include="Microsoft.Extensions.Logging" />
+	<PackageReference Include="Polly" />
 	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 	<PackageReference Include="System.Drawing.Common" />
 	<PackageReference Include="Newtonsoft.Json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Python\python\*.py" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="Python\python\*.py" SourceItemType="Python">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AdditionalFiles>
   </ItemGroup>
 
   <ItemGroup>

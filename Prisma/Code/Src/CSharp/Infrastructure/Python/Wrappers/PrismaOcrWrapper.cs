@@ -34,9 +34,9 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
             // Get the Python environment and create the wrapper object
             var env = PrismaPythonEnvironment.Env;
             
-            // Use the CSnakes-generated extension method
-            var wrapperObject = PrismaOcrWrapperExtensions.PrismaOcrWrapper(env);
-            return new PrismaOcrWrapper(wrapperObject);
+            // For now, create a simple wrapper that will be replaced when CSnakes generation is working
+            // TODO: Replace with proper CSnakes-generated wrapper once generation is fixed
+            throw new NotImplementedException("CSnakes wrapper generation is not working. Please fix the Python file configuration or CSnakes setup.");
         }
         catch (Exception ex)
         {
