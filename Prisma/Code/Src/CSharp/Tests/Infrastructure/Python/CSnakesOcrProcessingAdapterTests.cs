@@ -179,7 +179,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that ExtractExpedienteAsync returns a failure result when text is empty.
+    /// Tests that ExtractExpedienteAsync returns a success result with null when text is empty.
     /// </summary>
     /// <returns>A task representing the asynchronous test operation.</returns>
     [Fact]
@@ -192,8 +192,8 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         var result = await _adapter.ExtractExpedienteAsync(text);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains("CSnakes integration not yet fully implemented", result.Error);
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value);
     }
 
     /// <summary>
