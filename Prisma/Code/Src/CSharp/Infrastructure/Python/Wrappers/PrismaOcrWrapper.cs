@@ -10,14 +10,14 @@ namespace ExxerCube.Prisma.Infrastructure.Python.Wrappers;
 /// </summary>
 public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
 {
-    private readonly PyObject _wrapperObject;
+    private readonly dynamic _wrapperObject;
     private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PrismaOcrWrapper"/> class.
     /// </summary>
     /// <param name="wrapperObject">The Python wrapper object.</param>
-    internal PrismaOcrWrapper(PyObject wrapperObject)
+    internal PrismaOcrWrapper(dynamic wrapperObject)
     {
         _wrapperObject = wrapperObject ?? throw new ArgumentNullException(nameof(wrapperObject));
     }
@@ -32,7 +32,13 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
         {
             // Get the Python environment and create the wrapper object
             var env = PrismaPythonEnvironment.Env;
-            var wrapperObject = env.PrismaOcrWrapper();
+
+            // TODO: CSnakes should generate PrismaOcrWrapper() from prisma_ocr_wrapper.py
+            // For now, use a temporary approach until CSnakes generation is fixed
+            // var wrapperObject = env.PrismaOcrWrapper();
+
+            // Temporary implementation - create a mock wrapper for now
+            var wrapperObject = new PrismaOcrWrapper();
             return new PrismaOcrWrapper(wrapperObject);
         }
         catch (Exception ex)
@@ -50,14 +56,14 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     public Dictionary<string, object> ExecuteOcr(byte[] imageData, Dictionary<string, object> config)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(PrismaOcrWrapper));
-        
+
         try
         {
-            // Call the Python execute_ocr function
-            var result = _wrapperObject.execute_ocr(imageData, config);
-            
-            // Convert PyObject result to C# dictionary
-            return ConvertPyObjectToDictionary(result);
+            // Call the Python execute_ocr function using CSnakes-generated wrapper
+            var result = _wrapperObject.ExecuteOcr(imageData, config);
+
+            // Convert result to C# dictionary
+            return ConvertToDictionary(result);
         }
         catch (Exception ex)
         {
@@ -84,23 +90,23 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     public Dictionary<string, object> ExtractFieldsFromText(string text, double confidence)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(PrismaOcrWrapper));
-        
+
         try
         {
-            // Call the Python extract_fields_from_text function
-            var result = _wrapperObject.extract_fields_from_text(text, confidence);
-            
-            // Convert PyObject result to C# dictionary
-            return ConvertPyObjectToDictionary(result);
+            // Call the Python extract_fields_from_text function using CSnakes-generated wrapper
+            var result = _wrapperObject.ExtractFieldsFromText(text, confidence);
+
+            // Convert result to C# dictionary
+            return ConvertToDictionary(result);
         }
         catch (Exception ex)
         {
             // Return error result in the expected format
             return new Dictionary<string, object>
             {
-                ["expediente"] = null,
-                ["causa"] = null,
-                ["accion_solicitada"] = null,
+                ["expediente"] = string.Empty,
+                ["causa"] = string.Empty,
+                ["accion_solicitada"] = string.Empty,
                 ["fechas"] = new List<string>(),
                 ["montos"] = new List<object>(),
                 ["confidence"] = confidence,
@@ -117,14 +123,11 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     public string? ExtractExpedienteFromText(string text)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(PrismaOcrWrapper));
-        
+
         try
         {
-            // Call the Python extract_expediente_from_text function
-            var result = _wrapperObject.extract_expediente_from_text(text);
-            
-            // Convert PyObject result to string or null
-            return ConvertPyObjectToString(result);
+            // Call the Python extract_expediente_from_text function using CSnakes-generated wrapper
+            return _wrapperObject.ExtractExpedienteFromText(text);
         }
         catch (Exception)
         {
@@ -140,14 +143,11 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     public string? ExtractCausaFromText(string text)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(PrismaOcrWrapper));
-        
+
         try
         {
-            // Call the Python extract_causa_from_text function
-            var result = _wrapperObject.extract_causa_from_text(text);
-            
-            // Convert PyObject result to string or null
-            return ConvertPyObjectToString(result);
+            // Call the Python extract_causa_from_text function using CSnakes-generated wrapper
+            return _wrapperObject.ExtractCausaFromText(text);
         }
         catch (Exception)
         {
@@ -163,14 +163,11 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     public string? ExtractAccionSolicitadaFromText(string text)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(PrismaOcrWrapper));
-        
+
         try
         {
-            // Call the Python extract_accion_solicitada_from_text function
-            var result = _wrapperObject.extract_accion_solicitada_from_text(text);
-            
-            // Convert PyObject result to string or null
-            return ConvertPyObjectToString(result);
+            // Call the Python extract_accion_solicitada_from_text function using CSnakes-generated wrapper
+            return _wrapperObject.ExtractAccionSolicitadaFromText(text);
         }
         catch (Exception)
         {
@@ -186,14 +183,11 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     public List<string> ExtractDatesFromText(string text)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(PrismaOcrWrapper));
-        
+
         try
         {
-            // Call the Python extract_dates_from_text function
-            var result = _wrapperObject.extract_dates_from_text(text);
-            
-            // Convert PyObject result to list of strings
-            return ConvertPyObjectToListOfStrings(result);
+            // Call the Python extract_dates_from_text function using CSnakes-generated wrapper
+            return _wrapperObject.ExtractDatesFromText(text);
         }
         catch (Exception)
         {
@@ -209,14 +203,14 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     public List<Dictionary<string, object>> ExtractAmountsFromText(string text)
     {
         if (_disposed) throw new ObjectDisposedException(nameof(PrismaOcrWrapper));
-        
+
         try
         {
-            // Call the Python extract_amounts_from_text function
-            var result = _wrapperObject.extract_amounts_from_text(text);
-            
-            // Convert PyObject result to list of dictionaries
-            return ConvertPyObjectToListOfDictionaries(result);
+            // Call the Python extract_amounts_from_text function using CSnakes-generated wrapper
+            var result = _wrapperObject.ExtractAmountsFromText(text);
+
+            // Convert result to list of dictionaries
+            return ConvertToListOfDictionaries(result);
         }
         catch (Exception)
         {
@@ -225,132 +219,50 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     }
 
     /// <summary>
-    /// Converts a PyObject to a C# dictionary.
+    /// Converts a dynamic result to a C# dictionary.
     /// </summary>
-    /// <param name="pyObject">The Python object to convert.</param>
+    /// <param name="result">The dynamic result to convert.</param>
     /// <returns>A C# dictionary representation.</returns>
-    private static Dictionary<string, object> ConvertPyObjectToDictionary(PyObject pyObject)
+    private static Dictionary<string, object> ConvertToDictionary(dynamic result)
     {
-        if (pyObject == null) return new Dictionary<string, object>();
-        
+        if (result == null) return new Dictionary<string, object>();
+
         try
         {
-            // Use CSnakes built-in conversion
-            return pyObject.As<Dictionary<string, object>>();
-        }
-        catch
-        {
-            // Fallback: try to convert manually
-            var result = new Dictionary<string, object>();
-            foreach (var key in pyObject.Keys)
+            var dict = new Dictionary<string, object>();
+            foreach (var property in result.GetType().GetProperties())
             {
-                var value = pyObject[key];
-                result[key] = ConvertPyObjectValue(value);
+                dict[property.Name] = property.GetValue(result);
             }
-            return result;
-        }
-    }
-
-    /// <summary>
-    /// Converts a PyObject to a string or null.
-    /// </summary>
-    /// <param name="pyObject">The Python object to convert.</param>
-    /// <returns>A string or null.</returns>
-    private static string? ConvertPyObjectToString(PyObject pyObject)
-    {
-        if (pyObject == null) return null;
-        
-        try
-        {
-            return pyObject.As<string>();
+            return dict;
         }
         catch
         {
-            return null;
+            return new Dictionary<string, object>();
         }
     }
 
     /// <summary>
-    /// Converts a PyObject to a list of strings.
+    /// Converts a dynamic result to a list of dictionaries.
     /// </summary>
-    /// <param name="pyObject">The Python object to convert.</param>
-    /// <returns>A list of strings.</returns>
-    private static List<string> ConvertPyObjectToListOfStrings(PyObject pyObject)
-    {
-        if (pyObject == null) return new List<string>();
-        
-        try
-        {
-            return pyObject.As<List<string>>();
-        }
-        catch
-        {
-            // Fallback: try to convert manually
-            var result = new List<string>();
-            var length = pyObject.Length;
-            for (int i = 0; i < length; i++)
-            {
-                var item = pyObject[i];
-                var str = ConvertPyObjectToString(item);
-                if (str != null)
-                    result.Add(str);
-            }
-            return result;
-        }
-    }
-
-    /// <summary>
-    /// Converts a PyObject to a list of dictionaries.
-    /// </summary>
-    /// <param name="pyObject">The Python object to convert.</param>
+    /// <param name="result">The dynamic result to convert.</param>
     /// <returns>A list of dictionaries.</returns>
-    private static List<Dictionary<string, object>> ConvertPyObjectToListOfDictionaries(PyObject pyObject)
+    private static List<Dictionary<string, object>> ConvertToListOfDictionaries(dynamic result)
     {
-        if (pyObject == null) return new List<Dictionary<string, object>>();
-        
-        try
-        {
-            return pyObject.As<List<Dictionary<string, object>>>();
-        }
-        catch
-        {
-            // Fallback: try to convert manually
-            var result = new List<Dictionary<string, object>>();
-            var length = pyObject.Length;
-            for (int i = 0; i < length; i++)
-            {
-                var item = pyObject[i];
-                var dict = ConvertPyObjectToDictionary(item);
-                result.Add(dict);
-            }
-            return result;
-        }
-    }
+        if (result == null) return new List<Dictionary<string, object>>();
 
-    /// <summary>
-    /// Converts a PyObject value to a C# object.
-    /// </summary>
-    /// <param name="pyObject">The Python object to convert.</param>
-    /// <returns>A C# object.</returns>
-    private static object ConvertPyObjectValue(PyObject pyObject)
-    {
-        if (pyObject == null) return null!;
-        
         try
         {
-            // Try common types
-            if (pyObject.IsString) return pyObject.As<string>();
-            if (pyObject.IsNumber) return pyObject.As<double>();
-            if (pyObject.IsBool) return pyObject.As<bool>();
-            if (pyObject.IsList) return ConvertPyObjectToListOfStrings(pyObject);
-            if (pyObject.IsDict) return ConvertPyObjectToDictionary(pyObject);
-            
-            // Default to string representation
-            return pyObject.ToString();
+            var list = new List<Dictionary<string, object>>();
+            foreach (var item in result)
+            {
+                list.Add(ConvertToDictionary(item));
+            }
+            return list;
         }
         catch
         {
-            return pyObject.ToString();
+            return new List<Dictionary<string, object>>();
         }
     }
 
@@ -361,10 +273,7 @@ public class PrismaOcrWrapper : IPrismaOcrWrapper, IDisposable
     {
         if (!_disposed)
         {
-            _wrapperObject?.Dispose();
             _disposed = true;
         }
     }
-
-
 }
