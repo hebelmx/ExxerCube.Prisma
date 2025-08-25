@@ -18,17 +18,17 @@ namespace ExxerCube.Prisma.Tests.Infrastructure;
 /// </summary>
 public class PythonInteropServiceTests : IDisposable
 {
-    private readonly ILogger<CSnakesOcrProcessingAdapter> _logger;
+    private readonly ILogger<PrismaOcrWrapperAdapter> _logger;
     private readonly string _pythonModulesPath;
     private readonly string _testDataPath;
-    private readonly CSnakesOcrProcessingAdapter _adapter;
+    private readonly PrismaOcrWrapperAdapter _adapter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PythonInteropServiceTests"/> class.
     /// </summary>
     public PythonInteropServiceTests()
     {
-        _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<CSnakesOcrProcessingAdapter>();
+        _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<PrismaOcrWrapperAdapter>();
         _pythonModulesPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "CSharp", "Python", "ocr_modules");
         _testDataPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData");
         
@@ -38,30 +38,30 @@ public class PythonInteropServiceTests : IDisposable
             Directory.CreateDirectory(_testDataPath);
         }
         
-                    _adapter = new CSnakesOcrProcessingAdapter(_logger);
+        _adapter = new PrismaOcrWrapperAdapter(_logger);
     }
 
     /// <summary>
-    /// Tests that the CSnakes adapter can be created successfully.
+    /// Tests that the PrismaOcrWrapperAdapter can be created successfully.
     /// </summary>
     [Fact]
-    public void CSnakesOcrProcessingAdapter_ShouldCreateSuccessfully()
+    public void PrismaOcrWrapperAdapter_ShouldCreateSuccessfully()
     {
         // Act
-        var adapter = new CSnakesOcrProcessingAdapter(_logger);
+        var adapter = new PrismaOcrWrapperAdapter(_logger);
 
         // Assert
         adapter.ShouldNotBeNull();
     }
 
     /// <summary>
-    /// Tests that the CSnakes adapter implements the correct interface.
+    /// Tests that the PrismaOcrWrapperAdapter implements the correct interface.
     /// </summary>
     [Fact]
-    public void CSnakesOcrProcessingAdapter_ShouldImplementIPythonInteropService()
+    public void PrismaOcrWrapperAdapter_ShouldImplementIPythonInteropService()
     {
         // Act
-        var adapter = new CSnakesOcrProcessingAdapter(_logger);
+        var adapter = new PrismaOcrWrapperAdapter(_logger);
 
         // Assert
         adapter.ShouldBeAssignableTo<IPythonInteropService>();

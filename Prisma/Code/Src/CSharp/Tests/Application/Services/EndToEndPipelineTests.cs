@@ -23,7 +23,7 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 public class EndToEndPipelineTests : IDisposable
 {
     private readonly OcrProcessingService _processingService;
-    private readonly CSnakesOcrProcessingAdapter _pythonAdapter;
+    private readonly PrismaOcrWrapperAdapter _pythonAdapter;
     private readonly ProcessingMetricsService _metricsService;
     private readonly string _testDataPath;
     private readonly string _pythonModulesPath;
@@ -37,10 +37,10 @@ public class EndToEndPipelineTests : IDisposable
         // Setup Python integration
         _pythonModulesPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "Python", "ocr_modules");
         var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-        var adapterLogger = loggerFactory.CreateLogger<CSnakesOcrProcessingAdapter>();
+        var adapterLogger = loggerFactory.CreateLogger<PrismaOcrWrapperAdapter>();
         _logger = loggerFactory.CreateLogger("EndToEndPipelineTests");
         
-                    _pythonAdapter = new CSnakesOcrProcessingAdapter(adapterLogger);
+        _pythonAdapter = new PrismaOcrWrapperAdapter(adapterLogger);
         _metricsService = new ProcessingMetricsService(loggerFactory.CreateLogger<ProcessingMetricsService>());
         _processingService = new OcrProcessingService(
             (IImagePreprocessor)_pythonAdapter, 

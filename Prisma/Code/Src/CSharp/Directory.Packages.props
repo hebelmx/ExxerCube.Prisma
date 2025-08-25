@@ -2,7 +2,6 @@
 <Project>
 	<ItemGroup>
 		<PackageVersion Include="CSnakes.Runtime" Version="1.2.1" />
-
 		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
 		<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
 		<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
