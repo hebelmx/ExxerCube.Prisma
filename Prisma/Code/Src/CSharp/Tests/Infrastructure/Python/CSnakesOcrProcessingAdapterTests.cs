@@ -106,7 +106,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
 
         // Assert
         // Test that the adapter handles errors gracefully
-        Assert.True(result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true);
+        (result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true).ShouldBeTrue();
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
 
         // Assert
         // Test that the adapter can extract fields or handle errors gracefully
-        Assert.True(result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true);
+        (result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true).ShouldBeTrue();
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
 
         // Assert
         // Test that the adapter can extract expediente or handle errors gracefully
-        Assert.True(result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true);
+        (result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true).ShouldBeTrue();
     }
 
     /// <summary>
@@ -177,8 +177,8 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         var result = await _adapter.ExtractExpedienteAsync(text);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Null(result.Value);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBeNull();
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
 
         // Assert
         // Test that the adapter can extract causa or handle errors gracefully
-        Assert.True(result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true);
+        (result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true).ShouldBeTrue();
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
 
         // Assert
         // Test that the adapter can extract accion solicitada or handle errors gracefully
-        Assert.True(result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true);
+        (result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true).ShouldBeTrue();
     }
 
     /// <summary>
@@ -233,7 +233,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
 
         // Assert
         // Test that the adapter can extract dates or handle errors gracefully
-        Assert.True(result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true);
+        (result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true).ShouldBeTrue();
     }
 
     /// <summary>
@@ -266,7 +266,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
 
         // Assert
         // Test that the adapter can extract amounts or handle errors gracefully
-        Assert.True(result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true);
+        (result.IsSuccess || result.Error?.Contains("Python") == true || result.Error?.Contains("CSnakes") == true).ShouldBeTrue();
     }
 
     /// <summary>
@@ -279,7 +279,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         var adapter = new PrismaOcrWrapperAdapter(_logger);
 
         // Assert
-        Assert.NotNull(adapter);
+        adapter.ShouldNotBeNull();
     }
 
     /// <summary>
@@ -289,7 +289,7 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
     public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new PrismaOcrWrapperAdapter(null!));
+        Should.Throw<ArgumentNullException>(() => new PrismaOcrWrapperAdapter(null!));
     }
 
     /// <summary>
@@ -303,8 +303,8 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         var config = new OCRConfig { Language = "spa" };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _adapter.ExecuteOcrAsync(null!, config));
+        await Should.ThrowAsync<ArgumentNullException>(async () =>
+            await _adapter.ExecuteOcrAsync(null!, config));
     }
 
     /// <summary>
@@ -318,8 +318,8 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
         var imageData = new ImageData { Data = new byte[] { 1, 2, 3 } };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _adapter.ExecuteOcrAsync(imageData, null!));
+        await Should.ThrowAsync<ArgumentNullException>(async () =>
+            await _adapter.ExecuteOcrAsync(imageData, null!));
     }
 
     /// <summary>
@@ -330,8 +330,8 @@ public class CSnakesOcrProcessingAdapterTests : IDisposable
     public async Task ExtractFieldsAsync_WithEmptyText_ShouldThrowArgumentException()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentException>(() =>
-            _adapter.ExtractFieldsAsync("", 85.5f));
+        await Should.ThrowAsync<ArgumentException>(async () =>
+            await _adapter.ExtractFieldsAsync("", 85.5f));
     }
 
     /// <summary>
