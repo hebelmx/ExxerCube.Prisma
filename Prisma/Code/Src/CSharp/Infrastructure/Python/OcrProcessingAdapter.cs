@@ -6,8 +6,6 @@ using ExxerCube.Prisma.Domain.Common;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference
-
 namespace ExxerCube.Prisma.Infrastructure.Python;
 
 /// <summary>
@@ -110,8 +108,9 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             }
             else
             {
+                var errorMessage = result.Error is not null ? result.Error : "Unknown error";
                 _logger.LogWarning("Image binarization failed for {SourcePath}: {Error}", 
-                    imageData.SourcePath, result.Error ?? "Unknown error");
+                    imageData.SourcePath, errorMessage);
             }
             
             return result;
@@ -144,13 +143,14 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             
             if (result.IsSuccess)
             {
-                var expediente = result.Value;
+                var expediente = result.Value ?? string.Empty;
                 _logger.LogInformation("Expediente extraction completed: {Expediente}", expediente);
                 return Result<string?>.Success(expediente);
             }
             else
             {
-                _logger.LogWarning("Expediente extraction failed: {Error}", result.Error ?? "Unknown error");
+                var errorMessage = result.Error is not null ? result.Error : "Unknown error";
+                _logger.LogWarning("Expediente extraction failed: {Error}", errorMessage);
                 return Result<string?>.Success(null); // Return null instead of failure for missing expediente
             }
         }
@@ -182,13 +182,14 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             
             if (result.IsSuccess)
             {
-                var causa = result.Value;
+                var causa = result.Value ?? string.Empty;
                 _logger.LogInformation("Causa extraction completed: {Causa}", causa);
                 return Result<string?>.Success(causa);
             }
             else
             {
-                _logger.LogWarning("Causa extraction failed: {Error}", result.Error ?? "Unknown error");
+                var errorMessage = result.Error is not null ? result.Error : "Unknown error";
+                _logger.LogWarning("Causa extraction failed: {Error}", errorMessage);
                 return Result<string?>.Success(null);
             }
         }
@@ -220,13 +221,13 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             
             if (result.IsSuccess)
             {
-                var accion = result.Value;
+                var accion = result.Value ?? string.Empty;
                 _logger.LogInformation("Accion solicitada extraction completed: {Accion}", accion);
                 return Result<string?>.Success(accion);
             }
             else
             {
-                var errorMessage = result.Error ?? "Unknown error";
+                var errorMessage = result.Error is not null ? result.Error : "Unknown error";
                 _logger.LogWarning("Accion solicitada extraction failed: {Error}", errorMessage);
                 return Result<string?>.Success(null);
             }
@@ -259,13 +260,14 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             
             if (result.IsSuccess)
             {
-                var dates = result.Value;
+                var dates = result.Value ?? new List<string>();
                 _logger.LogInformation("Date extraction completed: {DateCount} dates found", dates.Count);
                 return Result<List<string>>.Success(dates);
             }
             else
             {
-                _logger.LogWarning("Date extraction failed: {Error}", result.Error ?? "Unknown error");
+                var errorMessage = result.Error is not null ? result.Error : "Unknown error";
+                _logger.LogWarning("Date extraction failed: {Error}", errorMessage);
                 return Result<List<string>>.Success(new List<string>());
             }
         }
@@ -297,13 +299,13 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             
             if (result.IsSuccess)
             {
-                var amounts = result.Value;
+                var amounts = result.Value ?? new List<AmountData>();
                 _logger.LogInformation("Amount extraction completed: {AmountCount} amounts found", amounts.Count);
                 return Result<List<AmountData>>.Success(amounts);
             }
             else
             {
-                var errorMessage = result.Error ?? "Unknown error";
+                var errorMessage = result.Error is not null ? result.Error : "Unknown error";
                 _logger.LogWarning("Amount extraction failed: {Error}", errorMessage);
                 return Result<List<AmountData>>.Success(new List<AmountData>());
             }

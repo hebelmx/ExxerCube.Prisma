@@ -6,8 +6,7 @@
     <IsTestProject>true</IsTestProject>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-	  <NoWarn>NU1605;1008</NoWarn>
-	  <WarningsNotAsErrors>NU1605;1008</WarningsNotAsErrors>
+
 
 	  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />

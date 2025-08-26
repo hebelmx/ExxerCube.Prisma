@@ -8,7 +8,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeWorker.Core", "src\Sna
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeWorker.Python", "src\SnakeWorker.Python\SnakeWorker.Python.csproj", "{C1234567-89AB-CDEF-0123-456789ABCDEF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeWorker.Tests", "tests\SnakeWorker.Tests.csproj", "{D1234567-89AB-CDEF-0123-456789ABCDEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeWorker.Tests", "src\SnakeWorker.Tests\SnakeWorker.Tests.csproj", "{D1234567-89AB-CDEF-0123-456789ABCDEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

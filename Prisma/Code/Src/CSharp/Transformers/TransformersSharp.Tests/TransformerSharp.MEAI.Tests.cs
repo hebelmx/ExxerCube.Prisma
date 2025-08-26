@@ -1,10 +1,19 @@
 ﻿using TransformersSharp.MEAI;
 using Microsoft.Extensions.AI;
+using Shouldly;
+using Xunit;
 
 namespace TransformersSharp.Tests;
 
+/// <summary>
+/// Tests for the TransformerSharp MEAI integration functionality.
+/// </summary>
 public class TransformerSharpMEAITests
 {
+    /// <summary>
+    /// Tests that the chat client can generate responses correctly.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task TestChatClient()
     {
@@ -16,10 +25,14 @@ public class TransformerSharpMEAITests
         };
         var response = await chatClient.GetResponseAsync(messages, new() { Temperature = 0.7f });
         
-        Assert.NotNull(response);
-        Assert.Contains("helicopter", response.Text, StringComparison.OrdinalIgnoreCase);
+        response.ShouldNotBeNull();
+        response.Text.ToLowerInvariant().ShouldContain("helicopter");
     }
 
+    /// <summary>
+    /// Tests that the chat client can generate streaming responses correctly.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task TestChatClientStreaming()
     {
@@ -32,11 +45,15 @@ public class TransformerSharpMEAITests
         var response = chatClient.GetStreamingResponseAsync(messages, new() { Temperature = 0.7f });
         await foreach (var update in response)
         {
-            Assert.NotNull(update);
-            Assert.NotEmpty(update.Text);
+            update.ShouldNotBeNull();
+            update.Text.ShouldNotBeEmpty();
         }
     }
 
+    /// <summary>
+    /// Tests that the speech to text client can transcribe audio correctly.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task TestSpeechToTextClient()
     {
@@ -44,11 +61,15 @@ public class TransformerSharpMEAITests
         using var audioStream = new MemoryStream(File.ReadAllBytes("sample.flac"));
         var response = await speechClient.GetTextAsync(audioStream);
         
-        Assert.NotNull(response);
-        Assert.NotEmpty(response.Text);
-        Assert.Contains("stew for dinner", response.Text, StringComparison.OrdinalIgnoreCase);
+        response.ShouldNotBeNull();
+        response.Text.ShouldNotBeEmpty();
+        response.Text.ToLowerInvariant().ShouldContain("stew for dinner");
     }
 
+    /// <summary>
+    /// Tests that the speech to text client can generate streaming transcriptions correctly.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task TestSpeechToTextClientStreaming()
     {
@@ -57,9 +78,9 @@ public class TransformerSharpMEAITests
         var response = speechClient.GetStreamingTextAsync(audioStream);
         await foreach (var update in response)
         {
-            Assert.NotNull(update);
-            Assert.NotEmpty(update.Text);
-            Assert.Contains("stew for dinner", update.Text, StringComparison.OrdinalIgnoreCase);
+            update.ShouldNotBeNull();
+            update.Text.ShouldNotBeEmpty();
+            update.Text.ToLowerInvariant().ShouldContain("stew for dinner");
         }
     }
 }
