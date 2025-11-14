@@ -1,10 +1,12 @@
 using CSnakes.Runtime;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -33,9 +35,17 @@ public class PrismaOcrService : IOcrProcessingService
     /// </summary>
     /// <param name="imageData">The image data to process.</param>
     /// <param name="config">The processing configuration.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the processing result or an error.</returns>
-    public Task<Result<ProcessingResult>> ProcessDocumentAsync(ImageData imageData, ProcessingConfig config)
+    public Task<Result<ProcessingResult>> ProcessDocumentAsync(ImageData imageData, ProcessingConfig config, CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("OCR processing cancelled before starting");
+            return Task.FromResult(ResultExtensions.Cancelled<ProcessingResult>());
+        }
+
         try
         {
             _logger.LogInformation("Starting OCR processing for image {SourcePath}", imageData.SourcePath);
@@ -77,6 +87,11 @@ public class PrismaOcrService : IOcrProcessingService
             _logger.LogInformation("OCR processing completed successfully for image {SourcePath}", imageData.SourcePath);
             return Task.FromResult(Result<ProcessingResult>.Success(processingResult));
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("OCR processing cancelled for image {SourcePath}", imageData.SourcePath);
+            return Task.FromResult(ResultExtensions.Cancelled<ProcessingResult>());
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during OCR processing for image {SourcePath}", imageData.SourcePath);
@@ -90,9 +105,17 @@ public class PrismaOcrService : IOcrProcessingService
     /// <param name="imageDataList">The list of image data to process.</param>
     /// <param name="config">The processing configuration.</param>
     /// <param name="maxConcurrency">Maximum number of concurrent operations.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of processing results or an error.</returns>
-    public async Task<Result<List<ProcessingResult>>> ProcessDocumentsAsync(IEnumerable<ImageData> imageDataList, ProcessingConfig config, int maxConcurrency = 5)
+    public async Task<Result<List<ProcessingResult>>> ProcessDocumentsAsync(IEnumerable<ImageData> imageDataList, ProcessingConfig config, int maxConcurrency = 5, CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Batch OCR processing cancelled before starting");
+            return ResultExtensions.Cancelled<List<ProcessingResult>>();
+        }
+
         try
         {
             _logger.LogInformation("Starting batch OCR processing for {Count} images", imageDataList.Count());
@@ -102,10 +125,11 @@ public class PrismaOcrService : IOcrProcessingService
 
             var tasks = imageDataList.Select(async imageData =>
             {
-                await semaphore.WaitAsync();
+                // CRITICAL: Pass cancellation token to WaitAsync to prevent hanging
+                await semaphore.WaitAsync(cancellationToken);
                 try
                 {
-                    var result = await ProcessDocumentAsync(imageData, config);
+                    var result = await ProcessDocumentAsync(imageData, config, cancellationToken);
                     return result;
                 }
                 finally
@@ -116,17 +140,11 @@ public class PrismaOcrService : IOcrProcessingService
 
             var taskResults = await Task.WhenAll(tasks);
 
-            // Check if any tasks failed
-            var failedResults = taskResults.Where(r => !r.IsSuccess).ToList();
-            if (failedResults.Any())
-            {
-                var errorMessages = string.Join("; ", failedResults.Select(r => r.Error));
-                _logger.LogError("Batch processing failed with errors: {Errors}", errorMessages);
-                return Result<List<ProcessingResult>>.WithFailure($"Batch processing failed: {errorMessages}");
-            }
+            var successfulResults = new List<ProcessingResult>();
+            var cancelledResults = taskResults.Where(r => r.IsCancelled()).ToList();
+            var failedResults = taskResults.Where(r => !r.IsSuccess && !r.IsCancelled()).ToList();
 
             // Extract successful results
-            var successfulResults = new List<ProcessingResult>();
             foreach (var result in taskResults)
             {
                 if (result.IsSuccess)
@@ -138,9 +156,56 @@ public class PrismaOcrService : IOcrProcessingService
                     }
                 }
             }
+
+            // Handle cancellation with partial results
+            var wasCancelled = cancellationToken.IsCancellationRequested || cancelledResults.Any();
+            
+            if (wasCancelled)
+            {
+                if (successfulResults.Count > 0)
+                {
+                    // Return partial results with warning about cancellation
+                    var totalRequested = imageDataList.Count();
+                    var completed = successfulResults.Count;
+                    var cancelled = cancelledResults.Count;
+                    var confidence = (double)completed / totalRequested;
+                    var missingDataRatio = (double)(cancelled + failedResults.Count) / totalRequested;
+                    
+                    _logger.LogWarning(
+                        "Batch OCR processing cancelled. Returning {CompletedCount} of {TotalCount} processed images. " +
+                        "Cancelled: {CancelledCount}, Failed: {FailedCount}",
+                        completed, totalRequested, cancelled, failedResults.Count);
+                    
+                    return Result<List<ProcessingResult>>.WithWarnings(
+                        warnings: new[] { $"Operation was cancelled. Processed {completed} of {totalRequested} images." },
+                        value: successfulResults,
+                        confidence: confidence,
+                        missingDataRatio: missingDataRatio
+                    );
+                }
+                else
+                {
+                    // No partial results - return cancelled
+                    _logger.LogWarning("Batch OCR processing cancelled with no completed results");
+                    return ResultExtensions.Cancelled<List<ProcessingResult>>();
+                }
+            }
+
+            // No cancellation - check for failures
+            if (failedResults.Any())
+            {
+                var errorMessages = string.Join("; ", failedResults.Select(r => r.Error));
+                _logger.LogError("Batch processing failed with errors: {Errors}", errorMessages);
+                return Result<List<ProcessingResult>>.WithFailure($"Batch processing failed: {errorMessages}");
+            }
             
             _logger.LogInformation("Batch OCR processing completed successfully for {Count} images", successfulResults.Count);
             return Result<List<ProcessingResult>>.Success(successfulResults);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Batch OCR processing cancelled");
+            return ResultExtensions.Cancelled<List<ProcessingResult>>();
         }
         catch (Exception ex)
         {

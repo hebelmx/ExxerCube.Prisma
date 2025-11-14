@@ -274,24 +274,17 @@ public class OcrProcessingService : IOcrProcessingService
         {
             var results = await Task.WhenAll(tasks);
             
-            // Check for cancellation after batch processing
-            if (cancellationToken.IsCancellationRequested)
-            {
-                _logger.LogWarning("Batch document processing cancelled during execution");
-                return ResultExtensions.Cancelled<List<ProcessingResult>>();
-            }
-            
             var successfulResults = new List<ProcessingResult>();
+            var cancelledResults = new List<Result<ProcessingResult>>();
+            var failedResults = new List<Result<ProcessingResult>>();
+            
             foreach (var result in results)
             {
-                // Propagate cancellation from individual document processing
                 if (result.IsCancelled())
                 {
-                    _logger.LogWarning("Batch document processing cancelled by individual document processing");
-                    return ResultExtensions.Cancelled<List<ProcessingResult>>();
+                    cancelledResults.Add(result);
                 }
-                
-                if (result.IsSuccess)
+                else if (result.IsSuccess)
                 {
                     var value = result.Value;
                     if (value != null)
@@ -299,9 +292,47 @@ public class OcrProcessingService : IOcrProcessingService
                         successfulResults.Add(value);
                     }
                 }
+                else
+                {
+                    failedResults.Add(result);
+                }
             }
-            var failedResults = results.Where(r => !r.IsSuccess).ToList();
 
+            // Handle cancellation with partial results
+            var wasCancelled = cancellationToken.IsCancellationRequested || cancelledResults.Any();
+            
+            if (wasCancelled)
+            {
+                if (successfulResults.Count > 0)
+                {
+                    // Return partial results with warning about cancellation
+                    var totalRequested = imageDataArray.Length;
+                    var completed = successfulResults.Count;
+                    var cancelled = cancelledResults.Count;
+                    var confidence = (double)completed / totalRequested;
+                    var missingDataRatio = (double)(cancelled + failedResults.Count) / totalRequested;
+                    
+                    _logger.LogWarning(
+                        "Batch document processing cancelled. Returning {CompletedCount} of {TotalCount} processed documents. " +
+                        "Cancelled: {CancelledCount}, Failed: {FailedCount}",
+                        completed, totalRequested, cancelled, failedResults.Count);
+                    
+                    return Result<List<ProcessingResult>>.WithWarnings(
+                        warnings: new[] { $"Operation was cancelled. Processed {completed} of {totalRequested} documents." },
+                        value: successfulResults,
+                        confidence: confidence,
+                        missingDataRatio: missingDataRatio
+                    );
+                }
+                else
+                {
+                    // No partial results - return cancelled
+                    _logger.LogWarning("Batch document processing cancelled with no completed results");
+                    return ResultExtensions.Cancelled<List<ProcessingResult>>();
+                }
+            }
+
+            // No cancellation - check for failures
             if (failedResults.Any())
             {
                 _logger.LogWarning("Batch processing completed with {FailedCount} failures out of {TotalCount}", 
@@ -312,7 +343,12 @@ public class OcrProcessingService : IOcrProcessingService
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            // If we catch cancellation exception, try to collect any partial results
+            // Note: Task.WhenAll may have completed some tasks before cancellation
             _logger.LogInformation("Batch document processing cancelled");
+            
+            // If we have no way to collect partial results here, return cancelled
+            // (In practice, Task.WhenAll will complete all tasks even if one throws)
             return ResultExtensions.Cancelled<List<ProcessingResult>>();
         }
     }
