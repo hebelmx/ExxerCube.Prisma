@@ -1,0 +1,265 @@
+---
+globs: *.cs
+description: Principles for writing readable, maintainable, and efficient code
+---
+
+# Clean Code Principles
+
+## Meta
+**Title**: Clean Code Principles
+**Description**: Principles for writing readable, maintainable, and efficient code
+**Applies-to**: All code development and review
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use meaningful and descriptive names for all code elements
+**Examples**:
+<correct-example>
+```csharp
+public decimal CalculateProductDiscount(decimal productPrice)
+{
+    const decimal TenPercentDiscount = 0.1m;
+    var discountAmount = productPrice * TenPercentDiscount;
+    return productPrice - discountAmount;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public decimal Calc(decimal p)
+{
+    var d = p * 0.1m; // Magic number
+    return p - d;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Write short functions that do one thing (Single Responsibility Principle)
+**Examples**:
+<correct-example>
+```csharp
+public class OrderProcessor
+{
+    public bool ValidateCustomer(Customer customer) { /* ... */ }
+    public decimal CalculateTotal(List<Item> items) { /* ... */ }
+    public void SaveOrder(Order order) { /* ... */ }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class OrderProcessor
+{
+    public void ProcessEverything(Customer customer, List<Item> items)
+    {
+        // Validate customer
+        // Calculate total
+        // Save order
+        // Send notification
+        // Update inventory
+        // Generate report
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use constants instead of magic numbers and strings
+**Examples**:
+<correct-example>
+```csharp
+public static class OrderConstants
+{
+    public const decimal TenPercentDiscount = 0.1m;
+    public const decimal FiftyDollarThreshold = 50.0m;
+    public const decimal HundredDollarThreshold = 100.0m;
+    public const string DefaultCurrency = "USD";
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public decimal CalculateDiscount(decimal price)
+{
+    if (price > 100) return price * 0.1m;
+    if (price > 50) return price * 0.05m;
+    return 0;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use comments sparingly and make them meaningful
+**Examples**:
+<correct-example>
+```csharp
+/// <summary>
+/// Calculates discount based on business rules.
+/// Warning: This method uses legacy pricing logic that may be deprecated.
+/// </summary>
+/// <param name="price">The product price</param>
+/// <returns>The calculated discount amount</returns>
+public decimal CalculateDiscount(decimal price)
+{
+    // Legacy pricing logic - will be replaced in v2.0
+    return price * GetDiscountRate(price);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public decimal CalculateDiscount(decimal price)
+{
+    // Calculate discount
+    var discount = price * 0.1m;
+    return discount;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Follow DRY principle and avoid code duplication
+**Examples**:
+<correct-example>
+```csharp
+public decimal CalculateProductPrice(int quantity, decimal unitPrice)
+{
+    return quantity * unitPrice;
+}
+
+public decimal CalculateBookPrice(int quantity, decimal unitPrice)
+{
+    return CalculateProductPrice(quantity, unitPrice);
+}
+
+public decimal CalculateLaptopPrice(int quantity, decimal unitPrice)
+{
+    return CalculateProductPrice(quantity, unitPrice);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public decimal CalculateBookPrice(int quantity, decimal unitPrice)
+{
+    return quantity * unitPrice;
+}
+
+public decimal CalculateLaptopPrice(int quantity, decimal unitPrice)
+{
+    return quantity * unitPrice;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Encapsulate complex conditionals into well-named functions
+**Examples**:
+<correct-example>
+```csharp
+public decimal CalculateDiscount(decimal productPrice)
+{
+    var discountRate = GetDiscountRate(productPrice);
+    return productPrice * discountRate;
+}
+
+private decimal GetDiscountRate(decimal productPrice)
+{
+    if (productPrice > HundredDollarThreshold) return 0.1m;
+    if (productPrice > FiftyDollarThreshold) return 0.05m;
+    return 0m;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public decimal CalculateDiscount(decimal productPrice)
+{
+    decimal discountRate;
+    if (productPrice > 100)
+    {
+        discountRate = 0.1m;
+    }
+    else if (productPrice > 50)
+    {
+        discountRate = 0.05m;
+    }
+    else
+    {
+        discountRate = 0m;
+    }
+    return productPrice * discountRate;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Follow established coding standards and conventions
+**Examples**:
+<correct-example>
+```csharp
+// C# conventions
+public class OrderProcessor
+{
+    private readonly ILogger<OrderProcessor> _logger;
+
+    public OrderProcessor(ILogger<OrderProcessor> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<Result<Order>> ProcessOrderAsync(OrderRequest request)
+    {
+        // Implementation
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// Inconsistent naming and formatting
+public class orderprocessor
+{
+    private ILogger<OrderProcessor> logger;
+
+    public orderprocessor(ILogger<OrderProcessor> l)
+    {
+        logger = l;
+    }
+
+    public async Task<Result<Order>> processorder(OrderRequest r)
+    {
+        // Implementation
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Refactor continuously and leave code cleaner than found
+**Examples**:
+<correct-example>
+- Review and improve code structure regularly
+- Extract methods when functions become too long
+- Rename variables and methods for clarity
+- Remove dead code and unused imports
+</correct-example>
+<incorrect-example>
+- Adding new features without refactoring existing code
+- Leaving code in worse condition than found
+- Ignoring code smells and technical debt
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001_CSharpCodingStandards.mdc" reason="Related C# standards">C# Coding Standards</reference>

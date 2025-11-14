@@ -1,0 +1,605 @@
+# ExxerAI Architecture Patterns
+
+## Meta
+**Title**: ExxerAI Architecture Patterns
+**Description**: Clean Architecture and Domain-Driven Design patterns for ExxerAI
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Follow Clean Architecture layers with proper separation of concerns
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Clean Architecture layers
+
+// Domain Layer (Core Business Logic)
+namespace ExxerAI.Domain.Entities
+{
+    public class Agent
+    {
+        public Guid Id { get; init; } = Guid.NewGuid();
+        public string Name { get; init; } = string.Empty;
+        public AgentStatus Status { get; init; }
+        public AgentCapabilities Capabilities { get; init; } = new();
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    }
+}
+
+// Application Layer (Use Cases)
+namespace ExxerAI.Application.Services
+{
+    public class AgentService : IAgentService
+    {
+        private readonly IAgentRepository _repository;
+
+        public AgentService(IAgentRepository repository) => _repository = repository;
+
+        public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+        {
+            // Application logic here
+            var agent = new Agent { Name = name, Capabilities = capabilities };
+            return await _repository.AddAsync(agent, cancellationToken);
+        }
+    }
+}
+
+// Infrastructure Layer (External Concerns)
+namespace ExxerAI.Infrastructure.Repositories
+{
+    public class InMemoryAgentRepository : IAgentRepository
+    {
+        private readonly ConcurrentDictionary<Guid, Agent> _agents = new();
+
+        public async Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default)
+        {
+            // Infrastructure implementation
+            _agents.TryAdd(agent.Id, agent);
+            return Result<Agent>.Success(agent);
+        }
+    }
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Mixed concerns across layers
+namespace ExxerAI.Services
+{
+    public class AgentService
+    {
+        private readonly ConcurrentDictionary<Guid, Agent> _agents = new(); // Infrastructure in service
+
+        public async Task<Agent> CreateAgentAsync(string name)
+        {
+            // Direct database access in service layer
+            var agent = new Agent { Name = name };
+            _agents.TryAdd(agent.Id, agent);
+            return agent;
+        }
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use Repository pattern with Result<T> for data access
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Repository pattern with Result<T>
+namespace ExxerAI.Application.Interfaces
+{
+    public interface IAgentRepository
+    {
+        Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<Agent>> UpdateAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<bool>> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Result<bool>> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+    }
+}
+
+namespace ExxerAI.Infrastructure.Repositories
+{
+    public class InMemoryAgentRepository : IAgentRepository
+    {
+        private readonly ConcurrentDictionary<Guid, Agent> _agents = new();
+
+        public async Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return ResultExtensions.Cancelled<Agent>();
+
+            if (id == Guid.Empty)
+                return Result<Agent>.WithFailure("Agent ID cannot be empty");
+
+            var success = _agents.TryGetValue(id, out var agent);
+            return success && agent != null
+                ? Result<Agent>.Success(agent)
+                : Result<Agent>.WithFailure("Agent not found");
+        }
+
+        public async Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return ResultExtensions.Cancelled<Agent>();
+
+            if (agent == null)
+                return Result<Agent>.WithFailure("Agent cannot be null");
+
+            if (_agents.ContainsKey(agent.Id))
+                return Result<Agent>.WithFailure($"Agent with ID '{agent.Id}' already exists");
+
+            var success = _agents.TryAdd(agent.Id, agent);
+            return success
+                ? Result<Agent>.Success(agent)
+                : Result<Agent>.WithFailure("Failed to add agent");
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Direct data access without repository pattern
+public class AgentService
+{
+    private readonly DbContext _context; // Direct database access
+
+    public async Task<Agent> GetAgentAsync(Guid id)
+    {
+        return await _context.Agents.FindAsync(id); // Direct EF Core usage
+    }
+
+    public async Task<Agent> CreateAgentAsync(Agent agent)
+    {
+        _context.Agents.Add(agent);
+        await _context.SaveChangesAsync();
+        return agent;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use Dependency Injection throughout the application
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Dependency Injection
+namespace ExxerAI.Application.Services
+{
+    public class AgentService : IAgentService
+    {
+        private readonly IAgentRepository _agentRepository;
+        private readonly ITaskRepository _taskRepository;
+        private readonly ILogger<AgentService> _logger;
+
+        public AgentService(
+            IAgentRepository agentRepository,
+            ITaskRepository taskRepository,
+            ILogger<AgentService> logger)
+        {
+            _agentRepository = agentRepository ?? throw new ArgumentNullException(nameof(agentRepository));
+            _taskRepository = taskRepository ?? throw new ArgumentNullException(nameof(taskRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Creating agent with name: {Name}", name);
+
+            var agent = new Agent { Name = name, Capabilities = capabilities };
+            var result = await _agentRepository.AddAsync(agent, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Successfully created agent with ID: {AgentId}", agent.Id);
+            }
+            else
+            {
+                _logger.LogError("Failed to create agent: {Error}", result.Error);
+            }
+
+            return result;
+        }
+    }
+}
+
+// Service registration
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<IAgentService, AgentService>();
+        services.AddScoped<ITaskService, TaskService>();
+        services.AddScoped<IWorkflowService, WorkflowService>();
+
+        return services;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Service locator pattern or direct instantiation
+public class AgentService
+{
+    private readonly IAgentRepository _repository;
+
+    public AgentService()
+    {
+        // Direct instantiation - hard to test and maintain
+        _repository = new InMemoryAgentRepository();
+    }
+
+    public async Task<Agent> CreateAgentAsync(string name)
+    {
+        // Service locator pattern - avoid this
+        var repository = ServiceLocator.Current.GetInstance<IAgentRepository>();
+        var agent = new Agent { Name = name };
+        return await repository.AddAsync(agent);
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use Interface Segregation Principle for focused interfaces
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Focused interfaces following ISP
+namespace ExxerAI.Application.Interfaces
+{
+    public interface IAgentRepository
+    {
+        Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<Agent>> UpdateAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<bool>> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    }
+
+    public interface IAgentQueryRepository
+    {
+        Task<Result<IEnumerable<Agent>>> GetByStatusAsync(AgentStatus status, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<Agent>>> FindByTaskTypeAsync(string taskType, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<(Agent Agent, int TaskCount)>>> GetAgentsWithTaskCountAsync(CancellationToken cancellationToken = default);
+    }
+
+    public interface IAgentCommandRepository
+    {
+        Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<Agent>> UpdateAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<bool>> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    }
+}
+
+// Implementation can implement multiple focused interfaces
+public class InMemoryAgentRepository : IAgentRepository, IAgentQueryRepository, IAgentCommandRepository
+{
+    // Implementation here
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Large interface violating ISP
+public interface IAgentRepository
+{
+    // Query methods
+    Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<Agent>>> GetByStatusAsync(AgentStatus status, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<Agent>>> FindByTaskTypeAsync(string taskType, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<(Agent Agent, int TaskCount)>>> GetAgentsWithTaskCountAsync(CancellationToken cancellationToken = default);
+
+    // Command methods
+    Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default);
+    Task<Result<Agent>> UpdateAsync(Agent agent, CancellationToken cancellationToken = default);
+    Task<Result<bool>> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+
+    // Infrastructure methods
+    Task<Result<bool>> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Result<int>> CountAsync(CancellationToken cancellationToken = default);
+    Task<Result<bool>> ClearAsync(CancellationToken cancellationToken = default);
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use Value Objects for domain concepts
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Value Objects for domain concepts
+namespace ExxerAI.Domain.ValueObjects
+{
+    public record AgentName
+    {
+        public string Value { get; init; } = string.Empty;
+
+        public AgentName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Agent name cannot be empty", nameof(value));
+
+            if (value.Length > 100)
+                throw new ArgumentException("Agent name cannot exceed 100 characters", nameof(value));
+
+            Value = value.Trim();
+        }
+
+        public static implicit operator string(AgentName name) => name.Value;
+        public static explicit operator AgentName(string value) => new(value);
+    }
+
+    public record AgentCapabilities
+    {
+        public IReadOnlyList<string> SupportedTaskTypes { get; init; } = Array.Empty<string>();
+        public int MaxConcurrentTasks { get; init; } = 1;
+        public bool IsEnabled { get; init; } = true;
+
+        public AgentCapabilities(IEnumerable<string> supportedTaskTypes, int maxConcurrentTasks = 1, bool isEnabled = true)
+        {
+            SupportedTaskTypes = supportedTaskTypes?.ToList().AsReadOnly() ?? Array.Empty<string>();
+            MaxConcurrentTasks = maxConcurrentTasks > 0 ? maxConcurrentTasks : 1;
+            IsEnabled = isEnabled;
+        }
+
+        public bool SupportsTaskType(string taskType) =>
+            SupportedTaskTypes.Contains(taskType, StringComparer.OrdinalIgnoreCase);
+    }
+}
+
+// Usage in entities
+public class Agent
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public AgentName Name { get; init; } = new(string.Empty);
+    public AgentCapabilities Capabilities { get; init; } = new();
+    public AgentStatus Status { get; init; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Primitive obsession
+public class Agent
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string Name { get; init; } = string.Empty; // Primitive obsession
+    public List<string> SupportedTaskTypes { get; init; } = new(); // Primitive obsession
+    public int MaxConcurrentTasks { get; init; } = 1; // Primitive obsession
+    public AgentStatus Status { get; init; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use Domain Events for side effects
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Domain Events for side effects
+namespace ExxerAI.Domain.Events
+{
+    public record AgentCreatedEvent : IDomainEvent
+    {
+        public Guid AgentId { get; init; }
+        public string AgentName { get; init; } = string.Empty;
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    }
+
+    public record AgentStatusChangedEvent : IDomainEvent
+    {
+        public Guid AgentId { get; init; }
+        public AgentStatus OldStatus { get; init; }
+        public AgentStatus NewStatus { get; init; }
+        public DateTime ChangedAt { get; init; } = DateTime.UtcNow;
+    }
+}
+
+// Domain entity with events
+public class Agent
+{
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public AgentName Name { get; init; } = new(string.Empty);
+    public AgentStatus Status { get; private set; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+
+    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    public void ChangeStatus(AgentStatus newStatus)
+    {
+        var oldStatus = Status;
+        Status = newStatus;
+
+        _domainEvents.Add(new AgentStatusChangedEvent
+        {
+            AgentId = Id,
+            OldStatus = oldStatus,
+            NewStatus = newStatus
+        });
+    }
+
+    public void ClearDomainEvents() => _domainEvents.Clear();
+}
+
+// Application service handling events
+public class AgentService : IAgentService
+{
+    private readonly IAgentRepository _repository;
+    private readonly IDomainEventDispatcher _eventDispatcher;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            // Dispatch domain events
+            foreach (var domainEvent in agent.DomainEvents)
+            {
+                await _eventDispatcher.DispatchAsync(domainEvent, cancellationToken);
+            }
+            agent.ClearDomainEvents();
+        }
+
+        return result;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Direct side effects in domain logic
+public class AgentService : IAgentService
+{
+    private readonly IAgentRepository _repository;
+    private readonly IEmailService _emailService; // Direct dependency on infrastructure
+    private readonly ILogger _logger; // Direct dependency on infrastructure
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var agent = new Agent { Name = name, Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            // Direct side effects in application service
+            await _emailService.SendNotificationAsync("admin@company.com", $"Agent {name} created");
+            _logger.LogInformation("Agent {Name} created", name);
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use Specification pattern for complex queries
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Specification pattern for complex queries
+namespace ExxerAI.Domain.Specifications
+{
+    public interface ISpecification<T>
+    {
+        bool IsSatisfiedBy(T entity);
+        ISpecification<T> And(ISpecification<T> specification);
+        ISpecification<T> Or(ISpecification<T> specification);
+        ISpecification<T> Not();
+    }
+
+    public abstract class Specification<T> : ISpecification<T>
+    {
+        public abstract bool IsSatisfiedBy(T entity);
+
+        public ISpecification<T> And(ISpecification<T> specification) =>
+            new AndSpecification<T>(this, specification);
+
+        public ISpecification<T> Or(ISpecification<T> specification) =>
+            new OrSpecification<T>(this, specification);
+
+        public ISpecification<T> Not() => new NotSpecification<T>(this);
+    }
+
+    public class ActiveAgentSpecification : Specification<Agent>
+    {
+        public override bool IsSatisfiedBy(Agent agent) =>
+            agent?.Status == AgentStatus.Active;
+    }
+
+    public class AgentWithTaskTypeSpecification : Specification<Agent>
+    {
+        private readonly string _taskType;
+
+        public AgentWithTaskTypeSpecification(string taskType) => _taskType = taskType;
+
+        public override bool IsSatisfiedBy(Agent agent) =>
+            agent?.Capabilities?.SupportsTaskType(_taskType) == true;
+    }
+
+    public class AgentNameContainsSpecification : Specification<Agent>
+    {
+        private readonly string _searchTerm;
+
+        public AgentNameContainsSpecification(string searchTerm) => _searchTerm = searchTerm;
+
+        public override bool IsSatisfiedBy(Agent agent) =>
+            agent?.Name?.Value?.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) == true;
+    }
+}
+
+// Usage in repository
+public interface IAgentRepository
+{
+    Task<Result<IEnumerable<Agent>>> GetBySpecificationAsync(ISpecification<Agent> specification, CancellationToken cancellationToken = default);
+}
+
+public class InMemoryAgentRepository : IAgentRepository
+{
+    public async Task<Result<IEnumerable<Agent>>> GetBySpecificationAsync(ISpecification<Agent> specification, CancellationToken cancellationToken = default)
+    {
+        var agents = _agents.Values.Where(specification.IsSatisfiedBy);
+        return Result<IEnumerable<Agent>>.Success(agents);
+    }
+}
+
+// Usage in application service
+public class AgentService : IAgentService
+{
+    public async Task<Result<IEnumerable<Agent>>> GetActiveAgentsWithTaskTypeAsync(string taskType, CancellationToken cancellationToken = default)
+    {
+        var specification = new ActiveAgentSpecification()
+            .And(new AgentWithTaskTypeSpecification(taskType));
+
+        return await _repository.GetBySpecificationAsync(specification, cancellationToken);
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Complex queries without specification pattern
+public class AgentService : IAgentService
+{
+    public async Task<Result<IEnumerable<Agent>>> GetActiveAgentsWithTaskTypeAsync(string taskType, CancellationToken cancellationToken = default)
+    {
+        var allAgents = await _repository.GetAllAsync(cancellationToken);
+        if (allAgents.IsFailure)
+            return Result<IEnumerable<Agent>>.WithFailure(allAgents.Error);
+
+        // Complex filtering logic in service layer
+        var filteredAgents = allAgents.Value
+            .Where(agent => agent.Status == AgentStatus.Active)
+            .Where(agent => agent.Capabilities?.SupportedTaskTypes?.Contains(taskType) == true)
+            .ToList();
+
+        return Result<IEnumerable<Agent>>.Success(filteredAgents);
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/2001_ExxerAIResultPattern.mdc" reason="Related Result<T> pattern">Result<T> Pattern</reference>

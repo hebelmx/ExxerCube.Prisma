@@ -10,13 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Python\python\*.py" />
+	<None Remove="Python\python\*.py" />
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="Python\python\*.py" SourceItemType="Python">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AdditionalFiles>
+	<AdditionalFiles Include="Python\python\*.py" SourceItemType="Python">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</AdditionalFiles>
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +28,9 @@
 	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 	<PackageReference Include="System.Drawing.Common" />
-	<PackageReference Include="Newtonsoft.Json" />
+	<PackageReference Include="IndQuestResults" />
+
+	  <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Python\Wrappers\" />
+	<Folder Include="Python\Wrappers\" />
   </ItemGroup>
 
 </Project>

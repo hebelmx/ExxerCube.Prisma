@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-ExxerCube.Prisma.Web.UI-889a571d-e37b-47ea-b986-9e8601044c7a</UserSecretsId>
+    <!-- Suppress BL0008 - MudBlazor analyzer bug: fixing causes BL0002, then fixing that causes BL0008 again -->
+    <NoWarn>$(NoWarn);BL0008</NoWarn>
+    <!-- Exclude NU1903 from being treated as error - DocumentFormat.OpenXml dependency vulnerability -->
+    <WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
   </PropertyGroup>
 
 
@@ -21,6 +25,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Application\ExxerCube.Prisma.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
   </ItemGroup>
 
 </Project>

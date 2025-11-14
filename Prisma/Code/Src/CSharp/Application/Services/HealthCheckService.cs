@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Interfaces;
 using System.IO;
 using System.Linq;
@@ -126,7 +126,7 @@ public class HealthCheckService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error performing health check");
-            return Result<HealthCheckReport>.Failure($"Health check failed: {ex.Message}");
+            return Result<HealthCheckReport>.WithFailure($"Health check failed: {ex.Message}", default, ex);
         }
     }
 
@@ -318,7 +318,16 @@ public class HealthCheckService
             if (!performanceValidation.IsSuccess)
             {
                 status = HealthStatus.Degraded;
-                message = $"Performance issues detected: {string.Join(", ", performanceValidation.Value!.ValidationResults)}";
+                message = "Performance issues detected: Unknown performance issues";
+            }
+            else if (performanceValidation.IsSuccess)
+            {
+                var validationValue = performanceValidation.Value;
+                if (validationValue != null)
+                {
+                    status = HealthStatus.Degraded;
+                    message = $"Performance issues detected: {string.Join(", ", validationValue.ValidationResults)}";
+                }
             }
 
             return new HealthCheckResult

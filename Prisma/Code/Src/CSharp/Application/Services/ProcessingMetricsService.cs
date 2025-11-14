@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 
 namespace ExxerCube.Prisma.Application.Services;

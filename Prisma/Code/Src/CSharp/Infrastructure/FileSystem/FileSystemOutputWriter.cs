@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
@@ -44,7 +44,7 @@ public class FileSystemOutputWriter : IOutputWriter
             var validationResult = ValidateOutputPath(outputPath);
             if (!validationResult.IsSuccess)
             {
-                return Result<bool>.Failure(validationResult.Error!);
+                return Result<bool>.WithFailure(validationResult.Error!);
             }
 
             // Determine output format based on file extension
@@ -56,13 +56,13 @@ public class FileSystemOutputWriter : IOutputWriter
                 case ".txt":
                     return await WriteTextAsync(result, outputPath);
                 default:
-                    return Result<bool>.Failure($"Unsupported output format: {extension}");
+                    return Result<bool>.WithFailure($"Unsupported output format: {extension}");
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error writing processing result to {OutputPath}", outputPath);
-            return Result<bool>.Failure($"Failed to write result: {ex.Message}");
+            return Result<bool>.WithFailure($"Failed to write result: {ex.Message}", default, ex);
         }
     }
 
@@ -110,7 +110,7 @@ public class FileSystemOutputWriter : IOutputWriter
             if (errors.Any())
             {
                 _logger.LogWarning("Some results failed to write: {ErrorCount} errors", errors.Count);
-                return Result<bool>.Failure($"Some results failed to write: {string.Join("; ", errors)}");
+                return Result<bool>.WithFailure($"Some results failed to write: {string.Join("; ", errors)}");
             }
 
             _logger.LogInformation("Successfully wrote {ResultCount} processing results to directory {OutputDirectory}", 
@@ -120,7 +120,7 @@ public class FileSystemOutputWriter : IOutputWriter
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error writing processing results to directory {OutputDirectory}", outputDirectory);
-                return Result<bool>.Failure($"Failed to write results: {ex.Message}");
+                return Result<bool>.WithFailure($"Failed to write results: {ex.Message}", default, ex);
             }
     }
 
@@ -151,7 +151,7 @@ public class FileSystemOutputWriter : IOutputWriter
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error writing JSON result to {OutputPath}", outputPath);
-            return Result<bool>.Failure($"Failed to write JSON: {ex.Message}");
+            return Result<bool>.WithFailure($"Failed to write JSON: {ex.Message}", default, ex);
         }
     }
 
@@ -231,7 +231,7 @@ public class FileSystemOutputWriter : IOutputWriter
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error writing text result to {OutputPath}", outputPath);
-            return Result<bool>.Failure($"Failed to write text: {ex.Message}");
+            return Result<bool>.WithFailure($"Failed to write text: {ex.Message}", default, ex);
         }
     }
 
@@ -244,14 +244,14 @@ public class FileSystemOutputWriter : IOutputWriter
     {
         if (string.IsNullOrWhiteSpace(outputPath))
         {
-            return Result<bool>.Failure("Output path cannot be null or empty");
+            return Result<bool>.WithFailure("Output path cannot be null or empty");
         }
 
         // Check for path traversal attacks
         var normalizedPath = Path.GetFullPath(outputPath);
         if (!normalizedPath.Equals(outputPath, StringComparison.OrdinalIgnoreCase))
         {
-            return Result<bool>.Failure("Invalid output path");
+            return Result<bool>.WithFailure("Invalid output path");
         }
 
         try
@@ -267,7 +267,7 @@ public class FileSystemOutputWriter : IOutputWriter
         }
         catch (Exception ex)
         {
-            return Result<bool>.Failure($"Cannot create output directory: {ex.Message}");
+            return Result<bool>.WithFailure($"Cannot create output directory: {ex.Message}", default, ex);
         }
     }
 }

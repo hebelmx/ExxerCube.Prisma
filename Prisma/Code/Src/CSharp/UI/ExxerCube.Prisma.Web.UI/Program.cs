@@ -7,6 +7,14 @@ using ExxerCube.Prisma.Web.UI.Components.Account;
 using ExxerCube.Prisma.Web.UI.Data;
 using ExxerCube.Prisma.Infrastructure.DependencyInjection;
 using ExxerCube.Prisma.Web.UI.Hubs;
+using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.FileStorage;
+using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction;
+using ExxerCube.Prisma.Infrastructure.Classification;
+using ExxerCube.Prisma.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +76,22 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Add Story 1.1 services: Browser Automation, File Storage, and Database services
+builder.Services.AddDatabaseServices(connectionString);
+builder.Services.AddBrowserAutomationServices(options =>
+{
+    builder.Configuration.GetSection("BrowserAutomation").Bind(options);
+});
+builder.Services.AddFileStorageServices(options =>
+{
+    builder.Configuration.GetSection("FileStorage").Bind(options);
+});
+
+// Add Story 1.2 services: Extraction, Classification, and Metadata Extraction
+builder.Services.AddExtractionServices();
+builder.Services.AddClassificationServices();
+builder.Services.AddScoped<MetadataExtractionService>();
 
 var app = builder.Build();
 

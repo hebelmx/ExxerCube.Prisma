@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 
 namespace ExxerCube.Prisma.Domain.Interfaces;

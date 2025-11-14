@@ -1,0 +1,431 @@
+# Domain Testing Standards
+
+## Meta
+
+**Title**: Domain Testing Standards
+**Description**: Establishes comprehensive domain-driven design and testing standards for domain entities
+**Created-at**: 2025-01-05T23:15:00Z
+**Last-updated-at**: 2025-01-05T23:15:00Z
+**Applies-to**: Domain entity testing, domain logic validation, business rule testing
+**File-matcher**: *.cs files in domain projects
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Test all domain entities systematically - POCOs get property round-trip tests, entities with logic get behavior tests
+**Examples**:
+<correct-example>
+```csharp
+// POCO entity - property round-trip test
+[Fact]
+public void Should_StoreAndRetrieveProperties_When_ValidOrderCreated()
+{
+    // Arrange
+    var order = new Order
+    {
+        Id = Guid.NewGuid(),
+        CustomerName = "John Doe",
+        TotalAmount = 100.00m,
+        CreatedAt = DateTime.UtcNow
+    };
+
+    // Act & Assert
+    order.Id.ShouldNotBe(Guid.Empty);
+    order.CustomerName.ShouldBe("John Doe");
+    order.TotalAmount.ShouldBe(100.00m);
+    order.CreatedAt.ShouldBeGreaterThan(DateTime.UtcNow.AddMinutes(-1));
+}
+
+// Entity with logic - behavior tests
+[Fact]
+public void Should_CalculateTotal_When_ItemsAdded()
+{
+    // Arrange
+    var order = new Order();
+    var item1 = new OrderItem { Price = 50.00m, Quantity = 2 };
+    var item2 = new OrderItem { Price = 25.00m, Quantity = 1 };
+
+    // Act
+    order.AddItem(item1);
+    order.AddItem(item2);
+
+    // Assert
+    order.TotalAmount.ShouldBe(125.00m);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// Missing tests for domain entities
+public class Order
+{
+    public Guid Id { get; set; }
+    public string CustomerName { get; set; }
+    public decimal TotalAmount { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    public void AddItem(OrderItem item) { /* logic */ }
+    public decimal CalculateTotal() { /* logic */ }
+}
+// No tests written
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Test domain invariants and business rules thoroughly
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_RejectOrder_When_CustomerNameIsEmpty()
+{
+    // Arrange
+    var order = new Order { CustomerName = "" };
+
+    // Act
+    var result = order.Validate();
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Error.ShouldContain("Customer name is required");
+}
+
+[Fact]
+public void Should_RejectOrder_When_TotalAmountIsNegative()
+{
+    // Arrange
+    var order = new Order { TotalAmount = -50.00m };
+
+    // Act
+    var result = order.Validate();
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Error.ShouldContain("Total amount must be positive");
+}
+
+[Theory]
+[InlineData(0)]
+[InlineData(-1)]
+[InlineData(-100)]
+public void Should_RejectOrder_When_InvalidQuantityProvided(int quantity)
+{
+    // Arrange
+    var item = new OrderItem { Quantity = quantity };
+
+    // Act
+    var result = item.Validate();
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Error.ShouldContain("Quantity must be greater than zero");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_ValidateOrder()
+{
+    // Arrange
+    var order = new Order();
+
+    // Act
+    var result = order.Validate();
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue(); // Too generic, doesn't test specific rules
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Test domain events and state transitions properly
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_RaiseOrderCreatedEvent_When_OrderIsCreated()
+{
+    // Arrange
+    var order = new Order { CustomerName = "John Doe" };
+
+    // Act
+    order.Create();
+
+    // Assert
+    order.DomainEvents.ShouldContain(e => e is OrderCreatedEvent);
+    order.Status.ShouldBe(OrderStatus.Created);
+}
+
+[Fact]
+public void Should_RaiseOrderShippedEvent_When_OrderIsShipped()
+{
+    // Arrange
+    var order = new Order { CustomerName = "John Doe" };
+    order.Create();
+
+    // Act
+    order.Ship();
+
+    // Assert
+    order.DomainEvents.ShouldContain(e => e is OrderShippedEvent);
+    order.Status.ShouldBe(OrderStatus.Shipped);
+    order.ShippedAt.ShouldNotBeNull();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_HandleOrderEvents()
+{
+    // Arrange
+    var order = new Order();
+
+    // Act
+    order.Create();
+
+    // Assert
+    order.DomainEvents.ShouldNotBeEmpty(); // Too generic, doesn't test specific events
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Test value objects for immutability and equality
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_BeImmutable_When_ValueObjectCreated()
+{
+    // Arrange
+    var email1 = new Email("test@example.com");
+    var email2 = new Email("test@example.com");
+
+    // Act & Assert
+    email1.ShouldBe(email2); // Value equality
+    email1.GetHashCode().ShouldBe(email2.GetHashCode());
+}
+
+[Fact]
+public void Should_RejectInvalidEmail_When_InvalidFormatProvided()
+{
+    // Arrange & Act
+    var result = Email.Create("invalid-email");
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Error.ShouldContain("Invalid email format");
+}
+
+[Theory]
+[InlineData("test@example.com", true)]
+[InlineData("invalid-email", false)]
+[InlineData("", false)]
+[InlineData(null, false)]
+public void Should_ValidateEmailFormat_When_VariousInputsProvided(string input, bool expected)
+{
+    // Arrange & Act
+    var result = Email.Create(input);
+
+    // Assert
+    result.IsSuccess.ShouldBe(expected);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_CreateEmail()
+{
+    // Arrange
+    var email = new Email("test@example.com");
+
+    // Assert
+    email.Value.ShouldBe("test@example.com"); // Only tests basic property, not validation
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Test domain services and business logic in isolation
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_CalculateDiscount_When_EligibleCustomerProvided()
+{
+    // Arrange
+    var customer = new Customer { IsPremium = true, TotalOrders = 10 };
+    var order = new Order { TotalAmount = 100.00m };
+    var discountService = new DiscountService();
+
+    // Act
+    var discount = discountService.CalculateDiscount(customer, order);
+
+    // Assert
+    discount.ShouldBe(10.00m); // 10% discount for premium customers
+}
+
+[Fact]
+public void Should_NotCalculateDiscount_When_NonEligibleCustomerProvided()
+{
+    // Arrange
+    var customer = new Customer { IsPremium = false, TotalOrders = 2 };
+    var order = new Order { TotalAmount = 100.00m };
+    var discountService = new DiscountService();
+
+    // Act
+    var discount = discountService.CalculateDiscount(customer, order);
+
+    // Assert
+    discount.ShouldBe(0.00m); // No discount for non-premium customers
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Should_CalculateDiscount()
+{
+    // Arrange
+    var customer = new Customer();
+    var order = new Order();
+    var discountService = new DiscountService();
+
+    // Act
+    var discount = discountService.CalculateDiscount(customer, order);
+
+    // Assert
+    discount.ShouldBeGreaterThanOrEqualTo(0); // Too generic, doesn't test specific logic
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never modify production code during test refactoring
+**Examples**:
+<correct-example>
+```csharp
+// Test only - no production code changes
+[Fact]
+public void Should_ReturnFailure_When_InvalidOrderProvided()
+{
+    // Arrange
+    var order = new Order { CustomerName = "", TotalAmount = -50.00m };
+
+    // Act
+    var result = order.Validate();
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Error.ShouldContain("Customer name is required");
+    result.Error.ShouldContain("Total amount must be positive");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// Modifying production code to make test pass
+public class Order
+{
+    public string CustomerName { get; set; }
+    public decimal TotalAmount { get; set; }
+
+    public Result Validate()
+    {
+        if (string.IsNullOrEmpty(CustomerName))
+            return Result.WithFailure("Customer name is required"); // Added for test
+
+        if (TotalAmount <= 0)
+            return Result.WithFailure("Total amount must be positive"); // Added for test
+
+        return Result.Success();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use descriptive test names following Should_Action_When_Condition pattern
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public void Should_RejectOrder_When_CustomerNameIsEmpty()
+[Fact]
+public void Should_CalculateTotal_When_MultipleItemsAdded()
+[Fact]
+public void Should_RaiseOrderCreatedEvent_When_OrderIsCreated()
+[Fact]
+public void Should_ApplyDiscount_When_PremiumCustomerProvided()
+[Theory]
+[InlineData("test@example.com", true)]
+[InlineData("invalid-email", false)]
+public void Should_ValidateEmailFormat_When_VariousInputsProvided(string email, bool expected)
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public void Test1()
+[Fact]
+public void ValidateOrder()
+[Fact]
+public void CalculateTotal()
+[Fact]
+public void TestEmailValidation()
+```
+</incorrect-example>
+</requirement>
+
+## Testing Strategy
+
+### Domain Entity Testing
+- **POCO Entities**: Property round-trip tests
+- **Entities with Logic**: Behavior and invariant tests
+- **Value Objects**: Immutability and equality tests
+- **Domain Services**: Business logic tests
+
+### Test Categories
+- **Unit Tests**: Test individual domain entities in isolation
+- **Behavioral Tests**: Focus on domain behavior, not implementation
+- **Invariant Tests**: Test business rules and constraints
+- **Event Tests**: Test domain events and state transitions
+
+### Test Organization
+- **Group by Entity**: Organize tests by the domain entity being tested
+- **Group by Behavior**: Organize tests by the behavior being tested
+- **Use Test Fixtures**: Share common test data and setup
+- **Follow Naming Convention**: Should_Action_When_Condition
+
+## Context
+
+This rule establishes comprehensive domain testing standards for domain-driven design. It emphasizes:
+
+1. **Systematic Coverage**: Test all domain entities thoroughly
+2. **Business Rules**: Focus on domain invariants and business logic
+3. **Isolation**: Test domain logic without external dependencies
+4. **Clarity**: Use descriptive test names and clear structure
+5. **Maintainability**: Organize tests for easy maintenance
+
+The rule prioritizes testing that validates domain behavior and business rules, ensuring that domain logic is correct and maintainable.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/ApplicationUnitTest.mdc" reason="Application testing patterns">Application Testing Standards</reference>
+<reference as="context" href=".cursor/rules/1001CSharpCodingStandards.mdc" reason="C# coding standards">C# Enhancement Standards</reference>
+## Test Execution
+1. Run tests using .NET CLI commands:
+   ```bash
+   dotnet test
+   dotnet test --filter FullyQualifiedName~Domain

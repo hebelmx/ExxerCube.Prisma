@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 
 namespace ExxerCube.Prisma.Application.Services;
@@ -76,7 +76,7 @@ public class ConfigurationValidationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during configuration validation");
-            return Result<ConfigurationValidationResult>.Failure($"Configuration validation failed: {ex.Message}");
+            return Result<ConfigurationValidationResult>.WithFailure($"Configuration validation failed: {ex.Message}", default, ex);
         }
     }
 

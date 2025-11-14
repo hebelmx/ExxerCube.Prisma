@@ -3,7 +3,7 @@
 
 		<!-- Target framework centrally manged do not add another on projects -->
 
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>

@@ -1,0 +1,356 @@
+# CancellationToken Best Practices for Unit Testing with xUnit v3
+
+## Objective
+
+Establish consistent patterns for propagating `TestContext.Current.CancellationToken` in unit tests to improve test framework responsiveness, prevent hanging tests, and ensure proper cancellation handling across all asynchronous operations.
+
+## Core Principle
+
+**Always propagate `TestContext.Current.CancellationToken` to asynchronous operations in unit tests unless cancellation behavior is specifically being tested.**
+
+## Implementation Guidelines
+
+### 1. Basic Token Propagation
+
+```csharp
+[Fact]
+public async Task Should_CompleteOperation_When_ValidInputProvided()
+{
+    // Arrange
+    var service = new TestService();
+    var input = "test data";
+
+    // Act
+    var result = await service.ProcessAsync(input, TestContext.Current.CancellationToken);
+
+    // Assert
+    result.ShouldBeSuccessful();
+}
+```
+
+### 2. Multiple Async Operations
+
+```csharp
+[Fact]
+public async Task Should_ProcessMultipleOperations_When_ValidSequenceProvided()
+{
+    // Arrange
+    var service = new TestService();
+    var operations = new[] { "op1", "op2", "op3" };
+
+    // Act
+    var results = new List<Result>();
+    foreach (var operation in operations)
+    {
+        var result = await service.ProcessAsync(operation, TestContext.Current.CancellationToken);
+        results.Add(result);
+    }
+
+    // Assert
+    results.ShouldAllBe(r => r.IsSuccess);
+}
+```
+
+### 3. Repository and Data Access Operations
+
+```csharp
+[Fact]
+public async Task Should_RetrieveData_When_ValidIdProvided()
+{
+    // Arrange
+    var repository = Substitute.For<IRepository>();
+    var id = Guid.NewGuid();
+    var expectedData = new TestEntity { Id = id, Name = "Test" };
+
+    repository.GetByIdAsync(id, TestContext.Current.CancellationToken)
+        .Returns(Result<TestEntity>.Success(expectedData));
+
+    // Act
+    var result = await repository.GetByIdAsync(id, TestContext.Current.CancellationToken);
+
+    // Assert
+    result.ShouldBeSuccessful();
+    result.Value.ShouldBe(expectedData);
+}
+```
+
+### 4. HTTP Client Operations
+
+```csharp
+[Fact]
+public async Task Should_CallExternalApi_When_ValidRequestProvided()
+{
+    // Arrange
+    var httpClient = new HttpClient();
+    var service = new ExternalApiService(httpClient);
+
+    // Act
+    var result = await service.GetDataAsync("endpoint", TestContext.Current.CancellationToken);
+
+    // Assert
+    result.ShouldBeSuccessful();
+}
+```
+
+### 5. Task.Delay and Timeout Operations
+
+```csharp
+[Fact]
+public async Task Should_HandleTimeout_When_OperationExceedsLimit()
+{
+    // Arrange
+    var service = new TimeoutService();
+
+    // Act
+    var result = await service.ExecuteWithTimeoutAsync(
+        TimeSpan.FromSeconds(5),
+        TestContext.Current.CancellationToken);
+
+    // Assert
+    result.ShouldBeSuccessful();
+}
+```
+
+## Exceptions: When NOT to Propagate
+
+### 1. Testing Cancellation Behavior
+
+```csharp
+[Fact]
+public async Task Should_CancelOperation_When_CancellationRequested()
+{
+    // Arrange
+    var service = new TestService();
+    var cts = new CancellationTokenSource();
+
+    // Act
+    var task = service.LongRunningOperationAsync(cts.Token);
+    cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+
+    // Assert
+    await Should.ThrowAsync<OperationCanceledException>(() => task);
+}
+```
+
+### 2. Testing Timeout Behavior
+
+```csharp
+[Fact]
+public async Task Should_Timeout_When_OperationExceedsLimit()
+{
+    // Arrange
+    var service = new TestService();
+    var timeoutToken = new CancellationTokenSource(TimeSpan.FromMilliseconds(100)).Token;
+
+    // Act & Assert
+    await Should.ThrowAsync<OperationCanceledException>(() =>
+        service.LongRunningOperationAsync(timeoutToken));
+}
+```
+
+## Best Practices
+
+### 1. Consistent Parameter Order
+
+Always place `CancellationToken` as the last parameter in method signatures:
+
+```csharp
+// Good
+public async Task<Result<T>> ProcessAsync(T input, CancellationToken cancellationToken = default)
+
+// Avoid
+public async Task<Result<T>> ProcessAsync(CancellationToken cancellationToken, T input)
+```
+
+### 2. Default Parameter Usage
+
+Use default parameter for optional cancellation tokens:
+
+```csharp
+public async Task<Result<T>> ProcessAsync(T input, CancellationToken cancellationToken = default)
+{
+    // Implementation
+}
+```
+
+### 3. Proper Exception Handling
+
+```csharp
+[Fact]
+public async Task Should_HandleCancellationGracefully_When_OperationInProgress()
+{
+    // Arrange
+    var service = new TestService();
+    var cts = new CancellationTokenSource();
+
+    // Act
+    var task = service.ProcessAsync("data", cts.Token);
+    cts.Cancel();
+
+    // Assert
+    await Should.ThrowAsync<OperationCanceledException>(() => task);
+}
+```
+
+## Integration with Test Infrastructure
+
+### 1. Test Fixtures
+
+```csharp
+public class TestServiceFixture : IAsyncDisposable
+{
+    public TestService Service { get; }
+
+    public TestServiceFixture()
+    {
+        Service = new TestService();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Service.DisposeAsync();
+    }
+}
+
+public class TestServiceTests : IClassFixture<TestServiceFixture>
+{
+    private readonly TestServiceFixture _fixture;
+
+    public TestServiceTests(TestServiceFixture fixture)
+    {
+        _fixture = fixture;
+    }
+
+    [Fact]
+    public async Task Should_ProcessData_When_ValidInputProvided()
+    {
+        // Arrange
+        var input = "test";
+
+        // Act
+        var result = await _fixture.Service.ProcessAsync(input, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeSuccessful();
+    }
+}
+```
+
+### 2. Theory Tests
+
+```csharp
+[Theory]
+[InlineData("test1")]
+[InlineData("test2")]
+[InlineData("test3")]
+public async Task Should_ProcessDifferentInputs_When_ValidDataProvided(string input)
+{
+    // Arrange
+    var service = new TestService();
+
+    // Act
+    var result = await service.ProcessAsync(input, TestContext.Current.CancellationToken);
+
+    // Assert
+    result.ShouldBeSuccessful();
+}
+```
+
+## Benefits
+
+### 1. Improved Test Performance
+- Faster test cancellation in development environments
+- Reduced CI/CD pipeline wait times
+- Better resource utilization
+
+### 2. Enhanced Test Stability
+- Prevents tests from hanging indefinitely
+- Graceful handling of long-running operations
+- Better error reporting and debugging
+
+### 3. Framework Integration
+- Leverages xUnit v3's built-in cancellation support
+- Enables proper test orchestration
+- Supports parallel test execution
+
+## Common Anti-Patterns to Avoid
+
+### 1. Ignoring Cancellation Tokens
+
+```csharp
+// ❌ Bad - No cancellation support
+[Fact]
+public async Task Should_ProcessData_When_ValidInputProvided()
+{
+    var service = new TestService();
+    var result = await service.ProcessAsync("test"); // Missing cancellation token
+    result.ShouldBeSuccessful();
+}
+```
+
+### 2. Using Custom Cancellation Tokens Unnecessarily
+
+```csharp
+// ❌ Bad - Unnecessary custom token
+[Fact]
+public async Task Should_ProcessData_When_ValidInputProvided()
+{
+    var service = new TestService();
+    var cts = new CancellationTokenSource(); // Unnecessary
+    var result = await service.ProcessAsync("test", cts.Token);
+    result.ShouldBeSuccessful();
+}
+```
+
+### 3. Not Propagating to Nested Operations
+
+```csharp
+// ❌ Bad - Not propagating to nested operations
+[Fact]
+public async Task Should_ProcessData_When_ValidInputProvided()
+{
+    var service = new TestService();
+    var result = await service.ProcessAsync("test", TestContext.Current.CancellationToken);
+
+    // Missing cancellation token in nested operation
+    await Task.Delay(1000); // Should include TestContext.Current.CancellationToken
+}
+```
+
+## Validation and Enforcement
+
+### 1. Static Analysis
+- Use xUnit1051 analyzer to detect missing cancellation token propagation
+- Configure IDE to highlight missing cancellation tokens
+- Include in code review checklists
+
+### 2. Test Execution Monitoring
+- Monitor test execution times
+- Track cancellation events
+- Report hanging tests
+
+### 3. Documentation Requirements
+- Document cancellation behavior in test methods
+- Include cancellation scenarios in test documentation
+- Maintain examples of proper cancellation handling
+
+## Migration Guidelines
+
+### 1. Existing Tests
+- Gradually add cancellation tokens to existing tests
+- Prioritize long-running tests
+- Update test infrastructure components first
+
+### 2. New Tests
+- Always include cancellation tokens from the start
+- Follow the established patterns
+- Include cancellation scenarios in test planning
+
+### 3. Legacy Code
+- Update service interfaces to accept cancellation tokens
+- Maintain backward compatibility where possible
+- Document migration steps
+
+## Summary
+
+This rule ensures that all unit tests properly propagate `TestContext.Current.CancellationToken` to asynchronous operations, improving test framework responsiveness and preventing hanging tests. The rule provides clear guidelines for when to use cancellation tokens and when to test cancellation behavior specifically, along with practical examples and anti-patterns to avoid.

@@ -137,7 +137,7 @@ Create a compelling visual demonstration of the OCR pipeline that stakeholders c
 - [ ] Define key performance indicators for stakeholders
 - [ ] Plan dashboard layout and information hierarchy
 - [ ] Document data refresh strategies
-- [ ] Create visualization mockups
+- [ ] Create visualization designs
 
 ---
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
@@ -118,7 +118,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during image binarization for {SourcePath}", imageData.SourcePath);
-            return Result<ImageData>.Failure($"Image binarization failed: {ex.Message}");
+            return Result<ImageData>.WithFailure($"Image binarization failed: {ex.Message}", default, ex);
         }
     }
 
@@ -157,7 +157,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during expediente extraction");
-            return Result<string?>.Failure($"Expediente extraction failed: {ex.Message}");
+            return Result<string?>.WithFailure(value: default, errors: new[] { $"Expediente extraction failed: {ex.Message}" }, exception: ex);
         }
     }
 
@@ -196,7 +196,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during causa extraction");
-            return Result<string?>.Failure($"Causa extraction failed: {ex.Message}");
+            return Result<string?>.WithFailure(value: default, errors: new[] { $"Causa extraction failed: {ex.Message}" }, exception: ex);
         }
     }
 
@@ -235,7 +235,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during accion solicitada extraction");
-            return Result<string?>.Failure($"Accion solicitada extraction failed: {ex.Message}");
+            return Result<string?>.WithFailure(value: default, errors: new[] { $"Accion solicitada extraction failed: {ex.Message}" }, exception: ex);
         }
     }
 
@@ -274,7 +274,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during date extraction");
-            return Result<List<string>>.Failure($"Date extraction failed: {ex.Message}");
+            return Result<List<string>>.WithFailure($"Date extraction failed: {ex.Message}", default, ex);
         }
     }
 
@@ -313,7 +313,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during amount extraction");
-            return Result<List<AmountData>>.Failure($"Amount extraction failed: {ex.Message}");
+            return Result<List<AmountData>>.WithFailure($"Amount extraction failed: {ex.Message}", default, ex);
         }
     }
 }

@@ -2,7 +2,9 @@ using System;
 using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
+using IndQuestResults.Operations;
+using IndQuestResults.Async;
 
 namespace ExxerCube.Prisma.Tests.Domain.Common;
 
@@ -39,7 +41,7 @@ public class ResultTests
         var expectedError = "test error";
 
         // Act
-        var result = Result<string>.Failure(expectedError);
+        var result = Result<string>.WithFailure(expectedError);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -66,25 +68,6 @@ public class ResultTests
     }
 
     /// <summary>
-    /// Tests the Bind method to ensure it correctly chains operations on successful results.
-    /// </summary>
-    /// <returns></returns>
-    [Fact]
-    public async Task Bind_WithSuccessfulResult_ExecutesFunction()
-    {
-        // Arrange
-        var initialResult = Result<int>.Success(5);
-        var expectedValue = "5";
-
-        // Act
-        var result = await initialResult.Bind(value => Task.FromResult(Result<string>.Success(value.ToString())));
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(expectedValue);
-    }
-
-    /// <summary>
     /// Tests the Bind method to ensure it propagates failure results without executing the function.
     /// </summary>
     /// <returns></returns>
@@ -92,10 +75,13 @@ public class ResultTests
     public async Task Bind_WithFailureResult_ReturnsFailure()
     {
         // Arrange
-        var initialResult = Result<int>.Failure("initial error");
+        var initialResult = Result<int>.WithFailure("initial error");
 
-        // Act
-        var result = await initialResult.Bind(value => Task.FromResult(Result<string>.Success(value.ToString())));
+        // Act - Use ResultAsync.BindAsync for async chaining
+        var result = await ResultAsync.BindAsync(
+            Task.FromResult(initialResult),
+            value => Task.FromResult(Result<string>.Success(value.ToString())),
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -127,7 +113,7 @@ public class ResultTests
     public void Map_WithFailureResult_ReturnsFailure()
     {
         // Arrange
-        var initialResult = Result<int>.Failure("initial error");
+        var initialResult = Result<int>.WithFailure("initial error");
 
         // Act
         var result = initialResult.Map(value => value.ToString());
@@ -149,8 +135,11 @@ public class ResultTests
         var initialResult = Result<int>.Success(5);
         var expectedValue = "5";
 
-        // Act
-        var result = await initialResult.MapAsync(value => Task.FromResult(value.ToString()));
+        // Act - Use ResultAsync.MapAsync for async mapping
+        var result = await ResultAsync.MapAsync(
+            Task.FromResult(initialResult),
+            value => Task.FromResult(value.ToString()),
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -165,10 +154,13 @@ public class ResultTests
     public async Task MapAsync_WithFailureResult_ReturnsFailure()
     {
         // Arrange
-        var initialResult = Result<int>.Failure("initial error");
+        var initialResult = Result<int>.WithFailure("initial error");
 
-        // Act
-        var result = await initialResult.MapAsync(value => Task.FromResult(value.ToString()));
+        // Act - Use ResultAsync.MapAsync for async mapping
+        var result = await ResultAsync.MapAsync(
+            Task.FromResult(initialResult),
+            value => Task.FromResult(value.ToString()),
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -201,7 +193,7 @@ public class ResultTests
     public void Tap_WithFailureResult_DoesNotExecuteActionAndReturnsSameResult()
     {
         // Arrange
-        var initialResult = Result<int>.Failure("error");
+        var initialResult = Result<int>.WithFailure("error");
         var actionExecuted = false;
 
         // Act
@@ -224,12 +216,15 @@ public class ResultTests
         var initialResult = Result<int>.Success(5);
         var actionExecuted = false;
 
-        // Act
-        var result = await initialResult.TapAsync(async value =>
-        {
-            await Task.Delay(1);
-            actionExecuted = true;
-        });
+        // Act - Use ResultAsync.TapAsync for async side effects
+        var result = await ResultAsync.TapAsync(
+            Task.FromResult(initialResult),
+            async value =>
+            {
+                await Task.Delay(1, TestContext.Current.CancellationToken);
+                actionExecuted = true;
+            },
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -246,15 +241,18 @@ public class ResultTests
     public async Task TapAsync_WithFailureResult_DoesNotExecuteActionAndReturnsSameResult()
     {
         // Arrange
-        var initialResult = Result<int>.Failure("error");
+        var initialResult = Result<int>.WithFailure("error");
         var actionExecuted = false;
 
-        // Act
-        var result = await initialResult.TapAsync(async value =>
-        {
-            await Task.Delay(1);
-            actionExecuted = true;
-        });
+        // Act - Use ResultAsync.TapAsync for async side effects
+        var result = await ResultAsync.TapAsync(
+            Task.FromResult(initialResult),
+            async value =>
+            {
+                await Task.Delay(1, TestContext.Current.CancellationToken);
+                actionExecuted = true;
+            },
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();

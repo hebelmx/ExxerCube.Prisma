@@ -1,0 +1,860 @@
+---
+globs: *.cs
+description: Clean Architecture patterns and practices for building maintainable and testable applications
+---
+
+# Clean Architecture Patterns
+
+## Meta
+
+**Title**: Clean Architecture Patterns
+**Description**: Establishes comprehensive standards for Clean Architecture patterns including dependency inversion, layer separation, and hexagonal architecture
+**Created-at**: 2025-01-05T23:55:00Z
+**Last-updated-at**: 2025-01-05T23:55:00Z
+**Applies-to**: All .NET applications, architecture design, dependency management
+**File-matcher**: *.cs files across all layers
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Follow dependency inversion principle with interfaces in domain layer
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Interface defined in domain layer
+namespace ExxerAI.Domain.Interfaces
+{
+    public interface IAgentRepository
+    {
+        Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<Agent>> UpdateAsync(Agent agent, CancellationToken cancellationToken = default);
+        Task<Result<bool>> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    }
+
+    public interface IAgentService
+    {
+        Task<Result<Agent>> CreateAgentAsync(string name, string description, AgentCapabilities capabilities, CancellationToken cancellationToken = default);
+        Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<Agent>>> GetAllAgentsAsync(CancellationToken cancellationToken = default);
+        Task<Result<bool>> UpdateAgentStatusAsync(Guid agentId, AgentStatus status, CancellationToken cancellationToken = default);
+    }
+
+    public interface ILLMService
+    {
+        Task<Result<LLMResponse>> GenerateResponseAsync(string prompt, LLMParameters parameters, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<LLMResponseChunk>>> StreamResponseAsync(string prompt, LLMParameters parameters, CancellationToken cancellationToken = default);
+    }
+}
+
+// ✅ Implementation in infrastructure layer
+namespace ExxerAI.Infrastructure.Services
+{
+    public class AgentService : IAgentService
+    {
+        private readonly IAgentRepository _agentRepository;
+        private readonly ITaskRepository _taskRepository;
+
+        public AgentService(IAgentRepository agentRepository, ITaskRepository taskRepository)
+        {
+            _agentRepository = agentRepository ?? throw new ArgumentNullException(nameof(agentRepository));
+            _taskRepository = taskRepository ?? throw new ArgumentNullException(nameof(taskRepository));
+        }
+
+        public async Task<Result<Agent>> CreateAgentAsync(string name, string description, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return ResultExtensions.Cancelled<Agent>();
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                    return Result<Agent>.WithFailure("Agent name cannot be empty");
+
+                var agent = new Agent
+                {
+                    Name = name,
+                    Description = description,
+                    Capabilities = capabilities,
+                    Status = AgentStatus.Active
+                };
+
+                return await _agentRepository.AddAsync(agent, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return ResultExtensions.Cancelled<Agent>();
+            }
+            catch (Exception ex)
+            {
+                return Result<Agent>.WithFailure($"An error occurred while creating the agent: {ex.Message}");
+            }
+        }
+    }
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Concrete dependencies in domain layer
+namespace ExxerAI.Domain.Services
+{
+    public class AgentService
+    {
+        private readonly SqlServerAgentRepository _agentRepository; // Concrete dependency
+        private readonly SqlServerTaskRepository _taskRepository;
+
+        public AgentService(SqlServerAgentRepository agentRepository, SqlServerTaskRepository taskRepository)
+        {
+            _agentRepository = agentRepository;
+            _taskRepository = taskRepository;
+        }
+    }
+}
+
+// ❌ Interface in infrastructure layer
+namespace ExxerAI.Infrastructure.Interfaces
+{
+    public interface IAgentRepository
+    {
+        Task<Agent> GetByIdAsync(Guid id);
+        Task<IEnumerable<Agent>> GetAllAsync();
+    }
+}
+
+// ❌ Direct dependency on external services
+namespace ExxerAI.Domain.Services
+{
+    public class LLMService
+    {
+        private readonly HttpClient _httpClient; // Direct infrastructure dependency
+        private readonly string _apiKey;
+
+        public async Task<string> GenerateResponse(string prompt)
+        {
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions",
+                new StringContent(JsonSerializer.Serialize(new { prompt })));
+            return await response.Content.ReadAsStringAsync();
+        }
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Organize code by layers with clear separation of concerns
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Domain Layer - Core business logic
+namespace ExxerAI.Domain
+{
+    public class Agent
+    {
+        public Guid Id { get; init; } = Guid.NewGuid();
+        public string Name { get; init; } = string.Empty;
+        public AgentStatus Status { get; init; } = AgentStatus.Inactive;
+        public AgentCapabilities Capabilities { get; init; } = new();
+        public IReadOnlyCollection<AgentTask> Tasks { get; init; } = [];
+
+        public bool CanAcceptTask(string taskType)
+        {
+            return Status == AgentStatus.Active &&
+                   Capabilities.SupportedTaskTypes.Contains(taskType) &&
+                   Tasks.Count < Capabilities.MaxConcurrentTasks;
+        }
+    }
+
+    public interface IAgentRepository
+    {
+        Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default);
+    }
+}
+
+// ✅ Application Layer - Use cases and orchestration
+namespace ExxerAI.Application.Services
+{
+    public class AgentService : IAgentService
+    {
+        private readonly IAgentRepository _agentRepository;
+        private readonly ILogger<AgentService> _logger;
+
+        public AgentService(IAgentRepository agentRepository, ILogger<AgentService> logger)
+        {
+            _agentRepository = agentRepository;
+            _logger = logger;
+        }
+
+        public async Task<Result<Agent>> CreateAgentAsync(string name, string description, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Creating agent: {AgentName}", name);
+
+            var agent = new Agent
+            {
+                Name = name,
+                Description = description,
+                Capabilities = capabilities,
+                Status = AgentStatus.Active
+            };
+
+            var result = await _agentRepository.AddAsync(agent, cancellationToken).ConfigureAwait(false);
+
+            if (result.IsSuccess)
+                _logger.LogInformation("Successfully created agent with ID: {AgentId}", agent.Id);
+
+            return result;
+        }
+    }
+}
+
+// ✅ Infrastructure Layer - External concerns
+namespace ExxerAI.Infrastructure.Repositories
+{
+    public class InMemoryAgentRepository : IAgentRepository
+    {
+        private readonly List<Agent> _agents = new();
+
+        public async Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken); // Simulate async operation
+
+            var agent = _agents.FirstOrDefault(a => a.Id == id);
+            return agent != null
+                ? Result<Agent>.Success(agent)
+                : Result<Agent>.WithFailure($"Agent not found with ID: {id}");
+        }
+
+        public async Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            await Task.Delay(1, cancellationToken);
+            return Result<IEnumerable<Agent>>.Success(_agents.AsReadOnly());
+        }
+    }
+}
+
+// ✅ Presentation Layer - Controllers and API endpoints
+namespace ExxerAI.Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AgentsController : ControllerBase
+    {
+        private readonly IAgentService _agentService;
+        private readonly ILogger<AgentsController> _logger;
+
+        public AgentsController(IAgentService agentService, ILogger<AgentsController> logger)
+        {
+            _agentService = agentService;
+            _logger = logger;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ApiResponse<AgentResponse>>> CreateAgentAsync(
+            [FromBody] CreateAgentRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await _agentService.CreateAgentAsync(
+                request.Name,
+                request.Description,
+                request.Capabilities.ToDomain(),
+                cancellationToken);
+
+            if (result.IsFailure)
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Failed to create agent",
+                    Errors = [result.Error ?? "Unknown error"]
+                });
+
+            return CreatedAtAction(nameof(GetAgentAsync),
+                new { id = result.Value!.Id },
+                new ApiResponse<AgentResponse>
+                {
+                    Success = true,
+                    Message = "Agent created successfully",
+                    Data = result.Value!.ToResponse()
+                });
+        }
+    }
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Mixed concerns in single layer
+namespace ExxerAI.Services
+{
+    public class AgentService
+    {
+        private readonly SqlConnection _connection; // Infrastructure concern
+        private readonly ILogger<AgentService> _logger; // Cross-cutting concern
+        private readonly HttpClient _httpClient; // External service dependency
+
+        public async Task<Agent> CreateAgent(string name, string description)
+        {
+            // Business logic mixed with data access
+            using var command = _connection.CreateCommand();
+            command.CommandText = "INSERT INTO Agents (Name, Description) VALUES (@name, @description)";
+            command.Parameters.AddWithValue("@name", name);
+            command.Parameters.AddWithValue("@description", description);
+
+            await command.ExecuteNonQueryAsync();
+
+            // External service call mixed with business logic
+            var response = await _httpClient.PostAsync("https://api.notification.com/send",
+                new StringContent($"Agent {name} created"));
+
+            _logger.LogInformation("Agent created: {Name}", name);
+
+            return new Agent { Name = name, Description = description };
+        }
+    }
+}
+
+// ❌ Business logic in presentation layer
+namespace ExxerAI.Api.Controllers
+{
+    public class AgentsController : ControllerBase
+    {
+        private readonly SqlConnection _connection;
+
+        [HttpPost]
+        public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request)
+        {
+            // Business logic in controller
+            if (string.IsNullOrEmpty(request.Name))
+                return BadRequest("Name is required");
+
+            if (request.Name.Length > 100)
+                return BadRequest("Name too long");
+
+            // Data access in controller
+            using var command = _connection.CreateCommand();
+            command.CommandText = "INSERT INTO Agents (Name, Description) VALUES (@name, @description)";
+            command.Parameters.AddWithValue("@name", request.Name);
+            command.Parameters.AddWithValue("@description", request.Description);
+
+            await command.ExecuteNonQueryAsync();
+
+            return Ok(new { message = "Agent created" });
+        }
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use dependency injection with constructor injection
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Constructor injection with null checks
+public class AgentService : IAgentService
+{
+    private readonly IAgentRepository _agentRepository;
+    private readonly ITaskRepository _taskRepository;
+    private readonly ILogger<AgentService> _logger;
+
+    public AgentService(
+        IAgentRepository agentRepository,
+        ITaskRepository taskRepository,
+        ILogger<AgentService> logger)
+    {
+        _agentRepository = agentRepository ?? throw new ArgumentNullException(nameof(agentRepository));
+        _taskRepository = taskRepository ?? throw new ArgumentNullException(nameof(taskRepository));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, string description, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var agent = new Agent
+        {
+            Name = name,
+            Description = description,
+            Capabilities = capabilities,
+            Status = AgentStatus.Active
+        };
+
+        return await _agentRepository.AddAsync(agent, cancellationToken).ConfigureAwait(false);
+    }
+}
+
+// ✅ Service registration in composition root
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<IAgentService, AgentService>();
+        services.AddScoped<ITaskService, TaskService>();
+        services.AddScoped<IWorkflowService, WorkflowService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
+    {
+        services.AddScoped<IAgentRepository, InMemoryAgentRepository>();
+        services.AddScoped<ITaskRepository, InMemoryTaskRepository>();
+        services.AddScoped<IWorkflowRepository, InMemoryWorkflowRepository>();
+
+        return services;
+    }
+}
+
+// ✅ Program.cs composition root
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Service locator pattern
+public class AgentService : IAgentService
+{
+    public async Task<Result<Agent>> CreateAgentAsync(string name, string description, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        var repository = ServiceLocator.Current.GetInstance<IAgentRepository>(); // Service locator
+        var logger = ServiceLocator.Current.GetInstance<ILogger<AgentService>>();
+
+        // Implementation...
+    }
+}
+
+// ❌ Property injection
+public class AgentService : IAgentService
+{
+    [Inject] // Property injection
+    public IAgentRepository AgentRepository { get; set; }
+
+    [Inject]
+    public ILogger<AgentService> Logger { get; set; }
+}
+
+// ❌ Manual instantiation
+public class AgentController : ControllerBase
+{
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request)
+    {
+        var repository = new InMemoryAgentRepository(); // Manual instantiation
+        var service = new AgentService(repository, null);
+
+        // Implementation...
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use ports and adapters pattern for external dependencies
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Port (interface) in domain layer
+namespace ExxerAI.Domain.Interfaces
+{
+    public interface ILLMProvider
+    {
+        Task<Result<LLMResponse>> GenerateResponseAsync(string prompt, LLMParameters parameters, CancellationToken cancellationToken = default);
+        Task<Result<IEnumerable<LLMResponseChunk>>> StreamResponseAsync(string prompt, LLMParameters parameters, CancellationToken cancellationToken = default);
+    }
+
+    public interface IEmailService
+    {
+        Task<Result<bool>> SendEmailAsync(string to, string subject, string body, CancellationToken cancellationToken = default);
+    }
+
+    public interface IFileStorageService
+    {
+        Task<Result<string>> UploadFileAsync(Stream fileStream, string fileName, CancellationToken cancellationToken = default);
+        Task<Result<Stream>> DownloadFileAsync(string fileId, CancellationToken cancellationToken = default);
+    }
+}
+
+// ✅ Adapter implementation in infrastructure layer
+namespace ExxerAI.Infrastructure.External
+{
+    public class OpenAIProvider : ILLMProvider
+    {
+        private readonly HttpClient _httpClient;
+        private readonly string _apiKey;
+        private readonly ILogger<OpenAIProvider> _logger;
+
+        public OpenAIProvider(HttpClient httpClient, IConfiguration configuration, ILogger<OpenAIProvider> logger)
+        {
+            _httpClient = httpClient;
+            _apiKey = configuration["OpenAI:ApiKey"] ?? throw new InvalidOperationException("OpenAI API key not configured");
+            _logger = logger;
+        }
+
+        public async Task<Result<LLMResponse>> GenerateResponseAsync(string prompt, LLMParameters parameters, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var request = new OpenAIChatCompletionRequest
+                {
+                    Model = parameters.Model,
+                    Messages = [new OpenAIMessage { Role = "user", Content = prompt }],
+                    MaxTokens = parameters.MaxTokens,
+                    Temperature = parameters.Temperature
+                };
+
+                var json = JsonSerializer.Serialize(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+
+                var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content, cancellationToken).ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                    _logger.LogError("OpenAI API error: {StatusCode} - {Error}", response.StatusCode, errorContent);
+                    return Result<LLMResponse>.WithFailure($"OpenAI API error: {response.StatusCode}");
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                var openAIResponse = JsonSerializer.Deserialize<OpenAIChatCompletionResponse>(responseContent);
+
+                return Result<LLMResponse>.Success(new LLMResponse
+                {
+                    Content = openAIResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? string.Empty,
+                    Model = parameters.Model,
+                    Usage = openAIResponse?.Usage
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling OpenAI API");
+                return Result<LLMResponse>.WithFailure($"Error calling OpenAI API: {ex.Message}");
+            }
+        }
+    }
+
+    public class SendGridEmailService : IEmailService
+    {
+        private readonly ISendGridClient _sendGridClient;
+        private readonly ILogger<SendGridEmailService> _logger;
+
+        public SendGridEmailService(ISendGridClient sendGridClient, ILogger<SendGridEmailService> logger)
+        {
+            _sendGridClient = sendGridClient;
+            _logger = logger;
+        }
+
+        public async Task<Result<bool>> SendEmailAsync(string to, string subject, string body, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var message = new SendGridMessage
+                {
+                    From = new EmailAddress("noreply@exxerai.com", "ExxerAI"),
+                    Subject = subject,
+                    PlainTextContent = body,
+                    HtmlContent = body
+                };
+
+                message.AddTo(to);
+
+                var response = await _sendGridClient.SendEmailAsync(message, cancellationToken).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Email sent successfully to {To}", to);
+                    return Result<bool>.Success(true);
+                }
+                else
+                {
+                    _logger.LogError("Failed to send email to {To}: {StatusCode}", to, response.StatusCode);
+                    return Result<bool>.WithFailure($"Failed to send email: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email to {To}", to);
+                return Result<bool>.WithFailure($"Error sending email: {ex.Message}");
+            }
+        }
+    }
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Direct external service dependencies in domain
+namespace ExxerAI.Domain.Services
+{
+    public class LLMService
+    {
+        private readonly HttpClient _httpClient; // Direct infrastructure dependency
+        private readonly string _apiKey;
+
+        public async Task<string> GenerateResponse(string prompt)
+        {
+            var request = new { prompt };
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json);
+
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+            return await response.Content.ReadAsStringAsync();
+        }
+    }
+}
+
+// ❌ External service calls in business logic
+public class AgentService
+{
+    public async Task<Agent> CreateAgent(string name, string description)
+    {
+        var agent = new Agent { Name = name, Description = description };
+
+        // External service call in business logic
+        var emailService = new SendGridEmailService();
+        await emailService.SendEmailAsync("admin@company.com", "New Agent Created", $"Agent {name} was created");
+
+        return agent;
+    }
+}
+
+// ❌ Hard-coded external service URLs
+public class FileService
+{
+    public async Task<string> UploadFile(Stream fileStream)
+    {
+        var client = new HttpClient();
+        var content = new MultipartFormDataContent();
+        content.Add(new StreamContent(fileStream), "file", "document.pdf");
+
+        // Hard-coded URL
+        var response = await client.PostAsync("https://api.cloudstorage.com/upload", content);
+        return await response.Content.ReadAsStringAsync();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use configuration and options pattern for external service settings
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Options pattern for configuration
+namespace ExxerAI.Infrastructure.Configuration
+{
+    public class OpenAIConfiguration
+    {
+        public const string SectionName = "OpenAI";
+
+        public string ApiKey { get; set; } = string.Empty;
+        public string BaseUrl { get; set; } = "https://api.openai.com/v1";
+        public string DefaultModel { get; set; } = "gpt-3.5-turbo";
+        public int MaxTokens { get; set; } = 1000;
+        public double Temperature { get; set; } = 0.7;
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+    }
+
+    public class SendGridConfiguration
+    {
+        public const string SectionName = "SendGrid";
+
+        public string ApiKey { get; set; } = string.Empty;
+        public string FromEmail { get; set; } = "noreply@exxerai.com";
+        public string FromName { get; set; } = "ExxerAI";
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+    }
+}
+
+// ✅ Service registration with configuration
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddOpenAIProvider(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<OpenAIConfiguration>(configuration.GetSection(OpenAIConfiguration.SectionName));
+
+        services.AddHttpClient<ILLMProvider, OpenAIProvider>((serviceProvider, client) =>
+        {
+            var config = serviceProvider.GetRequiredService<IOptions<OpenAIConfiguration>>().Value;
+            client.BaseAddress = new Uri(config.BaseUrl);
+            client.Timeout = config.Timeout;
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddSendGridEmailService(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<SendGridConfiguration>(configuration.GetSection(SendGridConfiguration.SectionName));
+
+        services.AddScoped<ISendGridClient>(serviceProvider =>
+        {
+            var config = serviceProvider.GetRequiredService<IOptions<SendGridConfiguration>>().Value;
+            return new SendGridClient(config.ApiKey);
+        });
+
+        services.AddScoped<IEmailService, SendGridEmailService>();
+
+        return services;
+    }
+}
+
+// ✅ Program.cs with configuration
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices();
+builder.Services.AddOpenAIProvider(builder.Configuration);
+builder.Services.AddSendGridEmailService(builder.Configuration);
+
+// ✅ appsettings.json configuration
+{
+  "OpenAI": {
+    "ApiKey": "sk-...",
+    "BaseUrl": "https://api.openai.com/v1",
+    "DefaultModel": "gpt-3.5-turbo",
+    "MaxTokens": 1000,
+    "Temperature": 0.7,
+    "Timeout": "00:00:30"
+  },
+  "SendGrid": {
+    "ApiKey": "SG...",
+    "FromEmail": "noreply@exxerai.com",
+    "FromName": "ExxerAI",
+    "Timeout": "00:00:30"
+  }
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Hard-coded configuration values
+public class OpenAIProvider : ILLMProvider
+{
+    private readonly HttpClient _httpClient;
+    private readonly string _apiKey = "sk-1234567890abcdef"; // Hard-coded
+    private readonly string _baseUrl = "https://api.openai.com/v1"; // Hard-coded
+
+    public OpenAIProvider(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+        _httpClient.BaseAddress = new Uri(_baseUrl);
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+    }
+}
+
+// ❌ Direct configuration access in services
+public class SendGridEmailService : IEmailService
+{
+    public async Task<bool> SendEmailAsync(string to, string subject, string body)
+    {
+        var apiKey = ConfigurationManager.AppSettings["SendGridApiKey"]; // Direct access
+        var fromEmail = ConfigurationManager.AppSettings["SendGridFromEmail"];
+
+        var client = new SendGridClient(apiKey);
+        var message = new SendGridMessage
+        {
+            From = new EmailAddress(fromEmail),
+            Subject = subject,
+            PlainTextContent = body
+        };
+
+        message.AddTo(to);
+        var response = await client.SendEmailAsync(message);
+        return response.IsSuccessStatusCode;
+    }
+}
+
+// ❌ No configuration validation
+public class FileStorageService : IFileStorageService
+{
+    public async Task<string> UploadFileAsync(Stream fileStream, string fileName)
+    {
+        var apiKey = Environment.GetEnvironmentVariable("STORAGE_API_KEY"); // No validation
+        var baseUrl = Environment.GetEnvironmentVariable("STORAGE_BASE_URL");
+
+        // Implementation without configuration validation...
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Clean Architecture Standards
+
+### Dependency Inversion
+- **Purpose**: High-level modules should not depend on low-level modules
+- **Implementation**: Interfaces in domain layer, implementations in infrastructure
+- **Benefits**: Testability, flexibility, loose coupling
+- **Usage**: All external dependencies should be abstracted through interfaces
+
+### Layer Separation
+- **Purpose**: Clear separation of concerns across architectural layers
+- **Layers**: Domain (core), Application (use cases), Infrastructure (external), Presentation (UI)
+- **Benefits**: Maintainability, testability, clear responsibilities
+- **Usage**: Each layer has specific responsibilities and dependencies
+
+### Hexagonal Architecture
+- **Purpose**: Application core independent of external concerns
+- **Components**: Ports (interfaces), Adapters (implementations), Application core
+- **Benefits**: Testability, flexibility, technology independence
+- **Usage**: External services accessed through ports and adapters
+
+### Dependency Injection
+- **Purpose**: Invert control of object creation and dependencies
+- **Implementation**: Constructor injection, service registration, composition root
+- **Benefits**: Testability, loose coupling, configuration flexibility
+- **Usage**: All dependencies injected through constructors
+
+### Configuration Management
+- **Purpose**: Externalize configuration and settings
+- **Implementation**: Options pattern, configuration sections, validation
+- **Benefits**: Flexibility, security, environment-specific settings
+- **Usage**: All external service settings managed through configuration
+
+## Context
+
+This rule establishes Clean Architecture patterns that promote:
+- **Independence**: Application core independent of external concerns
+- **Testability**: Easy to test with mocked dependencies
+- **Flexibility**: Easy to change implementations without affecting core logic
+- **Maintainability**: Clear separation of concerns and responsibilities
+- **Scalability**: Well-structured code that can grow with requirements
+- **Technology Independence**: Core business logic independent of technology choices
+
+The patterns are designed to satisfy multiple personas:
+- **Developers**: Clear patterns for building maintainable applications
+- **Maintainers**: Well-structured code with clear dependencies and responsibilities
+- **Architects**: Consistent architectural patterns across the system
+- **UX Designers**: Clean separation between UI and business logic
+- **Users**: Reliable applications with clear error handling and configuration
+- **Product Managers**: Maintainable code that supports rapid feature development
+- **Stakeholders**: Robust, scalable systems with clear architecture
+
+## References
+
+- `0000RuleToWriteRules.mdc` - Rule writing standards
+- `1001CSharpCodingStandards.mdc` - C# coding standards
+- `1006FunctionalProgrammingPatterns.mdc` - Functional programming patterns
+- `1007DomainDrivenDesignPatterns.mdc` - Domain-Driven Design patterns
+- `0001GeneralEngineeringPrinciples.mdc` - General engineering principles
+description:
+globs:
+alwaysApply: false
+---

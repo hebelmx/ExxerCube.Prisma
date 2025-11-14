@@ -9,39 +9,54 @@
 
 
 	  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	  <!-- Exclude NU1903 from being treated as error - DocumentFormat.OpenXml dependency vulnerability -->
+	  <WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
     <WarningsAsErrors />
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit.v3" />
 	 
-	  <PackageReference Include="xunit.runner.visualstudio" >
+	  <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Shouldly"  />
-    <PackageReference Include="NSubstitute"  />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
     <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="IndQuestResults" />
     
+
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
     <PackageReference Include="StrykerMutator.Core" />
     <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\Application\ExxerCube.Prisma.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
+    <ProjectReference Include="..\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
+    <ProjectReference Include="..\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj" />
+    <ProjectReference Include="..\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
+    <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
+    <ProjectReference Include="..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Domain\Common\" />
   </ItemGroup>
 
 </Project>

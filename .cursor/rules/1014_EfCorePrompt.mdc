@@ -1,0 +1,178 @@
+---
+description: Get best practices for Persistence Framework
+globs:
+alwaysApply: false
+---
+---
+**mode**: 'agent'
+**Objective**: 'Get best practices for Persistence Framework'
+---
+
+## 🔒 Architectural Separation & Responsibility
+
+These rules are **non-negotiable** for enforcing clean architecture and long-term maintainability:
+These rules apply to **any persistence framework** (e.g., EF Core, Dapper, NHibernate, MongoDB drivers, etc.) and must be enforced across all bounded contexts.
+
+### ✅ Define Explicit Interfaces for Dependencies
+### ✅ Contract-Driven Persistence
+
+- **Always define interfaces** define and use interfaces for any required persistence operations.
+- The infrastructure layer (using any ORM or data access tool) must **implement these interfaces**.
+- Never expose framework-specific types (e.g., `DbContext`, `SqlConnection`, `IMongoCollection`) Inside Application or Domain Layer avoid exposing outside Persistence.
+- **Never** depend on concrete EF Core types (e.g., `DbContext`, `DbSet`) outside the infrastructure layer.
+- This promotes testability, inversion of control, and dependency abstraction.
+
+### 🧠 The Domain Layer
+
+> ❌ **Must not know**
+> ❌ **Must not care**
+> ❌ **Must not reference**
+> ❌ **Must not be coupled to**
+
+...any persistence library or infrastructure concern.
+...anything related to persistence technology (e.g., EF Core, SQL, repositories).
+
+- The domain models must be pure C# Domain Objects handling domain bounded Bussines logic.
+- Repositories, specifications, and aggregates must not include or invoke persistence logic.
+- Persistence concerns must not pollute domain logic.
+
+### 🚦 The Application Layer
+
+> ❌ **Must not know**
+> ❌ **Must not care how**
+> ❌ **Must not reference**
+> ❌ **Must not be coupled to**
+
+How the data is persisted
+
+> ✅ **But must require that**
+
+...data access and persistence is:
+
+- **ACID-compliant** (Atomic, Consistent, Isolated, Durable)
+- **Efficient** (minimal overhead, optimized queries)
+- **Consistent** (transactional guarantees)
+- **Resilient** (fault-tolerant, retry-capable)
+- **Efficient** (Quick and non blocking)
+
+The application must operate against abstracted, clearly defined contracts that the infrastructure fulfills — not how it fulfills them.
+
+- **Resilient** (retry-enabled, failure-tolerant)
+
+### 📐 Summary Rule
+
+> **“The domain and application layers define the contracts; only the infrastructure layer knows the implementation.”**
+
+Persistence is a delivery mechanism. Code against interfaces, not implementations.
+
+---
+description: Get best practices for Entity Framework Core
+globs:
+alwaysApply: false
+---
+---
+**mode**: 'agent'
+**Objective**: 'Get best practices for Entity Framework Core'
+---
+
+# Entity Framework Core Best Practices
+
+Folow these best practices to design, configure, and use Entity Framework Core efficiently and cleanly.
+
+
+## Data Context Design
+- Keep `DbContext` classes focused and cohesive.
+- Use constructor injection for configuration options.
+- Explicitly override `OnModelCreating` to configure all classes and properties.
+- Separate entity configurations using `IEntityTypeConfiguration<T>`.
+- Use the `AddDbContextPool` pattern via `PooledDbContextFactory` for application-wide performance.
+- Always define an interface for your `DbContext`; the concrete implementation should be constructed outside the application layer.
+
+## Entity Design
+- Use meaningful primary keys (consider natural vs. surrogate keys).
+- Implement correct relationships: one-to-one, one-to-many, and many-to-many.
+- Use Fluent API for all constraints, keys, and validations.
+- Name keys and constraints explicitly using a naming rule (e.g., `dbo_namespace_entity_constraintType_columns_names`).
+- Always use `nameof(Class)` and `nameof(Class.Property)` instead of magic strings.
+- Define proper navigational properties for relationship navigation.
+- Use owned entity types for value objects.
+- Use plural table names matching entity names by default.
+- Use empty marker interfaces to designate entities.
+- Use separate marker interfaces for value objects.
+- Use auditable interfaces (e.g., `ICreated`, `IModified`) for auditable entities.
+
+## Performance
+- Always use `AsNoTracking()` for read-only queries.
+- Implement read-only repositories using non-tracking queries.
+- Use `Skip()` and `Take()` for efficient pagination.
+- Use `Include()` and `ThenInclude()` for eager loading where needed.
+- Use projection (`Select`) to retrieve only required fields.
+- Use compiled queries for frequently run operations.
+- Avoid N+1 issues by explicitly loading related data.
+- Implement or integrate bulk operations where large data manipulation is required.
+
+## Migrations
+- Create small, focused, and descriptive migrations.
+- Name migration files clearly to describe the change.
+- Review and validate generated SQL before production deployment.
+- Consider using migration bundles for controlled release cycles.
+- Add seed data through migrations where necessary.
+
+## Querying
+- Understand `IQueryable` and when LINQ expressions are evaluated.
+- Prefer strongly-typed LINQ over raw SQL for maintainability.
+- Use operators like `Where`, `OrderBy`, `GroupBy` judiciously.
+- Offload complex operations to database-side functions or views.
+- Use the Specification pattern to encapsulate query logic.
+
+## Change Tracking & Saving
+- Choose the right change tracking strategy (`TrackAll`, `NoTracking`, `IdentityResolution`).
+- Batch calls to `SaveChanges()` where appropriate.
+- Use concurrency tokens or row versions for concurrency control.
+- Wrap multi-operation changes in explicit transactions.
+- Ensure correct lifetime management for `DbContext` (e.g., `scoped` in web applications).
+
+## Security
+- Avoid SQL injection by always using parameterized queries.
+- Enforce role-based and row-level security in data access.
+- Never embed raw SQL strings; use stored procedures or server-side functions when needed.
+- Encrypt sensitive fields at rest and in transit.
+- Manage and restrict DB permissions via EF Core migrations or deployment scripts.
+
+## 🧪 Unit Testing Persistence Code
+- Use `UseInMemoryDatabase` for fast, isolated unit tests (note: limited behavioral fidelity).
+- Use `Substitute.For<DbSet<T>>` or mock `IDbContext` interfaces to isolate logic under test.
+- Focus on validating repository or service logic, not EF Core behavior.
+- Avoid asserting LINQ-to-Entities behavior; EF’s internal translation should be tested elsewhere.
+- Assert interactions (e.g., `Add`, `Update`, `SaveChanges`) to verify behavioral correctness.
+- Optionally use snapshot testing for schema-related expectations without hitting a database.
+
+
+## 🧪 Application Testing Persistence Code
+- Prefer `UseSqlite` in in-memory mode for fast, SQL-compatible testing.
+- Simulate real EF behavior including LINQ query translation and constraints.
+- Ensure tests are **parallel-safe**, **isolated**, and **stateless between runs**.
+- Provision a unique in-memory or disposable database per test class or fixture.
+- Validate configuration, mappings, relationships, and constraints as enforced by the EF runtime.
+
+
+## 🧩 Integration Testing Persistence Behavior
+- **Your tests are not real integration tests if you cannot run parallel queries against a real database.**
+- Use actual database engines in Docker containers (e.g., SQL Server, PostgreSQL).
+- For high-fidelity testing, use production-schema-compatible replicas.
+- Ensure integration tests are:
+  - **Parallel-safe** — can run concurrently without data collision
+  - **Isolated** — do not leak or share state across tests
+  - **Repeatable** — consistent outcomes regardless of execution order
+- Build schema from actual EF migrations as part of test setup.
+- Validate generated SQL and ensure constraints are enforced.
+- Include migration testing in CI pipelines to catch regressions.
+- Treat migrations and persistence definitions as production artifacts requiring verification.
+
+## Architectural Principles
+
+- **Keep persistence implementation details outside the application layer.**
+- **Do not allow persistence logic to leak into domain or application logic.**
+- **Define contracts/interfaces for all required persistence behavior.**
+- **The domain layer must be agnostic of persistence concerns.**
+- **The application layer must operate with persistence-agnostic contracts.** Ensure the infrastructure provides ACID compliance, efficiency, consistency, and resilience.

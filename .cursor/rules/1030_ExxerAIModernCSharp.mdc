@@ -1,0 +1,469 @@
+---
+globs: *.cs
+description: Modern C# features and patterns used throughout the project
+---
+
+# ExxerAI Modern C# Features
+
+## Meta
+**Title**: ExxerAI Modern C# Features
+**Description**: Modern C# features and patterns used throughout the project
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use expression-bodied members for one-liners
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Expression-bodied members
+public class Agent
+{
+    public string Name { get; init; } = string.Empty;
+    public AgentStatus Status { get; init; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+
+    public bool IsActive => Status == AgentStatus.Active;
+    public bool HasTasks => Tasks?.Any() == true;
+    public int TaskCount => Tasks?.Count ?? 0;
+
+    public override string ToString() => $"Agent: {Name} ({Status})";
+}
+
+public class AgentService
+{
+    private readonly IAgentRepository _repository;
+
+    public AgentService(IAgentRepository repository) => _repository = repository;
+
+    public bool IsAgentValid(Agent agent) => agent != null && !string.IsNullOrEmpty(agent.Name);
+
+    public async Task<Result<bool>> ValidateAgentAsync(Agent agent) =>
+        await _repository.ExistsAsync(agent.Id);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Verbose syntax
+public class Agent
+{
+    public string Name { get; init; } = string.Empty;
+    public AgentStatus Status { get; init; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+
+    public bool IsActive
+    {
+        get
+        {
+            return Status == AgentStatus.Active;
+        }
+    }
+
+    public override string ToString()
+    {
+        return $"Agent: {Name} ({Status})";
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use switch expressions and type patterns for cleaner logic
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Switch expressions and type patterns
+public string GetStatusDescription(AgentStatus status) => status switch
+{
+    AgentStatus.Active => "Agent is active and ready for tasks",
+    AgentStatus.Inactive => "Agent is inactive and cannot process tasks",
+    AgentStatus.Pending => "Agent is pending activation",
+    _ => "Unknown agent status"
+};
+
+public string ProcessAgent(Agent agent) => agent switch
+{
+    { Status: AgentStatus.Active, Tasks.Count: > 0 } => "Active agent with tasks",
+    { Status: AgentStatus.Active } => "Active agent without tasks",
+    { Status: AgentStatus.Inactive } => "Inactive agent",
+    null => "No agent provided",
+    _ => "Unknown agent state"
+};
+
+public Result<Agent> ValidateAgent(Agent agent) => agent switch
+{
+    null => Result<Agent>.WithFailure("Agent cannot be null"),
+    { Name: "" or null } => Result<Agent>.WithFailure("Agent name is required"),
+    { Status: AgentStatus.Inactive } => Result<Agent>.WithFailure("Agent is inactive"),
+    _ => Result<Agent>.Success(agent)
+};
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Traditional switch statements
+public string GetStatusDescription(AgentStatus status)
+{
+    switch (status)
+    {
+        case AgentStatus.Active:
+            return "Agent is active and ready for tasks";
+        case AgentStatus.Inactive:
+            return "Agent is inactive and cannot process tasks";
+        case AgentStatus.Pending:
+            return "Agent is pending activation";
+        default:
+            return "Unknown agent status";
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use immutability with init-only properties and records
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Immutable design with init-only properties
+public class Agent
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string Name { get; init; } = string.Empty;
+    public AgentStatus Status { get; init; }
+    public AgentConfiguration Configuration { get; init; } = new();
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; init; } = DateTime.UtcNow;
+
+    // Immutable collections
+    public IReadOnlyList<Task> Tasks { get; init; } = Array.Empty<Task>();
+    public IReadOnlyDictionary<string, string> Metadata { get; init; } = new Dictionary<string, string>();
+}
+
+// ✅ Correct: Record for value objects
+public record AgentCapabilities
+{
+    public IReadOnlyList<string> SupportedTaskTypes { get; init; } = Array.Empty<string>();
+    public int MaxConcurrentTasks { get; init; } = 1;
+    public bool IsEnabled { get; init; } = true;
+}
+
+// ✅ Correct: Immutable configuration
+public class AgentConfiguration
+{
+    public IReadOnlyDictionary<string, object> Settings { get; init; } = new Dictionary<string, object>();
+    public TimeSpan Timeout { get; init; } = TimeSpan.FromMinutes(5);
+    public int RetryCount { get; init; } = 3;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Mutable properties
+public class Agent
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Name { get; set; } = string.Empty;
+    public AgentStatus Status { get; set; }
+    public List<Task> Tasks { get; set; } = new(); // Mutable collection
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use modern async/await with ConfigureAwait(false) for background operations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Modern async/await patterns
+public async Task<Result<IEnumerable<Agent>>> GetAllAgentsAsync(CancellationToken cancellationToken = default)
+{
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<IEnumerable<Agent>>();
+
+    try
+    {
+        var result = await _repository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+
+        if (result.IsFailure)
+        {
+            return Result<IEnumerable<Agent>>.WithFailure(result.Error ?? "Failed to retrieve agents");
+        }
+
+        return result;
+    }
+    catch (OperationCanceledException)
+    {
+        return ResultExtensions.Cancelled<IEnumerable<Agent>>();
+    }
+    catch (Exception ex)
+    {
+        return Result<IEnumerable<Agent>>.WithFailure($"An error occurred: {ex.Message}");
+    }
+}
+
+// ✅ Correct: Async resource disposal
+public async Task<Result<bool>> ProcessAgentAsync(Agent agent)
+{
+    await using var connection = await _database.CreateConnectionAsync();
+    await using var transaction = await connection.BeginTransactionAsync();
+
+    try
+    {
+        var result = await _repository.AddAsync(agent, cancellationToken).ConfigureAwait(false);
+        await transaction.CommitAsync().ConfigureAwait(false);
+        return result.Map(_ => true);
+    }
+    catch
+    {
+        await transaction.RollbackAsync().ConfigureAwait(false);
+        throw;
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Missing ConfigureAwait and proper resource disposal
+public async Task<Result<IEnumerable<Agent>>> GetAllAgentsAsync(CancellationToken cancellationToken = default)
+{
+    var result = await _repository.GetAllAsync(cancellationToken);
+    return result;
+}
+
+public async Task<Result<bool>> ProcessAgentAsync(Agent agent)
+{
+    var connection = await _database.CreateConnectionAsync();
+    var transaction = await connection.BeginTransactionAsync();
+    // Missing await using and ConfigureAwait
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use modern using declarations and await using
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Modern using declarations
+public async Task<Result<string>> ProcessDocumentAsync(string content)
+{
+    using var scope = _serviceProvider.CreateScope();
+    using var logger = scope.ServiceProvider.GetRequiredService<ILogger<DocumentProcessor>>();
+
+    await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+    await using var reader = new StreamReader(stream);
+
+    var processedContent = await reader.ReadToEndAsync();
+    return Result<string>.Success(processedContent);
+}
+
+// ✅ Correct: Using declarations for disposable resources
+public async Task<Result<bool>> ValidateConfigurationAsync()
+{
+    using var httpClient = new HttpClient();
+    using var response = await httpClient.GetAsync("https://api.example.com/health");
+
+    return response.IsSuccessStatusCode
+        ? Result<bool>.Success(true)
+        : Result<bool>.WithFailure("Configuration validation failed");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Traditional using blocks
+public async Task<Result<string>> ProcessDocumentAsync(string content)
+{
+    using (var scope = _serviceProvider.CreateScope())
+    using (var logger = scope.ServiceProvider.GetRequiredService<ILogger<DocumentProcessor>>())
+    {
+        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(content)))
+        using (var reader = new StreamReader(stream))
+        {
+            var processedContent = await reader.ReadToEndAsync();
+            return Result<string>.Success(processedContent);
+        }
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use LINQ wisely with performance considerations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Efficient LINQ usage
+public async Task<Result<IEnumerable<Agent>>> GetActiveAgentsAsync(CancellationToken cancellationToken = default)
+{
+    var allAgents = await _repository.GetAllAsync(cancellationToken);
+    if (allAgents.IsFailure)
+        return Result<IEnumerable<Agent>>.WithFailure(allAgents.Error ?? "Failed to retrieve agents");
+
+    // Use Where with ToList for immediate execution
+    var activeAgents = allAgents.Value
+        .Where(agent => agent?.Status == AgentStatus.Active)
+        .ToList()
+        .AsEnumerable();
+
+    return Result<IEnumerable<Agent>>.Success(activeAgents);
+}
+
+// ✅ Correct: Avoid multiple enumerations
+public async Task<Result<AgentStatistics>> GetAgentStatisticsAsync(CancellationToken cancellationToken = default)
+{
+    var agents = await _repository.GetAllAsync(cancellationToken);
+    if (agents.IsFailure)
+        return Result<AgentStatistics>.WithFailure(agents.Error ?? "Failed to retrieve agents");
+
+    var agentList = agents.Value.ToList(); // Materialize once
+
+    var statistics = new AgentStatistics
+    {
+        TotalAgents = agentList.Count,
+        ActiveAgents = agentList.Count(a => a.Status == AgentStatus.Active),
+        TotalTasks = agentList.Sum(a => a.Tasks?.Count ?? 0),
+        AverageTasksPerAgent = agentList.Average(a => a.Tasks?.Count ?? 0)
+    };
+
+    return Result<AgentStatistics>.Success(statistics);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Inefficient LINQ usage
+public async Task<Result<IEnumerable<Agent>>> GetActiveAgentsAsync(CancellationToken cancellationToken = default)
+{
+    var allAgents = await _repository.GetAllAsync(cancellationToken);
+    if (allAgents.IsFailure)
+        return Result<IEnumerable<Agent>>.WithFailure(allAgents.Error ?? "Failed to retrieve agents");
+
+    // Multiple enumerations of the same collection
+    var activeAgents = allAgents.Value.Where(agent => agent.Status == AgentStatus.Active);
+    var count = allAgents.Value.Count(); // Second enumeration
+    var names = allAgents.Value.Select(a => a.Name); // Third enumeration
+
+    return Result<IEnumerable<Agent>>.Success(activeAgents);
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use SemaphoreSlim for async concurrency control
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Async concurrency control
+public class AgentProcessor
+{
+    private readonly SemaphoreSlim _semaphore = new(5, 5); // Max 5 concurrent operations
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<bool>> ProcessAgentAsync(Agent agent, CancellationToken cancellationToken = default)
+    {
+        await _semaphore.WaitAsync(cancellationToken);
+        try
+        {
+            // Process agent with concurrency control
+            var result = await _repository.UpdateAsync(agent, cancellationToken).ConfigureAwait(false);
+            return result.Map(_ => true);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _semaphore.Dispose();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Using lock in async context
+public class AgentProcessor
+{
+    private readonly object _lock = new();
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<bool>> ProcessAgentAsync(Agent agent, CancellationToken cancellationToken = default)
+    {
+        lock (_lock) // Don't use lock in async methods
+        {
+            // Process agent
+            return Result<bool>.Success(true);
+        }
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use CancellationToken throughout APIs
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Proper CancellationToken usage
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+{
+    // Early cancellation check
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<Agent>();
+
+    try
+    {
+        var result = await _repository.GetByIdAsync(agentId, cancellationToken).ConfigureAwait(false);
+        return result;
+    }
+    catch (OperationCanceledException)
+    {
+        return ResultExtensions.Cancelled<Agent>();
+    }
+    catch (Exception ex)
+    {
+        return Result<Agent>.WithFailure($"An error occurred: {ex.Message}");
+    }
+}
+
+// ✅ Correct: CancellationToken propagation
+public async Task<Result<IEnumerable<Agent>>> GetAllAgentsAsync(CancellationToken cancellationToken = default)
+{
+    using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+    cts.CancelAfter(TimeSpan.FromMinutes(5)); // Add timeout
+
+    return await _repository.GetAllAsync(cts.Token).ConfigureAwait(false);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Missing CancellationToken
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId)
+{
+    var result = await _repository.GetByIdAsync(agentId);
+    return result;
+}
+```
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001_CSharpCodingStandards.mdc" reason="Related C# standards">C# Coding Standards</reference>
+description:
+globs:
+alwaysApply: false
+---

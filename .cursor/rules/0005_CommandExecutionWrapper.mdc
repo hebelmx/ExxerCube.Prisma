@@ -1,0 +1,501 @@
+# Command Execution Wrapper Standards
+
+## Meta
+**Title**: Command Execution Wrapper Standards
+**Description**: Always wrap shell commands with timeout, proper error handling, and logging
+**Applies-to**: All shell command execution in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Always wrap shell commands with timeout and proper error handling
+**Examples**:
+<correct-example>
+```bash
+# ✅ Correct: Always wrap commands with timeout and error handling
+
+# For bash/Linux commands
+timeout 30s <command> 2>&1 | cat
+
+# For PowerShell commands
+$job = Start-Job -ScriptBlock { <command> }; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# Example: Building project
+timeout 30s dotnet build 2>&1 | cat
+
+# Example: Running tests
+timeout 60s dotnet test 2>&1 | cat
+
+# Example: Git operations
+timeout 30s git status 2>&1 | cat
+
+# Example: File operations
+timeout 30s ls -la 2>&1 | cat
+
+# Example: Directory operations
+timeout 30s find . -name "*.cs" 2>&1 | cat
+
+# Example: Package operations
+timeout 30s dotnet restore 2>&1 | cat
+
+# Example: Clean operations
+timeout 30s dotnet clean 2>&1 | cat
+
+# Example: Publish operations
+timeout 120s dotnet publish 2>&1 | cat
+
+# Example: Package installation
+timeout 60s dotnet add package PackageName 2>&1 | cat
+
+# Example: Package removal
+timeout 30s dotnet remove package PackageName 2>&1 | cat
+```
+</correct-example>
+<incorrect-example>
+```bash
+# ❌ Incorrect: Commands without timeout and error handling
+
+# Don't run commands directly without timeout
+dotnet build
+
+# Don't run commands without error redirection
+dotnet test
+
+# Don't run commands without proper logging
+git status
+
+# Don't run commands that can hang indefinitely
+find . -name "*.cs"
+
+# Don't run commands without exit code handling
+dotnet restore
+
+# Don't run commands without proper cleanup
+dotnet clean
+
+# Don't run long-running commands without timeout
+dotnet publish
+
+# Don't run package operations without timeout
+dotnet add package PackageName
+
+# Don't run commands without proper error output capture
+dotnet remove package PackageName
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use PowerShell timeout wrapper for Windows environments
+**Examples**:
+<correct-example>
+```powershell
+# ✅ Correct: PowerShell timeout wrapper for Windows
+
+# Basic command execution with timeout
+$job = Start-Job -ScriptBlock { dotnet build }; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# Command with parameters
+$job = Start-Job -ScriptBlock { dotnet test --verbosity normal }; Wait-Job $job -Timeout 60; Receive-Job $job; Remove-Job $job
+
+# Command with working directory
+$job = Start-Job -ScriptBlock { cd "path/to/project" && dotnet build }; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# Command with error handling
+$job = Start-Job -ScriptBlock {
+    try {
+        dotnet build
+    }
+    catch {
+        Write-Error $_.Exception.Message
+    }
+}; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# Command with output capture
+$job = Start-Job -ScriptBlock { dotnet build 2>&1 }; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# Command with exit code checking
+$job = Start-Job -ScriptBlock {
+    $result = dotnet build 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Build failed with exit code: $LASTEXITCODE"
+    }
+    return $result
+}; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# Git operations with timeout
+$job = Start-Job -ScriptBlock { git status }; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# File operations with timeout
+$job = Start-Job -ScriptBlock { Get-ChildItem -Recurse -Filter "*.cs" }; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# Package operations with timeout
+$job = Start-Job -ScriptBlock { dotnet restore }; Wait-Job $job -Timeout 60; Receive-Job $job; Remove-Job $job
+
+# Clean operations with timeout
+$job = Start-Job -ScriptBlock { dotnet clean }; Wait-Job $job -Timeout 30; Receive-Job $job; Remove-Job $job
+
+# Publish operations with timeout
+$job = Start-Job -ScriptBlock { dotnet publish }; Wait-Job $job -Timeout 120; Receive-Job $job; Remove-Job $job
+```
+</correct-example>
+<incorrect-example>
+```powershell
+# ❌ Incorrect: PowerShell commands without timeout wrapper
+
+# Don't run commands directly
+dotnet build
+
+# Don't run commands without job wrapper
+dotnet test
+
+# Don't run commands without timeout
+git status
+
+# Don't run commands without proper cleanup
+Get-ChildItem -Recurse -Filter "*.cs"
+
+# Don't run commands without error handling
+dotnet restore
+
+# Don't run commands without exit code checking
+dotnet clean
+
+# Don't run long-running commands without timeout
+dotnet publish
+
+# Don't run commands without proper output capture
+dotnet add package PackageName
+
+# Don't run commands without job cleanup
+dotnet remove package PackageName
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Always log command execution and handle failures
+**Examples**:
+<correct-example>
+```bash
+# ✅ Correct: Log command execution and handle failures
+
+# Command with logging and error handling
+echo "Executing: dotnet build"
+timeout 30s dotnet build 2>&1 | cat
+if [ $? -eq 0 ]; then
+    echo "Build completed successfully"
+else
+    echo "Build failed with exit code: $?"
+    exit 1
+fi
+
+# Command with detailed logging
+echo "Starting test execution..."
+timeout 60s dotnet test --verbosity normal 2>&1 | cat
+if [ $? -eq 0 ]; then
+    echo "Tests completed successfully"
+else
+    echo "Tests failed with exit code: $?"
+    exit 1
+fi
+
+# Command with working directory and logging
+echo "Building project in directory: /path/to/project"
+cd /path/to/project && timeout 30s dotnet build 2>&1 | cat
+if [ $? -eq 0 ]; then
+    echo "Build completed successfully"
+else
+    echo "Build failed with exit code: $?"
+    exit 1
+fi
+
+# Command with timeout logging
+echo "Executing git status with 30s timeout..."
+timeout 30s git status 2>&1 | cat
+if [ $? -eq 124 ]; then
+    echo "Command timed out after 30 seconds"
+    exit 1
+elif [ $? -eq 0 ]; then
+    echo "Git status completed successfully"
+else
+    echo "Git status failed with exit code: $?"
+    exit 1
+fi
+
+# Command with output capture and logging
+echo "Finding C# files..."
+output=$(timeout 30s find . -name "*.cs" 2>&1)
+if [ $? -eq 0 ]; then
+    echo "Found C# files:"
+    echo "$output"
+else
+    echo "Failed to find C# files"
+    exit 1
+fi
+
+# Package operations with logging
+echo "Restoring packages..."
+timeout 60s dotnet restore 2>&1 | cat
+if [ $? -eq 0 ]; then
+    echo "Package restore completed successfully"
+else
+    echo "Package restore failed with exit code: $?"
+    exit 1
+fi
+
+# Clean operations with logging
+echo "Cleaning project..."
+timeout 30s dotnet clean 2>&1 | cat
+if [ $? -eq 0 ]; then
+    echo "Clean completed successfully"
+else
+    echo "Clean failed with exit code: $?"
+    exit 1
+fi
+
+# Publish operations with logging
+echo "Publishing project..."
+timeout 120s dotnet publish 2>&1 | cat
+if [ $? -eq 0 ]; then
+    echo "Publish completed successfully"
+else
+    echo "Publish failed with exit code: $?"
+    exit 1
+fi
+```
+</correct-example>
+<incorrect-example>
+```bash
+# ❌ Incorrect: Commands without logging and error handling
+
+# Don't run commands without logging
+dotnet build
+
+# Don't run commands without exit code checking
+dotnet test
+
+# Don't run commands without failure handling
+git status
+
+# Don't run commands without timeout handling
+find . -name "*.cs"
+
+# Don't run commands without output capture
+dotnet restore
+
+# Don't run commands without proper error messages
+dotnet clean
+
+# Don't run commands without success/failure logging
+dotnet publish
+
+# Don't run commands without proper exit codes
+dotnet add package PackageName
+
+# Don't run commands without timeout error handling
+dotnet remove package PackageName
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use appropriate timeout values for different command types
+**Examples**:
+<correct-example>
+```bash
+# ✅ Correct: Appropriate timeout values for different commands
+
+# Quick commands (5-30 seconds)
+timeout 5s git status 2>&1 | cat
+timeout 10s dotnet --version 2>&1 | cat
+timeout 15s ls -la 2>&1 | cat
+timeout 20s find . -name "*.cs" 2>&1 | cat
+timeout 30s dotnet clean 2>&1 | cat
+
+# Medium commands (30-60 seconds)
+timeout 30s dotnet build 2>&1 | cat
+timeout 45s dotnet restore 2>&1 | cat
+timeout 60s dotnet test 2>&1 | cat
+
+# Long commands (60-300 seconds)
+timeout 60s dotnet publish 2>&1 | cat
+timeout 120s dotnet build --configuration Release 2>&1 | cat
+timeout 180s dotnet test --verbosity detailed 2>&1 | cat
+timeout 300s dotnet publish --configuration Release 2>&1 | cat
+
+# Very long commands (300+ seconds)
+timeout 600s dotnet build --configuration Release --verbosity detailed 2>&1 | cat
+timeout 900s dotnet test --verbosity detailed --logger "console;verbosity=detailed" 2>&1 | cat
+```
+</correct-example>
+<incorrect-example>
+```bash
+# ❌ Incorrect: Inappropriate timeout values
+
+# Too short timeouts for long operations
+timeout 5s dotnet build 2>&1 | cat
+timeout 10s dotnet test 2>&1 | cat
+timeout 15s dotnet publish 2>&1 | cat
+
+# Too long timeouts for quick operations
+timeout 300s git status 2>&1 | cat
+timeout 600s ls -la 2>&1 | cat
+timeout 900s dotnet --version 2>&1 | cat
+
+# No timeout (can hang indefinitely)
+dotnet build 2>&1 | cat
+dotnet test 2>&1 | cat
+dotnet publish 2>&1 | cat
+
+# Inconsistent timeout values
+timeout 30s dotnet build 2>&1 | cat
+timeout 10s dotnet test 2>&1 | cat  # Should be longer than build
+timeout 5s dotnet publish 2>&1 | cat  # Should be longer than test
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Handle different exit codes and error conditions
+**Examples**:
+<correct-example>
+```bash
+# ✅ Correct: Handle different exit codes and error conditions
+
+# Command with comprehensive error handling
+echo "Executing: dotnet build"
+output=$(timeout 30s dotnet build 2>&1)
+exit_code=$?
+
+case $exit_code in
+    0)
+        echo "Build completed successfully"
+        echo "$output"
+        ;;
+    124)
+        echo "Build timed out after 30 seconds"
+        exit 1
+        ;;
+    125)
+        echo "Build command not found or not executable"
+        exit 1
+        ;;
+    126)
+        echo "Build command found but not executable"
+        exit 1
+        ;;
+    127)
+        echo "Build command not found"
+        exit 1
+        ;;
+    *)
+        echo "Build failed with exit code: $exit_code"
+        echo "Error output:"
+        echo "$output"
+        exit 1
+        ;;
+esac
+
+# Command with timeout-specific handling
+echo "Executing: dotnet test"
+output=$(timeout 60s dotnet test 2>&1)
+exit_code=$?
+
+if [ $exit_code -eq 124 ]; then
+    echo "Test execution timed out after 60 seconds"
+    echo "Partial output:"
+    echo "$output"
+    exit 1
+elif [ $exit_code -eq 0 ]; then
+    echo "Tests completed successfully"
+    echo "$output"
+else
+    echo "Tests failed with exit code: $exit_code"
+    echo "Error output:"
+    echo "$output"
+    exit 1
+fi
+
+# Command with signal handling
+echo "Executing: git status"
+trap 'echo "Command interrupted by signal"; exit 1' INT TERM
+output=$(timeout 30s git status 2>&1)
+exit_code=$?
+trap - INT TERM
+
+if [ $exit_code -eq 0 ]; then
+    echo "Git status completed successfully"
+    echo "$output"
+else
+    echo "Git status failed with exit code: $exit_code"
+    echo "Error output:"
+    echo "$output"
+    exit 1
+fi
+
+# Command with retry logic
+echo "Executing: dotnet restore"
+max_retries=3
+retry_count=0
+
+while [ $retry_count -lt $max_retries ]; do
+    echo "Attempt $((retry_count + 1)) of $max_retries"
+    output=$(timeout 60s dotnet restore 2>&1)
+    exit_code=$?
+
+    if [ $exit_code -eq 0 ]; then
+        echo "Restore completed successfully"
+        echo "$output"
+        break
+    elif [ $exit_code -eq 124 ]; then
+        echo "Restore timed out, retrying..."
+        retry_count=$((retry_count + 1))
+        sleep 5
+    else
+        echo "Restore failed with exit code: $exit_code"
+        echo "Error output:"
+        echo "$output"
+        exit 1
+    fi
+done
+
+if [ $retry_count -eq $max_retries ]; then
+    echo "Restore failed after $max_retries attempts"
+    exit 1
+fi
+```
+</correct-example>
+<incorrect-example>
+```bash
+# ❌ Incorrect: Poor error handling
+
+# No error handling
+dotnet build
+
+# No exit code checking
+dotnet test
+
+# No timeout handling
+git status
+
+# No signal handling
+find . -name "*.cs"
+
+# No retry logic
+dotnet restore
+
+# No proper error messages
+dotnet clean
+
+# No output capture
+dotnet publish
+
+# No timeout error handling
+dotnet add package PackageName
+
+# No signal interruption handling
+dotnet remove package PackageName
+```
+</incorrect-example>
+</requirement>

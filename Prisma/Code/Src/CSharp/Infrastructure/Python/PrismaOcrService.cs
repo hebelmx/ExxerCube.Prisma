@@ -1,5 +1,5 @@
 using CSnakes.Runtime;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -80,7 +80,7 @@ public class PrismaOcrService : IOcrProcessingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during OCR processing for image {SourcePath}", imageData.SourcePath);
-            return Task.FromResult(Result<ProcessingResult>.Failure($"OCR processing failed: {ex.Message}"));
+            return Task.FromResult(Result<ProcessingResult>.WithFailure($"OCR processing failed: {ex.Message}", default, ex));
         }
     }
 
@@ -122,11 +122,22 @@ public class PrismaOcrService : IOcrProcessingService
             {
                 var errorMessages = string.Join("; ", failedResults.Select(r => r.Error));
                 _logger.LogError("Batch processing failed with errors: {Errors}", errorMessages);
-                return Result<List<ProcessingResult>>.Failure($"Batch processing failed: {errorMessages}");
+                return Result<List<ProcessingResult>>.WithFailure($"Batch processing failed: {errorMessages}");
             }
 
             // Extract successful results
-            var successfulResults = taskResults.Where(r => r.IsSuccess).Select(r => r.Value!).ToList();
+            var successfulResults = new List<ProcessingResult>();
+            foreach (var result in taskResults)
+            {
+                if (result.IsSuccess)
+                {
+                    var value = result.Value;
+                    if (value != null)
+                    {
+                        successfulResults.Add(value);
+                    }
+                }
+            }
             
             _logger.LogInformation("Batch OCR processing completed successfully for {Count} images", successfulResults.Count);
             return Result<List<ProcessingResult>>.Success(successfulResults);
@@ -134,7 +145,7 @@ public class PrismaOcrService : IOcrProcessingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during batch OCR processing");
-            return Result<List<ProcessingResult>>.Failure($"Batch OCR processing failed: {ex.Message}");
+            return Result<List<ProcessingResult>>.WithFailure($"Batch OCR processing failed: {ex.Message}", default, ex);
         }
     }
 }

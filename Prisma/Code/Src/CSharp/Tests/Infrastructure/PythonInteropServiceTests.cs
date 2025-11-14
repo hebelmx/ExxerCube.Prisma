@@ -5,7 +5,7 @@ using System.IO;
 using Microsoft.Extensions.Logging;
 using Shouldly;
 using Xunit;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Python;
@@ -31,13 +31,13 @@ public class PythonInteropServiceTests : IDisposable
         _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<PrismaOcrWrapperAdapter>();
         _pythonModulesPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "CSharp", "Python", "ocr_modules");
         _testDataPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData");
-        
+
         // Ensure test data directory exists
         if (!Directory.Exists(_testDataPath))
         {
             Directory.CreateDirectory(_testDataPath);
         }
-        
+
         _adapter = new PrismaOcrWrapperAdapter(_logger);
     }
 
@@ -76,10 +76,10 @@ public class PythonInteropServiceTests : IDisposable
     {
         // Arrange
         var testText = "En relación al Expediente: ABC-123/2023, se requiere...";
-        
+
         // Act
         var result = await _adapter.ExtractExpedienteAsync(testText);
-        
+
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -95,10 +95,10 @@ public class PythonInteropServiceTests : IDisposable
     {
         // Arrange
         var testText = "Fecha: 15 de octubre de 2023 y también 2023-12-25";
-        
+
         // Act
         var result = await _adapter.ExtractDatesAsync(testText);
-        
+
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -120,17 +120,17 @@ public class PythonInteropServiceTests : IDisposable
             // Skip test if test data not available
             return;
         }
-        
+
         var testText = File.ReadAllText(testDataPath);
-        
+
         // Act
         var result = await _adapter.ExtractAmountsAsync(testText);
-        
+
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value.Count.ShouldBeGreaterThan(0);
-        
+
         var values = result.Value.Select(a => a.Value).ToList();
         values.ShouldContain(50000.00m); // $50,000.00 from test data
     }
@@ -149,7 +149,7 @@ public class PythonInteropServiceTests : IDisposable
             // Skip test if test image not available
             return;
         }
-        
+
         var imageData = new ImageData
         {
             Data = File.ReadAllBytes(testImagePath),
@@ -157,10 +157,10 @@ public class PythonInteropServiceTests : IDisposable
             PageNumber = 1,
             TotalPages = 1
         };
-        
+
         // Act
         var result = await _adapter.BinarizeAsync(imageData);
-        
+
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -176,10 +176,10 @@ public class PythonInteropServiceTests : IDisposable
     {
         // Arrange
         var emptyText = "";
-        
+
         // Act
         var result = await _adapter.ExtractExpedienteAsync(emptyText);
-        
+
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBeNull();
@@ -193,10 +193,10 @@ public class PythonInteropServiceTests : IDisposable
     {
         // Arrange
         string? nullText = null;
-        
+
         // Act
         var result = await _adapter.ExtractExpedienteAsync(nullText!);
-        
+
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBeNull();
@@ -211,10 +211,10 @@ public class PythonInteropServiceTests : IDisposable
     {
         // Arrange
         var testText = "En el presente juicio de naturaleza Civil, se solicita...";
-        
+
         // Act
         var result = await _adapter.ExtractCausaAsync(testText);
-        
+
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -230,10 +230,10 @@ public class PythonInteropServiceTests : IDisposable
     {
         // Arrange
         var testText = "Se solicita la compensación por daños y perjuicios...";
-        
+
         // Act
         var result = await _adapter.ExtractAccionSolicitadaAsync(testText);
-        
+
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -370,14 +370,14 @@ public class PythonInteropServiceTests : IDisposable
     {
         // Arrange
         var testText = "En el expediente ABC123/2023 se solicita...";
-        
+
         // Log the paths being used
         _logger.LogInformation("Python modules path: {ModulesPath}", _pythonModulesPath);
         _logger.LogInformation("Current directory: {CurrentDir}", Directory.GetCurrentDirectory());
-        
+
         // Act
         var result = await _adapter.ExtractExpedienteAsync(testText);
-        
+
         // Assert
         if (!result.IsSuccess)
         {
@@ -390,7 +390,7 @@ public class PythonInteropServiceTests : IDisposable
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value.ShouldContain("ABC123/2023");
-        
+
         _logger.LogInformation("Python integration test passed. Extracted expediente: {Expediente}", result.Value);
     }
 
@@ -403,11 +403,11 @@ public class PythonInteropServiceTests : IDisposable
         // Arrange
         var modulesPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "CSharp", "Python", "ocr_modules");
         var expectedScriptPath = Path.Combine(modulesPath, "..", "expediente_cli.py");
-        
+
         // Act & Assert
         Directory.Exists(modulesPath).ShouldBeTrue($"Modules path should exist: {modulesPath}");
         File.Exists(expectedScriptPath).ShouldBeTrue($"Script path should exist: {expectedScriptPath}");
-        
+
         _logger.LogInformation("Modules path: {ModulesPath}", modulesPath);
         _logger.LogInformation("Script path: {ScriptPath}", expectedScriptPath);
     }

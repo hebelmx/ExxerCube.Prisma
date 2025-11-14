@@ -1,0 +1,655 @@
+# Rule: CQRS (Command Query Responsibility Segregation) Best Practices
+
+## Objective
+
+Establish comprehensive guidelines for implementing CQRS (Command Query Responsibility Segregation) pattern in .NET applications. Ensure proper separation of read and write operations, maintainable code structure, and optimal performance through dedicated read and write models.
+
+## Core Principles
+
+### 1. Command Query Separation
+- **Commands**: Modify state, return void or Result<T>
+- **Queries**: Read data, return data without side effects
+- **Handlers**: Implement single responsibility for each command/query
+- **Models**: Separate read and write models
+
+### 2. Single Responsibility
+- **One handler per command/query**
+- **Clear separation of concerns**
+- **No mixing of read and write operations**
+- **Dedicated models for different use cases**
+
+## Implementation Guidelines
+
+### 1. Command Structure
+
+#### Command Definition
+```csharp
+// ✅ Good: Command with proper structure
+public class CreateUserCommand : ICommand<Result<UserId>>
+{
+    public string FirstName { get; init; }
+    public string LastName { get; init; }
+    public string Email { get; init; }
+    public string Password { get; init; }
+
+    // Validation attributes
+    [Required]
+    [StringLength(50)]
+    public string FirstName { get; init; }
+
+    [Required]
+    [EmailAddress]
+    public string Email { get; init; }
+}
+
+// ✅ Good: Command with validation
+public class UpdateUserCommand : ICommand<Result<UserId>>
+{
+    public UserId UserId { get; init; }
+    public string FirstName { get; init; }
+    public string LastName { get; init; }
+    public string Email { get; init; }
+
+    // Business validation
+    public bool IsValid()
+    {
+        return !string.IsNullOrWhiteSpace(FirstName) &&
+               !string.IsNullOrWhiteSpace(LastName) &&
+               !string.IsNullOrWhiteSpace(Email);
+    }
+}
+```
+
+#### Command Handler Implementation
+```csharp
+// ✅ Good: Command handler with proper structure
+public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand, Result<UserId>>
+{
+    private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IValidator<CreateUserCommand> _validator;
+    private readonly ILogger<CreateUserCommandHandler> _logger;
+
+    public CreateUserCommandHandler(
+        IUserRepository userRepository,
+        IUnitOfWork unitOfWork,
+        IValidator<CreateUserCommand> validator,
+        ILogger<CreateUserCommandHandler> logger)
+    {
+        _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
+        _validator = validator;
+        _logger = logger;
+    }
+
+    public async Task<Result<UserId>> HandleAsync(
+        CreateUserCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // 1. Validate command
+            var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                return Result<UserId>.WithFailure(
+                    $"Validation failed: {string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage))}");
+            }
+
+            // 2. Check business rules
+            var existingUser = await _userRepository.GetByEmailAsync(command.Email, cancellationToken);
+            if (existingUser != null)
+            {
+                return Result<UserId>.WithFailure("User with this email already exists");
+            }
+
+            // 3. Create domain entity
+            var user = User.Create(
+                command.FirstName,
+                command.LastName,
+                command.Email,
+                command.Password);
+
+            // 4. Persist to write model
+            await _userRepository.AddAsync(user, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // 5. Publish domain events (if needed)
+            // await _eventPublisher.PublishAsync(user.DomainEvents, cancellationToken);
+
+            _logger.LogInformation("User created successfully: {UserId}", user.Id);
+            return Result<UserId>.Success(user.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create user: {Email}", command.Email);
+            return Result<UserId>.WithFailure($"Failed to create user: {ex.Message}");
+        }
+    }
+}
+```
+
+### 2. Query Structure
+
+#### Query Definition
+```csharp
+// ✅ Good: Query with proper structure
+public class GetUserByIdQuery : IQuery<Result<UserDto>>
+{
+    public UserId UserId { get; init; }
+}
+
+// ✅ Good: Query with filtering
+public class GetUsersQuery : IQuery<Result<PagedResult<UserDto>>>
+{
+    public string? SearchTerm { get; init; }
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = 10;
+    public string? SortBy { get; init; }
+    public bool IsAscending { get; init; } = true;
+}
+
+// ✅ Good: Query with specific read model
+public class GetUserProfileQuery : IQuery<Result<UserProfileDto>>
+{
+    public UserId UserId { get; init; }
+    public bool IncludeOrders { get; init; } = false;
+    public bool IncludePreferences { get; init; } = false;
+}
+```
+
+#### Query Handler Implementation
+```csharp
+// ✅ Good: Query handler with read model
+public class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, Result<UserDto>>
+{
+    private readonly IUserReadRepository _userReadRepository;
+    private readonly ILogger<GetUserByIdQueryHandler> _logger;
+
+    public GetUserByIdQueryHandler(
+        IUserReadRepository userReadRepository,
+        ILogger<GetUserByIdQueryHandler> logger)
+    {
+        _userReadRepository = userReadRepository;
+        _logger = logger;
+    }
+
+    public async Task<Result<UserDto>> HandleAsync(
+        GetUserByIdQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await _userReadRepository.GetByIdAsync(query.UserId, cancellationToken);
+
+            if (user == null)
+            {
+                return Result<UserDto>.WithFailure($"User not found: {query.UserId}");
+            }
+
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            };
+
+            return Result<UserDto>.Success(userDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get user by ID: {UserId}", query.UserId);
+            return Result<UserDto>.WithFailure($"Failed to get user: {ex.Message}");
+        }
+    }
+}
+
+// ✅ Good: Query handler with paging and filtering
+public class GetUsersQueryHandler : IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>>
+{
+    private readonly IUserReadRepository _userReadRepository;
+    private readonly ILogger<GetUsersQueryHandler> _logger;
+
+    public GetUsersQueryHandler(
+        IUserReadRepository userReadRepository,
+        ILogger<GetUsersQueryHandler> logger)
+    {
+        _userReadRepository = userReadRepository;
+        _logger = logger;
+    }
+
+    public async Task<Result<PagedResult<UserDto>>> HandleAsync(
+        GetUsersQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var users = await _userReadRepository.GetUsersAsync(
+                searchTerm: query.SearchTerm,
+                pageNumber: query.PageNumber,
+                pageSize: query.PageSize,
+                sortBy: query.SortBy,
+                isAscending: query.IsAscending,
+                cancellationToken);
+
+            var userDtos = users.Items.Select(u => new UserDto
+            {
+                Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt
+            }).ToList();
+
+            var result = new PagedResult<UserDto>
+            {
+                Items = userDtos,
+                TotalCount = users.TotalCount,
+                PageNumber = users.PageNumber,
+                PageSize = users.PageSize,
+                TotalPages = users.TotalPages
+            };
+
+            return Result<PagedResult<UserDto>>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get users with search: {SearchTerm}", query.SearchTerm);
+            return Result<PagedResult<UserDto>>.WithFailure($"Failed to get users: {ex.Message}");
+        }
+    }
+}
+```
+
+### 3. Interface Definitions
+
+#### Command and Query Interfaces
+```csharp
+// ✅ Good: Command interface
+public interface ICommand<TResult>
+{
+}
+
+public interface ICommandHandler<TCommand, TResult>
+    where TCommand : ICommand<TResult>
+{
+    Task<Result<TResult>> HandleAsync(TCommand command, CancellationToken cancellationToken = default);
+}
+
+// ✅ Good: Query interface
+public interface IQuery<TResult>
+{
+}
+
+public interface IQueryHandler<TQuery, TResult>
+    where TQuery : IQuery<TResult>
+{
+    Task<Result<TResult>> HandleAsync(TQuery query, CancellationToken cancellationToken = default);
+}
+```
+
+### 4. Repository Separation
+
+#### Write Repository (Commands)
+```csharp
+// ✅ Good: Write repository for commands
+public interface IUserRepository
+{
+    Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
+    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task AddAsync(User user, CancellationToken cancellationToken = default);
+    Task UpdateAsync(User user, CancellationToken cancellationToken = default);
+    Task DeleteAsync(UserId id, CancellationToken cancellationToken = default);
+}
+
+public class UserRepository : IUserRepository
+{
+    private readonly DbContext _context;
+
+    public UserRepository(DbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<User?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .Include(u => u.Orders)
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+    }
+
+    public async Task AddAsync(User user, CancellationToken cancellationToken = default)
+    {
+        await _context.Users.AddAsync(user, cancellationToken);
+    }
+
+    public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
+    {
+        _context.Users.Update(user);
+        await Task.CompletedTask;
+    }
+}
+```
+
+#### Read Repository (Queries)
+```csharp
+// ✅ Good: Read repository for queries
+public interface IUserReadRepository
+{
+    Task<UserDto?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default);
+    Task<PagedResult<UserDto>> GetUsersAsync(
+        string? searchTerm = null,
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? sortBy = null,
+        bool isAscending = true,
+        CancellationToken cancellationToken = default);
+    Task<UserProfileDto?> GetUserProfileAsync(UserId id, CancellationToken cancellationToken = default);
+}
+
+public class UserReadRepository : IUserReadRepository
+{
+    private readonly IQueryable<User> _users;
+
+    public UserReadRepository(DbContext context)
+    {
+        _users = context.Users.AsNoTracking();
+    }
+
+    public async Task<UserDto?> GetByIdAsync(UserId id, CancellationToken cancellationToken = default)
+    {
+        var user = await _users
+            .Where(u => u.Id == id)
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return user;
+    }
+
+    public async Task<PagedResult<UserDto>> GetUsersAsync(
+        string? searchTerm = null,
+        int pageNumber = 1,
+        int pageSize = 10,
+        string? sortBy = null,
+        bool isAscending = true,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _users.AsQueryable();
+
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(u =>
+                u.FirstName.Contains(searchTerm) ||
+                u.LastName.Contains(searchTerm) ||
+                u.Email.Contains(searchTerm));
+        }
+
+        // Apply sorting
+        query = sortBy?.ToLower() switch
+        {
+            "firstname" => isAscending ? query.OrderBy(u => u.FirstName) : query.OrderByDescending(u => u.FirstName),
+            "lastname" => isAscending ? query.OrderBy(u => u.LastName) : query.OrderByDescending(u => u.LastName),
+            "email" => isAscending ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
+            "createdat" => isAscending ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
+            _ => query.OrderBy(u => u.CreatedAt)
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+        var users = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return new PagedResult<UserDto>
+        {
+            Items = users,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            TotalPages = totalPages
+        };
+    }
+}
+```
+
+### 5. Controller Implementation
+
+#### API Controller
+```csharp
+// ✅ Good: API controller with CQRS
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
+{
+    private readonly ICommandHandler<CreateUserCommand, Result<UserId>> _createUserHandler;
+    private readonly ICommandHandler<UpdateUserCommand, Result<UserId>> _updateUserHandler;
+    private readonly IQueryHandler<GetUserByIdQuery, Result<UserDto>> _getUserHandler;
+    private readonly IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>> _getUsersHandler;
+    private readonly ILogger<UsersController> _logger;
+
+    public UsersController(
+        ICommandHandler<CreateUserCommand, Result<UserId>> createUserHandler,
+        ICommandHandler<UpdateUserCommand, Result<UserId>> updateUserHandler,
+        IQueryHandler<GetUserByIdQuery, Result<UserDto>> getUserHandler,
+        IQueryHandler<GetUsersQuery, Result<PagedResult<UserDto>>> getUsersHandler,
+        ILogger<UsersController> logger)
+    {
+        _createUserHandler = createUserHandler;
+        _updateUserHandler = updateUserHandler;
+        _getUserHandler = getUserHandler;
+        _getUsersHandler = getUsersHandler;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+    {
+        var command = new CreateUserCommand
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            Password = request.Password
+        };
+
+        var result = await _createUserHandler.HandleAsync(command);
+
+        if (result.IsSuccess)
+        {
+            return CreatedAtAction(nameof(GetUser), new { id = result.Value }, result.Value);
+        }
+
+        return BadRequest(result.Errors);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUser(Guid id)
+    {
+        var query = new GetUserByIdQuery { UserId = new UserId(id) };
+        var result = await _getUserHandler.HandleAsync(query);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return NotFound(result.Errors);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUsers([FromQuery] GetUsersRequest request)
+    {
+        var query = new GetUsersQuery
+        {
+            SearchTerm = request.SearchTerm,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            SortBy = request.SortBy,
+            IsAscending = request.IsAscending
+        };
+
+        var result = await _getUsersHandler.HandleAsync(query);
+
+        if (result.IsSuccess)
+        {
+            return Ok(result.Value);
+        }
+
+        return BadRequest(result.Errors);
+    }
+}
+```
+
+## Anti-Patterns to Avoid
+
+### 1. Mixed Responsibilities
+```csharp
+// ❌ Bad: Handler that does both read and write
+public class UserHandler
+{
+    public async Task<UserDto> GetUserAsync(Guid id)
+    {
+        // Read operation
+        var user = await _repository.GetByIdAsync(id);
+        return _mapper.Map<UserDto>(user);
+    }
+
+    public async Task UpdateUserAsync(Guid id, UpdateUserRequest request)
+    {
+        // Write operation in same handler
+        var user = await _repository.GetByIdAsync(id);
+        user.Update(request);
+        await _repository.UpdateAsync(user);
+    }
+}
+```
+
+### 2. Shared Models
+```csharp
+// ❌ Bad: Using same model for read and write
+public class User
+{
+    public Guid Id { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Email { get; set; }
+    public string Password { get; set; } // Should not be in read model
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+// ✅ Good: Separate read and write models
+public class User // Write model
+{
+    public UserId Id { get; private set; }
+    public string FirstName { get; private set; }
+    public string LastName { get; private set; }
+    public string Email { get; private set; }
+    public string PasswordHash { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime UpdatedAt { get; private set; }
+}
+
+public class UserDto // Read model
+{
+    public UserId Id { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string Email { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+```
+
+### 3. Complex Queries in Commands
+```csharp
+// ❌ Bad: Complex query in command handler
+public class CreateOrderCommandHandler
+{
+    public async Task<Result<OrderId>> HandleAsync(CreateOrderCommand command)
+    {
+        // Complex query in command handler
+        var user = await _context.Users
+            .Include(u => u.Orders)
+            .Include(u => u.Preferences)
+            .Include(u => u.Addresses)
+            .Where(u => u.Id == command.UserId)
+            .FirstOrDefaultAsync();
+
+        // Command logic...
+    }
+}
+```
+
+## Best Practices Summary
+
+### 1. Command Guidelines
+- **Commands should be immutable** (use init-only properties)
+- **Include validation attributes** on command properties
+- **Return Result<T>** for proper error handling
+- **Use domain entities** for business logic
+- **Publish domain events** when state changes
+
+### 2. Query Guidelines
+- **Queries should be read-only** (no side effects)
+- **Use dedicated read models** (DTOs)
+- **Optimize for performance** (projections, indexing)
+- **Support filtering and paging** for large datasets
+- **Use read-only repositories** for queries
+
+### 3. Handler Guidelines
+- **One handler per command/query**
+- **Inject dependencies** via constructor
+- **Handle exceptions** gracefully
+- **Log operations** for debugging
+- **Use cancellation tokens** for async operations
+
+### 4. Repository Guidelines
+- **Separate read and write repositories**
+- **Use write repositories** for commands
+- **Use read repositories** for queries
+- **Optimize read queries** with projections
+- **Use appropriate database contexts**
+
+### 5. Performance Guidelines
+- **Use read-only queries** where possible
+- **Implement proper indexing** for query performance
+- **Use projections** to limit data transfer
+- **Consider caching** for frequently accessed data
+- **Monitor query performance** and optimize
+
+## Enforcement
+
+- **Code Review**: Check CQRS separation in PRs
+- **Static Analysis**: Configure tools to detect mixed responsibilities
+- **Unit Tests**: Include separate tests for commands and queries
+- **Integration Tests**: Test command and query flows separately
+- **Performance Monitoring**: Track query and command performance
+
+## Conclusion
+
+CQRS provides clear separation of read and write operations, enabling better performance, maintainability, and scalability. Follow these guidelines to implement CQRS effectively in your .NET applications.

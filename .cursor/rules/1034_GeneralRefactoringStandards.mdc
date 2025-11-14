@@ -1,0 +1,138 @@
+## Rule: General Refactoring Standards (Planning and Auditing Only)
+
+### Objective
+Provide a repeatable, safe, and tool-driven process for planning and auditing refactors across the codebase without making code changes in this session. This rule defines how to scope, analyze, plan, and audit refactoring work using the Serena MCP server and RefactorMCP capabilities while aligning with ExxerAI architecture and coding standards.
+
+### Scope
+- Applies to all repositories and projects in this monorepo.
+- Focuses on planning, rules creation, and auditing—no production code changes during this session.
+- Targets structural and readability improvements that maintain behavior, with explicit approval required before execution.
+
+### Core Principles
+- **No behavior change by default**: Prefer semantics-preserving refactors unless a defect is being fixed under a separate change.
+- **Single responsibility**: Reduce method/class responsibilities; extract coherent units.
+- **Consistency**: Align with project architectural standards (CQRS, DDD, Hexagonal, Result<T> pattern, async cancellation, logging).
+- **Modern C#**: Prefer expression-bodied members, immutability, null-safety, async/await, and cancellation flow.
+- **No regions**: Replace `#region` with smaller, focused classes/methods.
+- **No new banned dependencies**: Avoid Moq, FluentAssertions, Mediatr, AutoMapper.
+- **Test stability**: All refactors must be demonstrably safe via unit tests (xUnit v3, Shouldly, NSubstitute) and build checks.
+- **Documentation quality**: Update XML docs when touching public APIs (summary/param/returns), do not change logic.
+
+### Tooling Doctrine
+- **Serena MCP Server is mandatory** for discovery, analysis, and any future execution.
+- **RefactorMCP** is the default automated refactoring engine (post-approval).
+- **Sequential Thinking MCP** is used to plan complex sequences and risk mitigation.
+- Prefer semantic search over raw grep when exploring behaviors.
+
+### Refactoring Taxonomy (Common Targets)
+- **R-100: Null-parameter validation to Result/Result<T> pattern**
+  - Replace manual null checks with `ResultExtensions.ValidateNotNull` and `NullArgumentValidation`.
+- **R-110: Cancellation propagation**
+  - Ensure `TestContext.Current.CancellationToken` or DI-provided tokens are used end-to-end.
+- **R-120: Remove regions / Extract classes**
+  - Split large classes; move one public type per file; separate interface/implementation.
+- **R-130: Source-generated Regex**
+  - Prefer `[GeneratedRegex]` over `RegexOptions.Compiled`.
+- **R-140: Logging modernization**
+  - Structured logging with `ILogger<T>`; avoid string concatenation.
+- **R-150: Async/await and null-safety**
+  - Remove `.Result`/`.Wait()`; add null checks; prefer non-throwing `Result<T>` pathways.
+- **R-160: CQRS alignment**
+  - Separate commands/queries; ensure handlers and validators are present; repositories abstract persistence.
+
+### Discovery Workflow (Read-Only)
+- Identify high-value refactor candidates using Serena tools:
+```text
+mcp_serena_activate_project("ExxerAI")
+
+# Explore patterns by intent
+mcp_serena_search_for_pattern(substring_pattern: "#region", relative_path: ".")
+mcp_serena_search_for_pattern(substring_pattern: "RegexOptions.Compiled", relative_path: ".")
+mcp_serena_search_for_pattern(substring_pattern: "// EXXER200", relative_path: ".")
+mcp_serena_search_for_pattern(substring_pattern: ".Result\(|\.Wait\(|GetAwaiter\(\)\.GetResult\(")
+
+# Get quick structure
+mcp_serena_get_symbols_overview(relative_path: "vs/Core/ExxerAI.Domain/")
+```
+- For large files, preview selectively with `read_file(start_line, end_line)` using integer indices only.
+
+### Planning Workflow (No Code Changes)
+1. **Define Goal**: What behavior remains identical? Which smells are targeted?
+2. **Classify Candidates**: Map each file to a taxonomy item (R-1xx).
+3. **Risk Assessment**: Identify public API impacts, test coverage depth, and cross-project ripple.
+4. **Refactor Template Selection**: Choose the template(s) below.
+5. **Execution Plan (Dry)**: List exact commands to run (RefactorMCP), file-by-file, in safe batches.
+$1
+
+Use the refactor audit template at `.cursor/plans/templates/Refactor_AuditPlan_Template.md` to document each batch before requesting approval.
+
+### Refactoring Templates (Design-Only)
+- **T-100: Null validation consolidation**
+  - Replace repeated null checks with:
+    - `ResultExtensions.ValidateNotNull((arg1, nameof(arg1)), (arg2, nameof(arg2)))`
+    - Convert result to appropriate return (Result, Result<T>, domain result type)
+- **T-130: Source-generated Regex**
+  - Identify static patterns; introduce `[GeneratedRegex]` partials; replace `RegexOptions.Compiled` usages.
+- **T-150: Async modernization**
+  - Convert sync-over-async to `async/await`; propagate `CancellationToken`.
+- **T-160: Region removal**
+  - Extract nested logic into dedicated classes; ensure one public type per file; update namespaces/imports.
+
+### Auditing Checklist (Pre-Execution)
+- **Architecture**
+  - CQRS separation respected (no DbContext in handlers, validators present).
+  - Hexagonal boundaries intact (no leaking infra into domain).
+- **Safety**
+  - No behavior changes without test deltas.
+  - All public APIs retain signatures unless explicitly approved.
+- **Standards**
+  - No `#region` introduced.
+  - Null handling follows Result pattern.
+  - Cancellation tokens propagated.
+  - Regex updated to source-generated where applicable.
+- **Testing**
+  - Adequate xUnit v3 coverage or plan to add tests first.
+- **Docs**
+  - XML docs present on public classes/methods/properties.
+
+### Example Dry-Run Plan (Illustrative)
+```text
+# 1) Discover region usage
+mcp_serena_search_for_pattern("#region", relative_path: "vs/Core")
+
+# 2) Draft refactor commands (do not run yet)
+# - For each file with RegexOptions.Compiled, prepare T-130 transformation
+# - For each EXXER200 block, prepare T-100 consolidation using ResultExtensions
+
+# 3) Validate impacts
+mcp_serena_get_symbols_overview("vs/Core/ExxerAI.Domain/CubeXplorer/Services/")
+```
+
+### Risk Mitigation & Batching
+- Small, coherent batches (1–3 files per commit).
+- Build and run tests after each batch (post-approval phase).
+- Favor reversible changes; keep commits atomic with clear messages.
+
+### Post-Approval Execution Guidance (For Later)
+- Use only RefactorMCP commands; avoid manual edits where automation suffices.
+- After each batch:
+  - `dotnet build`
+  - `dotnet test` (xUnit v3)
+  - Fix lints and XML docs if touched.
+
+### Governance
+- **Approval required** before any refactor execution.
+- **Rule audits** precede code edits; open a short audit log per batch describing:
+  - Targeted smells and taxonomy.
+  - Expected no-change behavior statement.
+  - Selected templates and planned commands.
+  - Rollback strategy.
+
+### References
+- `1029_ExxerAITestingStandards.mdc`, `1030_ExxerAIModernCSharp.mdc`, `1028_ExxerAINullSafety.mdc`
+- `1032_SourceGeneratedRegexBestPractices.mdc`
+$1
+- `.cursor/plans/templates/Refactor_AuditPlan_Template.md`
+
+### Conclusion
+This rule establishes a disciplined, auditable, and tool-driven approach to general refactoring. Use Serena MCP for discovery and planning, RefactorMCP for automated execution after approval, and the auditing checklist to ensure architectural compliance, behavioral safety, and documentation quality.

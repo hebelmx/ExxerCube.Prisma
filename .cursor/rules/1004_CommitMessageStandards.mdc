@@ -1,0 +1,289 @@
+---
+globs: *.md
+description: Standards for writing clear, consistent, and informative commit messages
+---
+
+# Commit Message Standards
+
+## Meta
+
+**Title**: Commit Message Standards
+**Description**: Establishes comprehensive standards for conventional commit messages
+**Created-at**: 2025-01-05T23:40:00Z
+**Last-updated-at**: 2025-01-05T23:40:00Z
+**Applies-to**: Git commits, version control, semantic versioning
+**File-matcher**: All files in version control
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Use conventional commit message structure with type, scope, and description
+**Examples**:
+<correct-example>
+```
+feat(auth): add JWT token authentication system
+
+- Implement JWT token generation and validation
+- Add authentication middleware for protected routes
+- Include refresh token functionality
+
+Closes #123
+```
+
+```
+fix(api): resolve null reference exception in order processing
+
+- Add null checks for order items
+- Implement proper error handling
+- Update unit tests for edge cases
+
+Fixes #456
+```
+
+```
+docs(readme): update installation instructions
+
+- Add Docker setup instructions
+- Include environment variable configuration
+- Update dependency requirements
+```
+</correct-example>
+<incorrect-example>
+```
+Added authentication system
+
+Fixed bug in order processing
+
+Updated documentation
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Use appropriate commit types for different changes
+**Examples**:
+<correct-example>
+```
+feat: add new user registration feature
+fix: resolve database connection timeout
+docs: update API documentation
+style: format code according to style guide
+refactor: restructure authentication module
+test: add unit tests for order validation
+chore: update dependencies
+ci: configure GitHub Actions workflow
+build: update build configuration
+perf: optimize database query performance
+```
+</correct-example>
+<incorrect-example>
+```
+update: add new feature
+change: fix bug
+modify: update docs
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Include scope to provide additional contextual information
+**Examples**:
+<correct-example>
+```
+feat(auth): implement OAuth2 authentication
+fix(api): resolve null reference in order endpoint
+docs(readme): update installation instructions
+test(domain): add unit tests for order validation
+refactor(infrastructure): restructure database layer
+style(ui): format component styling
+chore(deps): update NuGet packages
+ci(github): configure automated testing
+```
+</correct-example>
+<incorrect-example>
+```
+feat: implement OAuth2 authentication
+fix: resolve null reference in order endpoint
+docs: update installation instructions
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Write clear and descriptive commit descriptions
+**Examples**:
+<correct-example>
+```
+feat(auth): add JWT token authentication system
+
+- Implement JWT token generation and validation
+- Add authentication middleware for protected routes
+- Include refresh token functionality with 30-day expiry
+- Add comprehensive unit tests for all auth flows
+
+Closes #123
+```
+
+```
+fix(api): resolve null reference exception in order processing
+
+- Add null checks for order items before processing
+- Implement proper error handling with detailed messages
+- Update unit tests to cover edge cases
+- Add logging for debugging purposes
+
+Fixes #456
+```
+</correct-example>
+<incorrect-example>
+```
+feat: add auth
+
+fix: fix bug
+
+docs: update docs
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use breaking change indicators for API changes
+**Examples**:
+<correct-example>
+```
+feat(api)!: change user endpoint response format
+
+BREAKING CHANGE: The user endpoint now returns a different JSON structure.
+The 'profile' field has been renamed to 'userProfile' and includes
+additional metadata fields.
+
+Migration guide:
+- Update client code to use 'userProfile' instead of 'profile'
+- Handle new metadata fields in response
+```
+
+```
+refactor(auth)!: restructure authentication flow
+
+- Remove deprecated login endpoint
+- Introduce new OAuth2 flow
+- Update all authentication middleware
+
+BREAKING CHANGE: The /api/auth/login endpoint has been removed.
+Use /api/auth/oauth2/authorize instead.
+```
+</correct-example>
+<incorrect-example>
+```
+feat(api): change user endpoint response format
+
+The user endpoint now returns a different JSON structure.
+The 'profile' field has been renamed to 'userProfile'.
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Include issue references and footers when applicable
+**Examples**:
+<correct-example>
+```
+feat(auth): implement OAuth2 authentication
+
+- Add OAuth2 provider configuration
+- Implement authorization code flow
+- Add token refresh functionality
+- Include comprehensive error handling
+
+Closes #123
+Fixes #456
+Relates to #789
+```
+
+```
+fix(api): resolve database connection timeout
+
+- Increase connection pool size
+- Add retry logic for failed connections
+- Implement connection health checks
+- Add monitoring and alerting
+
+Fixes #234
+Addresses #567
+```
+</correct-example>
+<incorrect-example>
+```
+feat(auth): implement OAuth2 authentication
+
+- Add OAuth2 provider configuration
+- Implement authorization code flow
+- Add token refresh functionality
+- Include comprehensive error handling
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Keep commit messages concise but informative
+**Examples**:
+<correct-example>
+```
+feat: add user registration endpoint
+fix: resolve null reference in order processing
+docs: update API documentation with examples
+test: add unit tests for validation logic
+refactor: extract common validation methods
+style: format code according to style guide
+chore: update dependencies to latest versions
+```
+</correct-example>
+<incorrect-example>
+```
+feat: add new feature for user registration that allows users to create accounts with email and password validation including proper error handling and success responses
+fix: fix the bug that was causing the null reference exception in the order processing system which was happening when the order items were null
+docs: update the documentation to include more information about the API endpoints and how to use them
+```
+</incorrect-example>
+</requirement>
+
+## Commit Types
+
+### Standard Types
+- **feat**: New features (correlates with MINOR version)
+- **fix**: Bug fixes (correlates with PATCH version)
+- **docs**: Documentation changes
+- **style**: Code style changes (formatting, etc.)
+- **refactor**: Code refactoring
+- **test**: Adding or updating tests
+- **chore**: Maintenance tasks
+- **ci**: CI/CD changes
+- **build**: Build system changes
+- **perf**: Performance improvements
+
+### Breaking Changes
+- Use `!` after type/scope: `feat(api)!: breaking change`
+- Include `BREAKING CHANGE:` in footer
+- Provide migration guide in commit body
+
+## Context
+
+This rule establishes comprehensive standards for conventional commit messages. It emphasizes:
+
+1. **Structured Format**: Consistent commit message structure
+2. **Semantic Versioning**: Proper correlation with version numbers
+3. **Clear Communication**: Descriptive and informative messages
+4. **Breaking Changes**: Proper indication of API changes
+5. **Issue Tracking**: Integration with issue management systems
+
+The rule prioritizes clear communication of intent to consumers of the codebase and enables automated semantic versioning.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001CSharpCodingStandards.mdc" reason="C# coding standards">C# Enhancement Standards</reference>
+<reference as="context" href=".cursor/rules/1005CleanCodeStandards.mdc" reason="Clean code principles">Clean Code Standards</reference>
+description:
+globs:
+alwaysApply: false
+---

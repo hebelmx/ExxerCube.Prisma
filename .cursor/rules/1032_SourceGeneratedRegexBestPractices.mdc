@@ -1,0 +1,437 @@
+# Rule: Source-Generated Regular Expressions Best Practices
+
+## Objective
+
+Establish guidelines for using source-generated regular expressions instead of compiled regular expressions using `RegexOptions.Compiled`. Source generation provides better startup performance, runtime performance, and trimability for .NET applications.
+
+## Core Principles
+
+### 1. Performance Benefits
+- **Faster startup**: No runtime compilation overhead
+- **Better runtime performance**: Pre-generated code execution
+- **Improved trimability**: AOT-friendly, reduces binary size
+- **Memory efficiency**: No runtime compilation memory usage
+
+### 2. When to Use Source Generation
+- **Static patterns**: Known at compile time
+- **Performance-critical scenarios**: High-frequency regex usage
+- **AOT compilation**: Native AOT applications
+- **Trimmed applications**: Blazor, MAUI, etc.
+
+## Implementation Guidelines
+
+### 1. Basic Source-Generated Regex
+
+#### Simple Pattern Matching
+```csharp
+// ✅ Good: Source-generated regex for simple patterns
+[GeneratedRegex(@"^\d{4}-\d{2}-\d{2}$")]
+public static partial Regex DatePattern();
+
+// ✅ Good: With options
+[GeneratedRegex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", RegexOptions.IgnoreCase)]
+public static partial Regex EmailPattern();
+
+// ✅ Good: With culture-specific options
+[GeneratedRegex(@"^\d+$", RegexOptions.None, "en-US")]
+public static partial Regex NumericPattern();
+```
+
+#### Usage Examples
+```csharp
+// ✅ Good: Using source-generated regex
+public class EmailValidator
+{
+    public bool IsValidEmail(string email)
+    {
+        return EmailPattern().IsMatch(email);
+    }
+
+    public string[] ExtractEmails(string text)
+    {
+        return EmailPattern().Matches(text)
+            .Select(m => m.Value)
+            .ToArray();
+    }
+}
+
+// ✅ Good: With validation
+public class DateValidator
+{
+    public Result<DateTime> ParseDate(string dateString)
+    {
+        if (!DatePattern().IsMatch(dateString))
+        {
+            return Result<DateTime>.WithFailure("Invalid date format. Expected YYYY-MM-DD");
+        }
+
+        if (DateTime.TryParse(dateString, out var date))
+        {
+            return Result<DateTime>.Success(date);
+        }
+
+        return Result<DateTime>.WithFailure("Invalid date value");
+    }
+}
+```
+
+### 2. Complex Pattern Matching
+
+#### Multi-Pattern Validation
+```csharp
+// ✅ Good: Multiple source-generated patterns
+public static class ValidationPatterns
+{
+    [GeneratedRegex(@"^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$")]
+    public static partial Regex IbanPattern();
+
+    [GeneratedRegex(@"^\+?[1-9]\d{1,14}$")]
+    public static partial Regex PhonePattern();
+
+    [GeneratedRegex(@"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")]
+    public static partial Regex EmailPattern();
+
+    [GeneratedRegex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")]
+    public static partial Regex StrongPasswordPattern();
+}
+
+// ✅ Good: Validation service using source-generated patterns
+public class ValidationService
+{
+    public ValidationResult ValidateUserInput(UserInput input)
+    {
+        var errors = new List<string>();
+
+        if (!ValidationPatterns.EmailPattern().IsMatch(input.Email))
+        {
+            errors.Add("Invalid email format");
+        }
+
+        if (!ValidationPatterns.PhonePattern().IsMatch(input.Phone))
+        {
+            errors.Add("Invalid phone number format");
+        }
+
+        if (!ValidationPatterns.StrongPasswordPattern().IsMatch(input.Password))
+        {
+            errors.Add("Password does not meet security requirements");
+        }
+
+        return errors.Any()
+            ? ValidationResult.WithErrors(errors)
+            : ValidationResult.Success();
+    }
+}
+```
+
+### 3. Advanced Pattern Matching
+
+#### Named Groups and Captures
+```csharp
+// ✅ Good: Source-generated regex with named groups
+[GeneratedRegex(@"^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})$")]
+public static partial Regex DateWithGroupsPattern();
+
+// ✅ Good: Using named groups
+public class DateParser
+{
+    public Result<DateTime> ParseDateWithGroups(string dateString)
+    {
+        var match = DateWithGroupsPattern().Match(dateString);
+
+        if (!match.Success)
+        {
+            return Result<DateTime>.WithFailure("Invalid date format");
+        }
+
+        var year = int.Parse(match.Groups["year"].Value);
+        var month = int.Parse(match.Groups["month"].Value);
+        var day = int.Parse(match.Groups["day"].Value);
+
+        try
+        {
+            var date = new DateTime(year, month, day);
+            return Result<DateTime>.Success(date);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return Result<DateTime>.WithFailure("Invalid date values");
+        }
+    }
+}
+```
+
+#### Complex Validation Patterns
+```csharp
+// ✅ Good: Complex validation with source generation
+public static class ComplexValidationPatterns
+{
+    // Credit card pattern (simplified)
+    [GeneratedRegex(@"^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3[0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})$")]
+    public static partial Regex CreditCardPattern();
+
+    // URL pattern
+    [GeneratedRegex(@"^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$")]
+    public static partial Regex UrlPattern();
+
+    // Strong password with specific requirements
+    [GeneratedRegex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")]
+    public static partial Regex StrongPasswordPattern();
+}
+```
+
+### 4. Performance-Optimized Patterns
+
+#### High-Frequency Matching
+```csharp
+// ✅ Good: Performance-optimized patterns for high-frequency usage
+public static class PerformancePatterns
+{
+    [GeneratedRegex(@"^\d+$")]
+    public static partial Regex NumericPattern();
+
+    [GeneratedRegex(@"^[a-zA-Z]+$")]
+    public static partial Regex AlphabeticPattern();
+
+    [GeneratedRegex(@"^[a-zA-Z0-9]+$")]
+    public static partial Regex AlphanumericPattern();
+
+    [GeneratedRegex(@"^\s*$")]
+    public static partial Regex WhitespaceOnlyPattern();
+}
+
+// ✅ Good: High-performance validation service
+public class HighPerformanceValidator
+{
+    public ValidationResult ValidateInput(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return ValidationResult.WithError("Input cannot be empty");
+        }
+
+        if (PerformancePatterns.WhitespaceOnlyPattern().IsMatch(input))
+        {
+            return ValidationResult.WithError("Input cannot be whitespace only");
+        }
+
+        // Use appropriate pattern based on expected input type
+        if (PerformancePatterns.NumericPattern().IsMatch(input))
+        {
+            return ValidationResult.Success();
+        }
+
+        return ValidationResult.WithError("Input must be numeric");
+    }
+}
+```
+
+### 5. Configuration-Driven Patterns
+
+#### Dynamic Pattern Selection
+```csharp
+// ✅ Good: Configuration-driven pattern selection
+public class PatternConfiguration
+{
+    public static class EmailPatterns
+    {
+        [GeneratedRegex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")]
+        public static partial Regex StandardEmailPattern();
+
+        [GeneratedRegex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", RegexOptions.IgnoreCase)]
+        public static partial Regex CaseInsensitiveEmailPattern();
+    }
+
+    public static class PhonePatterns
+    {
+        [GeneratedRegex(@"^\+?[1-9]\d{1,14}$")]
+        public static partial Regex InternationalPhonePattern();
+
+        [GeneratedRegex(@"^\(\d{3}\) \d{3}-\d{4}$")]
+        public static partial Regex UsPhonePattern();
+    }
+}
+
+// ✅ Good: Configuration-driven validator
+public class ConfigurableValidator
+{
+    private readonly bool _caseInsensitive;
+    private readonly bool _internationalPhone;
+
+    public ConfigurableValidator(bool caseInsensitive = false, bool internationalPhone = true)
+    {
+        _caseInsensitive = caseInsensitive;
+        _internationalPhone = internationalPhone;
+    }
+
+    public bool ValidateEmail(string email)
+    {
+        return _caseInsensitive
+            ? PatternConfiguration.EmailPatterns.CaseInsensitiveEmailPattern().IsMatch(email)
+            : PatternConfiguration.EmailPatterns.StandardEmailPattern().IsMatch(email);
+    }
+
+    public bool ValidatePhone(string phone)
+    {
+        return _internationalPhone
+            ? PatternConfiguration.PhonePatterns.InternationalPhonePattern().IsMatch(phone)
+            : PatternConfiguration.PhonePatterns.UsPhonePattern().IsMatch(phone);
+    }
+}
+```
+
+## Anti-Patterns to Avoid
+
+### 1. Runtime Compilation
+```csharp
+// ❌ Bad: Runtime compilation with RegexOptions.Compiled
+public class BadRegexUsage
+{
+    private static readonly Regex _emailRegex = new Regex(
+        @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+        RegexOptions.Compiled); // Avoid this
+
+    public bool ValidateEmail(string email)
+    {
+        return _emailRegex.IsMatch(email);
+    }
+}
+
+// ❌ Bad: Dynamic pattern compilation
+public class DynamicRegexUsage
+{
+    public bool ValidatePattern(string input, string pattern)
+    {
+        var regex = new Regex(pattern, RegexOptions.Compiled); // Avoid runtime compilation
+        return regex.IsMatch(input);
+    }
+}
+```
+
+### 2. Inefficient Pattern Usage
+```csharp
+// ❌ Bad: Creating new regex instances repeatedly
+public class InefficientRegexUsage
+{
+    public bool ValidateEmail(string email)
+    {
+        // Bad: Creates new regex instance every time
+        var regex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+        return regex.IsMatch(email);
+    }
+}
+
+// ❌ Bad: Complex patterns that could be simplified
+public class OverlyComplexRegex
+{
+    [GeneratedRegex(@"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")]
+    public static partial Regex IpAddressPattern(); // Too complex for simple validation
+}
+```
+
+### 3. Missing Error Handling
+```csharp
+// ❌ Bad: No error handling for regex operations
+public class UnsafeRegexUsage
+{
+    [GeneratedRegex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")]
+    public static partial Regex EmailPattern();
+
+    public bool ValidateEmail(string email)
+    {
+        // Bad: No null check or error handling
+        return EmailPattern().IsMatch(email);
+    }
+}
+
+// ✅ Good: Safe regex usage with error handling
+public class SafeRegexUsage
+{
+    [GeneratedRegex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")]
+    public static partial Regex EmailPattern();
+
+    public Result<bool> ValidateEmail(string email)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return Result<bool>.WithFailure("Email cannot be null or empty");
+            }
+
+            var isValid = EmailPattern().IsMatch(email);
+            return Result<bool>.Success(isValid);
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.WithFailure($"Email validation failed: {ex.Message}");
+        }
+    }
+}
+```
+
+## Best Practices Summary
+
+### 1. Pattern Design
+- **Use source generation** for static patterns
+- **Keep patterns simple** and readable
+- **Test patterns thoroughly** with various inputs
+- **Document pattern purpose** and requirements
+
+### 2. Performance Optimization
+- **Use source generation** for high-frequency patterns
+- **Avoid runtime compilation** when possible
+- **Cache regex instances** when needed
+- **Monitor performance** in production
+
+### 3. Error Handling
+- **Validate input** before regex operations
+- **Handle exceptions** gracefully
+- **Provide meaningful error messages**
+- **Log validation failures** for debugging
+
+### 4. Maintenance
+- **Document pattern requirements**
+- **Version control pattern changes**
+- **Test pattern updates** thoroughly
+- **Review patterns** during code reviews
+
+### 5. AOT and Trimming
+- **Use source generation** for AOT applications
+- **Test trimming** with source-generated patterns
+- **Verify pattern behavior** after trimming
+- **Monitor binary size** impact
+
+## When to Use Source Generation
+
+### 1. Static Patterns
+- **Known at compile time**
+- **No dynamic components**
+- **Consistent across application**
+
+### 2. Performance-Critical Scenarios
+- **High-frequency validation**
+- **Real-time processing**
+- **Batch operations**
+
+### 3. AOT Applications
+- **Native AOT compilation**
+- **Blazor applications**
+- **MAUI applications**
+
+### 4. Trimmed Applications
+- **Reduced binary size**
+- **Better startup performance**
+- **Improved memory usage**
+
+## Enforcement
+
+- **Code Review**: Check regex usage patterns
+- **Static Analysis**: Detect runtime compilation
+- **Performance Testing**: Monitor regex performance
+- **AOT Testing**: Verify source generation compatibility
+- **Documentation**: Maintain pattern documentation
+
+## Conclusion
+
+Source-generated regular expressions provide significant performance benefits and better compatibility with modern .NET features like AOT compilation and trimming. Use them whenever possible for static patterns to improve application performance and maintainability.

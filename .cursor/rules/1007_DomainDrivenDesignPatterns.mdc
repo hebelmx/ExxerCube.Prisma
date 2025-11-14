@@ -1,0 +1,692 @@
+---
+globs: *.cs
+description: Domain-Driven Design patterns and practices for building maintainable business applications
+---
+
+# Domain-Driven Design Patterns
+
+## Meta
+
+**Title**: Domain-Driven Design Patterns
+**Description**: Establishes comprehensive standards for Domain-Driven Design patterns including entities, value objects, aggregates, and domain services
+**Created-at**: 2025-01-05T23:50:00Z
+**Last-updated-at**: 2025-01-05T23:50:00Z
+**Applies-to**: Domain layer, business logic, entity design
+**File-matcher**: *.cs files in Domain layer
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Design entities with identity and lifecycle management
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Entity with clear identity and lifecycle
+public class Agent
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string Name { get; init; } = string.Empty;
+    public AgentStatus Status { get; init; } = AgentStatus.Inactive;
+    public AgentCapabilities Capabilities { get; init; } = new();
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; init; } = DateTime.UtcNow;
+    public IReadOnlyCollection<AgentTask> Tasks { get; init; } = [];
+
+    // Domain methods that enforce business rules
+    public bool CanAcceptTask(string taskType)
+    {
+        return Status == AgentStatus.Active &&
+               Capabilities.SupportedTaskTypes.Contains(taskType) &&
+               Tasks.Count < Capabilities.MaxConcurrentTasks;
+    }
+
+    public Agent AssignTask(AgentTask task)
+    {
+        if (!CanAcceptTask(task.Type))
+            throw new InvalidOperationException($"Agent cannot accept task type: {task.Type}");
+
+        return this with
+        {
+            Tasks = Tasks.Append(task).ToList().AsReadOnly(),
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+}
+
+// ✅ Entity with rich domain behavior
+public class Workflow
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string Name { get; init; } = string.Empty;
+    public WorkflowStatus Status { get; init; } = WorkflowStatus.Draft;
+    public IReadOnlyList<WorkflowStep> Steps { get; init; } = [];
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+
+    public bool CanBeActivated()
+    {
+        return Status == WorkflowStatus.Draft && Steps.Any();
+    }
+
+    public Workflow Activate()
+    {
+        if (!CanBeActivated())
+            throw new InvalidOperationException("Workflow cannot be activated");
+
+        return this with
+        {
+            Status = WorkflowStatus.Active,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Anemic entity with no domain behavior
+public class Agent
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public AgentStatus Status { get; set; } = AgentStatus.Inactive;
+    public List<AgentTask> Tasks { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+// ❌ Business logic in service layer instead of entity
+public class AgentService
+{
+    public bool CanAgentAcceptTask(Agent agent, string taskType)
+    {
+        return agent.Status == AgentStatus.Active &&
+               agent.Capabilities.SupportedTaskTypes.Contains(taskType) &&
+               agent.Tasks.Count < agent.Capabilities.MaxConcurrentTasks;
+    }
+
+    public void AssignTaskToAgent(Agent agent, AgentTask task)
+    {
+        if (!CanAgentAcceptTask(agent, task.Type))
+            throw new InvalidOperationException($"Agent cannot accept task type: {task.Type}");
+
+        agent.Tasks.Add(task);
+        agent.UpdatedAt = DateTime.UtcNow;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Use value objects for immutable concepts without identity
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Value object for immutable concept
+public record AgentCapabilities
+{
+    public bool CanProcessNaturalLanguage { get; init; } = true;
+    public bool CanGenerateCode { get; init; } = false;
+    public bool CanAnalyzeData { get; init; } = false;
+    public bool CanCallExternalAPIs { get; init; } = false;
+    public int MaxConcurrentTasks { get; init; } = 1;
+    public IReadOnlyCollection<string> SupportedTaskTypes { get; init; } = [];
+
+    public bool SupportsTaskType(string taskType)
+    {
+        return SupportedTaskTypes.Contains(taskType);
+    }
+
+    public AgentCapabilities AddTaskType(string taskType)
+    {
+        if (SupportedTaskTypes.Contains(taskType))
+            return this;
+
+        return this with
+        {
+            SupportedTaskTypes = SupportedTaskTypes.Append(taskType).ToList().AsReadOnly()
+        };
+    }
+}
+
+// ✅ Value object with validation
+public record Email
+{
+    public string Value { get; init; }
+
+    public Email(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException("Email cannot be empty", nameof(value));
+
+        if (!value.Contains("@"))
+            throw new ArgumentException("Invalid email format", nameof(value));
+
+        Value = value;
+    }
+
+    public static implicit operator string(Email email) => email.Value;
+    public static explicit operator Email(string value) => new(value);
+
+    public override string ToString() => Value;
+}
+
+// ✅ Value object for complex concept
+public record DateRange
+{
+    public DateTime Start { get; init; }
+    public DateTime End { get; init; }
+
+    public DateRange(DateTime start, DateTime end)
+    {
+        if (start >= end)
+            throw new ArgumentException("Start date must be before end date");
+
+        Start = start;
+        End = end;
+    }
+
+    public bool Contains(DateTime date)
+    {
+        return date >= Start && date <= End;
+    }
+
+    public TimeSpan Duration => End - Start;
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Mutable value object
+public class AgentCapabilities
+{
+    public bool CanProcessNaturalLanguage { get; set; } = true;
+    public bool CanGenerateCode { get; set; } = false;
+    public List<string> SupportedTaskTypes { get; set; } = new();
+
+    public void AddTaskType(string taskType)
+    {
+        if (!SupportedTaskTypes.Contains(taskType))
+            SupportedTaskTypes.Add(taskType);
+    }
+}
+
+// ❌ Primitive obsession
+public class Agent
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty; // Should be Email value object
+    public DateTime StartDate { get; set; } // Should be DateRange value object
+    public DateTime EndDate { get; set; }
+}
+
+// ❌ No validation in value object
+public record Email
+{
+    public string Value { get; init; } = string.Empty;
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Design aggregates with clear boundaries and consistency rules
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Aggregate with clear boundaries
+public class OrderAggregate
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string OrderNumber { get; init; } = string.Empty;
+    public OrderStatus Status { get; init; } = OrderStatus.Draft;
+    public IReadOnlyList<OrderItem> Items { get; init; } = [];
+    public decimal TotalAmount { get; init; }
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; init; } = DateTime.UtcNow;
+
+    // Aggregate invariants
+    public bool IsValid()
+    {
+        return !string.IsNullOrEmpty(OrderNumber) &&
+               Items.Any() &&
+               TotalAmount >= 0 &&
+               TotalAmount == CalculateTotal();
+    }
+
+    private decimal CalculateTotal()
+    {
+        return Items.Sum(item => item.Quantity * item.UnitPrice);
+    }
+
+    // Aggregate operations
+    public OrderAggregate AddItem(OrderItem item)
+    {
+        if (Status != OrderStatus.Draft)
+            throw new InvalidOperationException("Cannot modify confirmed order");
+
+        if (item.Quantity <= 0)
+            throw new ArgumentException("Item quantity must be positive");
+
+        var newItems = Items.Append(item).ToList();
+        var newTotal = newItems.Sum(i => i.Quantity * i.UnitPrice);
+
+        return this with
+        {
+            Items = newItems.AsReadOnly(),
+            TotalAmount = newTotal,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    public OrderAggregate Confirm()
+    {
+        if (Status != OrderStatus.Draft)
+            throw new InvalidOperationException("Order is not in draft status");
+
+        if (!IsValid())
+            throw new InvalidOperationException("Order is not valid");
+
+        return this with
+        {
+            Status = OrderStatus.Confirmed,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+}
+
+// ✅ Aggregate with domain events
+public class WorkflowExecutionAggregate
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid WorkflowId { get; init; }
+    public WorkflowExecutionStatus Status { get; init; } = WorkflowExecutionStatus.Created;
+    public IReadOnlyList<StepExecution> Steps { get; init; } = [];
+    public DateTime StartedAt { get; init; }
+    public DateTime? CompletedAt { get; init; }
+
+    public WorkflowExecutionAggregate Start()
+    {
+        if (Status != WorkflowExecutionStatus.Created)
+            throw new InvalidOperationException("Workflow execution cannot be started");
+
+        return this with
+        {
+            Status = WorkflowExecutionStatus.Running,
+            StartedAt = DateTime.UtcNow
+        };
+    }
+
+    public WorkflowExecutionAggregate CompleteStep(Guid stepId, StepExecutionResult result)
+    {
+        if (Status != WorkflowExecutionStatus.Running)
+            throw new InvalidOperationException("Workflow execution is not running");
+
+        var step = Steps.FirstOrDefault(s => s.Id == stepId);
+        if (step == null)
+            throw new ArgumentException("Step not found");
+
+        var updatedStep = step with
+        {
+            Status = StepExecutionStatus.Completed,
+            Result = result,
+            CompletedAt = DateTime.UtcNow
+        };
+
+        var updatedSteps = Steps.Select(s => s.Id == stepId ? updatedStep : s).ToList();
+
+        var allStepsCompleted = updatedSteps.All(s => s.Status == StepExecutionStatus.Completed);
+        var newStatus = allStepsCompleted ? WorkflowExecutionStatus.Completed : WorkflowExecutionStatus.Running;
+        var completedAt = allStepsCompleted ? DateTime.UtcNow : CompletedAt;
+
+        return this with
+        {
+            Steps = updatedSteps.AsReadOnly(),
+            Status = newStatus,
+            CompletedAt = completedAt
+        };
+    }
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Anemic aggregate with no business logic
+public class Order
+{
+    public Guid Id { get; set; }
+    public string OrderNumber { get; set; } = string.Empty;
+    public OrderStatus Status { get; set; } = OrderStatus.Draft;
+    public List<OrderItem> Items { get; set; } = new();
+    public decimal TotalAmount { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+// ❌ Business logic in service instead of aggregate
+public class OrderService
+{
+    public void AddItemToOrder(Order order, OrderItem item)
+    {
+        if (order.Status != OrderStatus.Draft)
+            throw new InvalidOperationException("Cannot modify confirmed order");
+
+        order.Items.Add(item);
+        order.TotalAmount = order.Items.Sum(i => i.Quantity * i.UnitPrice);
+        order.UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void ConfirmOrder(Order order)
+    {
+        if (order.Status != OrderStatus.Draft)
+            throw new InvalidOperationException("Order is not in draft status");
+
+        if (!order.Items.Any())
+            throw new InvalidOperationException("Order has no items");
+
+        order.Status = OrderStatus.Confirmed;
+        order.UpdatedAt = DateTime.UtcNow;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use domain services for business logic that doesn't belong to entities
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Domain service for complex business logic
+public class AgentSchedulingService
+{
+    public Agent FindBestAgentForTask(string taskType, IEnumerable<Agent> availableAgents)
+    {
+        var capableAgents = availableAgents
+            .Where(a => a.Status == AgentStatus.Active)
+            .Where(a => a.Capabilities.SupportsTaskType(taskType))
+            .ToList();
+
+        if (!capableAgents.Any())
+            throw new InvalidOperationException($"No agents available for task type: {taskType}");
+
+        // Business rule: prefer agents with fewer current tasks
+        return capableAgents
+            .OrderBy(a => a.Tasks.Count)
+            .ThenBy(a => a.CreatedAt) // Tie-breaker: oldest agent first
+            .First();
+    }
+
+    public bool CanScheduleTask(Agent agent, AgentTask task)
+    {
+        return agent.Status == AgentStatus.Active &&
+               agent.Capabilities.SupportsTaskType(task.Type) &&
+               agent.Tasks.Count < agent.Capabilities.MaxConcurrentTasks;
+    }
+}
+
+// ✅ Domain service for complex calculations
+public class PricingCalculationService
+{
+    public decimal CalculateOrderTotal(Order order, PricingRules rules)
+    {
+        var baseTotal = order.Items.Sum(item => item.Quantity * item.UnitPrice);
+
+        var discount = rules.CalculateDiscount(order);
+        var tax = rules.CalculateTax(order);
+        var shipping = rules.CalculateShipping(order);
+
+        return baseTotal - discount + tax + shipping;
+    }
+
+    public bool IsEligibleForDiscount(Order order, DiscountPolicy policy)
+    {
+        return order.TotalAmount >= policy.MinimumAmount &&
+               order.CreatedAt >= policy.ValidFrom &&
+               order.CreatedAt <= policy.ValidTo;
+    }
+}
+
+// ✅ Domain service for validation
+public class DocumentValidationService
+{
+    public ValidationResult ValidateDocument(Document document, ValidationRules rules)
+    {
+        var errors = new List<string>();
+
+        foreach (var rule in rules)
+        {
+            if (!rule.IsSatisfiedBy(document))
+            {
+                errors.Add(rule.ErrorMessage);
+            }
+        }
+
+        return new ValidationResult(errors);
+    }
+
+    public bool IsDocumentComplete(Document document)
+    {
+        return document.RequiredFields.All(field => !string.IsNullOrEmpty(field.Value)) &&
+               document.Signatures.Any() &&
+               document.Status == DocumentStatus.Validated;
+    }
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Business logic scattered across multiple services
+public class AgentService
+{
+    public Agent GetBestAgent(string taskType)
+    {
+        var agents = _repository.GetAll();
+        return agents.FirstOrDefault(a => a.Status == AgentStatus.Active);
+    }
+}
+
+public class TaskService
+{
+    public void AssignTask(Agent agent, Task task)
+    {
+        if (agent.Tasks.Count >= agent.MaxTasks)
+            throw new Exception("Agent is busy");
+
+        agent.Tasks.Add(task);
+    }
+}
+
+public class PricingService
+{
+    public decimal CalculateTotal(Order order)
+    {
+        return order.Items.Sum(item => item.Price * item.Quantity);
+    }
+}
+
+// ❌ Business logic in infrastructure layer
+public class OrderRepository
+{
+    public void SaveOrder(Order order)
+    {
+        // Business logic should not be in repository
+        if (order.TotalAmount < 0)
+            throw new Exception("Invalid order total");
+
+        _context.Orders.Add(order);
+        _context.SaveChanges();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use repositories to abstract data access and maintain aggregate boundaries
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Repository interface in domain
+public interface IAgentRepository
+{
+    Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<Agent>>> GetByStatusAsync(AgentStatus status, CancellationToken cancellationToken = default);
+    Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default);
+    Task<Result<Agent>> UpdateAsync(Agent agent, CancellationToken cancellationToken = default);
+    Task<Result<bool>> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+}
+
+// ✅ Repository implementation in infrastructure
+public class InMemoryAgentRepository : IAgentRepository
+{
+    private readonly List<Agent> _agents = new();
+
+    public async Task<Result<Agent>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(1, cancellationToken); // Simulate async operation
+
+        var agent = _agents.FirstOrDefault(a => a.Id == id);
+        return agent != null
+            ? Result<Agent>.Success(agent)
+            : Result<Agent>.WithFailure($"Agent not found with ID: {id}");
+    }
+
+    public async Task<Result<IEnumerable<Agent>>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(1, cancellationToken);
+        return Result<IEnumerable<Agent>>.Success(_agents.AsReadOnly());
+    }
+
+    public async Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(1, cancellationToken);
+
+        if (_agents.Any(a => a.Id == agent.Id))
+            return Result<Agent>.WithFailure($"Agent with ID {agent.Id} already exists");
+
+        _agents.Add(agent);
+        return Result<Agent>.Success(agent);
+    }
+}
+
+// ✅ Repository with aggregate-specific methods
+public interface IOrderRepository
+{
+    Task<Result<OrderAggregate>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<OrderAggregate>>> GetByStatusAsync(OrderStatus status, CancellationToken cancellationToken = default);
+    Task<Result<OrderAggregate>> SaveAsync(OrderAggregate order, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Repository with business logic
+public class AgentRepository
+{
+    public Agent GetBestAgent(string taskType)
+    {
+        var agents = _context.Agents
+            .Include(a => a.Tasks)
+            .Where(a => a.Status == AgentStatus.Active)
+            .ToList();
+
+        // Business logic should not be in repository
+        return agents.OrderBy(a => a.Tasks.Count).FirstOrDefault();
+    }
+
+    public void AssignTask(Agent agent, Task task)
+    {
+        // Business logic should not be in repository
+        if (agent.Tasks.Count >= agent.MaxTasks)
+            throw new Exception("Agent is busy");
+
+        agent.Tasks.Add(task);
+        _context.SaveChanges();
+    }
+}
+
+// ❌ Direct database access in domain
+public class Agent
+{
+    public void Save()
+    {
+        // Domain entities should not know about data access
+        using var context = new ApplicationDbContext();
+        context.Agents.Add(this);
+        context.SaveChanges();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Domain-Driven Design Standards
+
+### Entity Design
+- **Purpose**: Represent objects with identity and lifecycle
+- **Characteristics**: Mutable state, identity, rich domain behavior
+- **Implementation**: Use init-only properties, domain methods, immutable updates
+- **Benefits**: Encapsulated business logic, clear identity management
+
+### Value Object Design
+- **Purpose**: Represent immutable concepts without identity
+- **Characteristics**: Immutable, no identity, equality by value
+- **Implementation**: Use records, init-only properties, validation in constructor
+- **Benefits**: Type safety, immutability, domain expressiveness
+
+### Aggregate Design
+- **Purpose**: Maintain consistency boundaries and enforce business rules
+- **Characteristics**: Root entity, consistency rules, transactional boundaries
+- **Implementation**: Rich domain behavior, invariants, domain events
+- **Benefits**: Data consistency, clear boundaries, business rule enforcement
+
+### Domain Service Design
+- **Purpose**: Business logic that doesn't belong to entities
+- **Characteristics**: Stateless, pure functions, domain-specific operations
+- **Implementation**: Static methods or stateless services, domain-focused
+- **Benefits**: Reusable business logic, clear separation of concerns
+
+### Repository Pattern
+- **Purpose**: Abstract data access and maintain aggregate boundaries
+- **Characteristics**: Interface in domain, implementation in infrastructure
+- **Implementation**: Aggregate-specific methods, Result<T> return types
+- **Benefits**: Testability, abstraction, clear data access patterns
+
+## Context
+
+This rule establishes Domain-Driven Design patterns that promote:
+- **Domain Modeling**: Clear representation of business concepts
+- **Business Logic**: Encapsulated in appropriate domain objects
+- **Consistency**: Aggregate boundaries maintain data consistency
+- **Testability**: Pure domain logic is easier to test
+- **Maintainability**: Clear separation of concerns and responsibilities
+- **Expressiveness**: Code that reads like business requirements
+
+The patterns are designed to satisfy multiple personas:
+- **Developers**: Clear patterns for modeling business domains
+- **Maintainers**: Well-structured code with clear responsibilities
+- **Architects**: Consistent domain modeling patterns across the system
+- **UX Designers**: Business logic that can be translated to user workflows
+- **Users**: Applications that accurately represent business processes
+- **Product Managers**: Code that reflects business requirements
+- **Stakeholders**: Systems that model real business domains
+
+## References
+
+- `0000RuleToWriteRules.mdc` - Rule writing standards
+- `1001CSharpCodingStandards.mdc` - C# coding standards
+- `1006FunctionalProgrammingPatterns.mdc` - Functional programming patterns
+- `0001GeneralEngineeringPrinciples.mdc` - General engineering principles
+description:
+globs:
+alwaysApply: false
+---

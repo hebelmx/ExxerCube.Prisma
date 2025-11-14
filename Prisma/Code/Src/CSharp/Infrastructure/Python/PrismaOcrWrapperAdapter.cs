@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using CSnakes.Runtime;
@@ -77,7 +77,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
                 {
                     var error = errorObj.ToString();
                     _logger.LogError("CSnakes OCR execution failed: {Error}", error);
-                    return Result<OCRResult>.Failure($"CSnakes OCR execution failed: {error}");
+                    return Result<OCRResult>.WithFailure($"CSnakes OCR execution failed: {error}");
                 }
 
                 // Convert to C# domain object
@@ -98,7 +98,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error executing OCR using CSnakes");
-                return Result<OCRResult>.Failure($"CSnakes OCR execution failed: {ex.Message}");
+                return Result<OCRResult>.WithFailure($"CSnakes OCR execution failed: {ex.Message}", default, ex);
             }
         });
     }
@@ -146,7 +146,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
                 {
                     var error = errorObj.ToString();
                     _logger.LogError("CSnakes field extraction failed: {Error}", error);
-                    return Result<ExtractedFields>.Failure($"CSnakes field extraction failed: {error}");
+                    return Result<ExtractedFields>.WithFailure($"CSnakes field extraction failed: {error}");
                 }
 
                 // Convert to C# domain object
@@ -169,7 +169,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error extracting fields from text using CSnakes");
-                return Result<ExtractedFields>.Failure($"CSnakes field extraction failed: {ex.Message}");
+                return Result<ExtractedFields>.WithFailure($"CSnakes field extraction failed: {ex.Message}", default, ex);
             }
         });
     }
@@ -221,7 +221,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error extracting expediente from text using CSnakes");
-                return Result<string?>.Failure($"CSnakes expediente extraction failed: {ex.Message}");
+                return Result<string?>.WithFailure(value: default, errors: new[] { $"CSnakes expediente extraction failed: {ex.Message}" }, exception: ex);
             }
         });
     }
@@ -246,7 +246,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error extracting causa from text using CSnakes");
-                return Result<string?>.Failure($"CSnakes causa extraction failed: {ex.Message}");
+                return Result<string?>.WithFailure(value: default, errors: new[] { $"CSnakes causa extraction failed: {ex.Message}" }, exception: ex);
             }
         });
     }
@@ -271,7 +271,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error extracting accion solicitada from text using CSnakes");
-                return Result<string?>.Failure($"CSnakes accion solicitada extraction failed: {ex.Message}");
+                return Result<string?>.WithFailure(value: default, errors: new[] { $"CSnakes accion solicitada extraction failed: {ex.Message}" }, exception: ex);
             }
         });
     }
@@ -298,7 +298,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error extracting dates from text using CSnakes");
-                return Result<List<string>>.Failure($"CSnakes dates extraction failed: {ex.Message}");
+                return Result<List<string>>.WithFailure($"CSnakes dates extraction failed: {ex.Message}", default, ex);
             }
         });
     }
@@ -325,7 +325,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error extracting amounts from text using CSnakes");
-                return Result<List<AmountData>>.Failure($"CSnakes amounts extraction failed: {ex.Message}");
+                return Result<List<AmountData>>.WithFailure($"CSnakes amounts extraction failed: {ex.Message}", default, ex);
             }
         });
     }

@@ -1,0 +1,555 @@
+---
+globs: *.cs
+description: Comprehensive standards for ExxerAI project following functional programming, clean architecture, and modern C# practices
+---
+
+# ExxerAI Project Standards
+
+## Meta
+**Title**: ExxerAI Project Standards
+**Description**: Comprehensive standards for ExxerAI project following functional programming, clean architecture, and modern C# practices
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Follow functional programming principles with Result<T> pattern
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Functional programming with Result<T>
+public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+{
+    // Early validation and returns
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<Agent>();
+
+    if (string.IsNullOrWhiteSpace(name))
+        return Result<Agent>.WithFailure("Agent name cannot be empty");
+
+    if (capabilities == null)
+        return Result<Agent>.WithFailure("Agent capabilities cannot be null");
+
+    // Functional composition
+    var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+
+    return await _repository.AddAsync(agent, cancellationToken)
+        .Map(createdAgent => createdAgent)
+        .OnSuccess(agent => _logger.LogInformation("Created agent: {AgentId}", agent.Id))
+        .OnFailure(errors => _logger.LogError("Failed to create agent: {Errors}", string.Join(", ", errors)));
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Imperative programming with exceptions
+public async Task<Agent> CreateAgentAsync(string name, AgentCapabilities capabilities)
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Agent name cannot be empty");
+
+        var agent = new Agent { Name = name, Capabilities = capabilities };
+        var createdAgent = await _repository.AddAsync(agent);
+
+        _logger.LogInformation("Created agent: {AgentId}", createdAgent.Id);
+        return createdAgent;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to create agent");
+        throw;
+    }
+}
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Use comprehensive null safety throughout the codebase
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Comprehensive null safety
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+{
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<Agent>();
+
+    if (agentId == Guid.Empty)
+        return Result<Agent>.WithFailure("Agent ID cannot be empty");
+
+    var result = await _repository.GetByIdAsync(agentId, cancellationToken);
+
+    // Kotlin-style null safety
+    if (result.IsSuccessMayBeNull)
+    {
+        if (result.IsSuccessNotNull)
+        {
+            return result; // Safe to return, value is guaranteed non-null
+        }
+        else
+        {
+            return Result<Agent>.WithFailure("Agent not found");
+        }
+    }
+
+    return result; // Return failure result
+}
+
+// Null-safe LINQ operations
+public async Task<Result<IEnumerable<Agent>>> GetActiveAgentsAsync(CancellationToken cancellationToken = default)
+{
+    var allAgents = await _repository.GetAllAsync(cancellationToken);
+    if (allAgents.IsFailure)
+        return Result<IEnumerable<Agent>>.WithFailure(allAgents.Error ?? "Failed to retrieve agents");
+
+    var activeAgents = allAgents.Value?
+        .Where(agent => agent?.Status == AgentStatus.Active)
+        .Where(agent => !string.IsNullOrEmpty(agent?.Name))
+        .ToList() ?? new List<Agent>();
+
+    return Result<IEnumerable<Agent>>.Success(activeAgents);
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Unsafe null handling
+public async Task<Agent> GetAgentAsync(Guid agentId)
+{
+    var agent = await _repository.GetByIdAsync(agentId);
+    return agent; // May be null, no null checking
+}
+
+public async Task<IEnumerable<Agent>> GetActiveAgentsAsync()
+{
+    var agents = await _repository.GetAllAsync();
+    return agents.Where(a => a.Status == AgentStatus.Active); // May throw if agents is null
+}
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Follow Clean Architecture with proper layer separation
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Clean Architecture layers
+
+// Domain Layer (Core Business Logic)
+namespace ExxerAI.Domain.Entities
+{
+    public class Agent
+    {
+        public Guid Id { get; init; } = Guid.NewGuid();
+        public AgentName Name { get; init; } = new(string.Empty);
+        public AgentCapabilities Capabilities { get; init; } = new();
+        public AgentStatus Status { get; init; }
+        public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+
+        public bool IsActive => Status == AgentStatus.Active;
+        public bool HasTasks => Tasks?.Any() == true;
+    }
+}
+
+// Application Layer (Use Cases)
+namespace ExxerAI.Application.Services
+{
+    public class AgentService : IAgentService
+    {
+        private readonly IAgentRepository _repository;
+        private readonly ILogger<AgentService> _logger;
+
+        public AgentService(IAgentRepository repository, ILogger<AgentService> logger)
+        {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+        {
+            // Application logic here
+            var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+            return await _repository.AddAsync(agent, cancellationToken);
+        }
+    }
+}
+
+// Infrastructure Layer (External Concerns)
+namespace ExxerAI.Infrastructure.Repositories
+{
+    public class InMemoryAgentRepository : IAgentRepository
+    {
+        private readonly ConcurrentDictionary<Guid, Agent> _agents = new();
+
+        public async Task<Result<Agent>> AddAsync(Agent agent, CancellationToken cancellationToken = default)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return ResultExtensions.Cancelled<Agent>();
+
+            if (agent == null)
+                return Result<Agent>.WithFailure("Agent cannot be null");
+
+            var success = _agents.TryAdd(agent.Id, agent);
+            return success
+                ? Result<Agent>.Success(agent)
+                : Result<Agent>.WithFailure("Failed to add agent");
+        }
+    }
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Mixed concerns across layers
+namespace ExxerAI.Services
+{
+    public class AgentService
+    {
+        private readonly ConcurrentDictionary<Guid, Agent> _agents = new(); // Infrastructure in service
+
+        public async Task<Agent> CreateAgentAsync(string name)
+        {
+            // Direct data access in service layer
+            var agent = new Agent { Name = name };
+            _agents.TryAdd(agent.Id, agent);
+            return agent;
+        }
+    }
+}
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use modern C# features for clean, readable code
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Modern C# features
+public class AgentService : IAgentService
+{
+    private readonly IAgentRepository _repository;
+    private readonly ILogger<AgentService> _logger;
+
+    // Expression-bodied constructor
+    public AgentService(IAgentRepository repository, ILogger<AgentService> logger) =>
+        (_repository, _logger) = (repository, logger);
+
+    // Expression-bodied methods
+    public bool IsAgentValid(Agent agent) =>
+        agent?.Name?.Value?.Length > 0 == true;
+
+    // Switch expressions
+    public string GetStatusDescription(AgentStatus status) => status switch
+    {
+        AgentStatus.Active => "Agent is active and ready for tasks",
+        AgentStatus.Inactive => "Agent is inactive and cannot process tasks",
+        AgentStatus.Pending => "Agent is pending activation",
+        _ => "Unknown agent status"
+    };
+
+    // Pattern matching
+    public Result<Agent> ValidateAgent(Agent agent) => agent switch
+    {
+        null => Result<Agent>.WithFailure("Agent cannot be null"),
+        { Name.Value: "" or null } => Result<Agent>.WithFailure("Agent name is required"),
+        { Status: AgentStatus.Inactive } => Result<Agent>.WithFailure("Agent is inactive"),
+        _ => Result<Agent>.Success(agent)
+    };
+
+    // Modern async/await with ConfigureAwait
+    public async Task<Result<IEnumerable<Agent>>> GetAllAgentsAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return ResultExtensions.Cancelled<IEnumerable<Agent>>();
+
+        try
+        {
+            var result = await _repository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            return ResultExtensions.Cancelled<IEnumerable<Agent>>();
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<Agent>>.WithFailure($"An error occurred: {ex.Message}");
+        }
+    }
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Verbose C# syntax
+public class AgentService : IAgentService
+{
+    private readonly IAgentRepository _repository;
+    private readonly ILogger<AgentService> _logger;
+
+    public AgentService(IAgentRepository repository, ILogger<AgentService> logger)
+    {
+        this._repository = repository;
+        this._logger = logger;
+    }
+
+    public bool IsAgentValid(Agent agent)
+    {
+        if (agent == null)
+            return false;
+        if (agent.Name == null)
+            return false;
+        if (string.IsNullOrEmpty(agent.Name.Value))
+            return false;
+        return true;
+    }
+
+    public string GetStatusDescription(AgentStatus status)
+    {
+        switch (status)
+        {
+            case AgentStatus.Active:
+                return "Agent is active and ready for tasks";
+            case AgentStatus.Inactive:
+                return "Agent is inactive and cannot process tasks";
+            case AgentStatus.Pending:
+                return "Agent is pending activation";
+            default:
+                return "Unknown agent status";
+        }
+    }
+}
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use comprehensive testing with xUnit v3, Shouldly, and NSubstitute
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Comprehensive testing
+using Shouldly;
+using Xunit;
+using NSubstitute;
+
+public class AgentServiceTests
+{
+    [Fact]
+    public async Task CreateAgentAsync_WithValidParameters_ShouldReturnSuccess()
+    {
+        // Arrange
+        var name = "Test Agent";
+        var capabilities = new AgentCapabilities();
+        var repository = Substitute.For<IAgentRepository>();
+        repository.AddAsync(Arg.Any<Agent>(), Arg.Any<CancellationToken>())
+            .Returns(Result<Agent>.Success(new Agent { Name = new AgentName(name) }));
+
+        var logger = new XunitLogger<AgentService>();
+        var service = new AgentService(repository, logger);
+
+        // Act
+        var result = await service.CreateAgentAsync(name, capabilities);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Name.Value.ShouldBe(name);
+    }
+
+    [Theory]
+    [InlineData("", "Agent name cannot be empty")]
+    [InlineData("   ", "Agent name cannot be empty")]
+    [InlineData(null, "Agent name cannot be empty")]
+    public async Task CreateAgentAsync_WithInvalidNames_ShouldReturnFailure(string name, string expectedError)
+    {
+        // Arrange
+        var repository = Substitute.For<IAgentRepository>();
+        var logger = new XunitLogger<AgentService>();
+        var service = new AgentService(repository, logger);
+
+        // Act
+        var result = await service.CreateAgentAsync(name, new AgentCapabilities());
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldContain(expectedError);
+    }
+
+    [Fact]
+    public async Task GetAgentAsync_WithCancelledToken_ShouldReturnCancelled()
+    {
+        // Arrange
+        var repository = Substitute.For<IAgentRepository>();
+        var logger = new XunitLogger<AgentService>();
+        var service = new AgentService(repository, logger);
+        var cancellationToken = new CancellationToken(true);
+
+        // Act
+        var result = await service.GetAgentAsync(Guid.NewGuid(), cancellationToken);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldContain("Operation was cancelled");
+    }
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Poor testing practices
+using Moq;
+using FluentAssertions;
+
+public class AgentServiceTests
+{
+    [Fact]
+    public async Task TestCreateAgent()
+    {
+        var mock = new Mock<IAgentRepository>();
+        mock.Setup(x => x.AddAsync(It.IsAny<Agent>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result<Agent>.Success(new Agent()));
+
+        var service = new AgentService(mock.Object, null);
+        var result = await service.CreateAgentAsync("test", new AgentCapabilities());
+
+        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+    }
+}
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use structured logging with Serilog
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Structured logging
+public class AgentService : IAgentService
+{
+    private readonly IAgentRepository _repository;
+    private readonly ILogger<AgentService> _logger;
+
+    public AgentService(IAgentRepository repository, ILogger<AgentService> logger)
+    {
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent with name: {AgentName}", name);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Operation cancelled while creating agent: {AgentName}", name);
+            return ResultExtensions.Cancelled<Agent>();
+        }
+
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Successfully created agent with ID: {AgentId}, Name: {AgentName}",
+                agent.Id, agent.Name.Value);
+        }
+        else
+        {
+            _logger.LogError("Failed to create agent: {AgentName}, Errors: {Errors}",
+                name, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Poor logging practices
+public class AgentService : IAgentService
+{
+    private readonly IAgentRepository _repository;
+
+    public AgentService(IAgentRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        Console.WriteLine($"Creating agent: {name}"); // Poor logging
+
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            Console.WriteLine("Agent created successfully"); // Poor logging
+        }
+        else
+        {
+            Console.WriteLine($"Failed to create agent: {result.Error}"); // Poor logging
+        }
+
+        return result;
+    }
+}
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use CancellationToken throughout async operations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Proper CancellationToken usage
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+{
+    // Early cancellation check
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<Agent>();
+
+    try
+    {
+        var result = await _repository.GetByIdAsync(agentId, cancellationToken).ConfigureAwait(false);
+        return result;
+    }
+    catch (OperationCanceledException)
+    {
+        return ResultExtensions.Cancelled<Agent>();
+    }
+    catch (Exception ex)
+    {
+        return Result<Agent>.WithFailure($"An error occurred: {ex.Message}");
+    }
+}
+
+// CancellationToken propagation
+public async Task<Result<IEnumerable<Agent>>> GetAllAgentsAsync(CancellationToken cancellationToken = default)
+{
+    using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+    cts.CancelAfter(TimeSpan.FromMinutes(5)); // Add timeout
+
+    return await _repository.GetAllAsync(cts.Token).ConfigureAwait(false);
+}
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Missing CancellationToken
+public async Task<Result<Agent>> GetAgentAsync(Guid agentId)
+{
+    var result = await _repository.GetByIdAsync(agentId);
+    return result;
+}
+</incorrect-example>
+</requirement>
+
+## References
+<reference as="dependency" href=".cursor/rules/0000_RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/2001_ExxerAIResultPattern.mdc" reason="Result<T> pattern">Result<T> Pattern</reference>
+<reference as="context" href=".cursor/rules/2002_ExxerAINullSafety.mdc" reason="Null safety patterns">Null Safety Patterns</reference>
+<reference as="context" href=".cursor/rules/2003_ExxerAITestingStandards.mdc" reason="Testing standards">Testing Standards</reference>
+<reference as="context" href=".cursor/rules/2004_ExxerAIModernCSharp.mdc" reason="Modern C# features">Modern C# Features</reference>
+<reference as="context" href=".cursor/rules/2005_ExxerAIArchitecturePatterns.mdc" reason="Architecture patterns">Architecture Patterns</reference>
+description:
+globs:
+alwaysApply: false
+---

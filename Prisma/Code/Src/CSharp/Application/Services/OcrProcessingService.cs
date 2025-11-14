@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
@@ -52,12 +52,12 @@ public class OcrProcessingService : IOcrProcessingService
     /// <returns>A result containing the processing result or an error.</returns>
     public async Task<Result<ProcessingResult>> ProcessDocumentAsync(ImageData imageData, ProcessingConfig config)
     {
-        // Validate input first - throw ArgumentNullException for null inputs
+        // Validate input first - return failure for null inputs
         if (imageData == null)
-            throw new ArgumentNullException(nameof(imageData));
+            return Result<ProcessingResult>.WithFailure($"Argument cannot be null: {nameof(imageData)}");
         
         if (config == null)
-            throw new ArgumentNullException(nameof(config));
+            return Result<ProcessingResult>.WithFailure($"Argument cannot be null: {nameof(config)}");
 
         var documentId = Guid.NewGuid().ToString();
         ProcessingContext? processingContext = null;
@@ -71,7 +71,7 @@ public class OcrProcessingService : IOcrProcessingService
                 // Create a temporary context for error tracking
                 processingContext = await _metricsService.StartProcessingAsync(documentId, "unknown");
                 await _metricsService.RecordErrorAsync(processingContext, validationResult.Error!);
-                return Result<ProcessingResult>.Failure(validationResult.Error!);
+                return Result<ProcessingResult>.WithFailure(validationResult.Error!);
             }
 
             _logger.LogInformation("Starting document processing for {SourcePath}", imageData.SourcePath);
@@ -80,33 +80,60 @@ public class OcrProcessingService : IOcrProcessingService
             processingContext = await _metricsService.StartProcessingAsync(documentId, imageData.SourcePath);
 
             var preprocessResult = await _imagePreprocessor.PreprocessAsync(imageData, config);
-            if (!preprocessResult.IsSuccess)
+            if (preprocessResult.IsSuccess)
             {
-                await _metricsService.RecordErrorAsync(processingContext, preprocessResult.Error!);
-                return Result<ProcessingResult>.Failure(preprocessResult.Error!);
-            }
+                var preprocessedImage = preprocessResult.Value;
+                if (preprocessedImage == null)
+                {
+                    await _metricsService.RecordErrorAsync(processingContext, "Preprocessing returned null result");
+                    return Result<ProcessingResult>.WithFailure("Preprocessing failed: No result returned");
+                }
 
-            var ocrResult = await _ocrExecutor.ExecuteOcrAsync(preprocessResult.Value!, config.OCRConfig);
-            if (!ocrResult.IsSuccess)
+                var ocrResult = await _ocrExecutor.ExecuteOcrAsync(preprocessedImage, config.OCRConfig);
+                if (ocrResult.IsSuccess)
+                {
+                    var ocrResultValue = ocrResult.Value;
+                    if (ocrResultValue == null)
+                    {
+                        await _metricsService.RecordErrorAsync(processingContext, "OCR execution returned null result");
+                        return Result<ProcessingResult>.WithFailure("OCR execution failed: No result returned");
+                    }
+
+                    var extractResult = await _fieldExtractor.ExtractFieldsAsync(ocrResultValue.Text, ocrResultValue.ConfidenceAvg);
+                    if (extractResult.IsSuccess)
+                    {
+                        var extractedFields = extractResult.Value;
+                        if (extractedFields == null)
+                        {
+                            await _metricsService.RecordErrorAsync(processingContext, "Field extraction returned null result");
+                            return Result<ProcessingResult>.WithFailure("Field extraction failed: No result returned");
+                        }
+
+                        var processingResult = CreateProcessingResult(imageData, ocrResultValue, extractedFields);
+                        await LogProcessingResult(processingResult);
+
+                        // Record successful completion
+                        await _metricsService.CompleteProcessingAsync(processingContext, processingResult, true);
+
+                        return Result<ProcessingResult>.Success(processingResult);
+                    }
+                    else
+                    {
+                        await _metricsService.RecordErrorAsync(processingContext, extractResult.Error ?? "Field extraction failed");
+                        return Result<ProcessingResult>.WithFailure(extractResult.Error ?? "Field extraction failed");
+                    }
+                }
+                else
+                {
+                    await _metricsService.RecordErrorAsync(processingContext, ocrResult.Error ?? "OCR execution failed");
+                    return Result<ProcessingResult>.WithFailure(ocrResult.Error ?? "OCR execution failed");
+                }
+            }
+            else
             {
-                await _metricsService.RecordErrorAsync(processingContext, ocrResult.Error!);
-                return Result<ProcessingResult>.Failure(ocrResult.Error!);
+                await _metricsService.RecordErrorAsync(processingContext, preprocessResult.Error ?? "Preprocessing failed");
+                return Result<ProcessingResult>.WithFailure(preprocessResult.Error ?? "Preprocessing failed");
             }
-
-            var extractResult = await _fieldExtractor.ExtractFieldsAsync(ocrResult.Value!.Text, ocrResult.Value!.ConfidenceAvg);
-            if (!extractResult.IsSuccess)
-            {
-                await _metricsService.RecordErrorAsync(processingContext, extractResult.Error!);
-                return Result<ProcessingResult>.Failure(extractResult.Error!);
-            }
-
-            var processingResult = CreateProcessingResult(imageData, ocrResult.Value!, extractResult.Value!);
-            await LogProcessingResult(processingResult);
-
-            // Record successful completion
-            await _metricsService.CompleteProcessingAsync(processingContext, processingResult, true);
-
-            return Result<ProcessingResult>.Success(processingResult);
         }
         catch (Exception ex)
         {
@@ -124,7 +151,7 @@ public class OcrProcessingService : IOcrProcessingService
                 tempContext.Dispose();
             }
             
-            return Result<ProcessingResult>.Failure($"Unexpected error: {ex.Message}");
+            return Result<ProcessingResult>.WithFailure($"Unexpected error: {ex.Message}", default, ex);
         }
         finally
         {
@@ -146,10 +173,10 @@ public class OcrProcessingService : IOcrProcessingService
     {
         // Validate inputs
         if (imageDataList == null)
-            throw new ArgumentNullException(nameof(imageDataList));
+            return Result<List<ProcessingResult>>.WithFailure($"Argument cannot be null: {nameof(imageDataList)}");
         
         if (config == null)
-            throw new ArgumentNullException(nameof(config));
+            return Result<List<ProcessingResult>>.WithFailure($"Argument cannot be null: {nameof(config)}");
 
         var imageDataArray = imageDataList.ToArray();
         _logger.LogInformation("Starting batch processing of {DocumentCount} documents", imageDataArray.Length);
@@ -169,7 +196,18 @@ public class OcrProcessingService : IOcrProcessingService
         });
 
         var results = await Task.WhenAll(tasks);
-        var successfulResults = results.Where(r => r.IsSuccess).Select(r => r.Value!).ToList();
+        var successfulResults = new List<ProcessingResult>();
+        foreach (var result in results)
+        {
+            if (result.IsSuccess)
+            {
+                var value = result.Value;
+                if (value != null)
+                {
+                    successfulResults.Add(value);
+                }
+            }
+        }
         var failedResults = results.Where(r => !r.IsSuccess).ToList();
 
         if (failedResults.Any())
@@ -189,19 +227,19 @@ public class OcrProcessingService : IOcrProcessingService
     private static Result<ImageData> ValidateImageData(ImageData imageData)
     {
         if (imageData == null)
-            return Result<ImageData>.Failure("Image data cannot be null");
+            return Result<ImageData>.WithFailure("Image data cannot be null");
 
         if (string.IsNullOrEmpty(imageData.SourcePath))
-            return Result<ImageData>.Failure("Image source path is required");
+            return Result<ImageData>.WithFailure("Image source path is required");
 
         if (imageData.Data == null || imageData.Data.Length == 0)
-            return Result<ImageData>.Failure("Image data is empty");
+            return Result<ImageData>.WithFailure("Image data is empty");
 
         if (imageData.PageNumber <= 0)
-            return Result<ImageData>.Failure("Page number must be greater than 0");
+            return Result<ImageData>.WithFailure("Page number must be greater than 0");
 
         if (imageData.TotalPages <= 0)
-            return Result<ImageData>.Failure("Total pages must be greater than 0");
+            return Result<ImageData>.WithFailure("Total pages must be greater than 0");
 
         return Result<ImageData>.Success(imageData);
     }

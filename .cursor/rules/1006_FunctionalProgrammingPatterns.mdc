@@ -1,0 +1,438 @@
+---
+globs: *.cs
+description: Functional programming patterns and practices for C# .NET applications
+---
+
+# Functional Programming Patterns
+
+## Meta
+
+**Title**: Functional Programming Patterns
+**Description**: Establishes comprehensive standards for functional programming patterns including Result<T>, immutability, and functional composition
+**Created-at**: 2025-01-05T23:45:00Z
+**Last-updated-at**: 2025-01-05T23:45:00Z
+**Applies-to**: All .NET applications, functional programming, error handling
+**File-matcher**: *.cs files with business logic
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Use Result<T> pattern instead of exceptions for error handling in business logic
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Functional approach with Result<T>
+public async Task<Result<User>> GetUserAsync(int id, CancellationToken cancellationToken = default)
+{
+    if (id <= 0)
+        return Result<User>.WithFailure("Invalid user ID");
+
+    var user = await _repository.FindAsync(id, cancellationToken).ConfigureAwait(false);
+    if (user == null)
+        return Result<User>.WithFailure($"User {id} not found");
+
+    return Result<User>.Success(user);
+}
+
+// ✅ Functional composition with Map, Bind, Ensure
+public Result<ProcessedData> ProcessUserData(string input)
+{
+    return Result<string>.Success(input)
+        .Ensure(s => !string.IsNullOrEmpty(s), "Input required")
+        .Map(s => s.Trim())
+        .Bind(ValidateFormat)
+        .Map(s => new ProcessedData(s))
+        .Tap(data => _logger.LogInformation("Processed: {Value}", data));
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Exception-based approach
+public User GetUser(int id)
+{
+    if (id <= 0)
+        throw new ArgumentException("Invalid user ID");
+
+    var user = _repository.Find(id);
+    if (user == null)
+        throw new UserNotFoundException($"User {id} not found");
+
+    return user;
+}
+
+// ❌ Mixed exception and result patterns
+public async Task<User> GetUserAsync(int id)
+{
+    try
+    {
+        if (id <= 0)
+            throw new ArgumentException("Invalid user ID");
+
+        var user = await _repository.FindAsync(id);
+        return user ?? throw new UserNotFoundException($"User {id} not found");
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error getting user {UserId}", id);
+        throw;
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Use immutable data structures and init-only properties
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Immutable value objects
+public record AgentCapabilities
+{
+    public bool CanProcessNaturalLanguage { get; init; } = true;
+    public bool CanGenerateCode { get; init; } = false;
+    public int MaxConcurrentTasks { get; init; } = 1;
+    public IReadOnlyCollection<string> SupportedTaskTypes { get; init; } = [];
+}
+
+// ✅ Immutable domain entities
+public class Agent
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string Name { get; init; } = string.Empty;
+    public AgentStatus Status { get; init; } = AgentStatus.Inactive;
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public IReadOnlyCollection<AgentTask> Tasks { get; init; } = [];
+}
+
+// ✅ Immutable collections
+public class ProcessingOptions
+{
+    public IReadOnlyList<string> AllowedFormats { get; init; } = [];
+    public IReadOnlyDictionary<string, object> Settings { get; init; } = new Dictionary<string, object>();
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Mutable properties
+public class Agent
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Name { get; set; } = string.Empty;
+    public AgentStatus Status { get; set; } = AgentStatus.Inactive;
+    public List<AgentTask> Tasks { get; set; } = new();
+}
+
+// ❌ Mutable collections
+public class ProcessingOptions
+{
+    public List<string> AllowedFormats { get; set; } = new();
+    public Dictionary<string, object> Settings { get; set; } = new();
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use functional composition with Map, Bind, and Match operations
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Functional pipeline with composition
+public Result<Order> ProcessOrderAsync(OrderRequest request)
+{
+    return Result<OrderRequest>.Success(request)
+        .Bind(ValidateRequest)
+        .Bind(CalculatePricing)
+        .Bind(ReserveInventory)
+        .Tap(order => _logger.LogInformation("Order created: {OrderId}", order.Id))
+        .Recover(() => NotifyFailure(request));
+}
+
+// ✅ Pattern matching with Match
+public string GetStatusDescription(TaskStatus status) => status switch
+{
+    TaskStatus.Pending => "Task is waiting to start",
+    TaskStatus.Running => "Task is currently executing",
+    TaskStatus.Completed => "Task finished successfully",
+    TaskStatus.Failed => "Task encountered an error",
+    _ => "Unknown status"
+};
+
+// ✅ Functional error recovery
+public Result<Data> GetDataWithFallback(string source)
+{
+    return GetPrimaryData(source)
+        .Recover(() => GetBackupData(source))
+        .RecoverWith<string>(() => Result<string>.Success("default"));
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Imperative approach with side effects
+public async Task<Order> ProcessOrderAsync(OrderRequest request)
+{
+    var validationResult = await ValidateRequest(request);
+    if (!validationResult.IsValid)
+        throw new ValidationException(validationResult.Errors);
+
+    var pricingResult = await CalculatePricing(request);
+    if (pricingResult.HasError)
+        throw new PricingException(pricingResult.Error);
+
+    var inventoryResult = await ReserveInventory(request);
+    if (!inventoryResult.Success)
+        throw new InventoryException(inventoryResult.Error);
+
+    var order = new Order(request);
+    _logger.LogInformation("Order created: {OrderId}", order.Id);
+    return order;
+}
+
+// ❌ Complex conditional logic
+public string GetStatusDescription(TaskStatus status)
+{
+    if (status == TaskStatus.Pending)
+        return "Task is waiting to start";
+    else if (status == TaskStatus.Running)
+        return "Task is currently executing";
+    else if (status == TaskStatus.Completed)
+        return "Task finished successfully";
+    else if (status == TaskStatus.Failed)
+        return "Task encountered an error";
+    else
+        return "Unknown status";
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use pure functions and avoid side effects in business logic
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Pure function for calculations
+public static decimal CalculateTotal(IEnumerable<OrderItem> items)
+{
+    return items.Sum(item => item.Quantity * item.UnitPrice);
+}
+
+// ✅ Pure function for validation
+public static Result<Email> ValidateEmail(string email)
+{
+    if (string.IsNullOrWhiteSpace(email))
+        return Result<Email>.WithFailure("Email cannot be empty");
+
+    if (!email.Contains("@"))
+        return Result<Email>.WithFailure("Invalid email format");
+
+    return Result<Email>.Success(new Email(email));
+}
+
+// ✅ Pure function for transformations
+public static string FormatCurrency(decimal amount, string currency = "USD")
+{
+    return $"{currency} {amount:F2}";
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Function with side effects
+public decimal CalculateTotal(IEnumerable<OrderItem> items)
+{
+    var total = items.Sum(item => item.Quantity * item.UnitPrice);
+    _logger.LogInformation("Calculated total: {Total}", total); // Side effect
+    return total;
+}
+
+// ❌ Function that modifies state
+public void ValidateEmail(string email)
+{
+    if (string.IsNullOrWhiteSpace(email))
+        throw new ValidationException("Email cannot be empty");
+
+    if (!email.Contains("@"))
+        throw new ValidationException("Invalid email format");
+
+    _validEmails.Add(email); // Side effect
+}
+
+// ❌ Function that depends on external state
+public string GetCurrentUserGreeting()
+{
+    var user = _currentUserService.GetCurrentUser(); // External dependency
+    return $"Hello, {user.Name}!";
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use functional error aggregation and recovery patterns
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Error aggregation with Combine
+public Result<ValidationResult> ValidateModel(Model model)
+{
+    var errors = new List<string>();
+
+    if (string.IsNullOrEmpty(model.Name))
+        errors.Add("Name is required");
+
+    if (model.Age < 0)
+        errors.Add("Age must be positive");
+
+    return errors.Any()
+        ? Result<ValidationResult>.WithFailure(errors)
+        : Result<ValidationResult>.Success(new ValidationResult(model));
+}
+
+// ✅ Error recovery with multiple fallbacks
+public Result<Data> GetDataWithMultipleFallbacks(string source)
+{
+    return GetPrimaryData(source)
+        .Recover(() => GetBackupData(source))
+        .Recover(() => GetCachedData(source))
+        .RecoverWith<string>(() => Result<string>.Success("default"));
+}
+
+// ✅ Error combining for complex operations
+public Result<Order> CreateOrderWithValidation(OrderRequest request)
+{
+    var validationResult = ValidateRequest(request);
+    var pricingResult = CalculatePricing(request);
+    var inventoryResult = CheckInventory(request);
+
+    return validationResult
+        .Combine(pricingResult.ToResult())
+        .Combine(inventoryResult.ToResult())
+        .Map(() => new Order(request));
+}
+```
+</correct-example>
+
+<incorrect-example>
+```csharp
+// ❌ Exception-based error handling
+public ValidationResult ValidateModel(Model model)
+{
+    var errors = new List<string>();
+
+    try
+    {
+        if (string.IsNullOrEmpty(model.Name))
+            throw new ValidationException("Name is required");
+    }
+    catch (ValidationException ex)
+    {
+        errors.Add(ex.Message);
+    }
+
+    try
+    {
+        if (model.Age < 0)
+            throw new ValidationException("Age must be positive");
+    }
+    catch (ValidationException ex)
+    {
+        errors.Add(ex.Message);
+    }
+
+    return new ValidationResult(errors);
+}
+
+// ❌ Complex try-catch blocks
+public async Task<Data> GetDataWithMultipleFallbacks(string source)
+{
+    try
+    {
+        return await GetPrimaryData(source);
+    }
+    catch (Exception ex1)
+    {
+        try
+        {
+            return await GetBackupData(source);
+        }
+        catch (Exception ex2)
+        {
+            try
+            {
+                return await GetCachedData(source);
+            }
+            catch (Exception ex3)
+            {
+                return new Data("default");
+            }
+        }
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Functional Programming Standards
+
+### Result<T> Pattern
+- **Purpose**: Replace exceptions with functional error handling
+- **Benefits**: Type-safe, composable, predictable error flow
+- **Usage**: All business logic operations should return Result<T>
+- **Composition**: Use Map, Bind, Match, Ensure, Tap for functional composition
+
+### Immutability Patterns
+- **Purpose**: Prevent accidental state mutations and improve thread safety
+- **Implementation**: Use init-only properties, records, IReadOnlyCollections
+- **Benefits**: Thread-safe, predictable, easier to reason about
+- **Usage**: All domain entities and value objects should be immutable
+
+### Functional Composition
+- **Purpose**: Build complex operations from simple, composable functions
+- **Patterns**: Map (transform), Bind (chain), Match (handle both cases)
+- **Benefits**: Readable, testable, maintainable code
+- **Usage**: Prefer functional composition over imperative programming
+
+### Pure Functions
+- **Purpose**: Functions without side effects that are easier to test and reason about
+- **Characteristics**: Same input always produces same output, no side effects
+- **Benefits**: Testable, predictable, cacheable
+- **Usage**: Extract business logic into pure functions
+
+## Context
+
+This rule establishes functional programming patterns that promote:
+- **Type Safety**: Result<T> provides compile-time error handling guarantees
+- **Immutability**: Prevents bugs from accidental state mutations
+- **Composability**: Functions can be combined to build complex operations
+- **Testability**: Pure functions and immutable data are easier to test
+- **Maintainability**: Functional code is often more readable and predictable
+- **Performance**: Immutable data structures can be safely shared and cached
+
+The patterns are designed to satisfy multiple personas:
+- **Developers**: Clear, composable patterns for building reliable code
+- **Maintainers**: Immutable, pure functions that are easy to understand and modify
+- **Architects**: Type-safe error handling and functional composition patterns
+- **UX Designers**: Predictable error handling that can be translated to user-friendly messages
+- **Users**: Reliable applications with consistent error handling
+- **Product Managers**: Maintainable code that supports rapid feature development
+- **Stakeholders**: Robust, predictable systems with clear error handling
+
+## References
+
+- `0000RuleToWriteRules.mdc` - Rule writing standards
+- `1001CSharpCodingStandards.mdc` - C# coding standards
+- `1002CancellationTokenStandards.mdc` - Cancellation token patterns
+- `0001GeneralEngineeringPrinciples.mdc` - General engineering principles
+description:
+globs:
+alwaysApply: false
+---

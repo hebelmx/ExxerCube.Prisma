@@ -1,0 +1,461 @@
+# Aggregation Bounded Testing Standards
+
+## Meta
+
+**Title**: Aggregation Bounded Testing Standards
+**Description**: Establishes comprehensive aggregation-driven design and testing standards for bounded contexts
+**Created-at**: 2025-01-05T23:20:00Z
+**Last-updated-at**: 2025-01-05T23:20:00Z
+**Applies-to**: Aggregation testing, bounded context testing, integration testing
+**File-matcher**: *.cs files in aggregation and bounded context projects
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: Test aggregations as complete units with real database using InMemory provider
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public async Task Should_CreateOrderAggregate_When_ValidOrderRequestProvided()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    var orderRepository = new OrderRepository(context);
+    var orderRequest = new OrderRequest
+    {
+        CustomerId = Guid.NewGuid(),
+        Items = new List<OrderItemRequest>
+        {
+            new() { ProductId = Guid.NewGuid(), Quantity = 2, Price = 50.00m },
+            new() { ProductId = Guid.NewGuid(), Quantity = 1, Price = 25.00m }
+        }
+    };
+
+    // Act
+    var result = await orderRepository.CreateOrderAsync(orderRequest);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    result.Value.CustomerId.ShouldBe(orderRequest.CustomerId);
+    result.Value.Items.Count.ShouldBe(2);
+    result.Value.TotalAmount.ShouldBe(125.00m);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public async Task Should_CreateOrderAggregate_When_ValidOrderRequestProvided()
+{
+    // Arrange
+    var mockRepository = Substitute.For<IOrderRepository>();
+    mockRepository.CreateOrderAsync(Arg.Any<OrderRequest>())
+        .Returns(Result<Order>.Success(new Order()));
+
+    var orderRequest = new OrderRequest { CustomerId = Guid.NewGuid() };
+
+    // Act
+    var result = await mockRepository.CreateOrderAsync(orderRequest);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue(); // Mocked - not real aggregation test
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Use real data from SeedDataFiles for realistic aggregation testing
+**Examples**:
+<correct-example>
+```csharp
+public class OrderAggregationTestData
+{
+    public static IEnumerable<object[]> ValidOrders => new[]
+    {
+        new object[]
+        {
+            new OrderRequest
+            {
+                CustomerId = Guid.Parse("12345678-1234-1234-1234-123456789012"),
+                Items = new List<OrderItemRequest>
+                {
+                    new() { ProductId = Guid.Parse("87654321-4321-4321-4321-210987654321"), Quantity = 2, Price = 50.00m }
+                }
+            }
+        }
+    };
+}
+
+[Theory]
+[MemberData(nameof(OrderAggregationTestData.ValidOrders))]
+public async Task Should_CreateOrderAggregate_When_ValidOrderFromSeedDataProvided(OrderRequest orderRequest)
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    await SeedTestDataAsync(context); // Load from SeedDataFiles
+
+    var orderRepository = new OrderRepository(context);
+
+    // Act
+    var result = await orderRepository.CreateOrderAsync(orderRequest);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+    result.Value.CustomerId.ShouldBe(orderRequest.CustomerId);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public async Task Should_CreateOrderAggregate_When_ValidOrderRequestProvided()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    // No seed data - empty database
+
+    var orderRepository = new OrderRepository(context);
+    var orderRequest = new OrderRequest { CustomerId = Guid.NewGuid() };
+
+    // Act
+    var result = await orderRepository.CreateOrderAsync(orderRequest);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue(); // May fail due to missing related data
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Test aggregation invariants and business rules across the entire aggregate
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public async Task Should_EnforceOrderInvariants_When_InvalidOrderCreated()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    await SeedTestDataAsync(context);
+
+    var orderRepository = new OrderRepository(context);
+    var invalidOrderRequest = new OrderRequest
+    {
+        CustomerId = Guid.Empty, // Invalid customer
+        Items = new List<OrderItemRequest>() // Empty items
+    };
+
+    // Act
+    var result = await orderRepository.CreateOrderAsync(invalidOrderRequest);
+
+    // Assert
+    result.IsFailure.ShouldBeTrue();
+    result.Error.ShouldContain("Customer is required");
+    result.Error.ShouldContain("Order must contain at least one item");
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public async Task Should_ValidateOrder_When_OrderCreated()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    var orderRepository = new OrderRepository(context);
+    var orderRequest = new OrderRequest { CustomerId = Guid.NewGuid() };
+
+    // Act
+    var result = await orderRepository.CreateOrderAsync(orderRequest);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue(); // Doesn't test specific invariants
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Test aggregation state transitions and domain events
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public async Task Should_TransitionOrderState_When_OrderShipped()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    await SeedTestDataAsync(context);
+
+    var orderRepository = new OrderRepository(context);
+    var orderRequest = CreateValidOrderRequest();
+    var createResult = await orderRepository.CreateOrderAsync(orderRequest);
+    var order = createResult.Value;
+
+    // Act
+    var shipResult = await orderRepository.ShipOrderAsync(order.Id);
+
+    // Assert
+    shipResult.IsSuccess.ShouldBeTrue();
+    shipResult.Value.Status.ShouldBe(OrderStatus.Shipped);
+    shipResult.Value.ShippedAt.ShouldNotBeNull();
+    shipResult.Value.DomainEvents.ShouldContain(e => e is OrderShippedEvent);
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public async Task Should_UpdateOrder_When_OrderShipped()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    var orderRepository = new OrderRepository(context);
+    var order = new Order { Id = Guid.NewGuid() };
+
+    // Act
+    var result = await orderRepository.ShipOrderAsync(order.Id);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue(); // Too generic, doesn't test state transitions
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use high-performance data loading with caching for test data
+**Examples**:
+<correct-example>
+```csharp
+public class TestDataLoader
+{
+    private static readonly IReadOnlyList<Customer> Customers = LoadCustomersFromJson();
+    private static readonly IReadOnlyList<Product> Products = LoadProductsFromJson();
+
+    public static async Task SeedTestDataAsync(OrderDbContext context)
+    {
+        // Use cached data for performance
+        context.Customers.AddRange(Customers.Take(10)); // Sample data
+        context.Products.AddRange(Products.Take(20)); // Sample data
+        await context.SaveChangesAsync();
+    }
+
+    private static IReadOnlyList<Customer> LoadCustomersFromJson()
+    {
+        var json = File.ReadAllText("Src/SeedDataFiles/customers.json");
+        return JsonSerializer.Deserialize<List<Customer>>(json) ?? new List<Customer>();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public class TestDataLoader
+{
+    public static async Task SeedTestDataAsync(OrderDbContext context)
+    {
+        // Loading all data every time - poor performance
+        var customers = JsonSerializer.Deserialize<List<Customer>>(
+            File.ReadAllText("Src/SeedDataFiles/customers.json"));
+        var products = JsonSerializer.Deserialize<List<Product>>(
+            File.ReadAllText("Src/SeedDataFiles/products.json"));
+
+        context.Customers.AddRange(customers);
+        context.Products.AddRange(products);
+        await context.SaveChangesAsync();
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never mock EF Core - use real database with InMemory provider
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public async Task Should_QueryOrdersByCustomer_When_CustomerHasMultipleOrders()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    await SeedTestDataAsync(context);
+
+    var orderRepository = new OrderRepository(context);
+    var customerId = Guid.Parse("12345678-1234-1234-1234-123456789012");
+
+    // Act
+    var orders = await orderRepository.GetOrdersByCustomerAsync(customerId);
+
+    // Assert
+    orders.ShouldNotBeEmpty();
+    orders.All(o => o.CustomerId == customerId).ShouldBeTrue();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public async Task Should_QueryOrdersByCustomer_When_CustomerHasMultipleOrders()
+{
+    // Arrange
+    var mockContext = Substitute.For<IOrderDbContext>();
+    var mockDbSet = Substitute.For<DbSet<Order>>();
+    mockContext.Orders.Returns(mockDbSet);
+
+    var orderRepository = new OrderRepository(mockContext);
+    var customerId = Guid.NewGuid();
+
+    // Act
+    var orders = await orderRepository.GetOrdersByCustomerAsync(customerId);
+
+    // Assert
+    orders.ShouldNotBeEmpty(); // Mocked - not real database test
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Test aggregation boundaries and cross-aggregate consistency
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public async Task Should_MaintainConsistency_When_OrderAndInventoryUpdated()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    await SeedTestDataAsync(context);
+
+    var orderRepository = new OrderRepository(context);
+    var inventoryRepository = new InventoryRepository(context);
+
+    var productId = Guid.Parse("87654321-4321-4321-4321-210987654321");
+    var initialStock = await inventoryRepository.GetStockAsync(productId);
+
+    // Act
+    var orderRequest = new OrderRequest
+    {
+        CustomerId = Guid.NewGuid(),
+        Items = new List<OrderItemRequest>
+        {
+            new() { ProductId = productId, Quantity = 5, Price = 10.00m }
+        }
+    };
+
+    var orderResult = await orderRepository.CreateOrderAsync(orderRequest);
+    var finalStock = await inventoryRepository.GetStockAsync(productId);
+
+    // Assert
+    orderResult.IsSuccess.ShouldBeTrue();
+    finalStock.ShouldBe(initialStock - 5); // Inventory consistency
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public async Task Should_CreateOrder_When_ValidRequestProvided()
+{
+    // Arrange
+    var options = new DbContextOptionsBuilder<OrderDbContext>()
+        .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+        .Options;
+
+    using var context = new OrderDbContext(options);
+    var orderRepository = new OrderRepository(context);
+    var orderRequest = new OrderRequest { CustomerId = Guid.NewGuid() };
+
+    // Act
+    var result = await orderRepository.CreateOrderAsync(orderRequest);
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue(); // Doesn't test cross-aggregate consistency
+}
+```
+</incorrect-example>
+</requirement>
+
+## Testing Strategy
+
+### Aggregation Testing
+- **Complete Aggregates**: Test entire aggregates as cohesive units
+- **Real Database**: Use InMemory provider for realistic testing
+- **Seed Data**: Use realistic data from SeedDataFiles
+- **Performance**: Cache test data for efficient testing
+
+### Test Categories
+- **Integration Tests**: Test aggregation interactions with real database
+- **Invariant Tests**: Test business rules across aggregates
+- **State Transition Tests**: Test aggregation state changes
+- **Consistency Tests**: Test cross-aggregate consistency
+
+### Test Organization
+- **Group by Aggregate**: Organize tests by the aggregate being tested
+- **Group by Behavior**: Organize tests by the behavior being tested
+- **Use Test Fixtures**: Share common test data and setup
+- **Follow Naming Convention**: Should_Action_When_Condition
+
+## Context
+
+This rule establishes comprehensive aggregation testing standards for bounded contexts. It emphasizes:
+
+1. **Real Database**: Use InMemory provider for realistic testing
+2. **Seed Data**: Use realistic data from SeedDataFiles
+3. **Aggregation Boundaries**: Test complete aggregates as units
+4. **Performance**: Cache test data for efficient testing
+5. **Consistency**: Test cross-aggregate consistency
+
+The rule prioritizes testing that validates aggregation behavior and business rules in realistic scenarios with real database interactions.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/EntityFrameworkCore.Testing.mdc" reason="EF Core testing patterns">EF Core Testing Standards</reference>
+<reference as="context" href=".cursor/rules/DomainTest.mdc" reason="Domain testing patterns">Domain Testing Standards</reference>
+## Test Execution
+1. Run tests using .NET CLI commands:
+   ```bash
+   dotnet test
+   dotnet test --filter FullyQualifiedName~AggregationTest

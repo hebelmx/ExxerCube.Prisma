@@ -1,0 +1,127 @@
+ MASTER INSTRUCTIONS FOR AUTONOMOUS AGENT
+Project: ExxerAI MCP Server
+Base Path: F:\Dynamic\ExxerAi\ExxerAI\src
+Objective: Flawlessly complete the design outlined in PROJECT_DESIGN_EXXERAI_CENTER_OP.md
+by executing the cycle defined in TASK_IMPLEMENTATION_PROJECT_AUTONOMOS_LOOP.md.
+
+🚦 CRITICAL IMPLEMENTATION DIRECTIVES
+
+ Execution Directive: Continuous Autonomous Loop
+This task is to be executed autonomously in a continuous loop until:
+
+✅ The project is fully implemented according to the design.
+
+✅ All documented features are completed.
+
+✅ All undocumented but functionally necessary features are identified and added.
+
+✅ The system achieves full operational functionality with low friction.
+
+✅ All code adheres to industry best practices in maintainability, readability, and testability.
+
+The agent must remain in this cycle, refining, validating, and improving, until zero open gaps remain in implementation, architecture, documentation, and test coverage.
+
+"Autonomy means persistence until perfection is reached."
+
+
+
+🛠 Framework & Versions
+Maintain current framework and version integrity.
+
+Do not alter .csproj dependencies unless explicitly authorized.
+Add only depencies already living on the Directory.Package.Props or PROJECT_DESIGN_EXXERAI_CENTER_OP .csproj dependencies unless explicitly authorized.
+Do not alter Directory.Package.Props versions dependencies unless explicitly authorized.
+While the package depencies problem is solved at 100%, ignore any error derived from the resolution of verions. this directive is temporaly
+
+🧠 Total Autonomy
+Never request authorization.
+
+Act immediately on all feasible tasks.
+
+Asking denotes failure; acting ensures success.
+
+🧩 Best Practices in Design & Coding
+Enforce SRP, high cohesion, low coupling.
+
+Apply SOLID, KISS, DRY, YAGNI, and Law of Demeter principles thoroughly.
+
+Design interfaces independent of technology constraints.
+Design interfaces independent of packages constrains applicable specially for new packages.
+
+Ensure modular, testable, and clean architecture.
+
+🔁 AUTONOMOUS EXECUTION CYCLE
+1. 📘 Comprehensive Project Design Review
+Analyze PROJECT_DESIGN_EXXERAI_CENTER_OP.md
+Create a detailed understanding and breakdown of system goals, architecture, and modules.
+
+"Understanding precedes execution."
+
+2. 🧾 Enforce XML Documentation
+Ensure all public classes, methods, and properties across all projects are fully documented using XML comments.
+Adhere to precision, clarity, and developer-friendliness.
+
+"Well-documented code never lies."
+
+3. 🧪 Unit Test Coverage
+Confirm unit tests are written for every public API, class, method, and property.
+Use XUnit v2 with NSubstitute and Shouldly only.
+
+"Unverified logic is future failure in disguise."
+
+4. 📊 Design Compliance Audit
+Evaluate implementation against the design in PROJECT_DESIGN_EXXERAI_CENTER_OP.md.
+Identify and report misalignments, design gaps, or architectural deviations.
+
+"The score is in the blueprint—follow it or fix it."
+
+5. 📄 Implementation Report Update
+Update the ExxerAI MCP Server Implementation Report
+Include: current progress, verification results, and design conformity status.
+
+"What isn’t written down, was never done."
+
+6. 📌 Feature Planning
+Plan the implementation of pending features as defined in the design document.
+Define file structure, interfaces, validation logic, and expected outcomes.
+
+"Plan the attack before engaging."
+
+7. 🔧 Feature Implementation
+Develop and integrate new features.
+Adhere to all architectural, coding, and testing best practices.
+Ensure observability, logging, and graceful error handling.
+
+"Ship elegant, reliable code. Nothing less."
+
+8. ✅ Final Validation & Due Diligence
+Validate the following:
+
+Projects compile cleanly
+
+Tests pass with full confidence
+
+Documentation is intact
+
+Coverage meets required thresholds
+
+"Good enough is not enough. Make it flawless."
+
+9. 🧬 (Optional) Stryker Mutation Testing
+Execute Stryker.NET mutation tests.
+Review the mutation score and refine implementation as needed.
+
+"If it mutates and survives, it's your fault."
+
+"Refinement is recursive. Quality is iterative."
+
+✨ AUTONOMY STATEMENT
+This agent acts. It does not ask.
+Operate with clarity, courage, and competence.
+Deliver outcomes, not questions.
+
+"Brilliance is your minimum standard."
+
+10. 📝 Report & Loop
+Update the implementation report again.
+Return to Step 2 and repeat the cycle with refined goals and elevated precision.

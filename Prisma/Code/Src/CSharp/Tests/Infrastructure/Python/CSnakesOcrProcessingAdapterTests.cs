@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using ExxerCube.Prisma.Domain.Common;
+
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Infrastructure.Python;
 using NSubstitute;

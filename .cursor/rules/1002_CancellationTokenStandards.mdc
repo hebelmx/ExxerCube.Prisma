@@ -1,0 +1,364 @@
+---
+globs: *.cs
+description: Comprehensive CancellationToken usage patterns and best practices for async operations
+---
+
+# CancellationToken Standards
+
+## Meta
+
+**Title**: CancellationToken Standards
+**Description**: Establishes comprehensive standards for handling cancellation in functional .NET applications
+**Created-at**: 2025-01-05T23:30:00Z
+**Last-updated-at**: 2025-01-05T23:30:00Z
+**Applies-to**: Hexagonal architecture, functional .NET systems, Result-based applications
+**File-matcher**: *.cs files with async methods
+
+## Requirements
+
+### <requirement priority="critical">
+**Description**: All asynchronous methods must accept and expose a CancellationToken parameter
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result<OrderDto>> GetOrderAsync(Guid orderId, CancellationToken ct)
+{
+    if (ct.IsCancellationRequested)
+        return ResultExtensions.Cancelled<OrderDto>();
+
+    // Implementation
+    return Result<OrderDto>.Success(orderDto);
+}
+
+public async Task<Result> ProcessOrderAsync(OrderRequest request, CancellationToken ct)
+{
+    if (ct.IsCancellationRequested)
+        return ResultExtensions.Cancelled();
+
+    // Implementation
+    return Result.Success();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<Result<OrderDto>> GetOrderAsync(Guid orderId) // Missing CancellationToken
+{
+    // Implementation without cancellation support
+    return Result<OrderDto>.Success(orderDto);
+}
+
+public async Task<Result> ProcessOrderAsync(OrderRequest request) // Missing CancellationToken
+{
+    // Implementation without cancellation support
+    return Result.Success();
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Propagate CancellationToken to all downstream asynchronous methods
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result<OrderDto>> GetOrderAsync(Guid orderId, CancellationToken ct)
+{
+    if (ct.IsCancellationRequested)
+        return ResultExtensions.Cancelled<OrderDto>();
+
+    var order = await _orderRepository.GetByIdAsync(orderId, ct);
+    var customer = await _customerRepository.GetByIdAsync(order.CustomerId, ct);
+    var items = await _orderItemRepository.GetByOrderIdAsync(orderId, ct);
+
+    return Result<OrderDto>.Success(new OrderDto(order, customer, items));
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<Result<OrderDto>> GetOrderAsync(Guid orderId, CancellationToken ct)
+{
+    if (ct.IsCancellationRequested)
+        return ResultExtensions.Cancelled<OrderDto>();
+
+    var order = await _orderRepository.GetByIdAsync(orderId); // Missing ct
+    var customer = await _customerRepository.GetByIdAsync(order.CustomerId); // Missing ct
+    var items = await _orderItemRepository.GetByOrderIdAsync(orderId); // Missing ct
+
+    return Result<OrderDto>.Success(new OrderDto(order, customer, items));
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Check cancellation early and return functional cancellation result
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result<OrderDto>> GetOrderAsync(Guid orderId, CancellationToken ct)
+{
+    // Early cancellation check
+    if (ct.IsCancellationRequested)
+        return ResultExtensions.Cancelled<OrderDto>();
+
+    try
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId, ct);
+        if (order == null)
+            return Result<OrderDto>.WithFailure("Order not found");
+
+        return Result<OrderDto>.Success(new OrderDto(order));
+    }
+    catch (OperationCanceledException)
+    {
+        return ResultExtensions.Cancelled<OrderDto>();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<Result<OrderDto>> GetOrderAsync(Guid orderId, CancellationToken ct)
+{
+    try
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId, ct);
+        if (order == null)
+            return Result<OrderDto>.WithFailure("Order not found");
+
+        return Result<OrderDto>.Success(new OrderDto(order));
+    }
+    catch (OperationCanceledException ex)
+    {
+        throw; // Throwing exception instead of returning functional result
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="high">
+**Description**: Use TestContext.Current.CancellationToken in unit tests
+**Examples**:
+<correct-example>
+```csharp
+[Fact]
+public async Task Should_ReturnCancelled_When_CancellationRequested()
+{
+    // Arrange
+    var repository = new OrderRepository(_context);
+    var orderId = Guid.NewGuid();
+
+    // Act
+    var result = await repository.GetByIdAsync(orderId, TestContext.Current.CancellationToken);
+
+    // Assert
+    result.IsCancelled().ShouldBeTrue();
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+[Fact]
+public async Task Should_ReturnCancelled_When_CancellationRequested()
+{
+    // Arrange
+    var repository = new OrderRepository(_context);
+    var orderId = Guid.NewGuid();
+
+    // Act
+    var result = await repository.GetByIdAsync(orderId); // Missing CancellationToken
+
+    // Assert
+    result.IsSuccess.ShouldBeTrue();
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use ResultExtensions.Cancelled for consistent cancellation handling
+**Examples**:
+<correct-example>
+```csharp
+public static class ResultExtensions
+{
+    public static Result Cancelled()
+    {
+        return Result.WithFailure(ResultErrors.OperationCancelled);
+    }
+
+    public static Result<T> Cancelled<T>()
+    {
+        return Result<T>.WithFailure(ResultErrors.OperationCancelled);
+    }
+
+    public static bool IsCancelled(this Result result) =>
+        result.IsFailure && result.Error == ResultErrors.OperationCancelled;
+
+    public static bool IsCancelled<T>(this Result<T> result) =>
+        result.IsFailure && result.Error == ResultErrors.OperationCancelled;
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public static class ResultExtensions
+{
+    public static Result Cancelled()
+    {
+        return Result.WithFailure("Operation was cancelled"); // Inconsistent message
+    }
+
+    public static Result<T> Cancelled<T>()
+    {
+        return Result<T>.WithFailure("Cancelled"); // Inconsistent message
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="medium">
+**Description**: Use utility wrappers for complex cancellation scenarios
+**Examples**:
+<correct-example>
+```csharp
+public static async Task<Result<T>> WrapCancellationAware<T>(
+    Func<CancellationToken, Task<T>> operation,
+    CancellationToken cancellationToken = default)
+{
+    if (operation is null)
+        return Result<T>.WithFailure("Operation cannot be null");
+
+    if (cancellationToken.IsCancellationRequested)
+        return ResultExtensions.Cancelled<T>();
+
+    try
+    {
+        var result = await operation(cancellationToken).ConfigureAwait(false);
+        return Result<T>.Success(result);
+    }
+    catch (OperationCanceledException)
+    {
+        return ResultExtensions.Cancelled<T>();
+    }
+    catch (Exception ex)
+    {
+        return Result<T>.WithFailure($"Operation failed: {ex.Message}");
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public static async Task<Result<T>> WrapCancellationAware<T>(
+    Func<CancellationToken, Task<T>> operation,
+    CancellationToken cancellationToken = default)
+{
+    try
+    {
+        var result = await operation(cancellationToken);
+        return Result<T>.Success(result);
+    }
+    catch (Exception ex)
+    {
+        return Result<T>.WithFailure($"Operation failed: {ex.Message}");
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+### <requirement priority="critical">
+**Description**: Never throw exceptions for cancellation control flow
+**Examples**:
+<correct-example>
+```csharp
+public async Task<Result<OrderDto>> GetOrderAsync(Guid orderId, CancellationToken ct)
+{
+    if (ct.IsCancellationRequested)
+        return ResultExtensions.Cancelled<OrderDto>();
+
+    try
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId, ct);
+        return Result<OrderDto>.Success(new OrderDto(order));
+    }
+    catch (OperationCanceledException)
+    {
+        return ResultExtensions.Cancelled<OrderDto>();
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+public async Task<Result<OrderDto>> GetOrderAsync(Guid orderId, CancellationToken ct)
+{
+    try
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId, ct);
+        return Result<OrderDto>.Success(new OrderDto(order));
+    }
+    catch (OperationCanceledException)
+    {
+        throw; // Throwing exception for control flow
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+## Implementation Patterns
+
+### Result Error Definitions
+```csharp
+public static class ResultErrors
+{
+    public const string OperationCancelled = "Operation was cancelled by the user.";
+}
+```
+
+### Method Pattern
+```csharp
+public async Task<Result<MyDto>> HandleAsync(CancellationToken ct)
+{
+    if (ct.IsCancellationRequested)
+        return ResultExtensions.Cancelled<MyDto>();
+
+    try
+    {
+        await Task.Delay(1000, ct);
+        return Result<MyDto>.Success(dto);
+    }
+    catch (OperationCanceledException)
+    {
+        return ResultExtensions.Cancelled<MyDto>();
+    }
+}
+```
+
+## Context
+
+This rule establishes comprehensive standards for handling cancellation in functional .NET applications. It emphasizes:
+
+1. **Consistent Cancellation**: All async methods must accept CancellationToken
+2. **Early Checking**: Check cancellation before expensive operations
+3. **Functional Results**: Return Result<T> for cancellation instead of exceptions
+4. **Proper Propagation**: Pass CancellationToken to all downstream calls
+5. **Test Integration**: Use TestContext.Current.CancellationToken in tests
+
+The rule prioritizes functional programming principles and avoids exception-based control flow for cancellation scenarios.
+
+## References
+
+<reference as="dependency" href=".cursor/rules/0000RuleToWriteRules.mdc" reason="Defines rule structure standards">Rule Writing Standards</reference>
+<reference as="context" href=".cursor/rules/1001CSharpCodingStandards.mdc" reason="C# coding standards">C# Enhancement Standards</reference>
+<reference as="context" href=".cursor/rules/0001GeneralEngineeringPrinciples.mdc" reason="General engineering principles">General Engineering Principles</reference>
+description:
+globs:
+alwaysApply: false
+---

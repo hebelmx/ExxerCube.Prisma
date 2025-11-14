@@ -1,0 +1,409 @@
+# Rule: Tool Usage Best Practices and Parameter Validation
+
+## Objective
+
+Establish comprehensive guidelines for proper tool usage across all MCP servers, with emphasis on parameter validation, error handling, and optimal token usage. Ensure consistent practices for tool invocation and prevent common parameter type errors.
+
+## Core Principles
+
+### 1. Parameter Type Validation
+- **Always validate parameter types** before tool invocation
+- **Use correct data types** for each parameter
+- **Handle optional parameters** appropriately
+- **Validate required parameters** before calling tools
+
+### 2. Error Prevention
+- **Check parameter documentation** before use
+- **Use proper parameter names** and types
+- **Handle tool-specific requirements** correctly
+- **Implement proper error handling** for tool failures
+
+## Tool-Specific Guidelines
+
+### 1. File Reading Tools
+
+#### Serena MCP Read File Tool
+```csharp
+// ✅ Good: Proper parameter usage for mcp_serena_read_file
+public async Task<string> ReadFileContentAsync(string filePath)
+{
+    try
+    {
+        // Correct parameter usage
+        var content = await mcp_serena_read_file(
+            relative_path: filePath,
+            start_line: 0,           // integer, not string
+            end_line: null,          // integer or null, not string
+            max_answer_chars: 200000 // integer, not string
+        );
+
+        return content;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to read file: {FilePath}", filePath);
+        throw;
+    }
+}
+
+// ✅ Good: Reading specific line ranges
+public async Task<string> ReadFileLinesAsync(string filePath, int startLine, int endLine)
+{
+    try
+    {
+        var content = await mcp_serena_read_file(
+            relative_path: filePath,
+            start_line: startLine,    // integer
+            end_line: endLine,        // integer
+            max_answer_chars: 100000  // integer
+        );
+
+        return content;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to read file lines: {FilePath}, {StartLine}-{EndLine}",
+            filePath, startLine, endLine);
+        throw;
+    }
+}
+
+// ✅ Good: Reading entire file with size limit
+public async Task<string> ReadLargeFileAsync(string filePath)
+{
+    try
+    {
+        var content = await mcp_serena_read_file(
+            relative_path: filePath,
+            start_line: 0,
+            end_line: null,           // null for entire file
+            max_answer_chars: 500000  // increased limit for large files
+        );
+
+        return content;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to read large file: {FilePath}", filePath);
+        throw;
+    }
+}
+```
+
+#### Standard Read File Tool (Avoid)
+```csharp
+// ❌ Bad: Incorrect parameter types
+public string ReadFileIncorrect(string filePath)
+{
+    // Wrong: Using string for numeric parameters
+    var content = read_file(
+        target_file: filePath,
+        should_read_entire_file: true,
+        start_line_one_indexed: "1",     // Wrong: string instead of int
+        end_line_one_indexed: "100"      // Wrong: string instead of int
+    );
+
+    return content;
+}
+
+// ❌ Bad: Missing required parameters
+public string ReadFileMissingParams(string filePath)
+{
+    // Wrong: Missing required parameters
+    var content = read_file(filePath); // Missing required parameters
+
+    return content;
+}
+```
+
+### 2. Directory Listing Tools
+
+#### Serena MCP List Directory Tool
+```csharp
+// ✅ Good: Proper directory listing
+public async Task<DirectoryInfo> ListDirectoryAsync(string path, bool recursive = false)
+{
+    try
+    {
+        var result = await mcp_serena_list_dir(
+            relative_path: path,
+            recursive: recursive,           // boolean
+            max_answer_chars: 200000       // integer
+        );
+
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to list directory: {Path}", path);
+        throw;
+    }
+}
+```
+
+### 3. File Search Tools
+
+#### Serena MCP File Search Tool
+```csharp
+// ✅ Good: Proper file searching
+public async Task<FileSearchResult> SearchFilesAsync(string query, string relativePath = ".")
+{
+    try
+    {
+        var result = await mcp_serena_find_file(
+            query: query,                   // string
+            relative_path: relativePath     // string
+        );
+
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to search files: {Query}", query);
+        throw;
+    }
+}
+```
+
+### 4. Pattern Search Tools
+
+#### Serena MCP Pattern Search Tool
+```csharp
+// ✅ Good: Proper pattern searching
+public async Task<PatternSearchResult> SearchPatternAsync(
+    string pattern,
+    string relativePath = ".",
+    int contextLinesBefore = 3,
+    int contextLinesAfter = 3)
+{
+    try
+    {
+        var result = await mcp_serena_search_for_pattern(
+            substring_pattern: pattern,           // string
+            context_lines_before: contextLinesBefore, // integer
+            context_lines_after: contextLinesAfter,   // integer
+            relative_path: relativePath,              // string
+            restrict_search_to_code_files: false      // boolean
+        );
+
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to search pattern: {Pattern}", pattern);
+        throw;
+    }
+}
+```
+
+### 5. Code Analysis Tools
+
+#### Serena MCP Symbol Analysis Tools
+```csharp
+// ✅ Good: Proper symbol analysis
+public async Task<SymbolOverview> GetSymbolsOverviewAsync(string filePath)
+{
+    try
+    {
+        var result = await mcp_serena_get_symbols_overview(
+            relative_path: filePath,        // string
+            max_answer_chars: 200000        // integer
+        );
+
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to get symbols overview: {FilePath}", filePath);
+        throw;
+    }
+}
+
+// ✅ Good: Finding specific symbols
+public async Task<SymbolInfo[]> FindSymbolsAsync(string namePath, string relativePath = null)
+{
+    try
+    {
+        var result = await mcp_serena_find_symbol(
+            name_path: namePath,                    // string
+            relative_path: relativePath,            // string or null
+            depth: 0,                              // integer
+            include_body: false,                   // boolean
+            substring_matching: false,              // boolean
+            max_answer_chars: 200000               // integer
+        );
+
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to find symbols: {NamePath}", namePath);
+        throw;
+    }
+}
+```
+
+### 6. File Creation and Modification Tools
+
+#### Serena MCP File Creation Tool
+```csharp
+// ✅ Good: Proper file creation
+public async Task<bool> CreateTextFileAsync(string filePath, string content)
+{
+    try
+    {
+        await mcp_serena_create_text_file(
+            relative_path: filePath,    // string
+            content: content,           // string
+            max_answer_chars: 200000    // integer
+        );
+
+        return true;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to create text file: {FilePath}", filePath);
+        return false;
+    }
+}
+```
+
+#### Serena MCP Regex Replacement Tool
+```csharp
+// ✅ Good: Proper regex replacement
+public async Task<bool> ReplaceTextAsync(string filePath, string pattern, string replacement)
+{
+    try
+    {
+        await mcp_serena_replace_regex(
+            relative_path: filePath,        // string
+            regex: pattern,                 // string
+            repl: replacement,              // string
+            allow_multiple_occurrences: false // boolean
+        );
+
+        return true;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to replace text: {FilePath}, {Pattern}", filePath, pattern);
+        return false;
+    }
+}
+```
+
+### 7. Shell Command Execution Tools
+
+#### Serena MCP Shell Command Tool
+```csharp
+// ✅ Good: Proper shell command execution
+public async Task<CommandResult> ExecuteShellCommandAsync(
+    string command,
+    string workingDirectory = null,
+    bool captureStderr = true)
+{
+    try
+    {
+        var result = await mcp_serena_execute_shell_command(
+            command: command,                    // string
+            cwd: workingDirectory,              // string or null
+            capture_stderr: captureStderr,      // boolean
+            max_answer_chars: 200000            // integer
+        );
+
+        return result;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to execute shell command: {Command}", command);
+        throw;
+    }
+}
+```
+
+## Common Parameter Type Errors
+
+### 1. String vs Integer Errors
+```csharp
+// ❌ Bad: String instead of integer
+mcp_serena_read_file(
+    relative_path: "file.txt",
+    start_line: "1",        // Wrong: string instead of int
+    end_line: "100"         // Wrong: string instead of int
+);
+
+// ✅ Good: Correct integer types
+mcp_serena_read_file(
+    relative_path: "file.txt",
+    start_line: 1,          // Correct: integer
+    end_line: 100           // Correct: integer
+);
+```
+
+### 2. Boolean vs String Errors
+```csharp
+// ❌ Bad: String instead of boolean
+mcp_serena_list_dir(
+    relative_path: ".",
+    recursive: "true"        // Wrong: string instead of bool
+);
+
+// ✅ Good: Correct boolean type
+mcp_serena_list_dir(
+    relative_path: ".",
+    recursive: true          // Correct: boolean
+);
+```
+
+### 3. Null vs String Errors
+```csharp
+// ❌ Bad: String instead of null
+mcp_serena_read_file(
+    relative_path: "file.txt",
+    end_line: "null"        // Wrong: string instead of null
+);
+
+// ✅ Good: Correct null type
+mcp_serena_read_file(
+    relative_path: "file.txt",
+    end_line: null           // Correct: null
+);
+```
+
+## Best Practices Summary
+
+### 1. Parameter Validation
+- **Always check parameter types** before tool invocation
+- **Use correct data types** (int, bool, string, null)
+- **Validate required parameters** are present
+- **Handle optional parameters** appropriately
+
+### 2. Error Handling
+- **Wrap tool calls** in try-catch blocks
+- **Log errors** with meaningful context
+- **Handle tool-specific exceptions** appropriately
+- **Provide fallback behavior** when possible
+
+### 3. Token Optimization
+- **Use appropriate max_answer_chars** values
+- **Limit context lines** for pattern searches
+- **Use specific line ranges** when possible
+- **Avoid reading entire large files** unnecessarily
+
+### 4. Tool Selection
+- **Prefer Serena MCP tools** over direct tools
+- **Use appropriate tools** for specific tasks
+- **Avoid deprecated tools** when possible
+- **Follow tool-specific guidelines**
+
+## Enforcement
+
+- **Code Review**: Check tool parameter types in PRs
+- **Static Analysis**: Configure tools to detect parameter type errors
+- **Unit Tests**: Include tool usage tests
+- **Documentation**: Maintain tool usage guidelines
+- **Training**: Educate team on proper tool usage
+
+## Conclusion
+
+Proper tool usage is critical for reliable automation and efficient token usage. Follow these guidelines to ensure correct parameter types, optimal performance, and robust error handling across all tool invocations.

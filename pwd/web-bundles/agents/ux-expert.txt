@@ -482,8 +482,8 @@ sections:
           - id: notes
             template: "**Notes:** {{flow_notes}}"
 
-  - id: wireframes-mockups
-    title: Wireframes & Mockups
+  - id: wireframes
+    title: Wireframes
     instruction: |
       Clarify where detailed visual designs will be created (Figma, Sketch, etc.) and how to reference them. If low-fidelity wireframes are needed, offer to help conceptualize layouts for key screens.
     elicit: true

@@ -1,0 +1,602 @@
+# Performance Optimization Standards
+
+## Meta
+**Title**: Performance Optimization Standards
+**Description**: Comprehensive performance optimization standards for memory management, LINQ optimization, and async patterns
+**Applies-to**: All C# code in ExxerAI project
+
+## Requirements
+
+<requirement priority="critical">
+**Description**: Use efficient memory management and avoid allocations in hot paths
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Efficient memory management
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly ObjectPool<Agent> _agentPool;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, ObjectPool<Agent> agentPool)
+    {
+        _logger = logger;
+        _repository = repository;
+        _agentPool = agentPool;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        // Rent from pool instead of new allocation
+        var agent = _agentPool.Get();
+        try
+        {
+            agent.Name = new AgentName(name);
+            agent.Capabilities = capabilities;
+
+            _logger.LogInformation("Creating agent: {AgentName}", name);
+
+            var result = await _repository.AddAsync(agent, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+            }
+            else
+            {
+                _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                    name, string.Join(", ", result.Errors));
+            }
+
+            return result;
+        }
+        finally
+        {
+            // Return to pool for reuse
+            _agentPool.Return(agent);
+        }
+    }
+
+    // Use Span<T> for efficient string operations
+    public async Task<Result<IEnumerable<Agent>>> GetAgentsByNameAsync(ReadOnlySpan<char> nameFilter, CancellationToken cancellationToken = default)
+    {
+        var agents = await _repository.GetAllAsync(cancellationToken);
+
+        if (agents.IsFailure)
+            return Result<IEnumerable<Agent>>.WithFailure(agents.Errors);
+
+        // Use stack allocation for small collections
+        Span<Agent> filteredAgents = stackalloc Agent[100]; // Adjust size as needed
+        var count = 0;
+
+        foreach (var agent in agents.Value)
+        {
+            if (agent.Name.Value.AsSpan().Contains(nameFilter, StringComparison.OrdinalIgnoreCase))
+            {
+                if (count < filteredAgents.Length)
+                {
+                    filteredAgents[count++] = agent;
+                }
+            }
+        }
+
+        return Result<IEnumerable<Agent>>.Success(filteredAgents.Slice(0, count).ToArray());
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Inefficient memory management
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        // Always creating new objects
+        var agent = new Agent { Name = new AgentName(name), Capabilities = capabilities };
+
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(agent, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+
+    // Inefficient string operations
+    public async Task<Result<IEnumerable<Agent>>> GetAgentsByNameAsync(string nameFilter, CancellationToken cancellationToken = default)
+    {
+        var agents = await _repository.GetAllAsync(cancellationToken);
+
+        if (agents.IsFailure)
+            return Result<IEnumerable<Agent>>.WithFailure(agents.Errors);
+
+        // Creating new list for filtering
+        var filteredAgents = new List<Agent>();
+        foreach (var agent in agents.Value)
+        {
+            if (agent.Name.Value.Contains(nameFilter, StringComparison.OrdinalIgnoreCase))
+            {
+                filteredAgents.Add(agent);
+            }
+        }
+
+        return Result<IEnumerable<Agent>>.Success(filteredAgents);
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="critical">
+**Description**: Optimize LINQ operations for performance-critical paths
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Optimized LINQ operations
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<IEnumerable<Agent>>> GetActiveAgentsAsync(CancellationToken cancellationToken = default)
+    {
+        var agents = await _repository.GetAllAsync(cancellationToken);
+
+        if (agents.IsFailure)
+            return Result<IEnumerable<Agent>>.WithFailure(agents.Errors);
+
+        // Use Where().Select() instead of multiple iterations
+        var activeAgents = agents.Value
+            .Where(agent => agent.Status == AgentStatus.Active)
+            .Select(agent => new { agent.Id, agent.Name, agent.Capabilities })
+            .ToList(); // Materialize once
+
+        _logger.LogInformation("Retrieved {Count} active agents", activeAgents.Count);
+
+        return Result<IEnumerable<Agent>>.Success(activeAgents.Select(a => new Agent
+        {
+            Id = a.Id,
+            Name = a.Name,
+            Capabilities = a.Capabilities
+        }));
+    }
+
+    // Use efficient aggregation
+    public async Task<Result<AgentStatistics>> GetAgentStatisticsAsync(CancellationToken cancellationToken = default)
+    {
+        var agents = await _repository.GetAllAsync(cancellationToken);
+
+        if (agents.IsFailure)
+            return Result<AgentStatistics>.WithFailure(agents.Errors);
+
+        // Single pass aggregation
+        var stats = agents.Value.Aggregate(
+            new AgentStatistics(),
+            (acc, agent) =>
+            {
+                acc.TotalCount++;
+                if (agent.Status == AgentStatus.Active) acc.ActiveCount++;
+                if (agent.Capabilities.HasFlag(AgentCapabilities.Advanced)) acc.AdvancedCount++;
+                return acc;
+            });
+
+        return Result<AgentStatistics>.Success(stats);
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Inefficient LINQ operations
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<IEnumerable<Agent>>> GetActiveAgentsAsync(CancellationToken cancellationToken = default)
+    {
+        var agents = await _repository.GetAllAsync(cancellationToken);
+
+        if (agents.IsFailure)
+            return Result<IEnumerable<Agent>>.WithFailure(agents.Errors);
+
+        // Multiple iterations
+        var allAgents = agents.Value.ToList(); // Unnecessary materialization
+        var activeAgents = allAgents.Where(agent => agent.Status == AgentStatus.Active).ToList();
+        var result = activeAgents.Select(agent => new Agent { Id = agent.Id, Name = agent.Name }).ToList();
+
+        _logger.LogInformation("Retrieved {Count} active agents", result.Count);
+
+        return Result<IEnumerable<Agent>>.Success(result);
+    }
+
+    // Multiple iterations for statistics
+    public async Task<Result<AgentStatistics>> GetAgentStatisticsAsync(CancellationToken cancellationToken = default)
+    {
+        var agents = await _repository.GetAllAsync(cancellationToken);
+
+        if (agents.IsFailure)
+            return Result<AgentStatistics>.WithFailure(agents.Errors);
+
+        // Multiple iterations
+        var totalCount = agents.Value.Count();
+        var activeCount = agents.Value.Count(a => a.Status == AgentStatus.Active);
+        var advancedCount = agents.Value.Count(a => a.Capabilities.HasFlag(AgentCapabilities.Advanced));
+
+        var stats = new AgentStatistics
+        {
+            TotalCount = totalCount,
+            ActiveCount = activeCount,
+            AdvancedCount = advancedCount
+        };
+
+        return Result<AgentStatistics>.Success(stats);
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use async/await patterns efficiently with ConfigureAwait(false)
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Efficient async/await patterns
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        // Use ConfigureAwait(false) for background operations
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created successfully: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Agent creation failed: {AgentName}, Errors: {Errors}",
+                name, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+
+    // Efficient parallel processing
+    public async Task<Result<IEnumerable<Agent>>> ProcessAgentsInParallelAsync(IEnumerable<string> agentNames, CancellationToken cancellationToken = default)
+    {
+        var tasks = agentNames.Select(async name =>
+        {
+            try
+            {
+                return await CreateAgentAsync(name, AgentCapabilities.Basic, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create agent: {AgentName}", name);
+                return Result<Agent>.WithFailure($"Failed to create agent {name}: {ex.Message}");
+            }
+        });
+
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        var successfulAgents = results.Where(r => r.IsSuccess).Select(r => r.Value);
+        var failedCount = results.Count(r => r.IsFailure);
+
+        if (failedCount > 0)
+        {
+            _logger.LogWarning("Failed to create {FailedCount} agents", failedCount);
+        }
+
+        return Result<IEnumerable<Agent>>.Success(successfulAgents);
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Inefficient async patterns
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        // Missing ConfigureAwait(false)
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+
+    // Inefficient sequential processing
+    public async Task<Result<IEnumerable<Agent>>> ProcessAgentsSequentiallyAsync(IEnumerable<string> agentNames, CancellationToken cancellationToken = default)
+    {
+        var results = new List<Agent>();
+
+        foreach (var name in agentNames)
+        {
+            try
+            {
+                var result = await CreateAgentAsync(name, AgentCapabilities.Basic, cancellationToken);
+                if (result.IsSuccess)
+                {
+                    results.Add(result.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create agent: {AgentName}", name);
+            }
+        }
+
+        return Result<IEnumerable<Agent>>.Success(results);
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="high">
+**Description**: Use efficient data structures and algorithms
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Efficient data structures and algorithms
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly ConcurrentDictionary<Guid, Agent> _agentCache;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+        _agentCache = new ConcurrentDictionary<Guid, Agent>();
+    }
+
+    public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+    {
+        // Check cache first
+        if (_agentCache.TryGetValue(agentId, out var cachedAgent))
+        {
+            _logger.LogDebug("Agent retrieved from cache: {AgentId}", agentId);
+            return Result<Agent>.Success(cachedAgent);
+        }
+
+        var result = await _repository.GetByIdAsync(agentId, cancellationToken).ConfigureAwait(false);
+
+        if (result.IsSuccess)
+        {
+            // Cache the result
+            _agentCache.TryAdd(agentId, result.Value);
+            _logger.LogInformation("Agent retrieved from repository: {AgentId}", agentId);
+        }
+        else
+        {
+            _logger.LogError("Failed to retrieve agent: {AgentId}, Errors: {Errors}",
+                agentId, string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+
+    // Use efficient search algorithms
+    public async Task<Result<Agent?>> FindAgentByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        var agents = await _repository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+
+        if (agents.IsFailure)
+            return Result<Agent?>.WithFailure(agents.Errors);
+
+        // Use HashSet for O(1) lookup if possible
+        var agentNames = new HashSet<string>(agents.Value.Select(a => a.Name.Value), StringComparer.OrdinalIgnoreCase);
+
+        if (!agentNames.Contains(name))
+        {
+            return Result<Agent?>.Success(null);
+        }
+
+        // Find the agent with the matching name
+        var agent = agents.Value.FirstOrDefault(a => string.Equals(a.Name.Value, name, StringComparison.OrdinalIgnoreCase));
+
+        return Result<Agent?>.Success(agent);
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: Inefficient data structures and algorithms
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> GetAgentAsync(Guid agentId, CancellationToken cancellationToken = default)
+    {
+        // No caching
+        var result = await _repository.GetByIdAsync(agentId, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent retrieved: {AgentId}", agentId);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+
+    // Inefficient search
+    public async Task<Result<Agent?>> FindAgentByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        var agents = await _repository.GetAllAsync(cancellationToken);
+
+        if (agents.IsFailure)
+            return Result<Agent?>.WithFailure(agents.Errors);
+
+        // Linear search without optimization
+        foreach (var agent in agents.Value)
+        {
+            if (agent.Name.Value == name) // Case-sensitive comparison
+            {
+                return Result<Agent?>.Success(agent);
+            }
+        }
+
+        return Result<Agent?>.Success(null);
+    }
+}
+```
+</incorrect-example>
+</requirement>
+
+<requirement priority="medium">
+**Description**: Use performance monitoring and profiling
+**Examples**:
+<correct-example>
+```csharp
+// ✅ Correct: Performance monitoring and profiling
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+    private readonly IPerformanceMonitor _performanceMonitor;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository, IPerformanceMonitor performanceMonitor)
+    {
+        _logger = logger;
+        _repository = repository;
+        _performanceMonitor = performanceMonitor;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        using var performanceScope = _performanceMonitor.BeginScope("CreateAgent");
+        performanceScope.SetTag("agent_name", name);
+        performanceScope.SetTag("capabilities", capabilities.ToString());
+
+        var stopwatch = Stopwatch.StartNew();
+
+        try
+        {
+            _logger.LogInformation("Creating agent: {AgentName}", name);
+
+            var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken)
+                .ConfigureAwait(false);
+
+            stopwatch.Stop();
+            performanceScope.SetMetric("duration_ms", stopwatch.ElapsedMilliseconds);
+
+            if (result.IsSuccess)
+            {
+                performanceScope.SetTag("result", "success");
+                _logger.LogInformation("Agent created successfully: {AgentId}, Duration: {DurationMs}ms",
+                    result.Value.Id, stopwatch.ElapsedMilliseconds);
+            }
+            else
+            {
+                performanceScope.SetTag("result", "failure");
+                performanceScope.SetTag("errors", string.Join(", ", result.Errors));
+                _logger.LogError("Agent creation failed: {AgentName}, Duration: {DurationMs}ms, Errors: {Errors}",
+                    name, stopwatch.ElapsedMilliseconds, string.Join(", ", result.Errors));
+            }
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            performanceScope.SetTag("result", "exception");
+            performanceScope.SetTag("exception_type", ex.GetType().Name);
+            _logger.LogError(ex, "Agent creation threw exception: {AgentName}, Duration: {DurationMs}ms",
+                name, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+    }
+}
+```
+</correct-example>
+<incorrect-example>
+```csharp
+// ❌ Incorrect: No performance monitoring
+public class AgentService
+{
+    private readonly ILogger<AgentService> _logger;
+    private readonly IAgentRepository _repository;
+
+    public AgentService(ILogger<AgentService> logger, IAgentRepository repository)
+    {
+        _logger = logger;
+        _repository = repository;
+    }
+
+    public async Task<Result<Agent>> CreateAgentAsync(string name, AgentCapabilities capabilities, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Creating agent: {AgentName}", name);
+
+        var result = await _repository.AddAsync(new Agent { Name = new AgentName(name), Capabilities = capabilities }, cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Agent created: {AgentId}", result.Value.Id);
+        }
+        else
+        {
+            _logger.LogError("Failed: {Errors}", string.Join(", ", result.Errors));
+        }
+
+        return result;
+    }
+}
+```
+</incorrect-example>
+</requirement>

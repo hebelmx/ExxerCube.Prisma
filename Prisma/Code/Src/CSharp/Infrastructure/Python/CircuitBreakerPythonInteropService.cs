@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
@@ -164,7 +164,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
         if (!_circuitBreaker.CanExecute())
         {
             _logger.LogWarning("Circuit breaker is open for {OperationName}. Request rejected.", operationName);
-            return Result<T>.Failure($"Circuit breaker is open for {operationName}. Service temporarily unavailable.");
+            return Result<T>.WithFailure($"Circuit breaker is open for {operationName}. Service temporarily unavailable.");
         }
 
         try
@@ -189,7 +189,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
         {
             _circuitBreaker.OnFailure();
             _logger.LogError(ex, "Exception during {OperationName}", operationName);
-            return Result<T>.Failure($"Exception during {operationName}: {ex.Message}");
+            return Result<T>.WithFailure($"Exception during {operationName}: {ex.Message}", default, ex);
         }
     }
 

@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Common;
+using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
@@ -45,14 +45,14 @@ public class FileSystemLoader : IFileLoader
             var validationResult = await ValidateFilePathAsync(filePath);
             if (!validationResult.IsSuccess)
             {
-                return Result<ImageData>.Failure(validationResult.Error!);
+                return Result<ImageData>.WithFailure(validationResult.Error!);
             }
 
             // Check file extension
             var extension = Path.GetExtension(filePath).ToLowerInvariant();
             if (!_supportedExtensions.Contains(extension))
             {
-                return Result<ImageData>.Failure($"Unsupported file extension: {extension}");
+                return Result<ImageData>.WithFailure($"Unsupported file extension: {extension}");
             }
 
             // Load image data
@@ -81,7 +81,7 @@ public class FileSystemLoader : IFileLoader
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading image from file {FilePath}", filePath);
-            return Result<ImageData>.Failure($"Failed to load image: {ex.Message}");
+            return Result<ImageData>.WithFailure($"Failed to load image: {ex.Message}", default, ex);
         }
     }
 
@@ -100,7 +100,7 @@ public class FileSystemLoader : IFileLoader
 
             if (!Directory.Exists(directoryPath))
             {
-                return Result<List<ImageData>>.Failure($"Directory does not exist: {directoryPath}");
+                return Result<List<ImageData>>.WithFailure($"Directory does not exist: {directoryPath}");
             }
 
             var extensions = supportedExtensions.Length > 0 ? supportedExtensions : _supportedExtensions;
@@ -143,7 +143,7 @@ public class FileSystemLoader : IFileLoader
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading images from directory {DirectoryPath}", directoryPath);
-            return Result<List<ImageData>>.Failure($"Failed to load images from directory: {ex.Message}");
+            return Result<List<ImageData>>.WithFailure($"Failed to load images from directory: {ex.Message}", default, ex);
         }
     }
 
@@ -175,19 +175,19 @@ public class FileSystemLoader : IFileLoader
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
-            return Result<bool>.Failure("File path cannot be null or empty");
+            return Result<bool>.WithFailure("File path cannot be null or empty");
         }
 
         // Check for path traversal attacks
         var normalizedPath = Path.GetFullPath(filePath);
         if (!normalizedPath.Equals(filePath, StringComparison.OrdinalIgnoreCase))
         {
-            return Result<bool>.Failure("Invalid file path");
+            return Result<bool>.WithFailure("Invalid file path");
         }
 
         if (!File.Exists(filePath))
         {
-            return Result<bool>.Failure($"File does not exist: {filePath}");
+            return Result<bool>.WithFailure($"File does not exist: {filePath}");
         }
 
         try
@@ -198,7 +198,7 @@ public class FileSystemLoader : IFileLoader
         }
         catch (Exception ex)
         {
-            return Result<bool>.Failure($"Cannot access file: {ex.Message}");
+            return Result<bool>.WithFailure($"Cannot access file: {ex.Message}", default, ex);
         }
     }
 
