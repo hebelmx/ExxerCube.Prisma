@@ -47,7 +47,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the OCR result or an error.</returns>
     public async Task<Result<OCRResult>> ExecuteOcrAsync(ImageData imageData, OCRConfig config)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExecuteOcrAsync(imageData, config), "OCR execution");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExecuteOcrAsync(imageData, config), "OCR execution").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the preprocessed image or an error.</returns>
     public async Task<Result<ImageData>> PreprocessAsync(ImageData imageData, ProcessingConfig config)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.PreprocessAsync(imageData, config), "image preprocessing");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.PreprocessAsync(imageData, config), "image preprocessing").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the extracted fields or an error.</returns>
     public async Task<Result<ExtractedFields>> ExtractFieldsAsync(string text, float confidence)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractFieldsAsync(text, confidence), "field extraction");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractFieldsAsync(text, confidence), "field extraction").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the processed image or an error.</returns>
     public async Task<Result<ImageData>> RemoveWatermarkAsync(ImageData imageData)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.RemoveWatermarkAsync(imageData), "watermark removal");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.RemoveWatermarkAsync(imageData), "watermark removal").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the processed image or an error.</returns>
     public async Task<Result<ImageData>> DeskewAsync(ImageData imageData)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.DeskewAsync(imageData), "image deskewing");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.DeskewAsync(imageData), "image deskewing").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the processed image or an error.</returns>
     public async Task<Result<ImageData>> BinarizeAsync(ImageData imageData)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.BinarizeAsync(imageData), "image binarization");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.BinarizeAsync(imageData), "image binarization").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the extracted expediente or an error.</returns>
     public async Task<Result<string?>> ExtractExpedienteAsync(string text)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractExpedienteAsync(text), "expediente extraction");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractExpedienteAsync(text), "expediente extraction").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the extracted causa or an error.</returns>
     public async Task<Result<string?>> ExtractCausaAsync(string text)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractCausaAsync(text), "causa extraction");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractCausaAsync(text), "causa extraction").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the extracted accion solicitada or an error.</returns>
     public async Task<Result<string?>> ExtractAccionSolicitadaAsync(string text)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractAccionSolicitadaAsync(text), "accion solicitada extraction");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractAccionSolicitadaAsync(text), "accion solicitada extraction").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the extracted dates or an error.</returns>
     public async Task<Result<List<string>>> ExtractDatesAsync(string text)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractDatesAsync(text), "date extraction");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractDatesAsync(text), "date extraction").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -149,7 +149,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
     /// <returns>A result containing the extracted amounts or an error.</returns>
     public async Task<Result<List<AmountData>>> ExtractAmountsAsync(string text)
     {
-        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractAmountsAsync(text), "amount extraction");
+        return await ExecuteWithCircuitBreakerAsync(() => _innerService.ExtractAmountsAsync(text), "amount extraction").ConfigureAwait(false);
     }
 
     /// <summary>
@@ -170,7 +170,7 @@ public class CircuitBreakerPythonInteropService : IPythonInteropService, IDispos
         try
         {
             _logger.LogDebug("Executing {OperationName} with circuit breaker protection", operationName);
-            var result = await operation();
+            var result = await operation().ConfigureAwait(false);
             
             if (result.IsSuccess)
             {

@@ -1,16 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.IO;
-using Microsoft.Extensions.Logging;
-using Shouldly;
-using Xunit;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Python;
-using System.Linq;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure;
 
 /// <summary>

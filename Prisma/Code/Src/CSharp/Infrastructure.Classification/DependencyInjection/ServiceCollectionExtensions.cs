@@ -22,10 +22,24 @@ public static class ServiceCollectionExtensions
         // Register matching policy service
         services.AddScoped<IMatchingPolicy, MatchingPolicyService>();
         
+        // Register identity resolution service
+        services.AddScoped<IPersonIdentityResolver, PersonIdentityResolverService>();
+        
+        // Register legal directive classifier service
+        services.AddScoped<ILegalDirectiveClassifier, LegalDirectiveClassifierService>();
+        
         // Register matching policy options from configuration
         if (configuration != null)
         {
-            services.Configure<MatchingPolicyOptions>(configuration.GetSection("MatchingPolicy"));
+            var section = configuration.GetSection("MatchingPolicy");
+            if (section.Exists())
+            {
+                services.Configure<MatchingPolicyOptions>(section);
+            }
+            else
+            {
+                services.Configure<MatchingPolicyOptions>(_ => { });
+            }
         }
         else
         {

@@ -39,7 +39,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     public async Task<Result<OCRResult>> ExecuteOcrAsync(ImageData imageData, OCRConfig config)
     {
         _logger.LogInformation("Executing OCR on image {SourcePath}", imageData.SourcePath);
-        return await _pythonInteropService.ExecuteOcrAsync(imageData, config);
+        return await _pythonInteropService.ExecuteOcrAsync(imageData, config).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     public async Task<Result<ImageData>> PreprocessAsync(ImageData imageData, ProcessingConfig config)
     {
         _logger.LogInformation("Preprocessing image {SourcePath}", imageData.SourcePath);
-        return await _pythonInteropService.PreprocessAsync(imageData, config);
+        return await _pythonInteropService.PreprocessAsync(imageData, config).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     public async Task<Result<ExtractedFields>> ExtractFieldsAsync(string text, float confidence)
     {
         _logger.LogInformation("Extracting fields from text with confidence {Confidence}", confidence);
-        return await _pythonInteropService.ExtractFieldsAsync(text, confidence);
+        return await _pythonInteropService.ExtractFieldsAsync(text, confidence).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     public async Task<Result<ImageData>> RemoveWatermarkAsync(ImageData imageData)
     {
         _logger.LogInformation("Removing watermark from image {SourcePath}", imageData.SourcePath);
-        return await _pythonInteropService.RemoveWatermarkAsync(imageData);
+        return await _pythonInteropService.RemoveWatermarkAsync(imageData).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -85,7 +85,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
     public async Task<Result<ImageData>> DeskewAsync(ImageData imageData)
     {
         _logger.LogInformation("Deskewing image {SourcePath}", imageData.SourcePath);
-        return await _pythonInteropService.DeskewAsync(imageData);
+        return await _pythonInteropService.DeskewAsync(imageData).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
         try
         {
             // Call Python binarization module through interop service
-            var result = await _pythonInteropService.BinarizeAsync(imageData);
+            var result = await _pythonInteropService.BinarizeAsync(imageData).ConfigureAwait(false);
             
             if (result.IsSuccess)
             {
@@ -139,7 +139,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             }
             
             // Call Python expediente extraction module through interop service
-            var result = await _pythonInteropService.ExtractExpedienteAsync(text);
+            var result = await _pythonInteropService.ExtractExpedienteAsync(text).ConfigureAwait(false);
             
             if (result.IsSuccess)
             {
@@ -178,7 +178,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             }
             
             // Call Python section extraction module for causa
-            var result = await _pythonInteropService.ExtractCausaAsync(text);
+            var result = await _pythonInteropService.ExtractCausaAsync(text).ConfigureAwait(false);
             
             if (result.IsSuccess)
             {
@@ -217,7 +217,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             }
             
             // Call Python section extraction module for accion solicitada
-            var result = await _pythonInteropService.ExtractAccionSolicitadaAsync(text);
+            var result = await _pythonInteropService.ExtractAccionSolicitadaAsync(text).ConfigureAwait(false);
             
             if (result.IsSuccess)
             {
@@ -256,7 +256,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             }
             
             // Call Python date extraction module through interop service
-            var result = await _pythonInteropService.ExtractDatesAsync(text);
+            var result = await _pythonInteropService.ExtractDatesAsync(text).ConfigureAwait(false);
             
             if (result.IsSuccess)
             {
@@ -295,7 +295,7 @@ public class OcrProcessingAdapter : IOcrExecutor, IImagePreprocessor, IFieldExtr
             }
             
             // Call Python amount extraction module through interop service
-            var result = await _pythonInteropService.ExtractAmountsAsync(text);
+            var result = await _pythonInteropService.ExtractAmountsAsync(text).ConfigureAwait(false);
             
             if (result.IsSuccess)
             {

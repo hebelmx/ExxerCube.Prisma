@@ -1,16 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Classification;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
 /// <summary>
@@ -235,7 +222,8 @@ public class FieldMatcherServiceTests
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldContain("Causa");
+        result.Error.ShouldNotBeNull();
+        result.Error!.ShouldContain("Causa");
     }
 
     [Fact]

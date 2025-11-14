@@ -1462,6 +1462,134 @@ Prisma/Code/Src/CSharp/
 - **Dependency Injection:** All dependencies injected via constructor, registered in Infrastructure project's DI configuration
 - **Error Handling:** Use `Result<T>` pattern, no exceptions for business logic errors
 
+### Critical Async/Await Requirements
+
+**⚠️ CRITICAL: These requirements were discovered during development and must be followed in ALL future stories.**
+
+#### 1. Cancellation Token Support (MANDATORY)
+
+**All async methods MUST:**
+- ✅ Accept `CancellationToken cancellationToken = default` parameter
+- ✅ Perform **early cancellation check** at method start (before any work)
+- ✅ **Propagate cancellation** from dependency calls using `.IsCancelled()` extension method
+- ✅ Return `ResultExtensions.Cancelled<T>()` when cancellation detected
+- ✅ Catch `OperationCanceledException` explicitly and return cancelled result
+- ✅ Log cancellation events for audit trail
+- ✅ Pass `CancellationToken` to ALL dependency calls (interfaces, semaphores, file I/O, etc.)
+
+**Reference Implementation:** `Application/Services/DocumentIngestionService.cs` and `Application/Services/DecisionLogicService.cs`
+
+**Common Violations to Avoid:**
+- ❌ Missing `CancellationToken` parameter in interface or implementation
+- ❌ No early cancellation check (checking only after work starts)
+- ❌ Not propagating cancellation from dependencies (treating cancelled results as failures)
+- ❌ Missing cancellation token on `SemaphoreSlim.WaitAsync()` calls (will hang on cancellation)
+- ❌ Not catching `OperationCanceledException` explicitly
+
+**Pattern Template:**
+```csharp
+public async Task<Result<TResult>> MethodAsync(
+    TParams parameters,
+    CancellationToken cancellationToken = default)
+{
+    // 1. Early cancellation check
+    if (cancellationToken.IsCancellationRequested)
+    {
+        _logger.LogWarning("Operation cancelled before starting");
+        return ResultExtensions.Cancelled<TResult>();
+    }
+
+    // 2. Input validation
+    if (parameters == null)
+        return Result<TResult>.WithFailure("Parameters cannot be null");
+
+    try
+    {
+        // 3. Call dependencies with CT
+        var result = await _dependency.DoWorkAsync(parameters, cancellationToken).ConfigureAwait(false);
+        
+        // 4. Propagate cancellation
+        if (result.IsCancelled())
+        {
+            _logger.LogWarning("Operation cancelled by dependency");
+            return ResultExtensions.Cancelled<TResult>();
+        }
+        
+        // 5. Check failure
+        if (result.IsFailure)
+        {
+            return Result<TResult>.WithFailure(result.Error!);
+        }
+        
+        // 6. Continue with work...
+        return Result<TResult>.Success(value);
+    }
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+    {
+        _logger.LogInformation("Operation cancelled");
+        return ResultExtensions.Cancelled<TResult>();
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error in operation");
+        return Result<TResult>.WithFailure($"Error: {ex.Message}", default, ex);
+    }
+}
+```
+
+**Audit References:**
+- Full audit report: `docs/audit/cancellation-rop-compliance-audit.md`
+- Remediation report: `docs/audit/cancellation-rop-compliance-remediation-report.md`
+- Best practices: `docs/ROP-with-IndQuestResults-Best-Practices.md`
+
+#### 2. ConfigureAwait(false) Usage (MANDATORY)
+
+**All async calls in library code (Application & Infrastructure layers) MUST:**
+- ✅ Use `.ConfigureAwait(false)` on ALL `await` statements
+- ✅ Apply to dependency calls, file I/O, database operations, semaphore waits, etc.
+- ✅ **EXCLUDE** UI layer code (Blazor Server UI correctly does NOT use ConfigureAwait)
+
+**Why This Is Critical:**
+- Performance: Prevents unnecessary synchronization context captures
+- Deadlock Prevention: Eliminates deadlock scenarios in ASP.NET/Blazor Server contexts
+- Best Practice: Microsoft guidelines require ConfigureAwait(false) in library code
+- Scalability: Improves thread pool utilization
+
+**Pattern:**
+```csharp
+// ✅ Correct: Library code
+var result = await _service.ProcessAsync(data, cancellationToken).ConfigureAwait(false);
+await File.WriteAllTextAsync(path, content, cancellationToken).ConfigureAwait(false);
+await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+// ❌ Incorrect: Missing ConfigureAwait(false)
+var result = await _service.ProcessAsync(data, cancellationToken);
+await File.WriteAllTextAsync(path, content, cancellationToken);
+await semaphore.WaitAsync(cancellationToken);
+```
+
+**Scope:**
+- ✅ **INCLUDE:** Application layer (`Application/**/*.cs`)
+- ✅ **INCLUDE:** Infrastructure layer (`Infrastructure/**/*.cs`)
+- ❌ **EXCLUDE:** UI layer (`UI/**/*.cs`) - UI code correctly does NOT use ConfigureAwait(false)
+- ❌ **EXCLUDE:** Test code (`Tests/**/*.cs`)
+
+**Audit References:**
+- Remediation report: `docs/qa/configureawait-remediation-report.md`
+- Rule: `.cursor/rules/1015_RuleForConfigureAwaitUsage.mdc`
+
+#### 3. Interface Design Requirements
+
+**When creating new Domain interfaces:**
+- ✅ ALL async methods MUST include `CancellationToken cancellationToken = default` parameter
+- ✅ This is a BREAKING CHANGE if omitted - implementations cannot be cancellation-aware
+- ✅ Update existing interfaces that are missing CancellationToken (see audit report)
+
+**Common Interface Violations:**
+- ❌ `IPythonInteropService` - 13 methods missing CancellationToken (FIXED)
+- ❌ `IOcrProcessingService` - 2 methods missing CancellationToken (FIXED)
+- ✅ Always check existing interfaces before creating new ones
+
 ### Critical Integration Rules
 
 - **Existing API Compatibility:** All existing interfaces (`IFieldExtractor`, `IOcrExecutor`, `IImagePreprocessor`) remain functional

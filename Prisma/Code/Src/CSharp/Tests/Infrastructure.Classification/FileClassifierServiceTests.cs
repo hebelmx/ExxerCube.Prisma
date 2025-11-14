@@ -1,14 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Classification;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
 /// <summary>

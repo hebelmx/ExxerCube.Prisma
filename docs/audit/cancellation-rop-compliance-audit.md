@@ -2,10 +2,13 @@
 
 ## Executive Summary
 
-**Date**: November 14, 2025
+**Date**: November 14, 2025  
+**Audit Scope**: Application Layer (✅ Complete), Infrastructure Layer (❌ Partial), Domain Interfaces (❌ Partial)  
 **Status**: 🔴 **CRITICAL VIOLATIONS FOUND**
 
 This audit reveals **systematic violations** of cancellation handling and ROP principles across the codebase. Many developers appear to have misinterpreted "HandlesGracefully" as "do nothing", resulting in async methods that are not cancellation-aware, not ROP-compliant, and violate .NET standards.
+
+**⚠️ IMPORTANT**: This audit was initially focused on **Application Layer only**. A complete audit of Infrastructure Layer and Domain Interfaces reveals additional violations. See `cancellation-rop-compliance-audit-summary.md` for complete status.
 
 ---
 

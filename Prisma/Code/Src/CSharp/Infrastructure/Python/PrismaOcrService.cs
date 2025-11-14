@@ -126,10 +126,10 @@ public class PrismaOcrService : IOcrProcessingService
             var tasks = imageDataList.Select(async imageData =>
             {
                 // CRITICAL: Pass cancellation token to WaitAsync to prevent hanging
-                await semaphore.WaitAsync(cancellationToken);
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
-                    var result = await ProcessDocumentAsync(imageData, config, cancellationToken);
+                    var result = await ProcessDocumentAsync(imageData, config, cancellationToken).ConfigureAwait(false);
                     return result;
                 }
                 finally
@@ -138,7 +138,7 @@ public class PrismaOcrService : IOcrProcessingService
                 }
             });
 
-            var taskResults = await Task.WhenAll(tasks);
+            var taskResults = await Task.WhenAll(tasks).ConfigureAwait(false);
 
             var successfulResults = new List<ProcessingResult>();
             var cancelledResults = taskResults.Where(r => r.IsCancelled()).ToList();

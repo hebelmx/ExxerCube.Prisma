@@ -1,16 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Extraction;
-using Microsoft.Extensions.Logging;
-using Meziantou.Extensions.Logging.Xunit.v3;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
@@ -64,13 +51,16 @@ public class PdfOcrFieldExtractorTests
         await _ocrExecutor.Received().ExecuteOcrAsync(Arg.Any<ImageData>(), Arg.Any<OCRConfig>());
     }
 
+    /// <summary>
+    /// Tests that ExtractFieldsAsync extracts fields from PDF file path correctly.
+    /// </summary>
     [Fact]
     public async Task ExtractFieldsAsync_WithFilePath_ExtractsFields()
     {
         // Arrange
         var tempFile = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid()}.pdf");
         var pdfContent = new byte[] { 0x25, 0x50, 0x44, 0x46 };
-        await File.WriteAllBytesAsync(tempFile, pdfContent);
+        await File.WriteAllBytesAsync(tempFile, pdfContent, TestContext.Current.CancellationToken);
 
         try
         {
@@ -104,6 +94,9 @@ public class PdfOcrFieldExtractorTests
         }
     }
 
+    /// <summary>
+    /// Tests that ExtractFieldsAsync returns failure when no file content or path is provided.
+    /// </summary>
     [Fact]
     public async Task ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure()
     {
@@ -119,6 +112,9 @@ public class PdfOcrFieldExtractorTests
         result.Error.ShouldContain("FileContent or valid FilePath");
     }
 
+    /// <summary>
+    /// Tests that ExtractFieldsAsync returns failure when OCR execution fails.
+    /// </summary>
     [Fact]
     public async Task ExtractFieldsAsync_OCRFails_ReturnsFailure()
     {
@@ -143,6 +139,9 @@ public class PdfOcrFieldExtractorTests
         result.Error.ShouldContain("OCR");
     }
 
+    /// <summary>
+    /// Tests that ExtractFieldsAsync returns failure when image preprocessing fails.
+    /// </summary>
     [Fact]
     public async Task ExtractFieldsAsync_PreprocessingFails_ReturnsFailure()
     {
@@ -162,6 +161,9 @@ public class PdfOcrFieldExtractorTests
         result.Error.ShouldContain("Preprocessing");
     }
 
+    /// <summary>
+    /// Tests that ExtractFieldAsync extracts a single field from valid PDF correctly.
+    /// </summary>
     [Fact]
     public async Task ExtractFieldAsync_ValidPdf_ReturnsFieldValue()
     {
@@ -191,6 +193,9 @@ public class PdfOcrFieldExtractorTests
         result.Value.Confidence.ShouldBe(0.85f); // Uses provided OCR confidence
     }
 
+    /// <summary>
+    /// Tests that ExtractFieldAsync returns failure when field is not found in PDF.
+    /// </summary>
     [Fact]
     public async Task ExtractFieldAsync_FieldNotFound_ReturnsFailure()
     {

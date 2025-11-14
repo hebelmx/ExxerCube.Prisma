@@ -8,6 +8,7 @@ using ExxerCube.Prisma.Web.UI.Data;
 using ExxerCube.Prisma.Infrastructure.DependencyInjection;
 using ExxerCube.Prisma.Web.UI.Hubs;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Database.HealthChecks;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.FileStorage;
@@ -80,7 +81,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 // Add Story 1.1 services: Browser Automation, File Storage, and Database services
-builder.Services.AddDatabaseServices(connectionString);
+builder.Services.AddDatabaseServices(connectionString, builder.Configuration);
 builder.Services.AddBrowserAutomationServices(options =>
 {
     builder.Configuration.GetSection("BrowserAutomation").Bind(options);
@@ -98,8 +99,23 @@ builder.Services.AddScoped<MetadataExtractionService>();
 // Add Story 1.3 services: Field Matching and Unified Metadata Generation
 builder.Services.AddScoped<FieldMatchingService>();
 // Register FieldMatcherService instances for each source type
-builder.Services.AddScoped(typeof(IFieldMatcher<Domain.Entities.DocxSource>), typeof(Infrastructure.Classification.FieldMatcherService<Domain.Entities.DocxSource>));
-builder.Services.AddScoped(typeof(IFieldMatcher<Domain.Entities.PdfSource>), typeof(Infrastructure.Classification.FieldMatcherService<Domain.Entities.PdfSource>));
+builder.Services.AddScoped(typeof(IFieldMatcher<ExxerCube.Prisma.Domain.Entities.DocxSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<ExxerCube.Prisma.Domain.Entities.DocxSource>));
+builder.Services.AddScoped(typeof(IFieldMatcher<ExxerCube.Prisma.Domain.Entities.PdfSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<ExxerCube.Prisma.Domain.Entities.PdfSource>));
+
+// Add Story 1.4 services: Decision Logic (Identity Resolution and Legal Classification)
+builder.Services.AddScoped<DecisionLogicService>();
+
+// Add Story 1.5 services: SLA Tracking and Escalation
+builder.Services.AddScoped<SLATrackingService>();
+
+// Add SLA health checks
+builder.Services.AddHealthChecks()
+    .AddCheck<SLAEnforcerHealthCheck>(
+        "sla_enforcer",
+        tags: new[] { "sla", "database", "ready" })
+    .AddCheck<SLABackgroundJobHealthCheck>(
+        "sla_background_job",
+        tags: new[] { "sla", "background", "ready" });
 
 var app = builder.Build();
 
@@ -117,11 +133,13 @@ else
 
 app.UseHttpsRedirection();
 
-
 app.UseAntiforgery();
 
 // Map API controllers
 app.MapControllers();
+
+// Map health checks endpoint
+app.MapHealthChecks("/health");
 
 // Map SignalR hub
 app.MapHub<ProcessingHub>("/processingHub");

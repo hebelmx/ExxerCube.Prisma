@@ -1,19 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Application.Services;
-
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Python;
-using Microsoft.Extensions.Logging;
-using Shouldly;
-using Xunit;
-using ExxerCube.Prisma.Tests.TestData;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -65,7 +49,7 @@ public class EndToEndPipelineTests : IDisposable
         var config = CreateDefaultProcessingConfig();
 
         // Act
-        var result = await _processingService.ProcessDocumentAsync(imageData, config);
+        var result = await _processingService.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -103,7 +87,7 @@ public class EndToEndPipelineTests : IDisposable
         var config = CreateDefaultProcessingConfig();
 
         // Act
-        var result = await _processingService.ProcessDocumentAsync(imageData, config);
+        var result = await _processingService.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -129,7 +113,7 @@ public class EndToEndPipelineTests : IDisposable
         var config = CreateDefaultProcessingConfig();
 
         // Act
-        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 2);
+        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 2, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -156,8 +140,8 @@ public class EndToEndPipelineTests : IDisposable
         var configWithoutPreprocessing = CreateProcessingConfig(removeWatermark: false, deskew: false, binarize: false);
 
         // Act & Assert - Both configurations should work
-        var resultWithPreprocessing = await _processingService.ProcessDocumentAsync(imageData, configWithWatermarkRemoval);
-        var resultWithoutPreprocessing = await _processingService.ProcessDocumentAsync(imageData, configWithoutPreprocessing);
+        var resultWithPreprocessing = await _processingService.ProcessDocumentAsync(imageData, configWithWatermarkRemoval, TestContext.Current.CancellationToken);
+        var resultWithoutPreprocessing = await _processingService.ProcessDocumentAsync(imageData, configWithoutPreprocessing, TestContext.Current.CancellationToken);
 
         resultWithPreprocessing.IsSuccess.ShouldBeTrue();
         resultWithoutPreprocessing.IsSuccess.ShouldBeTrue();
@@ -185,7 +169,7 @@ public class EndToEndPipelineTests : IDisposable
         var config = CreateDefaultProcessingConfig();
 
         // Act
-        var result = await _processingService.ProcessDocumentAsync(invalidImageData, config);
+        var result = await _processingService.ProcessDocumentAsync(invalidImageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -224,7 +208,7 @@ public class EndToEndPipelineTests : IDisposable
 
         // Act
         var stopwatch = Stopwatch.StartNew();
-        var result = await _processingService.ProcessDocumentAsync(imageData, config);
+        var result = await _processingService.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert

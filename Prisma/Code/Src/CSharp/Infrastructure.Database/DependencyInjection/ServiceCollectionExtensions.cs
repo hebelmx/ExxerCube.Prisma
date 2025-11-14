@@ -1,7 +1,13 @@
+using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
+using ExxerCube.Prisma.Infrastructure.Database;
+using ExxerCube.Prisma.Infrastructure.Database.Services;
+using ExxerCube.Prisma.Infrastructure.Database.Resilience;
+using ExxerCube.Prisma.Infrastructure.Database.Metrics;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 
@@ -15,16 +21,147 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="connectionString">The database connection string.</param>
+    /// <param name="configuration">The configuration instance (optional, for SLA options).</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddDatabaseServices(
         this IServiceCollection services,
-        string connectionString)
+        string connectionString,
+        IConfiguration? configuration = null)
     {
         services.AddDbContext<PrismaDbContext>(options =>
             options.UseSqlServer(connectionString));
 
         services.AddScoped<IDownloadTracker, DownloadTrackerService>();
         services.AddScoped<IFileMetadataLogger, FileMetadataLoggerService>();
+        
+        // Register SLA metrics collector (singleton for metrics consistency)
+        services.AddSingleton<SLAMetricsCollector>();
+        
+        // Register SLAEnforcerService as implementation
+        services.AddScoped<SLAEnforcerService>();
+        
+        // Register ResilientSLAEnforcerService as the ISLAEnforcer interface
+        // This wraps SLAEnforcerService with circuit breaker, retry, and timeout policies
+        services.AddScoped<ISLAEnforcer>(sp =>
+        {
+            var innerService = sp.GetRequiredService<SLAEnforcerService>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<ResilientSLAEnforcerService>>();
+            var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SLAResilienceOptions>>();
+            return new ResilientSLAEnforcerService(innerService, logger, options);
+        });
+        
+        services.AddScoped<IManualReviewerPanel, ManualReviewerService>();
+
+        // Configure SLA options
+        services.Configure<SLAOptions>(options =>
+        {
+            if (configuration != null)
+            {
+                var section = configuration.GetSection(SLAOptions.SectionName);
+                var criticalThreshold = section["CriticalThreshold"];
+                var warningThreshold = section["WarningThreshold"];
+                
+                if (!string.IsNullOrEmpty(criticalThreshold) && TimeSpan.TryParse(criticalThreshold, out var critical))
+                {
+                    options.CriticalThreshold = critical;
+                }
+                else
+                {
+                    options.CriticalThreshold = TimeSpan.FromHours(4);
+                }
+                
+                if (!string.IsNullOrEmpty(warningThreshold) && TimeSpan.TryParse(warningThreshold, out var warning))
+                {
+                    options.WarningThreshold = warning;
+                }
+                else
+                {
+                    options.WarningThreshold = TimeSpan.FromHours(24);
+                }
+            }
+            else
+            {
+                // Use default options if configuration not provided
+                options.CriticalThreshold = TimeSpan.FromHours(4);
+                options.WarningThreshold = TimeSpan.FromHours(24);
+            }
+        });
+
+        // Configure SLA background update options
+        services.Configure<SLAUpdateOptions>(options =>
+        {
+            if (configuration != null)
+            {
+                var section = configuration.GetSection(SLAUpdateOptions.SectionName);
+                
+                if (int.TryParse(section["UpdateIntervalSeconds"], out var interval))
+                {
+                    options.UpdateIntervalSeconds = interval;
+                }
+                
+                if (int.TryParse(section["BatchSize"], out var batchSize))
+                {
+                    options.BatchSize = batchSize;
+                }
+                
+                if (int.TryParse(section["MaxRetries"], out var maxRetries))
+                {
+                    options.MaxRetries = maxRetries;
+                }
+                
+                if (int.TryParse(section["RetryDelaySeconds"], out var retryDelay))
+                {
+                    options.RetryDelaySeconds = retryDelay;
+                }
+            }
+        });
+
+        // Configure SLA resilience options
+        services.Configure<SLAResilienceOptions>(options =>
+        {
+            if (configuration != null)
+            {
+                var section = configuration.GetSection(SLAResilienceOptions.SectionName);
+                
+                if (int.TryParse(section["CircuitBreakerFailureThreshold"], out var failureThreshold))
+                {
+                    options.CircuitBreakerFailureThreshold = failureThreshold;
+                }
+                
+                if (TimeSpan.TryParse(section["CircuitBreakerResetTimeout"], out var resetTimeout))
+                {
+                    options.CircuitBreakerResetTimeout = resetTimeout;
+                }
+                
+                if (int.TryParse(section["CircuitBreakerSuccessThreshold"], out var successThreshold))
+                {
+                    options.CircuitBreakerSuccessThreshold = successThreshold;
+                }
+                
+                if (int.TryParse(section["MaxRetryAttempts"], out var maxRetries))
+                {
+                    options.MaxRetryAttempts = maxRetries;
+                }
+                
+                if (TimeSpan.TryParse(section["RetryBaseDelay"], out var baseDelay))
+                {
+                    options.RetryBaseDelay = baseDelay;
+                }
+                
+                if (TimeSpan.TryParse(section["RetryMaxDelay"], out var maxDelay))
+                {
+                    options.RetryMaxDelay = maxDelay;
+                }
+                
+                if (TimeSpan.TryParse(section["OperationTimeout"], out var timeout))
+                {
+                    options.OperationTimeout = timeout;
+                }
+            }
+        });
+
+        // Register background service for automatic SLA updates
+        services.AddHostedService<SLAUpdateBackgroundService>();
 
         return services;
     }

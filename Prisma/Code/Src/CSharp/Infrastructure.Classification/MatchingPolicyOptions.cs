@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ExxerCube.Prisma.Infrastructure.Classification;
 
 /// <summary>

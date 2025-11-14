@@ -1,19 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Application.Services;
-
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Python;
-using Microsoft.Extensions.Logging;
-using Shouldly;
-using Xunit;
-using ExxerCube.Prisma.Tests.TestData;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -66,7 +50,7 @@ public class PerformanceTests : IDisposable
         var stopwatch = Stopwatch.StartNew();
 
         // Act
-        var result = await _processingService.ProcessDocumentAsync(imageData, config);
+        var result = await _processingService.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert
@@ -94,7 +78,7 @@ public class PerformanceTests : IDisposable
         var stopwatch = Stopwatch.StartNew();
 
         // Act
-        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 5);
+        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 5, TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert
@@ -123,7 +107,7 @@ public class PerformanceTests : IDisposable
 
         // Act
         var stopwatch = Stopwatch.StartNew();
-        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 3);
+        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 3, TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert
@@ -158,7 +142,7 @@ public class PerformanceTests : IDisposable
 
         // Act
         var stopwatch = Stopwatch.StartNew();
-        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 2);
+        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 2, TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert
@@ -189,7 +173,7 @@ public class PerformanceTests : IDisposable
 
         // Act
         var initialMemory = GC.GetTotalMemory(false);
-        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 2);
+        var result = await _processingService.ProcessDocumentsAsync(documents, config, maxConcurrency: 2, TestContext.Current.CancellationToken);
         var finalMemory = GC.GetTotalMemory(false);
         var memoryIncrease = finalMemory - initialMemory;
 
@@ -222,11 +206,11 @@ public class PerformanceTests : IDisposable
 
         // Act
         var simpleStopwatch = Stopwatch.StartNew();
-        var simpleResult = await _processingService.ProcessDocumentAsync(simpleDocument, config);
+        var simpleResult = await _processingService.ProcessDocumentAsync(simpleDocument, config, TestContext.Current.CancellationToken);
         simpleStopwatch.Stop();
 
         var complexStopwatch = Stopwatch.StartNew();
-        var complexResult = await _processingService.ProcessDocumentAsync(complexDocument, config);
+        var complexResult = await _processingService.ProcessDocumentAsync(complexDocument, config, TestContext.Current.CancellationToken);
         complexStopwatch.Stop();
 
         // Assert
@@ -276,7 +260,7 @@ public class PerformanceTests : IDisposable
         for (int i = 0; i < 3; i++)
         {
             var stopwatch = Stopwatch.StartNew();
-            var result = await _processingService.ProcessDocumentAsync(imageData, config);
+            var result = await _processingService.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
             stopwatch.Stop();
             
             if (!result.IsSuccess)

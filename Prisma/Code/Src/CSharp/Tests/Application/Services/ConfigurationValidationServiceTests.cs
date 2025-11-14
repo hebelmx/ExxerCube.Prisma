@@ -1,13 +1,3 @@
-using System;
-using System.Linq;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-using ExxerCube.Prisma.Application.Services;
-
-using ExxerCube.Prisma.Domain.Entities;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>

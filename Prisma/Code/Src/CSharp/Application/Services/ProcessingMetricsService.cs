@@ -67,7 +67,7 @@ public class ProcessingMetricsService : IDisposable
     /// <returns>A processing context that should be disposed when processing completes.</returns>
     public async Task<ProcessingContext> StartProcessingAsync(string documentId, string sourcePath)
     {
-        await _metricsLock.WaitAsync();
+        await _metricsLock.WaitAsync().ConfigureAwait(false);
         try
         {
             if (ActiveProcessingCount >= MaxConcurrency)
@@ -98,7 +98,7 @@ public class ProcessingMetricsService : IDisposable
     /// <param name="isSuccess">Whether the processing was successful.</param>
     public async Task CompleteProcessingAsync(ProcessingContext context, ProcessingResult? result, bool isSuccess)
     {
-        await _metricsLock.WaitAsync();
+        await _metricsLock.WaitAsync().ConfigureAwait(false);
         try
         {
             ActiveProcessingCount--;
@@ -151,7 +151,7 @@ public class ProcessingMetricsService : IDisposable
     /// <param name="error">The error message.</param>
     public async Task RecordErrorAsync(ProcessingContext context, string error)
     {
-        await CompleteProcessingAsync(context, null, false);
+        await CompleteProcessingAsync(context, null, false).ConfigureAwait(false);
         
         _logger.LogError("Processing error for document {DocumentId}: {Error}", context.DocumentId, error);
         
@@ -173,7 +173,7 @@ public class ProcessingMetricsService : IDisposable
     /// <returns>The current processing statistics.</returns>
     public async Task<ProcessingStatistics> GetCurrentStatisticsAsync()
     {
-        await _metricsLock.WaitAsync();
+        await _metricsLock.WaitAsync().ConfigureAwait(false);
         try
         {
             return CurrentStatistics;
@@ -262,7 +262,7 @@ public class ProcessingMetricsService : IDisposable
     /// <returns>A result indicating whether performance requirements are met.</returns>
     public async Task<Result<PerformanceValidation>> ValidatePerformanceAsync()
     {
-        var statistics = await GetCurrentStatisticsAsync();
+        var statistics = await GetCurrentStatisticsAsync().ConfigureAwait(false);
         var throughput1Hour = CalculateThroughput(TimeSpan.FromHours(1));
         var throughput5Minutes = CalculateThroughput(TimeSpan.FromMinutes(5));
 

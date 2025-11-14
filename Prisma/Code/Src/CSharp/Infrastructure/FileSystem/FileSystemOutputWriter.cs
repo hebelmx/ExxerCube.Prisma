@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
@@ -33,9 +35,17 @@ public class FileSystemOutputWriter : IOutputWriter
     /// </summary>
     /// <param name="result">The processing result to write.</param>
     /// <param name="outputPath">The output file path.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
-    public async Task<Result<bool>> WriteResultAsync(ProcessingResult result, string outputPath)
+    public async Task<Result<bool>> WriteResultAsync(ProcessingResult result, string outputPath, CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Result writing cancelled before starting");
+            return ResultExtensions.Cancelled<bool>();
+        }
+
         try
         {
             _logger.LogInformation("Writing processing result to {OutputPath}", outputPath);
@@ -47,17 +57,29 @@ public class FileSystemOutputWriter : IOutputWriter
                 return Result<bool>.WithFailure(validationResult.Error!);
             }
 
+            // Check for cancellation before writing
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning("Result writing cancelled before file write");
+                return ResultExtensions.Cancelled<bool>();
+            }
+
             // Determine output format based on file extension
             var extension = Path.GetExtension(outputPath).ToLowerInvariant();
             switch (extension)
             {
                 case ".json":
-                    return await WriteJsonAsync(result, outputPath);
+                    return await WriteJsonAsync(result, outputPath, cancellationToken).ConfigureAwait(false);
                 case ".txt":
-                    return await WriteTextAsync(result, outputPath);
+                    return await WriteTextAsync(result, outputPath, cancellationToken).ConfigureAwait(false);
                 default:
                     return Result<bool>.WithFailure($"Unsupported output format: {extension}");
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Result writing cancelled for {OutputPath}", outputPath);
+            return ResultExtensions.Cancelled<bool>();
         }
         catch (Exception ex)
         {
@@ -71,9 +93,17 @@ public class FileSystemOutputWriter : IOutputWriter
     /// </summary>
     /// <param name="results">The list of processing results to write.</param>
     /// <param name="outputDirectory">The output directory path.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
-    public async Task<Result<bool>> WriteResultsAsync(IEnumerable<ProcessingResult> results, string outputDirectory)
+    public async Task<Result<bool>> WriteResultsAsync(IEnumerable<ProcessingResult> results, string outputDirectory, CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Batch result writing cancelled before starting");
+            return ResultExtensions.Cancelled<bool>();
+        }
+
         try
         {
             _logger.LogInformation("Writing {ResultCount} processing results to directory {OutputDirectory}", 
@@ -86,15 +116,30 @@ public class FileSystemOutputWriter : IOutputWriter
 
             var resultsList = results.ToList();
             var errors = new List<string>();
+            var cancelledWrites = 0;
 
             foreach (var result in resultsList)
             {
+                // Check for cancellation between iterations
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Batch result writing cancelled during processing");
+                    break;
+                }
+
                 var fileName = Path.GetFileNameWithoutExtension(result.SourcePath);
                 var jsonPath = Path.Combine(outputDirectory, $"{fileName}.json");
                 var textPath = Path.Combine(outputDirectory, $"{fileName}.txt");
 
-                var jsonResult = await WriteJsonAsync(result, jsonPath);
-                var textResult = await WriteTextAsync(result, textPath);
+                var jsonResult = await WriteJsonAsync(result, jsonPath, cancellationToken).ConfigureAwait(false);
+                var textResult = await WriteTextAsync(result, textPath, cancellationToken).ConfigureAwait(false);
+
+                // Propagate cancellation from dependencies
+                if (jsonResult.IsCancelled() || textResult.IsCancelled())
+                {
+                    cancelledWrites++;
+                    break;
+                }
 
                 if (!jsonResult.IsSuccess)
                 {
@@ -107,6 +152,15 @@ public class FileSystemOutputWriter : IOutputWriter
                 }
             }
 
+            // Handle cancellation
+            var wasCancelled = cancellationToken.IsCancellationRequested || cancelledWrites > 0;
+            
+            if (wasCancelled && errors.Count == 0)
+            {
+                _logger.LogWarning("Batch result writing cancelled");
+                return ResultExtensions.Cancelled<bool>();
+            }
+
             if (errors.Any())
             {
                 _logger.LogWarning("Some results failed to write: {ErrorCount} errors", errors.Count);
@@ -117,11 +171,16 @@ public class FileSystemOutputWriter : IOutputWriter
                 resultsList.Count, outputDirectory);
             return Result<bool>.Success(true);
         }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error writing processing results to directory {OutputDirectory}", outputDirectory);
-                return Result<bool>.WithFailure($"Failed to write results: {ex.Message}", default, ex);
-            }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Batch result writing cancelled");
+            return ResultExtensions.Cancelled<bool>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error writing processing results to directory {OutputDirectory}", outputDirectory);
+            return Result<bool>.WithFailure($"Failed to write results: {ex.Message}", default, ex);
+        }
     }
 
     /// <summary>
@@ -129,9 +188,17 @@ public class FileSystemOutputWriter : IOutputWriter
     /// </summary>
     /// <param name="result">The processing result to write.</param>
     /// <param name="outputPath">The output file path.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
-    public async Task<Result<bool>> WriteJsonAsync(ProcessingResult result, string outputPath)
+    public async Task<Result<bool>> WriteJsonAsync(ProcessingResult result, string outputPath, CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("JSON writing cancelled before starting");
+            return ResultExtensions.Cancelled<bool>();
+        }
+
         try
         {
             _logger.LogInformation("Writing JSON result to {OutputPath}", outputPath);
@@ -143,10 +210,17 @@ public class FileSystemOutputWriter : IOutputWriter
             };
 
             var json = JsonConvert.SerializeObject(result, jsonSettings);
-            await File.WriteAllTextAsync(outputPath, json);
+            
+            // CRITICAL: Pass cancellation token to File.WriteAllTextAsync
+            await File.WriteAllTextAsync(outputPath, json, cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("Successfully wrote JSON result to {OutputPath}", outputPath);
             return Result<bool>.Success(true);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("JSON writing cancelled for {OutputPath}", outputPath);
+            return ResultExtensions.Cancelled<bool>();
         }
         catch (Exception ex)
         {
@@ -160,9 +234,17 @@ public class FileSystemOutputWriter : IOutputWriter
     /// </summary>
     /// <param name="result">The processing result to write.</param>
     /// <param name="outputPath">The output file path.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
-    public async Task<Result<bool>> WriteTextAsync(ProcessingResult result, string outputPath)
+    public async Task<Result<bool>> WriteTextAsync(ProcessingResult result, string outputPath, CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Text writing cancelled before starting");
+            return ResultExtensions.Cancelled<bool>();
+        }
+
         try
         {
             _logger.LogInformation("Writing text result to {OutputPath}", outputPath);
@@ -223,10 +305,16 @@ public class FileSystemOutputWriter : IOutputWriter
                 }
             }
 
-            await File.WriteAllLinesAsync(outputPath, textLines);
+            // CRITICAL: Pass cancellation token to File.WriteAllLinesAsync
+            await File.WriteAllLinesAsync(outputPath, textLines, cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("Successfully wrote text result to {OutputPath}", outputPath);
             return Result<bool>.Success(true);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Text writing cancelled for {OutputPath}", outputPath);
+            return ResultExtensions.Cancelled<bool>();
         }
         catch (Exception ex)
         {

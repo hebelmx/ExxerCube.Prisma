@@ -4,9 +4,11 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
@@ -33,19 +35,48 @@ public class FileSystemLoader : IFileLoader
     /// Loads an image from a file path.
     /// </summary>
     /// <param name="filePath">The path to the image file.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the loaded image data or an error.</returns>
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    public async Task<Result<ImageData>> LoadImageAsync(string filePath)
+    public async Task<Result<ImageData>> LoadImageAsync(string filePath, CancellationToken cancellationToken = default)
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            _logger.LogDebug("Running on Windows platform");
+            return Result<ImageData>.WithFailure($"Unsupported file extension: OS");
+        }
+
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Image loading cancelled before starting");
+            return ResultExtensions.Cancelled<ImageData>();
+        }
+
         try
         {
             _logger.LogInformation("Loading image from file {FilePath}", filePath);
 
             // Validate file path
-            var validationResult = await ValidateFilePathAsync(filePath);
+            var validationResult = await ValidateFilePathAsync(filePath, cancellationToken).ConfigureAwait(false);
+
+            // Propagate cancellation from dependencies
+            if (validationResult.IsCancelled())
+            {
+                _logger.LogWarning("Image loading cancelled during validation");
+                return ResultExtensions.Cancelled<ImageData>();
+            }
+
             if (!validationResult.IsSuccess)
             {
                 return Result<ImageData>.WithFailure(validationResult.Error!);
+            }
+
+            // Check for cancellation before loading
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning("Image loading cancelled before file load");
+                return ResultExtensions.Cancelled<ImageData>();
             }
 
             // Check file extension
@@ -55,15 +86,15 @@ public class FileSystemLoader : IFileLoader
                 return Result<ImageData>.WithFailure($"Unsupported file extension: {extension}");
             }
 
-            // Load image data
+            // Load image data - CRITICAL: Pass cancellation token to Task.Run
             byte[] imageData;
             if (extension == ".pdf")
             {
-                imageData = await Task.Run(() => LoadPdfAsImage(filePath));
+                imageData = await Task.Run(() => LoadPdfAsImage(filePath), cancellationToken);
             }
             else
             {
-                imageData = await Task.Run(() => LoadImageFile(filePath));
+                imageData = await Task.Run(() => LoadImageFile(filePath), cancellationToken);
             }
 
             var result = new ImageData
@@ -74,9 +105,14 @@ public class FileSystemLoader : IFileLoader
                 TotalPages = 1
             };
 
-            _logger.LogInformation("Successfully loaded image from {FilePath} ({Size} bytes)", 
+            _logger.LogInformation("Successfully loaded image from {FilePath} ({Size} bytes)",
                 filePath, imageData.Length);
             return Result<ImageData>.Success(result);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Image loading cancelled for {FilePath}", filePath);
+            return ResultExtensions.Cancelled<ImageData>();
         }
         catch (Exception ex)
         {
@@ -90,10 +126,23 @@ public class FileSystemLoader : IFileLoader
     /// </summary>
     /// <param name="directoryPath">The path to the directory containing images.</param>
     /// <param name="supportedExtensions">The supported file extensions.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of loaded image data or an error.</returns>
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    public async Task<Result<List<ImageData>>> LoadImagesFromDirectoryAsync(string directoryPath, string[] supportedExtensions)
+    public async Task<Result<List<ImageData>>> LoadImagesFromDirectoryAsync(string directoryPath, string[] supportedExtensions, CancellationToken cancellationToken = default)
     {
+        if (!OperatingSystem.IsWindows())
+        {
+            _logger.LogDebug("Running on Windows platform");
+            return Result<List<ImageData>>.WithFailure($"Unsupported file extension: OS");
+        }
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Directory image loading cancelled before starting");
+            return ResultExtensions.Cancelled<List<ImageData>>();
+        }
+
         try
         {
             _logger.LogInformation("Loading images from directory {DirectoryPath}", directoryPath);
@@ -116,12 +165,26 @@ public class FileSystemLoader : IFileLoader
             }
 
             var imageDataList = new List<ImageData>();
+            var cancelledResults = new List<Result<ImageData>>();
             var errors = new List<string>();
 
             foreach (var file in files)
             {
-                var loadResult = await LoadImageAsync(file);
-                if (loadResult.IsSuccess)
+                // Check for cancellation between iterations
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Directory image loading cancelled during processing");
+                    break;
+                }
+
+                var loadResult = await LoadImageAsync(file, cancellationToken).ConfigureAwait(false);
+
+                // Propagate cancellation from dependencies
+                if (loadResult.IsCancelled())
+                {
+                    cancelledResults.Add(loadResult);
+                }
+                else if (loadResult.IsSuccess)
                 {
                     imageDataList.Add(loadResult.Value!);
                 }
@@ -131,14 +194,53 @@ public class FileSystemLoader : IFileLoader
                 }
             }
 
+            // Handle cancellation with partial results
+            var wasCancelled = cancellationToken.IsCancellationRequested || cancelledResults.Any();
+
+            if (wasCancelled)
+            {
+                if (imageDataList.Count > 0)
+                {
+                    // Return partial results with warning about cancellation
+                    var totalRequested = files.Length;
+                    var completed = imageDataList.Count;
+                    var cancelled = cancelledResults.Count;
+                    var confidence = (double)completed / totalRequested;
+                    var missingDataRatio = (double)(cancelled + errors.Count) / totalRequested;
+
+                    _logger.LogWarning(
+                        "Directory image loading cancelled. Returning {CompletedCount} of {TotalCount} loaded images. " +
+                        "Cancelled: {CancelledCount}, Failed: {FailedCount}",
+                        completed, totalRequested, cancelled, errors.Count);
+
+                    return Result<List<ImageData>>.WithWarnings(
+                        warnings: new[] { $"Operation was cancelled. Loaded {completed} of {totalRequested} images." },
+                        value: imageDataList,
+                        confidence: confidence,
+                        missingDataRatio: missingDataRatio
+                    );
+                }
+                else
+                {
+                    // No partial results - return cancelled
+                    _logger.LogWarning("Directory image loading cancelled with no completed results");
+                    return ResultExtensions.Cancelled<List<ImageData>>();
+                }
+            }
+
             if (errors.Any())
             {
                 _logger.LogWarning("Some files failed to load: {ErrorCount} errors", errors.Count);
             }
 
-            _logger.LogInformation("Successfully loaded {SuccessCount} images from directory {DirectoryPath}", 
+            _logger.LogInformation("Successfully loaded {SuccessCount} images from directory {DirectoryPath}",
                 imageDataList.Count, directoryPath);
             return Result<List<ImageData>>.Success(imageDataList);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Directory image loading cancelled");
+            return ResultExtensions.Cancelled<List<ImageData>>();
         }
         catch (Exception ex)
         {
@@ -160,10 +262,25 @@ public class FileSystemLoader : IFileLoader
     /// Validates if a file path is valid and accessible.
     /// </summary>
     /// <param name="filePath">The file path to validate.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result indicating validation success or failure.</returns>
-    public async Task<Result<bool>> ValidateFilePathAsync(string filePath)
+    public async Task<Result<bool>> ValidateFilePathAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        return await Task.Run(() => ValidateFilePath(filePath));
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<bool>();
+        }
+
+        try
+        {
+            // CRITICAL: Pass cancellation token to Task.Run
+            return await Task.Run(() => ValidateFilePath(filePath), cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<bool>();
+        }
     }
 
     /// <summary>

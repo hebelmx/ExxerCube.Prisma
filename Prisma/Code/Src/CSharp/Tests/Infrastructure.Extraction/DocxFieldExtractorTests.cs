@@ -1,17 +1,3 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Infrastructure.Extraction;
-using Microsoft.Extensions.Logging;
-using Meziantou.Extensions.Logging.Xunit.v3;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
@@ -56,7 +42,7 @@ public class DocxFieldExtractorTests
         // Arrange
         var tempFile = Path.Combine(Path.GetTempPath(), $"test_{Guid.NewGuid()}.docx");
         var docxBytes = CreateSampleDocx("A/AS1-2505-088637-PHM", "Test Causa", null);
-        await File.WriteAllBytesAsync(tempFile, docxBytes);
+        await File.WriteAllBytesAsync(tempFile, docxBytes, TestContext.Current.CancellationToken);
 
         try
         {

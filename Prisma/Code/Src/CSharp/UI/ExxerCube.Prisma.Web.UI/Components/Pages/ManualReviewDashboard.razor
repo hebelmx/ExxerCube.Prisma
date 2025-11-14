@@ -1,0 +1,284 @@
+@page "/manual-review"
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Domain.Entities
+@using MudBlazor
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+@inject IManualReviewerPanel ManualReviewerPanel
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+
+<PageTitle>Manual Review Dashboard</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+            Manual Review Dashboard
+        </MudText>
+        
+        <MudText Typo="Typo.body2" Class="mb-4">
+            Review and approve low-confidence classifications or extractions. Filter cases by confidence level, status, or assigned reviewer.
+        </MudText>
+
+        <!-- Quick Stats -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Total Pending</MudText>
+                        <MudText Typo="Typo.h4" Color="Color.Warning">@totalPending</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Low Confidence</MudText>
+                        <MudText Typo="Typo.h4" Color="Color.Error">@lowConfidenceCount</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">In Progress</MudText>
+                        <MudText Typo="Typo.h4" Color="Color.Info">@inProgressCount</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Completed Today</MudText>
+                        <MudText Typo="Typo.h4" Color="Color.Success">@completedTodayCount</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Filter Bar -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.FilterList" Class="mr-2" />
+                    Filters
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="int?" Label="Min Confidence" Variant="Variant.Outlined" @bind-Value="filters.MinConfidenceLevel">
+                            <MudSelectItem Value="@((int?)null)">All</MudSelectItem>
+                            <MudSelectItem Value="0">0%</MudSelectItem>
+                            <MudSelectItem Value="50">50%</MudSelectItem>
+                            <MudSelectItem Value="70">70%</MudSelectItem>
+                            <MudSelectItem Value="80">80%</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="int?" Label="Max Confidence" Variant="Variant.Outlined" @bind-Value="filters.MaxConfidenceLevel">
+                            <MudSelectItem Value="@((int?)null)">All</MudSelectItem>
+                            <MudSelectItem Value="70">70%</MudSelectItem>
+                            <MudSelectItem Value="80">80%</MudSelectItem>
+                            <MudSelectItem Value="90">90%</MudSelectItem>
+                            <MudSelectItem Value="100">100%</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="ReviewStatus?" Label="Status" Variant="Variant.Outlined" @bind-Value="filters.Status">
+                            <MudSelectItem Value="@((ReviewStatus?)null)">All</MudSelectItem>
+                            <MudSelectItem Value="ReviewStatus.Pending">Pending</MudSelectItem>
+                            <MudSelectItem Value="ReviewStatus.InProgress">In Progress</MudSelectItem>
+                            <MudSelectItem Value="ReviewStatus.Completed">Completed</MudSelectItem>
+                            <MudSelectItem Value="ReviewStatus.Rejected">Rejected</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="ReviewReason?" Label="Review Reason" Variant="Variant.Outlined" @bind-Value="filters.ReviewReason">
+                            <MudSelectItem Value="@((ReviewReason?)null)">All</MudSelectItem>
+                            <MudSelectItem Value="ReviewReason.LowConfidence">Low Confidence</MudSelectItem>
+                            <MudSelectItem Value="ReviewReason.AmbiguousClassification">Ambiguous Classification</MudSelectItem>
+                            <MudSelectItem Value="ReviewReason.ExtractionError">Extraction Error</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-3" OnClick="ApplyFilters">
+                    <MudIcon Icon="@Icons.Material.Filled.Search" Class="mr-2" />
+                    Apply Filters
+                </MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="mt-3 ml-2" OnClick="ClearFilters">
+                    Clear Filters
+                </MudButton>
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Review Queue Table -->
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+                    Review Queue
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (isLoading)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-3" />
+                }
+                else if (reviewCases == null || reviewCases.Count == 0)
+                {
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="text-center pa-4">
+                        No review cases found matching the current filters.
+                    </MudText>
+                }
+                else
+                {
+                    <MudTable Items="@reviewCases" Hover="true" Dense="true" Striped="true">
+                        <HeaderContent>
+                            <MudTh>Case ID</MudTh>
+                            <MudTh>File ID</MudTh>
+                            <MudTh>Reason</MudTh>
+                            <MudTh>Confidence</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh>Assigned To</MudTh>
+                            <MudTh>Created</MudTh>
+                            <MudTh>Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Case ID">@context.CaseId</MudTd>
+                            <MudTd DataLabel="File ID">@context.FileId</MudTd>
+                            <MudTd DataLabel="Reason">
+                                <MudChip T="string" Size="Size.Small" Color="@GetReasonColor(context.RequiresReviewReason)">
+                                    @context.RequiresReviewReason.ToString()
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Confidence">
+                                <MudProgressLinear Value="@context.ConfidenceLevel" Color="@GetConfidenceColor(context.ConfidenceLevel)" Class="mt-2" />
+                                <MudText Typo="Typo.caption">@context.ConfidenceLevel%</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Status">
+                                <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">
+                                    @context.Status.ToString()
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Assigned To">@(context.AssignedTo ?? "Unassigned")</MudTd>
+                            <MudTd DataLabel="Created">@context.CreatedAt.ToString("MM/dd/yyyy HH:mm")</MudTd>
+                            <MudTd DataLabel="Actions">
+                                <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => ViewCase(context.CaseId))">
+                                    <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
+                                </MudButton>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<ReviewCase>? reviewCases;
+    private ReviewFilters filters = new();
+    private bool isLoading = false;
+    private int totalPending = 0;
+    private int lowConfidenceCount = 0;
+    private int inProgressCount = 0;
+    private int completedTodayCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReviewCases();
+        await LoadStats();
+    }
+
+    private async Task LoadReviewCases()
+    {
+        isLoading = true;
+        try
+        {
+            var result = await ManualReviewerPanel.GetReviewCasesAsync(filters, 1, 50);
+            if (result.IsSuccess && result.Value != null)
+            {
+                reviewCases = result.Value;
+            }
+            else
+            {
+                Snackbar.Add($"Error loading review cases: {result.Error}", Severity.Error);
+                reviewCases = new List<ReviewCase>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            reviewCases = new List<ReviewCase>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadStats()
+    {
+        try
+        {
+            var allCasesResult = await ManualReviewerPanel.GetReviewCasesAsync(null, 1, 1000);
+            if (allCasesResult.IsSuccess && allCasesResult.Value != null)
+            {
+                var allCases = allCasesResult.Value;
+                totalPending = allCases.Count(c => c.Status == ReviewStatus.Pending);
+                lowConfidenceCount = allCases.Count(c => c.ConfidenceLevel < 80);
+                inProgressCount = allCases.Count(c => c.Status == ReviewStatus.InProgress);
+                completedTodayCount = allCases.Count(c => c.Status == ReviewStatus.Completed && c.CreatedAt.Date == DateTime.UtcNow.Date);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading stats: {ex.Message}", Severity.Warning);
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        await LoadReviewCases();
+    }
+
+    private async Task ClearFilters()
+    {
+        filters = new ReviewFilters();
+        await LoadReviewCases();
+    }
+
+    private void ViewCase(string caseId)
+    {
+        Navigation.NavigateTo($"/manual-review/{caseId}");
+    }
+
+    private Color GetReasonColor(ReviewReason reason) => reason switch
+    {
+        ReviewReason.LowConfidence => Color.Warning,
+        ReviewReason.AmbiguousClassification => Color.Info,
+        ReviewReason.ExtractionError => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetStatusColor(ReviewStatus status) => status switch
+    {
+        ReviewStatus.Pending => Color.Warning,
+        ReviewStatus.InProgress => Color.Info,
+        ReviewStatus.Completed => Color.Success,
+        ReviewStatus.Rejected => Color.Error,
+        _ => Color.Default
+    };
+
+    private Color GetConfidenceColor(int confidence)
+    {
+        if (confidence < 70) return Color.Error;
+        if (confidence < 80) return Color.Warning;
+        return Color.Success;
+    }
+}
+

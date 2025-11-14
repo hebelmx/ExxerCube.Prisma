@@ -160,32 +160,32 @@ public class MatchingPolicyService : IMatchingPolicy
         {
             if (values == null || values.Count == 0)
             {
-                return Task.FromResult(Result<bool>.Success(false));
+                return Result<bool>.Success(false);
             }
 
             // Filter out null/empty values
             var validValues = values.Where(v => !string.IsNullOrWhiteSpace(v.Value)).ToList();
             if (validValues.Count <= 1)
             {
-                return Task.FromResult(Result<bool>.Success(false));
+                return Result<bool>.Success(false);
             }
 
             // Calculate agreement level
             var agreementResult = await CalculateAgreementLevelAsync(validValues);
             if (agreementResult.IsFailure)
             {
-                return Task.FromResult(Result<bool>.WithFailure(agreementResult.Error ?? "Failed to calculate agreement"));
+                return Result<bool>.WithFailure(agreementResult.Error ?? "Failed to calculate agreement");
             }
 
             var agreementLevel = agreementResult.Value;
             var hasConflict = agreementLevel < threshold;
 
-            return Task.FromResult(Result<bool>.Success(hasConflict));
+            return Result<bool>.Success(hasConflict);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking for conflicts");
-            return Task.FromResult(Result<bool>.WithFailure($"Error checking for conflicts: {ex.Message}", false, ex));
+            return Result<bool>.WithFailure($"Error checking for conflicts: {ex.Message}", false, ex);
         }
     }
 

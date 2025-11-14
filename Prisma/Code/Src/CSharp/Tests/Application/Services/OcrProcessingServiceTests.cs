@@ -1,15 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-using IndQuestResults;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -57,7 +45,7 @@ public class OcrProcessingServiceTests
             .Returns(Result<ExtractedFields>.Success(extractedFields));
 
         // Act
-        var result = await _service.ProcessDocumentAsync(imageData, config);
+        var result = await _service.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -83,7 +71,7 @@ public class OcrProcessingServiceTests
         var config = CreateValidProcessingConfig();
 
         // Act
-        var result = await _service.ProcessDocumentAsync(invalidImageData, config);
+        var result = await _service.ProcessDocumentAsync(invalidImageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -109,7 +97,7 @@ public class OcrProcessingServiceTests
             .Returns(Result<ImageData>.Failure("Preprocessing failed"));
 
         // Act
-        var result = await _service.ProcessDocumentAsync(imageData, config);
+        var result = await _service.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -137,7 +125,7 @@ public class OcrProcessingServiceTests
             .Returns(Result<OCRResult>.Failure("OCR failed"));
 
         // Act
-        var result = await _service.ProcessDocumentAsync(imageData, config);
+        var result = await _service.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -168,7 +156,7 @@ public class OcrProcessingServiceTests
             .Returns(Result<ExtractedFields>.Failure("Field extraction failed"));
 
         // Act
-        var result = await _service.ProcessDocumentAsync(imageData, config);
+        var result = await _service.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();
@@ -205,7 +193,7 @@ public class OcrProcessingServiceTests
             .Returns(Result<ExtractedFields>.Success(extractedFields));
 
         // Act
-        var result = await _service.ProcessDocumentsAsync(imageDataList, config, maxConcurrency: 2);
+        var result = await _service.ProcessDocumentsAsync(imageDataList, config, maxConcurrency: 2, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -239,7 +227,7 @@ public class OcrProcessingServiceTests
         var config = CreateValidProcessingConfig();
 
         // Act
-        var result = await _service.ProcessDocumentAsync(imageData, config);
+        var result = await _service.ProcessDocumentAsync(imageData, config, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeFalse();

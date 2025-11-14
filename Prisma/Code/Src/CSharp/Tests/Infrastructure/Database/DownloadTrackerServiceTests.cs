@@ -1,18 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Database;
-using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.InMemory;
-using Microsoft.Extensions.Logging;
-using Meziantou.Extensions.Logging.Xunit.v3;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
 
 /// <summary>

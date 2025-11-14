@@ -1,16 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Classification;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -89,7 +76,11 @@ public class FieldMatchingPerformanceTests
             docxSource,
             pdfSource,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert
@@ -126,7 +117,11 @@ public class FieldMatchingPerformanceTests
             docxSource,
             null,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert

@@ -1,16 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Classification;
-using IndQuestResults;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -52,7 +39,11 @@ public class FieldMatchingServiceTests
             null,
             null,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -70,7 +61,11 @@ public class FieldMatchingServiceTests
             docxSource,
             null,
             null,
-            null!);
+            null!,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -89,7 +84,11 @@ public class FieldMatchingServiceTests
             docxSource,
             null,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -136,7 +135,11 @@ public class FieldMatchingServiceTests
             docxSource,
             pdfSource,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -174,7 +177,11 @@ public class FieldMatchingServiceTests
             docxSource,
             pdfSource,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -206,7 +213,11 @@ public class FieldMatchingServiceTests
             docxSource,
             null,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -241,7 +252,11 @@ public class FieldMatchingServiceTests
             docxSource,
             pdfSource,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -276,7 +291,10 @@ public class FieldMatchingServiceTests
             null,
             null,
             fieldDefinitions,
-            requiredFields: requiredFields);
+            expediente: null,
+            classification: null,
+            requiredFields: requiredFields,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue(); // Service logs warning but continues

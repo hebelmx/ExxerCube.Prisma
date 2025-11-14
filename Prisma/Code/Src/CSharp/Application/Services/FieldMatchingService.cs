@@ -102,7 +102,7 @@ public class FieldMatchingService
                     return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
                 }
 
-                var docxExtractResult = await _docxFieldExtractor.ExtractFieldsAsync(docxSource, fieldDefinitions);
+                var docxExtractResult = await _docxFieldExtractor.ExtractFieldsAsync(docxSource, fieldDefinitions).ConfigureAwait(false);
                 
                 // Propagate cancellation from dependencies
                 if (docxExtractResult.IsCancelled())
@@ -131,7 +131,7 @@ public class FieldMatchingService
                     return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
                 }
 
-                var pdfExtractResult = await _pdfFieldExtractor.ExtractFieldsAsync(pdfSource, fieldDefinitions);
+                var pdfExtractResult = await _pdfFieldExtractor.ExtractFieldsAsync(pdfSource, fieldDefinitions).ConfigureAwait(false);
                 
                 // Propagate cancellation from dependencies
                 if (pdfExtractResult.IsCancelled())
@@ -160,7 +160,7 @@ public class FieldMatchingService
                     return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
                 }
 
-                var xmlExtractResult = await _xmlFieldExtractor.ExtractFieldsAsync(xmlSource, fieldDefinitions);
+                var xmlExtractResult = await _xmlFieldExtractor.ExtractFieldsAsync(xmlSource, fieldDefinitions).ConfigureAwait(false);
                 
                 // Propagate cancellation from dependencies
                 if (xmlExtractResult.IsCancelled())
@@ -193,7 +193,7 @@ public class FieldMatchingService
 
                 if (allFieldValues.TryGetValue(fieldDef.FieldName, out var values) && values.Count > 0)
                 {
-                    var matchResult = await _matchingPolicy.SelectBestValueAsync(fieldDef.FieldName, values);
+                    var matchResult = await _matchingPolicy.SelectBestValueAsync(fieldDef.FieldName, values).ConfigureAwait(false);
                     
                     // Propagate cancellation from dependencies
                     if (matchResult.IsCancelled())

@@ -78,15 +78,15 @@ public class OcrProcessingService : IOcrProcessingService
             if (!validationResult.IsSuccess)
             {
                 // Create a temporary context for error tracking
-                processingContext = await _metricsService.StartProcessingAsync(documentId, "unknown");
-                await _metricsService.RecordErrorAsync(processingContext, validationResult.Error!);
+                processingContext = await _metricsService.StartProcessingAsync(documentId, "unknown").ConfigureAwait(false);
+                await _metricsService.RecordErrorAsync(processingContext, validationResult.Error!).ConfigureAwait(false);
                 return Result<ProcessingResult>.WithFailure(validationResult.Error!);
             }
 
             _logger.LogInformation("Starting document processing for {SourcePath}", imageData.SourcePath);
             
             // Start metrics tracking
-            processingContext = await _metricsService.StartProcessingAsync(documentId, imageData.SourcePath);
+            processingContext = await _metricsService.StartProcessingAsync(documentId, imageData.SourcePath).ConfigureAwait(false);
 
             // Check for cancellation before preprocessing
             if (cancellationToken.IsCancellationRequested)
@@ -95,7 +95,7 @@ public class OcrProcessingService : IOcrProcessingService
                 return ResultExtensions.Cancelled<ProcessingResult>();
             }
 
-            var preprocessResult = await _imagePreprocessor.PreprocessAsync(imageData, config);
+            var preprocessResult = await _imagePreprocessor.PreprocessAsync(imageData, config).ConfigureAwait(false);
             
             // Propagate cancellation from dependencies
             if (preprocessResult.IsCancelled())
@@ -109,7 +109,7 @@ public class OcrProcessingService : IOcrProcessingService
                 var preprocessedImage = preprocessResult.Value;
                 if (preprocessedImage == null)
                 {
-                    await _metricsService.RecordErrorAsync(processingContext, "Preprocessing returned null result");
+                    await _metricsService.RecordErrorAsync(processingContext, "Preprocessing returned null result").ConfigureAwait(false);
                     return Result<ProcessingResult>.WithFailure("Preprocessing failed: No result returned");
                 }
 
@@ -120,7 +120,7 @@ public class OcrProcessingService : IOcrProcessingService
                     return ResultExtensions.Cancelled<ProcessingResult>();
                 }
 
-                var ocrResult = await _ocrExecutor.ExecuteOcrAsync(preprocessedImage, config.OCRConfig);
+                var ocrResult = await _ocrExecutor.ExecuteOcrAsync(preprocessedImage, config.OCRConfig).ConfigureAwait(false);
                 
                 // Propagate cancellation from dependencies
                 if (ocrResult.IsCancelled())
@@ -134,7 +134,7 @@ public class OcrProcessingService : IOcrProcessingService
                     var ocrResultValue = ocrResult.Value;
                     if (ocrResultValue == null)
                     {
-                        await _metricsService.RecordErrorAsync(processingContext, "OCR execution returned null result");
+                        await _metricsService.RecordErrorAsync(processingContext, "OCR execution returned null result").ConfigureAwait(false);
                         return Result<ProcessingResult>.WithFailure("OCR execution failed: No result returned");
                     }
 
@@ -145,7 +145,7 @@ public class OcrProcessingService : IOcrProcessingService
                         return ResultExtensions.Cancelled<ProcessingResult>();
                     }
 
-                    var extractResult = await _fieldExtractor.ExtractFieldsAsync(ocrResultValue.Text, ocrResultValue.ConfidenceAvg);
+                    var extractResult = await _fieldExtractor.ExtractFieldsAsync(ocrResultValue.Text, ocrResultValue.ConfidenceAvg).ConfigureAwait(false);
                     
                     // Propagate cancellation from dependencies
                     if (extractResult.IsCancelled())
@@ -159,7 +159,7 @@ public class OcrProcessingService : IOcrProcessingService
                         var extractedFields = extractResult.Value;
                         if (extractedFields == null)
                         {
-                            await _metricsService.RecordErrorAsync(processingContext, "Field extraction returned null result");
+                            await _metricsService.RecordErrorAsync(processingContext, "Field extraction returned null result").ConfigureAwait(false);
                             return Result<ProcessingResult>.WithFailure("Field extraction failed: No result returned");
                         }
 
@@ -167,25 +167,25 @@ public class OcrProcessingService : IOcrProcessingService
                         await LogProcessingResult(processingResult);
 
                         // Record successful completion
-                        await _metricsService.CompleteProcessingAsync(processingContext, processingResult, true);
+                        await _metricsService.CompleteProcessingAsync(processingContext, processingResult, true).ConfigureAwait(false);
 
                         return Result<ProcessingResult>.Success(processingResult);
                     }
                     else
                     {
-                        await _metricsService.RecordErrorAsync(processingContext, extractResult.Error ?? "Field extraction failed");
+                        await _metricsService.RecordErrorAsync(processingContext, extractResult.Error ?? "Field extraction failed").ConfigureAwait(false);
                         return Result<ProcessingResult>.WithFailure(extractResult.Error ?? "Field extraction failed");
                     }
                 }
                 else
                 {
-                    await _metricsService.RecordErrorAsync(processingContext, ocrResult.Error ?? "OCR execution failed");
+                    await _metricsService.RecordErrorAsync(processingContext, ocrResult.Error ?? "OCR execution failed").ConfigureAwait(false);
                     return Result<ProcessingResult>.WithFailure(ocrResult.Error ?? "OCR execution failed");
                 }
             }
             else
             {
-                await _metricsService.RecordErrorAsync(processingContext, preprocessResult.Error ?? "Preprocessing failed");
+                await _metricsService.RecordErrorAsync(processingContext, preprocessResult.Error ?? "Preprocessing failed").ConfigureAwait(false);
                 return Result<ProcessingResult>.WithFailure(preprocessResult.Error ?? "Preprocessing failed");
             }
         }
@@ -195,7 +195,7 @@ public class OcrProcessingService : IOcrProcessingService
             
             if (processingContext != null)
             {
-                await _metricsService.RecordErrorAsync(processingContext, "Operation cancelled");
+                await _metricsService.RecordErrorAsync(processingContext, "Operation cancelled").ConfigureAwait(false);
             }
             
             return ResultExtensions.Cancelled<ProcessingResult>();
@@ -206,13 +206,13 @@ public class OcrProcessingService : IOcrProcessingService
             
             if (processingContext != null)
             {
-                await _metricsService.RecordErrorAsync(processingContext, ex.Message);
+                await _metricsService.RecordErrorAsync(processingContext, ex.Message).ConfigureAwait(false);
             }
             else
             {
                 // If we couldn't create a processing context, create a temporary one for error tracking
-                var tempContext = await _metricsService.StartProcessingAsync(documentId, imageData.SourcePath);
-                await _metricsService.RecordErrorAsync(tempContext, ex.Message);
+                var tempContext = await _metricsService.StartProcessingAsync(documentId, imageData.SourcePath).ConfigureAwait(false);
+                await _metricsService.RecordErrorAsync(tempContext, ex.Message).ConfigureAwait(false);
                 tempContext.Dispose();
             }
             
@@ -259,10 +259,10 @@ public class OcrProcessingService : IOcrProcessingService
         var tasks = imageDataArray.Select(async imageData =>
         {
             // CRITICAL FIX: Pass cancellation token to WaitAsync to prevent hanging
-            await semaphore.WaitAsync(cancellationToken);
+            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                return await ProcessDocumentAsync(imageData, config, cancellationToken);
+                return await ProcessDocumentAsync(imageData, config, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -272,7 +272,7 @@ public class OcrProcessingService : IOcrProcessingService
 
         try
         {
-            var results = await Task.WhenAll(tasks);
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
             
             var successfulResults = new List<ProcessingResult>();
             var cancelledResults = new List<Result<ProcessingResult>>();

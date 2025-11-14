@@ -87,8 +87,8 @@ public class MetadataExtractionService
             _logger.LogInformation("Starting metadata extraction for file: {FilePath}", filePath);
 
             // Step 1: Identify file type based on content
-            var fileContent = await File.ReadAllBytesAsync(filePath, cancellationToken);
-            var fileTypeResult = await _fileTypeIdentifier.IdentifyFileTypeAsync(fileContent, originalFileName, cancellationToken);
+            var fileContent = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
+            var fileTypeResult = await _fileTypeIdentifier.IdentifyFileTypeAsync(fileContent, originalFileName, cancellationToken).ConfigureAwait(false);
             
             // Propagate cancellation from dependencies
             if (fileTypeResult.IsCancelled())
@@ -106,7 +106,7 @@ public class MetadataExtractionService
             _logger.LogDebug("Identified file type as: {FileFormat}", fileFormat);
 
             // Step 2: Extract metadata based on file type
-            var metadataResult = await ExtractMetadataByTypeAsync(fileContent, fileFormat, cancellationToken);
+            var metadataResult = await ExtractMetadataByTypeAsync(fileContent, fileFormat, cancellationToken).ConfigureAwait(false);
             
             // Propagate cancellation from dependencies
             if (metadataResult.IsCancelled())
@@ -129,7 +129,7 @@ public class MetadataExtractionService
             _logger.LogDebug("Extracted metadata successfully");
 
             // Step 3: Classify document
-            var classificationResult = await _fileClassifier.ClassifyAsync(metadata, cancellationToken);
+            var classificationResult = await _fileClassifier.ClassifyAsync(metadata, cancellationToken).ConfigureAwait(false);
             
             // Propagate cancellation from dependencies
             if (classificationResult.IsCancelled())
@@ -166,7 +166,7 @@ public class MetadataExtractionService
                 classification.Scores.OperacionesIlicitasScore);
 
             // Step 4: Generate safe file name
-            var fileNameResult = await _safeFileNamer.GenerateSafeFileNameAsync(originalFileName, classification, metadata, cancellationToken);
+            var fileNameResult = await _safeFileNamer.GenerateSafeFileNameAsync(originalFileName, classification, metadata, cancellationToken).ConfigureAwait(false);
             
             // Propagate cancellation from dependencies
             if (fileNameResult.IsCancelled())
@@ -189,7 +189,7 @@ public class MetadataExtractionService
             _logger.LogDebug("Generated safe file name: {SafeFileName}", safeFileName);
 
             // Step 5: Move file to organized location
-            var moveResult = await _fileMover.MoveFileAsync(filePath, classification, safeFileName, cancellationToken);
+            var moveResult = await _fileMover.MoveFileAsync(filePath, classification, safeFileName, cancellationToken).ConfigureAwait(false);
             
             // Propagate cancellation from dependencies
             if (moveResult.IsCancelled())
@@ -241,9 +241,9 @@ public class MetadataExtractionService
     {
         return fileFormat switch
         {
-            FileFormat.Xml => await _metadataExtractor.ExtractFromXmlAsync(fileContent, cancellationToken),
-            FileFormat.Docx => await _metadataExtractor.ExtractFromDocxAsync(fileContent, cancellationToken),
-            FileFormat.Pdf => await _metadataExtractor.ExtractFromPdfAsync(fileContent, cancellationToken),
+            FileFormat.Xml => await _metadataExtractor.ExtractFromXmlAsync(fileContent, cancellationToken).ConfigureAwait(false),
+            FileFormat.Docx => await _metadataExtractor.ExtractFromDocxAsync(fileContent, cancellationToken).ConfigureAwait(false),
+            FileFormat.Pdf => await _metadataExtractor.ExtractFromPdfAsync(fileContent, cancellationToken).ConfigureAwait(false),
             _ => Result<ExtractedMetadata>.WithFailure($"Unsupported file format: {fileFormat}")
         };
     }

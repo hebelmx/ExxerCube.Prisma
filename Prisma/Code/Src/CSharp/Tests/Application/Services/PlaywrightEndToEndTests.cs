@@ -1,11 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Shouldly;
-using Xunit;
-using Meziantou.Extensions.Logging.Xunit;
-using Microsoft.Playwright;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -49,7 +41,7 @@ public class PlaywrightEndToEndTests : IDisposable
         // Assert
         title.ShouldBe("Test Page");
         heading.ShouldBe("Test Page");
-        
+
         _logger.LogInformation("Playwright end-to-end test completed successfully");
     }
 
@@ -81,7 +73,7 @@ public class PlaywrightEndToEndTests : IDisposable
 
         // Assert
         inputValue.ShouldBe("Hello World");
-        
+
         _logger.LogInformation("Playwright interaction test completed successfully");
     }
 

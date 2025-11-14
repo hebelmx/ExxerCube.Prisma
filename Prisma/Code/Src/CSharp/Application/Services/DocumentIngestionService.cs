@@ -90,28 +90,28 @@ public class DocumentIngestionService
             _logger.LogInformation("Starting document ingestion from {WebsiteUrl}", websiteUrl);
 
             // Step 1: Launch browser
-            var launchResult = await _browserAutomationAgent.LaunchBrowserAsync(cancellationToken);
+            var launchResult = await _browserAutomationAgent.LaunchBrowserAsync(cancellationToken).ConfigureAwait(false);
             if (launchResult.IsFailure)
             {
                 return Result<List<FileMetadata>>.WithFailure($"Failed to launch browser: {launchResult.Error}");
             }
 
             // Step 2: Navigate to website
-            var navigateResult = await _browserAutomationAgent.NavigateToAsync(websiteUrl, cancellationToken);
+            var navigateResult = await _browserAutomationAgent.NavigateToAsync(websiteUrl, cancellationToken).ConfigureAwait(false);
             if (navigateResult.IsFailure)
             {
-                var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken);
+                var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
                 return Result<List<FileMetadata>>.WithFailure($"Failed to navigate to website: {navigateResult.Error}");
             }
 
             // Step 3: Identify downloadable files
-            var identifyResult = await _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, cancellationToken);
+            var identifyResult = await _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, cancellationToken).ConfigureAwait(false);
             if (identifyResult.IsSuccess)
             {
                 var downloadableFiles = identifyResult.Value;
                 if (downloadableFiles == null)
                 {
-                    var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken);
+                    var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
                     return Result<List<FileMetadata>>.WithFailure("Failed to identify downloadable files: No files found");
                 }
 
@@ -122,7 +122,7 @@ public class DocumentIngestionService
                 // Step 4: Process each file
                 foreach (var downloadableFile in downloadableFiles)
                 {
-                    var processResult = await ProcessFileAsync(downloadableFile, cancellationToken);
+                    var processResult = await ProcessFileAsync(downloadableFile, cancellationToken).ConfigureAwait(false);
                     if (processResult.IsSuccess)
                     {
                         var fileMetadata = processResult.Value;
@@ -138,7 +138,7 @@ public class DocumentIngestionService
                 }
 
                 // Step 5: Close browser
-                var closeResult = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken);
+                var closeResult = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
                 if (closeResult.IsFailure)
                 {
                     _logger.LogWarning("Failed to close browser: {Error}", closeResult.Error);
@@ -149,7 +149,7 @@ public class DocumentIngestionService
             }
             else
             {
-                var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken);
+                var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
                 return Result<List<FileMetadata>>.WithFailure($"Failed to identify downloadable files: {identifyResult.Error ?? "Unknown error"}");
             }
         }
@@ -160,7 +160,7 @@ public class DocumentIngestionService
             // Ensure browser is closed on cancellation
             try
             {
-                var closeBrowserResult = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken);
+                var closeBrowserResult = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
                 if (closeBrowserResult.IsFailure)
                 {
                     _logger.LogWarning("Failed to close browser after cancellation: {Error}", closeBrowserResult.Error);
@@ -180,7 +180,7 @@ public class DocumentIngestionService
             // Ensure browser is closed even on exception
             try
             {
-                var closeBrowserResult = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken);
+                var closeBrowserResult = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
                 if (closeBrowserResult.IsFailure)
                 {
                     _logger.LogError("Failed to close browser after exception: {Error}", closeBrowserResult.Error);
@@ -202,7 +202,7 @@ public class DocumentIngestionService
         try
         {
             // Step 1: Download file
-            var downloadResult = await _browserAutomationAgent.DownloadFileAsync(downloadableFile.Url, cancellationToken);
+            var downloadResult = await _browserAutomationAgent.DownloadFileAsync(downloadableFile.Url, cancellationToken).ConfigureAwait(false);
             if (downloadResult.IsSuccess)
             {
                 var downloadedFile = downloadResult.Value;
@@ -215,7 +215,7 @@ public class DocumentIngestionService
                 var checksum = ComputeChecksum(downloadedFile.Content);
 
                 // Step 3: Check for duplicates
-                var duplicateResult = await _downloadTracker.IsDuplicateAsync(checksum, cancellationToken);
+                var duplicateResult = await _downloadTracker.IsDuplicateAsync(checksum, cancellationToken).ConfigureAwait(false);
                 if (duplicateResult.IsSuccess)
                 {
                     var isDuplicate = duplicateResult.Value;
@@ -230,7 +230,7 @@ public class DocumentIngestionService
                         downloadedFile.Content,
                         downloadedFile.FileName,
                         downloadedFile.Format,
-                        cancellationToken);
+                        cancellationToken).ConfigureAwait(false);
 
                     if (saveResult.IsSuccess)
                     {
@@ -254,7 +254,7 @@ public class DocumentIngestionService
                         };
 
                         // Step 6: Log metadata to database
-                        var logResult = await _fileMetadataLogger.LogFileMetadataAsync(fileMetadata, cancellationToken);
+                        var logResult = await _fileMetadataLogger.LogFileMetadataAsync(fileMetadata, cancellationToken).ConfigureAwait(false);
                         if (logResult.IsFailure)
                         {
                             _logger.LogWarning("Failed to log file metadata for {FileName}: {Error}", downloadableFile.FileName, logResult.Error);

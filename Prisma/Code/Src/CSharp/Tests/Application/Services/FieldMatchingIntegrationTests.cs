@@ -1,20 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Classification;
-using ExxerCube.Prisma.Infrastructure.Extraction;
-using IndQuestResults;
-using Microsoft.Extensions.Logging;
-using Meziantou.Extensions.Logging.Xunit.v3;
-using Microsoft.Extensions.Options;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -104,7 +87,9 @@ public class FieldMatchingIntegrationTests
             xmlSource,
             fieldDefinitions,
             expediente,
-            classification);
+            classification,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -140,7 +125,11 @@ public class FieldMatchingIntegrationTests
             docxSource,
             null,
             null,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
 
         // Assert - Generic interface works correctly
         result.IsSuccess.ShouldBeTrue();
@@ -206,7 +195,11 @@ public class FieldMatchingIntegrationTests
             docxSource,
             pdfSource,
             xmlSource,
-            fieldDefinitions);
+            fieldDefinitions,
+            expediente: null,
+            classification: null,
+            requiredFields: null,
+            TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert

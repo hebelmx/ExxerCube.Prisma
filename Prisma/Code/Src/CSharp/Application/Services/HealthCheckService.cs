@@ -82,19 +82,19 @@ public class HealthCheckService
         try
         {
             // Check system components
-            var componentChecks = await CheckSystemComponentsAsync(cancellationToken);
+            var componentChecks = await CheckSystemComponentsAsync(cancellationToken).ConfigureAwait(false);
             healthChecks.AddRange(componentChecks);
 
             // Check performance metrics
-            var performanceCheck = await CheckPerformanceMetricsAsync();
+            var performanceCheck = await CheckPerformanceMetricsAsync().ConfigureAwait(false);
             healthChecks.Add(performanceCheck);
 
             // Check resource availability
-            var resourceCheck = await CheckResourceAvailabilityAsync();
+            var resourceCheck = await CheckResourceAvailabilityAsync().ConfigureAwait(false);
             healthChecks.Add(resourceCheck);
 
             // Check external dependencies
-            var dependencyCheck = await CheckExternalDependenciesAsync(cancellationToken);
+            var dependencyCheck = await CheckExternalDependenciesAsync(cancellationToken).ConfigureAwait(false);
             healthChecks.Add(dependencyCheck);
 
             // Determine overall health
@@ -117,7 +117,7 @@ public class HealthCheckService
                 OverallHealth = overallHealth,
                 HealthChecks = healthChecks,
                 Timestamp = DateTime.UtcNow,
-                ProcessingStatistics = await _metricsService.GetCurrentStatisticsAsync()
+                ProcessingStatistics = await _metricsService.GetCurrentStatisticsAsync().ConfigureAwait(false)
             };
 
             _logger.LogInformation("Health check completed. Overall status: {OverallHealth}", overallHealth);
@@ -139,7 +139,7 @@ public class HealthCheckService
         // If we haven't performed a health check recently, perform one
         if (DateTime.UtcNow.Subtract(LastHealthCheck).TotalMinutes > 5)
         {
-            var healthCheckResult = await PerformHealthCheckAsync();
+            var healthCheckResult = await PerformHealthCheckAsync().ConfigureAwait(false);
             if (healthCheckResult.IsSuccess)
             {
                 return healthCheckResult.Value!.OverallHealth;
@@ -309,8 +309,8 @@ public class HealthCheckService
     {
         try
         {
-            var statistics = await _metricsService.GetCurrentStatisticsAsync();
-            var performanceValidation = await _metricsService.ValidatePerformanceAsync();
+            var statistics = await _metricsService.GetCurrentStatisticsAsync().ConfigureAwait(false);
+            var performanceValidation = await _metricsService.ValidatePerformanceAsync().ConfigureAwait(false);
 
             var status = HealthStatus.Healthy;
             var message = "Performance metrics are within acceptable ranges";
@@ -448,7 +448,7 @@ public class HealthCheckService
             {
                 var tempPath = Path.GetTempPath();
                 var testFile = Path.Combine(tempPath, $"health_check_{Guid.NewGuid()}.tmp");
-                await File.WriteAllTextAsync(testFile, "health_check", cancellationToken);
+                await File.WriteAllTextAsync(testFile, "health_check", cancellationToken).ConfigureAwait(false);
                 File.Delete(testFile);
                 details["FileSystemAccess"] = "Available";
             }

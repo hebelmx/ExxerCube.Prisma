@@ -118,7 +118,7 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
     /// </summary>
     public async Task<Result<ExtractedFields>> ExtractFieldsAsync(string text, float confidence)
     {
-        return await ExtractFieldsFromTextAsync(text, confidence);
+        return await ExtractFieldsFromTextAsync(text, confidence).ConfigureAwait(false);
     }
 
     /// <summary>

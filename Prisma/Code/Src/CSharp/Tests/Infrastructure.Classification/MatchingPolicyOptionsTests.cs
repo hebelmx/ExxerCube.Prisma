@@ -1,10 +1,3 @@
-using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-using ExxerCube.Prisma.Infrastructure.Classification;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
 /// <summary>
@@ -172,7 +165,7 @@ public class MatchingPolicyOptionsTests
     }
 
     [Fact]
-    public void MatchingPolicyService_WithInvalidConflictThreshold_HandlesGracefully()
+    public async Task MatchingPolicyService_WithInvalidConflictThreshold_HandlesGracefully()
     {
         // Arrange
         var invalidOptions = new MatchingPolicyOptions
@@ -184,20 +177,20 @@ public class MatchingPolicyOptionsTests
         var service = new MatchingPolicyService(optionsWrapper, logger);
 
         // Act - Service should handle invalid values gracefully (use defaults or clamp)
-        var values = new List<Domain.Entities.FieldValue>
+        var values = new List<ExxerCube.Prisma.Domain.Entities.FieldValue>
         {
-            new Domain.Entities.FieldValue("Test", "Value1", 0.9f, "DOCX"),
-            new Domain.Entities.FieldValue("Test", "Value2", 0.8f, "PDF")
+            new ExxerCube.Prisma.Domain.Entities.FieldValue("Test", "Value1", 0.9f, "DOCX"),
+            new ExxerCube.Prisma.Domain.Entities.FieldValue("Test", "Value2", 0.8f, "PDF")
         };
 
-        var result = service.SelectBestValueAsync("Test", values).Result;
+        var result = await service.SelectBestValueAsync("Test", values);
 
         // Assert - Service should still work (may clamp or use default threshold)
         result.IsSuccess.ShouldBeTrue(); // Service handles invalid config gracefully
     }
 
     [Fact]
-    public void MatchingPolicyService_WithEmptySourcePriority_HandlesGracefully()
+    public async Task MatchingPolicyService_WithEmptySourcePriority_HandlesGracefully()
     {
         // Arrange
         var options = new MatchingPolicyOptions
@@ -209,13 +202,13 @@ public class MatchingPolicyOptionsTests
         var service = new MatchingPolicyService(optionsWrapper, logger);
 
         // Act
-        var values = new List<Domain.Entities.FieldValue>
+        var values = new List<ExxerCube.Prisma.Domain.Entities.FieldValue>
         {
-            new Domain.Entities.FieldValue("Test", "Value1", 0.9f, "DOCX"),
-            new Domain.Entities.FieldValue("Test", "Value1", 0.8f, "PDF")
+            new ExxerCube.Prisma.Domain.Entities.FieldValue("Test", "Value1", 0.9f, "DOCX"),
+            new ExxerCube.Prisma.Domain.Entities.FieldValue("Test", "Value1", 0.8f, "PDF")
         };
 
-        var result = service.SelectBestValueAsync("Test", values).Result;
+        var result = await service.SelectBestValueAsync("Test", values);
 
         // Assert - Service should handle empty priority gracefully
         result.IsSuccess.ShouldBeTrue();
