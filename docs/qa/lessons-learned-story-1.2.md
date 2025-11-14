@@ -3,7 +3,9 @@
 **Story:** 1.2 - Enhanced Metadata Extraction and File Classification  
 **Status:** ✅ QA Approved (Quality Score: 100/100)  
 **Date:** 2025-01-15  
-**Purpose:** Guide for future story development based on successful zero-findings implementation
+**Purpose:** Story-specific lessons learned (see `lessons-learned-generic.md` for generic guide)
+
+> **Note:** For generic lessons learned applicable to all stories, see `docs/qa/lessons-learned-generic.md`
 
 ---
 
@@ -478,7 +480,7 @@ public async Task ProcessFileAsync_XmlFile_CompletesWithin2Seconds()
 
 **Document Created:** 2025-01-15  
 **Last Updated:** 2025-01-15  
-**Status:** Active - Use for Story 1.3 and beyond
+**Status:** Story-specific reference - See `lessons-learned-generic.md` for generic guide
 
 ---
 

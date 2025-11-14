@@ -15,6 +15,8 @@ using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Application.Services;
+using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,8 +92,14 @@ builder.Services.AddFileStorageServices(options =>
 
 // Add Story 1.2 services: Extraction, Classification, and Metadata Extraction
 builder.Services.AddExtractionServices();
-builder.Services.AddClassificationServices();
+builder.Services.AddClassificationServices(builder.Configuration);
 builder.Services.AddScoped<MetadataExtractionService>();
+
+// Add Story 1.3 services: Field Matching and Unified Metadata Generation
+builder.Services.AddScoped<FieldMatchingService>();
+// Register FieldMatcherService instances for each source type
+builder.Services.AddScoped(typeof(IFieldMatcher<Domain.Entities.DocxSource>), typeof(Infrastructure.Classification.FieldMatcherService<Domain.Entities.DocxSource>));
+builder.Services.AddScoped(typeof(IFieldMatcher<Domain.Entities.PdfSource>), typeof(Infrastructure.Classification.FieldMatcherService<Domain.Entities.PdfSource>));
 
 var app = builder.Build();
 
