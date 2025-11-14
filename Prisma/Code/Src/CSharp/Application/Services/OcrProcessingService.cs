@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 
@@ -49,9 +50,17 @@ public class OcrProcessingService : IOcrProcessingService
     /// </summary>
     /// <param name="imageData">The image data to process.</param>
     /// <param name="config">The processing configuration.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the processing result or an error.</returns>
-    public async Task<Result<ProcessingResult>> ProcessDocumentAsync(ImageData imageData, ProcessingConfig config)
+    public async Task<Result<ProcessingResult>> ProcessDocumentAsync(ImageData imageData, ProcessingConfig config, CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Document processing cancelled before starting");
+            return ResultExtensions.Cancelled<ProcessingResult>();
+        }
+
         // Validate input first - return failure for null inputs
         if (imageData == null)
             return Result<ProcessingResult>.WithFailure($"Argument cannot be null: {nameof(imageData)}");
@@ -79,7 +88,22 @@ public class OcrProcessingService : IOcrProcessingService
             // Start metrics tracking
             processingContext = await _metricsService.StartProcessingAsync(documentId, imageData.SourcePath);
 
+            // Check for cancellation before preprocessing
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogWarning("Document processing cancelled before preprocessing");
+                return ResultExtensions.Cancelled<ProcessingResult>();
+            }
+
             var preprocessResult = await _imagePreprocessor.PreprocessAsync(imageData, config);
+            
+            // Propagate cancellation from dependencies
+            if (preprocessResult.IsCancelled())
+            {
+                _logger.LogWarning("Document processing cancelled by preprocessor");
+                return ResultExtensions.Cancelled<ProcessingResult>();
+            }
+            
             if (preprocessResult.IsSuccess)
             {
                 var preprocessedImage = preprocessResult.Value;
@@ -89,7 +113,22 @@ public class OcrProcessingService : IOcrProcessingService
                     return Result<ProcessingResult>.WithFailure("Preprocessing failed: No result returned");
                 }
 
+                // Check for cancellation before OCR
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Document processing cancelled before OCR");
+                    return ResultExtensions.Cancelled<ProcessingResult>();
+                }
+
                 var ocrResult = await _ocrExecutor.ExecuteOcrAsync(preprocessedImage, config.OCRConfig);
+                
+                // Propagate cancellation from dependencies
+                if (ocrResult.IsCancelled())
+                {
+                    _logger.LogWarning("Document processing cancelled by OCR executor");
+                    return ResultExtensions.Cancelled<ProcessingResult>();
+                }
+                
                 if (ocrResult.IsSuccess)
                 {
                     var ocrResultValue = ocrResult.Value;
@@ -99,7 +138,22 @@ public class OcrProcessingService : IOcrProcessingService
                         return Result<ProcessingResult>.WithFailure("OCR execution failed: No result returned");
                     }
 
+                    // Check for cancellation before field extraction
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogWarning("Document processing cancelled before field extraction");
+                        return ResultExtensions.Cancelled<ProcessingResult>();
+                    }
+
                     var extractResult = await _fieldExtractor.ExtractFieldsAsync(ocrResultValue.Text, ocrResultValue.ConfidenceAvg);
+                    
+                    // Propagate cancellation from dependencies
+                    if (extractResult.IsCancelled())
+                    {
+                        _logger.LogWarning("Document processing cancelled by field extractor");
+                        return ResultExtensions.Cancelled<ProcessingResult>();
+                    }
+                    
                     if (extractResult.IsSuccess)
                     {
                         var extractedFields = extractResult.Value;
@@ -135,6 +189,17 @@ public class OcrProcessingService : IOcrProcessingService
                 return Result<ProcessingResult>.WithFailure(preprocessResult.Error ?? "Preprocessing failed");
             }
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Document processing cancelled for {SourcePath}", imageData.SourcePath);
+            
+            if (processingContext != null)
+            {
+                await _metricsService.RecordErrorAsync(processingContext, "Operation cancelled");
+            }
+            
+            return ResultExtensions.Cancelled<ProcessingResult>();
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error processing document {SourcePath}", imageData.SourcePath);
@@ -165,12 +230,21 @@ public class OcrProcessingService : IOcrProcessingService
     /// <param name="imageDataList">The list of image data to process.</param>
     /// <param name="config">The processing configuration.</param>
     /// <param name="maxConcurrency">Maximum number of concurrent operations.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of processing results or an error.</returns>
     public async Task<Result<List<ProcessingResult>>> ProcessDocumentsAsync(
         IEnumerable<ImageData> imageDataList, 
         ProcessingConfig config, 
-        int maxConcurrency = 5)
+        int maxConcurrency = 5,
+        CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Batch document processing cancelled before starting");
+            return ResultExtensions.Cancelled<List<ProcessingResult>>();
+        }
+
         // Validate inputs
         if (imageDataList == null)
             return Result<List<ProcessingResult>>.WithFailure($"Argument cannot be null: {nameof(imageDataList)}");
@@ -184,10 +258,11 @@ public class OcrProcessingService : IOcrProcessingService
         var semaphore = new SemaphoreSlim(maxConcurrency);
         var tasks = imageDataArray.Select(async imageData =>
         {
-            await semaphore.WaitAsync();
+            // CRITICAL FIX: Pass cancellation token to WaitAsync to prevent hanging
+            await semaphore.WaitAsync(cancellationToken);
             try
             {
-                return await ProcessDocumentAsync(imageData, config);
+                return await ProcessDocumentAsync(imageData, config, cancellationToken);
             }
             finally
             {
@@ -195,28 +270,51 @@ public class OcrProcessingService : IOcrProcessingService
             }
         });
 
-        var results = await Task.WhenAll(tasks);
-        var successfulResults = new List<ProcessingResult>();
-        foreach (var result in results)
+        try
         {
-            if (result.IsSuccess)
+            var results = await Task.WhenAll(tasks);
+            
+            // Check for cancellation after batch processing
+            if (cancellationToken.IsCancellationRequested)
             {
-                var value = result.Value;
-                if (value != null)
+                _logger.LogWarning("Batch document processing cancelled during execution");
+                return ResultExtensions.Cancelled<List<ProcessingResult>>();
+            }
+            
+            var successfulResults = new List<ProcessingResult>();
+            foreach (var result in results)
+            {
+                // Propagate cancellation from individual document processing
+                if (result.IsCancelled())
                 {
-                    successfulResults.Add(value);
+                    _logger.LogWarning("Batch document processing cancelled by individual document processing");
+                    return ResultExtensions.Cancelled<List<ProcessingResult>>();
+                }
+                
+                if (result.IsSuccess)
+                {
+                    var value = result.Value;
+                    if (value != null)
+                    {
+                        successfulResults.Add(value);
+                    }
                 }
             }
-        }
-        var failedResults = results.Where(r => !r.IsSuccess).ToList();
+            var failedResults = results.Where(r => !r.IsSuccess).ToList();
 
-        if (failedResults.Any())
+            if (failedResults.Any())
+            {
+                _logger.LogWarning("Batch processing completed with {FailedCount} failures out of {TotalCount}", 
+                    failedResults.Count, imageDataArray.Length);
+            }
+
+            return Result<List<ProcessingResult>>.Success(successfulResults);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogWarning("Batch processing completed with {FailedCount} failures out of {TotalCount}", 
-                failedResults.Count, imageDataArray.Length);
+            _logger.LogInformation("Batch document processing cancelled");
+            return ResultExtensions.Cancelled<List<ProcessingResult>>();
         }
-
-        return Result<List<ProcessingResult>>.Success(successfulResults);
     }
 
     /// <summary>

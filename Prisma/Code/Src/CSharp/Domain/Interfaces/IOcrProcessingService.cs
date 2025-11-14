@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
@@ -15,8 +16,9 @@ public interface IOcrProcessingService
     /// </summary>
     /// <param name="imageData">The image data to process.</param>
     /// <param name="config">The processing configuration.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the processing result or an error.</returns>
-    Task<Result<ProcessingResult>> ProcessDocumentAsync(ImageData imageData, ProcessingConfig config);
+    Task<Result<ProcessingResult>> ProcessDocumentAsync(ImageData imageData, ProcessingConfig config, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Processes multiple documents concurrently.
@@ -24,6 +26,7 @@ public interface IOcrProcessingService
     /// <param name="imageDataList">The list of image data to process.</param>
     /// <param name="config">The processing configuration.</param>
     /// <param name="maxConcurrency">Maximum number of concurrent operations.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of processing results or an error.</returns>
-    Task<Result<List<ProcessingResult>>> ProcessDocumentsAsync(IEnumerable<ImageData> imageDataList, ProcessingConfig config, int maxConcurrency = 5);
+    Task<Result<List<ProcessingResult>>> ProcessDocumentsAsync(IEnumerable<ImageData> imageDataList, ProcessingConfig config, int maxConcurrency = 5, CancellationToken cancellationToken = default);
 }

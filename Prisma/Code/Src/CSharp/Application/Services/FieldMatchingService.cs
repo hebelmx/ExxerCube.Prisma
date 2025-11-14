@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -53,6 +55,7 @@ public class FieldMatchingService
     /// <param name="expediente">The expediente information (optional, may be extracted from XML).</param>
     /// <param name="classification">The classification result (optional).</param>
     /// <param name="requiredFields">The list of required field names for validation (optional).</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the unified metadata record or an error.</returns>
     public async Task<Result<UnifiedMetadataRecord>> MatchFieldsAndGenerateUnifiedRecordAsync(
         DocxSource? docxSource,
@@ -61,8 +64,16 @@ public class FieldMatchingService
         FieldDefinition[] fieldDefinitions,
         Expediente? expediente = null,
         ClassificationResult? classification = null,
-        List<string>? requiredFields = null)
+        List<string>? requiredFields = null,
+        CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Field matching workflow cancelled before starting");
+            return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+        }
+
         try
         {
             _logger.LogDebug("Starting field matching workflow across multiple sources");
@@ -84,7 +95,22 @@ public class FieldMatchingService
             // Extract from DOCX source
             if (docxSource != null)
             {
+                // Check for cancellation before extraction
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Field matching workflow cancelled before DOCX extraction");
+                    return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+                }
+
                 var docxExtractResult = await _docxFieldExtractor.ExtractFieldsAsync(docxSource, fieldDefinitions);
+                
+                // Propagate cancellation from dependencies
+                if (docxExtractResult.IsCancelled())
+                {
+                    _logger.LogWarning("Field matching workflow cancelled by DOCX extractor");
+                    return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+                }
+                
                 if (docxExtractResult.IsSuccess && docxExtractResult.Value != null)
                 {
                     CollectFieldValues(allFieldValues, docxExtractResult.Value, "DOCX");
@@ -98,7 +124,22 @@ public class FieldMatchingService
             // Extract from PDF source
             if (pdfSource != null)
             {
+                // Check for cancellation before extraction
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Field matching workflow cancelled before PDF extraction");
+                    return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+                }
+
                 var pdfExtractResult = await _pdfFieldExtractor.ExtractFieldsAsync(pdfSource, fieldDefinitions);
+                
+                // Propagate cancellation from dependencies
+                if (pdfExtractResult.IsCancelled())
+                {
+                    _logger.LogWarning("Field matching workflow cancelled by PDF extractor");
+                    return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+                }
+                
                 if (pdfExtractResult.IsSuccess && pdfExtractResult.Value != null)
                 {
                     CollectFieldValues(allFieldValues, pdfExtractResult.Value, "PDF");
@@ -112,7 +153,22 @@ public class FieldMatchingService
             // Extract from XML source (if extractor available)
             if (xmlSource != null && _xmlFieldExtractor != null)
             {
+                // Check for cancellation before extraction
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Field matching workflow cancelled before XML extraction");
+                    return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+                }
+
                 var xmlExtractResult = await _xmlFieldExtractor.ExtractFieldsAsync(xmlSource, fieldDefinitions);
+                
+                // Propagate cancellation from dependencies
+                if (xmlExtractResult.IsCancelled())
+                {
+                    _logger.LogWarning("Field matching workflow cancelled by XML extractor");
+                    return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+                }
+                
                 if (xmlExtractResult.IsSuccess && xmlExtractResult.Value != null)
                 {
                     CollectFieldValues(allFieldValues, xmlExtractResult.Value, "XML");
@@ -128,9 +184,24 @@ public class FieldMatchingService
 
             foreach (var fieldDef in fieldDefinitions)
             {
+                // Check for cancellation between iterations
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Field matching workflow cancelled during matching");
+                    return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+                }
+
                 if (allFieldValues.TryGetValue(fieldDef.FieldName, out var values) && values.Count > 0)
                 {
                     var matchResult = await _matchingPolicy.SelectBestValueAsync(fieldDef.FieldName, values);
+                    
+                    // Propagate cancellation from dependencies
+                    if (matchResult.IsCancelled())
+                    {
+                        _logger.LogWarning("Field matching workflow cancelled by matching policy");
+                        return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
+                    }
+                    
                     if (matchResult.IsSuccess && matchResult.Value != null)
                     {
                         matchedFields.FieldMatches[fieldDef.FieldName] = matchResult.Value;
@@ -177,6 +248,11 @@ public class FieldMatchingService
                 matchedFields.FieldMatches.Count, matchedFields.ConflictingFields.Count, matchedFields.MissingFields.Count, matchedFields.OverallAgreement);
 
             return Result<UnifiedMetadataRecord>.Success(unifiedRecord);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Field matching workflow cancelled");
+            return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
         }
         catch (Exception ex)
         {

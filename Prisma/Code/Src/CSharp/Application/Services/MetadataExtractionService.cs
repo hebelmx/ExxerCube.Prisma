@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -60,6 +61,13 @@ public class MetadataExtractionService
         string originalFileName,
         CancellationToken cancellationToken = default)
     {
+        // Check for cancellation before starting work
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("Metadata extraction cancelled before starting");
+            return ResultExtensions.Cancelled<MetadataExtractionResult>();
+        }
+
         // Input validation
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -81,6 +89,14 @@ public class MetadataExtractionService
             // Step 1: Identify file type based on content
             var fileContent = await File.ReadAllBytesAsync(filePath, cancellationToken);
             var fileTypeResult = await _fileTypeIdentifier.IdentifyFileTypeAsync(fileContent, originalFileName, cancellationToken);
+            
+            // Propagate cancellation from dependencies
+            if (fileTypeResult.IsCancelled())
+            {
+                _logger.LogWarning("Metadata extraction cancelled by file type identifier");
+                return ResultExtensions.Cancelled<MetadataExtractionResult>();
+            }
+            
             if (fileTypeResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(fileTypeResult.Error!);
@@ -91,6 +107,14 @@ public class MetadataExtractionService
 
             // Step 2: Extract metadata based on file type
             var metadataResult = await ExtractMetadataByTypeAsync(fileContent, fileFormat, cancellationToken);
+            
+            // Propagate cancellation from dependencies
+            if (metadataResult.IsCancelled())
+            {
+                _logger.LogWarning("Metadata extraction cancelled by metadata extractor");
+                return ResultExtensions.Cancelled<MetadataExtractionResult>();
+            }
+            
             if (metadataResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(metadataResult.Error!);
@@ -106,6 +130,14 @@ public class MetadataExtractionService
 
             // Step 3: Classify document
             var classificationResult = await _fileClassifier.ClassifyAsync(metadata, cancellationToken);
+            
+            // Propagate cancellation from dependencies
+            if (classificationResult.IsCancelled())
+            {
+                _logger.LogWarning("Metadata extraction cancelled by file classifier");
+                return ResultExtensions.Cancelled<MetadataExtractionResult>();
+            }
+            
             if (classificationResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(classificationResult.Error ?? "Classification failed");
@@ -135,6 +167,14 @@ public class MetadataExtractionService
 
             // Step 4: Generate safe file name
             var fileNameResult = await _safeFileNamer.GenerateSafeFileNameAsync(originalFileName, classification, metadata, cancellationToken);
+            
+            // Propagate cancellation from dependencies
+            if (fileNameResult.IsCancelled())
+            {
+                _logger.LogWarning("Metadata extraction cancelled by safe file namer");
+                return ResultExtensions.Cancelled<MetadataExtractionResult>();
+            }
+            
             if (fileNameResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(fileNameResult.Error ?? "Failed to generate safe file name");
@@ -150,6 +190,14 @@ public class MetadataExtractionService
 
             // Step 5: Move file to organized location
             var moveResult = await _fileMover.MoveFileAsync(filePath, classification, safeFileName, cancellationToken);
+            
+            // Propagate cancellation from dependencies
+            if (moveResult.IsCancelled())
+            {
+                _logger.LogWarning("Metadata extraction cancelled by file mover");
+                return ResultExtensions.Cancelled<MetadataExtractionResult>();
+            }
+            
             if (moveResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(moveResult.Error ?? "Failed to move file");
@@ -173,6 +221,11 @@ public class MetadataExtractionService
             };
 
             return Result<MetadataExtractionResult>.Success(result);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Metadata extraction cancelled for {FilePath}", filePath);
+            return ResultExtensions.Cancelled<MetadataExtractionResult>();
         }
         catch (Exception ex)
         {
