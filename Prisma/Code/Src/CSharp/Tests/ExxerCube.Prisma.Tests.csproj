@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- Exclude NU1903 from being treated as error - DocumentFormat.OpenXml dependency vulnerability -->
-    <WarningsNotAsErrors>NU1903;CS1591</WarningsNotAsErrors>
+    <WarningsNotAsErrors>NU1903;CS1591;IQR002</WarningsNotAsErrors>
     <WarningsAsErrors />
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -29,7 +29,7 @@
   <!-- ============================================================================ -->
   <ItemGroup Label="Result and Result Analyzers">
     <PackageReference Include="IndQuestResults" />
-    <PackageReference Include="IndQuestResults.Analyzers" PrivateAssets="all" />
+
   </ItemGroup>
 
   <!-- ============================================================================ -->

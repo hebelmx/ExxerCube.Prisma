@@ -163,8 +163,24 @@ public class ManualReviewerService : IManualReviewerPanel
                 return Result.WithFailure("Notes are required when overriding fields or classification");
             }
 
-            // Use transaction for atomicity and concurrency control
-            await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+            // Use transaction for atomicity and concurrency control (if supported)
+            // In-memory database doesn't support transactions, so we handle both cases
+            IDbContextTransaction? transaction = null;
+
+            try
+            {
+                if (_dbContext.Database.IsRelational())
+                {
+                    transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("TransactionIgnoredWarning", StringComparison.OrdinalIgnoreCase))
+            {
+                // In-memory database doesn't support transactions, continue without transaction
+                _logger.LogDebug("Transactions not supported by database provider, continuing without transaction");
+                transaction = null;
+            }
+
             try
             {
                 // Verify case exists and check for existing decision (concurrency control)
@@ -174,7 +190,10 @@ public class ManualReviewerService : IManualReviewerPanel
                 if (reviewCase == null)
                 {
                     _logger.LogWarning("Review case not found: {CaseId}", caseId);
-                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    if (transaction != null)
+                    {
+                        await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    }
                     return Result.WithFailure($"Review case not found: {caseId}");
                 }
 
@@ -185,7 +204,10 @@ public class ManualReviewerService : IManualReviewerPanel
                 if (existingDecision)
                 {
                     _logger.LogWarning("A decision has already been submitted for case: {CaseId}", caseId);
-                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    if (transaction != null)
+                    {
+                        await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    }
                     return Result.WithFailure("A decision has already been submitted for this case");
                 }
 
@@ -220,27 +242,45 @@ public class ManualReviewerService : IManualReviewerPanel
                 };
 
                 await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                }
 
                 _logger.LogInformation("Review decision submitted successfully for case: {CaseId}, decision ID: {DecisionId}", caseId, decision.DecisionId);
 
                 return Result.Success();
             }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                }
+                _logger.LogWarning(ex, "Concurrency conflict updating review case: {CaseId}", caseId);
+                return Result.WithFailure("Case was modified by another user. Please refresh and try again.");
+            }
             catch
             {
-                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                }
                 throw;
+            }
+            finally
+            {
+                if (transaction != null)
+                {
+                    await transaction.DisposeAsync().ConfigureAwait(false);
+                }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             _logger.LogInformation("SubmitReviewDecisionAsync cancelled for case: {CaseId}", caseId);
             return ResultExtensions.Cancelled();
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            _logger.LogWarning(ex, "Concurrency conflict updating review case: {CaseId}", caseId);
-            return Result.WithFailure("Case was modified by another user. Please refresh and try again.");
         }
         catch (Exception ex)
         {

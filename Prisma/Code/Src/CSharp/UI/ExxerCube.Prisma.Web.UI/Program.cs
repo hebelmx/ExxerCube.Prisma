@@ -90,6 +90,9 @@ builder.Services.AddFileStorageServices(options =>
 {
     builder.Configuration.GetSection("FileStorage").Bind(options);
 });
+builder.Services.AddScoped<DocumentIngestionService>();
+builder.Services.AddScoped<FileMetadataQueryService>();
+builder.Services.AddScoped<FileDownloadService>();
 
 // Add Story 1.2 services: Extraction, Classification, and Metadata Extraction
 builder.Services.AddExtractionServices();

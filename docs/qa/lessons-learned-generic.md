@@ -138,7 +138,56 @@ P(Missed Feature | Low Coverage) = P(Low Coverage | Missed Feature) × P(Missed 
 
 ---
 
-### 6. Detailed Requirements Review
+### 6. Database Provider Compatibility
+
+**What Works:**
+- Check database provider capabilities before using advanced features
+- Use conditional logic for features that aren't supported in all providers
+- Test with both in-memory (unit tests) and relational (integration tests) databases
+- Document database provider assumptions and limitations
+
+**Common Pitfalls:**
+- Assuming transactions are always available (in-memory database doesn't support them)
+- Assuming all EF Core features work identically across providers
+- Not testing with the actual database provider used in production
+
+**Solution Pattern:**
+```csharp
+// Check if database supports transactions before using them
+var supportsTransactions = _dbContext.Database.IsRelational();
+IDbContextTransaction? transaction = null;
+
+if (supportsTransactions)
+{
+    transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+}
+
+try
+{
+    // ... implementation ...
+    if (transaction != null)
+    {
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+    }
+}
+finally
+{
+    if (transaction != null)
+    {
+        await transaction.DisposeAsync().ConfigureAwait(false);
+    }
+}
+```
+
+**Action Items for Every Story:**
+- [ ] Check database provider capabilities before using advanced features
+- [ ] Test with both in-memory (tests) and relational (production) databases
+- [ ] Use conditional logic for provider-specific features
+- [ ] Document database provider assumptions
+
+---
+
+### 7. Detailed Requirements Review
 
 **Gap Prevention:**
 - Read acceptance criteria word-by-word carefully

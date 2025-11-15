@@ -19,6 +19,7 @@ public class DecisionLogicService
     private readonly IPersonIdentityResolver _personIdentityResolver;
     private readonly ILegalDirectiveClassifier _legalDirectiveClassifier;
     private readonly IManualReviewerPanel _manualReviewerPanel;
+    private readonly IAuditLogger _auditLogger;
     private readonly ILogger<DecisionLogicService> _logger;
 
     /// <summary>
@@ -27,16 +28,19 @@ public class DecisionLogicService
     /// <param name="personIdentityResolver">The person identity resolver service.</param>
     /// <param name="legalDirectiveClassifier">The legal directive classifier service.</param>
     /// <param name="manualReviewerPanel">The manual reviewer panel service.</param>
+    /// <param name="auditLogger">The audit logger service.</param>
     /// <param name="logger">The logger instance.</param>
     public DecisionLogicService(
         IPersonIdentityResolver personIdentityResolver,
         ILegalDirectiveClassifier legalDirectiveClassifier,
         IManualReviewerPanel manualReviewerPanel,
+        IAuditLogger auditLogger,
         ILogger<DecisionLogicService> logger)
     {
         _personIdentityResolver = personIdentityResolver;
         _legalDirectiveClassifier = legalDirectiveClassifier;
         _manualReviewerPanel = manualReviewerPanel;
+        _auditLogger = auditLogger;
         _logger = logger;
     }
 
@@ -44,10 +48,14 @@ public class DecisionLogicService
     /// Processes persons through identity resolution and deduplication workflow.
     /// </summary>
     /// <param name="persons">The list of persons to process.</param>
+    /// <param name="fileId">The file identifier (optional, for audit logging).</param>
+    /// <param name="correlationId">The correlation ID for tracking requests across stages (optional, generates new if not provided).</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the resolved and deduplicated list of persons or an error.</returns>
     public async Task<Result<List<Persona>>> ResolvePersonIdentitiesAsync(
         List<Persona> persons,
+        string? fileId = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default)
     {
         // Check for cancellation before starting work
@@ -63,9 +71,12 @@ public class DecisionLogicService
             return Result<List<Persona>>.Success(new List<Persona>());
         }
 
+        // Generate correlation ID if not provided
+        var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
+
         try
         {
-            _logger.LogInformation("Starting identity resolution for {Count} persons", persons.Count);
+            _logger.LogInformation("Starting identity resolution for {Count} persons (CorrelationId: {CorrelationId})", persons.Count, actualCorrelationId);
 
             // Resolve identity for each person
             var resolvedPersons = new List<Persona>();
@@ -120,9 +131,21 @@ public class DecisionLogicService
 
                 var resolveResult = await _personIdentityResolver.ResolveIdentityAsync(person, cancellationToken).ConfigureAwait(false);
                 
-                // Propagate cancellation from dependencies
+                // Propagate cancellation from dependencies FIRST
                 if (resolveResult.IsCancelled())
                 {
+                    // Log audit for cancelled resolution
+                    await _auditLogger.LogAuditAsync(
+                        AuditActionType.Extraction,
+                        ProcessingStage.DecisionLogic,
+                        fileId,
+                        actualCorrelationId,
+                        null,
+                        $"{{\"PersonName\":\"{person.Nombre}\",\"Rfc\":\"{person.Rfc ?? "N/A"}\",\"PersonaTipo\":\"{person.PersonaTipo}\"}}",
+                        false,
+                        "Operation cancelled",
+                        cancellationToken).ConfigureAwait(false);
+                    
                     // Preserve partial results if work has been completed
                     if (resolvedPersons.Count > 0)
                     {
@@ -169,8 +192,33 @@ public class DecisionLogicService
                 if (resolveResult.IsFailure)
                 {
                     _logger.LogWarning("Failed to resolve identity for person: {Error}", resolveResult.Error);
+                    
+                    // Log audit for failed resolution
+                    await _auditLogger.LogAuditAsync(
+                        AuditActionType.Extraction,
+                        ProcessingStage.DecisionLogic,
+                        fileId,
+                        actualCorrelationId,
+                        null,
+                        $"{{\"PersonName\":\"{person.Nombre}\",\"Rfc\":\"{person.Rfc ?? "N/A"}\",\"PersonaTipo\":\"{person.PersonaTipo}\"}}",
+                        false,
+                        resolveResult.Error,
+                        cancellationToken).ConfigureAwait(false);
+                    
                     continue;
                 }
+
+                // Log audit for successful resolution
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Extraction,
+                    ProcessingStage.DecisionLogic,
+                    fileId,
+                    actualCorrelationId,
+                    null,
+                    $"{{\"PersonName\":\"{person.Nombre}\",\"Rfc\":\"{person.Rfc ?? "N/A"}\",\"PersonaTipo\":\"{person.PersonaTipo}\"}}",
+                    true,
+                    null,
+                    cancellationToken).ConfigureAwait(false);
 
                 if (resolveResult.Value != null)
                 {
@@ -181,9 +229,21 @@ public class DecisionLogicService
             // Deduplicate persons
             var deduplicateResult = await _personIdentityResolver.DeduplicatePersonsAsync(resolvedPersons, cancellationToken).ConfigureAwait(false);
             
-            // Propagate cancellation from deduplication
+            // Propagate cancellation from deduplication FIRST
             if (deduplicateResult.IsCancelled())
             {
+                // Log audit for cancelled deduplication
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Extraction,
+                    ProcessingStage.DecisionLogic,
+                    fileId,
+                    actualCorrelationId,
+                    null,
+                    $"{{\"InputCount\":{persons.Count},\"ResolvedCount\":{resolvedPersons.Count}}}",
+                    false,
+                    "Operation cancelled",
+                    cancellationToken).ConfigureAwait(false);
+                
                 // Preserve partial results if we have resolved persons (deduplication was cancelled, but resolution completed)
                 if (resolvedPersons.Count > 0)
                 {
@@ -211,13 +271,43 @@ public class DecisionLogicService
             if (deduplicateResult.IsFailure)
             {
                 _logger.LogError("Failed to deduplicate persons: {Error}", deduplicateResult.Error);
+                
+                // Log audit for failed deduplication
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Extraction,
+                    ProcessingStage.DecisionLogic,
+                    fileId,
+                    actualCorrelationId,
+                    null,
+                    $"{{\"InputCount\":{persons.Count},\"ResolvedCount\":{resolvedPersons.Count}}}",
+                    false,
+                    deduplicateResult.Error,
+                    cancellationToken).ConfigureAwait(false);
+                
                 return Result<List<Persona>>.WithFailure($"Failed to deduplicate persons: {deduplicateResult.Error}");
             }
+
+            // Log audit for successful deduplication
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Extraction,
+                ProcessingStage.DecisionLogic,
+                fileId,
+                actualCorrelationId,
+                null,
+                $"{{\"InputCount\":{persons.Count},\"ResolvedCount\":{resolvedPersons.Count},\"DeduplicatedCount\":{deduplicateResult.Value?.Count ?? 0}}}",
+                true,
+                null,
+                cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("Identity resolution completed: {OriginalCount} → {ResolvedCount} persons", 
                 persons.Count, deduplicateResult.Value?.Count ?? 0);
 
             return Result<List<Persona>>.Success(deduplicateResult.Value ?? new List<Persona>());
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Identity resolution cancelled");
+            return ResultExtensions.Cancelled<List<Persona>>();
         }
         catch (System.Exception ex)
         {
@@ -231,11 +321,15 @@ public class DecisionLogicService
     /// </summary>
     /// <param name="documentText">The document text to classify.</param>
     /// <param name="expediente">The expediente information for context (optional).</param>
+    /// <param name="fileId">The file identifier (optional, for audit logging).</param>
+    /// <param name="correlationId">The correlation ID for tracking requests across stages (optional, generates new if not provided).</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of compliance actions with confidence scores or an error.</returns>
     public async Task<Result<List<ComplianceAction>>> ClassifyLegalDirectivesAsync(
         string documentText,
         Expediente? expediente = null,
+        string? fileId = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default)
     {
         // Check for cancellation before starting work
@@ -251,9 +345,12 @@ public class DecisionLogicService
             return Result<List<ComplianceAction>>.Success(new List<ComplianceAction>());
         }
 
+        // Generate correlation ID if not provided
+        var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
+
         try
         {
-            _logger.LogInformation("Starting legal directive classification for document (length: {Length})", documentText.Length);
+            _logger.LogInformation("Starting legal directive classification for document (length: {Length}, CorrelationId: {CorrelationId})", documentText.Length, actualCorrelationId);
 
             // Detect legal instruments (non-blocking - continue even if this fails, but not if cancelled)
             var instrumentsResult = await _legalDirectiveClassifier.DetectLegalInstrumentsAsync(documentText, cancellationToken).ConfigureAwait(false);
@@ -278,7 +375,7 @@ public class DecisionLogicService
             // Classify directives (this is the critical operation)
             var classifyResult = await _legalDirectiveClassifier.ClassifyDirectivesAsync(documentText, expediente, cancellationToken).ConfigureAwait(false);
             
-            // Propagate cancellation from classification
+            // Propagate cancellation from classification FIRST
             if (classifyResult.IsCancelled())
             {
                 _logger.LogWarning("Legal directive classification cancelled during directive classification");
@@ -288,13 +385,50 @@ public class DecisionLogicService
             if (classifyResult.IsFailure)
             {
                 _logger.LogError("Failed to classify legal directives: {Error}", classifyResult.Error);
+                
+                // Log audit for failed classification
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Extraction,
+                    ProcessingStage.DecisionLogic,
+                    fileId,
+                    actualCorrelationId,
+                    null,
+                    null,
+                    false,
+                    classifyResult.Error,
+                    cancellationToken).ConfigureAwait(false);
+                
                 return Result<List<ComplianceAction>>.WithFailure($"Failed to classify legal directives: {classifyResult.Error}");
             }
 
+            // Now safe to access Value after checking cancellation and failure
+            var actions = classifyResult.Value ?? new List<ComplianceAction>();
+            var actionsCount = actions.Count;
+            var actionsDetails = actionsCount > 0
+                ? $"{{\"ActionsCount\":{actionsCount},\"Actions\":[{string.Join(",", actions.Select(a => $"{{\"Type\":\"{a.ActionType}\",\"AccountNumber\":\"{a.AccountNumber ?? "N/A"}\"}}"))}]}}"
+                : $"{{\"ActionsCount\":0}}";
+            
+            // Log audit for successful classification
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Extraction,
+                ProcessingStage.DecisionLogic,
+                fileId,
+                actualCorrelationId,
+                null,
+                actionsDetails,
+                true,
+                null,
+                cancellationToken).ConfigureAwait(false);
+
             _logger.LogInformation("Legal directive classification completed: {Count} compliance actions identified", 
-                classifyResult.Value?.Count ?? 0);
+                actionsCount);
 
             return Result<List<ComplianceAction>>.Success(classifyResult.Value ?? new List<ComplianceAction>());
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Legal directive classification cancelled");
+            return ResultExtensions.Cancelled<List<ComplianceAction>>();
         }
         catch (System.Exception ex)
         {
@@ -453,6 +587,11 @@ public class DecisionLogicService
 
             return Result<DecisionLogicResult>.Success(result);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Decision logic workflow cancelled");
+            return ResultExtensions.Cancelled<DecisionLogicResult>();
+        }
         catch (System.Exception ex)
         {
             _logger.LogError(ex, "Error processing decision logic");
@@ -573,18 +712,59 @@ public class DecisionLogicService
 
             var submitResult = await _manualReviewerPanel.SubmitReviewDecisionAsync(caseId, decision, cancellationToken).ConfigureAwait(false);
 
-            // Propagate cancellation from manual reviewer panel
+            // Propagate cancellation from manual reviewer panel FIRST
             if (submitResult.IsCancelled())
             {
                 _logger.LogWarning("Review decision processing cancelled for case: {CaseId}", caseId);
+                
+                // Log audit for cancelled review decision
+                var reviewDetails = $"{{\"CaseId\":\"{caseId}\",\"DecisionType\":\"{decision.DecisionType}\",\"DecisionId\":\"{decision.DecisionId}\",\"ReviewReason\":\"{decision.ReviewReason}\"}}";
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Review,
+                    ProcessingStage.DecisionLogic,
+                    decision.FileId,
+                    Guid.NewGuid().ToString(), // Generate new correlation ID for review decision
+                    decision.ReviewerId,
+                    reviewDetails,
+                    false,
+                    "Operation cancelled",
+                    cancellationToken).ConfigureAwait(false);
+                
                 return ResultExtensions.Cancelled();
             }
 
             if (submitResult.IsFailure)
             {
                 _logger.LogError("Failed to process review decision for case: {CaseId}, error: {Error}", caseId, submitResult.Error);
+                
+                // Log audit for failed review decision
+                var reviewDetails = $"{{\"CaseId\":\"{caseId}\",\"DecisionType\":\"{decision.DecisionType}\",\"DecisionId\":\"{decision.DecisionId}\",\"ReviewReason\":\"{decision.ReviewReason}\"}}";
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Review,
+                    ProcessingStage.DecisionLogic,
+                    decision.FileId,
+                    Guid.NewGuid().ToString(), // Generate new correlation ID for review decision
+                    decision.ReviewerId,
+                    reviewDetails,
+                    false,
+                    submitResult.Error,
+                    cancellationToken).ConfigureAwait(false);
+                
                 return Result.WithFailure($"Failed to process review decision: {submitResult.Error}");
             }
+
+            // Log audit for successful review decision
+            var successReviewDetails = $"{{\"CaseId\":\"{caseId}\",\"DecisionType\":\"{decision.DecisionType}\",\"DecisionId\":\"{decision.DecisionId}\",\"ReviewReason\":\"{decision.ReviewReason}\"}}";
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Review,
+                ProcessingStage.DecisionLogic,
+                decision.FileId,
+                Guid.NewGuid().ToString(), // Generate new correlation ID for review decision
+                decision.ReviewerId,
+                successReviewDetails,
+                true,
+                null,
+                cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("Review decision processed successfully for case: {CaseId}, decision ID: {DecisionId}", caseId, decision.DecisionId);
 

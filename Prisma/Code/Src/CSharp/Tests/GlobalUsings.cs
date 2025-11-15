@@ -24,6 +24,7 @@ global using ExxerCube.Prisma.Infrastructure.Database;
 global using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 global using ExxerCube.Prisma.Infrastructure.Database.Metrics;
 global using ExxerCube.Prisma.Infrastructure.Extraction;
+global using ExxerCube.Prisma.Infrastructure.Export;
 global using ExxerCube.Prisma.Infrastructure.FileStorage;
 global using ExxerCube.Prisma.Infrastructure.FileSystem;
 global using ExxerCube.Prisma.Infrastructure.Python;

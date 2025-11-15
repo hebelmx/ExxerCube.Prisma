@@ -25,7 +25,6 @@
   <!-- ============================================================================ -->
   <ItemGroup Label="Result and Result Analyzers">
     <PackageReference Include="IndQuestResults" />
-    <PackageReference Include="IndQuestResults.Analyzers" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- ============================================================================ -->

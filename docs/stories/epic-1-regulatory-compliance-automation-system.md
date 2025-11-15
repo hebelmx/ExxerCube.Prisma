@@ -28,15 +28,20 @@
 7. **Story 1.7:** SIRO-Compliant Export Generation (Stage 4 - Final Compliance Response)
 8. **Story 1.8:** PDF Summarization and Digital Signing (Stage 4 - Final Compliance Response Continued)
 9. **Story 1.9:** Audit Trail and Reporting (Cross-Stage)
+10. **Story 1.10:** SignalR Unified Hub Abstraction Infrastructure (Infrastructure / Cross-Stage)
 
 ---
 
 ## Story Sequencing and Dependencies
 
 **Critical Story Sequence:**
+0. **Story 1.10** (SignalR Infrastructure) → **Must complete before UI enhancements** - Provides foundation for real-time UI components
 1. **Story 1.1** (Browser Automation) → Must complete first to provide source documents
+   - **UI Enhancements** → Depends on Story 1.10 for real-time dashboard updates
 2. **Story 1.2** (Metadata Extraction) → Depends on Story 1.1 for downloaded files
+   - **UI Enhancements** → Depends on Story 1.10 for real-time classification updates
 3. **Story 1.3** (Field Matching) → Depends on Story 1.2 for extracted metadata
+   - **UI Enhancements** → Depends on Story 1.10 for real-time field matching updates
 4. **Story 1.4** (Identity Resolution) → Depends on Story 1.3 for unified metadata
 5. **Story 1.5** (SLA Tracking) → Can run in parallel with Story 1.4, depends on Story 1.2 for intake dates
 6. **Story 1.6** (Manual Review) → Depends on Stories 1.2-1.4 for review cases
@@ -69,4 +74,5 @@
 | Date | Version | Description | Author |
 |------|---------|-------------|--------|
 | 2025-01-15 | 1.0 | Initial epic creation from PRD | Product Owner |
+| 2025-01-15 | 1.1 | Added Story 1.10 (SignalR Infrastructure) - Required before UI enhancements | Architect |
 

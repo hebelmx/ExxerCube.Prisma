@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ============================================================================ -->
+  <!-- CORE PROPERTIES -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <!-- Framework Configuration -->
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    
+    <!-- Nullable and Implicit Configuration -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- Assembly Configuration -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>ExxerAI.RealTimeCommunication</RootNamespace>
+    <AssemblyName>ExxerAI.RealTimeCommunication</AssemblyName>
+    
+    <!-- Quality Assurance -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    
+    <!-- Assembly Metadata -->
+    <AssemblyVersion>2025.10.30.001</AssemblyVersion>
+    <FileVersion>2025.10.30.001</FileVersion>
+    <Company>Exxerpro Solutions SA de CV</Company>
+    <Authors>Abel Briones</Authors>
+    <Product>ExxerAI</Product>
+    <Copyright>© 2025 Exxerpro Solutions SA de CV</Copyright>
+    <RepositoryUrl>https://github.com/Exxerpro/ExxerAI.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <AssemblyTitle>ExxerAI Real-Time Communication</AssemblyTitle>
+    <Description>📡 Real-time communication hub - SignalR, WebSockets, and real-time messaging for the ExxerAI evocative architecture.</Description>
+    <PackageTags>exxerai;infrastructure;realtime;communication;signalr;websockets</PackageTags>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - CORE FRAMEWORK -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Core Framework">
+    <PackageReference Include="IndQuestResults" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - SIGNALR & WEBSOCKETS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="SignalR and WebSockets">
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - MICROSOFT EXTENSIONS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Microsoft Extensions">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PROJECT REFERENCES - CORE LAYER -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Core\ExxerAi.Axioms\ExxerAI.Axioms.csproj" />
+  </ItemGroup>
+
+</Project>

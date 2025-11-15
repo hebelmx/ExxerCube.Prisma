@@ -1,0 +1,410 @@
+@page "/document-processing-dashboard"
+@using ExxerCube.Prisma.Application.Services
+@using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Web.UI.Components.Dialogs
+@using MudBlazor
+@inject FileMetadataQueryService FileMetadataQueryService
+@inject DocumentIngestionService DocumentIngestionService
+@inject FileDownloadService FileDownloadService
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Document Processing Dashboard</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+            Document Processing Dashboard
+        </MudText>
+
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Monitor browser automation downloads, view download history, and track file processing status.
+        </MudText>
+
+        <!-- Download Statistics Cards -->
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <MudStack>
+                            <MudText Typo="Typo.h6" Color="Color.Primary">
+                                <MudIcon Icon="@Icons.Material.Filled.CloudDownload" Class="mr-2" />
+                                Total Downloads
+                            </MudText>
+                            <MudText Typo="Typo.h4">@statistics.TotalFiles</MudText>
+                            <MudText Typo="Typo.caption">@GetStatisticsPeriod()</MudText>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <MudStack>
+                            <MudText Typo="Typo.h6" Color="Color.Info">
+                                <MudIcon Icon="@Icons.Material.Filled.Storage" Class="mr-2" />
+                                Total Size
+                            </MudText>
+                            <MudText Typo="Typo.h4">@FormatFileSize(statistics.TotalSizeBytes)</MudText>
+                            <MudText Typo="Typo.caption">Downloaded files</MudText>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <MudStack>
+                            <MudText Typo="Typo.h6" Color="Color.Success">
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
+                                PDF Files
+                            </MudText>
+                            <MudText Typo="Typo.h4">@GetFormatCount(FileFormat.PDF)</MudText>
+                            <MudText Typo="Typo.caption">PDF documents</MudText>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudCard Elevation="2">
+                    <MudCardContent>
+                        <MudStack>
+                            <MudText Typo="Typo.h6" Color="Color.Warning">
+                                <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-2" />
+                                XML Files
+                            </MudText>
+                            <MudText Typo="Typo.h4">@GetFormatCount(FileFormat.XML)</MudText>
+                            <MudText Typo="Typo.caption">XML documents</MudText>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Filters -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.FilterList" Class="mr-2" />
+                    Filters
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudDatePicker @bind-Date="filterStartDate" Label="Start Date" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudDatePicker @bind-Date="filterEndDate" Label="End Date" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect @bind-Value="filterFormat" Label="File Format" Variant="Variant.Outlined" Clearable="true">
+                            <MudSelectItem Value="@((FileFormat?)null)">All Formats</MudSelectItem>
+                            <MudSelectItem Value="@FileFormat.PDF">PDF</MudSelectItem>
+                            <MudSelectItem Value="@FileFormat.XML">XML</MudSelectItem>
+                            <MudSelectItem Value="@FileFormat.DOCX">DOCX</MudSelectItem>
+                            <MudSelectItem Value="@FileFormat.ZIP">ZIP</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3" Class="d-flex align-center">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyFilters" Class="mr-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Search" Class="mr-2" />
+                            Apply Filters
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="ClearFilters">
+                            Clear
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Download History Table -->
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.History" Class="mr-2" />
+                    Download History
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (isLoading)
+                {
+                    <MudProgressLinear Indeterminate="true" Class="mb-4" />
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Loading download history...</MudText>
+                }
+                else if (downloadHistory == null || !downloadHistory.Any())
+                {
+                    <MudAlert Severity="Severity.Info">
+                        No download history found. Files will appear here after browser automation downloads documents.
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudTable Items="@downloadHistory" Dense="true" Hover="true" Striped="true" FilterMode="DataGridFilterMode.Simple" 
+                              FilterDefinitions="@filterDefinitions" SortMode="SortMode.Multiple" SortLabel="Sort by">
+                        <ToolBarContent>
+                            <MudText Typo="Typo.h6">@downloadHistory.Count files</MudText>
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Refresh" OnClick="RefreshData">
+                                Refresh
+                            </MudButton>
+                        </ToolBarContent>
+                        <HeaderContent>
+                            <MudTh>File Name</MudTh>
+                            <MudTh>Source URL</MudTh>
+                            <MudTh SortBy="@new Func<FileMetadata, object>(x => x.DownloadTimestamp)">Downloaded</MudTh>
+                            <MudTh SortBy="@new Func<FileMetadata, object>(x => x.FileSize)">Size</MudTh>
+                            <MudTh>Format</MudTh>
+                            <MudTh>Actions</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="File Name">
+                                <MudText Typo="Typo.body2" Class="font-weight-medium">@context.FileName</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Source URL">
+                                @if (!string.IsNullOrEmpty(context.Url))
+                                {
+                                    <MudLink Href="@context.Url" Target="_blank" Class="text-truncate" Style="max-width: 200px; display: block;">
+                                        @TruncateUrl(context.Url)
+                                    </MudLink>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">-</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Downloaded">
+                                <MudText Typo="Typo.body2">@context.DownloadTimestamp.ToString("g")</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Size">
+                                <MudText Typo="Typo.body2">@FormatFileSize(context.FileSize)</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Format">
+                                <MudChip Size="Size.Small" Color="@GetFormatColor(context.Format)">
+                                    @context.Format
+                                </MudChip>
+                            </MudTd>
+                            <MudTd DataLabel="Actions">
+                                <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                              OnClick="@(() => ViewMetadata(context))" 
+                                              Color="Color.Primary"
+                                              Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                                              OnClick="@(() => DownloadFile(context))" 
+                                              Color="Color.Secondary"
+                                              Size="Size.Small" />
+                            </MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudDataGridPager T="FileMetadata" />
+                        </PagerContent>
+                    </MudTable>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<FileMetadata>? downloadHistory;
+    private DownloadStatistics statistics = new();
+    private bool isLoading = true;
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+    private FileFormat? filterFormat;
+    private FilterDefinition<FileMetadata>[] filterDefinitions = Array.Empty<FilterDefinition<FileMetadata>>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        filterStartDate = DateTime.Today.AddDays(-7); // Default: last 7 days
+        filterEndDate = DateTime.Today.AddDays(1); // Include today
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Load download history
+            var historyResult = await FileMetadataQueryService.GetFileMetadataAsync(
+                filterStartDate,
+                filterEndDate,
+                filterFormat);
+
+            if (historyResult.IsSuccess)
+            {
+                downloadHistory = historyResult.Value ?? new List<FileMetadata>();
+            }
+            else
+            {
+                Snackbar.Add($"Error loading download history: {historyResult.Error}", Severity.Error);
+                downloadHistory = new List<FileMetadata>();
+            }
+
+            // Load statistics
+            var statsResult = await FileMetadataQueryService.GetDownloadStatisticsAsync(
+                filterStartDate ?? DateTime.Today.AddDays(-30),
+                filterEndDate ?? DateTime.Today.AddDays(1));
+
+            if (statsResult.IsSuccess)
+            {
+                statistics = statsResult.Value ?? new DownloadStatistics();
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+            downloadHistory = new List<FileMetadata>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ApplyFilters()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task ClearFilters()
+    {
+        filterStartDate = null;
+        filterEndDate = null;
+        filterFormat = null;
+        await LoadDataAsync();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadDataAsync();
+        Snackbar.Add("Data refreshed", Severity.Success);
+    }
+
+    private async Task ViewMetadata(FileMetadata fileMetadata)
+    {
+        var parameters = new DialogParameters
+        {
+            ["FileMetadata"] = fileMetadata
+        };
+
+        var options = new DialogOptions
+        {
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        await DialogService.ShowAsync<Dialogs.FileMetadataViewer>("File Metadata", parameters, options);
+    }
+
+    private async Task DownloadFile(FileMetadata fileMetadata)
+    {
+        try
+        {
+            // Get file content from storage
+            var downloadResult = await FileDownloadService.GetFileContentAsync(
+                fileMetadata.FilePath);
+
+            if (downloadResult.IsCancelled())
+            {
+                Snackbar.Add("File download was cancelled", Severity.Warning);
+                return;
+            }
+
+            if (downloadResult.IsFailure)
+            {
+                Snackbar.Add($"Error downloading file: {downloadResult.Error}", Severity.Error);
+                return;
+            }
+
+            if (downloadResult.Value == null)
+            {
+                Snackbar.Add("File download returned no content", Severity.Error);
+                return;
+            }
+
+            var fileContent = downloadResult.Value;
+
+            // Convert byte array to base64 for JavaScript download
+            var base64Content = Convert.ToBase64String(fileContent.Content);
+            var dataUri = $"data:{fileContent.ContentType};base64,{base64Content}";
+
+            // Use JavaScript interop to trigger download
+            await JSRuntime.InvokeVoidAsync("downloadFile", 
+                dataUri, 
+                fileContent.FileName, 
+                fileContent.ContentType);
+
+            Snackbar.Add($"Downloaded {fileMetadata.FileName}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error downloading file: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    private string TruncateUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url) || url.Length <= 50)
+            return url;
+        return url.Substring(0, 47) + "...";
+    }
+
+    private Color GetFormatColor(FileFormat format) => format switch
+    {
+        FileFormat.PDF => Color.Error,
+        FileFormat.XML => Color.Warning,
+        FileFormat.DOCX => Color.Info,
+        FileFormat.ZIP => Color.Secondary,
+        _ => Color.Default
+    };
+
+    private int GetFormatCount(FileFormat format)
+    {
+        return statistics.FilesByFormat.TryGetValue(format, out var count) ? count : 0;
+    }
+
+    private string GetStatisticsPeriod()
+    {
+        if (filterStartDate.HasValue && filterEndDate.HasValue)
+        {
+            var days = (filterEndDate.Value - filterStartDate.Value).Days;
+            return days == 0 ? "Today" : $"Last {days} days";
+        }
+        return "All time";
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // Cleanup if needed
+        await Task.CompletedTask;
+    }
+}
+

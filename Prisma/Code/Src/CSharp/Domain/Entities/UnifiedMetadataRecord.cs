@@ -38,9 +38,9 @@ public class UnifiedMetadataRecord
     public MatchedFields? MatchedFields { get; set; }
 
     /// <summary>
-    /// Gets or sets the PDF requirement summary (nullable - may be created in later stories).
+    /// Gets or sets the PDF requirement summary.
     /// </summary>
-    public object? RequirementSummary { get; set; }
+    public RequirementSummary? RequirementSummary { get; set; }
 
     /// <summary>
     /// Gets or sets the SLA tracking information (nullable - may be created in later stories).

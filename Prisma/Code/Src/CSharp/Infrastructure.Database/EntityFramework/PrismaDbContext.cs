@@ -43,6 +43,11 @@ public class PrismaDbContext : DbContext
     /// </summary>
     public DbSet<ReviewDecision> ReviewDecisions { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the AuditRecords entity set.
+    /// </summary>
+    public DbSet<AuditRecord> AuditRecords { get; set; } = null!;
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +58,7 @@ public class PrismaDbContext : DbContext
         modelBuilder.ApplyConfiguration(new SLAStatusConfiguration());
         modelBuilder.ApplyConfiguration(new ReviewCaseConfiguration());
         modelBuilder.ApplyConfiguration(new ReviewDecisionConfiguration());
+        modelBuilder.ApplyConfiguration(new AuditRecordConfiguration());
     }
 }
 

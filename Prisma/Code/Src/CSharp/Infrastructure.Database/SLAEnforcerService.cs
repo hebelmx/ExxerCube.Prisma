@@ -486,7 +486,7 @@ public class SLAEnforcerService : ISLAEnforcer
     /// Calculates the number of business days between two dates, excluding weekends.
     /// </summary>
     /// <param name="startDate">The start date (inclusive).</param>
-    /// <param name="endDate">The end date (inclusive).</param>
+    /// <param name="endDate">The end date (exclusive).</param>
     /// <returns>The number of business days.</returns>
     private static int CalculateBusinessDays(DateTime startDate, DateTime endDate)
     {
@@ -498,7 +498,8 @@ public class SLAEnforcerService : ISLAEnforcer
         var businessDays = 0;
         var currentDate = startDate;
 
-        while (currentDate <= endDate)
+        // Count business days excluding the end date (exclusive end)
+        while (currentDate < endDate)
         {
             // Count only weekdays (Monday-Friday)
             if (currentDate.DayOfWeek != DayOfWeek.Saturday && currentDate.DayOfWeek != DayOfWeek.Sunday)

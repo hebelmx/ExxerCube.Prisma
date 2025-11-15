@@ -70,6 +70,27 @@ public class ProcessingHub : Hub
     }
 
     /// <summary>
+    /// Sends SLA status update to all connected clients.
+    /// </summary>
+    /// <param name="fileId">The file identifier.</param>
+    public async Task UpdateSLAStatus(string fileId)
+    {
+        _logger.LogInformation("Sending SLA status update: FileId={FileId}", fileId);
+        await Clients.All.SendAsync("SLAStatusUpdated", fileId);
+    }
+
+    /// <summary>
+    /// Sends SLA escalation notification to all connected clients.
+    /// </summary>
+    /// <param name="fileId">The file identifier.</param>
+    /// <param name="escalationLevel">The escalation level.</param>
+    public async Task NotifySLAEscalation(string fileId, string escalationLevel)
+    {
+        _logger.LogWarning("Sending SLA escalation notification: FileId={FileId}, Level={EscalationLevel}", fileId, escalationLevel);
+        await Clients.All.SendAsync("SLAEscalated", fileId, escalationLevel);
+    }
+
+    /// <summary>
     /// Called when a client connects to the hub.
     /// </summary>
     /// <returns>A task that represents the asynchronous operation.</returns>

@@ -34,6 +34,19 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDownloadTracker, DownloadTrackerService>();
         services.AddScoped<IFileMetadataLogger, FileMetadataLoggerService>();
         
+        // Register queued audit processor as singleton and hosted service (manages the channel and processes queue)
+        services.AddSingleton<Services.QueuedAuditProcessorService>();
+        services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<Services.QueuedAuditProcessorService>());
+        
+        // Register queued audit logger as scoped (uses the singleton processor's channel)
+        services.AddScoped<IAuditLogger>(sp =>
+        {
+            var processorService = sp.GetRequiredService<Services.QueuedAuditProcessorService>();
+            var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Services.QueuedAuditLoggerService>>();
+            return new Services.QueuedAuditLoggerService(processorService, scopeFactory, logger);
+        });
+        
         // Register SLA metrics collector (singleton for metrics consistency)
         services.AddSingleton<SLAMetricsCollector>();
         
@@ -162,6 +175,63 @@ public static class ServiceCollectionExtensions
 
         // Register background service for automatic SLA updates
         services.AddHostedService<SLAUpdateBackgroundService>();
+
+        // Configure audit options
+        services.Configure<AuditOptions>(options =>
+        {
+            if (configuration != null)
+            {
+                var section = configuration.GetSection(AuditOptions.SectionName);
+
+                if (int.TryParse(section["RetentionYears"], out var retentionYears))
+                {
+                    options.RetentionYears = retentionYears;
+                }
+
+                if (int.TryParse(section["ArchiveAfterYears"], out var archiveAfterYears))
+                {
+                    options.ArchiveAfterYears = archiveAfterYears;
+                }
+
+                var archiveLocation = section["ArchiveLocation"];
+                if (!string.IsNullOrWhiteSpace(archiveLocation))
+                {
+                    options.ArchiveLocation = archiveLocation;
+                }
+
+                if (bool.TryParse(section["AutoDeleteAfterRetention"], out var autoDelete))
+                {
+                    options.AutoDeleteAfterRetention = autoDelete;
+                }
+            }
+        });
+
+        // Configure audit retention background service options
+        services.Configure<AuditRetentionOptions>(options =>
+        {
+            if (configuration != null)
+            {
+                var section = configuration.GetSection(AuditRetentionOptions.SectionName);
+
+                if (int.TryParse(section["IntervalHours"], out var intervalHours))
+                {
+                    options.IntervalHours = intervalHours;
+                }
+
+                if (int.TryParse(section["BatchSize"], out var batchSize))
+                {
+                    options.BatchSize = batchSize;
+                }
+
+                if (int.TryParse(section["RetryDelayHours"], out var retryDelayHours))
+                {
+                    options.RetryDelayHours = retryDelayHours;
+                }
+            }
+        });
+
+        // Register background service for automatic audit retention enforcement
+        services.AddHostedService<Services.AuditRetentionBackgroundService>();
 
         return services;
     }

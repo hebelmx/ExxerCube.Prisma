@@ -22,6 +22,7 @@ public class MetadataExtractionService
     private readonly IFileClassifier _fileClassifier;
     private readonly ISafeFileNamer _safeFileNamer;
     private readonly IFileMover _fileMover;
+    private readonly IAuditLogger _auditLogger;
     private readonly ILogger<MetadataExtractionService> _logger;
 
     /// <summary>
@@ -32,6 +33,7 @@ public class MetadataExtractionService
     /// <param name="fileClassifier">The file classifier service.</param>
     /// <param name="safeFileNamer">The safe file namer service.</param>
     /// <param name="fileMover">The file mover service.</param>
+    /// <param name="auditLogger">The audit logger service.</param>
     /// <param name="logger">The logger instance.</param>
     public MetadataExtractionService(
         IFileTypeIdentifier fileTypeIdentifier,
@@ -39,6 +41,7 @@ public class MetadataExtractionService
         IFileClassifier fileClassifier,
         ISafeFileNamer safeFileNamer,
         IFileMover fileMover,
+        IAuditLogger auditLogger,
         ILogger<MetadataExtractionService> logger)
     {
         _fileTypeIdentifier = fileTypeIdentifier;
@@ -46,6 +49,7 @@ public class MetadataExtractionService
         _fileClassifier = fileClassifier;
         _safeFileNamer = safeFileNamer;
         _fileMover = fileMover;
+        _auditLogger = auditLogger;
         _logger = logger;
     }
 
@@ -54,11 +58,15 @@ public class MetadataExtractionService
     /// </summary>
     /// <param name="filePath">The path to the file to process.</param>
     /// <param name="originalFileName">The original filename.</param>
+    /// <param name="fileId">The file identifier (optional, for audit logging).</param>
+    /// <param name="correlationId">The correlation ID for tracking requests across stages (optional, generates new if not provided).</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the processing result with classification and new file path, or an error.</returns>
     public async Task<Result<MetadataExtractionResult>> ProcessFileAsync(
         string filePath,
         string originalFileName,
+        string? fileId = null,
+        string? correlationId = null,
         CancellationToken cancellationToken = default)
     {
         // Check for cancellation before starting work
@@ -82,31 +90,83 @@ public class MetadataExtractionService
             return Result<MetadataExtractionResult>.WithFailure($"File not found: {filePath}");
         }
 
+        // Generate correlation ID if not provided
+        var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
+
         try
         {
-            _logger.LogInformation("Starting metadata extraction for file: {FilePath}", filePath);
+            _logger.LogInformation("Starting metadata extraction for file: {FilePath} (CorrelationId: {CorrelationId})", filePath, actualCorrelationId);
 
             // Step 1: Identify file type based on content
             var fileContent = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
             var fileTypeResult = await _fileTypeIdentifier.IdentifyFileTypeAsync(fileContent, originalFileName, cancellationToken).ConfigureAwait(false);
             
-            // Propagate cancellation from dependencies
+            // Propagate cancellation from dependencies FIRST
             if (fileTypeResult.IsCancelled())
             {
                 _logger.LogWarning("Metadata extraction cancelled by file type identifier");
+                
+                // Log audit for cancelled file type identification
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Extraction,
+                    ProcessingStage.Extraction,
+                    fileId,
+                    actualCorrelationId,
+                    null,
+                    $"{{\"FileName\":\"{originalFileName}\",\"FilePath\":\"{filePath}\"}}",
+                    false,
+                    "Operation cancelled",
+                    cancellationToken).ConfigureAwait(false);
+                
                 return ResultExtensions.Cancelled<MetadataExtractionResult>();
             }
             
             if (fileTypeResult.IsFailure)
             {
+                // Log audit for failed file type identification
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Extraction,
+                    ProcessingStage.Extraction,
+                    fileId,
+                    actualCorrelationId,
+                    null,
+                    $"{{\"FileName\":\"{originalFileName}\",\"FilePath\":\"{filePath}\"}}",
+                    false,
+                    fileTypeResult.Error ?? "File type identification failed",
+                    cancellationToken).ConfigureAwait(false);
+                
                 return Result<MetadataExtractionResult>.WithFailure(fileTypeResult.Error!);
             }
+
+            // Log audit for successful file type identification
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Extraction,
+                ProcessingStage.Extraction,
+                fileId,
+                actualCorrelationId,
+                null,
+                $"{{\"FileName\":\"{originalFileName}\",\"FilePath\":\"{filePath}\"}}",
+                true,
+                null,
+                cancellationToken).ConfigureAwait(false);
 
             var fileFormat = fileTypeResult.Value;
             _logger.LogDebug("Identified file type as: {FileFormat}", fileFormat);
 
             // Step 2: Extract metadata based on file type
             var metadataResult = await ExtractMetadataByTypeAsync(fileContent, fileFormat, cancellationToken).ConfigureAwait(false);
+            
+            // Log metadata extraction audit
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Extraction,
+                ProcessingStage.Extraction,
+                fileId,
+                actualCorrelationId,
+                null,
+                $"{{\"FileName\":\"{originalFileName}\",\"FileFormat\":\"{fileFormat}\"}}",
+                metadataResult.IsSuccess,
+                metadataResult.IsFailure ? metadataResult.Error : null,
+                cancellationToken).ConfigureAwait(false);
             
             // Propagate cancellation from dependencies
             if (metadataResult.IsCancelled())
@@ -150,6 +210,20 @@ public class MetadataExtractionService
             }
 
             // AC9: Log all classification decisions with confidence scores to audit trail
+            var classificationDetails = $"{{\"Level1\":\"{classification.Level1}\",\"Level2\":\"{classification.Level2}\",\"Confidence\":{classification.Confidence},\"Scores\":{{\"Aseguramiento\":{classification.Scores.AseguramientoScore},\"Desembargo\":{classification.Scores.DesembargoScore},\"Documentacion\":{classification.Scores.DocumentacionScore},\"Informacion\":{classification.Scores.InformacionScore},\"Transferencia\":{classification.Scores.TransferenciaScore},\"OperacionesIlicitas\":{classification.Scores.OperacionesIlicitasScore}}}}}";
+            
+            // Log classification audit
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Classification,
+                ProcessingStage.Extraction,
+                fileId,
+                actualCorrelationId,
+                null,
+                classificationDetails,
+                true,
+                null,
+                cancellationToken).ConfigureAwait(false);
+
             _logger.LogInformation(
                 "Document classified as {Level1}/{Level2} with confidence {Confidence}%. " +
                 "Detailed scores - Aseguramiento: {AseguramientoScore}, Desembargo: {DesembargoScore}, " +
@@ -190,6 +264,18 @@ public class MetadataExtractionService
 
             // Step 5: Move file to organized location
             var moveResult = await _fileMover.MoveFileAsync(filePath, classification, safeFileName, cancellationToken).ConfigureAwait(false);
+            
+            // Log file move audit
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Move,
+                ProcessingStage.Extraction,
+                fileId,
+                actualCorrelationId,
+                null,
+                $"{{\"OriginalPath\":\"{filePath}\",\"SafeFileName\":\"{safeFileName}\",\"Classification\":\"{classification.Level1}/{classification.Level2}\"}}",
+                moveResult.IsSuccess,
+                moveResult.IsFailure ? moveResult.Error : null,
+                cancellationToken).ConfigureAwait(false);
             
             // Propagate cancellation from dependencies
             if (moveResult.IsCancelled())

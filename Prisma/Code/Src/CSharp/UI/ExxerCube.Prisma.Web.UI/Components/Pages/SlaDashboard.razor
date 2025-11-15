@@ -1,0 +1,626 @@
+@page "/sla-dashboard"
+@using ExxerCube.Prisma.Application.Services
+@using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Web.UI.Models
+@using MudBlazor
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Components
+@implements IAsyncDisposable
+
+<PageTitle>SLA Monitoring Dashboard</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Schedule" Class="mr-2" />
+            SLA Monitoring Dashboard
+        </MudText>
+
+        <MudText Typo="Typo.body1" Class="mb-6">
+            Real-time visibility into SLA deadlines, escalations, and at-risk cases for regulatory response compliance.
+        </MudText>
+
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate="true" Class="mb-4" />
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Loading SLA data...</MudText>
+        }
+        else if (hasError)
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                @errorMessage
+                <MudButton Variant="Variant.Text" Color="Color.Error" Size="Size.Small" OnClick="LoadDataAsync" Class="ml-2">
+                    Retry
+                </MudButton>
+            </MudAlert>
+        }
+        else
+        {
+            <!-- Escalation Summary Cards -->
+            <MudGrid Class="mb-6">
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2" Class="cursor-pointer" OnClick="@(() => FilterByEscalation(EscalationLevel.Critical))">
+                        <MudCardContent>
+                            <MudStack>
+                                <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Error" Size="Size.Large" />
+                                <MudText Typo="Typo.h3" Color="Color.Error">@criticalCount</MudText>
+                                <MudText Typo="Typo.body2">Critical (<4h)</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2" Class="cursor-pointer" OnClick="@(() => FilterByEscalation(EscalationLevel.Warning))">
+                        <MudCardContent>
+                            <MudStack>
+                                <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Warning" Size="Size.Large" />
+                                <MudText Typo="Typo.h3" Color="Color.Warning">@warningCount</MudText>
+                                <MudText Typo="Typo.body2">Warning (<24h)</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2" Class="cursor-pointer" OnClick="@(() => FilterByEscalation(EscalationLevel.Breached))">
+                        <MudCardContent>
+                            <MudStack>
+                                <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Dark" Size="Size.Large" />
+                                <MudText Typo="Typo.h3" Color="Color.Dark">@breachedCount</MudText>
+                                <MudText Typo="Typo.body2">Breached</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Elevation="2">
+                        <MudCardContent>
+                            <MudStack>
+                                <MudIcon Icon="@Icons.Material.Filled.Assignment" Color="Color.Info" Size="Size.Large" />
+                                <MudText Typo="Typo.h3" Color="Color.Info">@totalActiveCount</MudText>
+                                <MudText Typo="Typo.body2">Total Active</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+
+            <!-- Filter Bar -->
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.FilterList" Class="mr-2" />
+                        Filters
+                    </MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudSelect T="EscalationLevel?" Label="Escalation Level" Variant="Variant.Outlined" 
+                                      @bind-Value="filterEscalationLevel" Clearable="true">
+                                <MudSelectItem Value="@((EscalationLevel?)null)">All Levels</MudSelectItem>
+                                <MudSelectItem Value="@EscalationLevel.None">None</MudSelectItem>
+                                <MudSelectItem Value="@EscalationLevel.Warning">Warning</MudSelectItem>
+                                <MudSelectItem Value="@EscalationLevel.Critical">Critical</MudSelectItem>
+                                <MudSelectItem Value="@EscalationLevel.Breached">Breached</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudSelect T="string?" Label="SLA Status" Variant="Variant.Outlined" 
+                                      @bind-Value="filterSLAStatus" Clearable="true">
+                                <MudSelectItem Value="@((string?)null)">All Statuses</MudSelectItem>
+                                <MudSelectItem Value="Active">Active</MudSelectItem>
+                                <MudSelectItem Value="At-Risk">At-Risk</MudSelectItem>
+                                <MudSelectItem Value="Breached">Breached</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudDatePicker @bind-Date="filterStartDate" Label="Intake Date From" Variant="Variant.Outlined" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudDatePicker @bind-Date="filterEndDate" Label="Intake Date To" Variant="Variant.Outlined" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudTextField @bind-Value="filterFileId" Label="File ID" Variant="Variant.Outlined" 
+                                         Placeholder="Search by File ID..." />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3" Class="d-flex align-center">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyFilters" Class="mr-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Search" Class="mr-2" />
+                                Apply Filters
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="ClearFilters">
+                                Clear
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudCardContent>
+            </MudCard>
+
+            <!-- Active Cases Table -->
+            <MudCard Class="mb-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.List" Class="mr-2" />
+                        Active Cases
+                    </MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (filteredCases == null || !filteredCases.Any())
+                    {
+                        <MudAlert Severity="Severity.Info">
+                            No active cases found matching the current filters.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <MudTable Items="@filteredCases" Dense="true" Hover="true" Striped="true" 
+                                  SortMode="SortMode.Multiple" SortLabel="Sort by">
+                            <ToolBarContent>
+                                <MudText Typo="Typo.h6">@filteredCases.Count cases</MudText>
+                                <MudSpacer />
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+                                          StartIcon="@Icons.Material.Filled.Refresh" 
+                                          OnClick="RefreshData">
+                                    Refresh
+                                </MudButton>
+                            </ToolBarContent>
+                            <HeaderContent>
+                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.FileId)">Case ID</MudTh>
+                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.DisplayFileName)">File Name</MudTh>
+                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.IntakeDate)">Intake Date</MudTh>
+                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.Deadline)">Deadline</MudTh>
+                                <MudTh>Time Remaining</MudTh>
+                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.EscalationLevel)">Escalation Level</MudTh>
+                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.IsBreached)">Status</MudTh>
+                                <MudTh>Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Case ID">
+                                    <MudLink Href="@($"/review-case/{context.SLAStatus.FileId}")" 
+                                            Typo="Typo.body2" 
+                                            Class="font-weight-medium">
+                                        @context.SLAStatus.FileId
+                                    </MudLink>
+                                </MudTd>
+                                <MudTd DataLabel="File Name">
+                                    <MudTooltip Text="@context.DisplayFileName">
+                                        <MudText Typo="Typo.body2" Class="text-truncate" Style="max-width: 200px;">
+                                            @context.DisplayFileName
+                                        </MudText>
+                                    </MudTooltip>
+                                </MudTd>
+                                <MudTd DataLabel="Intake Date">
+                                    <MudText Typo="Typo.body2">@context.SLAStatus.IntakeDate.ToString("MM/dd/yyyy HH:mm")</MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Deadline">
+                                    <MudText Typo="Typo.body2" Color="@GetDeadlineColor(context.SLAStatus)">
+                                        @context.SLAStatus.Deadline.ToString("MM/dd/yyyy HH:mm")
+                                    </MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Time Remaining">
+                                    <MudText Typo="Typo.body2" Color="@context.TimeRemainingColor" 
+                                            Class="font-weight-bold" 
+                                            Id="@($"timer-{context.SLAStatus.FileId}")">
+                                        @context.FormattedTimeRemaining
+                                    </MudText>
+                                </MudTd>
+                                <MudTd DataLabel="Escalation Level">
+                                    <MudChip Size="Size.Small" Color="@context.EscalationColor">
+                                        @context.EscalationText
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Status">
+                                    <MudChip Size="Size.Small" Color="@context.StatusColor">
+                                        @context.StatusText
+                                    </MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Actions">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                                  OnClick="@(() => ViewCaseDetails(context))" 
+                                                  Color="Color.Primary"
+                                                  Size="Size.Small"
+                                                  Title="View Details" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Escalator" 
+                                                  OnClick="@(() => EscalateCase(context))" 
+                                                  Color="Color.Warning"
+                                                  Size="Size.Small"
+                                                  Title="Escalate" />
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudCardContent>
+            </MudCard>
+
+            <!-- At-Risk Cases List -->
+            @if (atRiskCases != null && atRiskCases.Any())
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.PriorityHigh" Class="mr-2" />
+                            At-Risk Cases Requiring Immediate Attention
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudExpansionPanels>
+                            @foreach (var atRiskCase in atRiskCases.OrderBy(c => c.SLAStatus.Deadline))
+                            {
+                                <MudExpansionPanel>
+                                    <TitleContent>
+                                        <MudText Typo="Typo.h6">
+                                            <MudChip Size="Size.Small" Color="@atRiskCase.EscalationColor" Class="mr-2">
+                                                @atRiskCase.EscalationText
+                                            </MudChip>
+                                            @atRiskCase.SLAStatus.FileId
+                                        </MudText>
+                                    </TitleContent>
+                                    <Actions>
+                                        <MudText Typo="Typo.h5" Color="@atRiskCase.TimeRemainingColor" Class="mr-4">
+                                            @atRiskCase.FormattedTimeRemaining
+                                        </MudText>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" 
+                                                  OnClick="@(() => ViewCaseDetails(atRiskCase))" Class="mr-2">
+                                            View
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" 
+                                                  OnClick="@(() => EscalateCase(atRiskCase))">
+                                            Escalate
+                                        </MudButton>
+                                    </Actions>
+                                    <ChildContent>
+                                        <MudStack>
+                                            <MudText Typo="Typo.body2">
+                                                <strong>File:</strong> @atRiskCase.DisplayFileName
+                                            </MudText>
+                                            <MudText Typo="Typo.body2">
+                                                <strong>Intake Date:</strong> @atRiskCase.SLAStatus.IntakeDate.ToString("MM/dd/yyyy HH:mm")
+                                            </MudText>
+                                            <MudText Typo="Typo.body2">
+                                                <strong>Deadline:</strong> @atRiskCase.SLAStatus.Deadline.ToString("MM/dd/yyyy HH:mm")
+                                            </MudText>
+                                            <MudText Typo="Typo.body2">
+                                                <strong>Days Plazo:</strong> @atRiskCase.SLAStatus.DaysPlazo
+                                            </MudText>
+                                        </MudStack>
+                                    </ChildContent>
+                                </MudExpansionPanel>
+                            }
+                        </MudExpansionPanels>
+                    </MudCardContent>
+                </MudCard>
+            }
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<SLACaseViewModel>? allCases;
+    private List<SLACaseViewModel>? filteredCases;
+    private List<SLACaseViewModel>? atRiskCases;
+    private bool isLoading = true;
+    private bool hasError = false;
+    private string errorMessage = string.Empty;
+
+    // Summary counts
+    private int criticalCount = 0;
+    private int warningCount = 0;
+    private int breachedCount = 0;
+    private int totalActiveCount = 0;
+
+    // Filters
+    private EscalationLevel? filterEscalationLevel;
+    private string? filterSLAStatus;
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+    private string? filterFileId;
+
+    // SignalR
+    private HubConnection? hubConnection;
+    private System.Threading.Timer? countdownTimer;
+
+    [Inject] private SLATrackingService SLATrackingService { get; set; } = null!;
+    [Inject] private FileMetadataQueryService FileMetadataQueryService { get; set; } = null!;
+    [Inject] private ISnackbar Snackbar { get; set; } = null!;
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+    [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private IJSRuntime JSRuntime { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitializeSignalR();
+        await LoadDataAsync();
+        StartCountdownTimer();
+    }
+
+    private async Task InitializeSignalR()
+    {
+        try
+        {
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(Navigation.ToAbsoluteUri("/processingHub"))
+                .Build();
+
+            // Listen for SLA updates
+            hubConnection.On<string>("SLAStatusUpdated", OnSLAStatusUpdated);
+            hubConnection.On<string, string>("SLAEscalated", OnSLAEscalated);
+
+            await hubConnection.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to connect to real-time updates: {ex.Message}", Severity.Warning);
+        }
+    }
+
+    private void OnSLAStatusUpdated(string fileId)
+    {
+        InvokeAsync(async () =>
+        {
+            await LoadDataAsync();
+            Snackbar.Add($"SLA status updated for case: {fileId}", Severity.Info);
+        });
+    }
+
+    private void OnSLAEscalated(string fileId, string escalationLevel)
+    {
+        InvokeAsync(async () =>
+        {
+            await LoadDataAsync();
+            Snackbar.Add($"Case {fileId} escalated to {escalationLevel}", Severity.Warning);
+        });
+    }
+
+    private void StartCountdownTimer()
+    {
+        // Update countdown timers every 60 seconds
+        countdownTimer = new System.Threading.Timer(async _ =>
+        {
+            await InvokeAsync(() =>
+            {
+                UpdateCountdownTimers();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
+    }
+
+    private void UpdateCountdownTimers()
+    {
+        if (allCases == null) return;
+
+        foreach (var caseItem in allCases)
+        {
+            // Recalculate remaining time
+            var now = DateTime.UtcNow;
+            var remaining = caseItem.SLAStatus.Deadline - now;
+            caseItem.SLAStatus.RemainingTime = remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+
+            // Update escalation level if needed
+            if (remaining <= TimeSpan.Zero)
+            {
+                caseItem.SLAStatus.IsBreached = true;
+                caseItem.SLAStatus.EscalationLevel = EscalationLevel.Breached;
+            }
+            else if (remaining.TotalHours < 4)
+            {
+                caseItem.SLAStatus.EscalationLevel = EscalationLevel.Critical;
+                caseItem.SLAStatus.IsAtRisk = true;
+            }
+            else if (remaining.TotalHours < 24)
+            {
+                caseItem.SLAStatus.EscalationLevel = EscalationLevel.Warning;
+                caseItem.SLAStatus.IsAtRisk = true;
+            }
+        }
+
+        // Recalculate summary counts
+        CalculateSummaryCounts();
+        ApplyFilters();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        hasError = false;
+        errorMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            // Load active cases
+            var activeResult = await SLATrackingService.GetActiveCasesAsync();
+            if (activeResult.IsFailure)
+            {
+                hasError = true;
+                errorMessage = $"Failed to load active cases: {activeResult.Error}";
+                return;
+            }
+
+            var activeCases = activeResult.Value ?? new List<SLAStatus>();
+
+            // Load at-risk cases
+            var atRiskResult = await SLATrackingService.GetAtRiskCasesAsync();
+            var atRiskSLAStatuses = atRiskResult.IsSuccess ? (atRiskResult.Value ?? new List<SLAStatus>()) : new List<SLAStatus>();
+
+            // Load breached cases
+            var breachedResult = await SLATrackingService.GetBreachedCasesAsync();
+            var breachedSLAStatuses = breachedResult.IsSuccess ? (breachedResult.Value ?? new List<SLAStatus>()) : new List<SLAStatus>();
+
+            // Combine all cases
+            var allSLAStatuses = activeCases
+                .Concat(atRiskSLAStatuses.Where(s => !activeCases.Any(a => a.FileId == s.FileId)))
+                .Concat(breachedSLAStatuses.Where(s => !activeCases.Any(a => a.FileId == s.FileId) && !atRiskSLAStatuses.Any(a => a.FileId == s.FileId)))
+                .ToList();
+
+            // Load file metadata for all cases
+            allCases = new List<SLACaseViewModel>();
+            foreach (var slaStatus in allSLAStatuses)
+            {
+                var fileMetadataResult = await FileMetadataQueryService.GetFileMetadataByIdAsync(slaStatus.FileId);
+                var fileMetadata = fileMetadataResult.IsSuccess ? fileMetadataResult.Value : null;
+
+                allCases.Add(new SLACaseViewModel
+                {
+                    SLAStatus = slaStatus,
+                    FileMetadata = fileMetadata
+                });
+            }
+
+            // Calculate summary counts
+            CalculateSummaryCounts();
+
+            // Set at-risk cases
+            atRiskCases = allCases
+                .Where(c => c.SLAStatus.EscalationLevel == EscalationLevel.Critical || 
+                           c.SLAStatus.EscalationLevel == EscalationLevel.Warning)
+                .ToList();
+
+            // Apply filters
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            hasError = true;
+            errorMessage = $"Error loading SLA data: {ex.Message}";
+            Snackbar.Add(errorMessage, Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void CalculateSummaryCounts()
+    {
+        if (allCases == null) return;
+
+        criticalCount = allCases.Count(c => c.SLAStatus.EscalationLevel == EscalationLevel.Critical);
+        warningCount = allCases.Count(c => c.SLAStatus.EscalationLevel == EscalationLevel.Warning);
+        breachedCount = allCases.Count(c => c.SLAStatus.EscalationLevel == EscalationLevel.Breached);
+        totalActiveCount = allCases.Count(c => !c.SLAStatus.IsBreached);
+    }
+
+    private void ApplyFilters()
+    {
+        if (allCases == null)
+        {
+            filteredCases = new List<SLACaseViewModel>();
+            return;
+        }
+
+        filteredCases = allCases.AsEnumerable();
+
+        if (filterEscalationLevel.HasValue)
+        {
+            filteredCases = filteredCases.Where(c => c.SLAStatus.EscalationLevel == filterEscalationLevel.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filterSLAStatus))
+        {
+            filteredCases = filterSLAStatus switch
+            {
+                "Active" => filteredCases.Where(c => !c.SLAStatus.IsBreached),
+                "At-Risk" => filteredCases.Where(c => c.SLAStatus.IsAtRisk),
+                "Breached" => filteredCases.Where(c => c.SLAStatus.IsBreached),
+                _ => filteredCases
+            };
+        }
+
+        if (filterStartDate.HasValue)
+        {
+            filteredCases = filteredCases.Where(c => c.SLAStatus.IntakeDate >= filterStartDate.Value);
+        }
+
+        if (filterEndDate.HasValue)
+        {
+            filteredCases = filteredCases.Where(c => c.SLAStatus.IntakeDate <= filterEndDate.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filterFileId))
+        {
+            filteredCases = filteredCases.Where(c => 
+                c.SLAStatus.FileId.Contains(filterFileId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        filteredCases = filteredCases.ToList();
+        StateHasChanged();
+    }
+
+    private async Task ClearFilters()
+    {
+        filterEscalationLevel = null;
+        filterSLAStatus = null;
+        filterStartDate = null;
+        filterEndDate = null;
+        filterFileId = null;
+        ApplyFilters();
+        await Task.CompletedTask;
+    }
+
+    private void FilterByEscalation(EscalationLevel level)
+    {
+        filterEscalationLevel = level;
+        ApplyFilters();
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadDataAsync();
+        Snackbar.Add("Data refreshed", Severity.Success);
+    }
+
+    private void ViewCaseDetails(SLACaseViewModel caseViewModel)
+    {
+        Navigation.NavigateTo($"/review-case/{caseViewModel.SLAStatus.FileId}");
+    }
+
+    private async Task EscalateCase(SLACaseViewModel caseViewModel)
+    {
+        var currentLevel = caseViewModel.SLAStatus.EscalationLevel;
+        var nextLevel = currentLevel switch
+        {
+            EscalationLevel.None => EscalationLevel.Warning,
+            EscalationLevel.Warning => EscalationLevel.Critical,
+            _ => EscalationLevel.Critical
+        };
+
+        var result = await SLATrackingService.EscalateCaseAsync(caseViewModel.SLAStatus.FileId, nextLevel);
+        if (result.IsSuccess)
+        {
+            Snackbar.Add($"Case {caseViewModel.SLAStatus.FileId} escalated to {nextLevel}", Severity.Success);
+            await LoadDataAsync();
+        }
+        else
+        {
+            Snackbar.Add($"Failed to escalate case: {result.Error}", Severity.Error);
+        }
+    }
+
+    private Color GetDeadlineColor(SLAStatus slaStatus)
+    {
+        if (slaStatus.IsBreached) return Color.Dark;
+        if (slaStatus.EscalationLevel == EscalationLevel.Critical) return Color.Error;
+        if (slaStatus.EscalationLevel == EscalationLevel.Warning) return Color.Warning;
+        return Color.Default;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        countdownTimer?.Dispose();
+
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
+

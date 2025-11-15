@@ -21,6 +21,7 @@ public class DocumentIngestionService
     private readonly IDownloadTracker _downloadTracker;
     private readonly IDownloadStorage _downloadStorage;
     private readonly IFileMetadataLogger _fileMetadataLogger;
+    private readonly IAuditLogger _auditLogger;
     private readonly ILogger<DocumentIngestionService> _logger;
 
     /// <summary>
@@ -30,18 +31,21 @@ public class DocumentIngestionService
     /// <param name="downloadTracker">The download tracker for duplicate detection.</param>
     /// <param name="downloadStorage">The download storage adapter.</param>
     /// <param name="fileMetadataLogger">The file metadata logger.</param>
+    /// <param name="auditLogger">The audit logger service.</param>
     /// <param name="logger">The logger instance.</param>
     public DocumentIngestionService(
         IBrowserAutomationAgent browserAutomationAgent,
         IDownloadTracker downloadTracker,
         IDownloadStorage downloadStorage,
         IFileMetadataLogger fileMetadataLogger,
+        IAuditLogger auditLogger,
         ILogger<DocumentIngestionService> logger)
     {
         _browserAutomationAgent = browserAutomationAgent;
         _downloadTracker = downloadTracker;
         _downloadStorage = downloadStorage;
         _fileMetadataLogger = fileMetadataLogger;
+        _auditLogger = auditLogger;
         _logger = logger;
     }
 
@@ -85,24 +89,91 @@ public class DocumentIngestionService
             return Result<List<FileMetadata>>.WithFailure("File patterns cannot contain null or empty values");
         }
 
+        // Generate correlation ID for this ingestion operation
+        var correlationId = Guid.NewGuid().ToString();
+        _logger.LogInformation("Starting document ingestion from {WebsiteUrl} (CorrelationId: {CorrelationId})", websiteUrl, correlationId);
+
         try
         {
-            _logger.LogInformation("Starting document ingestion from {WebsiteUrl}", websiteUrl);
-
             // Step 1: Launch browser
             var launchResult = await _browserAutomationAgent.LaunchBrowserAsync(cancellationToken).ConfigureAwait(false);
+            
+            // Propagate cancellation FIRST
+            if (launchResult.IsCancelled())
+            {
+                _logger.LogWarning("Browser launch cancelled");
+                return ResultExtensions.Cancelled<List<FileMetadata>>();
+            }
+
             if (launchResult.IsFailure)
             {
+                // Log audit for failed browser launch
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Download,
+                    ProcessingStage.Ingestion,
+                    null,
+                    correlationId,
+                    null,
+                    $"{{\"WebsiteUrl\":\"{websiteUrl}\",\"Action\":\"BrowserLaunch\"}}",
+                    false,
+                    launchResult.Error,
+                    cancellationToken).ConfigureAwait(false);
+                
                 return Result<List<FileMetadata>>.WithFailure($"Failed to launch browser: {launchResult.Error}");
             }
 
+            // Log audit for successful browser launch
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Download,
+                ProcessingStage.Ingestion,
+                null,
+                correlationId,
+                null,
+                $"{{\"WebsiteUrl\":\"{websiteUrl}\",\"Action\":\"BrowserLaunch\"}}",
+                true,
+                null,
+                cancellationToken).ConfigureAwait(false);
+
             // Step 2: Navigate to website
             var navigateResult = await _browserAutomationAgent.NavigateToAsync(websiteUrl, cancellationToken).ConfigureAwait(false);
+            
+            // Propagate cancellation FIRST
+            if (navigateResult.IsCancelled())
+            {
+                var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
+                _logger.LogWarning("Navigation cancelled");
+                return ResultExtensions.Cancelled<List<FileMetadata>>();
+            }
+
             if (navigateResult.IsFailure)
             {
+                // Log audit for failed navigation
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Download,
+                    ProcessingStage.Ingestion,
+                    null,
+                    correlationId,
+                    null,
+                    $"{{\"WebsiteUrl\":\"{websiteUrl}\",\"Action\":\"Navigate\"}}",
+                    false,
+                    navigateResult.Error,
+                    cancellationToken).ConfigureAwait(false);
+                
                 var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
                 return Result<List<FileMetadata>>.WithFailure($"Failed to navigate to website: {navigateResult.Error}");
             }
+
+            // Log audit for successful navigation
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Download,
+                ProcessingStage.Ingestion,
+                null,
+                correlationId,
+                null,
+                $"{{\"WebsiteUrl\":\"{websiteUrl}\",\"Action\":\"Navigate\"}}",
+                true,
+                null,
+                cancellationToken).ConfigureAwait(false);
 
             // Step 3: Identify downloadable files
             var identifyResult = await _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, cancellationToken).ConfigureAwait(false);
@@ -122,7 +193,7 @@ public class DocumentIngestionService
                 // Step 4: Process each file
                 foreach (var downloadableFile in downloadableFiles)
                 {
-                    var processResult = await ProcessFileAsync(downloadableFile, cancellationToken).ConfigureAwait(false);
+                    var processResult = await ProcessFileAsync(downloadableFile, correlationId, cancellationToken).ConfigureAwait(false);
                     if (processResult.IsSuccess)
                     {
                         var fileMetadata = processResult.Value;
@@ -197,12 +268,26 @@ public class DocumentIngestionService
 
     private async Task<Result<FileMetadata?>> ProcessFileAsync(
         DownloadableFile downloadableFile,
+        string correlationId,
         CancellationToken cancellationToken)
     {
         try
         {
             // Step 1: Download file
             var downloadResult = await _browserAutomationAgent.DownloadFileAsync(downloadableFile.Url, cancellationToken).ConfigureAwait(false);
+            
+            // Log download audit
+            await _auditLogger.LogAuditAsync(
+                AuditActionType.Download,
+                ProcessingStage.Ingestion,
+                null,
+                correlationId,
+                null,
+                $"{{\"FileName\":\"{downloadableFile.FileName}\",\"Url\":\"{downloadableFile.Url}\",\"Format\":\"{downloadableFile.Format}\"}}",
+                downloadResult.IsSuccess,
+                downloadResult.IsFailure ? downloadResult.Error : null,
+                cancellationToken).ConfigureAwait(false);
+
             if (downloadResult.IsSuccess)
             {
                 var downloadedFile = downloadResult.Value;
@@ -216,6 +301,18 @@ public class DocumentIngestionService
 
                 // Step 3: Check for duplicates
                 var duplicateResult = await _downloadTracker.IsDuplicateAsync(checksum, cancellationToken).ConfigureAwait(false);
+                
+                // Log duplicate detection audit
+                await _auditLogger.LogAuditAsync(
+                    AuditActionType.Download,
+                    ProcessingStage.Ingestion,
+                    null,
+                    correlationId,
+                    null,
+                    $"{{\"FileName\":\"{downloadableFile.FileName}\",\"Checksum\":\"{checksum}\"}}",
+                    duplicateResult.IsSuccess,
+                    duplicateResult.IsFailure ? duplicateResult.Error : null,
+                    cancellationToken).ConfigureAwait(false);
                 if (duplicateResult.IsSuccess)
                 {
                     var isDuplicate = duplicateResult.Value;
@@ -253,8 +350,33 @@ public class DocumentIngestionService
                             Format = downloadedFile.Format
                         };
 
+                        // Log storage audit
+                        await _auditLogger.LogAuditAsync(
+                            AuditActionType.Download,
+                            ProcessingStage.Ingestion,
+                            fileMetadata.FileId,
+                            correlationId,
+                            null,
+                            $"{{\"FileName\":\"{downloadedFile.FileName}\",\"FilePath\":\"{storagePath}\",\"FileSize\":{downloadedFile.FileSize}}}",
+                            true,
+                            null,
+                            cancellationToken).ConfigureAwait(false);
+
                         // Step 6: Log metadata to database
                         var logResult = await _fileMetadataLogger.LogFileMetadataAsync(fileMetadata, cancellationToken).ConfigureAwait(false);
+                        
+                        // Log metadata logging audit
+                        await _auditLogger.LogAuditAsync(
+                            AuditActionType.Download,
+                            ProcessingStage.Ingestion,
+                            fileMetadata.FileId,
+                            correlationId,
+                            null,
+                            $"{{\"FileName\":\"{downloadedFile.FileName}\",\"FileId\":\"{fileMetadata.FileId}\"}}",
+                            logResult.IsSuccess,
+                            logResult.IsFailure ? logResult.Error : null,
+                            cancellationToken).ConfigureAwait(false);
+
                         if (logResult.IsFailure)
                         {
                             _logger.LogWarning("Failed to log file metadata for {FileName}: {Error}", downloadableFile.FileName, logResult.Error);

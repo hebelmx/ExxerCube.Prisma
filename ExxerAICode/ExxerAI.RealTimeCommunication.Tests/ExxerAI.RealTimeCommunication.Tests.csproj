@@ -1,0 +1,164 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ============================================================================ -->
+  <!-- 💼 CLEAN CODE STARTS WITH CLEAN TESTS! 💼 -->
+  <!-- EXXERAI.REALTIMECOMMUNICATION.TEST 📡 - REAL-TIME SIGNAL VALIDATION -->
+  <!-- Evocative Architecture: Validates hubs, messaging adapters, and SignalR flows -->
+  <!-- that orchestrate ExxerAI's live communication fabric. -->
+  <!-- ============================================================================ -->
+
+  <!-- ============================================================================ -->
+  <!-- CORE PROPERTIES -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- ASSEMBLY METADATA -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <RootNamespace>ExxerAI.RealTimeCommunication.Tests</RootNamespace>
+    <AssemblyName>ExxerAI.RealTimeCommunication.Tests</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+
+    <Version>2025.10.30.001</Version>
+    <AssemblyVersion>2025.10.30.001</AssemblyVersion>
+    <FileVersion>2025.10.30.001</FileVersion>
+    <Company>Exxerpro Solutions SA de CV</Company>
+    <Authors>Abel Briones</Authors>
+    <Product>ExxerAI Intelligence System</Product>
+    <AssemblyTitle>ExxerAI Real-Time Communication Unit Tests</AssemblyTitle>
+    <Description>📡 Real-time communication validation tests safeguarding SignalR orchestration and messaging resilience.</Description>
+    <RepositoryUrl>https://github.com/Exxerpro/ExxerAI.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Copyright>© 2025 Exxerpro Solutions SA de CV</Copyright>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- TESTING PLATFORM PROPERTIES -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformServer>true</TestingPlatformServer>
+    <EnableDynamicPgo>true</EnableDynamicPgo>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- RESULT AND RESULT ANALYZERS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Result and Result Analyzers">
+    <PackageReference Include="IndQuestResults" />
+    <PackageReference Include="IndQuestResults.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- XUNIT V3 UNIVERSAL CONFIGURATION -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="XUnit v3 Universal Configuration">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.v3.core" />
+    <PackageReference Include="xunit.v3.runner.msbuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- TESTING FRAMEWORK -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Testing Framework">
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- LOGGING -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Logging">
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- SIGNALR / ASP.NET TESTING -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="SignalR Testing">
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- ANALYZERS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="NSubstitute Analyzers">
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- MICROSOFT TESTING PLATFORM -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Microsoft Testing Platform">
+    <PackageReference Include="Microsoft.Testing.Platform" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+    <PackageReference Include="Microsoft.Testing.Extensions.VSTestBridge" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- GLOBAL USINGS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Global Usings">
+    <Using Include="IndQuestResults" />
+    <Using Include="IndQuestResults.Operations" />
+    <Using Include="IndQuestResults.Validation" />
+    <Using Include="Xunit" />
+    <Using Include="NSubstitute" />
+    <Using Include="Shouldly" />
+    <Using Include="Microsoft.Extensions.Logging" />
+
+    <!-- System Namespaces -->
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="System.Text" />
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PROJECT REFERENCES -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Core Layer">
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\..\..\Core\ExxerAi.Axioms\ExxerAI.Axioms.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\ExxerAI.RealTimeCommunication\ExxerAI.RealTimeCommunication.csproj" />
+  </ItemGroup>
+
+</Project>
