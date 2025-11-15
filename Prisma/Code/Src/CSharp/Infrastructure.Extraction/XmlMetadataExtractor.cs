@@ -59,7 +59,7 @@ public class XmlMetadataExtractor : IMetadataExtractor
 
             // Extract names from parties
             var names = expediente.SolicitudPartes
-                .Select(p => $"{p.Nombre} {p.Paterno} {p.Materno}".Trim())
+                .Select(p => $"{p.Nombre} {p.Paterno ?? string.Empty} {p.Materno ?? string.Empty}".Trim())
                 .Where(n => !string.IsNullOrEmpty(n))
                 .ToArray();
 

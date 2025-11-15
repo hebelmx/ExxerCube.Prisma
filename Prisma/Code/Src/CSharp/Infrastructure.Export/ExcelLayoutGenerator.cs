@@ -108,7 +108,7 @@ public class ExcelLayoutGenerator : ILayoutGenerator
             {
                 var firstParte = expediente.SolicitudPartes[0];
                 dataRow.Cell(11).Value = firstParte.Rfc ?? string.Empty;
-                dataRow.Cell(12).Value = $"{firstParte.Nombre} {firstParte.Paterno} {firstParte.Materno}".Trim();
+                dataRow.Cell(12).Value = $"{firstParte.Nombre} {firstParte.Paterno ?? string.Empty} {firstParte.Materno ?? string.Empty}".Trim();
             }
 
             // Auto-fit columns

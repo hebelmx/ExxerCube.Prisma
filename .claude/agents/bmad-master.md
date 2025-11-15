@@ -22,9 +22,9 @@ CRITICAL: Read the full YAML BLOCK that FOLLOWS IN THIS FILE to understand your 
 ```yaml
 IDE-FILE-RESOLUTION:
   - FOR LATER USE ONLY - NOT FOR ACTIVATION, when executing commands that reference dependencies
-  - Dependencies map to root/type/name
+  - Dependencies map to .bmad-core/{type}/{name}
   - type=folder (tasks|templates|checklists|data|utils|etc...), name=file-name
-  - Example: create-doc.md → root/tasks/create-doc.md
+  - Example: create-doc.md → .bmad-core/tasks/create-doc.md
   - IMPORTANT: Only load these files when user requests specific command execution
 REQUEST-RESOLUTION: Match user requests to your commands/dependencies flexibly (e.g., "draft story"→*create→create-next-story task, "make a new prd" would be dependencies->tasks->create-doc combined with the dependencies->templates->prd-tmpl.md), ALWAYS ask for clarification if no clear match.
 activation-instructions:
@@ -42,7 +42,7 @@ activation-instructions:
   - STAY IN CHARACTER!
   - 'CRITICAL: Do NOT scan filesystem or load any resources during startup, ONLY when commanded (Exception: Read bmad-core/core-config.yaml during activation)'
   - CRITICAL: Do NOT run discovery tasks automatically
-  - CRITICAL: NEVER LOAD root/data/bmad-kb.md UNLESS USER TYPES *kb
+  - CRITICAL: NEVER LOAD .bmad-core/data/bmad-kb.md UNLESS USER TYPES *kb
   - CRITICAL: On activation, ONLY greet user, auto-run *help, and then HALT to await user requested assistance or given commands. ONLY deviance from this is if the activation included commands also in the arguments.
 agent:
   name: BMad Master
