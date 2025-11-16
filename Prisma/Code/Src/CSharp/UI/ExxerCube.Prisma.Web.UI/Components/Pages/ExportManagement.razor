@@ -62,13 +62,20 @@
                                        ToStringFunc="@(x => x != null ? $"{x.FileId} - {x.FileName}" : string.Empty)"
                                        Label="Search and select cases"
                                        Variant="Variant.Outlined"
-                                       MultiSelection="true"
-                                       @bind-SelectedValues="selectedCases">
+                                       OnSelectionChanged="@OnCaseSelected">
                             <ItemTemplate>
                                 <MudText>@context.FileId - @context.FileName</MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@context.DownloadTimestamp.ToString("g")</MudText>
                             </ItemTemplate>
                         </MudAutocomplete>
+                        <MudChipSet T="string" Class="mt-2">
+                            @foreach (var caseItem in selectedCases)
+                            {
+                                <MudChip T="string" OnClose="@(() => RemoveSelectedCase(caseItem))">
+                                    @caseItem.FileId - @caseItem.FileName
+                                </MudChip>
+                            }
+                        </MudChipSet>
                         <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
                             @selectedCases.Count case(s) selected
                         </MudText>
@@ -90,33 +97,22 @@
                     <!-- Export Format Selection -->
                     <MudItem xs="12" Class="mb-4">
                         <MudText Typo="Typo.subtitle1" Class="mb-2">Export Format</MudText>
-                        <MudRadioGroup @bind-SelectedOption="@exportFormat">
-                            <MudRadio Option="@ExportFormat.SiroXml" Color="Color.Primary">
+                        <MudRadioGroup T="ExportFormat" @bind-SelectedValue="@exportFormat">
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.SiroXml" Color="Color.Primary" HelperText="Regulatory-compliant XML format for SIRO submission">
                                 SIRO XML
-                                <HelperText>Regulatory-compliant XML format for SIRO submission</HelperText>
                             </MudRadio>
-                            <MudRadio Option="@ExportFormat.ExcelFr18" Color="Color.Primary">
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.ExcelFr18" Color="Color.Primary" HelperText="Excel layout for SIRO registration systems">
                                 Excel FR18
-                                <HelperText>Excel layout for SIRO registration systems</HelperText>
                             </MudRadio>
-                            <MudRadio Option="@ExportFormat.Pdf" Color="Color.Primary">
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.Pdf" Color="Color.Primary" HelperText="Cryptographically signed PDF with requirement summarization">
                                 Signed PDF
-                                <HelperText>Cryptographically signed PDF with requirement summarization</HelperText>
                             </MudRadio>
-                            <MudRadio Option="@ExportFormat.Both" Color="Color.Primary">
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.Both" Color="Color.Primary" HelperText="Generate both SIRO XML and Excel FR18">
                                 Both Formats (XML + Excel)
-                                <HelperText>Generate both SIRO XML and Excel FR18</HelperText>
                             </MudRadio>
                         </MudRadioGroup>
                     </MudItem>
 
-                    <!-- Validation Options -->
-                    <MudItem xs="12" Class="mb-4">
-                        <MudText Typo="Typo.subtitle1" Class="mb-2">Validation Options</MudText>
-                        <MudCheckBox @bind-Checked="@validateSchema" Label="Validate against SIRO schema" />
-                        <MudCheckBox @bind-Checked="@validateRequiredFields" Label="Validate all required fields are present" />
-                        <MudCheckBox @bind-Checked="@stopOnErrors" Label="Stop on validation errors" />
-                    </MudItem>
 
                     <!-- Actions -->
                     <MudItem xs="12">
@@ -141,7 +137,7 @@
                                  Adornment="Adornment.Start"
                                  AdornmentIcon="@Icons.Material.Filled.Search"
                                  Variant="Variant.Outlined"
-                                 Dense="true"
+                                 
                                  Immediate="true" />
                 </MudCardHeader>
                 <MudCardContent>
@@ -154,7 +150,7 @@
                     else
                     {
                         <MudTable Items="@FilteredExports" 
-                                 Dense="true" 
+                                  
                                  Hover="true" 
                                  Striped="true">
                             <HeaderContent>
@@ -179,17 +175,17 @@
                                     <MudText Typo="Typo.body2">@context.CasesCount case(s)</MudText>
                                 </MudTd>
                                 <MudTd DataLabel="Format">
-                                    <MudChipSet>
+                                    <MudChipSet T="string">
                                         @foreach (var format in context.Formats)
                                         {
-                                            <MudChip Size="Size.Small" Color="@GetFormatColor(format)">
+                                            <MudChip T="string" Size="Size.Small" Color="@GetFormatColor(format)">
                                                 @format
                                             </MudChip>
                                         }
                                     </MudChipSet>
                                 </MudTd>
                                 <MudTd DataLabel="Status">
-                                    <MudChip Size="Size.Small" 
+                                    <MudChip T="string" Size="Size.Small" 
                                             Color="@GetStatusColor(context.Status)"
                                             Icon="@GetStatusIcon(context.Status)">
                                         @context.Status
@@ -229,17 +225,19 @@
                                 <MudTd DataLabel="Actions">
                                     @if (context.Status == "Completed")
                                     {
-                                        <MudIconButton Icon="@Icons.Material.Filled.Download" 
-                                                      Size="Size.Small"
-                                                      OnClick="@(() => DownloadExportAsync(context))"
-                                                      Title="Download Export" />
+                                        <MudTooltip Text="Download Export">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Download" 
+                                                          Size="Size.Small"
+                                                          OnClick="@(() => DownloadExportAsync(context))" />
+                                        </MudTooltip>
                                     }
                                     @if (context.Status == "Failed")
                                     {
-                                        <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
-                                                      Size="Size.Small"
-                                                      OnClick="@(() => RetryExportAsync(context))"
-                                                      Title="Retry Export" />
+                                        <MudTooltip Text="Retry Export">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                                                          Size="Size.Small"
+                                                          OnClick="@(() => RetryExportAsync(context))" />
+                                        </MudTooltip>
                                     }
                                 </MudTd>
                             </RowTemplate>
@@ -285,9 +283,6 @@
     private HashSet<FileMetadata> selectedCases = new();
     
     private ExportFormat exportFormat = ExportFormat.SiroXml;
-    private bool validateSchema = true;
-    private bool validateRequiredFields = true;
-    private bool stopOnErrors = true;
     
     private List<ExportJob> exportJobs = new();
     private string searchText = string.Empty;
@@ -313,7 +308,7 @@
                 errorMessage = $"Failed to load cases: {result.Error}";
                 Logger.LogError("Failed to load file metadata: {Error}", result.Error);
             }
-            else if (result.IsCancelled())
+            else if (result.IsCancelled)
             {
                 hasError = true;
                 errorMessage = "Operation was cancelled";
@@ -337,8 +332,27 @@
         }
     }
 
-    private Task<IEnumerable<FileMetadata>> SearchCases(string value)
+    private void OnCaseSelected(FileMetadata? selectedCase)
     {
+        if (selectedCase != null && !selectedCases.Contains(selectedCase))
+        {
+            selectedCases.Add(selectedCase);
+            this.selectedCase = null; // Clear selection for next search
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveSelectedCase(FileMetadata caseToRemove)
+    {
+        selectedCases.Remove(caseToRemove);
+        StateHasChanged();
+    }
+
+    private Task<IEnumerable<FileMetadata>> SearchCases(string value, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromResult<IEnumerable<FileMetadata>>(Enumerable.Empty<FileMetadata>());
+
         if (string.IsNullOrWhiteSpace(value))
             return Task.FromResult<IEnumerable<FileMetadata>>(availableCases);
 

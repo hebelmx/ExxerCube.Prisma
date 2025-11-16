@@ -132,7 +132,6 @@
                      Hover="true" 
                      Striped="true"
                      Dense="true"
-                     SortMode="SortMode.Multiple"
                      Filter="new Func<AuditRecord, bool>(FilterAuditRecord)">
                 <HeaderContent>
                     <MudTh>Timestamp</MudTh>
@@ -147,18 +146,18 @@
                 <RowTemplate>
                     <MudTd DataLabel="Timestamp">@context.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
                     <MudTd DataLabel="Correlation ID">
-                        <MudChip Size="Size.Small" Color="Color.Primary">@context.CorrelationId.Substring(0, Math.Min(8, context.CorrelationId.Length))...</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">@context.CorrelationId.Substring(0, Math.Min(8, context.CorrelationId.Length))...</MudChip>
                     </MudTd>
                     <MudTd DataLabel="File ID">@(context.FileId ?? "-")</MudTd>
                     <MudTd DataLabel="Action Type">
-                        <MudChip Size="Size.Small" Color="@GetActionTypeColor(context.ActionType)">@context.ActionType</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="@GetActionTypeColor(context.ActionType)">@context.ActionType</MudChip>
                     </MudTd>
                     <MudTd DataLabel="Stage">
-                        <MudChip Size="Size.Small" Color="@GetStageColor(context.Stage)">@context.Stage</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="@GetStageColor(context.Stage)">@context.Stage</MudChip>
                     </MudTd>
                     <MudTd DataLabel="User ID">@(context.UserId ?? "System")</MudTd>
                     <MudTd DataLabel="Success">
-                        <MudChip Size="Size.Small" Color="@(context.Success ? Color.Success : Color.Error)">
+                        <MudChip T="string" Size="Size.Small" Color="@(context.Success ? Color.Success : Color.Error)">
                             @(context.Success ? "Success" : "Failed")
                         </MudChip>
                     </MudTd>

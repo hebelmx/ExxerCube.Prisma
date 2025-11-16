@@ -1,8 +1,4 @@
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor.Services;
-using ExxerCube.Prisma.Web.UI.Components;
 using ExxerCube.Prisma.Web.UI.Components.Account;
 using ExxerCube.Prisma.Web.UI.Data;
 using ExxerCube.Prisma.Infrastructure.DependencyInjection;
@@ -16,8 +12,6 @@ using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

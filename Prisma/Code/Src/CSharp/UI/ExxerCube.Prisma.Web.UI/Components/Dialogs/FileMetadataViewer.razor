@@ -49,7 +49,7 @@
                                     Value="@FileMetadata.Format.ToString()" 
                                     ReadOnly="true" 
                                     Variant="Variant.Outlined" />
-                        <MudChip Size="Size.Small" Color="@GetFormatColor(FileMetadata.Format)" Class="mt-2">
+                        <MudChip T="string" Size="Size.Small" Color="@GetFormatColor(FileMetadata.Format)" Class="mt-2">
                             @FileMetadata.Format
                         </MudChip>
                     </MudItem>
@@ -65,23 +65,23 @@
                 <MudDivider Class="my-4" />
 
                 <MudText Typo="Typo.subtitle2" Class="mb-2">File Information</MudText>
-                <MudList>
-                    <MudListItem>
+                <MudList T="string">
+                    <MudListItem T="string">
                         <MudText Typo="Typo.body2">
                             <strong>File ID:</strong> @FileMetadata.FileId
                         </MudText>
                     </MudListItem>
-                    <MudListItem>
+                    <MudListItem T="string">
                         <MudText Typo="Typo.body2">
                             <strong>Downloaded:</strong> @FileMetadata.DownloadTimestamp.ToString("F")
                         </MudText>
                     </MudListItem>
-                    <MudListItem>
+                    <MudListItem T="string">
                         <MudText Typo="Typo.body2">
                             <strong>Size:</strong> @FormatFileSize(FileMetadata.FileSize) (@FileMetadata.FileSize bytes)
                         </MudText>
                     </MudListItem>
-                    <MudListItem>
+                    <MudListItem T="string">
                         <MudText Typo="Typo.body2">
                             <strong>Format:</strong> @FileMetadata.Format
                         </MudText>

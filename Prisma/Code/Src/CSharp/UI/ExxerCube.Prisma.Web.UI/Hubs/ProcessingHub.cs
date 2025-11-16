@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Domain.Entities;
 
 
 namespace ExxerCube.Prisma.Web.UI.Hubs;

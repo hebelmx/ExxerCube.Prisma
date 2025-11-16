@@ -102,7 +102,7 @@ public class DigitalPdfSigner : IResponseExporter
             var certificateResult = await GetSigningCertificateAsync(cancellationToken).ConfigureAwait(false);
 
             // Propagate cancellation
-            if (certificateResult.IsCancelled())
+            if (certificateResult.IsCancelled)
             {
                 _logger.LogWarning("Certificate retrieval cancelled");
                 return ResultExtensions.Cancelled();
@@ -299,11 +299,19 @@ public class DigitalPdfSigner : IResponseExporter
             X509Certificate2 certificate;
             if (!string.IsNullOrWhiteSpace(_certificateOptions.CertificatePassword))
             {
+#if NET8_0_OR_GREATER
+                certificate = X509CertificateLoader.LoadPkcs12Certificate(certificateBytes, _certificateOptions.CertificatePassword);
+#else
                 certificate = new X509Certificate2(certificateBytes, _certificateOptions.CertificatePassword);
+#endif
             }
             else
             {
+#if NET8_0_OR_GREATER
+                certificate = X509CertificateLoader.LoadPkcs12Certificate(certificateBytes, null);
+#else
                 certificate = new X509Certificate2(certificateBytes);
+#endif
             }
 
             return certificate;

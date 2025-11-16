@@ -1,4 +1,5 @@
 @page "/sla-dashboard"
+#nullable enable
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
 @using ExxerCube.Prisma.Web.UI.Models
@@ -39,31 +40,31 @@
             <!-- Escalation Summary Cards -->
             <MudGrid Class="mb-6">
                 <MudItem xs="12" sm="6" md="3">
-                    <MudCard Elevation="2" Class="cursor-pointer" OnClick="@(() => FilterByEscalation(EscalationLevel.Critical))">
+                    <MudCard Elevation="2" Class="cursor-pointer" Style="cursor: pointer;" @onclick="@(() => FilterByEscalation(EscalationLevel.Critical))">
                         <MudCardContent>
                             <MudStack>
                                 <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Error" Size="Size.Large" />
                                 <MudText Typo="Typo.h3" Color="Color.Error">@criticalCount</MudText>
-                                <MudText Typo="Typo.body2">Critical (<4h)</MudText>
+                                <MudText Typo="Typo.body2">Critical (&lt;4h)</MudText>
                             </MudStack>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
 
                 <MudItem xs="12" sm="6" md="3">
-                    <MudCard Elevation="2" Class="cursor-pointer" OnClick="@(() => FilterByEscalation(EscalationLevel.Warning))">
+                    <MudCard Elevation="2" Class="cursor-pointer" Style="cursor: pointer;" @onclick="@(() => FilterByEscalation(EscalationLevel.Warning))">
                         <MudCardContent>
                             <MudStack>
                                 <MudIcon Icon="@Icons.Material.Filled.Info" Color="Color.Warning" Size="Size.Large" />
                                 <MudText Typo="Typo.h3" Color="Color.Warning">@warningCount</MudText>
-                                <MudText Typo="Typo.body2">Warning (<24h)</MudText>
+                                <MudText Typo="Typo.body2">Warning (&lt;24h)</MudText>
                             </MudStack>
                         </MudCardContent>
                     </MudCard>
                 </MudItem>
 
                 <MudItem xs="12" sm="6" md="3">
-                    <MudCard Elevation="2" Class="cursor-pointer" OnClick="@(() => FilterByEscalation(EscalationLevel.Breached))">
+                    <MudCard Elevation="2" Class="cursor-pointer" Style="cursor: pointer;" @onclick="@(() => FilterByEscalation(EscalationLevel.Breached))">
                         <MudCardContent>
                             <MudStack>
                                 <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Dark" Size="Size.Large" />
@@ -161,8 +162,7 @@
                     }
                     else
                     {
-                        <MudTable Items="@filteredCases" Dense="true" Hover="true" Striped="true" 
-                                  SortMode="SortMode.Multiple" SortLabel="Sort by">
+                        <MudTable Items="@filteredCases" Dense="true" Hover="true" Striped="true">
                             <ToolBarContent>
                                 <MudText Typo="Typo.h6">@filteredCases.Count cases</MudText>
                                 <MudSpacer />
@@ -173,13 +173,25 @@
                                 </MudButton>
                             </ToolBarContent>
                             <HeaderContent>
-                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.FileId)">Case ID</MudTh>
-                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.DisplayFileName)">File Name</MudTh>
-                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.IntakeDate)">Intake Date</MudTh>
-                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.Deadline)">Deadline</MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="SLACaseViewModel" SortBy="@(x => x.SLAStatus.FileId)">Case ID</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="SLACaseViewModel" SortBy="@(x => x.DisplayFileName)">File Name</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="SLACaseViewModel" SortBy="@(x => x.SLAStatus.IntakeDate)">Intake Date</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="SLACaseViewModel" SortBy="@(x => x.SLAStatus.Deadline)">Deadline</MudTableSortLabel>
+                                </MudTh>
                                 <MudTh>Time Remaining</MudTh>
-                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.EscalationLevel)">Escalation Level</MudTh>
-                                <MudTh SortBy="@new Func<SLACaseViewModel, object>(x => x.SLAStatus.IsBreached)">Status</MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="SLACaseViewModel" SortBy="@(x => x.SLAStatus.EscalationLevel)">Escalation Level</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="SLACaseViewModel" SortBy="@(x => x.SLAStatus.IsBreached)">Status</MudTableSortLabel>
+                                </MudTh>
                                 <MudTh>Actions</MudTh>
                             </HeaderContent>
                             <RowTemplate>
@@ -207,32 +219,33 @@
                                 </MudTd>
                                 <MudTd DataLabel="Time Remaining">
                                     <MudText Typo="Typo.body2" Color="@context.TimeRemainingColor" 
-                                            Class="font-weight-bold" 
-                                            Id="@($"timer-{context.SLAStatus.FileId}")">
-                                        @context.FormattedTimeRemaining
+                                            Class="font-weight-bold">
+                                        <span id="@($"timer-{context.SLAStatus.FileId}")">@context.FormattedTimeRemaining</span>
                                     </MudText>
                                 </MudTd>
                                 <MudTd DataLabel="Escalation Level">
-                                    <MudChip Size="Size.Small" Color="@context.EscalationColor">
+                                    <MudChip T="string" Size="Size.Small" Color="@context.EscalationColor">
                                         @context.EscalationText
                                     </MudChip>
                                 </MudTd>
                                 <MudTd DataLabel="Status">
-                                    <MudChip Size="Size.Small" Color="@context.StatusColor">
+                                    <MudChip T="string" Size="Size.Small" Color="@context.StatusColor">
                                         @context.StatusText
                                     </MudChip>
                                 </MudTd>
                                 <MudTd DataLabel="Actions">
-                                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
-                                                  OnClick="@(() => ViewCaseDetails(context))" 
-                                                  Color="Color.Primary"
-                                                  Size="Size.Small"
-                                                  Title="View Details" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Escalator" 
-                                                  OnClick="@(() => EscalateCase(context))" 
-                                                  Color="Color.Warning"
-                                                  Size="Size.Small"
-                                                  Title="Escalate" />
+                                    <MudTooltip Text="View Details">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                                      OnClick="@(() => ViewCaseDetails(context))" 
+                                                      Color="Color.Primary"
+                                                      Size="Size.Small" />
+                                    </MudTooltip>
+                                    <MudTooltip Text="Escalate">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Escalator" 
+                                                      OnClick="@(() => EscalateCase(context))" 
+                                                      Color="Color.Warning"
+                                                      Size="Size.Small" />
+                                    </MudTooltip>
                                 </MudTd>
                             </RowTemplate>
                         </MudTable>
@@ -256,26 +269,28 @@
                             {
                                 <MudExpansionPanel>
                                     <TitleContent>
-                                        <MudText Typo="Typo.h6">
-                                            <MudChip Size="Size.Small" Color="@atRiskCase.EscalationColor" Class="mr-2">
-                                                @atRiskCase.EscalationText
-                                            </MudChip>
-                                            @atRiskCase.SLAStatus.FileId
-                                        </MudText>
+                                        <MudStack Row="true" AlignItems="Center" Justify="Justify.SpaceBetween">
+                                            <MudText Typo="Typo.h6">
+                                                <MudChip T="string" Size="Size.Small" Color="@atRiskCase.EscalationColor" Class="mr-2">
+                                                    @atRiskCase.EscalationText
+                                                </MudChip>
+                                                @atRiskCase.SLAStatus.FileId
+                                            </MudText>
+                                            <MudStack Row="true" AlignItems="Center" Spacing="2">
+                                                <MudText Typo="Typo.h5" Color="@atRiskCase.TimeRemainingColor" Class="mr-4">
+                                                    @atRiskCase.FormattedTimeRemaining
+                                                </MudText>
+                                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" 
+                                                          OnClick="@(() => ViewCaseDetails(atRiskCase))" Class="mr-2">
+                                                    View
+                                                </MudButton>
+                                                <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" 
+                                                          OnClick="@(() => EscalateCase(atRiskCase))">
+                                                    Escalate
+                                                </MudButton>
+                                            </MudStack>
+                                        </MudStack>
                                     </TitleContent>
-                                    <Actions>
-                                        <MudText Typo="Typo.h5" Color="@atRiskCase.TimeRemainingColor" Class="mr-4">
-                                            @atRiskCase.FormattedTimeRemaining
-                                        </MudText>
-                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" 
-                                                  OnClick="@(() => ViewCaseDetails(atRiskCase))" Class="mr-2">
-                                            View
-                                        </MudButton>
-                                        <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" 
-                                                  OnClick="@(() => EscalateCase(atRiskCase))">
-                                            Escalate
-                                        </MudButton>
-                                    </Actions>
                                     <ChildContent>
                                         <MudStack>
                                             <MudText Typo="Typo.body2">
@@ -517,41 +532,41 @@
             return;
         }
 
-        filteredCases = allCases.AsEnumerable();
+        var filtered = allCases.AsEnumerable();
 
         if (filterEscalationLevel.HasValue)
         {
-            filteredCases = filteredCases.Where(c => c.SLAStatus.EscalationLevel == filterEscalationLevel.Value);
+            filtered = filtered.Where(c => c.SLAStatus.EscalationLevel == filterEscalationLevel.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(filterSLAStatus))
         {
-            filteredCases = filterSLAStatus switch
+            filtered = filterSLAStatus switch
             {
-                "Active" => filteredCases.Where(c => !c.SLAStatus.IsBreached),
-                "At-Risk" => filteredCases.Where(c => c.SLAStatus.IsAtRisk),
-                "Breached" => filteredCases.Where(c => c.SLAStatus.IsBreached),
-                _ => filteredCases
+                "Active" => filtered.Where(c => !c.SLAStatus.IsBreached),
+                "At-Risk" => filtered.Where(c => c.SLAStatus.IsAtRisk),
+                "Breached" => filtered.Where(c => c.SLAStatus.IsBreached),
+                _ => filtered
             };
         }
 
         if (filterStartDate.HasValue)
         {
-            filteredCases = filteredCases.Where(c => c.SLAStatus.IntakeDate >= filterStartDate.Value);
+            filtered = filtered.Where(c => c.SLAStatus.IntakeDate >= filterStartDate.Value);
         }
 
         if (filterEndDate.HasValue)
         {
-            filteredCases = filteredCases.Where(c => c.SLAStatus.IntakeDate <= filterEndDate.Value);
+            filtered = filtered.Where(c => c.SLAStatus.IntakeDate <= filterEndDate.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(filterFileId))
         {
-            filteredCases = filteredCases.Where(c => 
+            filtered = filtered.Where(c => 
                 c.SLAStatus.FileId.Contains(filterFileId, StringComparison.OrdinalIgnoreCase));
         }
 
-        filteredCases = filteredCases.ToList();
+        filteredCases = filtered.ToList();
         StateHasChanged();
     }
 

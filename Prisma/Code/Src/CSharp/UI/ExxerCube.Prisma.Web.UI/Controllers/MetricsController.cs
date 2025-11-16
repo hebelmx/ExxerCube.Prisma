@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Web.UI.Models;
 using ExxerCube.Prisma.Application.Services;
 
 namespace ExxerCube.Prisma.Web.UI.Controllers;

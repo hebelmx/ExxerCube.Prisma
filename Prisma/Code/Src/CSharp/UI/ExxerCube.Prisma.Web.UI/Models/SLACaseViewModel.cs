@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Domain.Entities;
-
 namespace ExxerCube.Prisma.Web.UI.Models;
 
 /// <summary>
@@ -92,4 +90,3 @@ public class SLACaseViewModel
     /// </summary>
     public string StatusText => SLAStatus.IsBreached ? "Breached" : "Active";
 }
-

@@ -1,4 +1,5 @@
 @page "/document-processing-dashboard"
+#nullable enable
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
 @using ExxerCube.Prisma.Domain.Interfaces
@@ -66,7 +67,7 @@
                                 <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
                                 PDF Files
                             </MudText>
-                            <MudText Typo="Typo.h4">@GetFormatCount(FileFormat.PDF)</MudText>
+                            <MudText Typo="Typo.h4">@GetFormatCount(FileFormat.Pdf)</MudText>
                             <MudText Typo="Typo.caption">PDF documents</MudText>
                         </MudStack>
                     </MudCardContent>
@@ -81,7 +82,7 @@
                                 <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-2" />
                                 XML Files
                             </MudText>
-                            <MudText Typo="Typo.h4">@GetFormatCount(FileFormat.XML)</MudText>
+                            <MudText Typo="Typo.h4">@GetFormatCount(FileFormat.Xml)</MudText>
                             <MudText Typo="Typo.caption">XML documents</MudText>
                         </MudStack>
                     </MudCardContent>
@@ -108,10 +109,10 @@
                     <MudItem xs="12" sm="6" md="3">
                         <MudSelect @bind-Value="filterFormat" Label="File Format" Variant="Variant.Outlined" Clearable="true">
                             <MudSelectItem Value="@((FileFormat?)null)">All Formats</MudSelectItem>
-                            <MudSelectItem Value="@FileFormat.PDF">PDF</MudSelectItem>
-                            <MudSelectItem Value="@FileFormat.XML">XML</MudSelectItem>
-                            <MudSelectItem Value="@FileFormat.DOCX">DOCX</MudSelectItem>
-                            <MudSelectItem Value="@FileFormat.ZIP">ZIP</MudSelectItem>
+                            <MudSelectItem Value="@FileFormat.Pdf">PDF</MudSelectItem>
+                            <MudSelectItem Value="@FileFormat.Xml">XML</MudSelectItem>
+                            <MudSelectItem Value="@FileFormat.Docx">DOCX</MudSelectItem>
+                            <MudSelectItem Value="@FileFormat.Zip">ZIP</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3" Class="d-flex align-center">
@@ -149,8 +150,7 @@
                 }
                 else
                 {
-                    <MudTable Items="@downloadHistory" Dense="true" Hover="true" Striped="true" FilterMode="DataGridFilterMode.Simple" 
-                              FilterDefinitions="@filterDefinitions" SortMode="SortMode.Multiple" SortLabel="Sort by">
+                    <MudTable Items="@downloadHistory" Dense="true" Hover="true" Striped="true">
                         <ToolBarContent>
                             <MudText Typo="Typo.h6">@downloadHistory.Count files</MudText>
                             <MudSpacer />
@@ -161,8 +161,12 @@
                         <HeaderContent>
                             <MudTh>File Name</MudTh>
                             <MudTh>Source URL</MudTh>
-                            <MudTh SortBy="@new Func<FileMetadata, object>(x => x.DownloadTimestamp)">Downloaded</MudTh>
-                            <MudTh SortBy="@new Func<FileMetadata, object>(x => x.FileSize)">Size</MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="FileMetadata" SortBy="@(x => x.DownloadTimestamp)">Downloaded</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="FileMetadata" SortBy="@(x => x.FileSize)">Size</MudTableSortLabel>
+                            </MudTh>
                             <MudTh>Format</MudTh>
                             <MudTh>Actions</MudTh>
                         </HeaderContent>
@@ -189,7 +193,7 @@
                                 <MudText Typo="Typo.body2">@FormatFileSize(context.FileSize)</MudText>
                             </MudTd>
                             <MudTd DataLabel="Format">
-                                <MudChip Size="Size.Small" Color="@GetFormatColor(context.Format)">
+                                <MudChip T="string" Size="Size.Small" Color="@GetFormatColor(context.Format)">
                                     @context.Format
                                 </MudChip>
                             </MudTd>
@@ -319,7 +323,7 @@
             var downloadResult = await FileDownloadService.GetFileContentAsync(
                 fileMetadata.FilePath);
 
-            if (downloadResult.IsCancelled())
+            if (downloadResult.IsCancelled)
             {
                 Snackbar.Add("File download was cancelled", Severity.Warning);
                 return;
@@ -379,10 +383,10 @@
 
     private Color GetFormatColor(FileFormat format) => format switch
     {
-        FileFormat.PDF => Color.Error,
-        FileFormat.XML => Color.Warning,
-        FileFormat.DOCX => Color.Info,
-        FileFormat.ZIP => Color.Secondary,
+        FileFormat.Pdf => Color.Error,
+        FileFormat.Xml => Color.Warning,
+        FileFormat.Docx => Color.Info,
+        FileFormat.Zip => Color.Secondary,
         _ => Color.Default
     };
 
