@@ -7,8 +7,7 @@ using IndQuestResults;
 using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
-using Microsoft.EntityFrameworkCore;
+using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Application.Services;
@@ -18,19 +17,19 @@ namespace ExxerCube.Prisma.Application.Services;
 /// </summary>
 public class FileMetadataQueryService
 {
-    private readonly PrismaDbContext _dbContext;
+    private readonly IRepository<FileMetadata, Int32> metadataRepository;
     private readonly ILogger<FileMetadataQueryService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileMetadataQueryService"/> class.
     /// </summary>
-    /// <param name="dbContext">The database context.</param>
+    /// <param name="metadataRepository">The database context.</param>
     /// <param name="logger">The logger instance.</param>
     public FileMetadataQueryService(
-        PrismaDbContext dbContext,
+        IRepository<FileMetadata, Int32> metadataRepository,
         ILogger<FileMetadataQueryService> logger)
     {
-        _dbContext = dbContext;
+        this.metadataRepository = metadataRepository;
         _logger = logger;
     }
 
@@ -57,7 +56,7 @@ public class FileMetadataQueryService
 
         try
         {
-            var query = _dbContext.FileMetadata.AsQueryable();
+            var query = metadataRepository.FileMetadata.AsQueryable();
 
             if (startDate.HasValue)
             {
@@ -122,7 +121,7 @@ public class FileMetadataQueryService
 
         try
         {
-            var file = await _dbContext.FileMetadata
+            var file = await metadataRepository.FileMetadata
                 .FirstOrDefaultAsync(f => f.FileId == fileId, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -167,7 +166,7 @@ public class FileMetadataQueryService
 
         try
         {
-            var files = await _dbContext.FileMetadata
+            var files = await metadataRepository.FileMetadata
                 .Where(f => f.DownloadTimestamp >= startDate && f.DownloadTimestamp <= endDate)
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -200,35 +199,3 @@ public class FileMetadataQueryService
         }
     }
 }
-
-/// <summary>
-/// Represents download statistics for a time period.
-/// </summary>
-public class DownloadStatistics
-{
-    /// <summary>
-    /// Gets or sets the total number of files downloaded.
-    /// </summary>
-    public int TotalFiles { get; set; }
-
-    /// <summary>
-    /// Gets or sets the total size of downloaded files in bytes.
-    /// </summary>
-    public long TotalSizeBytes { get; set; }
-
-    /// <summary>
-    /// Gets or sets the count of files by format.
-    /// </summary>
-    public Dictionary<FileFormat, int> FilesByFormat { get; set; } = new();
-
-    /// <summary>
-    /// Gets or sets the start date of the statistics period.
-    /// </summary>
-    public DateTime StartDate { get; set; }
-
-    /// <summary>
-    /// Gets or sets the end date of the statistics period.
-    /// </summary>
-    public DateTime EndDate { get; set; }
-}
-

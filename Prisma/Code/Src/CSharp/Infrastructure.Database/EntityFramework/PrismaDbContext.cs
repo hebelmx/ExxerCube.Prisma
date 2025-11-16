@@ -1,13 +1,13 @@
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 
 /// <summary>
 /// Entity Framework Core database context for Prisma application.
+/// Implements IPrismaDbContext for Infrastructure-internal abstraction and testability.
 /// </summary>
-public class PrismaDbContext : DbContext
+public class PrismaDbContext : DbContext, IPrismaDbContext
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="PrismaDbContext"/> class.
@@ -22,6 +22,11 @@ public class PrismaDbContext : DbContext
     /// Gets or sets the FileMetadata entity set.
     /// </summary>
     public DbSet<FileMetadata> FileMetadata { get; set; } = null!;
+
+    ///// <summary>
+    ///// Gets the queryable for FileMetadata.
+    ///// </summary>
+    // public IQueryable<FileMetadata> FileMetadata => FileMetadataDbSet.AsQueryable();
 
     /// <summary>
     /// Gets or sets the Persona entity set.
@@ -61,4 +66,3 @@ public class PrismaDbContext : DbContext
         modelBuilder.ApplyConfiguration(new AuditRecordConfiguration());
     }
 }
-

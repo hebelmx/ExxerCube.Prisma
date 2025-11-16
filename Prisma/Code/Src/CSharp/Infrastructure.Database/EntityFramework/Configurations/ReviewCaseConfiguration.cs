@@ -1,8 +1,3 @@
-using System;
-using ExxerCube.Prisma.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
 
 /// <summary>

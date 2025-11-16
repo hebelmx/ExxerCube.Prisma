@@ -1,0 +1,36 @@
+// Global using directives
+
+global using System;
+global using System.Collections.Generic;
+global using System.Diagnostics;
+global using System.Diagnostics.Metrics;
+global using System.IO;
+global using System.Linq;
+global using System.Text;
+global using System.Text.Json;
+global using System.Threading;
+global using System.Threading.Channels;
+global using System.Threading.Tasks;
+global using ExxerCube.Prisma.Domain.Entities;
+global using ExxerCube.Prisma.Domain.Interfaces;
+global using ExxerCube.Prisma.Infrastructure.Database;
+global using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
+global using ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
+global using ExxerCube.Prisma.Infrastructure.Database.Metrics;
+global using ExxerCube.Prisma.Infrastructure.Database.Resilience;
+global using ExxerCube.Prisma.Infrastructure.Database.Services;
+global using IndQuestResults;
+global using IndQuestResults.Operations;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.EntityFrameworkCore.Storage;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using Polly;
+global using Polly.CircuitBreaker;
+global using Polly.Retry;
+global using Polly.Timeout;

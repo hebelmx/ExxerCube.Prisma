@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using ExxerCube.Prisma.Domain.Entities;
-using Microsoft.Extensions.Logging;
-
 namespace ExxerCube.Prisma.Infrastructure.Database.Metrics;
 
 /// <summary>

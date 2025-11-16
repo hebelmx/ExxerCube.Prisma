@@ -116,9 +116,19 @@ All UI enhancements follow these common patterns:
 
 ---
 
+## Sharding Documentation
+
+- [**Sharding Approach**](./SHARDING-APPROACH.md) - Overview of sharding methodology and code standards alignment
+- [**Sharding Handoff Instructions**](./SHARDING-HANDOFF.md) - Detailed instructions for completing remaining story files
+
+**Note:** Story 1.1 is complete and serves as the reference example. Stories 1.2-1.9 are pending creation following the handoff instructions.
+
+---
+
 ## Related Documentation
 
 - [ADR-001: SignalR Unified Hub Abstraction](../adr/ADR-001-SignalR-Unified-Hub-Abstraction.md)
+- [ADR-002: Custom PDF Signing with Cryptographic Watermarking](../adr/ADR-002-Custom-PDF-Signing-Cryptographic-Watermarking.md)
 - [Story 1.10: SignalR Infrastructure](../../stories/1.10.signalr-unified-hub-abstraction.md)
 - [Architectural and Code Pattern Rules](../../.cursor/rules/1016_ArchitecturalAndCodePatternRules.mdc)
 - [Epic 1: Regulatory Compliance Automation System](../../stories/epic-1-regulatory-compliance-automation-system.md)

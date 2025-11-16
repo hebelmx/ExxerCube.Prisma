@@ -1,14 +1,3 @@
-using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
-using ExxerCube.Prisma.Infrastructure.Database;
-using ExxerCube.Prisma.Infrastructure.Database.Services;
-using ExxerCube.Prisma.Infrastructure.Database.Resilience;
-using ExxerCube.Prisma.Infrastructure.Database.Metrics;
-
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 
 /// <summary>

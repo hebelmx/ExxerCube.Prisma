@@ -1,15 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-
 namespace ExxerCube.Prisma.Infrastructure.Database;
 
 /// <summary>
@@ -236,4 +224,3 @@ public class AuditLoggerService : IAuditLogger
         }
     }
 }
-

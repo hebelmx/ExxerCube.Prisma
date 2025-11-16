@@ -1,5 +1,3 @@
-using System;
-
 namespace ExxerCube.Prisma.Infrastructure.Database.Resilience;
 
 /// <summary>
