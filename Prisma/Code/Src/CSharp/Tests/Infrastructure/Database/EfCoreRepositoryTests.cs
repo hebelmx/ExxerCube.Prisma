@@ -92,7 +92,7 @@ public sealed class EfCoreRepositoryTests : IDisposable
     {
         var metadata = CreateMetadata("file-001");
         _dbContext.FileMetadata.Add(metadata);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var result = await _repository.GetByIdAsync("file-001", TestContext.Current.CancellationToken);
 
