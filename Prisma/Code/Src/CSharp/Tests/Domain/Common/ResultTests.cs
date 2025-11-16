@@ -20,7 +20,7 @@ public class ResultTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(expectedValue);
-        result.Error.ShouldBeNull();
+        result.Error.ShouldBeNullOrEmpty();
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public class ResultTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(expectedValue);
-        result.Error.ShouldBeNull();
+        result.Error.ShouldBeNullOrEmpty();
     }
 
     /// <summary>

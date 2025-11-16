@@ -1,17 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using IndQuestResults;
-using Meziantou.Extensions.Logging.Xunit;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>

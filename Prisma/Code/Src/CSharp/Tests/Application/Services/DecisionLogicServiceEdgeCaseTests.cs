@@ -1,9 +1,3 @@
-using ExxerCube.Prisma.Domain.Interfaces;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>

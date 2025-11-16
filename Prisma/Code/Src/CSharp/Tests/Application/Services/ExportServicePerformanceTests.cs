@@ -1,19 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using IndQuestResults;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using Microsoft.Extensions.Logging;
-using Meziantou.Extensions.Logging.Xunit;
-using Shouldly;
-using Xunit;
-using Xunit.Abstractions;
-using NSubstitute;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -83,17 +67,17 @@ public class ExportServicePerformanceTests
             },
             Persona = new Persona
             {
-                RFC = "ABCD123456EF7",
+                Rfc = "ABCD123456EF7",
                 Nombre = "Juan",
-                ApellidoPaterno = "Pérez",
-                ApellidoMaterno = "García"
+                Paterno = "Pérez",
+                Materno = "García"
             },
             ComplianceActions = new List<ComplianceAction>
             {
                 new ComplianceAction
                 {
-                    ActionType = "Bloqueo",
-                    Description = "Bloquear cuenta bancaria",
+                    ActionType = ComplianceActionType.Block,
+                    RequerimientoOrigen = "Bloquear cuenta bancaria",
                     LegalBasis = "Artículo 123 de la Ley",
                     DueDate = DateTime.UtcNow.AddDays(10)
                 }
@@ -126,7 +110,7 @@ public class ExportServicePerformanceTests
         result.IsSuccess.ShouldBeTrue();
         stopwatch.ElapsedMilliseconds.ShouldBeLessThan(5000,
             $"ExportSiroXmlAsync took {stopwatch.ElapsedMilliseconds}ms, exceeding NFR8 target of <5s (5000ms)");
-        
+
         _output.WriteLine($"ExportSiroXmlAsync completed in {stopwatch.ElapsedMilliseconds}ms (NFR8 target: <5000ms)");
     }
 
@@ -155,7 +139,7 @@ public class ExportServicePerformanceTests
         result.IsSuccess.ShouldBeTrue();
         stopwatch.ElapsedMilliseconds.ShouldBeLessThan(3000,
             $"GenerateExcelLayoutAsync took {stopwatch.ElapsedMilliseconds}ms, exceeding NFR9 target of <3s (3000ms)");
-        
+
         _output.WriteLine($"GenerateExcelLayoutAsync completed in {stopwatch.ElapsedMilliseconds}ms (NFR9 target: <3000ms)");
     }
 
@@ -173,7 +157,7 @@ public class ExportServicePerformanceTests
 
         // Act: Start multiple export operations concurrently with simulated document processing
         var stopwatch = Stopwatch.StartNew();
-        
+
         // Start 5 export operations
         for (int i = 0; i < 5; i++)
         {
@@ -199,7 +183,7 @@ public class ExportServicePerformanceTests
         // If exports are truly async and non-blocking, total time should be close to processing time
         stopwatch.ElapsedMilliseconds.ShouldBeLessThan(10000,
             $"Export operations significantly blocked processing: {stopwatch.ElapsedMilliseconds}ms");
-        
+
         _output.WriteLine($"Concurrent export and processing completed in {stopwatch.ElapsedMilliseconds}ms (IV3 verification)");
     }
 
@@ -217,7 +201,7 @@ public class ExportServicePerformanceTests
         // Act: Execute multiple exports
         var stopwatch = Stopwatch.StartNew();
         var exportTasks = new List<Task<Result>>();
-        
+
         for (int i = 0; i < exportCount; i++)
         {
             using var stream = new MemoryStream();
@@ -234,9 +218,7 @@ public class ExportServicePerformanceTests
         var avgTimePerExport = stopwatch.ElapsedMilliseconds / (double)exportCount;
         avgTimePerExport.ShouldBeLessThan(1000,
             $"Average export time: {avgTimePerExport}ms per export, exceeding 1000ms target");
-        
+
         _output.WriteLine($"Bulk export ({exportCount} exports) completed in {stopwatch.ElapsedMilliseconds}ms (avg: {avgTimePerExport:F2}ms per export)");
     }
 }
-
-

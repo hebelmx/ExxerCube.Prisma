@@ -46,6 +46,8 @@ public class UnifiedMetadataRecord
     /// Gets or sets the SLA tracking information (nullable - may be created in later stories).
     /// </summary>
     public object? SlaStatus { get; set; }
+    public Persona Persona { get; set; }
+    public List<ComplianceAction> ComplianceActions { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UnifiedMetadataRecord"/> class.

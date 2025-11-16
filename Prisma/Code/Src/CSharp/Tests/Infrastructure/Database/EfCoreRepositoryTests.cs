@@ -1,5 +1,3 @@
-using System.Linq.Expressions;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
 
 /// <summary>

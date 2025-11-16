@@ -99,10 +99,14 @@ public class Expediente
     public List<SolicitudEspecifica> SolicitudEspecificas { get; set; } = new();
 
     /// <summary>
+    /// Fecha de recepcion del documento
+    /// </summary>
+    public DateTime FechaRecepcion { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Expediente"/> class.
     /// </summary>
     public Expediente()
     {
     }
 }
-

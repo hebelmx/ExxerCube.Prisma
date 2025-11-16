@@ -257,7 +257,7 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
             },
             ex => $"Failed to add {typeof(T).Name}: {ex.Message}");
 
-        return attempt.Match(_ => Result.Success(), Result.WithFailure);
+        return attempt.Match(_ => Result.Success(), errors => Result.WithFailure(errors));
     }
 
     /// <inheritdoc />
@@ -287,7 +287,7 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
             },
             ex => $"Failed to add entities for {typeof(T).Name}: {ex.Message}");
 
-        return attempt.Match(_ => Result.Success(), Result.WithFailure);
+        return attempt.Match(_ => Result.Success(), errors => Result.WithFailure(errors));
     }
 
     /// <inheritdoc />
@@ -311,7 +311,7 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
             },
             ex => $"Failed to update {typeof(T).Name}: {ex.Message}");
 
-        return attempt.Match(_ => Result.Success(), Result.WithFailure);
+        return attempt.Match(_ => Result.Success(), errors => Result.WithFailure(errors));
     }
 
     /// <inheritdoc />
@@ -335,7 +335,7 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
             },
             ex => $"Failed to remove {typeof(T).Name}: {ex.Message}");
 
-        return attempt.Match(_ => Result.Success(), Result.WithFailure);
+        return attempt.Match(_ => Result.Success(), errors => Result.WithFailure(errors));
     }
 
     /// <inheritdoc />
@@ -359,7 +359,7 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
             },
             ex => $"Failed to remove entities for {typeof(T).Name}: {ex.Message}");
 
-        return attempt.Match(_ => Result.Success(), Result.WithFailure);
+        return attempt.Match(_ => Result.Success(), errors => Result.WithFailure(errors));
     }
 
     /// <inheritdoc />

@@ -1,22 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Export;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Meziantou.Extensions.Logging.Xunit;
-using Shouldly;
-using Xunit;
-using Xunit.Abstractions;
-using NSubstitute;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Export;
 
 /// <summary>
@@ -94,11 +75,11 @@ endstream
 endobj
 xref
 0 5
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000206 00000 n 
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+0000000115 00000 n
+0000000206 00000 n
 trailer
 <<
 /Size 5
@@ -146,7 +127,7 @@ Período: Enero 2024 - Junio 2024";
         // Arrange
         var pdfContent = CreateSamplePdfContent();
         var pdfText = CreateSamplePdfText();
-        
+
         _metadataExtractor.ExtractTextAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
             .Returns(Result<string>.Success(pdfText));
 
@@ -159,7 +140,7 @@ Período: Enero 2024 - Junio 2024";
         result.IsSuccess.ShouldBeTrue();
         stopwatch.ElapsedMilliseconds.ShouldBeLessThan(10000,
             $"SummarizeRequirementsAsync took {stopwatch.ElapsedMilliseconds}ms, exceeding NFR10 target of <10s (10000ms)");
-        
+
         _output.WriteLine($"SummarizeRequirementsAsync completed in {stopwatch.ElapsedMilliseconds}ms (NFR10 target: <10000ms)");
     }
 
@@ -182,7 +163,7 @@ Período: Enero 2024 - Junio 2024";
         result.IsSuccess.ShouldBeTrue();
         stopwatch.ElapsedMilliseconds.ShouldBeLessThan(10000,
             $"SummarizeRequirementsFromTextAsync took {stopwatch.ElapsedMilliseconds}ms, exceeding NFR10 target of <10s (10000ms)");
-        
+
         _output.WriteLine($"SummarizeRequirementsFromTextAsync completed in {stopwatch.ElapsedMilliseconds}ms (NFR10 target: <10000ms)");
     }
 
@@ -216,7 +197,7 @@ Período: Enero 2024 - Junio 2024";
         {
             stopwatch.ElapsedMilliseconds.ShouldBeLessThan(3000,
                 $"ExportSignedPdfAsync took {stopwatch.ElapsedMilliseconds}ms, exceeding NFR11 target of <3s (3000ms)");
-            
+
             _output.WriteLine($"ExportSignedPdfAsync completed in {stopwatch.ElapsedMilliseconds}ms (NFR11 target: <3000ms)");
         }
         else
@@ -235,7 +216,7 @@ Período: Enero 2024 - Junio 2024";
         // Arrange: Create larger PDF text content
         var largeText = string.Join("\n", Enumerable.Range(0, 100)
             .Select(i => $"REQUERIMIENTO {i}: Se requiere acción de cumplimiento según artículo {i + 1} de la ley."));
-        
+
         _metadataExtractor.ExtractTextAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
             .Returns(Result<string>.Success(largeText));
 
@@ -251,7 +232,7 @@ Período: Enero 2024 - Junio 2024";
         // Large PDFs should still complete within reasonable time (2x target for large content)
         stopwatch.ElapsedMilliseconds.ShouldBeLessThan(20000,
             $"SummarizeRequirementsAsync took {stopwatch.ElapsedMilliseconds}ms for large PDF, exceeding 20s target");
-        
+
         _output.WriteLine($"SummarizeRequirementsAsync (large PDF) completed in {stopwatch.ElapsedMilliseconds}ms");
     }
 
@@ -269,7 +250,7 @@ Período: Enero 2024 - Junio 2024";
 
         // Act: Start multiple summarization operations concurrently with simulated processing
         var stopwatch = Stopwatch.StartNew();
-        
+
         // Start 5 summarization operations
         for (int i = 0; i < 5; i++)
         {
@@ -293,8 +274,7 @@ Período: Enero 2024 - Junio 2024";
         // Performance: Total time should be reasonable (not blocked by summarization)
         stopwatch.ElapsedMilliseconds.ShouldBeLessThan(15000,
             $"PDF summarization significantly blocked processing: {stopwatch.ElapsedMilliseconds}ms");
-        
+
         _output.WriteLine($"Concurrent summarization and processing completed in {stopwatch.ElapsedMilliseconds}ms");
     }
 }
-

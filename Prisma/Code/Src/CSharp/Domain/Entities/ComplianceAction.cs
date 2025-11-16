@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace ExxerCube.Prisma.Domain.Entities;
@@ -53,10 +54,19 @@ public class ComplianceAction
     public int Confidence { get; set; }
 
     /// <summary>
+    /// Legal basis for the preocedure
+    /// </summary>
+    public string LegalBasis { get; set; }
+
+    /// <summary>
+    /// DueDate to enforce the action
+    /// </summary>
+    public DateTime DueDate { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ComplianceAction"/> class.
     /// </summary>
     public ComplianceAction()
     {
     }
 }
-
