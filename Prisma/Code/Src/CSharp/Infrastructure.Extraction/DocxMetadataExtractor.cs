@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -179,6 +180,55 @@ public class DocxMetadataExtractor : IMetadataExtractor
         }
 
         return references.Distinct().ToArray();
+    }
+
+    /// <inheritdoc />
+    public Task<Result<string>> ExtractTextAsync(
+        byte[] fileContent,
+        CancellationToken cancellationToken = default)
+    {
+        // Early cancellation check
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("DOCX text extraction cancelled before starting");
+            return Task.FromResult(ResultExtensions.Cancelled<string>());
+        }
+
+        try
+        {
+            _logger.LogDebug("Extracting text from DOCX document");
+
+            using var stream = new System.IO.MemoryStream(fileContent);
+            using var wordDocument = WordprocessingDocument.Open(stream, false);
+
+            var mainPart = wordDocument.MainDocumentPart;
+            if (mainPart == null)
+            {
+                return Task.FromResult(Result<string>.WithFailure("DOCX document has no main document part"));
+            }
+
+            var body = mainPart.Document?.Body;
+            if (body == null)
+            {
+                return Task.FromResult(Result<string>.WithFailure("DOCX document has no body"));
+            }
+
+            // Extract text content
+            var textContent = string.Join(" ", body.Descendants<Text>().Select(t => t.Text));
+
+            _logger.LogDebug("Successfully extracted text from DOCX document (length: {Length})", textContent.Length);
+            return Task.FromResult(Result<string>.Success(textContent));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("DOCX text extraction cancelled");
+            return Task.FromResult(ResultExtensions.Cancelled<string>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting text from DOCX");
+            return Task.FromResult(Result<string>.WithFailure($"Error extracting DOCX text: {ex.Message}", default(string), ex));
+        }
     }
 }
 

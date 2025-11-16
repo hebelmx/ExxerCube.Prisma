@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -111,6 +112,36 @@ public class XmlMetadataExtractor : IMetadataExtractor
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(Result<ExtractedMetadata>.WithFailure("PDF extraction not supported by XmlMetadataExtractor. Use PdfMetadataExtractor instead."));
+    }
+
+    /// <inheritdoc />
+    public Task<Result<string>> ExtractTextAsync(
+        byte[] fileContent,
+        CancellationToken cancellationToken = default)
+    {
+        // Early cancellation check
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("XML text extraction cancelled before starting");
+            return Task.FromResult(ResultExtensions.Cancelled<string>());
+        }
+
+        try
+        {
+            _logger.LogDebug("Extracting text from XML document");
+            var text = System.Text.Encoding.UTF8.GetString(fileContent);
+            return Task.FromResult(Result<string>.Success(text));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("XML text extraction cancelled");
+            return Task.FromResult(ResultExtensions.Cancelled<string>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting text from XML");
+            return Task.FromResult(Result<string>.WithFailure($"Error extracting XML text: {ex.Message}", default(string), ex));
+        }
     }
 }
 

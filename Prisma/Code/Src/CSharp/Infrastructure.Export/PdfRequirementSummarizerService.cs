@@ -194,7 +194,7 @@ public class PdfRequirementSummarizerService : IPdfRequirementSummarizer
             // Try to extract text directly from PDF using PdfSharp
             var textBuilder = new StringBuilder();
             using var stream = new System.IO.MemoryStream(pdfContent);
-            var document = PdfReader.Open(stream, PdfDocumentOpenMode.ReadOnly);
+            var document = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
 
             foreach (PdfPage page in document.Pages)
             {
@@ -293,12 +293,34 @@ public class PdfRequirementSummarizerService : IPdfRequirementSummarizer
         }
 
         var textBuilder = new StringBuilder();
-        foreach (var field in extractedFields.Fields.Values)
+        
+        // Reconstruct text from ExtractedFields properties
+        if (!string.IsNullOrWhiteSpace(extractedFields.Expediente))
         {
-            if (field.Value != null)
+            textBuilder.AppendLine($"Expediente: {extractedFields.Expediente}");
+        }
+        
+        if (!string.IsNullOrWhiteSpace(extractedFields.Causa))
+        {
+            textBuilder.AppendLine($"Causa: {extractedFields.Causa}");
+        }
+        
+        if (!string.IsNullOrWhiteSpace(extractedFields.AccionSolicitada))
+        {
+            textBuilder.AppendLine($"Acción Solicitada: {extractedFields.AccionSolicitada}");
+        }
+        
+        foreach (var fecha in extractedFields.Fechas)
+        {
+            if (!string.IsNullOrWhiteSpace(fecha))
             {
-                textBuilder.AppendLine($"{field.FieldName}: {field.Value}");
+                textBuilder.AppendLine($"Fecha: {fecha}");
             }
+        }
+        
+        foreach (var monto in extractedFields.Montos)
+        {
+            textBuilder.AppendLine($"Monto: {monto.Value} {monto.Currency}");
         }
 
         return textBuilder.ToString();

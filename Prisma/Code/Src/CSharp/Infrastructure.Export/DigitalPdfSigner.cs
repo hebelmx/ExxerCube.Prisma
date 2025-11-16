@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -366,23 +367,23 @@ public class DigitalPdfSigner : IResponseExporter
 
         var page = document.AddPage();
         var gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
-        var font = new PdfSharp.Drawing.XFont("Arial", 12, PdfSharp.Drawing.XFontStyle.Regular);
+        var font = new PdfSharp.Drawing.XFont("Arial", 12, PdfSharp.Drawing.XFontStyle.None);
 
         var yPosition = 50.0;
         var lineHeight = 20.0;
 
-        // Add expediente information
+            // Add expediente information
         if (metadata.Expediente != null)
         {
             gfx.DrawString($"Expediente: {metadata.Expediente.NumeroExpediente}", font, PdfSharp.Drawing.XBrushes.Black,
-                new PdfSharp.Drawing.XRect(50, yPosition, page.Width - 100, lineHeight),
+                new PdfSharp.Drawing.XRect(50, yPosition, page.Width.Point - 100, lineHeight),
                 PdfSharp.Drawing.XStringFormats.TopLeft);
             yPosition += lineHeight;
 
             if (!string.IsNullOrWhiteSpace(metadata.Expediente.NumeroOficio))
             {
                 gfx.DrawString($"Oficio: {metadata.Expediente.NumeroOficio}", font, PdfSharp.Drawing.XBrushes.Black,
-                    new PdfSharp.Drawing.XRect(50, yPosition, page.Width - 100, lineHeight),
+                    new PdfSharp.Drawing.XRect(50, yPosition, page.Width.Point - 100, lineHeight),
                     PdfSharp.Drawing.XStringFormats.TopLeft);
                 yPosition += lineHeight;
             }
@@ -394,7 +395,7 @@ public class DigitalPdfSigner : IResponseExporter
         if (metadata.RequirementSummary is RequirementSummary requirementSummary)
         {
             gfx.DrawString("Resumen de Requerimientos:", font, PdfSharp.Drawing.XBrushes.Black,
-                new PdfSharp.Drawing.XRect(50, yPosition, page.Width - 100, lineHeight),
+                new PdfSharp.Drawing.XRect(50, yPosition, page.Width.Point - 100, lineHeight),
                 PdfSharp.Drawing.XStringFormats.TopLeft);
             yPosition += lineHeight;
 
@@ -403,7 +404,7 @@ public class DigitalPdfSigner : IResponseExporter
                 var summaryLines = requirementSummary.SummaryText.Split('\n');
                 foreach (var line in summaryLines)
                 {
-                    if (yPosition > page.Height - 50)
+                    if (yPosition > page.Height.Point - 50)
                     {
                         page = document.AddPage();
                         gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
@@ -411,7 +412,7 @@ public class DigitalPdfSigner : IResponseExporter
                     }
 
                     gfx.DrawString(line, font, PdfSharp.Drawing.XBrushes.Black,
-                        new PdfSharp.Drawing.XRect(50, yPosition, page.Width - 100, lineHeight),
+                        new PdfSharp.Drawing.XRect(50, yPosition, page.Width.Point - 100, lineHeight),
                         PdfSharp.Drawing.XStringFormats.TopLeft);
                     yPosition += lineHeight;
                 }
@@ -447,6 +448,10 @@ public class DigitalPdfSigner : IResponseExporter
             }
 
             var signatureHash = signatureResult.Value;
+            if (signatureHash == null)
+            {
+                return Result.WithFailure("Signature hash is null");
+            }
 
             // Step 3: Embed signature and certificate metadata as PDF metadata
             EmbedCryptographicWatermark(document, certificate, signatureHash);

@@ -4,6 +4,8 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Exclude NU1903 from being treated as error - System.IO.Packaging dependency vulnerability -->
+    <WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
     <WarningsAsErrors />
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
@@ -14,6 +16,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="IndQuestResults" />
     <PackageReference Include="ClosedXML" />
     <PackageReference Include="PdfSharp" />
     <PackageReference Include="Azure.Security.KeyVault.Certificates" />

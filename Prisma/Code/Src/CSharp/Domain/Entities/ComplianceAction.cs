@@ -56,7 +56,7 @@ public class ComplianceAction
     /// <summary>
     /// Legal basis for the preocedure
     /// </summary>
-    public string LegalBasis { get; set; }
+    public string LegalBasis { get; set; } = string.Empty;
 
     /// <summary>
     /// DueDate to enforce the action

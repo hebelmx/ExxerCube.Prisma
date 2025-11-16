@@ -44,5 +44,23 @@ public class CertificateOptions
     /// Gets or sets the certificate password if the certificate file is password-protected.
     /// </summary>
     public string? CertificatePassword { get; set; }
+
+    /// <summary>
+    /// Gets or sets the file path to the certificate file (PFX/P12 format) - alias for FileCertificatePath for test compatibility.
+    /// </summary>
+    public string? FilePath
+    {
+        get => FileCertificatePath;
+        set => FileCertificatePath = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the certificate password - alias for CertificatePassword for test compatibility.
+    /// </summary>
+    public string? Password
+    {
+        get => CertificatePassword;
+        set => CertificatePassword = value;
+    }
 }
 

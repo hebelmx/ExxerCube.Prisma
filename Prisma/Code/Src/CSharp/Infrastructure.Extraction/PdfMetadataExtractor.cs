@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -114,6 +115,76 @@ public class PdfMetadataExtractor : IMetadataExtractor
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(Result<ExtractedMetadata>.WithFailure("DOCX extraction not supported by PdfMetadataExtractor. Use DocxMetadataExtractor instead."));
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<string>> ExtractTextAsync(
+        byte[] fileContent,
+        CancellationToken cancellationToken = default)
+    {
+        // Early cancellation check
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning("PDF text extraction cancelled before starting");
+            return ResultExtensions.Cancelled<string>();
+        }
+
+        try
+        {
+            _logger.LogDebug("Extracting text from PDF document");
+
+            // Try to extract text directly from PDF first
+            var textResult = await TryExtractTextFromPdfAsync(fileContent, cancellationToken).ConfigureAwait(false);
+
+            // Propagate cancellation
+            if (textResult.IsCancelled())
+            {
+                _logger.LogWarning("PDF text extraction cancelled");
+                return ResultExtensions.Cancelled<string>();
+            }
+
+            string extractedText = textResult.IsSuccess && textResult.Value != null ? textResult.Value : string.Empty;
+
+            // If no text extracted or very little text, it's likely a scanned PDF - use OCR
+            if (string.IsNullOrWhiteSpace(extractedText) || extractedText.Length < 50)
+            {
+                _logger.LogDebug("PDF appears to be scanned, using OCR with preprocessing");
+                var ocrResult = await ExtractWithOcrAsync(fileContent, cancellationToken).ConfigureAwait(false);
+
+                if (ocrResult.IsCancelled())
+                {
+                    return ResultExtensions.Cancelled<string>();
+                }
+
+                if (ocrResult.IsFailure)
+                {
+                    return Result<string>.WithFailure($"Failed to extract text from PDF: {ocrResult.Error ?? "OCR failed"}");
+                }
+
+                if (ocrResult.Value != null)
+                {
+                    extractedText = ocrResult.Value;
+                }
+            }
+
+            if (string.IsNullOrEmpty(extractedText))
+            {
+                return Result<string>.WithFailure("No text extracted from PDF");
+            }
+
+            _logger.LogDebug("Successfully extracted text from PDF document (length: {Length})", extractedText.Length);
+            return Result<string>.Success(extractedText);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("PDF text extraction cancelled");
+            return ResultExtensions.Cancelled<string>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting text from PDF");
+            return Result<string>.WithFailure($"Error extracting PDF text: {ex.Message}", default(string), ex);
+        }
     }
 
     private static async Task<Result<string>> TryExtractTextFromPdfAsync(byte[] fileContent, CancellationToken cancellationToken)

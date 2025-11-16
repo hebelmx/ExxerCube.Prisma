@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Infrastructure.Database.Repositories;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
 
 /// <summary>
@@ -22,7 +24,7 @@ public sealed class EfCoreRepositoryTests : IDisposable
     [Fact]
     public async Task FindAsync_ShouldReturnFailure_WhenPredicateIsNull()
     {
-        var result = await _repository.FindAsync(null!, CancellationToken.None);
+        var result = await _repository.FindAsync(null!, TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldContain("Predicate cannot be null");
@@ -53,7 +55,7 @@ public sealed class EfCoreRepositoryTests : IDisposable
     [Fact]
     public async Task AddRangeAsync_ShouldReturnFailure_WhenEntitiesAreNull()
     {
-        var result = await _repository.AddRangeAsync(null!, CancellationToken.None);
+        var result = await _repository.AddRangeAsync(null!, TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Errors.ShouldContain(error => error.Contains("Entities collection cannot be null"));
@@ -64,7 +66,7 @@ public sealed class EfCoreRepositoryTests : IDisposable
     {
         Expression<Func<FileMetadata, bool>> predicate = file => file.FileSize > 0;
 
-        var result = await _repository.SelectAsync(predicate, null!, CancellationToken.None);
+        var result = await _repository.SelectAsync<FileMetadata>(predicate, null!, TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldContain("Selector cannot be null");
@@ -74,12 +76,12 @@ public sealed class EfCoreRepositoryTests : IDisposable
     public async Task SaveChangesAsync_ShouldReturnFailure_WhenDbContextIsDisposed()
     {
         var metadata = CreateMetadata("disposed-save");
-        var addResult = await _repository.AddAsync(metadata, CancellationToken.None);
+        var addResult = await _repository.AddAsync(metadata, TestContext.Current.CancellationToken);
         addResult.IsSuccess.ShouldBeTrue();
 
         _dbContext.Dispose();
 
-        var saveResult = await _repository.SaveChangesAsync();
+        var saveResult = await _repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         saveResult.IsFailure.ShouldBeTrue();
         saveResult.Error.ShouldContain("Failed to persist");
@@ -92,7 +94,7 @@ public sealed class EfCoreRepositoryTests : IDisposable
         _dbContext.FileMetadata.Add(metadata);
         await _dbContext.SaveChangesAsync();
 
-        var result = await _repository.GetByIdAsync("file-001", CancellationToken.None);
+        var result = await _repository.GetByIdAsync("file-001", TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();

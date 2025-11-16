@@ -117,6 +117,7 @@
     <ProjectReference Include="..\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
     <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
     <ProjectReference Include="..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+    <ProjectReference Include="..\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
   </ItemGroup>
 
   <ItemGroup>

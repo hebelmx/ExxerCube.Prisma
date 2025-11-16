@@ -271,7 +271,7 @@ public class SiroXmlExporter : IResponseExporter
             foreach (var especifica in expediente.SolicitudEspecificas)
             {
                 xmlWriter.WriteStartElement("Especifica");
-                xmlWriter.WriteElementString("Id", especifica.Id.ToString());
+                xmlWriter.WriteElementString("Id", especifica.RequerimientoId);
                 xmlWriter.WriteElementString("Descripcion", especifica.Descripcion);
                 xmlWriter.WriteEndElement(); // Especifica
             }

@@ -60,5 +60,15 @@ public class CompositeMetadataExtractor : IMetadataExtractor
     {
         return _pdfExtractor.ExtractFromPdfAsync(fileContent, cancellationToken);
     }
+
+    /// <inheritdoc />
+    public Task<Result<string>> ExtractTextAsync(
+        byte[] fileContent,
+        CancellationToken cancellationToken = default)
+    {
+        // Delegate to PDF extractor for text extraction (most common use case)
+        // In a production system, you might want to detect file type first
+        return _pdfExtractor.ExtractTextAsync(fileContent, cancellationToken);
+    }
 }
 

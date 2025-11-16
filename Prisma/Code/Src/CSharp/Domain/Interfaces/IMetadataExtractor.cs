@@ -41,5 +41,16 @@ public interface IMetadataExtractor
     Task<Result<ExtractedMetadata>> ExtractFromPdfAsync(
         byte[] fileContent,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Extracts plain text content from PDF documents using OCR fallback.
+    /// This method is used for text extraction when full metadata extraction is not needed.
+    /// </summary>
+    /// <param name="fileContent">The PDF file content as a byte array.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>A result containing the extracted text content or an error.</returns>
+    Task<Result<string>> ExtractTextAsync(
+        byte[] fileContent,
+        CancellationToken cancellationToken = default);
 }
 
