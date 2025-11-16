@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.Repositories;
@@ -32,122 +33,127 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
     }
 
     /// <inheritdoc />
-    public async Task<Result<T?>> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
+    public Task<Result<T?>> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return ResultExtensions.Cancelled<T?>();
+            return Task.FromResult(ResultExtensions.Cancelled<T?>());
         }
 
-        ArgumentNullException.ThrowIfNull(id);
+        if (id is null)
+        {
+            return Task.FromResult(Result<T?>.WithFailure("Identifier cannot be null"));
+        }
 
-        try
-        {
-            var entity = await _dbSet.FindAsync(new object?[] { id }, cancellationToken).ConfigureAwait(false);
-            return Result<T?>.Success(entity);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<T?>();
-        }
-        catch (Exception ex)
-        {
-            return Result<T?>.WithFailure(
-                $"Failed to retrieve {typeof(T).Name} by id: {ex.Message}",
-                default,
-                ex);
-        }
+        return ResultTryExtensions.TryAsync(
+            async () =>
+            {
+                var valueTask = _dbSet.FindAsync(new object?[] { id }, cancellationToken);
+                return await valueTask.AsTask().ConfigureAwait(false);
+            },
+            ex => $"Failed to retrieve {typeof(T).Name} by id: {ex.Message}");
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<T>>> FindAsync(
+    public Task<Result<IReadOnlyList<T>>> FindAsync(
         Expression<Func<T, bool>> predicate,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
-
-        return await ExecuteQueryAsync(
-            () => _dbSet.Where(predicate).ToListAsync(cancellationToken),
-            cancellationToken,
-            $"Failed to filter {typeof(T).Name} entities");
-    }
-
-    /// <inheritdoc />
-    public async Task<Result<bool>> ExistsAsync(
-        Expression<Func<T, bool>> predicate,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(predicate);
+        if (predicate is null)
+        {
+            return Task.FromResult(Result<IReadOnlyList<T>>.WithFailure("Predicate cannot be null"));
+        }
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return ResultExtensions.Cancelled<bool>();
+            return Task.FromResult(ResultExtensions.Cancelled<IReadOnlyList<T>>());
         }
 
-        try
-        {
-            var exists = await _dbSet.AnyAsync(predicate, cancellationToken).ConfigureAwait(false);
-            return Result<bool>.Success(exists);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<bool>();
-        }
-        catch (Exception ex)
-        {
-            return Result<bool>.WithFailure(
-                $"Failed to determine if {typeof(T).Name} exists: {ex.Message}",
-                default,
-                ex);
-        }
+        return ResultTryExtensions.TryAsync(
+            async () =>
+            {
+                var list = await _dbSet.Where(predicate).ToListAsync(cancellationToken).ConfigureAwait(false);
+                return (IReadOnlyList<T>)list;
+            },
+            ex => $"Failed to filter {typeof(T).Name} entities: {ex.Message}");
     }
 
     /// <inheritdoc />
-    public async Task<Result<int>> CountAsync(
+    public Task<Result<bool>> ExistsAsync(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        if (predicate is null)
+        {
+            return Task.FromResult(Result<bool>.WithFailure("Predicate cannot be null"));
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<bool>());
+        }
+
+        return ResultTryExtensions.TryAsync(
+            () => _dbSet.AnyAsync(predicate, cancellationToken),
+            ex => $"Failed to determine if {typeof(T).Name} exists: {ex.Message}");
+    }
+
+    /// <inheritdoc />
+    public Task<Result<int>> CountAsync(
         Expression<Func<T, bool>>? predicate = null,
         CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return ResultExtensions.Cancelled<int>();
+            return Task.FromResult(ResultExtensions.Cancelled<int>());
         }
 
-        try
-        {
-            var count = predicate is null
-                ? await _dbSet.CountAsync(cancellationToken).ConfigureAwait(false)
-                : await _dbSet.CountAsync(predicate, cancellationToken).ConfigureAwait(false);
-
-            return Result<int>.Success(count);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<int>();
-        }
-        catch (Exception ex)
-        {
-            return Result<int>.WithFailure(
-                $"Failed to count {typeof(T).Name} entities: {ex.Message}",
-                default,
-                ex);
-        }
+        return ResultTryExtensions.TryAsync(
+            () => predicate is null
+                ? _dbSet.CountAsync(cancellationToken)
+                : _dbSet.CountAsync(predicate, cancellationToken),
+            ex => $"Failed to count {typeof(T).Name} entities: {ex.Message}");
     }
 
     /// <inheritdoc />
     public Task<Result<IReadOnlyList<T>>> ListAsync(CancellationToken cancellationToken = default)
-        => ExecuteQueryAsync(() => _dbSet.ToListAsync(cancellationToken), cancellationToken, $"Failed to list {typeof(T).Name} entities");
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<IReadOnlyList<T>>());
+        }
+
+        return ResultTryExtensions.TryAsync(
+            async () =>
+            {
+                var list = await _dbSet.ToListAsync(cancellationToken).ConfigureAwait(false);
+                return (IReadOnlyList<T>)list;
+            },
+            ex => $"Failed to list {typeof(T).Name} entities: {ex.Message}");
+    }
 
     /// <inheritdoc />
     public Task<Result<IReadOnlyList<T>>> ListAsync(
         Expression<Func<T, bool>> predicate,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        if (predicate is null)
+        {
+            return Task.FromResult(Result<IReadOnlyList<T>>.WithFailure("Predicate cannot be null"));
+        }
 
-        return ExecuteQueryAsync(
-            () => _dbSet.Where(predicate).ToListAsync(cancellationToken),
-            cancellationToken,
-            $"Failed to list filtered {typeof(T).Name} entities");
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<IReadOnlyList<T>>());
+        }
+
+        return ResultTryExtensions.TryAsync(
+            async () =>
+            {
+                var list = await _dbSet.Where(predicate).ToListAsync(cancellationToken).ConfigureAwait(false);
+                return (IReadOnlyList<T>)list;
+            },
+            ex => $"Failed to list filtered {typeof(T).Name} entities: {ex.Message}");
     }
 
     /// <inheritdoc />
@@ -155,48 +161,46 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
         ISpecification<T> specification,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(specification);
-
-        return ExecuteQueryAsync(
-            () => SpecificationEvaluator<T>
-                .GetQuery(_dbSet.AsQueryable(), specification)
-                .ToListAsync(cancellationToken),
-            cancellationToken,
-            $"Failed to list {typeof(T).Name} entities by specification");
-    }
-
-    /// <inheritdoc />
-    public async Task<Result<T?>> FirstOrDefaultAsync(
-        ISpecification<T> specification,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(specification);
+        if (specification is null)
+        {
+            return Task.FromResult(Result<IReadOnlyList<T>>.WithFailure("Specification cannot be null"));
+        }
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return ResultExtensions.Cancelled<T?>();
+            return Task.FromResult(ResultExtensions.Cancelled<IReadOnlyList<T>>());
         }
 
-        try
+        return ResultTryExtensions.TryAsync(
+            async () =>
+            {
+                var query = SpecificationEvaluator<T>.GetQuery(_dbSet.AsQueryable(), specification);
+                var data = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+                return (IReadOnlyList<T>)data;
+            },
+            ex => $"Failed to list {typeof(T).Name} entities by specification: {ex.Message}");
+    }
+
+    /// <inheritdoc />
+    public Task<Result<T?>> FirstOrDefaultAsync(
+        ISpecification<T> specification,
+        CancellationToken cancellationToken = default)
+    {
+        if (specification is null)
         {
-            var entity = await SpecificationEvaluator<T>
+            return Task.FromResult(Result<T?>.WithFailure("Specification cannot be null"));
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<T?>());
+        }
+
+        return ResultTryExtensions.TryAsync(
+            () => SpecificationEvaluator<T>
                 .GetQuery(_dbSet.AsQueryable(), specification)
-                .FirstOrDefaultAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            return Result<T?>.Success(entity);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<T?>();
-        }
-        catch (Exception ex)
-        {
-            return Result<T?>.WithFailure(
-                $"Failed to retrieve {typeof(T).Name} by specification: {ex.Message}",
-                default,
-                ex);
-        }
+                .FirstOrDefaultAsync(cancellationToken),
+            ex => $"Failed to retrieve {typeof(T).Name} by specification: {ex.Message}");
     }
 
     /// <inheritdoc />
@@ -205,193 +209,169 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
         Expression<Func<T, TResult>> selector,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
-        ArgumentNullException.ThrowIfNull(selector);
+        if (predicate is null)
+        {
+            return Task.FromResult(Result<IReadOnlyList<TResult>>.WithFailure("Predicate cannot be null"));
+        }
 
-        return ExecuteQueryAsync(
-            () => _dbSet.Where(predicate).Select(selector).ToListAsync(cancellationToken),
-            cancellationToken,
-            $"Failed to project {typeof(T).Name} entities");
+        if (selector is null)
+        {
+            return Task.FromResult(Result<IReadOnlyList<TResult>>.WithFailure("Selector cannot be null"));
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<IReadOnlyList<TResult>>());
+        }
+
+        return ResultTryExtensions.TryAsync(
+            async () =>
+            {
+                var data = await _dbSet.Where(predicate)
+                    .Select(selector)
+                    .ToListAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                return (IReadOnlyList<TResult>)data;
+            },
+            ex => $"Failed to project {typeof(T).Name} entities: {ex.Message}");
     }
 
     /// <inheritdoc />
     public async Task<Result> AddAsync(T entity, CancellationToken cancellationToken = default)
     {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled();
-        }
-
         if (entity is null)
         {
             return Result.WithFailure("Entity cannot be null");
         }
 
-        try
-        {
-            await _dbSet.AddAsync(entity, cancellationToken).ConfigureAwait(false);
-            return Result.Success();
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        if (cancellationToken.IsCancellationRequested)
         {
             return ResultExtensions.Cancelled();
         }
-        catch (Exception ex)
-        {
-            return Result.WithFailure($"Failed to add {typeof(T).Name}: {ex.Message}", ex);
-        }
+
+        var attempt = await ResultTryExtensions.TryAsync(
+            async () =>
+            {
+                await _dbSet.AddAsync(entity, cancellationToken).ConfigureAwait(false);
+                return true;
+            },
+            ex => $"Failed to add {typeof(T).Name}: {ex.Message}");
+
+        return attempt.Match(_ => Result.Success(), Result.WithFailure);
     }
 
     /// <inheritdoc />
     public async Task<Result> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
+        if (entities is null)
+        {
+            return Result.WithFailure("Entities collection cannot be null");
+        }
+
+        var list = entities.ToList();
+        if (list.Count == 0)
+        {
+            return Result.WithFailure("Entities collection cannot be empty");
+        }
+
         if (cancellationToken.IsCancellationRequested)
         {
             return ResultExtensions.Cancelled();
         }
 
-        ArgumentNullException.ThrowIfNull(entities);
-        var entityList = entities.ToList();
-        if (entityList.Count == 0)
+        var attempt = await ResultTryExtensions.TryAsync(
+            async () =>
+            {
+                await _dbContext.AddRangeAsync(list.Cast<object>().ToArray(), cancellationToken).ConfigureAwait(false);
+                return true;
+            },
+            ex => $"Failed to add entities for {typeof(T).Name}: {ex.Message}");
+
+        return attempt.Match(_ => Result.Success(), Result.WithFailure);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    {
+        if (entity is null)
         {
-            return Result.WithFailure("At least one entity is required");
+            return Result.WithFailure("Entity cannot be null");
         }
 
-        try
-        {
-            await _dbSet.AddRangeAsync(entityList, cancellationToken).ConfigureAwait(false);
-            return Result.Success();
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        if (cancellationToken.IsCancellationRequested)
         {
             return ResultExtensions.Cancelled();
         }
-        catch (Exception ex)
-        {
-            return Result.WithFailure($"Failed to add entities for {typeof(T).Name}: {ex.Message}", ex);
-        }
+
+        var attempt = await ResultTryExtensions.TryAsync(
+            () =>
+            {
+                _dbSet.Update(entity);
+                return Task.FromResult(true);
+            },
+            ex => $"Failed to update {typeof(T).Name}: {ex.Message}");
+
+        return attempt.Match(_ => Result.Success(), Result.WithFailure);
     }
 
     /// <inheritdoc />
-    public Task<Result> UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    public async Task<Result> RemoveAsync(T entity, CancellationToken cancellationToken = default)
     {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return Task.FromResult(ResultExtensions.Cancelled());
-        }
-
         if (entity is null)
         {
-            return Task.FromResult(Result.WithFailure("Entity cannot be null"));
+            return Result.WithFailure("Entity cannot be null");
         }
 
-        try
+        if (cancellationToken.IsCancellationRequested)
         {
-            _dbSet.Update(entity);
-            return Task.FromResult(Result.Success());
+            return ResultExtensions.Cancelled();
         }
-        catch (Exception ex)
-        {
-            return Task.FromResult(Result.WithFailure($"Failed to update {typeof(T).Name}: {ex.Message}", ex));
-        }
+
+        var attempt = await ResultTryExtensions.TryAsync(
+            () =>
+            {
+                _dbSet.Remove(entity);
+                return Task.FromResult(true);
+            },
+            ex => $"Failed to remove {typeof(T).Name}: {ex.Message}");
+
+        return attempt.Match(_ => Result.Success(), Result.WithFailure);
     }
 
     /// <inheritdoc />
-    public Task<Result> RemoveAsync(T entity, CancellationToken cancellationToken = default)
+    public async Task<Result> RemoveRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
+        if (entities is null)
+        {
+            return Result.WithFailure("Entities collection cannot be null");
+        }
+
         if (cancellationToken.IsCancellationRequested)
         {
-            return Task.FromResult(ResultExtensions.Cancelled());
+            return ResultExtensions.Cancelled();
         }
 
-        if (entity is null)
-        {
-            return Task.FromResult(Result.WithFailure("Entity cannot be null"));
-        }
+        var attempt = await ResultTryExtensions.TryAsync(
+            () =>
+            {
+                _dbSet.RemoveRange(entities);
+                return Task.FromResult(true);
+            },
+            ex => $"Failed to remove entities for {typeof(T).Name}: {ex.Message}");
 
-        try
-        {
-            _dbSet.Remove(entity);
-            return Task.FromResult(Result.Success());
-        }
-        catch (Exception ex)
-        {
-            return Task.FromResult(Result.WithFailure($"Failed to remove {typeof(T).Name}: {ex.Message}", ex));
-        }
+        return attempt.Match(_ => Result.Success(), Result.WithFailure);
     }
 
     /// <inheritdoc />
-    public Task<Result> RemoveRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    public Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return Task.FromResult(ResultExtensions.Cancelled());
+            return Task.FromResult(ResultExtensions.Cancelled<int>());
         }
 
-        ArgumentNullException.ThrowIfNull(entities);
-
-        try
-        {
-            _dbSet.RemoveRange(entities);
-            return Task.FromResult(Result.Success());
-        }
-        catch (Exception ex)
-        {
-            return Task.FromResult(Result.WithFailure($"Failed to remove entities for {typeof(T).Name}: {ex.Message}", ex));
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<int>();
-        }
-
-        try
-        {
-            var rows = await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            return Result<int>.Success(rows);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<int>();
-        }
-        catch (Exception ex)
-        {
-            return Result<int>.WithFailure(
-                $"Failed to persist {typeof(T).Name} changes: {ex.Message}",
-                default,
-                ex);
-        }
-    }
-
-    private static async Task<Result<IReadOnlyList<TItem>>> ExecuteQueryAsync<TItem>(
-        Func<Task<IReadOnlyList<TItem>>> query,
-        CancellationToken cancellationToken,
-        string errorMessage)
-    {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<IReadOnlyList<TItem>>();
-        }
-
-        try
-        {
-            var results = await query().ConfigureAwait(false);
-            return Result<IReadOnlyList<TItem>>.Success(results);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<IReadOnlyList<TItem>>();
-        }
-        catch (Exception ex)
-        {
-            return Result<IReadOnlyList<TItem>>.WithFailure(
-                $"{errorMessage}: {ex.Message}",
-                default,
-                ex);
-        }
+        return ResultTryExtensions.TryAsync(
+            () => _dbContext.SaveChangesAsync(cancellationToken),
+            ex => $"Failed to persist {typeof(T).Name} changes: {ex.Message}");
     }
 }

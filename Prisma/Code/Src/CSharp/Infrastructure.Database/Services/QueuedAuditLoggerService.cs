@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace ExxerCube.Prisma.Infrastructure.Database.Services;
 
 /// <summary>
@@ -66,33 +68,44 @@ public class QueuedAuditProcessorService : BackgroundService
     /// <summary>
     /// Reads audit records from the channel and groups them into batches.
     /// </summary>
-    private async IAsyncEnumerable<List<AuditRecord>> GetBatchesAsync([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+    private async IAsyncEnumerable<List<AuditRecord>> GetBatchesAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var batch = new List<AuditRecord>(BatchSize);
-        var batchTimer = new System.Diagnostics.Stopwatch();
-        batchTimer.Start();
+        var batchTimer = System.Diagnostics.Stopwatch.StartNew();
 
-        try
+        await using var enumerator = _auditChannel.Reader
+            .ReadAllAsync(cancellationToken)
+            .GetAsyncEnumerator(cancellationToken);
+
+        while (true)
         {
-            await foreach (var record in _auditChannel.Reader.ReadAllAsync(cancellationToken))
-            {
-                batch.Add(record);
+            bool moveNextSucceeded;
 
-                // Flush batch if it reaches batch size or timeout expires
-                if (batch.Count >= BatchSize || batchTimer.ElapsedMilliseconds >= BatchTimeoutMs)
-                {
-                    yield return batch;
-                    batch = new List<AuditRecord>(BatchSize);
-                    batchTimer.Restart();
-                }
+            try
+            {
+                moveNextSucceeded = await enumerator.MoveNextAsync();
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("Batch reading cancelled, processing remaining records");
+                break;
+            }
+
+            if (!moveNextSucceeded)
+                break;
+
+            var record = enumerator.Current;
+            batch.Add(record);
+
+            if (batch.Count >= BatchSize || batchTimer.ElapsedMilliseconds >= BatchTimeoutMs)
+            {
+                yield return batch;
+                batch = new List<AuditRecord>(BatchSize);
+                batchTimer.Restart();
             }
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Batch reading cancelled, processing remaining records");
-        }
 
-        // Yield remaining records before stopping
         if (batch.Count > 0)
         {
             yield return batch;
@@ -365,4 +378,3 @@ public class QueuedAuditLoggerService : IAuditLogger
         }
     }
 }
-

@@ -23,8 +23,6 @@ $processPatterns = @(
     "*dotnet*",
     "*VBCSCompiler*",
     "*csc*",
-    "*vbc*",
-    "*devenv*",
     "*xunit*",
     "*testhost*",
     "*vstest*",

@@ -130,18 +130,21 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         /// Marks an existing entity as modified so changes are tracked.
         /// </summary>
         /// <param name="entity">Entity instance with updated values.</param>
+        /// <param name="cancellationToken">Token used to cancel the request.</param>
         Task<Result> UpdateAsync(T entity, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes an entity instance from the persistence context.
         /// </summary>
         /// <param name="entity">Entity that should be deleted.</param>
+        /// <param name="cancellationToken">Token used to cancel the request.</param>
         Task<Result> RemoveAsync(T entity, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes multiple entities as a single operation.
         /// </summary>
         /// <param name="entities">Entities that should be deleted.</param>
+        /// <param name="cancellationToken">Token used to cancel the request.</param>
         Task<Result> RemoveRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 
         /// <summary>

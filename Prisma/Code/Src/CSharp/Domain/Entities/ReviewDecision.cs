@@ -49,10 +49,19 @@ public class ReviewDecision
     public ClassificationResult? OverriddenClassification { get; set; }
 
     /// <summary>
+    /// Gets or sets the     file identifier associated with this decision (nullable).
+    /// </summary>
+    public string? FileId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the reason for the review decision.
+    /// </summary>
+    public ReviewReason ReviewReason { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ReviewDecision"/> class.
     /// </summary>
     public ReviewDecision()
     {
     }
 }
-

@@ -115,7 +115,10 @@ public class AuditReportingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating classification report CSV");
-            return Result<string>.WithFailure($"Error generating classification report: {ex.Message}", default, ex);
+            return Result<string>.WithFailure(
+                error: $"Error generating classification report: {ex.Message}",
+                value: default,
+                exception: ex);
         }
     }
 
@@ -209,7 +212,10 @@ public class AuditReportingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating classification report JSON");
-            return Result<string>.WithFailure($"Error generating classification report: {ex.Message}", default, ex);
+            return Result<string>.WithFailure(
+                error: $"Error generating classification report: {ex.Message}",
+                value: default,
+                exception: ex);
         }
     }
 
@@ -299,7 +305,10 @@ public class AuditReportingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting audit log CSV");
-            return Result<string>.WithFailure($"Error exporting audit log: {ex.Message}", default, ex);
+            return Result<string>.WithFailure(
+                error: $"Error exporting audit log: {ex.Message}",
+                value: default,
+                exception: ex);
         }
     }
 
@@ -400,7 +409,10 @@ public class AuditReportingService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting audit log JSON");
-            return Result<string>.WithFailure($"Error exporting audit log: {ex.Message}", default, ex);
+            return Result<string>.WithFailure(
+                error: $"Error exporting audit log: {ex.Message}",
+                value: default,
+                exception: ex);
         }
     }
 

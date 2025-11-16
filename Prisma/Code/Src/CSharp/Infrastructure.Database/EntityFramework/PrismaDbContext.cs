@@ -24,11 +24,6 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
     /// </summary>
     public DbSet<FileMetadata> FileMetadata { get; set; } = null!;
 
-    ///// <summary>
-    ///// Gets the queryable for FileMetadata.
-    ///// </summary>
-    // public IQueryable<FileMetadata> FileMetadata => FileMetadataDbSet.AsQueryable();
-
     /// <summary>
     /// Gets or sets the Persona entity set.
     /// </summary>
@@ -53,17 +48,6 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
     /// Gets or sets the AuditRecords entity set.
     /// </summary>
     public DbSet<AuditRecord> AuditRecords { get; set; } = null!;
-
-    /// <summary>
-    /// Gets the <see cref="DatabaseFacade"/> for this context.
-    /// </summary>
-    /// <param name="expression"></param>
-    /// <returns></returns>
-
-    /// DatabaseFacade
-    ///
-    public DatabaseFacade Database
-
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
