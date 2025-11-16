@@ -1,4 +1,5 @@
 @using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Domain.Interfaces
 @using MudBlazor
 
 <MudDialog>
@@ -95,19 +96,11 @@
             </MudAlert>
         }
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Close">Close</MudButton>
-    </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter]
-    MudDialogInstance MudDialog { get; set; } = null!;
-
     [Parameter]
     public FileMetadata? FileMetadata { get; set; }
-
-    private void Close() => MudDialog.Close();
 
     private string FormatFileSize(long bytes)
     {
@@ -124,10 +117,10 @@
 
     private Color GetFormatColor(FileFormat format) => format switch
     {
-        FileFormat.PDF => Color.Error,
-        FileFormat.XML => Color.Warning,
-        FileFormat.DOCX => Color.Info,
-        FileFormat.ZIP => Color.Secondary,
+        FileFormat.Pdf => Color.Error,
+        FileFormat.Xml => Color.Warning,
+        FileFormat.Docx => Color.Info,
+        FileFormat.Zip => Color.Secondary,
         _ => Color.Default
     };
 }

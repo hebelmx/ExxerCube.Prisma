@@ -33,24 +33,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPdfRequirementSummarizer, PdfRequirementSummarizerService>();
 
         // Configure certificate options
-        if (configuration != null)
+        services.Configure<CertificateOptions>(options =>
         {
-            var certificateSection = configuration.GetSection(CertificateOptions.SectionName);
-            if (certificateSection.Exists())
+            if (configuration != null)
             {
-                services.Configure<CertificateOptions>(certificateSection);
+                var certificateSection = configuration.GetSection(CertificateOptions.SectionName);
+                if (certificateSection.Exists())
+                {
+                    certificateSection.Bind(options);
+                }
             }
-            else
-            {
-                // Use default options if section doesn't exist
-                services.Configure<CertificateOptions>(_ => { });
-            }
-        }
-        else
-        {
-            // Use default options if no configuration provided
-            services.Configure<CertificateOptions>(_ => { });
-        }
+        });
 
         return services;
     }
