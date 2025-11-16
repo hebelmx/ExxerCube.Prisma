@@ -8,6 +8,7 @@ public class DecisionLogicServiceTests
     private readonly IPersonIdentityResolver _personIdentityResolver;
     private readonly ILegalDirectiveClassifier _legalDirectiveClassifier;
     private readonly IManualReviewerPanel _manualReviewerPanel;
+    private readonly IAuditLogger _auditLogger;
     private readonly ILogger<DecisionLogicService> _logger;
     private readonly DecisionLogicService _service;
 
@@ -19,8 +20,9 @@ public class DecisionLogicServiceTests
         _personIdentityResolver = Substitute.For<IPersonIdentityResolver>();
         _legalDirectiveClassifier = Substitute.For<ILegalDirectiveClassifier>();
         _manualReviewerPanel = Substitute.For<IManualReviewerPanel>();
+        _auditLogger = Substitute.For<IAuditLogger>();
         _logger = Substitute.For<ILogger<DecisionLogicService>>();
-        _service = new DecisionLogicService(_personIdentityResolver, _legalDirectiveClassifier, _manualReviewerPanel, _logger);
+        _service = new DecisionLogicService(_personIdentityResolver, _legalDirectiveClassifier, _manualReviewerPanel, _auditLogger, _logger);
     }
 
     /// <summary>
@@ -47,7 +49,7 @@ public class DecisionLogicServiceTests
             .Returns(Result<List<Persona>>.Success(resolvedList));
 
         // Act
-        var result = await _service.ResolvePersonIdentitiesAsync(persons, TestContext.Current.CancellationToken);
+        var result = await _service.ResolvePersonIdentitiesAsync(persons, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -75,7 +77,7 @@ public class DecisionLogicServiceTests
             .Returns(Result<List<ComplianceAction>>.Success(actions));
 
         // Act
-        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, TestContext.Current.CancellationToken);
+        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -139,7 +141,7 @@ public class DecisionLogicServiceTests
         var persons = new List<Persona>();
 
         // Act
-        var result = await _service.ResolvePersonIdentitiesAsync(persons, TestContext.Current.CancellationToken);
+        var result = await _service.ResolvePersonIdentitiesAsync(persons, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -157,7 +159,7 @@ public class DecisionLogicServiceTests
         var documentText = string.Empty;
 
         // Act
-        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, TestContext.Current.CancellationToken);
+        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();

@@ -18,11 +18,12 @@ public class DecisionLogicIntegrationTests
         var identityLogger = loggerFactory.CreateLogger<PersonIdentityResolverService>();
         var classifierLogger = loggerFactory.CreateLogger<LegalDirectiveClassifierService>();
         var serviceLogger = loggerFactory.CreateLogger<DecisionLogicService>();
+        var auditLogger = Substitute.For<IAuditLogger>();
         var manualReviewerPanel = Substitute.For<IManualReviewerPanel>();
 
         _identityResolver = new PersonIdentityResolverService(identityLogger);
         _classifier = new LegalDirectiveClassifierService(classifierLogger);
-        _service = new DecisionLogicService(_identityResolver, _classifier, manualReviewerPanel, serviceLogger);
+        _service = new DecisionLogicService(_identityResolver, _classifier, manualReviewerPanel, auditLogger, serviceLogger);
     }
 
     /// <summary>
@@ -67,7 +68,7 @@ public class DecisionLogicIntegrationTests
         };
 
         // Act
-        var result = await _service.ProcessDecisionLogicAsync(persons, documentText, expediente, TestContext.Current.CancellationToken);
+        var result = await _service.ProcessDecisionLogicAsync(persons, documentText, expediente, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -109,7 +110,7 @@ public class DecisionLogicIntegrationTests
         // Act
         var result = await _service.ResolvePersonIdentitiesAsync(
             new List<Persona> { existingPerson },
-            TestContext.Current.CancellationToken);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert - Verify existing fields are preserved (only normalized, not modified)
         result.IsSuccess.ShouldBeTrue();
@@ -141,7 +142,7 @@ public class DecisionLogicIntegrationTests
         var documentText = "Se ordena el BLOQUEO conforme al expediente A/AS1-2505-088637-PHM";
 
         // Act
-        var result = await _service.ClassifyLegalDirectivesAsync(documentText, expediente, TestContext.Current.CancellationToken);
+        var result = await _service.ClassifyLegalDirectivesAsync(documentText, expediente, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert - Verify classification uses expediente context without re-processing
         result.IsSuccess.ShouldBeTrue();
@@ -174,7 +175,7 @@ public class DecisionLogicIntegrationTests
 
         // Act
         var stopwatch = Stopwatch.StartNew();
-        var result = await _service.ClassifyLegalDirectivesAsync(documentText, expediente, TestContext.Current.CancellationToken);
+        var result = await _service.ClassifyLegalDirectivesAsync(documentText, expediente, cancellationToken: TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert
@@ -196,7 +197,7 @@ public class DecisionLogicIntegrationTests
         };
 
         // Act
-        var result = await _service.ResolvePersonIdentitiesAsync(persons, TestContext.Current.CancellationToken);
+        var result = await _service.ResolvePersonIdentitiesAsync(persons, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -221,7 +222,7 @@ public class DecisionLogicIntegrationTests
 
         // Act
         var detectResult = await _classifier.DetectLegalInstrumentsAsync(documentText, TestContext.Current.CancellationToken);
-        var classifyResult = await _service.ClassifyLegalDirectivesAsync(documentText, null, TestContext.Current.CancellationToken);
+        var classifyResult = await _service.ClassifyLegalDirectivesAsync(documentText, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         detectResult.IsSuccess.ShouldBeTrue();
@@ -243,7 +244,7 @@ public class DecisionLogicIntegrationTests
         var documentText = "Se ordena el BLOQUEO de la cuenta 1234567890 por un monto de $1,000,000.00";
 
         // Act
-        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, TestContext.Current.CancellationToken);
+        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -273,7 +274,7 @@ public class DecisionLogicIntegrationTests
         var documentText = "Se ordena el BLOQUEO de la cuenta 1234567890";
 
         // Act
-        var result = await _service.ProcessDecisionLogicAsync(persons, documentText, null, TestContext.Current.CancellationToken);
+        var result = await _service.ProcessDecisionLogicAsync(persons, documentText, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();

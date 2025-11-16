@@ -38,7 +38,7 @@ public class ExportIntegrationTests
         ";
 
         // Act
-        var result = await summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -84,7 +84,7 @@ public class ExportIntegrationTests
             .Returns(Result<OCRResult>.Success(ocrResult));
 
         // Act
-        var result = await summarizer.SummarizeRequirementsAsync(pdfContent, default);
+        var result = await summarizer.SummarizeRequirementsAsync(pdfContent, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -122,13 +122,13 @@ public class ExportIntegrationTests
         using var stream = new MemoryStream();
 
         // Act
-        var result = await signer.ExportSignedPdfAsync(metadata, stream, default);
+        var result = await signer.ExportSignedPdfAsync(metadata, stream, TestContext.Current.CancellationToken);
 
         // Assert
         // Should fail gracefully with error logging, not throw exception
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
-        result.Error.ShouldContain("certificate", StringComparison.OrdinalIgnoreCase);
+        result.Error.ShouldContain("certificate", Case.Insensitive);
     }
 }
 

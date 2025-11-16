@@ -8,6 +8,7 @@ public class DecisionLogicServiceManualReviewTests
     private readonly IPersonIdentityResolver _personIdentityResolver;
     private readonly ILegalDirectiveClassifier _legalDirectiveClassifier;
     private readonly IManualReviewerPanel _manualReviewerPanel;
+    private readonly IAuditLogger _auditLogger;
     private readonly ILogger<DecisionLogicService> _logger;
     private readonly DecisionLogicService _service;
 
@@ -19,8 +20,9 @@ public class DecisionLogicServiceManualReviewTests
         _personIdentityResolver = Substitute.For<IPersonIdentityResolver>();
         _legalDirectiveClassifier = Substitute.For<ILegalDirectiveClassifier>();
         _manualReviewerPanel = Substitute.For<IManualReviewerPanel>();
+        _auditLogger = Substitute.For<IAuditLogger>();
         _logger = Substitute.For<ILogger<DecisionLogicService>>();
-        _service = new DecisionLogicService(_personIdentityResolver, _legalDirectiveClassifier, _manualReviewerPanel, _logger);
+        _service = new DecisionLogicService(_personIdentityResolver, _legalDirectiveClassifier, _manualReviewerPanel, _auditLogger, _logger);
     }
 
     #region IdentifyAndQueueReviewCasesAsync Tests

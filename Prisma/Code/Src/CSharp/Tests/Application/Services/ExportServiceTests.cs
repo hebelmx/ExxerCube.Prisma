@@ -77,7 +77,7 @@ public class ExportServiceTests
 
         // Act
         var result = await _exportService.ExportSignedPdfWithSummarizationAsync(
-            metadata, pdfContent, stream, null, null, default);
+            metadata, pdfContent, stream, null, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -131,7 +131,7 @@ public class ExportServiceTests
 
         // Act
         var result = await _exportService.ExportSignedPdfWithSummarizationAsync(
-            metadata, pdfContent, stream, null, null, default);
+            metadata, pdfContent, stream, null, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -225,10 +225,11 @@ public class ExportServiceTests
 
         // Act
         var result = await _exportService.ExportSignedPdfWithSummarizationAsync(
-            metadata!, pdfContent, stream, null, null, CancellationToken.None);
+            metadata!, pdfContent, stream, null, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("null");
     }
 
@@ -248,10 +249,11 @@ public class ExportServiceTests
 
         // Act
         var result = await _exportService.ExportSignedPdfWithSummarizationAsync(
-            metadata, pdfContent, stream!, null, null, CancellationToken.None);
+            metadata, pdfContent, stream!, null, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("null");
     }
 
@@ -280,10 +282,11 @@ public class ExportServiceTests
 
         // Act
         var result = await _exportService.ExportSignedPdfWithSummarizationAsync(
-            metadata, pdfContent, stream, null, null, default);
+            metadata, pdfContent, stream, null, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("PDF export");
     }
 }

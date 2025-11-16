@@ -72,6 +72,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
             BaseStoragePath = _tempDirectory
         });
         _fileMover = new FileMoverService(_fileMoverLogger, storageOptions);
+        var auditLogger = Substitute.For<IAuditLogger>();
 
         _service = new MetadataExtractionService(
             _fileTypeIdentifier,
@@ -79,6 +80,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
             _fileClassifier,
             _safeFileNamer,
             _fileMover,
+            auditLogger,
             _serviceLogger);
     }
 
@@ -109,7 +111,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
         await File.WriteAllTextAsync(testFile, xmlContent, TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _service.ProcessFileAsync(testFile, "test_expediente.xml", TestContext.Current.CancellationToken);
+        var result = await _service.ProcessFileAsync(testFile, "test_expediente.xml", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -155,16 +157,18 @@ public class MetadataExtractionIntegrationTests : IDisposable
             pdfExtractor,
             _compositeExtractorLogger);
 
+        var auditLogger = Substitute.For<IAuditLogger>();
         var service = new MetadataExtractionService(
             _fileTypeIdentifier,
             compositeExtractor,
             _fileClassifier,
             _safeFileNamer,
             _fileMover,
+            auditLogger,
             _serviceLogger);
 
         // Act
-        var result = await service.ProcessFileAsync(testFile, "test.pdf", TestContext.Current.CancellationToken);
+        var result = await service.ProcessFileAsync(testFile, "test.pdf", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert - IV1: Verify OCR interfaces were called
         await imagePreprocessor.Received().PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>());
@@ -246,7 +250,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
         await File.WriteAllTextAsync(xmlFile, xmlContent, TestContext.Current.CancellationToken);
 
         // Act - Process XML
-        var xmlResult = await _service.ProcessFileAsync(xmlFile, "test.xml", TestContext.Current.CancellationToken);
+        var xmlResult = await _service.ProcessFileAsync(xmlFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         xmlResult.IsSuccess.ShouldBeTrue();
@@ -268,7 +272,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
         await File.WriteAllTextAsync(testFile, xmlContent, TestContext.Current.CancellationToken);
 
         // Act
-        var result = await _service.ProcessFileAsync(testFile, "test.xml", TestContext.Current.CancellationToken);
+        var result = await _service.ProcessFileAsync(testFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();

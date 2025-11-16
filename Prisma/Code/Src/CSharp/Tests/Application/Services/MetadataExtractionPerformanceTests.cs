@@ -49,6 +49,7 @@ public class MetadataExtractionPerformanceTests : IDisposable
         var safeFileNamer = new SafeFileNamerService(_fileNamerLogger);
         var storageOptions = Options.Create(new FileStorageOptions { BaseStoragePath = _tempDirectory });
         var fileMover = new FileMoverService(_fileMoverLogger, storageOptions);
+        var auditLogger = Substitute.For<IAuditLogger>();
 
         _service = new MetadataExtractionService(
             fileTypeIdentifier,
@@ -56,6 +57,7 @@ public class MetadataExtractionPerformanceTests : IDisposable
             fileClassifier,
             safeFileNamer,
             fileMover,
+            auditLogger,
             _serviceLogger);
     }
 
@@ -73,7 +75,7 @@ public class MetadataExtractionPerformanceTests : IDisposable
 
         // Act
         var stopwatch = Stopwatch.StartNew();
-        var result = await _service.ProcessFileAsync(testFile, "test.xml", TestContext.Current.CancellationToken);
+        var result = await _service.ProcessFileAsync(testFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert - NFR4: XML extraction should complete within 2 seconds
@@ -97,7 +99,7 @@ public class MetadataExtractionPerformanceTests : IDisposable
 
         // Act
         var stopwatch = Stopwatch.StartNew();
-        var result = await _service.ProcessFileAsync(testFile, "test.docx", TestContext.Current.CancellationToken);
+        var result = await _service.ProcessFileAsync(testFile, "test.docx", cancellationToken: TestContext.Current.CancellationToken);
         stopwatch.Stop();
 
         // Assert - NFR4: DOCX extraction should complete within 2 seconds

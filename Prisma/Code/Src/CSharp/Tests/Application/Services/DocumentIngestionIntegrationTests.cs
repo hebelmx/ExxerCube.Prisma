@@ -44,12 +44,14 @@ public class DocumentIngestionIntegrationTests : IDisposable
 
         // Mock browser automation agent for integration tests
         _browserAutomationAgent = Substitute.For<IBrowserAutomationAgent>();
+        var auditLogger = Substitute.For<IAuditLogger>();
 
         _service = new DocumentIngestionService(
             _browserAutomationAgent,
             downloadTracker,
             downloadStorage,
             fileMetadataLogger,
+            auditLogger,
             _serviceLogger);
     }
 

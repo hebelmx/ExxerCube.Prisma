@@ -10,6 +10,7 @@ public class MetadataExtractionServiceTests : IDisposable
     private readonly IFileClassifier _fileClassifier;
     private readonly ISafeFileNamer _safeFileNamer;
     private readonly IFileMover _fileMover;
+    private readonly IAuditLogger _auditLogger;
     private readonly ILogger<MetadataExtractionService> _logger;
     private readonly MetadataExtractionService _service;
     private readonly string _testStoragePath;
@@ -24,6 +25,7 @@ public class MetadataExtractionServiceTests : IDisposable
         _fileClassifier = Substitute.For<IFileClassifier>();
         _safeFileNamer = Substitute.For<ISafeFileNamer>();
         _fileMover = Substitute.For<IFileMover>();
+        _auditLogger = Substitute.For<IAuditLogger>();
         _logger = Substitute.For<ILogger<MetadataExtractionService>>();
         _testStoragePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         _service = new MetadataExtractionService(
@@ -32,6 +34,7 @@ public class MetadataExtractionServiceTests : IDisposable
             _fileClassifier,
             _safeFileNamer,
             _fileMover,
+            _auditLogger,
             _logger);
     }
 
@@ -78,7 +81,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.xml", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsSuccess.ShouldBeTrue();
@@ -112,7 +115,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.unknown", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.unknown", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsFailure.ShouldBeTrue();
@@ -144,7 +147,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.xml", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsFailure.ShouldBeTrue();
@@ -183,7 +186,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.xml", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsFailure.ShouldBeTrue();
@@ -226,7 +229,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.docx", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.docx", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsSuccess.ShouldBeTrue();
@@ -273,7 +276,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.pdf", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.pdf", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsSuccess.ShouldBeTrue();
@@ -316,7 +319,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.xml", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsFailure.ShouldBeTrue();
@@ -358,7 +361,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.xml", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsFailure.ShouldBeTrue();
@@ -388,7 +391,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.txt", TestContext.Current.CancellationToken);
+            var result = await _service.ProcessFileAsync(testFile, "test.txt", cancellationToken: TestContext.Current.CancellationToken);
 
             // Assert
             result.IsFailure.ShouldBeTrue();
@@ -418,7 +421,7 @@ public class MetadataExtractionServiceTests : IDisposable
         try
         {
             // Act
-            var result = await _service.ProcessFileAsync(testFile, "test.xml", cts.Token);
+            var result = await _service.ProcessFileAsync(testFile, "test.xml", cancellationToken: cts.Token);
 
             // Assert
             result.IsFailure.ShouldBeTrue();
@@ -440,7 +443,7 @@ public class MetadataExtractionServiceTests : IDisposable
     public async Task ProcessFileAsync_InvalidFilePath_ReturnsFailure(string? filePath)
     {
         // Act
-        var result = await _service.ProcessFileAsync(filePath!, "test.xml", TestContext.Current.CancellationToken);
+        var result = await _service.ProcessFileAsync(filePath!, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -456,7 +459,7 @@ public class MetadataExtractionServiceTests : IDisposable
         var nonExistentFile = Path.Combine(Path.GetTempPath(), $"nonexistent_{Guid.NewGuid()}.xml");
 
         // Act
-        var result = await _service.ProcessFileAsync(nonExistentFile, "test.xml", TestContext.Current.CancellationToken);
+        var result = await _service.ProcessFileAsync(nonExistentFile, "test.xml", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();

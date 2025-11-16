@@ -17,7 +17,7 @@ public class OrderRepositoryTests
         _repo.GetByIdAsync(orderId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Order?>.Success(expected)));
 
-        var result = await _repo.GetByIdAsync(orderId);
+        var result = await _repo.GetByIdAsync(orderId, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(expected);
@@ -30,7 +30,7 @@ public class OrderRepositoryTests
         _repo.GetByIdAsync(orderId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Order?>.WithFailure("Order not found")));
 
-        var result = await _repo.GetByIdAsync(orderId);
+        var result = await _repo.GetByIdAsync(orderId, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeFalse();
         result.Error.ShouldBe("Order not found");
@@ -43,7 +43,7 @@ public class OrderRepositoryTests
         _repo.FindAsync(spec.Criteria!, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<IReadOnlyList<Order>>.Success(new List<Order>())));
 
-        var result = await _repo.FindAsync(spec.Criteria!);
+        var result = await _repo.FindAsync(spec.Criteria!, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
     }

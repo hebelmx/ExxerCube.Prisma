@@ -105,6 +105,7 @@ public class AuditLoggerServiceTests : IDisposable
 
         // Assert
         result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("CorrelationId");
     }
 

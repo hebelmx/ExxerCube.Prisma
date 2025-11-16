@@ -8,6 +8,7 @@ public class DecisionLogicServiceEdgeCaseTests
     private readonly IPersonIdentityResolver _personIdentityResolver;
     private readonly ILegalDirectiveClassifier _legalDirectiveClassifier;
     private readonly IManualReviewerPanel _manualReviewerPanel;
+    private readonly IAuditLogger _auditLogger;
     private readonly ILogger<DecisionLogicService> _logger;
     private readonly DecisionLogicService _service;
 
@@ -19,8 +20,9 @@ public class DecisionLogicServiceEdgeCaseTests
         _personIdentityResolver = Substitute.For<IPersonIdentityResolver>();
         _legalDirectiveClassifier = Substitute.For<ILegalDirectiveClassifier>();
         _manualReviewerPanel = Substitute.For<IManualReviewerPanel>();
+        _auditLogger = Substitute.For<IAuditLogger>();
         _logger = Substitute.For<ILogger<DecisionLogicService>>();
-        _service = new DecisionLogicService(_personIdentityResolver, _legalDirectiveClassifier, _manualReviewerPanel, _logger);
+        _service = new DecisionLogicService(_personIdentityResolver, _legalDirectiveClassifier, _manualReviewerPanel, _auditLogger, _logger);
     }
 
     /// <summary>
@@ -30,7 +32,7 @@ public class DecisionLogicServiceEdgeCaseTests
     public async Task ResolvePersonIdentitiesAsync_WithNullPersons_ReturnsEmptyList()
     {
         // Act
-        var result = await _service.ResolvePersonIdentitiesAsync(null!, TestContext.Current.CancellationToken);
+        var result = await _service.ResolvePersonIdentitiesAsync(null!, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -50,7 +52,7 @@ public class DecisionLogicServiceEdgeCaseTests
         cts.Cancel();
 
         // Act
-        var result = await _service.ResolvePersonIdentitiesAsync(persons, cts.Token);
+        var result = await _service.ResolvePersonIdentitiesAsync(persons, cancellationToken: cts.Token);
 
         // Assert
         // Service MUST respect cancellation token and propagate cancellation signal
@@ -100,7 +102,7 @@ public class DecisionLogicServiceEdgeCaseTests
             .Returns(Result<List<Persona>>.Success(new List<Persona> { resolvedPerson1, resolvedPerson2 }));
 
         // Act
-        var result = await _service.ResolvePersonIdentitiesAsync(persons, cts.Token);
+        var result = await _service.ResolvePersonIdentitiesAsync(persons, cancellationToken: cts.Token);
 
         // Assert - Should return partial results with warnings, not cancelled
         result.HasWarnings.ShouldBeTrue("Partial results should have warnings");
@@ -121,7 +123,7 @@ public class DecisionLogicServiceEdgeCaseTests
     public async Task ClassifyLegalDirectivesAsync_WithNullDocumentText_ReturnsEmptyList()
     {
         // Act
-        var result = await _service.ClassifyLegalDirectivesAsync(null!, null, TestContext.Current.CancellationToken);
+        var result = await _service.ClassifyLegalDirectivesAsync(null!, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -141,7 +143,7 @@ public class DecisionLogicServiceEdgeCaseTests
         cts.Cancel();
 
         // Act
-        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, cts.Token);
+        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, cancellationToken: cts.Token);
 
         // Assert
         // Service MUST respect cancellation token and propagate cancellation signal
@@ -219,7 +221,7 @@ public class DecisionLogicServiceEdgeCaseTests
             .Returns(Result<List<Persona>>.Success(new List<Persona>()));
 
         // Act
-        var result = await _service.ResolvePersonIdentitiesAsync(persons, TestContext.Current.CancellationToken);
+        var result = await _service.ResolvePersonIdentitiesAsync(persons, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         // Service should handle exceptions gracefully by continuing with other persons (not cancellation)
@@ -245,7 +247,7 @@ public class DecisionLogicServiceEdgeCaseTests
             .Returns(Result<List<ComplianceAction>>.WithFailure("Classifier exception", default(List<ComplianceAction>), new Exception("Test exception")));
 
         // Act
-        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, TestContext.Current.CancellationToken);
+        var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();

@@ -30,7 +30,7 @@ public class FileMetadataQueryServiceTests
         _repository.ListAsync(Arg.Any<ISpecification<FileMetadata>>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<IReadOnlyList<FileMetadata>>.Success(metadata)));
 
-        var result = await _service.GetFileMetadataAsync();
+        var result = await _service.GetFileMetadataAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -44,7 +44,7 @@ public class FileMetadataQueryServiceTests
         _repository.ListAsync(Arg.Any<ISpecification<FileMetadata>>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<IReadOnlyList<FileMetadata>>.WithFailure("db-error")));
 
-        var result = await _service.GetFileMetadataAsync();
+        var result = await _service.GetFileMetadataAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeFalse();
         result.Error.ShouldBe("db-error");
@@ -56,7 +56,7 @@ public class FileMetadataQueryServiceTests
         _repository.GetByIdAsync("missing", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<FileMetadata?>.Success(null)));
 
-        var result = await _service.GetFileMetadataByIdAsync("missing");
+        var result = await _service.GetFileMetadataByIdAsync("missing", TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBeNull();
@@ -86,7 +86,7 @@ public class FileMetadataQueryServiceTests
         _repository.ListAsync(Arg.Any<ISpecification<FileMetadata>>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<IReadOnlyList<FileMetadata>>.Success(files)));
 
-        var result = await _service.GetDownloadStatisticsAsync(DateTime.UtcNow.AddDays(-7), DateTime.UtcNow);
+        var result = await _service.GetDownloadStatisticsAsync(DateTime.UtcNow.AddDays(-7), DateTime.UtcNow, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.TotalFiles.ShouldBe(2);

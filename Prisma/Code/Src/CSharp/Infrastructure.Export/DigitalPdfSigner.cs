@@ -299,11 +299,11 @@ public class DigitalPdfSigner : IResponseExporter
             X509Certificate2 certificate;
             if (!string.IsNullOrWhiteSpace(_certificateOptions.CertificatePassword))
             {
-                certificate = new X509Certificate2(certificateBytes, _certificateOptions.CertificatePassword);
+                certificate = X509CertificateLoader.LoadPkcs12(certificateBytes, _certificateOptions.CertificatePassword);
             }
             else
             {
-                certificate = new X509Certificate2(certificateBytes);
+                certificate = X509CertificateLoader.LoadPkcs12(certificateBytes, ReadOnlySpan<char>.Empty);
             }
 
             return certificate;
@@ -367,7 +367,7 @@ public class DigitalPdfSigner : IResponseExporter
 
         var page = document.AddPage();
         var gfx = PdfSharp.Drawing.XGraphics.FromPdfPage(page);
-        var font = new PdfSharp.Drawing.XFont("Arial", 12, PdfSharp.Drawing.XFontStyle.Regular);
+        var font = new PdfSharp.Drawing.XFont("Arial", 12);
 
         var yPosition = 50.0;
         var lineHeight = 20.0;

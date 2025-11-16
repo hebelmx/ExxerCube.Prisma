@@ -9,6 +9,7 @@ public class DocumentIngestionServiceTests
     private readonly IDownloadTracker _downloadTracker;
     private readonly IDownloadStorage _downloadStorage;
     private readonly IFileMetadataLogger _fileMetadataLogger;
+    private readonly IAuditLogger _auditLogger;
     private readonly ILogger<DocumentIngestionService> _logger;
     private readonly DocumentIngestionService _service;
 
@@ -21,12 +22,14 @@ public class DocumentIngestionServiceTests
         _downloadTracker = Substitute.For<IDownloadTracker>();
         _downloadStorage = Substitute.For<IDownloadStorage>();
         _fileMetadataLogger = Substitute.For<IFileMetadataLogger>();
+        _auditLogger = Substitute.For<IAuditLogger>();
         _logger = Substitute.For<ILogger<DocumentIngestionService>>();
         _service = new DocumentIngestionService(
             _browserAutomationAgent,
             _downloadTracker,
             _downloadStorage,
             _fileMetadataLogger,
+            _auditLogger,
             _logger);
     }
 

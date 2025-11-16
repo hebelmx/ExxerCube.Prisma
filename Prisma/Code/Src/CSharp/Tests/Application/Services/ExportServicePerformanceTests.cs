@@ -222,3 +222,4 @@ public class ExportServicePerformanceTests
         _output.WriteLine($"Bulk export ({exportCount} exports) completed in {stopwatch.ElapsedMilliseconds}ms (avg: {avgTimePerExport:F2}ms per export)");
     }
 }
+

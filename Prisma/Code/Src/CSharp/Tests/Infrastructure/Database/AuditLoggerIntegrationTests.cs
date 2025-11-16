@@ -50,6 +50,7 @@ public class AuditLoggerIntegrationTests : IDisposable
         var responseExporter = Substitute.For<IResponseExporter>();
         var layoutGenerator = Substitute.For<ILayoutGenerator>();
         var criterionMapper = Substitute.For<ICriterionMapper>();
+        var pdfRequirementSummarizer = Substitute.For<IPdfRequirementSummarizer>();
 
         _documentIngestionService = new DocumentIngestionService(
             browserAgent,
@@ -79,6 +80,7 @@ public class AuditLoggerIntegrationTests : IDisposable
             responseExporter,
             layoutGenerator,
             criterionMapper,
+            pdfRequirementSummarizer,
             _auditLogger,
             exportLogger);
     }

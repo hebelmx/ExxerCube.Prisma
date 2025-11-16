@@ -39,10 +39,11 @@ public class DigitalPdfSignerTests
         using var stream = new MemoryStream();
 
         // Act
-        var result = await _signer.ExportSiroXmlAsync(metadata, stream, default);
+        var result = await _signer.ExportSiroXmlAsync(metadata, stream, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("SiroXmlExporter");
     }
 
@@ -57,10 +58,11 @@ public class DigitalPdfSignerTests
         using var stream = new MemoryStream();
 
         // Act
-        var result = await _signer.ExportSignedPdfAsync(metadata!, stream, CancellationToken.None);
+        var result = await _signer.ExportSignedPdfAsync(metadata!, stream, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("null");
     }
 
@@ -78,10 +80,11 @@ public class DigitalPdfSignerTests
         Stream? stream = null;
 
         // Act
-        var result = await _signer.ExportSignedPdfAsync(metadata, stream!, CancellationToken.None);
+        var result = await _signer.ExportSignedPdfAsync(metadata, stream!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("null");
     }
 
@@ -121,7 +124,7 @@ public class DigitalPdfSignerTests
         using var stream = new MemoryStream();
 
         // Act
-        var result = await _signer.ExportSignedPdfAsync(metadata, stream, default);
+        var result = await _signer.ExportSignedPdfAsync(metadata, stream, TestContext.Current.CancellationToken);
 
         // Assert
         // Should fail because certificate is not configured
@@ -160,7 +163,7 @@ public class DigitalPdfSignerTests
         using var stream = new MemoryStream();
 
         // Act
-        var result = await _signer.ExportSignedPdfAsync(metadata, stream, default);
+        var result = await _signer.ExportSignedPdfAsync(metadata, stream, TestContext.Current.CancellationToken);
 
         // Assert
         // Will fail due to certificate, but should attempt PDF generation
@@ -200,7 +203,7 @@ public class DigitalPdfSignerTests
         using var stream = new MemoryStream();
 
         // Act
-        var result = await _signer.ExportSignedPdfAsync(metadata, stream, default);
+        var result = await _signer.ExportSignedPdfAsync(metadata, stream, TestContext.Current.CancellationToken);
 
         // Assert
         // Will fail due to certificate, but metadata should be processed

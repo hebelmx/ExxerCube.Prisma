@@ -43,7 +43,7 @@ public class PdfRequirementSummarizerServiceTests
             .Returns(Result<ExtractedMetadata>.Success(extractedMetadata));
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsAsync(pdfContent, default);
+        var result = await _summarizer.SummarizeRequirementsAsync(pdfContent, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -63,7 +63,7 @@ public class PdfRequirementSummarizerServiceTests
         byte[]? pdfContent = null;
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsAsync(pdfContent!, CancellationToken.None);
+        var result = await _summarizer.SummarizeRequirementsAsync(pdfContent!, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -81,7 +81,7 @@ public class PdfRequirementSummarizerServiceTests
         var pdfContent = Array.Empty<byte>();
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsAsync(pdfContent, default);
+        var result = await _summarizer.SummarizeRequirementsAsync(pdfContent, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -103,7 +103,7 @@ public class PdfRequirementSummarizerServiceTests
         ";
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -130,7 +130,7 @@ public class PdfRequirementSummarizerServiceTests
         ";
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -157,7 +157,7 @@ public class PdfRequirementSummarizerServiceTests
         ";
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -185,7 +185,7 @@ public class PdfRequirementSummarizerServiceTests
         ";
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -213,7 +213,7 @@ public class PdfRequirementSummarizerServiceTests
         ";
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -241,7 +241,7 @@ public class PdfRequirementSummarizerServiceTests
         ";
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -264,7 +264,7 @@ public class PdfRequirementSummarizerServiceTests
         ";
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -301,7 +301,7 @@ public class PdfRequirementSummarizerServiceTests
         var pdfText = string.Empty;
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, default);
+        var result = await _summarizer.SummarizeRequirementsFromTextAsync(pdfText, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -322,7 +322,7 @@ public class PdfRequirementSummarizerServiceTests
             .Returns(Result<ExtractedMetadata>.WithFailure("Extraction failed"));
 
         // Act
-        var result = await _summarizer.SummarizeRequirementsAsync(pdfContent, default);
+        var result = await _summarizer.SummarizeRequirementsAsync(pdfContent, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
