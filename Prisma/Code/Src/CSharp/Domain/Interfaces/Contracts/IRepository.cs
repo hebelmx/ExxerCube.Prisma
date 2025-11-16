@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using IndQuestResults;
 
 namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
 {
@@ -23,16 +24,16 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         /// </summary>
         /// <param name="id">Entity identifier to look for.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>The matching entity or <c>null</c> if it is not found.</returns>
-        Task<T?> GetByIdAsync(TId id, CancellationToken cancellationToken = default);
+        /// <returns>A result that wraps the matching entity or <c>null</c> if it is not found.</returns>
+        Task<Result<T?>> GetByIdAsync(TId id, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Finds all entities satisfying the supplied predicate.
         /// </summary>
         /// <param name="predicate">Filter to apply server-side.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>A read-only list with the entities that match the filter.</returns>
-        Task<IReadOnlyList<T>> FindAsync(
+        /// <returns>A result with the entities that match the filter.</returns>
+        Task<Result<IReadOnlyList<T>>> FindAsync(
             Expression<Func<T, bool>> predicate,
             CancellationToken cancellationToken = default);
 
@@ -41,8 +42,8 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         /// </summary>
         /// <param name="predicate">Filter to evaluate.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns><c>true</c> when at least one entity matches; otherwise <c>false</c>.</returns>
-        Task<bool> ExistsAsync(
+        /// <returns>A result containing <c>true</c> when at least one entity matches; otherwise <c>false</c>.</returns>
+        Task<Result<bool>> ExistsAsync(
             Expression<Func<T, bool>> predicate,
             CancellationToken cancellationToken = default);
 
@@ -51,8 +52,8 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         /// </summary>
         /// <param name="predicate">Optional filter used before counting.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>The number of entities found.</returns>
-        Task<int> CountAsync(
+        /// <returns>A result containing the number of entities found.</returns>
+        Task<Result<int>> CountAsync(
             Expression<Func<T, bool>>? predicate = null,
             CancellationToken cancellationToken = default);
 
@@ -60,17 +61,37 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         /// Retrieves every entity tracked by the repository.
         /// </summary>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>All entities as a read-only list.</returns>
-        Task<IReadOnlyList<T>> ListAsync(CancellationToken cancellationToken = default);
+        /// <returns>A result wrapping all entities.</returns>
+        Task<Result<IReadOnlyList<T>>> ListAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Retrieves the entities that satisfy the supplied predicate.
         /// </summary>
         /// <param name="predicate">Filter that narrows the returned set.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>A filtered read-only list of entities.</returns>
-        Task<IReadOnlyList<T>> ListAsync(
+        /// <returns>A result with the filtered entities.</returns>
+        Task<Result<IReadOnlyList<T>>> ListAsync(
             Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves entities that satisfy the provided specification (filters, ordering and includes).
+        /// </summary>
+        /// <param name="specification">Specification describing the query.</param>
+        /// <param name="cancellationToken">Token used to cancel the request.</param>
+        /// <returns>A result with the entities that match the specification.</returns>
+        Task<Result<IReadOnlyList<T>>> ListAsync(
+            ISpecification<T> specification,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves a single entity that matches a specification.
+        /// </summary>
+        /// <param name="specification">Specification describing the query.</param>
+        /// <param name="cancellationToken">Token used to cancel the request.</param>
+        /// <returns>A result with the entity or <c>null</c> when it does not exist.</returns>
+        Task<Result<T?>> FirstOrDefaultAsync(
+            ISpecification<T> specification,
             CancellationToken cancellationToken = default);
 
         // 🧾 PROJECTIONS (for read-only DTOs, optional)
@@ -82,8 +103,8 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         /// <param name="predicate">Filter that determines the source rows.</param>
         /// <param name="selector">Selector describing the projection.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>Projected results that satisfy the predicate.</returns>
-        Task<IReadOnlyList<TResult>> SelectAsync<TResult>(
+        /// <returns>A result wrapping the projected rows that satisfy the predicate.</returns>
+        Task<Result<IReadOnlyList<TResult>>> SelectAsync<TResult>(
             Expression<Func<T, bool>> predicate,
             Expression<Func<T, TResult>> selector,
             CancellationToken cancellationToken = default);
@@ -94,41 +115,41 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         /// </summary>
         /// <param name="entity">Entity that needs to be staged for persistence.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>A task that completes when the entity is staged.</returns>
-        Task AddAsync(T entity, CancellationToken cancellationToken = default);
+        /// <returns>A result describing whether the entity was staged.</returns>
+        Task<Result> AddAsync(T entity, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Adds multiple entities in a single batch to improve throughput.
         /// </summary>
         /// <param name="entities">Entities that should be staged for persistence.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>A task that completes when the entities are staged.</returns>
-        Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
+        /// <returns>A result describing whether the entities were staged.</returns>
+        Task<Result> AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Marks an existing entity as modified so changes are tracked.
         /// </summary>
         /// <param name="entity">Entity instance with updated values.</param>
-        void Update(T entity);
+        Task<Result> UpdateAsync(T entity, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes an entity instance from the persistence context.
         /// </summary>
         /// <param name="entity">Entity that should be deleted.</param>
-        void Remove(T entity);
+        Task<Result> RemoveAsync(T entity, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes multiple entities as a single operation.
         /// </summary>
         /// <param name="entities">Entities that should be deleted.</param>
-        void RemoveRange(IEnumerable<T> entities);
+        Task<Result> RemoveRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Persists all pending changes tracked by the repository.
         /// </summary>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>The number of state entries written to the data store.</returns>
+        /// <returns>A result containing the number of state entries written to the data store.</returns>
         // 💾 UNIT OF WORK SUPPORT
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

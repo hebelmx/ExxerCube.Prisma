@@ -1,3 +1,6 @@
+using ExxerCube.Prisma.Domain.Interfaces.Contracts;
+using ExxerCube.Prisma.Infrastructure.Database.Repositories;
+
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 
 /// <summary>
@@ -19,6 +22,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<PrismaDbContext>(options =>
             options.UseSqlServer(connectionString));
+        services.AddScoped(typeof(IRepository<,>), typeof(EfCoreRepository<,>));
 
         services.AddScoped<IDownloadTracker, DownloadTrackerService>();
         services.AddScoped<IFileMetadataLogger, FileMetadataLoggerService>();

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.Linq.Expressions;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 
@@ -52,6 +53,17 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
     /// Gets or sets the AuditRecords entity set.
     /// </summary>
     public DbSet<AuditRecord> AuditRecords { get; set; } = null!;
+
+    /// <summary>
+    /// Gets the <see cref="DatabaseFacade"/> for this context.
+    /// </summary>
+    /// <param name="expression"></param>
+    /// <returns></returns>
+
+    /// DatabaseFacade
+    ///
+    public DatabaseFacade Database
+
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)

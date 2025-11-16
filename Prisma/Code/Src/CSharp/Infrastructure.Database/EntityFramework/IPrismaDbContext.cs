@@ -20,37 +20,37 @@ public interface IPrismaDbContext
     /// Gets or sets the FileMetadata entity set.
     /// Represents metadata information for processed files in the system.
     /// </summary>
-    IQueryable<FileMetadata> FileMetadata { get; set; }
+    DbSet<FileMetadata> FileMetadata { get; set; }
 
     /// <summary>
     /// Gets or sets the Persona entity set.
     /// Represents persona information extracted from processed documents.
     /// </summary>
-    IQueryable<Persona> Persona { get; set; }
+    DbSet<Persona> Persona { get; set; }
 
     /// <summary>
     /// Gets or sets the SLAStatus entity set.
     /// Represents Service Level Agreement status tracking for review cases.
     /// </summary>
-    IQueryable<SLAStatus> SLAStatus { get; set; }
+    DbSet<SLAStatus> SLAStatus { get; set; }
 
     /// <summary>
     /// Gets or sets the ReviewCases entity set.
     /// Represents review cases that are being processed or have been processed.
     /// </summary>
-    IQueryable<ReviewCase> ReviewCases { get; set; }
+    DbSet<ReviewCase> ReviewCases { get; set; }
 
     /// <summary>
     /// Gets or sets the ReviewDecisions entity set.
     /// Represents decisions made during the review process for cases.
     /// </summary>
-    IQueryable<ReviewDecision> ReviewDecisions { get; set; }
+    DbSet<ReviewDecision> ReviewDecisions { get; set; }
 
     /// <summary>
     /// Gets or sets the AuditRecords entity set.
     /// Represents audit trail records for tracking changes and operations in the system.
     /// </summary>
-    IQueryable<AuditRecord> AuditRecords { get; set; }
+    DbSet<AuditRecord> AuditRecords { get; set; }
 
     /// <summary>
     /// Gets the Database facade for accessing database-specific operations.
@@ -301,11 +301,4 @@ public interface IPrismaDbContext
     /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
     /// <returns>A task that represents the asynchronous find operation. The task result contains the entity found, or null if no entity with the given primary key values exists in the context.</returns>
     ValueTask<TEntity?> FindAsync<TEntity>(object?[]? keyValues, CancellationToken cancellationToken) where TEntity : class;
-
-    /// <summary>
-    /// Creates a queryable from a LINQ expression tree.
-    /// </summary>
-    /// <param name="expression">The LINQ expression tree to create a queryable from.</param>
-    /// <returns>A queryable that can be used to query the database.</returns>
-    IQueryable FromExpression(Expression expression);
 }

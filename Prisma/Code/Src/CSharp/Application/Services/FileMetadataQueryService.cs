@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
-using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Interfaces.Contracts;
+using ExxerCube.Prisma.Domain.Specifications;
 using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Application.Services;
@@ -17,19 +17,19 @@ namespace ExxerCube.Prisma.Application.Services;
 /// </summary>
 public class FileMetadataQueryService
 {
-    private readonly IRepository<FileMetadata, Int32> metadataRepository;
+    private readonly IRepository<FileMetadata, string> _metadataRepository;
     private readonly ILogger<FileMetadataQueryService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileMetadataQueryService"/> class.
     /// </summary>
-    /// <param name="metadataRepository">The database context.</param>
+    /// <param name="metadataRepository">The repository used to query metadata.</param>
     /// <param name="logger">The logger instance.</param>
     public FileMetadataQueryService(
-        IRepository<FileMetadata, Int32> metadataRepository,
+        IRepository<FileMetadata, string> metadataRepository,
         ILogger<FileMetadataQueryService> logger)
     {
-        this.metadataRepository = metadataRepository;
+        _metadataRepository = metadataRepository;
         _logger = logger;
     }
 
@@ -47,53 +47,46 @@ public class FileMetadataQueryService
         FileFormat? format = null,
         CancellationToken cancellationToken = default)
     {
-        // Early cancellation check
         if (cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning("File metadata query was cancelled before starting");
             return ResultExtensions.Cancelled<List<FileMetadata>>();
         }
 
-        try
-        {
-            var query = metadataRepository.FileMetadata.AsQueryable();
+        var specification = new FileMetadataFiltersSpecification(startDate, endDate, format);
+        var filesResult = await _metadataRepository
+            .ListAsync(specification, cancellationToken)
+            .ConfigureAwait(false);
 
-            if (startDate.HasValue)
-            {
-                query = query.Where(f => f.DownloadTimestamp >= startDate.Value);
-            }
-
-            if (endDate.HasValue)
-            {
-                query = query.Where(f => f.DownloadTimestamp <= endDate.Value);
-            }
-
-            if (format.HasValue)
-            {
-                query = query.Where(f => f.Format == format.Value);
-            }
-
-            var files = await query
-                .OrderByDescending(f => f.DownloadTimestamp)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            _logger.LogInformation(
-                "Retrieved {Count} file metadata records with filters: StartDate={StartDate}, EndDate={EndDate}, Format={Format}",
-                files.Count, startDate, endDate, format);
-
-            return Result<List<FileMetadata>>.Success(files);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        if (filesResult.IsCancelled())
         {
             _logger.LogInformation("File metadata query was cancelled");
             return ResultExtensions.Cancelled<List<FileMetadata>>();
         }
-        catch (Exception ex)
+
+        if (!filesResult.IsSuccess)
         {
-            _logger.LogError(ex, "Error retrieving file metadata");
-            return Result<List<FileMetadata>>.WithFailure($"Error retrieving file metadata: {ex.Message}", default, ex);
+            _logger.LogError(
+                "Error retrieving file metadata with filters StartDate={StartDate}, EndDate={EndDate}, Format={Format}: {Error}",
+                startDate,
+                endDate,
+                format,
+                filesResult.Error);
+
+            return Result<List<FileMetadata>>.WithFailure(
+                filesResult.Error ?? "Error retrieving file metadata");
         }
+
+        var files = filesResult.Value?.ToList() ?? new List<FileMetadata>();
+
+        _logger.LogInformation(
+            "Retrieved {Count} file metadata records with filters: StartDate={StartDate}, EndDate={EndDate}, Format={Format}",
+            files.Count,
+            startDate,
+            endDate,
+            format);
+
+        return Result<List<FileMetadata>>.Success(files);
     }
 
     /// <summary>
@@ -106,43 +99,45 @@ public class FileMetadataQueryService
         string fileId,
         CancellationToken cancellationToken = default)
     {
-        // Early cancellation check
         if (cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning("File metadata query by ID was cancelled before starting");
             return ResultExtensions.Cancelled<FileMetadata?>();
         }
 
-        // Input validation
         if (string.IsNullOrWhiteSpace(fileId))
         {
             return Result<FileMetadata?>.WithFailure("File ID cannot be null or empty");
         }
 
-        try
-        {
-            var file = await metadataRepository.FileMetadata
-                .FirstOrDefaultAsync(f => f.FileId == fileId, cancellationToken)
-                .ConfigureAwait(false);
+        var fileResult = await _metadataRepository
+            .GetByIdAsync(fileId, cancellationToken)
+            .ConfigureAwait(false);
 
-            if (file == null)
-            {
-                _logger.LogWarning("File metadata not found for FileId: {FileId}", fileId);
-                return Result<FileMetadata?>.Success(null);
-            }
-
-            return Result<FileMetadata?>.Success(file);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        if (fileResult.IsCancelled())
         {
             _logger.LogInformation("File metadata query by ID was cancelled");
             return ResultExtensions.Cancelled<FileMetadata?>();
         }
-        catch (Exception ex)
+
+        if (!fileResult.IsSuccess)
         {
-            _logger.LogError(ex, "Error retrieving file metadata for FileId: {FileId}", fileId);
-            return Result<FileMetadata?>.WithFailure($"Error retrieving file metadata: {ex.Message}", default, ex);
+            _logger.LogError(
+                "Error retrieving file metadata for FileId: {FileId}. {Error}",
+                fileId,
+                fileResult.Error);
+
+            return Result<FileMetadata?>.WithFailure(
+                fileResult.Error ?? "Error retrieving file metadata");
         }
+
+        if (fileResult.Value == null)
+        {
+            _logger.LogWarning("File metadata not found for FileId: {FileId}", fileId);
+            return Result<FileMetadata?>.Success(null);
+        }
+
+        return Result<FileMetadata?>.Success(fileResult.Value);
     }
 
     /// <summary>
@@ -157,45 +152,55 @@ public class FileMetadataQueryService
         DateTime endDate,
         CancellationToken cancellationToken = default)
     {
-        // Early cancellation check
         if (cancellationToken.IsCancellationRequested)
         {
             _logger.LogWarning("Download statistics query was cancelled before starting");
             return ResultExtensions.Cancelled<DownloadStatistics>();
         }
 
-        try
-        {
-            var files = await metadataRepository.FileMetadata
-                .Where(f => f.DownloadTimestamp >= startDate && f.DownloadTimestamp <= endDate)
-                .ToListAsync(cancellationToken)
-                .ConfigureAwait(false);
+        var specification = new FileMetadataFiltersSpecification(startDate, endDate, null);
+        var filesResult = await _metadataRepository
+            .ListAsync(specification, cancellationToken)
+            .ConfigureAwait(false);
 
-            var statistics = new DownloadStatistics
-            {
-                TotalFiles = files.Count,
-                TotalSizeBytes = files.Sum(f => f.FileSize),
-                FilesByFormat = files.GroupBy(f => f.Format)
-                    .ToDictionary(g => g.Key, g => g.Count()),
-                StartDate = startDate,
-                EndDate = endDate
-            };
-
-            _logger.LogInformation(
-                "Retrieved download statistics: TotalFiles={TotalFiles}, TotalSizeBytes={TotalSizeBytes}, Period={StartDate} to {EndDate}",
-                statistics.TotalFiles, statistics.TotalSizeBytes, startDate, endDate);
-
-            return Result<DownloadStatistics>.Success(statistics);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        if (filesResult.IsCancelled())
         {
             _logger.LogInformation("Download statistics query was cancelled");
             return ResultExtensions.Cancelled<DownloadStatistics>();
         }
-        catch (Exception ex)
+
+        if (!filesResult.IsSuccess)
         {
-            _logger.LogError(ex, "Error retrieving download statistics");
-            return Result<DownloadStatistics>.WithFailure($"Error retrieving download statistics: {ex.Message}", default, ex);
+            _logger.LogError(
+                "Error retrieving download statistics between {StartDate} and {EndDate}: {Error}",
+                startDate,
+                endDate,
+                filesResult.Error);
+
+            return Result<DownloadStatistics>.WithFailure(
+                filesResult.Error ?? "Error retrieving download statistics");
         }
+
+        var files = filesResult.Value ?? Array.Empty<FileMetadata>();
+
+        var statistics = new DownloadStatistics
+        {
+            TotalFiles = files.Count,
+            TotalSizeBytes = files.Sum(f => f.FileSize),
+            FilesByFormat = files
+                .GroupBy(f => f.Format)
+                .ToDictionary(g => g.Key, g => g.Count()),
+            StartDate = startDate,
+            EndDate = endDate
+        };
+
+        _logger.LogInformation(
+            "Retrieved download statistics: TotalFiles={TotalFiles}, TotalSizeBytes={TotalSizeBytes}, Period={StartDate} to {EndDate}",
+            statistics.TotalFiles,
+            statistics.TotalSizeBytes,
+            startDate,
+            endDate);
+
+        return Result<DownloadStatistics>.Success(statistics);
     }
 }
