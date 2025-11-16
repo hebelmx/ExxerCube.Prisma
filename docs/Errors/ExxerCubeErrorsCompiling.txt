@@ -1,10 +1,4 @@
-Illegal Attribute 'OnSelectionChanged' on 'MudAutocomplete' using pattern 'LowerCase' source location '(738,32)-(746,33)' (https://mudblazor.com/features/analyzers)
-Illegal Attribute 'SelectedValue' on 'MudRadioGroup' using pattern 'LowerCase' source location '(1225,32)-(1233,33)' (https://mudblazor.com/features/analyzers)
-Illegal Attribute 'SelectedValueChanged' on 'MudRadioGroup' using pattern 'LowerCase' source location '(1234,32)-(1234,249)' (https://mudblazor.com/features/analyzers)
-Illegal Attribute 'HelperText' on 'MudRadio' using pattern 'LowerCase' source location '(1279,36)-(1279,142)' (https://mudblazor.com/features/analyzers)
-Illegal Attribute 'HelperText' on 'MudRadio' using pattern 'LowerCase' source location '(1329,36)-(1329,133)' (https://mudblazor.com/features/analyzers)
-Illegal Attribute 'HelperText' on 'MudRadio' using pattern 'LowerCase' source location '(1379,36)-(1379,150)' (https://mudblazor.com/features/analyzers)
-Illegal Attribute 'HelperText' on 'MudRadio' using pattern 'LowerCase' source location '(1429,36)-(1429,128)' (https://mudblazor.com/features/analyzers)
+Cannot convert method group 'IsCancelled' to non-delegate type 'bool'. Did you intend to invoke the method?
 Converting method group 'OnCaseSelected' to non-delegate type 'object'. Did you intend to invoke the method?
 The name 'Active' does not exist in the current context
 The name 'At' does not exist in the current context
@@ -12,13 +6,21 @@ The name 'Risk' does not exist in the current context
 The name 'Breached' does not exist in the current context
 The name 'Center' does not exist in the current context
 The name 'Center' does not exist in the current context
-'Result<List<FileMetadata>>' does not contain a definition for 'IsCancelled' and no accessible extension method 'IsCancelled' accepting a first argument of type 'Result<List<FileMetadata>>' could be found (are you missing a using directive or an assembly reference?)
-'Result<FileDownloadResult>' does not contain a definition for 'IsCancelled' and no accessible extension method 'IsCancelled' accepting a first argument of type 'Result<FileDownloadResult>' could be found (are you missing a using directive or an assembly reference?)
-The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
-The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+Cannot convert method group 'IsCancelled' to non-delegate type 'bool'. Did you intend to invoke the method?
+
+>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(65,61,65,75): error CS8974: Converting method group 'OnCaseSelected' to non-delegate type 'object'. Did you intend to invoke the method?
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\SlaDashboard.razor(116,55,116,61): error CS0103: The name 'Active' does not exist in the current context
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\SlaDashboard.razor(117,55,117,57): error CS0103: The name 'At' does not exist in the current context
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\SlaDashboard.razor(117,58,117,62): error CS0103: The name 'Risk' does not exist in the current context
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\SlaDashboard.razor(118,55,118,63): error CS0103: The name 'Breached' does not exist in the current context
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\SlaDashboard.razor(272,74,272,80): error CS0103: The name 'Center' does not exist in the current context
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\SlaDashboard.razor(279,78,279,84): error CS0103: The name 'Center' does not exist in the current context
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(311,29,311,40): error CS0428: Cannot convert method group 'IsCancelled' to non-delegate type 'bool'. Did you intend to invoke the method?
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\DocumentProcessingDashboard.razor(326,32,326,43): error CS0428: Cannot convert method group 'IsCancelled' to non-delegate type 'bool'. Did you intend to invoke the method?
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(1,1,1,1): error MUD0002: Illegal Attribute 'OnSelectionChanged' on 'MudAutocomplete' using pattern 'LowerCase' source location '(737,32)-(745,33)' (https://mudblazor.com/features/analyzers)
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(1,1,1,1): error MUD0002: Illegal Attribute 'SelectedValue' on 'MudRadioGroup' using pattern 'LowerCase' source location '(1224,32)-(1232,33)' (https://mudblazor.com/features/analyzers)
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(1,1,1,1): error MUD0002: Illegal Attribute 'SelectedValueChanged' on 'MudRadioGroup' using pattern 'LowerCase' source location '(1233,32)-(1233,249)' (https://mudblazor.com/features/analyzers)
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(1,1,1,1): error MUD0002: Illegal Attribute 'HelperText' on 'MudRadio' using pattern 'LowerCase' source location '(1278,36)-(1278,142)' (https://mudblazor.com/features/analyzers)
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(1,1,1,1): error MUD0002: Illegal Attribute 'HelperText' on 'MudRadio' using pattern 'LowerCase' source location '(1328,36)-(1328,133)' (https://mudblazor.com/features/analyzers)
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(1,1,1,1): error MUD0002: Illegal Attribute 'HelperText' on 'MudRadio' using pattern 'LowerCase' source location '(1378,36)-(1378,150)' (https://mudblazor.com/features/analyzers)
+1>F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\UI\ExxerCube.Prisma.Web.UI\Components\Pages\ExportManagement.razor(1,1,1,1): error MUD0002: Illegal Attribute 'HelperText' on 'MudRadio' using pattern 'LowerCase' source location '(1428,36)-(1428,128)' (https://mudblazor.com/features/analyzers)

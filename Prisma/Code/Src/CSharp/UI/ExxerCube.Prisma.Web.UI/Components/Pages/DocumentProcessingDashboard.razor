@@ -1,5 +1,5 @@
 @page "/document-processing-dashboard"
-#nullable enable
+
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
 @using ExxerCube.Prisma.Domain.Interfaces
@@ -323,7 +323,7 @@
             var downloadResult = await FileDownloadService.GetFileContentAsync(
                 fileMetadata.FilePath);
 
-            if (downloadResult.IsCancelled)
+            if (downloadResult.IsCancelled())
             {
                 Snackbar.Add("File download was cancelled", Severity.Warning);
                 return;

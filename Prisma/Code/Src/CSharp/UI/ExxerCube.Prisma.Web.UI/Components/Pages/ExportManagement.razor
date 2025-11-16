@@ -57,12 +57,12 @@
                     <MudItem xs="12" Class="mb-4">
                         <MudText Typo="Typo.subtitle1" Class="mb-2">Select Cases</MudText>
                         <MudAutocomplete T="FileMetadata"
-                                       @bind-Value="selectedCase"
+                                       Value="@selectedCase"
+                                       ValueChanged="@((FileMetadata? value) => OnCaseSelected(value))"
                                        SearchFunc="@SearchCases"
                                        ToStringFunc="@(x => x != null ? $"{x.FileId} - {x.FileName}" : string.Empty)"
                                        Label="Search and select cases"
-                                       Variant="Variant.Outlined"
-                                       OnSelectionChanged="@OnCaseSelected">
+                                       Variant="Variant.Outlined">
                             <ItemTemplate>
                                 <MudText>@context.FileId - @context.FileName</MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@context.DownloadTimestamp.ToString("g")</MudText>
@@ -308,7 +308,7 @@
                 errorMessage = $"Failed to load cases: {result.Error}";
                 Logger.LogError("Failed to load file metadata: {Error}", result.Error);
             }
-            else if (result.IsCancelled)
+            else if (result.IsCancelled())
             {
                 hasError = true;
                 errorMessage = "Operation was cancelled";

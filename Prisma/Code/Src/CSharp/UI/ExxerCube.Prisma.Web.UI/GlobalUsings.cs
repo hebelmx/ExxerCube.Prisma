@@ -16,6 +16,8 @@ global using Microsoft.AspNetCore.Components.Web.Virtualization;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.SignalR.Client;
 global using Microsoft.JSInterop;
+global using IndQuestResults;
+global using IndQuestResults.Operations;
 global using MudBlazor;
 global using MudBlazor.Services;
 global using MudBlazor.StaticInput;

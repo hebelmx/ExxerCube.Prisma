@@ -1,5 +1,5 @@
 @page "/sla-dashboard"
-#nullable enable
+
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
 @using ExxerCube.Prisma.Web.UI.Models
@@ -110,12 +110,12 @@
                         </MudItem>
 
                         <MudItem xs="12" sm="6" md="3">
-                            <MudSelect T="string?" Label="SLA Status" Variant="Variant.Outlined" 
+                            <MudSelect T="string" Label="SLA Status" Variant="Variant.Outlined" 
                                       @bind-Value="filterSLAStatus" Clearable="true">
                                 <MudSelectItem Value="@((string?)null)">All Statuses</MudSelectItem>
-                                <MudSelectItem Value="Active">Active</MudSelectItem>
-                                <MudSelectItem Value="At-Risk">At-Risk</MudSelectItem>
-                                <MudSelectItem Value="Breached">Breached</MudSelectItem>
+                                <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                                <MudSelectItem Value="@("At-Risk")">At-Risk</MudSelectItem>
+                                <MudSelectItem Value="@("Breached")">Breached</MudSelectItem>
                             </MudSelect>
                         </MudItem>
 
@@ -269,14 +269,14 @@
                             {
                                 <MudExpansionPanel>
                                     <TitleContent>
-                                        <MudStack Row="true" AlignItems="Center" Justify="Justify.SpaceBetween">
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                                             <MudText Typo="Typo.h6">
                                                 <MudChip T="string" Size="Size.Small" Color="@atRiskCase.EscalationColor" Class="mr-2">
                                                     @atRiskCase.EscalationText
                                                 </MudChip>
                                                 @atRiskCase.SLAStatus.FileId
                                             </MudText>
-                                            <MudStack Row="true" AlignItems="Center" Spacing="2">
+                                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                                 <MudText Typo="Typo.h5" Color="@atRiskCase.TimeRemainingColor" Class="mr-4">
                                                     @atRiskCase.FormattedTimeRemaining
                                                 </MudText>

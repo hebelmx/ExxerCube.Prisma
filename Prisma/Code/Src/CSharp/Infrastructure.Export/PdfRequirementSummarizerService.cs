@@ -61,7 +61,7 @@ public class PdfRequirementSummarizerService : IPdfRequirementSummarizer
             var textResult = await ExtractTextFromPdfAsync(pdfContent, cancellationToken).ConfigureAwait(false);
 
             // Propagate cancellation
-            if (textResult.IsCancelled)
+            if (textResult.IsCancelled())
             {
                 _logger.LogWarning("PDF text extraction cancelled");
                 return ResultExtensions.Cancelled<RequirementSummary>();
@@ -221,7 +221,7 @@ public class PdfRequirementSummarizerService : IPdfRequirementSummarizer
                 _logger.LogDebug("PdfSharp extracted minimal text, using metadata extractor with OCR fallback");
                 var metadataResult = await _metadataExtractor.ExtractFromPdfAsync(pdfContent, cancellationToken).ConfigureAwait(false);
 
-                if (metadataResult.IsCancelled)
+                if (metadataResult.IsCancelled())
                 {
                     return ResultExtensions.Cancelled<string>();
                 }
@@ -253,7 +253,7 @@ public class PdfRequirementSummarizerService : IPdfRequirementSummarizer
             // Fallback to metadata extractor
             var metadataResult = await _metadataExtractor.ExtractFromPdfAsync(pdfContent, cancellationToken).ConfigureAwait(false);
 
-            if (metadataResult.IsCancelled)
+            if (metadataResult.IsCancelled())
             {
                 return ResultExtensions.Cancelled<string>();
             }
