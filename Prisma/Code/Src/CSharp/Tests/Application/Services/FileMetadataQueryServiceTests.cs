@@ -1,4 +1,4 @@
-namespace Tests.Application.Services;
+namespace ExxerCube.Prisma.Tests.Application.Services;
 
 public class FileMetadataQueryServiceTests
 {
@@ -54,11 +54,11 @@ public class FileMetadataQueryServiceTests
     public async Task GetFileMetadataByIdAsync_ShouldReturnNull_WhenEntityNotFound()
     {
         _repository.GetByIdAsync("missing", Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result<FileMetadata?>.Success(null)));
+            .Returns(Task.FromResult(Result<FileMetadata?>.WithFailure("Entity not found")));
 
         var result = await _service.GetFileMetadataByIdAsync("missing", TestContext.Current.CancellationToken);
 
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess.ShouldBeFalse();
         result.Value.ShouldBeNull();
     }
 

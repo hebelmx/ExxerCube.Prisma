@@ -10,7 +10,7 @@ namespace ExxerCube.Prisma.Infrastructure.Database.Repositories;
 /// Applies an <see cref="ISpecification{T}"/> to an EF Core <see cref="IQueryable{T}"/>.
 /// </summary>
 /// <typeparam name="T">Entity type being queried.</typeparam>
-internal static class SpecificationEvaluator<T> where T : class
+public static class SpecificationEvaluator<T> where T : class
 {
     /// <summary>
     /// Applies the provided specification to the supplied queryable.

@@ -1,4 +1,6 @@
-namespace Tests.Domain.Repositories;
+using ExxerCube.Prisma.Infrastructure.Database.Repositories;
+
+namespace ExxerCube.Prisma.Tests.Domain.Repositories;
 
 public class OrderRepositoryTests
 {
@@ -39,11 +41,16 @@ public class OrderRepositoryTests
     [Fact]
     public async Task FindAsync_Should_Filter_Correctly()
     {
-        var spec = new TestSpec(o => o.Total > 100);
-        _repo.FindAsync(spec.Criteria!, Arg.Any<CancellationToken>())
+        var specification = NSubstitute.Substitute.For<ISpecification<Order>>();
+        specification.Criteria.Returns(o => o.Total > 100);
+        //Define a speficaction with a predicated
+        //Expression<Func<T, bool>> predicate,
+        Expression<Func<Order, bool>> predicate = o => o.Total > 100;
+
+        _repo.FindAsync(predicate, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<IReadOnlyList<Order>>.Success(new List<Order>())));
 
-        var result = await _repo.FindAsync(spec.Criteria!, TestContext.Current.CancellationToken);
+        var result = await _repo.FindAsync(predicate, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
     }
@@ -51,18 +58,8 @@ public class OrderRepositoryTests
     private sealed class Order
     {
         public Order(Guid id) => Id = id;
+
         public Guid Id { get; }
         public decimal Total { get; init; }
-    }
-
-    private sealed class TestSpec : ISpecification<Order>
-    {
-        public TestSpec(Expression<Func<Order, bool>> criteria) => Criteria = criteria;
-        public Expression<Func<Order, bool>>? Criteria { get; }
-        public Expression<Func<Order, object>>? OrderBy => null;
-        public Expression<Func<Order, object>>? OrderByDescending => null;
-        public IReadOnlyList<Expression<Func<Order, object>>> Includes => Array.Empty<Expression<Func<Order, object>>>();
-        public int? Skip => null;
-        public int? Take => null;
     }
 }
