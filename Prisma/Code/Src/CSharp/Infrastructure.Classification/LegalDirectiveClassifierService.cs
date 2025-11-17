@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -301,19 +302,77 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
     private static void ExtractActionDetails(string text, ComplianceAction action)
     {
         // Extract account number pattern (e.g., "cuenta 1234567890")
-        var accountPattern = new Regex(@"cuenta\s+(\d+)", RegexOptions.IgnoreCase);
+        // Use word boundary to avoid matching numbers that are part of amounts
+        var accountPattern = new Regex(@"cuenta\s+(\d{4,})", RegexOptions.IgnoreCase);
         var accountMatch = accountPattern.Match(text);
         if (accountMatch.Success)
         {
             action.AccountNumber = accountMatch.Groups[1].Value;
         }
 
-        // Extract amount pattern (e.g., "$1,234,567.89" or "1,234,567.89 pesos")
-        var amountPattern = new Regex(@"\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)", RegexOptions.IgnoreCase);
-        var amountMatch = amountPattern.Match(text);
-        if (amountMatch.Success && decimal.TryParse(amountMatch.Groups[1].Value.Replace(",", string.Empty), out var amount))
+        // Extract amount pattern - prioritize monetary amounts with currency symbols or explicit monetary context
+        // Pattern 1: Amounts with dollar sign: "$1,000,000.00" or "$ 1,000,000.00"
+        // Pattern 2: Amounts with "monto", "cantidad", "importe" keywords: "monto de $1,000,000.00" or "monto de 1,000,000.00"
+        // Pattern 3: Amounts with "pesos", "dolares": "1,000,000.00 pesos"
+        // Pattern 4: Formatted amounts with commas (at least 2 commas to avoid matching account numbers): "1,000,000.00"
+        var amountPatterns = new[]
         {
-            action.Amount = amount;
+            // Pattern 1: Dollar sign amounts (highest priority) - matches "$1,000,000.00" or "$ 1,000,000.00"
+            new Regex(@"\$\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)", RegexOptions.IgnoreCase),
+            // Pattern 2: Amounts with monetary keywords followed by dollar sign or formatted number
+            // Matches "monto de $1,000,000.00" or "monto de 1,000,000.00"
+            new Regex(@"(?:monto|cantidad|importe|suma)\s+(?:de\s+)?\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)", RegexOptions.IgnoreCase),
+            // Pattern 3: Amounts with currency words
+            new Regex(@"(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s+(?:pesos|dolares|dólares)", RegexOptions.IgnoreCase),
+            // Pattern 4: Formatted amounts with at least 2 commas (to distinguish from account numbers)
+            new Regex(@"(\d{1,3}(?:,\d{3}){2,}(?:\.\d{2})?)", RegexOptions.IgnoreCase)
+        };
+        
+        Match? bestMatch = null;
+        int bestPatternPriority = int.MaxValue;
+        
+        // Try each pattern in priority order
+        for (int i = 0; i < amountPatterns.Length; i++)
+        {
+            var matches = amountPatterns[i].Matches(text);
+            foreach (Match match in matches)
+            {
+                // Skip if this looks like an account number (all digits, no formatting context)
+                var amountValue = match.Groups[1].Value;
+                var digitsOnly = amountValue.Replace(",", "").Replace(".", "");
+                
+                // Skip if it's a long number without commas/formatting that could be an account number
+                if (digitsOnly.Length >= 10 && 
+                    !match.Value.Contains("$") && 
+                    !match.Value.Contains("monto", StringComparison.OrdinalIgnoreCase) &&
+                    !match.Value.Contains("cantidad", StringComparison.OrdinalIgnoreCase) &&
+                    !match.Value.Contains("importe", StringComparison.OrdinalIgnoreCase) &&
+                    !match.Value.Contains("pesos", StringComparison.OrdinalIgnoreCase) &&
+                    !match.Value.Contains("dolares", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue; // Likely an account number, skip it
+                }
+                
+                // Prefer matches from higher priority patterns (lower index)
+                // Also prefer longer matches (more complete amounts)
+                if (bestMatch == null || 
+                    (i < bestPatternPriority) ||
+                    (i == bestPatternPriority && match.Value.Length > bestMatch.Value.Length))
+                {
+                    bestMatch = match;
+                    bestPatternPriority = i;
+                }
+            }
+        }
+        
+        if (bestMatch != null)
+        {
+            // Extract the numeric part from group 1 (all patterns use group 1 for the amount)
+            var amountString = bestMatch.Groups[1].Value.Replace(",", string.Empty);
+            if (decimal.TryParse(amountString, NumberStyles.Any, CultureInfo.InvariantCulture, out var amount))
+            {
+                action.Amount = amount;
+            }
         }
 
         // Extract product type (simplified - could be enhanced)

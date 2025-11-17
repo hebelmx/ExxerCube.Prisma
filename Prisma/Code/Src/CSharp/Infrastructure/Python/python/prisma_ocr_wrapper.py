@@ -7,14 +7,15 @@ import sys
 import json
 import base64
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
 import io
 from PIL import Image
 import numpy as np
 
-# Add the ocr_modules to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent.parent.Python))
-
+# Import ocr_modules
+# Note: This import requires ocr_modules to be in Python path at runtime
+# CSnakes code generation will succeed if the module is available during build
+# If not available during build, ensure prisma-ocr-pipeline/src is in PYTHONPATH
 from ocr_modules import (
     process_path, create_default_config, ProcessingConfig, OCRConfig,
     extract_expediente, extract_causa, extract_accion_solicitada,

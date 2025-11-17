@@ -178,7 +178,9 @@ public class MatchingPolicyService : IMatchingPolicy
             }
 
             var agreementLevel = agreementResult.Value;
-            var hasConflict = agreementLevel < threshold;
+            // Conflict exists when agreement level is less than or equal to threshold
+            // (threshold represents minimum required agreement, so equality means insufficient agreement)
+            var hasConflict = agreementLevel <= threshold;
 
             return Result<bool>.Success(hasConflict);
         }

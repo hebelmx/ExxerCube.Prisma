@@ -8,6 +8,7 @@ using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace ExxerCube.Prisma.Infrastructure.Extraction;
 
@@ -82,9 +83,20 @@ public class PdfMetadataExtractor : IMetadataExtractor
             var dates = ExtractDates(extractedText);
             var legalReferences = ExtractLegalReferences(extractedText);
 
+            // Create ExtractedFields for text reconstruction
+            var extractedFields = new ExtractedFields
+            {
+                Expediente = expediente?.NumeroExpediente,
+                Causa = ExtractCausa(extractedText),
+                AccionSolicitada = ExtractAccionSolicitada(extractedText),
+                Fechas = dates.Select(d => d.ToString("yyyy-MM-dd")).ToList(),
+                Montos = ExtractMontos(extractedText)
+            };
+
             var metadata = new ExtractedMetadata
             {
                 Expediente = expediente,
+                ExtractedFields = extractedFields,
                 RfcValues = rfcValues.Length > 0 ? rfcValues : null,
                 Names = names.Length > 0 ? names : null,
                 Dates = dates.Length > 0 ? dates : null,
@@ -333,5 +345,84 @@ public class PdfMetadataExtractor : IMetadataExtractor
 
         return references.Distinct().ToArray();
     }
-}
 
+    private static string? ExtractCausa(string text)
+    {
+        var causaPatterns = new[]
+        {
+            @"(?:CAUSA|Causa|causa)\s*:?\s*([^\n]+)",
+            @"(?:MOTIVO|Motivo|motivo)\s*:?\s*([^\n]+)"
+        };
+
+        foreach (var pattern in causaPatterns)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(text, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (match.Success && match.Groups.Count > 1)
+            {
+                return match.Groups[1].Value.Trim();
+            }
+        }
+
+        return null;
+    }
+
+    private static string? ExtractAccionSolicitada(string text)
+    {
+        // Extract action from common patterns
+        var actionPatterns = new[]
+        {
+            @"(?:ACCIÓN|Acción|accion|ACCIÓN SOLICITADA)\s*:?\s*([^\n]+)",
+            @"(?:SOLICITA|Solicita|solicita)\s+([^\n]+?)(?:\n|\.|$)",
+            @"(?:REQUERIMIENTO|Requerimiento|requerimiento)\s*:?\s*([^\n]+)"
+        };
+
+        foreach (var pattern in actionPatterns)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(text, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (match.Success && match.Groups.Count > 1)
+            {
+                return match.Groups[1].Value.Trim();
+            }
+        }
+
+        // Fallback: use first 200 characters if no pattern matches
+        if (text.Length > 0)
+        {
+            return text.Substring(0, Math.Min(200, text.Length)).Trim();
+        }
+
+        return null;
+    }
+
+    private static List<AmountData> ExtractMontos(string text)
+    {
+        var montos = new List<AmountData>();
+        var amountPatterns = new[]
+        {
+            @"\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)",
+            @"(?:MONTO|Monto|monto)\s*:?\s*\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)"
+        };
+
+        foreach (var pattern in amountPatterns)
+        {
+            var matches = System.Text.RegularExpressions.Regex.Matches(text, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            foreach (System.Text.RegularExpressions.Match match in matches)
+            {
+                if (match.Groups.Count > 1)
+                {
+                    var amountStr = match.Groups[1].Value.Replace(",", string.Empty);
+                    if (decimal.TryParse(amountStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var amount))
+                    {
+                        montos.Add(new AmountData
+                        {
+                            Value = amount,
+                            Currency = "MXN"
+                        });
+                    }
+                }
+            }
+        }
+
+        return montos.DistinctBy(m => m.Value).ToList();
+    }
+}

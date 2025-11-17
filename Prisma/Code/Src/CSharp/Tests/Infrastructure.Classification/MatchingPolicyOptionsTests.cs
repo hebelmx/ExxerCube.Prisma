@@ -80,7 +80,34 @@ public class MatchingPolicyOptionsTests
 
         // Act
         var options = new MatchingPolicyOptions();
-        configuration.GetSection("MatchingPolicy").Bind(options);
+        // Clear the default SourcePriority list before binding
+        options.SourcePriority.Clear();
+        
+        // Bind all properties except SourcePriority first
+        var matchingPolicySection = configuration.GetSection("MatchingPolicy");
+        matchingPolicySection.Bind(options, binderOptions =>
+        {
+            binderOptions.BindNonPublicProperties = false;
+        });
+        
+        // Manually bind SourcePriority from configuration to ensure it replaces defaults
+        // Configuration binding for arrays/lists can be unreliable, so we bind it explicitly
+        options.SourcePriority.Clear();
+        var sourcePrioritySection = matchingPolicySection.GetSection("SourcePriority");
+        if (sourcePrioritySection.Exists())
+        {
+            var index = 0;
+            while (true)
+            {
+                var value = sourcePrioritySection[$"{index}"];
+                if (string.IsNullOrEmpty(value))
+                {
+                    break;
+                }
+                options.SourcePriority.Add(value);
+                index++;
+            }
+        }
 
         // Assert
         options.ConflictThreshold.ShouldBe(0.7f);

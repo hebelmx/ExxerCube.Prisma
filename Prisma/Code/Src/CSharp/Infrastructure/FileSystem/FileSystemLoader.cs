@@ -327,10 +327,19 @@ public class FileSystemLoader : IFileLoader
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private byte[] LoadImageFile(string filePath)
     {
-        using var image = Image.FromFile(filePath);
-        using var memoryStream = new MemoryStream();
-        image.Save(memoryStream, ImageFormat.Png);
-        return memoryStream.ToArray();
+        try
+        {
+            using var image = Image.FromFile(filePath);
+            using var memoryStream = new MemoryStream();
+            image.Save(memoryStream, ImageFormat.Png);
+            return memoryStream.ToArray();
+        }
+        catch (System.Runtime.InteropServices.ExternalException ex) when (ex.HResult == unchecked((int)0x80004005))
+        {
+            // GDI+ error - try reading file directly as bytes instead
+            // This handles cases where the image file is valid but GDI+ can't process it
+            return File.ReadAllBytes(filePath);
+        }
     }
 
     /// <summary>

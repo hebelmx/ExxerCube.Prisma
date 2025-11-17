@@ -1,0 +1,26 @@
+{
+  "name": "exxercube.prisma",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hebelmx/ExxerCube.Prisma.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hebelmx/ExxerCube.Prisma/issues"
+  },
+  "homepage": "https://github.com/hebelmx/ExxerCube.Prisma#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.10.1"
+  }
+}

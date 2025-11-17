@@ -202,11 +202,9 @@ public class AuditLoggerServiceTests : IDisposable
     public async Task GetAuditRecordsAsync_DateRangeFilter_ReturnsFilteredRecords()
     {
         // Arrange
-        var startDate = DateTime.UtcNow.AddDays(-2);
-        var endDate = DateTime.UtcNow.AddDays(-1);
         var correlationId = Guid.NewGuid().ToString();
-
-        // Create record within range
+        
+        // Create record first (will have current timestamp)
         await _service.LogAuditAsync(
             AuditActionType.Download,
             ProcessingStage.Ingestion,
@@ -217,6 +215,10 @@ public class AuditLoggerServiceTests : IDisposable
             true,
             null,
             CancellationToken.None);
+
+        // Set date range to include the record we just created (from 2 days ago to now + 1 day to ensure it's included)
+        var startDate = DateTime.UtcNow.AddDays(-2);
+        var endDate = DateTime.UtcNow.AddDays(1);
 
         // Act
         var result = await _service.GetAuditRecordsAsync(

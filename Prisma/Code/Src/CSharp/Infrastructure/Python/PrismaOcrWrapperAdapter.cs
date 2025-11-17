@@ -34,6 +34,14 @@ public class PrismaOcrWrapperAdapter : IPythonInteropService, IImagePreprocessor
             _ocrWrapper = PrismaPythonEnvironment.Env.PrismaOcrWrapper();
             _logger.LogInformation("Initialized Prisma OCR wrapper adapter with CSnakes-generated interface");
         }
+        catch (PythonInvocationException ex) when (ex.Message.Contains("No module named 'prisma_ocr_wrapper'") || ex.InnerException?.Message?.Contains("No module named 'prisma_ocr_wrapper'") == true)
+        {
+            var errorMessage = "Python module 'prisma_ocr_wrapper' not found. " +
+                "Ensure the Python file is copied to the output directory and the Python path includes the module directory. " +
+                "The module should be at: Infrastructure/Python/python/prisma_ocr_wrapper.py";
+            _logger.LogError(ex, "{ErrorMessage}", errorMessage);
+            throw new InvalidOperationException(errorMessage, ex);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to initialize Prisma OCR wrapper: {Message}", ex.Message);

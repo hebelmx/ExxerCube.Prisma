@@ -264,8 +264,13 @@ public class PdfRequirementSummarizerService : IPdfRequirementSummarizer
             }
 
             var metadata = metadataResult.Value;
-            var text = ReconstructTextFromExtractedFields(metadata?.ExtractedFields);
-            return Result<string>.Success(text);
+            if (metadata?.ExtractedFields == null)
+            {
+                return Result<string>.WithFailure("No text could be extracted from PDF and metadata extractor returned no fields");
+            }
+
+            var text = ReconstructTextFromExtractedFields(metadata.ExtractedFields);
+            return Result<string>.Success(text ?? string.Empty);
         }
     }
 
@@ -405,14 +410,15 @@ public class PdfRequirementSummarizerService : IPdfRequirementSummarizer
     {
         var lowerText = text.ToLowerInvariant();
 
-        if (lowerText.Contains("bloqueo") || lowerText.Contains("bloquear"))
-        {
-            return "bloqueo";
-        }
-
+        // Check desbloqueo BEFORE bloqueo since "desbloqueo" contains "bloqueo" as substring
         if (lowerText.Contains("desbloqueo") || lowerText.Contains("desbloquear"))
         {
             return "desbloqueo";
+        }
+
+        if (lowerText.Contains("bloqueo") || lowerText.Contains("bloquear"))
+        {
+            return "bloqueo";
         }
 
         if (lowerText.Contains("transferencia") || lowerText.Contains("transferir"))
@@ -444,18 +450,19 @@ public class PdfRequirementSummarizerService : IPdfRequirementSummarizer
         // Analyze requirement description for category keywords
         var description = requirement.Descripcion.ToLowerInvariant();
 
-        // Bloqueo keywords
-        if (description.Contains("bloqueo") || description.Contains("bloquear") ||
-            description.Contains("congelar") || description.Contains("inmovilizar"))
-        {
-            return "bloqueo";
-        }
-
+        // Check desbloqueo BEFORE bloqueo since "desbloqueo" contains "bloqueo" as substring
         // Desbloqueo keywords
         if (description.Contains("desbloqueo") || description.Contains("desbloquear") ||
             description.Contains("descongelar") || description.Contains("liberar"))
         {
             return "desbloqueo";
+        }
+
+        // Bloqueo keywords
+        if (description.Contains("bloqueo") || description.Contains("bloquear") ||
+            description.Contains("congelar") || description.Contains("inmovilizar"))
+        {
+            return "bloqueo";
         }
 
         // Transferencia keywords

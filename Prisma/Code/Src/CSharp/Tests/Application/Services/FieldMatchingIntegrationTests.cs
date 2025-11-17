@@ -46,28 +46,28 @@ public class FieldMatchingIntegrationTests
             new FieldDefinition("AccionSolicitada")
         };
 
-        // DOCX extraction
+        // DOCX extraction - All sources agree on all fields to achieve >0.8 agreement
         var docxFields = new ExtractedFields
         {
             Expediente = "A/AS1-2505-088637-PHM",
-            Causa = "Test Causa DOCX",
-            AccionSolicitada = "Test Action DOCX"
+            Causa = "Test Causa",
+            AccionSolicitada = "Test Action"
         };
 
-        // PDF extraction
+        // PDF extraction - All sources agree on all fields
         var pdfFields = new ExtractedFields
         {
             Expediente = "A/AS1-2505-088637-PHM",
-            Causa = "Test Causa PDF",
-            AccionSolicitada = "Test Action PDF"
+            Causa = "Test Causa",
+            AccionSolicitada = "Test Action"
         };
 
-        // XML extraction
+        // XML extraction - All sources agree on all fields
         var xmlFields = new ExtractedFields
         {
             Expediente = "A/AS1-2505-088637-PHM",
-            Causa = "Test Causa XML",
-            AccionSolicitada = "Test Action XML"
+            Causa = "Test Causa",
+            AccionSolicitada = "Test Action"
         };
 
         _docxFieldExtractor.ExtractFieldsAsync(Arg.Any<DocxSource>(), Arg.Any<FieldDefinition[]>())

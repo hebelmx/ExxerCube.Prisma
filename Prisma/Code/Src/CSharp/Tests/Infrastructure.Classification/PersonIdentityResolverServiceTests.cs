@@ -7,14 +7,20 @@ public class PersonIdentityResolverServiceTests
 {
     private readonly ILogger<PersonIdentityResolverService> _logger;
     private readonly PersonIdentityResolverService _service;
+    private readonly ITestOutputHelper _output;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PersonIdentityResolverServiceTests"/> class.
     /// </summary>
-    public PersonIdentityResolverServiceTests()
+    public PersonIdentityResolverServiceTests(ITestOutputHelper output)
     {
-        _logger = Substitute.For<ILogger<PersonIdentityResolverService>>();
+        _output = output;
+        _logger = XUnitLogger.CreateLogger<PersonIdentityResolverService>(output);
         _service = new PersonIdentityResolverService(_logger);
+
+        _output.WriteLine("PersonIdentityResolverServiceTests: Test setup completed");
+        _output.WriteLine($"  - Logger type: {_logger.GetType().Name}");
+        _output.WriteLine($"  - Service type: {_service.GetType().Name}");
     }
 
     /// <summary>
@@ -177,13 +183,34 @@ public class PersonIdentityResolverServiceTests
     {
         // Arrange
         var rfc = "PEGJ850101ABC";
+        _output.WriteLine($"FindByRfcAsync_WithValidRfc_ReturnsNull: Starting test");
+        _output.WriteLine($"  - RFC: {rfc}");
+        _output.WriteLine($"  - CancellationToken: None");
+        _output.WriteLine($"  - Service instance: {_service.GetType().Name}");
 
         // Act
-        var result = await _service.FindByRfcAsync(rfc, TestContext.Current.CancellationToken);
+        _output.WriteLine("FindByRfcAsync_WithValidRfc_ReturnsNull: Calling FindByRfcAsync...");
+        var result = await _service.FindByRfcAsync(rfc, CancellationToken.None);
+        _output.WriteLine($"FindByRfcAsync_WithValidRfc_ReturnsNull: Method call completed");
+        _output.WriteLine($"  - Result.IsSuccess: {result.IsSuccess}");
+        _output.WriteLine($"  - Result.Error: {result.Error ?? "(null)"}");
+        _output.WriteLine($"  - Result.Value: {result.Value?.ToString() ?? "null"}");
+        if (result.IsFailure)
+        {
+            _output.WriteLine($"  - Result.Exception: {result.Exception?.ToString() ?? "(null)"}");
+            if (result.Exception != null)
+            {
+                _output.WriteLine($"  - Exception Type: {result.Exception.GetType().FullName}");
+                _output.WriteLine($"  - Exception Message: {result.Exception.Message}");
+                _output.WriteLine($"  - Stack Trace: {result.Exception.StackTrace}");
+            }
+        }
 
         // Assert
-        result.IsSuccess.ShouldBeTrue();
+        // For nullable Result<T>, use IsSuccessMayBeNull when Value can be null
+        result.IsSuccessMayBeNull.ShouldBeTrue($"Expected success (may be null) but got failure. Error: {result.Error}, Exception: {result.Exception?.Message ?? "none"}");
+        result.IsSuccessValueNull.ShouldBeTrue("Expected success with null value");
         result.Value.ShouldBeNull(); // Placeholder implementation returns null
+        _output.WriteLine("FindByRfcAsync_WithValidRfc_ReturnsNull: Test passed");
     }
 }
-

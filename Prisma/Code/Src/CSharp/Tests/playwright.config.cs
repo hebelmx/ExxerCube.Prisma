@@ -19,13 +19,24 @@ public class PlaywrightConfig
     /// </summary>
     /// <param name="playwright">The Playwright instance.</param>
     /// <returns>The browser configuration.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when browser executable is not found. Install browsers using: pwsh install-playwright-browsers.ps1</exception>
     public static IBrowser GetBrowser(IPlaywright playwright)
     {
-        return playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+        try
         {
-            Headless = true,
-            SlowMo = 100
-        }).Result;
+            return playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            {
+                Headless = true,
+                SlowMo = 100
+            }).Result;
+        }
+        catch (PlaywrightException ex) when (ex.Message.Contains("Executable doesn't exist") || ex.Message.Contains("Looks like Playwright was just installed"))
+        {
+            throw new InvalidOperationException(
+                "Playwright browsers are not installed. Please run: pwsh install-playwright-browsers.ps1 " +
+                "or manually install browsers using: playwright install chromium",
+                ex);
+        }
     }
 
     /// <summary>
