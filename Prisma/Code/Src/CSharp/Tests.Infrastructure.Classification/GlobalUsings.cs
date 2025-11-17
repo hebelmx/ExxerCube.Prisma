@@ -9,6 +9,7 @@ global using ExxerCube.Prisma.Domain;
 global using ExxerCube.Prisma.Domain.Entities;
 global using ExxerCube.Prisma.Domain.Interfaces;
 global using ExxerCube.Prisma.Infrastructure.Classification;
+global using Microsoft.Extensions.Configuration;
 global using ExxerCube.Prisma.Testing.Abstractions;
 global using ExxerCube.Prisma.Testing.Infrastructure;
 global using ExxerCube.Prisma.Testing.Infrastructure.TestData;
@@ -22,5 +23,4 @@ global using Microsoft.Extensions.Options;
 global using NSubstitute;
 global using Shouldly;
 global using Xunit;
-global using Xunit.Abstractions;
 

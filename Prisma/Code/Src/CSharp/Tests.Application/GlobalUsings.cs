@@ -17,10 +17,10 @@ global using IndQuestResults.Async;
 global using IndQuestResults.Operations;
 global using Meziantou.Extensions.Logging.Xunit.v3;
 global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.Configuration.Abstractions;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using NSubstitute;
 global using Shouldly;
 global using Xunit;
-global using Xunit.Abstractions;
 

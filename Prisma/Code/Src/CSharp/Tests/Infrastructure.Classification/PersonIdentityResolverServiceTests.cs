@@ -18,9 +18,9 @@ public class PersonIdentityResolverServiceTests
         _logger = XUnitLogger.CreateLogger<PersonIdentityResolverService>(output);
         _service = new PersonIdentityResolverService(_logger);
 
-        _output.WriteLine("PersonIdentityResolverServiceTests: Test setup completed");
-        _output.WriteLine($"  - Logger type: {_logger.GetType().Name}");
-        _output.WriteLine($"  - Service type: {_service.GetType().Name}");
+        _logger.LogInformation("PersonIdentityResolverServiceTests: Test setup completed");
+        _logger.LogInformation($"  - Logger type: {_logger.GetType().Name}");
+        _logger.LogInformation($"  - Service type: {_service.GetType().Name}");
     }
 
     /// <summary>
@@ -184,26 +184,26 @@ public class PersonIdentityResolverServiceTests
     {
         // Arrange
         var rfc = "PEGJ850101ABC";
-        _output.WriteLine($"FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Starting test");
-        _output.WriteLine($"  - RFC: {rfc}");
-        _output.WriteLine($"  - CancellationToken: None");
-        _output.WriteLine($"  - Service instance: {_service.GetType().Name}");
+        _logger.LogInformation($"FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Starting test");
+        _logger.LogInformation($"  - RFC: {rfc}");
+        _logger.LogInformation($"  - CancellationToken: None");
+        _logger.LogInformation($"  - Service instance: {_service.GetType().Name}");
 
         // Act
-        _output.WriteLine("FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Calling FindByRfcAsync...");
+        _logger.LogInformation("FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Calling FindByRfcAsync...");
         var result = await _service.FindByRfcAsync(rfc, CancellationToken.None);
-        _output.WriteLine($"FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Method call completed");
-        _output.WriteLine($"  - Result.IsSuccess: {result.IsSuccess}");
-        _output.WriteLine($"  - Result.Error: {result.Error ?? "(null)"}");
-        _output.WriteLine($"  - Result.Value: {result.Value?.ToString() ?? "null"}");
+        _logger.LogInformation($"FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Method call completed");
+        _logger.LogInformation($"  - Result.IsSuccess: {result.IsSuccess}");
+        _logger.LogInformation($"  - Result.Error: {result.Error ?? "(null)"}");
+        _logger.LogInformation($"  - Result.Value: {result.Value?.ToString() ?? "null"}");
         if (result.IsFailure)
         {
-            _output.WriteLine($"  - Result.Exception: {result.Exception?.ToString() ?? "(null)"}");
+            _logger.LogInformation($"  - Result.Exception: {result.Exception?.ToString() ?? "(null)"}");
             if (result.Exception != null)
             {
-                _output.WriteLine($"  - Exception Type: {result.Exception.GetType().FullName}");
-                _output.WriteLine($"  - Exception Message: {result.Exception.Message}");
-                _output.WriteLine($"  - Stack Trace: {result.Exception.StackTrace}");
+                _logger.LogInformation($"  - Exception Type: {result.Exception.GetType().FullName}");
+                _logger.LogInformation($"  - Exception Message: {result.Exception.Message}");
+                _logger.LogInformation($"  - Stack Trace: {result.Exception.StackTrace}");
             }
         }
 
@@ -212,6 +212,6 @@ public class PersonIdentityResolverServiceTests
         result.IsSuccessMayBeNull.ShouldBeTrue($"Expected success (may be null) but got failure. Error: {result.Error}, Exception: {result.Exception?.Message ?? "none"}");
         result.IsSuccessValueNull.ShouldBeTrue("Expected success with null value");
         result.Value.ShouldBeNull(); // Placeholder implementation returns null
-        _output.WriteLine("FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Test passed");
+        _logger.LogInformation("FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Test passed");
     }
 }

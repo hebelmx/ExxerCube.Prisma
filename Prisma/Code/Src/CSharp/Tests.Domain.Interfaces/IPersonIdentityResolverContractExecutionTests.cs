@@ -1,7 +1,6 @@
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Testing.Contracts;
 using ExxerCube.Prisma.Testing.Infrastructure.Logging;
-using Xunit.Abstractions;
 
 namespace ExxerCube.Prisma.Tests.Domain.Interfaces;
 

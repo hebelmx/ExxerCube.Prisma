@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Entities;
+
 namespace ExxerCube.Prisma.Testing.Infrastructure.TestData;
 
 /// <summary>

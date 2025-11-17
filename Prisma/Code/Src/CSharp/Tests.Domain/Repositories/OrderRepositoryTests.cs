@@ -1,4 +1,4 @@
-using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 
 namespace ExxerCube.Prisma.Tests.Domain.Repositories;
 

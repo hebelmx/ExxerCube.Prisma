@@ -74,6 +74,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\ExxerCube.Prisma.Application.csproj" />
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
+    <ProjectReference Include="..\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
+    <ProjectReference Include="..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+    <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
+    <ProjectReference Include="..\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
+    <ProjectReference Include="..\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
     <ProjectReference Include="..\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
     <ProjectReference Include="..\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
   </ItemGroup>
