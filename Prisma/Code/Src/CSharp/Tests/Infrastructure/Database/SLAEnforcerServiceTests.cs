@@ -37,12 +37,12 @@ public class SLAEnforcerServiceTests : IDisposable
         var optionsWrapper = Options.Create(_options);
         _service = new SLAEnforcerService(_dbContext, _logger, optionsWrapper, _metricsCollector);
 
-        _output.WriteLine("SLAEnforcerServiceTests: Test setup completed");
-        _output.WriteLine($"  - Database: InMemory (provider: {_dbContext.Database.ProviderName})");
-        _output.WriteLine($"  - Logger type: {_logger.GetType().Name}");
-        _output.WriteLine($"  - Service type: {_service.GetType().Name}");
-        _output.WriteLine($"  - CriticalThreshold: {_options.CriticalThreshold}");
-        _output.WriteLine($"  - WarningThreshold: {_options.WarningThreshold}");
+        _logger.LogInformation("SLAEnforcerServiceTests: Test setup completed");
+        _logger.LogInformation($"  - Database: InMemory (provider: {_dbContext.Database.ProviderName})");
+        _logger.LogInformation($"  - Logger type: {_logger.GetType().Name}");
+        _logger.LogInformation($"  - Service type: {_service.GetType().Name}");
+        _logger.LogInformation($"  - CriticalThreshold: {_options.CriticalThreshold}");
+        _logger.LogInformation($"  - WarningThreshold: {_options.WarningThreshold}");
     }
 
     /// <summary>
@@ -349,46 +349,47 @@ public class SLAEnforcerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that GetSLAStatusAsync returns null for non-existent status.
+    /// Tests that GetSLAStatusAsync returns Success with null value for non-existent status.
+    /// Note: For nullable Result&lt;SLAStatus?&gt;, Success with null value is valid - use IsSuccessMayBeNull to check.
     /// </summary>
     [Fact]
-    public async Task GetSLAStatusAsync_NonExistentStatus_ReturnsNull()
+    public async Task GetSLAStatusAsync_NonExistentStatus_ReturnsSuccessWithNullValue()
     {
         // Arrange
         var fileId = "non-existent-file-012";
-        _output.WriteLine($"GetSLAStatusAsync_NonExistentStatus_ReturnsNull: Starting test");
-        _output.WriteLine($"  - FileId: {fileId}");
-        _output.WriteLine($"  - CancellationToken: None");
-        _output.WriteLine($"  - Database state: {_dbContext.SLAStatus.Count()} records in SLAStatus table");
+        _logger.LogInformation($"GetSLAStatusAsync_NonExistentStatus_ReturnsSuccessWithNullValue: Starting test");
+        _logger.LogInformation($"  - FileId: {fileId}");
+        _logger.LogInformation($"  - CancellationToken: None");
+        _logger.LogInformation($"  - Database state: {_dbContext.SLAStatus.Count()} records in SLAStatus table");
 
         // Verify database is empty for this fileId
         var existingStatus = await _dbContext.SLAStatus.FirstOrDefaultAsync(s => s.FileId == fileId, TestContext.Current.CancellationToken);
-        _output.WriteLine($"  - Existing status for fileId: {existingStatus?.FileId ?? "none"}");
+        _logger.LogInformation($"  - Existing status for fileId: {existingStatus?.FileId ?? "none"}");
 
         // Act
-        _output.WriteLine("GetSLAStatusAsync_NonExistentStatus_ReturnsNull: Calling GetSLAStatusAsync...");
+        _logger.LogInformation("GetSLAStatusAsync_NonExistentStatus_ReturnsSuccessWithNullValue: Calling GetSLAStatusAsync...");
         var result = await _service.GetSLAStatusAsync(fileId, CancellationToken.None);
-        _output.WriteLine($"GetSLAStatusAsync_NonExistentStatus_ReturnsNull: Method call completed");
-        _output.WriteLine($"  - Result.IsSuccess: {result.IsSuccess}");
-        _output.WriteLine($"  - Result.Error: {result.Error ?? "(null)"}");
-        _output.WriteLine($"  - Result.Value: {result.Value?.ToString() ?? "null"}");
+        _logger.LogInformation($"GetSLAStatusAsync_NonExistentStatus_ReturnsSuccessWithNullValue: Method call completed");
+        _logger.LogInformation($"  - Result.IsSuccess: {result.IsSuccess}");
+        _logger.LogInformation($"  - Result.Error: {result.Error ?? "(null)"}");
+        _logger.LogInformation($"  - Result.Value: {result.Value?.ToString() ?? "null"}");
         if (result.IsFailure)
         {
-            _output.WriteLine($"  - Result.Exception: {result.Exception?.ToString() ?? "(null)"}");
+            _logger.LogInformation($"  - Result.Exception: {result.Exception?.ToString() ?? "(null)"}");
             if (result.Exception != null)
             {
-                _output.WriteLine($"  - Exception Type: {result.Exception.GetType().FullName}");
-                _output.WriteLine($"  - Exception Message: {result.Exception.Message}");
-                _output.WriteLine($"  - Stack Trace: {result.Exception.StackTrace}");
+                _logger.LogInformation($"  - Exception Type: {result.Exception.GetType().FullName}");
+                _logger.LogInformation($"  - Exception Message: {result.Exception.Message}");
+                _logger.LogInformation($"  - Stack Trace: {result.Exception.StackTrace}");
             }
         }
 
         // Assert
-        // For nullable Result<T>, use IsSuccessMayBeNull when Value can be null
+        // For nullable Result<T>, Success with null value is valid - use IsSuccessMayBeNull (not IsSuccess)
         result.IsSuccessMayBeNull.ShouldBeTrue($"Expected success (may be null) but got failure. Error: {result.Error}, Exception: {result.Exception?.Message ?? "none"}");
         result.IsSuccessValueNull.ShouldBeTrue("Expected success with null value");
         result.Value.ShouldBeNull();
-        _output.WriteLine("GetSLAStatusAsync_NonExistentStatus_ReturnsNull: Test passed");
+        _logger.LogInformation("GetSLAStatusAsync_NonExistentStatus_ReturnsSuccessWithNullValue: Test passed");
     }
 
     /// <summary>

@@ -17,51 +17,62 @@ namespace TransformersSharp
         {
             lock (_setupLock)
             {
-                IHostBuilder builder = Host.CreateDefaultBuilder()
-                    .ConfigureServices(services =>
-                    {
-                        // Use Local AppData folder for Python installation
-                        string appDataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TransformersSharp");
-
-                        // Create the directory if it doesn't exist
-                        if (!Directory.Exists(appDataPath))
-                            Directory.CreateDirectory(appDataPath);
-
-                        // If user has an environment variable TRANSFORMERS_SHARP_VENV_PATH, use that instead
-                        string? envPath = Environment.GetEnvironmentVariable("TRANSFORMERS_SHARP_VENV_PATH");
-                        string venvPath;
-                        if (envPath != null)
-                            venvPath = envPath;
-                        else
-                            venvPath = Path.Join(appDataPath, "venv");
-
-                        // Write requirements to appDataPath
-                        string requirementsPath = Path.Join(appDataPath, "requirements.txt");
-
-                        // TODO: Make this configurable
-                        string[] requirements =
+                try
+                {
+                    IHostBuilder builder = Host.CreateDefaultBuilder()
+                        .ConfigureServices(services =>
                         {
-                            "transformers",
-                            "sentence_transformers",
-                            "torch",
-                            "pillow",
-                            "timm",
-                            "einops"
-                        };
+                            // Use Local AppData folder for Python installation
+                            string appDataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TransformersSharp");
 
-                        File.WriteAllText(requirementsPath, string.Join('\n', requirements));
+                            // Create the directory if it doesn't exist
+                            if (!Directory.Exists(appDataPath))
+                                Directory.CreateDirectory(appDataPath);
 
-                        services
-                                .WithPython()
-                                .WithHome(appDataPath)
-                                .WithVirtualEnvironment(venvPath)
-                                .WithUvInstaller()
-                                .FromRedistributable(); // Download Python 3.12 and store it locally
-                    });
+                            // If user has an environment variable TRANSFORMERS_SHARP_VENV_PATH, use that instead
+                            string? envPath = Environment.GetEnvironmentVariable("TRANSFORMERS_SHARP_VENV_PATH");
+                            string venvPath;
+                            if (envPath != null)
+                                venvPath = envPath;
+                            else
+                                venvPath = Path.Join(appDataPath, "venv");
 
-                var app = builder.Build();
+                            // Write requirements to appDataPath
+                            string requirementsPath = Path.Join(appDataPath, "requirements.txt");
 
-                _env = app.Services.GetRequiredService<IPythonEnvironment>();
+                            // TODO: Make this configurable
+                            string[] requirements =
+                            {
+                                "transformers",
+                                "sentence_transformers",
+                                "torch",
+                                "pillow",
+                                "timm",
+                                "einops"
+                            };
+
+                            File.WriteAllText(requirementsPath, string.Join('\n', requirements));
+
+                            // CSnakes DI configuration for .NET 10
+                            // CSnakes 2.0.0-beta.265 defaults to Python 3.12 for .NET 10 compatibility
+                            services
+                                    .WithPython()
+                                    .WithHome(appDataPath)
+                                    .WithVirtualEnvironment(venvPath)
+                                    .WithUvInstaller()
+                                    .FromRedistributable(); // Download Python 3.12 automatically (default in CSnakes 2.0.0-beta)
+                        });
+
+                    var app = builder.Build();
+
+                    _env = app.Services.GetRequiredService<IPythonEnvironment>();
+                }
+                catch (Exception ex)
+                {
+                    // Log initialization error - CSnakes will handle Python download/installation
+                    System.Diagnostics.Debug.WriteLine($"TransformersSharp environment initialization error: {ex.Message}");
+                    throw;
+                }
             }
         }
 
