@@ -12,32 +12,58 @@
         Upload & Process
     </MudNavLink>
     <MudNavLink Href="document-processing-dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CloudDownload">
-        Download History
+        Processing Dashboard
     </MudNavLink>
     <MudNavLink Href="dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Analytics">
-        Processing Dashboard
+        Dashboard
     </MudNavLink>
     
     <MudDivider Class="my-2" />
-    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Compliance</MudText>
+    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Review & Compliance</MudText>
     
-    <MudNavLink Href="sla-dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Schedule">
-        SLA Monitoring
-    </MudNavLink>
     <MudNavLink Href="manual-review" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Assignment">
         Manual Review
     </MudNavLink>
+    <MudNavLink Href="review-case-detail" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Description">
+        Case Detail
+    </MudNavLink>
+    <MudNavLink Href="sla-dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Schedule">
+        SLA Monitoring
+    </MudNavLink>
+    
+    <MudDivider Class="my-2" />
+    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Export & Audit</MudText>
+    
     <MudNavLink Href="export-management" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.FileDownload">
         Export Management
     </MudNavLink>
+    <MudNavLink Href="audit-trail-viewer" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.History">
+        Audit Trail Viewer
+    </MudNavLink>
+    
+    <MudDivider Class="my-2" />
+    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Administration</MudText>
+    
+    <AuthorizeView Roles="Administrator">
+        <Authorized>
+            <MudNavLink Href="admin/database-migration" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">
+                Database Migration
+            </MudNavLink>
+            <MudNavLink Href="admin/connection-string" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">
+                Connection String
+            </MudNavLink>
+        </Authorized>
+    </AuthorizeView>
     
     <MudDivider Class="my-2" />
     <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Examples</MudText>
     
     <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
     <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
-
+    <MudNavLink Href="oc-demo" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Image">OCR Demo</MudNavLink>
     <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
+    
+    <MudDivider Class="my-2" />
     <AuthorizeView>
         <Authorized>
             <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>

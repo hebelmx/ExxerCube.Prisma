@@ -22,6 +22,11 @@
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Extensions.MudBlazor.StaticInput" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +37,7 @@
     <ProjectReference Include="..\..\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
     <ProjectReference Include="..\..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
     <ProjectReference Include="..\..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
   </ItemGroup>
 
 </Project>

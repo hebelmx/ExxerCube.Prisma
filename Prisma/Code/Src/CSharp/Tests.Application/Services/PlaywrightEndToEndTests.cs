@@ -4,7 +4,7 @@ using ExxerCube.Prisma.Tests.Application;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// End-to-end tests using Playwright for web interface testing.
+/// End-to-end tests that verify basic Playwright setup, navigation, and interactions against HTML fixtures.
 /// </summary>
 public class PlaywrightEndToEndTests : IDisposable
 {
@@ -15,17 +15,18 @@ public class PlaywrightEndToEndTests : IDisposable
     private IPage? _page;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PlaywrightEndToEndTests"/> class.
+    /// Initializes a new instance of the <see cref="PlaywrightEndToEndTests"/> class with logging routed to xUnit output.
     /// </summary>
-    /// <param name="output">The test output helper.</param>
+    /// <param name="output">xUnit output helper used for test logging.</param>
     public PlaywrightEndToEndTests(ITestOutputHelper output)
     {
         _logger = XUnitLogger.CreateLogger<PlaywrightEndToEndTests>(output);
     }
 
     /// <summary>
-    /// Tests that Playwright can navigate to a simple page.
+    /// Validates that Playwright can render a simple HTML document via data URL navigation.
     /// </summary>
+    /// <returns>A task that completes after navigation and assertions are executed.</returns>
     [Fact]
     [Trait("Category", "E2E")]
     public async Task Playwright_CanNavigateToPage_ShouldWork()
@@ -52,8 +53,9 @@ public class PlaywrightEndToEndTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that Playwright can handle basic interactions.
+    /// Validates basic DOM interaction by simulating a button click and verifying input state.
     /// </summary>
+    /// <returns>A task that completes after DOM interactions and assertions are executed.</returns>
     [Fact]
     [Trait("Category", "E2E")]
     public async Task Playwright_CanHandleBasicInteractions_ShouldWork()
@@ -84,7 +86,7 @@ public class PlaywrightEndToEndTests : IDisposable
     }
 
     /// <summary>
-    /// Disposes the test resources.
+    /// Disposes test resources (page, context, browser, Playwright runtime) in creation order.
     /// </summary>
     public void Dispose()
     {

@@ -1,0 +1,207 @@
+@using ExxerCube.Prisma.Domain.ValueObjects
+@using ExxerCube.Prisma.Domain.Enums
+@using MudBlazor
+@using System.Linq
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Category" Class="mr-2" />
+            Document Classification
+        </MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            <!-- Level 1 Category -->
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Level 1 Category</MudText>
+                <MudChip T="string" Size="Size.Large" 
+                        Color="@GetCategoryColor(Classification.Level1)"
+                        Icon="@GetCategoryIcon(Classification.Level1)">
+                    @Classification.Level1
+                </MudChip>
+            </MudItem>
+            
+            <!-- Confidence Score -->
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Confidence Score</MudText>
+                <div class="d-flex align-center">
+                    <MudProgressCircular Value="@Classification.Confidence" 
+                                       Color="@GetConfidenceColor(Classification.Confidence)"
+                                       Size="Size.Large" 
+                                       Class="mr-3" />
+                    <MudText Typo="Typo.h5">@Classification.Confidence%</MudText>
+                </div>
+            </MudItem>
+            
+            <!-- Level 2/3 Subcategory -->
+            @if (Classification.Level2.HasValue)
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1" Class="mb-2">Level 2/3 Subcategory</MudText>
+                    <MudChip T="string" Size="Size.Medium" Color="Color.Secondary">
+                        @Classification.Level2
+                    </MudChip>
+                </MudItem>
+            }
+        </MudGrid>
+        
+        <!-- Classification Scores Breakdown -->
+        @if (Classification.Scores != null)
+        {
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.subtitle2" Class="mb-3">Score Breakdown</MudText>
+            <MudList T="string">
+                @foreach (var score in GetScoreBreakdown())
+                {
+                    <MudListItem T="string">
+                        <MudGrid>
+                            <MudItem xs="12" sm="4">
+                                <MudText Typo="Typo.body2">@score.Category</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="8">
+                                <MudProgressLinear Value="@score.Value" 
+                                                  Color="@GetScoreColor(score.Value)" 
+                                                  Class="mt-1" />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @score.Value%
+                                </MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+    </MudCardContent>
+</MudCard>
+
+<!-- Processing Stage Pipeline -->
+@if (ShowPipeline)
+{
+    <MudCard Class="mb-4">
+        <MudCardHeader>
+            <MudText Typo="Typo.h6">Processing Pipeline</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudStepper @bind-ActiveStepIndex="@currentStageIndex" Linear="false">
+                <MudStep Title="Stage 1: Ingestion" Completed="@(currentStageIndex >= 0)">
+                    <MudText Typo="Typo.body2">Browser automation and file download</MudText>
+                    @if (currentStageIndex >= 0 && IngestionTimestamp.HasValue)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="mt-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                            Completed @IngestionTimestamp.Value.ToString("g")
+                        </MudChip>
+                    }
+                </MudStep>
+                <MudStep Title="Stage 2: Extraction" Completed="@(currentStageIndex >= 1)">
+                    <MudText Typo="Typo.body2">Metadata extraction and classification</MudText>
+                    @if (currentStageIndex >= 1 && ExtractionTimestamp.HasValue)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="mt-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                            Completed @ExtractionTimestamp.Value.ToString("g")
+                        </MudChip>
+                    }
+                    else if (currentStageIndex == 0)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="mt-2">
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-1" />
+                            In Progress
+                        </MudChip>
+                    }
+                </MudStep>
+                <MudStep Title="Stage 3: Decision Logic" Completed="@(currentStageIndex >= 2)">
+                    <MudText Typo="Typo.body2">Identity resolution and compliance actions</MudText>
+                    @if (currentStageIndex >= 2 && DecisionTimestamp.HasValue)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="mt-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" Class="mr-1" />
+                            Completed @DecisionTimestamp.Value.ToString("g")
+                        </MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mt-2">
+                            Pending
+                        </MudChip>
+                    }
+                </MudStep>
+            </MudStepper>
+        </MudCardContent>
+    </MudCard>
+}
+
+@code {
+    [Parameter] public ClassificationResult Classification { get; set; } = default!;
+    [Parameter] public bool ShowPipeline { get; set; } = true;
+    [Parameter] public int CurrentStage { get; set; } = 0;
+    [Parameter] public DateTime? IngestionTimestamp { get; set; }
+    [Parameter] public DateTime? ExtractionTimestamp { get; set; }
+    [Parameter] public DateTime? DecisionTimestamp { get; set; }
+
+    private int currentStageIndex = 0;
+
+    protected override void OnParametersSet()
+    {
+        currentStageIndex = CurrentStage;
+    }
+
+    private Color GetCategoryColor(ClassificationLevel1 category) => category switch
+    {
+        ClassificationLevel1.Aseguramiento => Color.Error,
+        ClassificationLevel1.Desembargo => Color.Warning,
+        ClassificationLevel1.Documentacion => Color.Info,
+        ClassificationLevel1.Informacion => Color.Primary,
+        ClassificationLevel1.Transferencia => Color.Secondary,
+        ClassificationLevel1.OperacionesIlicitas => Color.Dark,
+        _ => Color.Default
+    };
+
+    private string GetCategoryIcon(ClassificationLevel1 category) => category switch
+    {
+        ClassificationLevel1.Aseguramiento => Icons.Material.Filled.Lock,
+        ClassificationLevel1.Desembargo => Icons.Material.Filled.LockOpen,
+        ClassificationLevel1.Documentacion => Icons.Material.Filled.Description,
+        ClassificationLevel1.Informacion => Icons.Material.Filled.Info,
+        ClassificationLevel1.Transferencia => Icons.Material.Filled.SwapHoriz,
+        ClassificationLevel1.OperacionesIlicitas => Icons.Material.Filled.Warning,
+        _ => Icons.Material.Filled.Help
+    };
+
+    private Color GetConfidenceColor(int confidence) => confidence switch
+    {
+        >= 90 => Color.Success,
+        >= 80 => Color.Warning,
+        >= 70 => Color.Info,
+        _ => Color.Error
+    };
+
+    private Color GetScoreColor(int score) => score switch
+    {
+        >= 80 => Color.Success,
+        >= 60 => Color.Warning,
+        _ => Color.Error
+    };
+
+    private List<(string Category, int Value)> GetScoreBreakdown()
+    {
+        var breakdown = new List<(string Category, int Value)>();
+        
+        if (Classification.Scores != null)
+        {
+            var scores = Classification.Scores;
+            
+            // Add all category scores
+            breakdown.Add(("Aseguramiento", scores.AseguramientoScore));
+            breakdown.Add(("Desembargo", scores.DesembargoScore));
+            breakdown.Add(("Documentacion", scores.DocumentacionScore));
+            breakdown.Add(("Informacion", scores.InformacionScore));
+            breakdown.Add(("Transferencia", scores.TransferenciaScore));
+            breakdown.Add(("OperacionesIlicitas", scores.OperacionesIlicitasScore));
+        }
+        
+        return breakdown;
+    }
+}
+

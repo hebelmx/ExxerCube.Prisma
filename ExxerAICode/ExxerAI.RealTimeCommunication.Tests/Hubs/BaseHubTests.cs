@@ -201,10 +201,18 @@ namespace ExxerAI.RealTimeCommunication.Tests.Hubs
         public bool OnDisconnectedAsyncCalled { get; private set; }
         public Exception? LastDisconnectionException { get; private set; }
 
+        /// <summary>
+        /// Initializes a test hub instance using the provided logger.
+        /// </summary>
+        /// <param name="logger">Logger used by the base hub and its override implementations.</param>
         public TestableBaseHub(ILogger<TestableBaseHub> logger) : base(logger)
         {
         }
 
+        /// <summary>
+        /// Tracks connection attempts and delegates to the base implementation.
+        /// </summary>
+        /// <returns>A task that completes when the hub connection pipeline finishes.</returns>
         public override async Task OnConnectedAsync()
         {
             OnConnectedAsyncCalled = true;
@@ -212,6 +220,11 @@ namespace ExxerAI.RealTimeCommunication.Tests.Hubs
             await base.OnConnectedAsync();
         }
 
+        /// <summary>
+        /// Tracks disconnect events and delegates to the base implementation.
+        /// </summary>
+        /// <param name="exception">Optional exception associated with the disconnection.</param>
+        /// <returns>A task that completes when the disconnection pipeline finishes.</returns>
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             OnDisconnectedAsyncCalled = true;
@@ -228,10 +241,18 @@ namespace ExxerAI.RealTimeCommunication.Tests.Hubs
     {
         public bool ErrorHandled { get; private set; }
 
+        /// <summary>
+        /// Creates a hub that simulates failures to validate error handling.
+        /// </summary>
+        /// <param name="logger">Logger used to record simulated failures.</param>
         public FaultyBaseHub(ILogger<FaultyBaseHub> logger) : base(logger)
         {
         }
 
+        /// <summary>
+        /// Simulates an exception during connection and ensures it is handled gracefully.
+        /// </summary>
+        /// <returns>A task that completes after invoking the base connection logic.</returns>
         public override async Task OnConnectedAsync()
         {
             try
@@ -257,10 +278,18 @@ namespace ExxerAI.RealTimeCommunication.Tests.Hubs
     {
         public bool CancellationHandled { get; private set; }
 
+        /// <summary>
+        /// Creates a cancellable hub used to validate cancellation token handling.
+        /// </summary>
+        /// <param name="logger">Logger used for cancellation diagnostics.</param>
         public CancellableBaseHub(ILogger<CancellableBaseHub> logger) : base(logger)
         {
         }
 
+        /// <summary>
+        /// Simulates work that respects the connection cancellation token.
+        /// </summary>
+        /// <returns>A task that completes when the connection setup finishes or is cancelled.</returns>
         public override async Task OnConnectedAsync()
         {
             try

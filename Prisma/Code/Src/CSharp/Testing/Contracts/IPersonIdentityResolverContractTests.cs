@@ -4,18 +4,23 @@ using Shouldly;
 namespace ExxerCube.Prisma.Testing.Contracts;
 
 /// <summary>
-/// Contract tests for <see cref="IPersonIdentityResolver"/> interface.
-/// These are reusable test methods that can be called by Infrastructure test projects
-/// to verify that adapters correctly implement the interface contract.
+/// Shared contract tests that validate any <see cref="IPersonIdentityResolver"/> implementation
+/// behaves consistently across adapters.
 /// </summary>
+/// <remarks>
+/// These helpers are meant to be invoked from adapter-specific test suites to ensure a uniform
+/// contract without duplicating assertions in every project.
+/// </remarks>
 public static class IPersonIdentityResolverContractTests
 {
     /// <summary>
-    /// Verifies that FindByRfcAsync returns Success with null value when person not found.
-    /// This is the expected behavior for nullable Result types.
+    /// Verifies <see cref="IPersonIdentityResolver.FindByRfcAsync(string,System.Threading.CancellationToken)"/>
+    /// returns a successful result with a null value when a person is not found.
     /// </summary>
-    /// <param name="resolver">The resolver implementation to test.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="resolver">Resolver implementation under test.</param>
+    /// <param name="cancellationToken">Token used to cancel the lookup operation.</param>
+    /// <returns>A task that completes after the assertions have been evaluated.</returns>
+    /// <exception cref="Shouldly.ShouldAssertException">Thrown when the contract expectations fail.</exception>
     public static async Task VerifyFindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue(
         IPersonIdentityResolver resolver,
         CancellationToken cancellationToken = default)
@@ -32,4 +37,3 @@ public static class IPersonIdentityResolverContractTests
         result.Value.ShouldBeNull("Value should be null when person not found");
     }
 }
-

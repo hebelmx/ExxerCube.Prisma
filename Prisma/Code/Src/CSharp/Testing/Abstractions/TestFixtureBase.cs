@@ -1,33 +1,35 @@
 namespace ExxerCube.Prisma.Testing.Abstractions;
 
 /// <summary>
-/// Base class for test fixtures that can be shared across test projects.
-/// Concrete implementations must be in test projects, but base logic can be shared.
+/// Provides a common pattern for reusable test fixtures across projects, encapsulating setup and teardown flows.
 /// </summary>
 /// <remarks>
-/// This base class provides a simple pattern for test fixtures.
-/// Concrete implementations should implement IAsyncLifetime from xUnit or Microsoft.Extensions.Hosting.
+/// Deriving fixtures should implement xUnit's <see cref="Xunit.IAsyncLifetime"/> or equivalent contract
+/// and delegate to <see cref="InitializeAsync"/> and <see cref="DisposeAsync"/> to ensure consistent lifecycle handling.
 /// </remarks>
 public abstract class TestFixtureBase
 {
     /// <summary>
-    /// Performs setup operations for the fixture.
+    /// Performs fixture setup, such as allocating shared resources or seeding dependencies.
     /// </summary>
+    /// <returns>A task that completes when setup has finished.</returns>
     protected abstract Task SetupAsync();
 
     /// <summary>
-    /// Performs teardown operations for the fixture.
+    /// Performs fixture teardown to release resources or clean persisted state.
     /// </summary>
+    /// <returns>A task that completes when teardown has finished.</returns>
     protected abstract Task TeardownAsync();
 
     /// <summary>
-    /// Initializes the fixture. Should be called from test class constructor or IAsyncLifetime.InitializeAsync.
+    /// Initializes the fixture; call from the test class constructor or <c>IAsyncLifetime.InitializeAsync</c>.
     /// </summary>
+    /// <returns>A task that completes after setup has run.</returns>
     public async Task InitializeAsync() => await SetupAsync();
 
     /// <summary>
-    /// Disposes the fixture. Should be called from test class Dispose or IAsyncLifetime.DisposeAsync.
+    /// Disposes the fixture; call from test class <c>Dispose</c> or <c>IAsyncLifetime.DisposeAsync</c>.
     /// </summary>
+    /// <returns>A task that completes after teardown has run.</returns>
     public async Task DisposeAsync() => await TeardownAsync();
 }
-

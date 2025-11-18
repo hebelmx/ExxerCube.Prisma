@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.Extensions.Options;
-using ExxerCube.Prisma.Web.UI.Data;
 
 namespace ExxerCube.Prisma.Web.UI.Components.Account;
 

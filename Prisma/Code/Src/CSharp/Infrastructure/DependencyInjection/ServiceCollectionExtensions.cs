@@ -31,9 +31,9 @@ public static class ServiceCollectionExtensions
             var imagePreprocessor = provider.GetRequiredService<IImagePreprocessor>();
             var ocrExecutor = provider.GetRequiredService<IOcrExecutor>();
             var fieldExtractor = provider.GetRequiredService<IFieldExtractor>();
-            var logger = provider.GetRequiredService<ILogger<OcrProcessingService>>();
+            var logger = provider.GetRequiredService<ILogger<IOcrProcessingService>>();
             var metricsService = provider.GetRequiredService<ProcessingMetricsService>();
-            
+
             return new OcrProcessingService(imagePreprocessor, ocrExecutor, fieldExtractor, logger, metricsService);
         });
 
@@ -43,14 +43,14 @@ public static class ServiceCollectionExtensions
             var ocrProcessingService = provider.GetRequiredService<OcrProcessingService>();
             return new OcrProcessingServiceAdapter(ocrProcessingService);
         });
-        
+
         // Register Python interop service (CSnakes-based with circuit breaker)
         // Note: PrismaOcrWrapperAdapter has been removed - this registration needs to be updated with a new implementation
         // services.AddScoped<IPythonInteropService>(provider =>
         // {
         //     var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
         //     var innerService = new PrismaOcrWrapperAdapter(logger);
-        //     
+        //
         //     var circuitBreakerLogger = provider.GetRequiredService<ILogger<CircuitBreakerPythonInteropService>>();
         //     return new CircuitBreakerPythonInteropService(circuitBreakerLogger, innerService);
         // });

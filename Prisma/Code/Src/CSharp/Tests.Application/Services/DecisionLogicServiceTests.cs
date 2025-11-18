@@ -3,7 +3,7 @@ using ExxerCube.Prisma.Domain.Enums;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Unit tests for <see cref="DecisionLogicService"/>.
+/// Unit tests for <see cref="DecisionLogicService"/> covering identity resolution, directive classification, and orchestration flows.
 /// </summary>
 public class DecisionLogicServiceTests
 {
@@ -15,7 +15,7 @@ public class DecisionLogicServiceTests
     private readonly DecisionLogicService _service;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DecisionLogicServiceTests"/> class.
+    /// Initializes a new instance of the <see cref="DecisionLogicServiceTests"/> class with mocked collaborators and audit logging.
     /// </summary>
     public DecisionLogicServiceTests()
     {
@@ -28,8 +28,9 @@ public class DecisionLogicServiceTests
     }
 
     /// <summary>
-    /// Tests that ResolvePersonIdentitiesAsync resolves and deduplicates persons correctly.
+    /// Verifies <see cref="DecisionLogicService.ResolvePersonIdentitiesAsync"/> resolves and deduplicates persons.
     /// </summary>
+    /// <returns>A task that completes after identity resolution assertions are evaluated.</returns>
     [Fact]
     public async Task ResolvePersonIdentitiesAsync_WithValidPersons_ReturnsResolvedPersons()
     {
@@ -60,8 +61,9 @@ public class DecisionLogicServiceTests
     }
 
     /// <summary>
-    /// Tests that ClassifyLegalDirectivesAsync classifies directives correctly.
+    /// Verifies <see cref="DecisionLogicService.ClassifyLegalDirectivesAsync"/> classifies directives from document text.
     /// </summary>
+    /// <returns>A task that completes after classification assertions are evaluated.</returns>
     [Fact]
     public async Task ClassifyLegalDirectivesAsync_WithValidText_ReturnsComplianceActions()
     {
@@ -89,8 +91,9 @@ public class DecisionLogicServiceTests
     }
 
     /// <summary>
-    /// Tests that ProcessDecisionLogicAsync orchestrates the complete workflow correctly.
+    /// Verifies <see cref="DecisionLogicService.ProcessDecisionLogicAsync"/> orchestrates identity resolution, deduplication, and directive classification.
     /// </summary>
+    /// <returns>A task that completes after orchestration assertions are validated.</returns>
     [Fact]
     public async Task ProcessDecisionLogicAsync_WithValidInputs_ReturnsCompleteResult()
     {
@@ -134,8 +137,9 @@ public class DecisionLogicServiceTests
     }
 
     /// <summary>
-    /// Tests that ResolvePersonIdentitiesAsync handles empty list correctly.
+    /// Verifies empty inputs to <see cref="DecisionLogicService.ResolvePersonIdentitiesAsync"/> return an empty result set.
     /// </summary>
+    /// <returns>A task that completes after empty-input assertions are validated.</returns>
     [Fact]
     public async Task ResolvePersonIdentitiesAsync_WithEmptyList_ReturnsEmptyList()
     {
@@ -152,8 +156,9 @@ public class DecisionLogicServiceTests
     }
 
     /// <summary>
-    /// Tests that ClassifyLegalDirectivesAsync handles empty text correctly.
+    /// Verifies <see cref="DecisionLogicService.ClassifyLegalDirectivesAsync"/> returns an empty action list when text is empty.
     /// </summary>
+    /// <returns>A task that completes after empty-text assertions are validated.</returns>
     [Fact]
     public async Task ClassifyLegalDirectivesAsync_WithEmptyText_ReturnsEmptyList()
     {
@@ -223,4 +228,3 @@ public class DecisionLogicServiceTests
         result.Error.ShouldContain("Classification failed");
     }
 }
-

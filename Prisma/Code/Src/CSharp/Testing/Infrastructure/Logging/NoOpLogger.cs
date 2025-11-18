@@ -1,9 +1,9 @@
 namespace ExxerCube.Prisma.Testing.Infrastructure.Logging;
 
 /// <summary>
-/// Logger implementation that does nothing (no-op).
-/// Use this in libraries where logging is not available.
-/// Test projects should use XUnitLoggerAdapter instead.
+/// Logger implementation that intentionally drops all messages.
+/// Use this in shared libraries or contexts where real logging sinks are unavailable;
+/// test projects should favor <see cref="XUnitLoggerAdapter"/> for visible output.
 /// </summary>
 public class NoOpLogger : ITestLogger
 {

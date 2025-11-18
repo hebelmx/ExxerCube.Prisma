@@ -150,17 +150,25 @@
                     }
                     else
                     {
-                        <MudTable Items="@FilteredExports" 
-                                  
+                        <MudTable T="ExportJob" Items="@FilteredExports" 
+                                 Dense="true"
                                  Hover="true" 
                                  Striped="true">
                             <HeaderContent>
-                                <MudTh>Export ID</MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="ExportJob" SortBy="@(x => x.ExportId)">Export ID</MudTableSortLabel>
+                                </MudTh>
                                 <MudTh>Cases</MudTh>
-                                <MudTh>Format</MudTh>
-                                <MudTh>Status</MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="ExportJob" SortBy="@(x => x.Formats.FirstOrDefault() ?? string.Empty)">Format</MudTableSortLabel>
+                                </MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="ExportJob" SortBy="@(x => x.Status)">Status</MudTableSortLabel>
+                                </MudTh>
                                 <MudTh>Progress</MudTh>
-                                <MudTh>Created</MudTh>
+                                <MudTh>
+                                    <MudTableSortLabel T="ExportJob" SortBy="@(x => x.CreatedAt)">Created</MudTableSortLabel>
+                                </MudTh>
                                 <MudTh>Actions</MudTh>
                             </HeaderContent>
                             <RowTemplate>
@@ -224,6 +232,11 @@
                                     }
                                 </MudTd>
                                 <MudTd DataLabel="Actions">
+                                    <MudTooltip Text="View Details">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                                      Size="Size.Small"
+                                                      OnClick="@(() => ViewExportDetails(context))" />
+                                    </MudTooltip>
                                     @if (context.Status == "Completed")
                                     {
                                         <MudTooltip Text="Download Export">
@@ -240,6 +253,15 @@
                                                           OnClick="@(() => RetryExportAsync(context))" />
                                         </MudTooltip>
                                     }
+                                    @if (context.Status == "Pending" || context.Status == "In Progress")
+                                    {
+                                        <MudTooltip Text="Cancel Export">
+                                            <MudIconButton Icon="@Icons.Material.Filled.Cancel" 
+                                                          Size="Size.Small"
+                                                          Color="Color.Error"
+                                                          OnClick="@(() => CancelExportAsync(context))" />
+                                        </MudTooltip>
+                                    }
                                 </MudTd>
                             </RowTemplate>
                         </MudTable>
@@ -249,6 +271,108 @@
         }
     </MudPaper>
 </MudContainer>
+
+<!-- Export Details Dialog -->
+<MudDialog @bind-IsVisible="@showExportDetailsDialog" MaxWidth="MaxWidth.Large">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Export Details: @selectedExport?.ExportId</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (selectedExport != null)
+        {
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Export Information</MudText>
+                    <MudDivider Class="my-2" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Export ID</MudText>
+                    <MudText Typo="Typo.body1" Class="font-weight-bold">@selectedExport.ExportId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Correlation ID</MudText>
+                    <MudText Typo="Typo.body1">@selectedExport.CorrelationId</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Status</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(selectedExport.Status)">
+                        @selectedExport.Status
+                    </MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Format</MudText>
+                    <MudChipSet T="string">
+                        @foreach (var format in selectedExport.Formats)
+                        {
+                            <MudChip T="string" Size="Size.Small">@format</MudChip>
+                        }
+                    </MudChipSet>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText Typo="Typo.body2">Created At</MudText>
+                    <MudText Typo="Typo.body1">@selectedExport.CreatedAt.ToString("g")</MudText>
+                </MudItem>
+                @if (selectedExport.CompletedAt.HasValue)
+                {
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.body2">Completed At</MudText>
+                        <MudText Typo="Typo.body1">@selectedExport.CompletedAt.Value.ToString("g")</MudText>
+                    </MudItem>
+                }
+                @if (!string.IsNullOrEmpty(selectedExport.ErrorMessage))
+                {
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                        <MudAlert Severity="Severity.Error">
+                            <MudText Typo="Typo.subtitle2">Error Message</MudText>
+                            <MudText Typo="Typo.body2">@selectedExport.ErrorMessage</MudText>
+                        </MudAlert>
+                    </MudItem>
+                }
+                
+                <!-- Generated Files -->
+                @if (selectedExport.GeneratedFiles.Any())
+                {
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                        <MudText Typo="Typo.subtitle1">Generated Files</MudText>
+                        <MudList T="String">
+                            @foreach (var file in selectedExport.GeneratedFiles)
+                            {
+                                <MudListItem T="String">
+                                    <MudIcon Icon="@GetFileIcon(file.Key)" Class="mr-2" />
+                                    <MudText Typo="Typo.body2">@file.Key</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="ml-2">
+                                        @FormatFileSize(file.Value.Length)
+                                    </MudText>
+                                    <MudSpacer />
+                                    <MudButton Size="Size.Small" 
+                                              Variant="Variant.Text"
+                                              StartIcon="@Icons.Material.Filled.Download"
+                                              OnClick="@(() => DownloadFileAsync(file.Key, file.Value))">
+                                        Download
+                                    </MudButton>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => showExportDetailsDialog = false)">Close</MudButton>
+        @if (selectedExport?.Status == "Completed" && selectedExport.GeneratedFiles.Any())
+        {
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Primary"
+                      StartIcon="@Icons.Material.Filled.Download"
+                      OnClick="@(() => DownloadExportAsync(selectedExport))">
+                Download All
+            </MudButton>
+        }
+    </DialogActions>
+</MudDialog>
 
 @code {
     private enum ExportFormat
@@ -287,6 +411,8 @@
     
     private List<ExportJob> exportJobs = new();
     private string searchText = string.Empty;
+    private bool showExportDetailsDialog = false;
+    private ExportJob? selectedExport;
 
     protected override async Task OnInitializedAsync()
     {
@@ -671,6 +797,48 @@
             "PDF" => Color.Error,
             _ => Color.Default
         };
+    }
+
+    private void ViewExportDetails(ExportJob export)
+    {
+        selectedExport = export;
+        showExportDetailsDialog = true;
+        StateHasChanged();
+    }
+
+    private async Task CancelExportAsync(ExportJob job)
+    {
+        // In a real implementation, this would call a service to cancel the export
+        job.Status = "Cancelled";
+        job.CompletedAt = DateTime.UtcNow;
+        job.ErrorMessage = "Export cancelled by user";
+        Snackbar.Add("Export cancelled", Severity.Info);
+        StateHasChanged();
+    }
+
+    private string GetFileIcon(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".xml" => Icons.Material.Filled.Code,
+            ".xlsx" => Icons.Material.Filled.TableChart,
+            ".pdf" => Icons.Material.Filled.PictureAsPdf,
+            _ => Icons.Material.Filled.InsertDriveFile
+        };
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len /= 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
     }
 }
 

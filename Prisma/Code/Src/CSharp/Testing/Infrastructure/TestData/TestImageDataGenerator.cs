@@ -4,15 +4,15 @@ using ExxerCube.Prisma.Domain.ValueObjects;
 namespace ExxerCube.Prisma.Testing.Infrastructure.TestData;
 
 /// <summary>
-/// Generates test image data for integration tests.
+/// Generates <see cref="ImageData"/> instances for integration and performance tests without external file dependencies.
 /// </summary>
 public static class TestImageDataGenerator
 {
     /// <summary>
-    /// Creates test image data from a text file for testing purposes.
+    /// Creates test image data from a UTF-8 text file if present, or writes a default fixture and then loads it.
     /// </summary>
-    /// <param name="fileName">The name of the test file.</param>
-    /// <returns>Image data suitable for testing.</returns>
+    /// <param name="fileName">The file name (relative to a local TestData folder) to read or create.</param>
+    /// <returns>An <see cref="ImageData"/> instance containing the file contents.</returns>
     public static ImageData CreateFromTextFile(string fileName)
     {
         var testDataPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData");
@@ -37,9 +37,9 @@ public static class TestImageDataGenerator
     }
     
     /// <summary>
-    /// Creates simple test image data for basic testing.
+    /// Creates simple ASCII test data to exercise basic OCR or parsing workflows.
     /// </summary>
-    /// <returns>Simple image data for testing.</returns>
+    /// <returns>An <see cref="ImageData"/> instance with a small, deterministic payload.</returns>
     public static ImageData CreateSimpleTestData()
     {
         var testContent = GetDefaultTestContent();
@@ -54,9 +54,9 @@ public static class TestImageDataGenerator
     }
     
     /// <summary>
-    /// Creates large test image data for performance testing.
+    /// Creates larger synthetic test data to stress throughput and memory handling.
     /// </summary>
-    /// <returns>Large image data for performance testing.</returns>
+    /// <returns>An <see cref="ImageData"/> instance with expanded content for performance scenarios.</returns>
     public static ImageData CreateLargeTestData()
     {
         var largeContent = GenerateLargeTestContent();

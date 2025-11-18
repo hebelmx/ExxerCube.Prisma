@@ -17,7 +17,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Constructor: Sets up test services and configuration.
         /// </summary>
-        /// <param name="output"></param>
+        /// <param name="output">xUnit output helper used to capture logging from the service setup process.</param>
 
         public ServiceCollectionExtensionsTests(ITestOutputHelper output)
         {

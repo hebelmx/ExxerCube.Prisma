@@ -127,6 +127,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: BroadcastMessageAsync should succeed with valid request.
         /// </summary>
+        /// <returns>A task that completes after broadcasting the message and asserting success.</returns>
         [Fact(Timeout = 30_000)]
         public async Task BroadcastMessageAsync_Should_Succeed_When_ValidRequest()
         {
@@ -147,6 +148,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Validation Test: BroadcastMessageAsync should return failure for null request.
         /// </summary>
+        /// <returns>A task that completes after validating the null request path.</returns>
         [Fact(Timeout = 30_000)]
         public async Task BroadcastMessageAsync_Should_Return_Failure_When_Request_Is_Null()
         {
@@ -165,6 +167,8 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: BroadcastMessageAsync should handle all communication targets.
         /// </summary>
+        /// <param name="targetName">Communication target name that maps to a specific hub.</param>
+        /// <returns>A task that completes after broadcasting to the requested hub target.</returns>
         [Theory(Timeout = 30_000)]
         [InlineData(nameof(CommunicationTarget.System))]
         [InlineData(nameof(CommunicationTarget.Agent))]
@@ -191,6 +195,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Error Handling Test: BroadcastMessageAsync should handle SignalR exceptions.
         /// </summary>
+        /// <returns>A task that completes after ensuring SignalR exceptions are surfaced as failures.</returns>
         [Fact(Timeout = 30_000)]
         public async Task BroadcastMessageAsync_Should_Handle_SignalR_Exceptions()
         {
@@ -215,6 +220,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Cancellation Test: BroadcastMessageAsync should respect cancellation tokens.
         /// </summary>
+        /// <returns>A task that completes after asserting cancellation is honored.</returns>
         [Fact(Timeout = 30_000)]
         public async Task BroadcastMessageAsync_Should_Respect_Cancellation_Token()
         {
@@ -245,6 +251,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: SendToGroupAsync should succeed with valid request.
         /// </summary>
+        /// <returns>A task that completes after sending the group message and asserting delivery.</returns>
         [Fact(Timeout = 30_000)]
         public async Task SendToGroupAsync_Should_Succeed_When_ValidRequest()
         {
@@ -266,6 +273,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Validation Test: SendToGroupAsync should return failure for null group name.
         /// </summary>
+        /// <returns>A task that completes after verifying the invalid group path returns failure.</returns>
         [Fact(Timeout = 30_000)]
         public async Task SendToGroupAsync_Should_Return_Failure_When_GroupName_Is_Null()
         {
@@ -292,6 +300,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: SendToUserAsync should succeed with valid request.
         /// </summary>
+        /// <returns>A task that completes after sending a user message and asserting delivery.</returns>
         [Fact(Timeout = 30_000)]
         public async Task SendToUserAsync_Should_Succeed_When_ValidRequest()
         {
@@ -313,6 +322,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Validation Test: SendToUserAsync should return failure for null user ID.
         /// </summary>
+        /// <returns>A task that completes after verifying null user identifiers are rejected.</returns>
         [Fact(Timeout = 30_000)]
         public async Task SendToUserAsync_Should_Return_Failure_When_UserId_Is_Null()
         {
@@ -339,6 +349,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: AddToGroupAsync should succeed with valid request.
         /// </summary>
+        /// <returns>A task that completes after adding the connection to the group and asserting success.</returns>
         [Fact(Timeout = 30_000)]
         public async Task AddToGroupAsync_Should_Succeed_When_ValidRequest()
         {
@@ -359,6 +370,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Validation Test: AddToGroupAsync should return failure for null connection ID.
         /// </summary>
+        /// <returns>A task that completes after verifying null connection identifiers are rejected.</returns>
         [Fact(Timeout = 30_000)]
         public async Task AddToGroupAsync_Should_Return_Failure_When_ConnectionId_Is_Null()
         {
@@ -384,6 +396,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: BroadcastSystemEventAsync should succeed with valid event.
         /// </summary>
+        /// <returns>A task that completes after broadcasting the system event.</returns>
         [Fact(Timeout = 30_000)]
         public async Task BroadcastSystemEventAsync_Should_Succeed_When_ValidEvent()
         {
@@ -401,6 +414,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: BroadcastAgentEventAsync should succeed with valid event.
         /// </summary>
+        /// <returns>A task that completes after broadcasting the agent event.</returns>
         [Fact(Timeout = 30_000)]
         public async Task BroadcastAgentEventAsync_Should_Succeed_When_ValidEvent()
         {
@@ -418,6 +432,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: BroadcastTaskEventAsync should succeed with valid event.
         /// </summary>
+        /// <returns>A task that completes after broadcasting the task event.</returns>
         [Fact(Timeout = 30_000)]
         public async Task BroadcastTaskEventAsync_Should_Succeed_When_ValidEvent()
         {
@@ -439,6 +454,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: SendNotificationAsync should succeed with valid request.
         /// </summary>
+        /// <returns>A task that completes after sending notifications and verifying delivery.</returns>
         [Fact(Timeout = 30_000)]
         public async Task SendNotificationAsync_Should_Succeed_When_ValidRequest()
         {
@@ -460,6 +476,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: SendAlertAsync should succeed with valid request.
         /// </summary>
+        /// <returns>A task that completes after sending alerts and verifying delivery.</returns>
         [Fact(Timeout = 30_000)]
         public async Task SendAlertAsync_Should_Succeed_When_ValidRequest()
         {
@@ -481,6 +498,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Business Logic Test: SendProgressUpdateAsync should validate progress range.
         /// </summary>
+        /// <returns>A task that completes after ensuring invalid progress values are rejected.</returns>
         [Fact(Timeout = 30_000)]
         public async Task SendProgressUpdateAsync_Should_Validate_Progress_Range()
         {
@@ -507,6 +525,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Resource Management Test: Should handle disposal gracefully.
         /// </summary>
+        /// <returns>A task that completes after disposing the adapter and validating the disposed state.</returns>
         [Fact(Timeout = 30_000)]
         public async Task DisposeAsync_Should_Handle_Disposal_Gracefully()
         {
@@ -533,6 +552,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Performance Test: Should handle concurrent operations efficiently.
         /// </summary>
+        /// <returns>A task that completes after executing concurrent operations and asserting success.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Concurrent_Operations_Should_Be_Thread_Safe()
         {
@@ -577,6 +597,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Adapters.SignalR
         /// <summary>
         /// Disposes test resources asynchronously.
         /// </summary>
+        /// <returns>A task that completes when the adapter has been disposed.</returns>
         public async ValueTask DisposeAsync()
         {
             // Clear any leftover argument specifications

@@ -69,6 +69,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should establish connection to SystemHub successfully.
         /// </summary>
+        /// <returns>A task that completes when the connection attempt and assertions finish.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Establish_Connection_To_SystemHub_Successfully()
         {
@@ -93,6 +94,8 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         [InlineData("/hubs/task")]
         [InlineData("/hubs/document")]
         [InlineData("/hubs/economic")]
+        /// <param name="hubPath">Relative hub path that should accept a connection.</param>
+        /// <returns>A task that completes when the connection attempt and assertions finish.</returns>
         public async Task Should_Establish_Connection_To_All_Hub_Types(string hubPath)
         {
             // Arrange
@@ -114,6 +117,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should broadcast message to all connected clients.
         /// </summary>
+        /// <returns>A task that completes after broadcasting and verifying the received messages.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Broadcast_Message_To_All_Connected_Clients()
         {
@@ -161,6 +165,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should send message to specific group.
         /// </summary>
+        /// <returns>A task that completes after group message delivery and assertions.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Send_Message_To_Specific_Group()
         {
@@ -234,6 +239,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should broadcast system events to connected clients.
         /// </summary>
+        /// <returns>A task that completes after broadcasting and validating system events.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Broadcast_System_Events_To_Connected_Clients()
         {
@@ -270,6 +276,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should broadcast agent events to connected clients.
         /// </summary>
+        /// <returns>A task that completes after broadcasting and validating agent events.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Broadcast_Agent_Events_To_Connected_Clients()
         {
@@ -312,6 +319,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should send notifications to connected clients.
         /// </summary>
+        /// <returns>A task that completes after sending notifications and validating receipt.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Send_Notifications_To_Connected_Clients()
         {
@@ -353,6 +361,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should send alerts with different severity levels.
         /// </summary>
+        /// <returns>A task that completes after sending alerts and validating severity handling.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Send_Alerts_With_Different_Severity_Levels()
         {
@@ -414,6 +423,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should handle connection disconnection gracefully.
         /// </summary>
+        /// <returns>A task that completes after disconnecting and verifying the result.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Handle_Connection_Disconnection_Gracefully()
         {
@@ -435,6 +445,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Integration Test: Should handle multiple concurrent connections.
         /// </summary>
+        /// <returns>A task that completes after connecting multiple clients and verifying their state.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Handle_Multiple_Concurrent_Connections()
         {
@@ -471,6 +482,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Performance Test: Should handle high message throughput.
         /// </summary>
+        /// <returns>A task that completes after sending high-volume messages and asserting throughput.</returns>
         [Fact(Timeout = 30_000)]
         public async Task Should_Handle_High_Message_Throughput()
         {
@@ -523,6 +535,8 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Creates a new hub connection for testing.
         /// </summary>
+        /// <param name="hubPath">Relative hub endpoint to connect to within the test server.</param>
+        /// <returns>A configured <see cref="HubConnection"/> ready to start.</returns>
         private HubConnection CreateHubConnection(string hubPath)
         {
             var connection = new HubConnectionBuilder()
@@ -544,6 +558,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
         /// <summary>
         /// Disposes test resources asynchronously.
         /// </summary>
+        /// <returns>A task that completes when all connections and host resources are released.</returns>
         public async ValueTask DisposeAsync()
         {
             foreach (var connection in _hubConnections)
@@ -579,6 +594,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
             /// Creates a logger with the specified category name for test output.
             /// </summary>
             /// <param name="categoryName">The logger category name.</param>
+            /// <returns>A logger that writes to the console to aid diagnostics.</returns>
             public ILogger CreateLogger(string categoryName)
             {
                 return new TestIntegrationLogger(categoryName);
@@ -612,6 +628,9 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
             /// <summary>
             /// Begins a logical operation scope. Not required for test logger, returns null.
             /// </summary>
+            /// <typeparam name="TState">Type of the scoped state object.</typeparam>
+            /// <param name="state">State value provided by the caller to contextualize logs.</param>
+            /// <returns>Always null because scope tracking is not implemented for the test logger.</returns>
             public IDisposable? BeginScope<TState>(TState state) where TState : notnull
             {
                 return null;
@@ -621,6 +640,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Integration
             /// Determines whether logging is enabled for the specified level.
             /// </summary>
             /// <param name="logLevel">Log level to check.</param>
+            /// <returns>true when the level is Information or higher so test output is visible.</returns>
             public bool IsEnabled(LogLevel logLevel)
             {
                 return logLevel >= LogLevel.Information;

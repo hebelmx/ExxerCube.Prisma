@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.Export;
 
 namespace ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
 

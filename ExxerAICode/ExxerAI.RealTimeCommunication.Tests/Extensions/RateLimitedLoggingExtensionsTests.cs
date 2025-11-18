@@ -31,6 +31,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Rate Limiting Test: Should limit log entries within time window.
         /// </summary>
+        /// <returns>A task that completes after the rate limiting assertions are executed.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Limit_Log_Entries_Within_Time_Window()
         {
@@ -61,6 +62,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Rate Limiting Test: Should allow logs after time window expires.
         /// </summary>
+        /// <returns>A task that completes once logs are written across time windows and verified.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Allow_Logs_After_Time_Window_Expires()
         {
@@ -89,6 +91,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Rate Limiting Test: Should handle different log levels independently.
         /// </summary>
+        /// <returns>A task that completes after verifying each log level is captured independently.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Handle_Different_Log_Levels_Independently()
         {
@@ -119,6 +122,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Formatting Test: Should format log messages with parameters correctly.
         /// </summary>
+        /// <returns>A task that completes after verifying formatted log messages.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Format_Messages_With_Parameters_Correctly()
         {
@@ -147,6 +151,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Formatting Test: Should handle null parameters gracefully.
         /// </summary>
+        /// <returns>A task that completes after verifying null parameters do not break logging.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Handle_Null_Parameters_Gracefully()
         {
@@ -172,6 +177,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Memory Test: Should not accumulate rate limiting state indefinitely.
         /// </summary>
+        /// <returns>A task that completes after confirming memory pressure stays bounded.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Not_Accumulate_State_Indefinitely()
         {
@@ -197,6 +203,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Performance Test: Should handle high volume logging efficiently.
         /// </summary>
+        /// <returns>A task that completes after stress logging and validation.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Handle_High_Volume_Efficiently()
         {
@@ -231,6 +238,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Thread Safety Test: Should handle concurrent logging safely.
         /// </summary>
+        /// <returns>A task that completes after concurrent logging and verification.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Handle_Concurrent_Logging_Safely()
         {
@@ -268,6 +276,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Edge Case Test: Should handle empty message templates.
         /// </summary>
+        /// <returns>A task that completes after ensuring empty templates do not throw exceptions.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Handle_Empty_Message_Templates()
         {
@@ -287,6 +296,7 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         /// <summary>
         /// Edge Case Test: Should handle very long message templates.
         /// </summary>
+        /// <returns>A task that completes after confirming long templates are processed.</returns>
         [Fact(Timeout = 30_000)]
         public async Task LogRateLimited_Should_Handle_Very_Long_Message_Templates()
         {
@@ -316,11 +326,22 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         private readonly List<TestLogEntry> _logEntries = new();
         private readonly object _lock = new();
 
+        /// <summary>
+        /// Creates a logger that records messages in memory for later assertions.
+        /// </summary>
+        /// <param name="categoryName">Name of the logging category, kept to align with ILoggerFactory conventions.</param>
+        /// <returns>A test logger that writes entries into the provider store.</returns>
         public ILogger CreateLogger(string categoryName)
         {
             return new TestLogger(this, categoryName);
         }
 
+        /// <summary>
+        /// Adds a captured log entry into the provider's in-memory buffer.
+        /// </summary>
+        /// <param name="level">Severity level for the log record.</param>
+        /// <param name="message">Formatted message content.</param>
+        /// <param name="exception">Optional exception associated with the log record.</param>
         public void AddLogEntry(LogLevel level, string message, Exception? exception = null)
         {
             lock (_lock)
@@ -335,6 +356,10 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
             }
         }
 
+        /// <summary>
+        /// Returns a copy of the collected log entries so callers can assert without mutating the source.
+        /// </summary>
+        /// <returns>List of log entries captured during the test execution.</returns>
         public List<TestLogEntry> GetLogEntries()
         {
             lock (_lock)
@@ -343,6 +368,9 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
             }
         }
 
+        /// <summary>
+        /// Clears stored log entries and releases any held resources.
+        /// </summary>
         public void Dispose()
         {
             lock (_lock)
@@ -360,22 +388,47 @@ namespace ExxerAI.RealTimeCommunication.Tests.Extensions
         private readonly TestLoggerProvider _provider;
         private readonly string _categoryName;
 
+        /// <summary>
+        /// Initializes a new test logger that forwards entries to the shared provider store.
+        /// </summary>
+        /// <param name="provider">Provider that stores log entries for later inspection.</param>
+        /// <param name="categoryName">Category name associated with the logger instance.</param>
         public TestLogger(TestLoggerProvider provider, string categoryName)
         {
             _provider = provider;
             _categoryName = categoryName;
         }
 
+        /// <summary>
+        /// Begins a logging scope; test logger does not track scopes so it returns null.
+        /// </summary>
+        /// <typeparam name="TState">Type for the scope state.</typeparam>
+        /// <param name="state">Scope state value.</param>
+        /// <returns>Always null because scope tracking is unnecessary for these tests.</returns>
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull
         {
             return null;
         }
 
+        /// <summary>
+        /// Always enables logging for tests to ensure every call is captured.
+        /// </summary>
+        /// <param name="logLevel">Log level being evaluated.</param>
+        /// <returns>true in all cases so that log entries are recorded.</returns>
         public bool IsEnabled(LogLevel logLevel)
         {
             return true;
         }
 
+        /// <summary>
+        /// Records a log entry through the provider using the supplied formatter.
+        /// </summary>
+        /// <typeparam name="TState">Type of the state object being formatted.</typeparam>
+        /// <param name="logLevel">Severity level of the log entry.</param>
+        /// <param name="eventId">Event identifier.</param>
+        /// <param name="state">State object passed to the formatter.</param>
+        /// <param name="exception">Optional exception associated with the message.</param>
+        /// <param name="formatter">Formatter that converts the state and exception to a message string.</param>
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var message = formatter(state, exception);

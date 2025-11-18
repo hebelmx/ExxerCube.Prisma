@@ -1,17 +1,18 @@
 namespace ExxerCube.Prisma.Testing.Infrastructure.Logging;
 
 /// <summary>
-/// Logger adapter that wraps ITestOutputHelper for use in test projects.
-/// Note: This class should only be used in test projects where ITestOutputHelper is available.
+/// Logger adapter that wraps xUnit's <c>ITestOutputHelper</c> for use in test projects.
+/// Note: This class should only be used where <c>ITestOutputHelper</c> is available.
 /// </summary>
 public class XUnitLoggerAdapter : ITestLogger
 {
     private readonly object _output;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="XUnitLoggerAdapter"/> class.
+    /// Initializes an adapter that forwards messages to the provided xUnit output helper.
     /// </summary>
-    /// <param name="output">The test output helper (ITestOutputHelper from xUnit).</param>
+    /// <param name="output">The test output helper (<c>ITestOutputHelper</c> from xUnit).</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="output"/> is null.</exception>
     public XUnitLoggerAdapter(object output)
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));

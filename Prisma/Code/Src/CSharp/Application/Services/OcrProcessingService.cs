@@ -12,8 +12,8 @@ public class OcrProcessingService
     private readonly IImagePreprocessor _imagePreprocessor;
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IFieldExtractor _fieldExtractor;
-    private readonly ILogger<OcrProcessingService> _logger;
-    private readonly ProcessingMetricsService _metricsService;
+    private readonly ILogger<IOcrProcessingService> _logger;
+    private readonly IProcessingMetricsService _metricsService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OcrProcessingService"/> class.
@@ -27,7 +27,7 @@ public class OcrProcessingService
         IImagePreprocessor imagePreprocessor,
         IOcrExecutor ocrExecutor,
         IFieldExtractor fieldExtractor,
-        ILogger<OcrProcessingService> logger,
+        ILogger<IOcrProcessingService> logger,
         IProcessingMetricsService metricsService)
     {
         _imagePreprocessor = imagePreprocessor;

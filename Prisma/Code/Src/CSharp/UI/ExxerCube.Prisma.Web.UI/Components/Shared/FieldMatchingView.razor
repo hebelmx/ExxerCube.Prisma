@@ -1,0 +1,341 @@
+@using ExxerCube.Prisma.Domain.ValueObjects
+@using ExxerCube.Prisma.Domain.Entities
+@using MudBlazor
+@using System.Linq
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+            Field Matching Results
+        </MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <!-- Field Agreement Summary -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle1" Class="mb-2">Overall Agreement</MudText>
+                <MudProgressLinear Value="@(MatchedFields.OverallAgreement * 100)" 
+                                  Color="@GetAgreementColor(MatchedFields.OverallAgreement)"
+                                  Class="mt-2" />
+                <MudText Typo="Typo.h5">@((MatchedFields.OverallAgreement * 100).ToString("F1"))%</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudCard OnClick="@(() => FilterByStatus("Conflict"))" Class="cursor-pointer">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h4" Color="Color.Warning">
+                            @MatchedFields.ConflictingFields.Count
+                        </MudText>
+                        <MudText Typo="Typo.body2">Conflicting Fields</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudCard OnClick="@(() => FilterByStatus("Missing"))" Class="cursor-pointer">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h4" Color="Color.Default">
+                            @MatchedFields.MissingFields.Count
+                        </MudText>
+                        <MudText Typo="Typo.body2">Missing Fields</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudCard OnClick="@(() => FilterByStatus("Agreed"))" Class="cursor-pointer">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h4" Color="Color.Success">
+                            @AgreedFieldsCount
+                        </MudText>
+                        <MudText Typo="Typo.body2">Agreed Fields</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Source Comparison Table -->
+        <MudTable Items="@filteredFieldMatches" 
+                 Dense="true" 
+                 Hover="true" 
+                 Striped="true">
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel T="FieldMatchRow" SortBy="@(x => x.FieldName)">
+                        Field Name
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh>XML</MudTh>
+                <MudTh>DOCX</MudTh>
+                <MudTh>PDF</MudTh>
+                <MudTh>Unified Value</MudTh>
+                <MudTh>
+                    <MudTableSortLabel T="FieldMatchRow" SortBy="@(x => x.Confidence)">
+                        Confidence
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Details</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Field Name">
+                    <MudText Typo="Typo.body2" Class="font-weight-medium">
+                        @context.FieldName
+                    </MudText>
+                </MudTd>
+                <MudTd DataLabel="XML">
+                    <div class="d-flex align-center">
+                        @if (!string.IsNullOrEmpty(context.XmlValue))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" 
+                                   Size="Size.Small" 
+                                   Color="Color.Success" 
+                                   Class="mr-1" />
+                            <MudText Typo="Typo.body2">@context.XmlValue</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">-</MudText>
+                        }
+                    </div>
+                </MudTd>
+                <MudTd DataLabel="DOCX">
+                    <div class="d-flex align-center">
+                        @if (!string.IsNullOrEmpty(context.DocxValue))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" 
+                                   Size="Size.Small" 
+                                   Color="Color.Success" 
+                                   Class="mr-1" />
+                            <MudText Typo="Typo.body2">@context.DocxValue</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">-</MudText>
+                        }
+                    </div>
+                </MudTd>
+                <MudTd DataLabel="PDF">
+                    <div class="d-flex align-center">
+                        @if (!string.IsNullOrEmpty(context.PdfValue))
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" 
+                                   Size="Size.Small" 
+                                   Color="Color.Success" 
+                                   Class="mr-1" />
+                            <MudText Typo="Typo.body2">@context.PdfValue</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">-</MudText>
+                        }
+                    </div>
+                </MudTd>
+                <MudTd DataLabel="Unified Value">
+                    <div class="d-flex align-center">
+                        <MudText Typo="Typo.body2" Class="font-weight-bold">
+                            @context.UnifiedValue
+                        </MudText>
+                        @if (!string.IsNullOrEmpty(context.Source))
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="ml-2">
+                                @context.Source
+                            </MudChip>
+                        }
+                    </div>
+                </MudTd>
+                <MudTd DataLabel="Confidence">
+                    <div class="d-flex align-center">
+                        <MudProgressCircular Value="@((int)(context.Confidence * 100))" 
+                                           Size="Size.Small"
+                                           Color="@GetConfidenceColor((int)(context.Confidence * 100))" />
+                        <MudText Typo="Typo.caption" Class="ml-2">
+                            @((context.Confidence * 100).ToString("F0"))%
+                        </MudText>
+                    </div>
+                </MudTd>
+                <MudTd DataLabel="Status">
+                    @if (context.HasConflict)
+                    {
+                        <MudChip T="string" Size="Size.Small" 
+                                Color="Color.Warning" 
+                                Icon="@Icons.Material.Filled.Warning">
+                            Conflict
+                        </MudChip>
+                    }
+                    else if (context.IsMissing)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default">
+                            Missing
+                        </MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Size="Size.Small" 
+                                Color="Color.Success" 
+                                Icon="@Icons.Material.Filled.Check">
+                            Agreed
+                        </MudChip>
+                    }
+                </MudTd>
+                <MudTd DataLabel="Details">
+                    <MudIconButton Icon="@Icons.Material.Filled.Info" 
+                                  Size="Size.Small"
+                                  OnClick="@(() => ShowFieldDetails(context))" />
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudDataGridPager T="FieldMatchRow" />
+            </PagerContent>
+        </MudTable>
+    </MudCardContent>
+</MudCard>
+
+<!-- Field Details Dialog -->
+<MudDialog @bind-IsVisible="@showFieldDetailsDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Field Details: @selectedField?.FieldName</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (selectedField != null)
+        {
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Source Values</MudText>
+                    <MudList T="string">
+                        @if (!string.IsNullOrEmpty(selectedField.XmlValue))
+                        {
+                            <MudListItem T="string">
+                                <MudText>XML: @selectedField.XmlValue</MudText>
+                            </MudListItem>
+                        }
+                        @if (!string.IsNullOrEmpty(selectedField.DocxValue))
+                        {
+                            <MudListItem T="string">
+                                <MudText>DOCX: @selectedField.DocxValue</MudText>
+                            </MudListItem>
+                        }
+                        @if (!string.IsNullOrEmpty(selectedField.PdfValue))
+                        {
+                            <MudListItem T="string">
+                                <MudText>PDF: @selectedField.PdfValue</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Confidence</MudText>
+                    <MudText Typo="Typo.body2">@((selectedField.Confidence * 100).ToString("F1"))%</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Source</MudText>
+                    <MudText Typo="Typo.body2">@selectedField.Source</MudText>
+                </MudItem>
+            </MudGrid>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => showFieldDetailsDialog = false)">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public MatchedFields MatchedFields { get; set; } = default!;
+
+    private List<FieldMatchRow> fieldMatches = new();
+    private List<FieldMatchRow> filteredFieldMatches = new();
+    private bool showFieldDetailsDialog = false;
+    private FieldMatchRow? selectedField;
+    private string? filterStatus;
+
+    private int AgreedFieldsCount => fieldMatches.Count(f => !f.HasConflict && !f.IsMissing);
+
+    protected override void OnParametersSet()
+    {
+        LoadFieldMatches();
+    }
+
+    private void LoadFieldMatches()
+    {
+        fieldMatches = MatchedFields.FieldMatches.Select(kvp => new FieldMatchRow
+        {
+            FieldName = kvp.Key,
+            MatchResult = kvp.Value,
+            UnifiedValue = kvp.Value.MatchedValue ?? "-",
+            Source = kvp.Value.SourceType,
+            Confidence = kvp.Value.Confidence,
+            HasConflict = kvp.Value.HasConflict,
+            IsMissing = kvp.Value.AllValues == null || kvp.Value.AllValues.Count == 0,
+            XmlValue = GetSourceValue(kvp.Value, "XML"),
+            DocxValue = GetSourceValue(kvp.Value, "DOCX"),
+            PdfValue = GetSourceValue(kvp.Value, "PDF")
+        }).ToList();
+        
+        filteredFieldMatches = fieldMatches;
+    }
+
+    private string? GetSourceValue(FieldMatchResult matchResult, string sourceType)
+    {
+        if (matchResult.AllValues == null) return null;
+        
+        var value = matchResult.AllValues.FirstOrDefault(v => 
+            v.SourceType != null && v.SourceType.Equals(sourceType, StringComparison.OrdinalIgnoreCase));
+        
+        return value?.Value;
+    }
+
+    private bool FilterFields(FieldMatchRow field)
+    {
+        if (!string.IsNullOrEmpty(filterStatus))
+        {
+            return filterStatus switch
+            {
+                "Conflict" => field.HasConflict,
+                "Missing" => field.IsMissing,
+                "Agreed" => !field.HasConflict && !field.IsMissing,
+                _ => true
+            };
+        }
+        return true;
+    }
+
+    private void FilterByStatus(string status)
+    {
+        filterStatus = filterStatus == status ? null : status;
+        filteredFieldMatches = fieldMatches.Where(FilterFields).ToList();
+        StateHasChanged();
+    }
+
+    private void ShowFieldDetails(FieldMatchRow field)
+    {
+        selectedField = field;
+        showFieldDetailsDialog = true;
+    }
+
+    private Color GetAgreementColor(double agreement) => agreement switch
+    {
+        >= 0.9 => Color.Success,
+        >= 0.7 => Color.Warning,
+        _ => Color.Error
+    };
+
+    private Color GetConfidenceColor(int confidence) => confidence switch
+    {
+        >= 90 => Color.Success,
+        >= 70 => Color.Warning,
+        _ => Color.Error
+    };
+
+    private class FieldMatchRow
+    {
+        public string FieldName { get; set; } = string.Empty;
+        public string? XmlValue { get; set; }
+        public string? DocxValue { get; set; }
+        public string? PdfValue { get; set; }
+        public string UnifiedValue { get; set; } = string.Empty;
+        public string? Source { get; set; }
+        public float Confidence { get; set; }
+        public bool HasConflict { get; set; }
+        public bool IsMissing { get; set; }
+        public FieldMatchResult MatchResult { get; set; } = default!;
+    }
+}
+

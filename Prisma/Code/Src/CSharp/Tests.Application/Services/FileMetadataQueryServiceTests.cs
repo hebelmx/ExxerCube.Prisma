@@ -1,11 +1,17 @@
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
+/// <summary>
+/// Integration-style unit tests that validate <see cref="FileMetadataQueryService"/> query behaviors and error handling.
+/// </summary>
 public class FileMetadataQueryServiceTests
 {
     private readonly IRepository<FileMetadata, string> _repository;
     private readonly ILogger<FileMetadataQueryService> _logger;
     private readonly FileMetadataQueryService _service;
 
+    /// <summary>
+    /// Initializes a new instance of the test suite with mocked repository and logger dependencies.
+    /// </summary>
     public FileMetadataQueryServiceTests()
     {
         _repository = Substitute.For<IRepository<FileMetadata, string>>();
@@ -13,6 +19,10 @@ public class FileMetadataQueryServiceTests
         _service = new FileMetadataQueryService(_repository, _logger);
     }
 
+    /// <summary>
+    /// Verifies that all files are returned when the repository succeeds.
+    /// </summary>
+    /// <returns>A task that completes after the retrieval assertions are validated.</returns>
     [Fact]
     public async Task GetFileMetadataAsync_ShouldReturnFiles_WhenRepositorySucceeds()
     {
@@ -38,6 +48,10 @@ public class FileMetadataQueryServiceTests
         result.Value![0].FileId.ShouldBe("FILE-001");
     }
 
+    /// <summary>
+    /// Verifies that repository failures are propagated as failed results.
+    /// </summary>
+    /// <returns>A task that completes after asserting the failure is surfaced.</returns>
     [Fact]
     public async Task GetFileMetadataAsync_ShouldPropagateFailure_WhenRepositoryFails()
     {
@@ -50,6 +64,10 @@ public class FileMetadataQueryServiceTests
         result.Error.ShouldBe("db-error");
     }
 
+    /// <summary>
+    /// Verifies that missing entities return a failed result with null value.
+    /// </summary>
+    /// <returns>A task that completes after null-result assertions are checked.</returns>
     [Fact]
     public async Task GetFileMetadataByIdAsync_ShouldReturnNull_WhenEntityNotFound()
     {
@@ -62,6 +80,10 @@ public class FileMetadataQueryServiceTests
         result.Value.ShouldBeNull();
     }
 
+    /// <summary>
+    /// Verifies that download statistics aggregate counts and sizes correctly.
+    /// </summary>
+    /// <returns>A task that completes after aggregation assertions are validated.</returns>
     [Fact]
     public async Task GetDownloadStatisticsAsync_ShouldAggregateValues()
     {
@@ -95,6 +117,10 @@ public class FileMetadataQueryServiceTests
         result.Value!.FilesByFormat[FileFormat.Xml].ShouldBe(1);
     }
 
+    /// <summary>
+    /// Verifies that cancellation tokens are honored by the query operation.
+    /// </summary>
+    /// <returns>A task that completes after cancellation is detected.</returns>
     [Fact]
     public async Task GetFileMetadataAsync_ShouldReturnCancelled_WhenTokenAlreadyCancelled()
     {

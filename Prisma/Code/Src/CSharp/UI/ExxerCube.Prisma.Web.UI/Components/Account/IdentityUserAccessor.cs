@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Web.UI.Data;
-
 namespace ExxerCube.Prisma.Web.UI.Components.Account;
 
 internal sealed class IdentityUserAccessor(UserManager<ApplicationUser> userManager, IdentityRedirectManager redirectManager)

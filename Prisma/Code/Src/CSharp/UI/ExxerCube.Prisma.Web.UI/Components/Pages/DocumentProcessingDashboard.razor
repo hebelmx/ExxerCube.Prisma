@@ -90,6 +90,46 @@
             </MudItem>
         </MudGrid>
 
+        <!-- Browser Automation Status -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-2" />
+                    Browser Automation Status
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudText Typo="Typo.subtitle2">Last Run</MudText>
+                        <MudText Typo="Typo.body1">
+                            @(lastRunTime?.ToString("g") ?? "Never")
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudText Typo="Typo.subtitle2">Status</MudText>
+                        <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(automationStatus)">
+                            @automationStatus
+                        </MudChip>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudText Typo="Typo.subtitle2">Success Rate</MudText>
+                        <MudProgressLinear Value="@successRate" Color="@GetSuccessRateColor(successRate)" />
+                        <MudText Typo="Typo.body2">@(successRate.ToString("F1"))%</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3" Class="d-flex align-center">
+                        <MudButton Variant="Variant.Filled" 
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.PlayArrow"
+                                   OnClick="TriggerManualDownload"
+                                   Disabled="@isDownloading">
+                            @(isDownloading ? "Downloading..." : "Trigger Download")
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
         <!-- Filters -->
         <MudCard Class="mb-4">
             <MudCardHeader>
@@ -222,10 +262,16 @@
     private List<FileMetadata>? downloadHistory;
     private DownloadStatistics statistics = new();
     private bool isLoading = true;
+    private bool isDownloading = false;
     private DateTime? filterStartDate;
     private DateTime? filterEndDate;
     private FileFormat? filterFormat;
     private FilterDefinition<FileMetadata>[] filterDefinitions = Array.Empty<FilterDefinition<FileMetadata>>();
+    private string automationStatus = "Idle";
+    private DateTime? lastRunTime;
+    private double successRate = 0;
+    private string? automationWebsiteUrl = "https://example.com"; // TODO: Get from configuration
+    private string[] automationFilePatterns = new[] { "*.pdf", "*.xml", "*.docx" }; // TODO: Get from configuration
 
     protected override async Task OnInitializedAsync()
     {
@@ -404,6 +450,68 @@
         }
         return "All time";
     }
+
+    private async Task TriggerManualDownload()
+    {
+        isDownloading = true;
+        automationStatus = "Running";
+        StateHasChanged();
+
+        try
+        {
+            var result = await DocumentIngestionService.IngestDocumentsAsync(
+                automationWebsiteUrl ?? "https://example.com",
+                automationFilePatterns,
+                CancellationToken.None);
+
+            if (result.IsSuccess)
+            {
+                lastRunTime = DateTime.Now;
+                automationStatus = "Completed";
+                var filesIngested = result.Value?.Count ?? 0;
+                Snackbar.Add($"Successfully ingested {filesIngested} file(s)", Severity.Success);
+                
+                // Refresh data after successful download
+                await LoadDataAsync();
+            }
+            else if (result.IsCancelled())
+            {
+                automationStatus = "Cancelled";
+                Snackbar.Add("Download was cancelled", Severity.Warning);
+            }
+            else
+            {
+                automationStatus = "Failed";
+                Snackbar.Add($"Download failed: {result.Error}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            automationStatus = "Error";
+            Snackbar.Add($"Error triggering download: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isDownloading = false;
+            StateHasChanged();
+        }
+    }
+
+    private Color GetStatusColor(string status) => status switch
+    {
+        "Completed" => Color.Success,
+        "Running" => Color.Info,
+        "Failed" => Color.Error,
+        "Cancelled" => Color.Warning,
+        _ => Color.Default
+    };
+
+    private Color GetSuccessRateColor(double rate) => rate switch
+    {
+        >= 95 => Color.Success,
+        >= 80 => Color.Warning,
+        _ => Color.Error
+    };
 
     public async ValueTask DisposeAsync()
     {

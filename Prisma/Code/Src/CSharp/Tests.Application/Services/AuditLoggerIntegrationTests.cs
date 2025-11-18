@@ -5,12 +5,12 @@ using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Integration tests for audit logging that verify end-to-end audit logging across all processing stages.
-/// These tests verify performance impact (IV1), retention policy (IV3), and cross-stage correlation ID tracking.
-///
-/// This test verifies Application service integration with audit logging infrastructure.
-/// Database context is used for testing Application integration with Infrastructure.
+/// Integration tests that exercise audit logging end-to-end across ingestion, extraction, decision, and export stages.
+/// Validates performance impact, retention policy, and correlation ID tracking across the processing pipeline.
 /// </summary>
+/// <remarks>
+/// Uses an in-memory EF Core database to verify Application-layer services integrate correctly with audit logging infrastructure.
+/// </remarks>
 public class AuditLoggerIntegrationTests : IDisposable
 {
     private readonly PrismaDbContext _dbContext;
@@ -22,8 +22,9 @@ public class AuditLoggerIntegrationTests : IDisposable
     private readonly ExportService _exportService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AuditLoggerIntegrationTests"/> class.
+    /// Initializes a new instance of the <see cref="AuditLoggerIntegrationTests"/> class with in-memory persistence and mocked dependencies.
     /// </summary>
+    /// <param name="output">xUnit output helper used to route logger output for diagnostics.</param>
     public AuditLoggerIntegrationTests(ITestOutputHelper output)
     {
         var options = new DbContextOptionsBuilder<PrismaDbContext>()
@@ -93,8 +94,9 @@ public class AuditLoggerIntegrationTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that audit logging does not impact processing performance (IV1: async, non-blocking).
+    /// Verifies audit logging overhead stays below performance targets when writing many records (IV1: async, non-blocking).
     /// </summary>
+    /// <returns>A task that completes after performance assertions are evaluated.</returns>
     [Fact]
     public async Task AuditLogging_PerformanceImpact_IsMinimal()
     {
@@ -128,8 +130,9 @@ public class AuditLoggerIntegrationTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that correlation IDs are tracked across all processing stages.
+    /// Verifies correlation IDs are preserved across ingestion, extraction, decision, and export stages.
     /// </summary>
+    /// <returns>A task that completes after correlation tracking assertions are evaluated.</returns>
     [Fact]
     public async Task AuditLogging_CorrelationIdTracking_TracksAcrossStages()
     {
@@ -267,8 +270,9 @@ public class AuditLoggerIntegrationTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that audit log retention policy can be configured (IV3).
+    /// Verifies retention policy queries only return records inside the allowed window (IV3).
     /// </summary>
+    /// <returns>A task that completes after retention assertions are evaluated.</returns>
     [Fact]
     public async Task AuditLogging_RetentionPolicy_CanBeQueried()
     {
@@ -320,8 +324,9 @@ public class AuditLoggerIntegrationTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that audit logging handles errors gracefully without blocking processing.
+    /// Confirms audit logging fails fast on invalid input without blocking processing.
     /// </summary>
+    /// <returns>A task that completes after error-handling assertions are evaluated.</returns>
     [Fact]
     public async Task AuditLogging_ErrorHandling_DoesNotBlockProcessing()
     {
@@ -350,8 +355,9 @@ public class AuditLoggerIntegrationTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that audit records are immutable (cannot be modified after creation).
+    /// Verifies audit records remain unchanged after creation (immutability expectations).
     /// </summary>
+    /// <returns>A task that completes after immutability assertions are evaluated.</returns>
     [Fact]
     public async Task AuditLogging_RecordsAreImmutable_CannotBeModified()
     {
@@ -392,7 +398,9 @@ public class AuditLoggerIntegrationTests : IDisposable
         // This test verifies the record can be retrieved and queried
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Disposes the in-memory database context used by the integration tests.
+    /// </summary>
     public void Dispose()
     {
         _dbContext?.Dispose();

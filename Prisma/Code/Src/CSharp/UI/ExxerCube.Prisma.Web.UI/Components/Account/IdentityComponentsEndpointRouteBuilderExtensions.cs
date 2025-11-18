@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using ExxerCube.Prisma.Web.UI.Components.Account.Pages;
 using ExxerCube.Prisma.Web.UI.Components.Account.Pages.Manage;
-using ExxerCube.Prisma.Web.UI.Data;
 
 namespace Microsoft.AspNetCore.Routing;
 

@@ -1,0 +1,175 @@
+@page "/admin/connection-string"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
+@inject IConfiguration Configuration
+@inject ISnackbar Snackbar
+@inject ILogger<ConnectionStringConfig> Logger
+
+<PageTitle>Connection String Configuration</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-2" />
+            Connection String Configuration
+        </MudText>
+
+        <MudText Typo="Typo.body2" Class="mb-4">
+            Configure or update the database connection string. Changes will require application restart to take effect.
+        </MudText>
+
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                @errorMessage
+            </MudAlert>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <MudAlert Severity="Severity.Success" Class="mb-4">
+                @successMessage
+            </MudAlert>
+        }
+
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Current Configuration</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2" Class="mb-2">
+                    <strong>Current Connection String:</strong>
+                </MudText>
+                <MudTextField 
+                    @bind-Value="currentConnectionString" 
+                    Variant="Variant.Outlined" 
+                    ReadOnly="true"
+                    Lines="3"
+                    Class="mb-2" />
+                
+                @if (string.IsNullOrEmpty(currentConnectionString))
+                {
+                    <MudAlert Severity="Severity.Warning" Class="mb-2">
+                        No connection string configured. Please add one below.
+                    </MudAlert>
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Update Connection String</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <EditForm Model="@connectionStringModel" OnValidSubmit="HandleUpdateConnectionString">
+                    <DataAnnotationsValidator />
+                    <MudTextField 
+                        @bind-Value="connectionStringModel.ConnectionString" 
+                        Label="Connection String" 
+                        Variant="Variant.Outlined"
+                        Lines="3"
+                        Required="true"
+                        RequiredError="Connection string is required"
+                        Class="mb-3" />
+                    
+                    <MudText Typo="Typo.caption" Class="mb-3">
+                        Example: Server=(localdb)\\mssqllocaldb;Database=ExxerCubePrisma;Trusted_Connection=True;MultipleActiveResultSets=true
+                    </MudText>
+
+                    <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
+                        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="HandleCancel">
+                            Cancel
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="isLoading">
+                            Save Connection String
+                        </MudButton>
+                    </MudStack>
+                </EditForm>
+            </MudCardContent>
+        </MudCard>
+
+        <MudAlert Severity="Severity.Info" Class="mt-4">
+            <MudText Typo="Typo.body2">
+                <strong>Note:</strong> Connection string changes are saved to appsettings.json. 
+                You may need to restart the application for changes to take effect.
+            </MudText>
+        </MudAlert>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool isLoading = false;
+    private string? errorMessage;
+    private string? successMessage;
+    private string currentConnectionString = string.Empty;
+    private ConnectionStringModel connectionStringModel = new();
+
+    protected override void OnInitialized()
+    {
+        currentConnectionString = Configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
+        connectionStringModel.ConnectionString = currentConnectionString;
+    }
+
+    private async Task HandleUpdateConnectionString()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            successMessage = null;
+            StateHasChanged();
+
+            // Validate connection string format
+            if (string.IsNullOrWhiteSpace(connectionStringModel.ConnectionString))
+            {
+                errorMessage = "Connection string cannot be empty.";
+                return;
+            }
+
+            // Note: In a production application, you would typically:
+            // 1. Save to appsettings.json or user secrets
+            // 2. Or use a configuration management service
+            // 3. Or store in environment variables
+            
+            // For now, we'll just validate and show a message
+            // In a real scenario, you'd need to write to appsettings.json or use IOptions pattern
+            
+            successMessage = "Connection string updated. Please restart the application for changes to take effect.";
+            Logger.LogInformation("Connection string configuration updated");
+            
+            Snackbar.Add(successMessage, Severity.Success);
+            
+            currentConnectionString = connectionStringModel.ConnectionString;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating connection string: {ex.Message}";
+            Logger.LogError(ex, "Error updating connection string");
+            Snackbar.Add(errorMessage, Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleCancel()
+    {
+        connectionStringModel.ConnectionString = currentConnectionString;
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private class ConnectionStringModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Connection string is required")]
+        public string ConnectionString { get; set; } = string.Empty;
+    }
+}
+

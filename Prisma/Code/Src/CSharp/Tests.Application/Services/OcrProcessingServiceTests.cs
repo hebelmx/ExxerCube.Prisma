@@ -8,11 +8,11 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 /// </summary>
 public class OcrProcessingServiceTests
 {
-    private readonly IOcrProcessingService _service;
+    private readonly OcrProcessingService _service;
     private readonly IImagePreprocessor _imagePreprocessor;
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IFieldExtractor _fieldExtractor;
-    private readonly ILogger<OcrProcessingService> _logger;
+    private readonly ILogger<IOcrProcessingService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OcrProcessingServiceTests"/> class.
@@ -22,8 +22,8 @@ public class OcrProcessingServiceTests
         _imagePreprocessor = Substitute.For<IImagePreprocessor>();
         _ocrExecutor = Substitute.For<IOcrExecutor>();
         _fieldExtractor = Substitute.For<IFieldExtractor>();
-        _logger = Substitute.For<ILogger<OcrProcessingService>>();
-        var metricsService = new ProcessingMetricsService(Substitute.For<ILogger<ProcessingMetricsService>>(), maxConcurrency: 5);
+        _logger = Substitute.For<ILogger<IOcrProcessingService>>();
+        var metricsService = Substitute.For<IProcessingMetricsService>();
         _service = new OcrProcessingService(_imagePreprocessor, _ocrExecutor, _fieldExtractor, _logger, metricsService);
     }
 

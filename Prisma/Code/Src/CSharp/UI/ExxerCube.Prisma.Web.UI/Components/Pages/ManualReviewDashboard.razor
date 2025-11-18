@@ -8,6 +8,7 @@
 @attribute [Authorize(Roles = "Reviewer,Admin")]
 
 @inject IManualReviewerPanel ManualReviewerPanel
+@inject ISLAEnforcer SLAEnforcer
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
 @inject IDialogService DialogService
@@ -28,7 +29,7 @@
         <!-- Quick Stats -->
         <MudGrid Class="mb-4">
             <MudItem xs="12" sm="6" md="3">
-                <MudCard Elevation="2">
+                <MudCard Elevation="2" Class="cursor-pointer" Style="cursor: pointer;" @onclick="@(() => FilterByStatus(ReviewStatus.Pending))">
                     <MudCardContent>
                         <MudText Typo="Typo.h6">Total Pending</MudText>
                         <MudText Typo="Typo.h4" Color="Color.Warning">@totalPending</MudText>
@@ -36,7 +37,7 @@
                 </MudCard>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudCard Elevation="2">
+                <MudCard Elevation="2" Class="cursor-pointer" Style="cursor: pointer;" @onclick="@(() => FilterByLowConfidence())">
                     <MudCardContent>
                         <MudText Typo="Typo.h6">Low Confidence</MudText>
                         <MudText Typo="Typo.h4" Color="Color.Error">@lowConfidenceCount</MudText>
@@ -44,7 +45,7 @@
                 </MudCard>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudCard Elevation="2">
+                <MudCard Elevation="2" Class="cursor-pointer" Style="cursor: pointer;" @onclick="@(() => FilterByStatus(ReviewStatus.InProgress))">
                     <MudCardContent>
                         <MudText Typo="Typo.h6">In Progress</MudText>
                         <MudText Typo="Typo.h4" Color="Color.Info">@inProgressCount</MudText>
@@ -61,6 +62,41 @@
             </MudItem>
         </MudGrid>
 
+        <!-- Bulk Actions Bar -->
+        @if (selectedCases.Any())
+        {
+            <MudCard Class="mb-2" Elevation="4">
+                <MudCardContent>
+                    <div class="d-flex align-center">
+                        <MudText Typo="Typo.body1" Class="mr-3">
+                            @selectedCases.Count case(s) selected
+                        </MudText>
+                        <MudButton Variant="Variant.Filled" 
+                                  Color="Color.Primary"
+                                  StartIcon="@Icons.Material.Filled.PersonAdd"
+                                  OnClick="AssignSelectedCases">
+                            Assign to Reviewer
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" 
+                                  Color="Color.Success"
+                                  StartIcon="@Icons.Material.Filled.Check"
+                                  OnClick="BulkApproveSelected">
+                            Bulk Approve
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" 
+                                  Color="Color.Info"
+                                  StartIcon="@Icons.Material.Filled.FileDownload"
+                                  OnClick="ExportSelected">
+                            Export Selected
+                        </MudButton>
+                        <MudSpacer />
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" 
+                                     OnClick="@(() => { selectedCases.Clear(); StateHasChanged(); })" />
+                    </div>
+                </MudCardContent>
+            </MudCard>
+        }
+
         <!-- Filter Bar -->
         <MudCard Class="mb-4">
             <MudCardHeader>
@@ -71,6 +107,14 @@
             </MudCardHeader>
             <MudCardContent>
                 <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="string" Label="SLA Priority" Variant="Variant.Outlined" @bind-Value="filterSLAPriority" Clearable="true">
+                            <MudSelectItem Value="@("All Priorities")">All Priorities</MudSelectItem>
+                            <MudSelectItem Value="@("Urgent")">Urgent (&lt;4h)</MudSelectItem>
+                            <MudSelectItem Value="@("High")">High (&lt;24h)</MudSelectItem>
+                            <MudSelectItem Value="@("Normal")">Normal</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
                     <MudItem xs="12" sm="6" md="3">
                         <MudSelect T="int?" Label="Min Confidence" Variant="Variant.Outlined" @bind-Value="filters.MinConfidenceLevel">
                             <MudSelectItem Value="@((int?)null)">All</MudSelectItem>
@@ -99,12 +143,28 @@
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="string" Label="Assigned Reviewer" Variant="Variant.Outlined" @bind-Value="filters.AssignedTo" Clearable="true">
+                            <MudSelectItem Value="@("All Reviewers")">All Reviewers</MudSelectItem>
+                            <MudSelectItem Value="@("Unassigned")">Unassigned</MudSelectItem>
+                            @foreach (var reviewer in availableReviewers)
+                            {
+                                <MudSelectItem Value="@reviewer">@reviewer</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
                         <MudSelect T="ReviewReason?" Label="Review Reason" Variant="Variant.Outlined" @bind-Value="filters.ReviewReason">
                             <MudSelectItem Value="@((ReviewReason?)null)">All</MudSelectItem>
                             <MudSelectItem Value="ReviewReason.LowConfidence">Low Confidence</MudSelectItem>
                             <MudSelectItem Value="ReviewReason.AmbiguousClassification">Ambiguous Classification</MudSelectItem>
                             <MudSelectItem Value="ReviewReason.ExtractionError">Extraction Error</MudSelectItem>
                         </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudDatePicker @bind-Date="filterStartDate" Label="Created Date From" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudDatePicker @bind-Date="filterEndDate" Label="Created Date To" Variant="Variant.Outlined" />
                     </MudItem>
                 </MudGrid>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-3" OnClick="ApplyFilters">
@@ -130,7 +190,7 @@
                 {
                     <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-3" />
                 }
-                else if (reviewCases == null || reviewCases.Count == 0)
+                else if (filteredReviewCases == null || filteredReviewCases.Count == 0)
                 {
                     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="text-center pa-4">
                         No review cases found matching the current filters.
@@ -138,38 +198,70 @@
                 }
                 else
                 {
-                    <MudTable Items="@reviewCases" Hover="true" Dense="true" Striped="true">
+                    <MudTable Items="@filteredReviewCases" Hover="true" Dense="true" Striped="true">
                         <HeaderContent>
-                            <MudTh>Case ID</MudTh>
-                            <MudTh>File ID</MudTh>
+                            <MudTh>
+                                <MudCheckBox T="bool" @bind-Checked="@selectAll" 
+                                            Indeterminate="@(selectedCases.Count > 0 && selectedCases.Count < filteredReviewCases.Count)"
+                                            OnCheckedChanged="EventCallback.Factory.Create<bool?>(this, SelectAllCases)" />
+                            </MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="ReviewCaseViewModel" SortBy="@(x => x.ReviewCase.CaseId)">Case ID</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="ReviewCaseViewModel" SortBy="@(x => x.ReviewCase.FileId)">File ID</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="ReviewCaseViewModel" SortBy="@(x => x.SLAStatus?.RemainingTime)">SLA Priority</MudTableSortLabel>
+                            </MudTh>
                             <MudTh>Reason</MudTh>
                             <MudTh>Confidence</MudTh>
                             <MudTh>Status</MudTh>
                             <MudTh>Assigned To</MudTh>
-                            <MudTh>Created</MudTh>
+                            <MudTh>
+                                <MudTableSortLabel T="ReviewCaseViewModel" SortBy="@(x => x.ReviewCase.CreatedAt)">Created</MudTableSortLabel>
+                            </MudTh>
                             <MudTh>Actions</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd DataLabel="Case ID">@context.CaseId</MudTd>
-                            <MudTd DataLabel="File ID">@context.FileId</MudTd>
+                            <MudTd>
+                                <MudCheckBox T="bool" @bind-Checked="@context.IsSelected" 
+                                            OnCheckedChanged="@(() => ToggleCaseSelection(context))" />
+                            </MudTd>
+                            <MudTd DataLabel="Case ID">@context.ReviewCase.CaseId</MudTd>
+                            <MudTd DataLabel="File ID">@context.ReviewCase.FileId</MudTd>
+                            <MudTd DataLabel="SLA Priority">
+                                @if (context.SLAStatus != null)
+                                {
+                                    <MudChip T="string" Size="Size.Small" 
+                                            Color="@GetSLAPriorityColor(context.SLAStatus.RemainingTime)"
+                                            Icon="@GetSLAPriorityIcon(context.SLAStatus.RemainingTime)">
+                                        @GetSLAPriorityLabel(context.SLAStatus.RemainingTime)
+                                    </MudChip>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">N/A</MudText>
+                                }
+                            </MudTd>
                             <MudTd DataLabel="Reason">
-                                <MudChip T="string" Size="Size.Small" Color="@GetReasonColor(context.RequiresReviewReason)">
-                                    @context.RequiresReviewReason.ToString()
+                                <MudChip T="string" Size="Size.Small" Color="@GetReasonColor(context.ReviewCase.RequiresReviewReason)">
+                                    @context.ReviewCase.RequiresReviewReason.ToString()
                                 </MudChip>
                             </MudTd>
                             <MudTd DataLabel="Confidence">
-                                <MudProgressLinear Value="@context.ConfidenceLevel" Color="@GetConfidenceColor(context.ConfidenceLevel)" Class="mt-2" />
-                                <MudText Typo="Typo.caption">@context.ConfidenceLevel%</MudText>
+                                <MudProgressLinear Value="@context.ReviewCase.ConfidenceLevel" Color="@GetConfidenceColor(context.ReviewCase.ConfidenceLevel)" Class="mt-2" />
+                                <MudText Typo="Typo.caption">@context.ReviewCase.ConfidenceLevel%</MudText>
                             </MudTd>
                             <MudTd DataLabel="Status">
-                                <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">
-                                    @context.Status.ToString()
+                                <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.ReviewCase.Status)">
+                                    @context.ReviewCase.Status.ToString()
                                 </MudChip>
                             </MudTd>
-                            <MudTd DataLabel="Assigned To">@(context.AssignedTo ?? "Unassigned")</MudTd>
-                            <MudTd DataLabel="Created">@context.CreatedAt.ToString("MM/dd/yyyy HH:mm")</MudTd>
+                            <MudTd DataLabel="Assigned To">@(context.ReviewCase.AssignedTo ?? "Unassigned")</MudTd>
+                            <MudTd DataLabel="Created">@context.ReviewCase.CreatedAt.ToString("MM/dd/yyyy HH:mm")</MudTd>
                             <MudTd DataLabel="Actions">
-                                <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => ViewCase(context.CaseId))">
+                                <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => ViewCase(context.ReviewCase.CaseId))">
                                     <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
                                 </MudButton>
                             </MudTd>
@@ -182,18 +274,30 @@
 </MudContainer>
 
 @code {
-    private List<ReviewCase>? reviewCases;
+    private List<ReviewCaseViewModel> reviewCasesViewModels = new();
+    private List<ReviewCaseViewModel> filteredReviewCases = new();
     private ReviewFilters filters = new();
     private bool isLoading = false;
     private int totalPending = 0;
     private int lowConfidenceCount = 0;
     private int inProgressCount = 0;
     private int completedTodayCount = 0;
+    
+    // Bulk selection
+    private HashSet<string> selectedCases = new();
+    private bool selectAll = false;
+    
+    // Enhanced filters
+    private string? filterSLAPriority;
+    private DateTime? filterStartDate;
+    private DateTime? filterEndDate;
+    private List<string> availableReviewers = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadReviewCases();
         await LoadStats();
+        LoadAvailableReviewers();
     }
 
     private async Task LoadReviewCases()
@@ -201,21 +305,39 @@
         isLoading = true;
         try
         {
-            var result = await ManualReviewerPanel.GetReviewCasesAsync(filters, 1, 50);
+            var result = await ManualReviewerPanel.GetReviewCasesAsync(filters, 1, 1000);
             if (result.IsSuccess && result.Value != null)
             {
-                reviewCases = result.Value;
+                reviewCasesViewModels = new List<ReviewCaseViewModel>();
+                
+                // Load SLA status for each review case
+                foreach (var reviewCase in result.Value)
+                {
+                    var slaResult = await SLAEnforcer.GetSLAStatusAsync(reviewCase.FileId);
+                    var slaStatus = slaResult.IsSuccess ? slaResult.Value : null;
+                    
+                    reviewCasesViewModels.Add(new ReviewCaseViewModel
+                    {
+                        ReviewCase = reviewCase,
+                        SLAStatus = slaStatus,
+                        IsSelected = false
+                    });
+                }
+                
+                ApplyFilters();
             }
             else
             {
                 Snackbar.Add($"Error loading review cases: {result.Error}", Severity.Error);
-                reviewCases = new List<ReviewCase>();
+                reviewCasesViewModels = new List<ReviewCaseViewModel>();
+                filteredReviewCases = new List<ReviewCaseViewModel>();
             }
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
-            reviewCases = new List<ReviewCase>();
+            reviewCasesViewModels = new List<ReviewCaseViewModel>();
+            filteredReviewCases = new List<ReviewCaseViewModel>();
         }
         finally
         {
@@ -243,20 +365,166 @@
         }
     }
 
-    private async Task ApplyFilters()
+    private void LoadAvailableReviewers()
     {
-        await LoadReviewCases();
+        // Extract unique reviewers from review cases
+        availableReviewers = reviewCasesViewModels
+            .Where(vm => !string.IsNullOrEmpty(vm.ReviewCase.AssignedTo))
+            .Select(vm => vm.ReviewCase.AssignedTo!)
+            .Distinct()
+            .OrderBy(r => r)
+            .ToList();
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = reviewCasesViewModels.AsEnumerable();
+
+        // SLA Priority filter
+        if (!string.IsNullOrWhiteSpace(filterSLAPriority))
+        {
+            filtered = filterSLAPriority switch
+            {
+                "Urgent" => filtered.Where(vm => vm.SLAStatus != null && vm.SLAStatus.RemainingTime.TotalHours < 4),
+                "High" => filtered.Where(vm => vm.SLAStatus != null && vm.SLAStatus.RemainingTime.TotalHours >= 4 && vm.SLAStatus.RemainingTime.TotalHours < 24),
+                "Normal" => filtered.Where(vm => vm.SLAStatus == null || vm.SLAStatus.RemainingTime.TotalHours >= 24),
+                _ => filtered
+            };
+        }
+
+        // Date range filter
+        if (filterStartDate.HasValue)
+        {
+            filtered = filtered.Where(vm => vm.ReviewCase.CreatedAt >= filterStartDate.Value);
+        }
+
+        if (filterEndDate.HasValue)
+        {
+            filtered = filtered.Where(vm => vm.ReviewCase.CreatedAt <= filterEndDate.Value.AddDays(1));
+        }
+
+        // Assigned reviewer filter
+        if (!string.IsNullOrWhiteSpace(filters.AssignedTo))
+        {
+            if (filters.AssignedTo == "Unassigned")
+            {
+                filtered = filtered.Where(vm => string.IsNullOrEmpty(vm.ReviewCase.AssignedTo));
+            }
+            else
+            {
+                filtered = filtered.Where(vm => vm.ReviewCase.AssignedTo == filters.AssignedTo);
+            }
+        }
+
+        filteredReviewCases = filtered.ToList();
+        StateHasChanged();
     }
 
     private async Task ClearFilters()
     {
         filters = new ReviewFilters();
+        filterSLAPriority = null;
+        filterStartDate = null;
+        filterEndDate = null;
         await LoadReviewCases();
+    }
+
+    private void FilterByStatus(ReviewStatus status)
+    {
+        filters.Status = status;
+        ApplyFilters();
+    }
+
+    private void FilterByLowConfidence()
+    {
+        filters.MinConfidenceLevel = null;
+        filters.MaxConfidenceLevel = 80;
+        ApplyFilters();
+    }
+
+    private void SelectAllCases(bool? isChecked)
+    {
+        if (isChecked == true)
+        {
+            selectedCases = new HashSet<string>(filteredReviewCases.Select(c => c.ReviewCase.CaseId));
+            foreach (var vm in filteredReviewCases)
+            {
+                vm.IsSelected = true;
+            }
+        }
+        else
+        {
+            selectedCases.Clear();
+            foreach (var vm in filteredReviewCases)
+            {
+                vm.IsSelected = false;
+            }
+        }
+        selectAll = isChecked == true;
+        StateHasChanged();
+    }
+
+    private void ToggleCaseSelection(ReviewCaseViewModel viewModel)
+    {
+        if (selectedCases.Contains(viewModel.ReviewCase.CaseId))
+        {
+            selectedCases.Remove(viewModel.ReviewCase.CaseId);
+            viewModel.IsSelected = false;
+        }
+        else
+        {
+            selectedCases.Add(viewModel.ReviewCase.CaseId);
+            viewModel.IsSelected = true;
+        }
+        selectAll = selectedCases.Count == filteredReviewCases.Count;
+        StateHasChanged();
+    }
+
+    private async Task AssignSelectedCases()
+    {
+        // TODO: Implement assign dialog
+        Snackbar.Add($"Assigning {selectedCases.Count} case(s) to reviewer...", Severity.Info);
+    }
+
+    private async Task BulkApproveSelected()
+    {
+        // TODO: Implement bulk approve workflow
+        Snackbar.Add($"Bulk approving {selectedCases.Count} case(s)...", Severity.Info);
+    }
+
+    private async Task ExportSelected()
+    {
+        // TODO: Implement export functionality
+        Snackbar.Add($"Exporting {selectedCases.Count} case(s)...", Severity.Info);
     }
 
     private void ViewCase(string caseId)
     {
         Navigation.NavigateTo($"/manual-review/{caseId}");
+    }
+
+    private Color GetSLAPriorityColor(TimeSpan? remainingTime)
+    {
+        if (!remainingTime.HasValue) return Color.Default;
+        if (remainingTime.Value.TotalHours < 4) return Color.Error;
+        if (remainingTime.Value.TotalHours < 24) return Color.Warning;
+        return Color.Success;
+    }
+
+    private string GetSLAPriorityIcon(TimeSpan? remainingTime)
+    {
+        if (!remainingTime.HasValue) return Icons.Material.Filled.Help;
+        if (remainingTime.Value.TotalHours < 4) return Icons.Material.Filled.Warning;
+        if (remainingTime.Value.TotalHours < 24) return Icons.Material.Filled.Info;
+        return Icons.Material.Filled.CheckCircle;
+    }
+
+    private string GetSLAPriorityLabel(TimeSpan? remainingTime)
+    {
+        if (!remainingTime.HasValue) return "N/A";
+        if (remainingTime.Value.TotalHours < 4) return "Urgent";
+        if (remainingTime.Value.TotalHours < 24) return "High";
+        return "Normal";
     }
 
     private Color GetReasonColor(ReviewReason reason) => reason switch
@@ -281,6 +549,13 @@
         if (confidence < 70) return Color.Error;
         if (confidence < 80) return Color.Warning;
         return Color.Success;
+    }
+
+    private class ReviewCaseViewModel
+    {
+        public ReviewCase ReviewCase { get; set; } = null!;
+        public SLAStatus? SLAStatus { get; set; }
+        public bool IsSelected { get; set; }
     }
 }
 

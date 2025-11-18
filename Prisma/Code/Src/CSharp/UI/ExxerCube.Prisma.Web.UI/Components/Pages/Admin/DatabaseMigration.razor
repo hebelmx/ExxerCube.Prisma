@@ -1,0 +1,220 @@
+@page "/admin/database-migration"
+@using Microsoft.EntityFrameworkCore
+@using ExxerCube.Prisma.Web.UI.Data
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject ISnackbar Snackbar
+@inject ILogger<DatabaseMigration> Logger
+
+<PageTitle>Database Migration</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Storage" Class="mr-2" />
+            Database Migration Management
+        </MudText>
+
+        <MudText Typo="Typo.body2" Class="mb-4">
+            Manage database migrations and connection settings. Ensure your database is up to date with the latest schema changes.
+        </MudText>
+
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                @errorMessage
+            </MudAlert>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <MudAlert Severity="Severity.Success" Class="mb-4">
+                @successMessage
+            </MudAlert>
+        }
+
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Connection Status</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudStack Spacing="2">
+                    <MudText Typo="Typo.body1">
+                        <strong>Connection String:</strong> @(string.IsNullOrEmpty(connectionString) ? "Not configured" : MaskConnectionString(connectionString))
+                    </MudText>
+                    <MudChip T="string" Color="@(isConnected ? Color.Success : Color.Error)" Size="Size.Small">
+                        @(isConnected ? "Connected" : "Not Connected")
+                    </MudChip>
+                </MudStack>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Migration Status</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (pendingMigrations.Any())
+                {
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        <strong>Pending Migrations:</strong> @pendingMigrations.Count
+                    </MudText>
+                    <MudList T="string" Dense="true">
+                        @foreach (var migration in pendingMigrations)
+                        {
+                            <MudListItem T="string">
+                                <MudText Typo="Typo.body2">@migration</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Success">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Class="mr-1" />
+                        Database is up to date. No pending migrations.
+                    </MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="CheckConnection" Disabled="isLoading">
+                <MudIcon Icon="@Icons.Material.Filled.Refresh" Class="mr-2" />
+                Check Connection
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyMigrations" Disabled="isLoading || !pendingMigrations.Any()">
+                <MudIcon Icon="@Icons.Material.Filled.Upgrade" Class="mr-2" />
+                Apply Migrations
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private bool isLoading = false;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool isConnected = false;
+    private string connectionString = string.Empty;
+    private List<string> pendingMigrations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckConnection();
+        await CheckPendingMigrations();
+    }
+
+    private async Task CheckConnection()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            successMessage = null;
+            StateHasChanged();
+
+            await using var context = await DbContextFactory.CreateDbContextAsync();
+            connectionString = context.Database.GetConnectionString() ?? string.Empty;
+            
+            var canConnect = await context.Database.CanConnectAsync();
+            isConnected = canConnect;
+
+            if (canConnect)
+            {
+                successMessage = "Database connection successful.";
+                Logger.LogInformation("Database connection check successful");
+            }
+            else
+            {
+                errorMessage = "Cannot connect to database. Please check your connection string.";
+                Logger.LogWarning("Database connection check failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            isConnected = false;
+            errorMessage = $"Error checking connection: {ex.Message}";
+            Logger.LogError(ex, "Error checking database connection");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckPendingMigrations()
+    {
+        try
+        {
+            await using var context = await DbContextFactory.CreateDbContextAsync();
+            var migrations = await context.Database.GetPendingMigrationsAsync();
+            pendingMigrations = migrations.ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error checking pending migrations");
+            errorMessage = $"Error checking migrations: {ex.Message}";
+        }
+    }
+
+    private async Task ApplyMigrations()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            successMessage = null;
+            StateHasChanged();
+
+            await using var context = await DbContextFactory.CreateDbContextAsync();
+            await context.Database.MigrateAsync();
+
+            successMessage = $"Successfully applied {pendingMigrations.Count} migration(s).";
+            Logger.LogInformation("Applied {Count} database migrations", pendingMigrations.Count);
+            
+            Snackbar.Add(successMessage, Severity.Success);
+            
+            await CheckPendingMigrations();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error applying migrations: {ex.Message}";
+            Logger.LogError(ex, "Error applying database migrations");
+            Snackbar.Add(errorMessage, Severity.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private static string MaskConnectionString(string connectionString)
+    {
+        if (string.IsNullOrEmpty(connectionString))
+            return string.Empty;
+
+        // Mask password in connection string
+        var parts = connectionString.Split(';');
+        var maskedParts = parts.Select(part =>
+        {
+            if (part.TrimStart().StartsWith("Password", StringComparison.OrdinalIgnoreCase) ||
+                part.TrimStart().StartsWith("Pwd", StringComparison.OrdinalIgnoreCase))
+            {
+                return part.Split('=')[0] + "=***";
+            }
+            return part;
+        });
+        
+        return string.Join(";", maskedParts);
+    }
+}
+
