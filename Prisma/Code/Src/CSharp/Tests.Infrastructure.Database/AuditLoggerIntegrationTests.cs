@@ -3,10 +3,17 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
 /// <summary>
 /// Integration tests for audit logging that verify end-to-end audit logging across all processing stages.
 /// These tests verify performance impact (IV1), retention policy (IV3), and cross-stage correlation ID tracking.
-/// NOTE: Temporarily disabled - uses Application services. Should be moved to Tests.Application or refactored to mock Application dependencies.
+/// 
+/// ⚠️ REFACTORING REQUIRED ⚠️
+/// This test violates clean architecture by directly instantiating Application services
+/// (DocumentIngestionService, MetadataExtractionService, DecisionLogicService, ExportService) instead of using mocks.
+/// 
+/// ACTION REQUIRED:
+/// - Refactor to mock Application service interfaces
+/// - OR move this test to Tests.Application
+/// 
+/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
-// TODO: Move to Tests.Application or refactor to mock Application dependencies
-/*
 public class AuditLoggerIntegrationTests : IDisposable
 {
     private readonly PrismaDbContext _dbContext;
@@ -22,6 +29,11 @@ public class AuditLoggerIntegrationTests : IDisposable
     /// </summary>
     public AuditLoggerIntegrationTests(ITestOutputHelper output)
     {
+        throw new InvalidOperationException(
+            "⚠️ REFACTORING REQUIRED ⚠️\n" +
+            "This test violates clean architecture by directly instantiating Application services.\n" +
+            "Please refactor to mock Application service interfaces or move to Tests.Application.\n" +
+            "See class documentation for details.");
         var options = new DbContextOptionsBuilder<PrismaDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -394,5 +406,4 @@ public class AuditLoggerIntegrationTests : IDisposable
         _dbContext?.Dispose();
     }
 }
-*/
 

@@ -2,10 +2,16 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
 /// Performance tests for <see cref="FieldMatchingService"/> to verify NFR compliance.
-/// NOTE: Temporarily disabled - instantiates Infrastructure.Classification types instead of mocking. Should be refactored to use mocks.
+/// 
+/// ⚠️ REFACTORING REQUIRED ⚠️
+/// This test violates clean architecture by directly instantiating Infrastructure.Classification types
+/// (MatchingPolicyService) instead of mocking the IMatchingPolicy interface.
+/// 
+/// ACTION REQUIRED:
+/// - Refactor to mock IMatchingPolicy interface instead of creating MatchingPolicyService
+/// 
+/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
-// TODO: Refactor to mock IMatchingPolicy instead of creating MatchingPolicyService
-/*
 public class FieldMatchingPerformanceTests
 {
     private readonly IFieldExtractor<DocxSource> _docxFieldExtractor;
@@ -16,6 +22,11 @@ public class FieldMatchingPerformanceTests
 
     public FieldMatchingPerformanceTests()
     {
+        throw new InvalidOperationException(
+            "⚠️ REFACTORING REQUIRED ⚠️\n" +
+            "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
+            "Please refactor to mock IMatchingPolicy interface instead of creating MatchingPolicyService.\n" +
+            "See class documentation for details.");
         _docxFieldExtractor = Substitute.For<IFieldExtractor<DocxSource>>();
         _pdfFieldExtractor = Substitute.For<IFieldExtractor<PdfSource>>();
         _logger = Substitute.For<ILogger<FieldMatchingService>>();
@@ -133,5 +144,4 @@ public class FieldMatchingPerformanceTests
             $"Field matching with many fields took {stopwatch.ElapsedMilliseconds}ms, exceeding 1 second target");
     }
 }
-*/
 

@@ -2,30 +2,42 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
 /// Integration tests for <see cref="DecisionLogicService"/> verifying end-to-end workflow and integration verification points.
-/// NOTE: Temporarily disabled - uses Infrastructure.Classification types. Should be moved to Tests.Infrastructure.Classification or refactored to use mocks.
+///
+/// ⚠️ REFACTORING REQUIRED ⚠️
+/// This test violates clean architecture by directly instantiating Infrastructure.Classification types
+/// (IPersonIdentityResolverService, ILegalDirectiveClassifierService) instead of using mocks.
+///
+/// ACTION REQUIRED:
+/// - Refactor to mock IPersonIdentityResolver and ILegalDirectiveClassifier interfaces
+/// - OR move this test to Tests.Infrastructure.Classification
+///
+/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
-// TODO: Move to Tests.Infrastructure.Classification or refactor to mock Infrastructure dependencies
-/*
 public class DecisionLogicIntegrationTests
 {
     private readonly DecisionLogicService _service;
-    private readonly PersonIdentityResolverService _identityResolver;
-    private readonly LegalDirectiveClassifierService _classifier;
+    private readonly IPersonIdentityResolver _identityResolver;
+    private readonly ILegalDirectiveClassifier _classifier;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DecisionLogicIntegrationTests"/> class.
     /// </summary>
     public DecisionLogicIntegrationTests()
     {
-        var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddConsole());
-        var identityLogger = loggerFactory.CreateLogger<PersonIdentityResolverService>();
-        var classifierLogger = loggerFactory.CreateLogger<LegalDirectiveClassifierService>();
-        var serviceLogger = loggerFactory.CreateLogger<DecisionLogicService>();
+        throw new InvalidOperationException(
+            "⚠️ REFACTORING REQUIRED ⚠️\n" +
+            "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
+            "Please refactor to use mocks (IPersonIdentityResolver, ILegalDirectiveClassifier) or move to Tests.Infrastructure.Classification.\n" +
+            "See class documentation for details.");
+        
+        // CORRECT APPROACH (commented out until refactored):
+        // Use mocks of Domain interfaces, NOT concrete Infrastructure implementations
+        _identityResolver = Substitute.For<IPersonIdentityResolver>();
+        _classifier = Substitute.For<ILegalDirectiveClassifier>();
+        var serviceLogger = Substitute.For<ILogger<DecisionLogicService>>();
         var auditLogger = Substitute.For<IAuditLogger>();
         var manualReviewerPanel = Substitute.For<IManualReviewerPanel>();
 
-        _identityResolver = new PersonIdentityResolverService(identityLogger);
-        _classifier = new LegalDirectiveClassifierService(classifierLogger);
         _service = new DecisionLogicService(_identityResolver, _classifier, manualReviewerPanel, auditLogger, serviceLogger);
     }
 
@@ -285,4 +297,3 @@ public class DecisionLogicIntegrationTests
         // In a real scenario, we would verify log entries were written
     }
 }
-*/

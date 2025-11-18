@@ -2,10 +2,17 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
 /// Integration tests for <see cref="FieldMatchingService"/> covering end-to-end workflows, backward compatibility, and performance.
-/// NOTE: Temporarily disabled - uses Infrastructure.Classification types. Should be moved to Tests.Infrastructure.Classification or refactored to use mocks.
+/// 
+/// ⚠️ REFACTORING REQUIRED ⚠️
+/// This test violates clean architecture by directly instantiating Infrastructure.Classification types
+/// (MatchingPolicyService) instead of mocking the IMatchingPolicy interface.
+/// 
+/// ACTION REQUIRED:
+/// - Refactor to mock IMatchingPolicy interface
+/// - OR move this test to Tests.Infrastructure.Classification
+/// 
+/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
-// TODO: Move to Tests.Infrastructure.Classification or refactor to mock Infrastructure dependencies
-/*
 public class FieldMatchingIntegrationTests
 {
     private readonly IFieldExtractor<DocxSource> _docxFieldExtractor;
@@ -17,6 +24,11 @@ public class FieldMatchingIntegrationTests
 
     public FieldMatchingIntegrationTests(ITestOutputHelper output)
     {
+        throw new InvalidOperationException(
+            "⚠️ REFACTORING REQUIRED ⚠️\n" +
+            "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
+            "Please refactor to mock IMatchingPolicy interface or move to Tests.Infrastructure.Classification.\n" +
+            "See class documentation for details.");
         _docxFieldExtractor = Substitute.For<IFieldExtractor<DocxSource>>();
         _pdfFieldExtractor = Substitute.For<IFieldExtractor<PdfSource>>();
         _xmlFieldExtractor = Substitute.For<IFieldExtractor<XmlSource>>();
@@ -211,5 +223,4 @@ public class FieldMatchingIntegrationTests
             $"End-to-end field matching workflow took {stopwatch.ElapsedMilliseconds}ms, exceeding 2 second target (NFR4 for XML/DOCX)");
     }
 }
-*/
 

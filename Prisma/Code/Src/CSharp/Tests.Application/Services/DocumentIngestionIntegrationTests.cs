@@ -3,10 +3,17 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 /// <summary>
 /// Integration tests for <see cref="DocumentIngestionService"/> that test the end-to-end workflow.
 /// These tests use real infrastructure components (in-memory database, file system) but mocked browser automation.
-/// NOTE: Temporarily disabled - uses Infrastructure.Database and Infrastructure.FileStorage types. Should be moved to appropriate Infrastructure test projects or refactored to use mocks.
+/// 
+/// ⚠️ REFACTORING REQUIRED ⚠️
+/// This test violates clean architecture by directly instantiating Infrastructure.Database and Infrastructure.FileStorage types
+/// (PrismaDbContext, DownloadTrackerService, FileMetadataLoggerService, FileSystemDownloadStorageAdapter) instead of using mocks.
+/// 
+/// ACTION REQUIRED:
+/// - Refactor to mock Domain interfaces (IDownloadTracker, IFileMetadataLogger, IDownloadStorage)
+/// - OR move this test to Tests.Infrastructure.Database
+/// 
+/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
-// TODO: Move to Tests.Infrastructure.Database or refactor to mock Infrastructure dependencies
-/*
 public class DocumentIngestionIntegrationTests : IDisposable
 {
     private readonly string _tempDirectory;
@@ -23,6 +30,11 @@ public class DocumentIngestionIntegrationTests : IDisposable
     /// </summary>
     public DocumentIngestionIntegrationTests(ITestOutputHelper output)
     {
+        throw new InvalidOperationException(
+            "⚠️ REFACTORING REQUIRED ⚠️\n" +
+            "This test violates clean architecture by directly instantiating Infrastructure types.\n" +
+            "Please refactor to use mocks (IDownloadTracker, IFileMetadataLogger, IDownloadStorage) or move to Tests.Infrastructure.Database.\n" +
+            "See class documentation for details.");
         _tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDirectory);
 
@@ -195,4 +207,3 @@ public class DocumentIngestionIntegrationTests : IDisposable
         return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
     }
 }
-*/

@@ -2,10 +2,16 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
 /// Unit tests for <see cref="FieldMatchingService"/>.
-/// NOTE: Temporarily disabled - instantiates Infrastructure.Classification types instead of mocking. Should be refactored to use mocks.
+/// 
+/// ⚠️ REFACTORING REQUIRED ⚠️
+/// This test violates clean architecture by directly instantiating Infrastructure.Classification types
+/// (MatchingPolicyService) instead of mocking the IMatchingPolicy interface.
+/// 
+/// ACTION REQUIRED:
+/// - Refactor to mock IMatchingPolicy interface instead of creating MatchingPolicyService
+/// 
+/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
-// TODO: Refactor to mock IMatchingPolicy instead of creating MatchingPolicyService
-/*
 public class FieldMatchingServiceTests
 {
     private readonly IFieldExtractor<DocxSource> _docxFieldExtractor;
@@ -16,6 +22,11 @@ public class FieldMatchingServiceTests
 
     public FieldMatchingServiceTests()
     {
+        throw new InvalidOperationException(
+            "⚠️ REFACTORING REQUIRED ⚠️\n" +
+            "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
+            "Please refactor to mock IMatchingPolicy interface instead of creating MatchingPolicyService.\n" +
+            "See class documentation for details.");
         _docxFieldExtractor = Substitute.For<IFieldExtractor<DocxSource>>();
         _pdfFieldExtractor = Substitute.For<IFieldExtractor<PdfSource>>();
         _logger = Substitute.For<ILogger<FieldMatchingService>>();
@@ -305,5 +316,4 @@ public class FieldMatchingServiceTests
         // Warning should be logged for missing required field
     }
 }
-*/
 

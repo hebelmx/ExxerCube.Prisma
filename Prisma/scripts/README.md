@@ -10,7 +10,7 @@ This directory contains **33 active Python automation scripts** for ExxerAI deve
 
 ## 📋 Script Categories
 
-### 🧪 Test Management (8 scripts)
+### 🧪 Test Management (11 scripts)
 
 **add_test_timeouts.py**
 - Adds timeout attributes to test methods to prevent hanging tests
@@ -52,6 +52,37 @@ This directory contains **33 active Python automation scripts** for ExxerAI deve
 - Applies consistent formatting across all project files
 - Uses dotnet format under the hood
 - Usage: `python scripts/format_all_projects.py`
+
+**analyze_test_coverage.py** ⭐ **NEW - TEST MIGRATION ANALYSIS**
+- Analyzes test coverage between monolithic and split test projects
+- Identifies missing tests (not yet migrated) and new tests (in split projects)
+- Compares test methods by filename and method names (handles file relocation)
+- Excludes Python interop tests (deprecated feature)
+- Output: `test_coverage_analysis.json` with detailed comparison
+- Usage: `python scripts/analyze_test_coverage.py --base-path "F:/Dynamic/ExxerCubeBanamex/ExxerCube.Prisma"`
+- **Updated**: 2025-01-15 - Added multiline test method pattern matching, filename normalization, Python interop exclusion
+
+**count_test_methods.py** ⭐ **NEW - TEST COUNTING**
+- Counts test methods across all test projects
+- Provides detailed breakdown by project and file
+- Handles both `[Fact]` and `[Theory]` attributes
+- Supports multiline attribute patterns
+- Excludes Python interop tests (deprecated feature)
+- Output: `test_method_counts.json` with per-project statistics
+- Usage: `python scripts/count_test_methods.py --base-path "F:/Dynamic/ExxerCubeBanamex/ExxerCube.Prisma"`
+- **Updated**: 2025-01-15 - Added multiline test method pattern matching, Python interop exclusion
+
+**show_missing_tests.py** ⭐ **NEW - MISSING TESTS DISPLAY**
+- Displays missing and new tests from coverage analysis in readable format
+- Parses `test_coverage_analysis.json` and presents information clearly
+- Shows original paths, split paths, and method names
+- Usage: `python scripts/show_missing_tests.py`
+- **Created**: 2025-01-15 - Helper script for test migration analysis
+
+**find_duplicate_tests.py**
+- Finds duplicate test files across split test projects
+- Identifies tests that may have been copied to multiple projects
+- Usage: `python scripts/find_duplicate_tests.py`
 
 ---
 

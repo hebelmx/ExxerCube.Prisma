@@ -2,12 +2,28 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Export;
 
 /// <summary>
 /// Integration tests for PDF summarization and digital signing workflow.
-/// NOTE: Temporarily disabled - uses Infrastructure.Extraction types. Should be moved to Tests.Infrastructure.Extraction or refactored to mock Extraction dependencies.
+/// 
+/// ⚠️ REFACTORING REQUIRED ⚠️
+/// This test violates clean architecture by directly instantiating Infrastructure.Extraction types
+/// (CompositeMetadataExtractor, XmlMetadataExtractor, DocxMetadataExtractor, PdfMetadataExtractor) instead of using mocks.
+/// 
+/// ACTION REQUIRED:
+/// - Refactor to mock IMetadataExtractor interface
+/// - OR move this test to Tests.Infrastructure.Extraction
+/// 
+/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
-// TODO: Move to Tests.Infrastructure.Extraction or refactor to mock Extraction dependencies
-/*
 public class ExportIntegrationTests
 {
+    public ExportIntegrationTests()
+    {
+        throw new InvalidOperationException(
+            "⚠️ REFACTORING REQUIRED ⚠️\n" +
+            "This test violates clean architecture by directly instantiating Infrastructure.Extraction types.\n" +
+            "Please refactor to mock IMetadataExtractor interface or move to Tests.Infrastructure.Extraction.\n" +
+            "See class documentation for details.");
+    }
+
     /// <summary>
     /// Tests end-to-end PDF summarization workflow with sample PDF content.
     /// </summary>
@@ -134,5 +150,4 @@ public class ExportIntegrationTests
         result.Error.ShouldContain("certificate", Case.Insensitive);
     }
 }
-*/
 

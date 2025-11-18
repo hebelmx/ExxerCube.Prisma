@@ -2,10 +2,17 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
 /// Performance tests for <see cref="MetadataExtractionService"/> to verify NFR4 and NFR5 requirements.
-/// NOTE: Temporarily disabled - uses Infrastructure.Extraction and Infrastructure.FileStorage types. Should be moved to appropriate Infrastructure test projects or refactored to use mocks.
+/// 
+/// ⚠️ REFACTORING REQUIRED ⚠️
+/// This test violates clean architecture by directly instantiating Infrastructure.Extraction and Infrastructure.FileStorage types
+/// instead of using mocks.
+/// 
+/// ACTION REQUIRED:
+/// - Refactor to mock Domain interfaces (IFileTypeIdentifier, IMetadataExtractor, IFileClassifier, ISafeFileNamer, IFileMover)
+/// - OR move this test to Tests.Infrastructure.Extraction
+/// 
+/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
-// TODO: Move to Tests.Infrastructure.Extraction or refactor to mock Infrastructure dependencies
-/*
 public class MetadataExtractionPerformanceTests : IDisposable
 {
     private readonly string _tempDirectory;
@@ -26,6 +33,11 @@ public class MetadataExtractionPerformanceTests : IDisposable
     /// </summary>
     public MetadataExtractionPerformanceTests(ITestOutputHelper output)
     {
+        throw new InvalidOperationException(
+            "⚠️ REFACTORING REQUIRED ⚠️\n" +
+            "This test violates clean architecture by directly instantiating Infrastructure types.\n" +
+            "Please refactor to use mocks (IFileTypeIdentifier, IMetadataExtractor, IFileClassifier, ISafeFileNamer, IFileMover) or move to Tests.Infrastructure.Extraction.\n" +
+            "See class documentation for details.");
         _tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDirectory);
 
@@ -150,4 +162,3 @@ public class MetadataExtractionPerformanceTests : IDisposable
         }
     }
 }
-*/
