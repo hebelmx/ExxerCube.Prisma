@@ -1,17 +1,8 @@
-// NOTE: Temporarily disabled - file is in Tests.Infrastructure.FileSystem but tests Infrastructure.FileStorage type. Should be moved to Tests.Infrastructure.FileStorage.
-// TODO: Move to Tests.Infrastructure.FileStorage
-/*
-using ExxerCube.Prisma.Infrastructure.FileStorage;
-using Microsoft.Extensions.Options;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.FileStorage;
 
 /// <summary>
 /// Unit tests for <see cref="FileSystemDownloadStorageAdapter"/>.
-/// NOTE: Temporarily disabled - file is in Tests.Infrastructure.FileSystem but tests Infrastructure.FileStorage type. Should be moved to Tests.Infrastructure.FileStorage.
 /// </summary>
-// TODO: Move to Tests.Infrastructure.FileStorage
-/*
 public class FileSystemDownloadStorageAdapterTests : IDisposable
 {
     private readonly string _tempDirectory;
@@ -116,4 +107,4 @@ public class FileSystemDownloadStorageAdapterTests : IDisposable
         }
     }
 }
-*/
+
