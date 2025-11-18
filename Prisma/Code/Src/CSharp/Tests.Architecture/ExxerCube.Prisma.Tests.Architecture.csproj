@@ -25,6 +25,7 @@
 
   <ItemGroup Label="Testing Utilities">
     <PackageReference Include="Shouldly" />
+    <PackageReference Include="NetArchTest.Rules" />
   </ItemGroup>
 
   <ItemGroup Label="Logging">

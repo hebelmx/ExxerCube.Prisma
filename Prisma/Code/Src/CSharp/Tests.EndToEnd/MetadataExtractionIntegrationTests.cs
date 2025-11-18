@@ -1,19 +1,16 @@
-namespace ExxerCube.Prisma.Tests.Application.Services;
+using ExxerCube.Prisma.Domain.Interfaces;
+
+namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>
-/// Integration tests for <see cref="MetadataExtractionService"/> that test the end-to-end workflow.
-/// These tests use real infrastructure components and verify integration verification points IV1-IV3.
-/// 
-/// ⚠️ REFACTORING REQUIRED ⚠️
-/// This test violates clean architecture by directly instantiating Infrastructure.Extraction and Infrastructure.FileStorage types
-/// (FileTypeIdentifierService, XmlMetadataExtractor, DocxMetadataExtractor, PdfMetadataExtractor, CompositeMetadataExtractor,
-/// FileClassifierService, SafeFileNamerService, FileMoverService) instead of using mocks.
-/// 
-/// ACTION REQUIRED:
-/// - Refactor to mock Domain interfaces (IFileTypeIdentifier, IMetadataExtractor, IFileClassifier, ISafeFileNamer, IFileMover)
-/// - OR move this test to Tests.Infrastructure.Extraction
-/// 
-/// Until refactored, all tests will fail with a clear error message.
+/// End-to-end integration tests for <see cref="MetadataExtractionService"/> that test complete workflows.
+/// These tests use real infrastructure components to verify integration verification points IV1-IV3.
+///
+/// These tests belong in Tests.EndToEnd because they:
+/// - Use real Infrastructure implementations (not mocks)
+/// - Test complete workflows across Application and Infrastructure layers
+/// - Verify integration between multiple Infrastructure components
+/// - Test file system operations and real document processing
 /// </summary>
 public class MetadataExtractionIntegrationTests : IDisposable
 {
@@ -40,11 +37,6 @@ public class MetadataExtractionIntegrationTests : IDisposable
     /// </summary>
     public MetadataExtractionIntegrationTests(ITestOutputHelper output)
     {
-        throw new InvalidOperationException(
-            "⚠️ REFACTORING REQUIRED ⚠️\n" +
-            "This test violates clean architecture by directly instantiating Infrastructure types.\n" +
-            "Please refactor to use mocks (IFileTypeIdentifier, IMetadataExtractor, IFileClassifier, ISafeFileNamer, IFileMover) or move to Tests.Infrastructure.Extraction.\n" +
-            "See class documentation for details.");
         _tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDirectory);
 
@@ -62,16 +54,16 @@ public class MetadataExtractionIntegrationTests : IDisposable
 
         // Create real infrastructure components
         _fileTypeIdentifier = new FileTypeIdentifierService(_fileTypeLogger);
-        
+
         var xmlParser = new XmlExpedienteParser(_xmlParserLogger);
         var xmlExtractor = new XmlMetadataExtractor(xmlParser, _xmlExtractorLogger);
         var docxExtractor = new DocxMetadataExtractor(_docxExtractorLogger);
-        
+
         // For PDF extractor, we need to mock OCR dependencies since they require Python
         var imagePreprocessor = Substitute.For<IImagePreprocessor>();
         var ocrExecutor = Substitute.For<IOcrExecutor>();
         var pdfExtractor = new PdfMetadataExtractor(ocrExecutor, imagePreprocessor, _pdfExtractorLogger);
-        
+
         // Create composite extractor with real implementations
         _metadataExtractor = new CompositeMetadataExtractor(
             xmlExtractor,
@@ -80,9 +72,9 @@ public class MetadataExtractionIntegrationTests : IDisposable
             _compositeExtractorLogger);
 
         _fileClassifier = new FileClassifierService(_classifierLogger);
-        
+
         _safeFileNamer = new SafeFileNamerService(_fileNamerLogger);
-        
+
         var storageOptions = Options.Create(new FileStorageOptions
         {
             BaseStoragePath = _tempDirectory
@@ -156,7 +148,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
         // Mock OCR dependencies to verify they're still called correctly
         var imagePreprocessor = Substitute.For<IImagePreprocessor>();
         var ocrExecutor = Substitute.For<IOcrExecutor>();
-        
+
         var imageData = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var ocrResult = new OCRResult { Text = "Sample OCR text with A/AS1-2505-088637-PHM expediente" };
@@ -189,7 +181,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
         // Assert - IV1: Verify OCR interfaces were called
         await imagePreprocessor.Received().PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>());
         await ocrExecutor.Received().ExecuteOcrAsync(Arg.Any<ImageData>(), Arg.Any<OCRConfig>());
-        
+
         // Verify the workflow completed
         result.IsSuccess.ShouldBeTrue();
     }
@@ -204,7 +196,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
         var pdfContent = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34 };
         var imagePreprocessor = Substitute.For<IImagePreprocessor>();
         var ocrExecutor = Substitute.For<IOcrExecutor>();
-        
+
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var ocrResult = new OCRResult { Text = "Test OCR text" };
 
@@ -250,7 +242,7 @@ public class MetadataExtractionIntegrationTests : IDisposable
 
         // Assert - IV3: Classification should complete in under 500ms
         result.IsSuccess.ShouldBeTrue();
-        stopwatch.ElapsedMilliseconds.ShouldBeLessThan(500, 
+        stopwatch.ElapsedMilliseconds.ShouldBeLessThan(500,
             $"Classification took {stopwatch.ElapsedMilliseconds}ms, exceeding 500ms target");
     }
 
@@ -318,4 +310,3 @@ public class MetadataExtractionIntegrationTests : IDisposable
         }
     }
 }
-

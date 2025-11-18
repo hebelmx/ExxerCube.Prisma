@@ -1,17 +1,16 @@
-namespace ExxerCube.Prisma.Tests.Application.Services;
+using DocumentFormat.OpenXml;
+using ExxerCube.Prisma.Domain.Interfaces;
+
+namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>
-/// Performance tests for <see cref="MetadataExtractionService"/> to verify NFR4 and NFR5 requirements.
-/// 
-/// ⚠️ REFACTORING REQUIRED ⚠️
-/// This test violates clean architecture by directly instantiating Infrastructure.Extraction and Infrastructure.FileStorage types
-/// instead of using mocks.
-/// 
-/// ACTION REQUIRED:
-/// - Refactor to mock Domain interfaces (IFileTypeIdentifier, IMetadataExtractor, IFileClassifier, ISafeFileNamer, IFileMover)
-/// - OR move this test to Tests.Infrastructure.Extraction
-/// 
-/// Until refactored, all tests will fail with a clear error message.
+/// End-to-end performance tests for <see cref="MetadataExtractionService"/> to verify NFR4 and NFR5 requirements.
+///
+/// These tests belong in Tests.EndToEnd because they:
+/// - Use real Infrastructure implementations (not mocks)
+/// - Test performance characteristics of complete workflows
+/// - Verify non-functional requirements across Application and Infrastructure layers
+/// - Test real file processing performance
 /// </summary>
 public class MetadataExtractionPerformanceTests : IDisposable
 {
@@ -33,11 +32,6 @@ public class MetadataExtractionPerformanceTests : IDisposable
     /// </summary>
     public MetadataExtractionPerformanceTests(ITestOutputHelper output)
     {
-        throw new InvalidOperationException(
-            "⚠️ REFACTORING REQUIRED ⚠️\n" +
-            "This test violates clean architecture by directly instantiating Infrastructure types.\n" +
-            "Please refactor to use mocks (IFileTypeIdentifier, IMetadataExtractor, IFileClassifier, ISafeFileNamer, IFileMover) or move to Tests.Infrastructure.Extraction.\n" +
-            "See class documentation for details.");
         _tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDirectory);
 
@@ -130,15 +124,15 @@ public class MetadataExtractionPerformanceTests : IDisposable
     private static byte[] CreateMinimalDocx()
     {
         using var stream = new MemoryStream();
-        using (var wordDocument = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Create(
-            stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
+        using (var wordDocument = WordprocessingDocument.Create(
+            stream, WordprocessingDocumentType.Document))
         {
             var mainPart = wordDocument.AddMainDocumentPart();
-            mainPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
-            var body = mainPart.Document.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Body());
-            var paragraph = body.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Paragraph());
-            paragraph.AppendChild(new DocumentFormat.OpenXml.Wordprocessing.Run(
-                new DocumentFormat.OpenXml.Wordprocessing.Text("Test")));
+            mainPart.Document = new Document();
+            var body = mainPart.Document.AppendChild(new Body());
+            var paragraph = body.AppendChild(new Paragraph());
+            paragraph.AppendChild(new Run(
+                new Text("Test")));
             mainPart.Document.Save();
         }
         return stream.ToArray();

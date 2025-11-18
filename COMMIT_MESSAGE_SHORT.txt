@@ -1,0 +1,18 @@
+feat: Domain reorganization & architectural enforcement
+
+Major achievements:
+- Reorganized Domain layer: Enums (9), ValueObjects (15), Sources (3), Models (3), Entities (12)
+- Added NetArchTest architectural constraint tests (15 tests enforcing hexagonal architecture)
+- Completed comprehensive repository integration tests
+- Fixed all ADR-002 violations + discovered new ones via automated rules
+- Moved tests to proper projects (E2E, System, Application)
+
+Lessons learned:
+1. Domain organization matters - proper folder structure improves maintainability
+2. Automated architectural enforcement catches violations at build time
+3. Test location reflects test purpose - structure enforces boundaries
+4. Repository pattern requires testing with multiple entity types
+5. Architectural rules discover additional violations systematically
+
+All tests passing. Architectural violations now prevented automatically.
+

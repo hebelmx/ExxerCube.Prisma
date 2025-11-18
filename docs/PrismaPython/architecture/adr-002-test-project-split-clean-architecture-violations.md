@@ -7,6 +7,7 @@
 
 **Related ADRs:**
 - [ADR-003: Test Suite Split Decision](./adr-003-test-suite-split-decision.md) - Documents the decision to split the test suite
+- [ADR-002 Remediation Guide](./adr-002-remediation-guide.md) - **Detailed step-by-step remediation instructions for .NET dev agents**
 
 ---
 
@@ -166,6 +167,8 @@ During the test migration, **9 test classes** were identified as violating clean
 
 ## References
 
+- **[📋 ADR-002 Remediation Guide](./adr-002-remediation-guide.md)** - **Detailed step-by-step instructions for fixing all 9 violations**
+- [ADR-003: Test Suite Split Decision](./adr-003-test-suite-split-decision.md)
 - [Clean Architecture Patterns](../.cursor/rules/1008_CleanArchitecturePatterns.mdc)
 - [Domain-Driven Design Patterns](../.cursor/rules/1007_DomainDrivenDesignPatterns.mdc)
 - [C# Coding Standards](../.cursor/rules/1001_CSharpCodingStandards.mdc)

@@ -1,18 +1,14 @@
-namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
+using ExxerCube.Prisma.Infrastructure.Database;
+using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
+
+namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
 /// Integration tests for audit logging that verify end-to-end audit logging across all processing stages.
 /// These tests verify performance impact (IV1), retention policy (IV3), and cross-stage correlation ID tracking.
-/// 
-/// ⚠️ REFACTORING REQUIRED ⚠️
-/// This test violates clean architecture by directly instantiating Application services
-/// (DocumentIngestionService, MetadataExtractionService, DecisionLogicService, ExportService) instead of using mocks.
-/// 
-/// ACTION REQUIRED:
-/// - Refactor to mock Application service interfaces
-/// - OR move this test to Tests.Application
-/// 
-/// Until refactored, all tests will fail with a clear error message.
+///
+/// This test verifies Application service integration with audit logging infrastructure.
+/// Database context is used for testing Application integration with Infrastructure.
 /// </summary>
 public class AuditLoggerIntegrationTests : IDisposable
 {
@@ -29,11 +25,6 @@ public class AuditLoggerIntegrationTests : IDisposable
     /// </summary>
     public AuditLoggerIntegrationTests(ITestOutputHelper output)
     {
-        throw new InvalidOperationException(
-            "⚠️ REFACTORING REQUIRED ⚠️\n" +
-            "This test violates clean architecture by directly instantiating Application services.\n" +
-            "Please refactor to mock Application service interfaces or move to Tests.Application.\n" +
-            "See class documentation for details.");
         var options = new DbContextOptionsBuilder<PrismaDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
@@ -381,10 +372,10 @@ public class AuditLoggerIntegrationTests : IDisposable
         // Act - Attempt to modify the record
         var record = await _dbContext.AuditRecords
             .FirstOrDefaultAsync(r => r.CorrelationId == correlationId, CancellationToken.None);
-        
+
         record.ShouldNotBeNull();
         var originalDetails = record!.ActionDetails;
-        
+
         // Try to modify (this should be prevented by business logic, but we verify immutability)
         record.ActionDetails = "Modified details";
         await _dbContext.SaveChangesAsync(CancellationToken.None);
@@ -406,4 +397,3 @@ public class AuditLoggerIntegrationTests : IDisposable
         _dbContext?.Dispose();
     }
 }
-

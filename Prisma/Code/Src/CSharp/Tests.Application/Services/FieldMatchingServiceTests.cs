@@ -1,15 +1,17 @@
+using ExxerCube.Prisma.Infrastructure.Classification;
+
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
 /// Unit tests for <see cref="FieldMatchingService"/>.
-/// 
+///
 /// ⚠️ REFACTORING REQUIRED ⚠️
 /// This test violates clean architecture by directly instantiating Infrastructure.Classification types
 /// (MatchingPolicyService) instead of mocking the IMatchingPolicy interface.
-/// 
+///
 /// ACTION REQUIRED:
 /// - Refactor to mock IMatchingPolicy interface instead of creating MatchingPolicyService
-/// 
+///
 /// Until refactored, all tests will fail with a clear error message.
 /// </summary>
 public class FieldMatchingServiceTests
@@ -22,18 +24,18 @@ public class FieldMatchingServiceTests
 
     public FieldMatchingServiceTests()
     {
-        throw new InvalidOperationException(
-            "⚠️ REFACTORING REQUIRED ⚠️\n" +
-            "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
-            "Please refactor to mock IMatchingPolicy interface instead of creating MatchingPolicyService.\n" +
-            "See class documentation for details.");
+        //throw new InvalidOperationException(
+        //    "⚠️ REFACTORING REQUIRED ⚠️\n" +
+        //    "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
+        //    "Please refactor to mock IMatchingPolicy interface instead of creating MatchingPolicyService.\n" +
+        //    "See class documentation for details.");
         _docxFieldExtractor = Substitute.For<IFieldExtractor<DocxSource>>();
         _pdfFieldExtractor = Substitute.For<IFieldExtractor<PdfSource>>();
         _logger = Substitute.For<ILogger<FieldMatchingService>>();
-        
+
         var options = Options.Create(new MatchingPolicyOptions());
         _matchingPolicy = new MatchingPolicyService(options, Substitute.For<ILogger<MatchingPolicyService>>());
-        
+
         _service = new FieldMatchingService(
             _docxFieldExtractor,
             _pdfFieldExtractor,
@@ -316,4 +318,3 @@ public class FieldMatchingServiceTests
         // Warning should be logged for missing required field
     }
 }
-

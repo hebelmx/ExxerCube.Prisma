@@ -17,7 +17,7 @@ public class IIManualReviewerPanelTests
         _manualReviewerPanel = Substitute.For<IManualReviewerPanel>();
     }
 
-    #region GetReviewCasesAsync Contract Tests
+     // GetReviewCasesAsync Contract Tests
 
     /// <summary>
     /// Tests that GetReviewCasesAsync returns Result&lt;List&lt;ReviewCase&gt;&gt; on success.
@@ -120,9 +120,9 @@ public class IIManualReviewerPanelTests
         result.Value.ShouldNotBeNull();
     }
 
-    #endregion
+     // 
 
-    #region SubmitReviewDecisionAsync Contract Tests
+     // SubmitReviewDecisionAsync Contract Tests
 
     /// <summary>
     /// Tests that SubmitReviewDecisionAsync returns Result (success) on successful submission.
@@ -243,9 +243,9 @@ public class IIManualReviewerPanelTests
         result.IsCancelled().ShouldBeTrue();
     }
 
-    #endregion
+     // 
 
-    #region GetFieldAnnotationsAsync Contract Tests
+     // GetFieldAnnotationsAsync Contract Tests
 
     /// <summary>
     /// Tests that GetFieldAnnotationsAsync returns Result&lt;FieldAnnotations&gt; for valid case ID.
@@ -351,9 +351,9 @@ public class IIManualReviewerPanelTests
         result.IsCancelled().ShouldBeTrue();
     }
 
-    #endregion
+     // 
 
-    #region IdentifyReviewCasesAsync Contract Tests
+     // IdentifyReviewCasesAsync Contract Tests
 
     /// <summary>
     /// Tests that IdentifyReviewCasesAsync identifies low confidence cases (< 80%).
@@ -596,6 +596,6 @@ public class IIManualReviewerPanelTests
         result.IsCancelled().ShouldBeTrue();
     }
 
-    #endregion
+     // 
 }
 

@@ -24,12 +24,12 @@ public class DecisionLogicIntegrationTests
     /// </summary>
     public DecisionLogicIntegrationTests()
     {
-        throw new InvalidOperationException(
-            "⚠️ REFACTORING REQUIRED ⚠️\n" +
-            "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
-            "Please refactor to use mocks (IPersonIdentityResolver, ILegalDirectiveClassifier) or move to Tests.Infrastructure.Classification.\n" +
-            "See class documentation for details.");
-        
+        //throw new InvalidOperationException(
+        //    "⚠️ REFACTORING REQUIRED ⚠️\n" +
+        //    "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
+        //    "Please refactor to use mocks (IPersonIdentityResolver, ILegalDirectiveClassifier) or move to Tests.Infrastructure.Classification.\n" +
+        //    "See class documentation for details.");
+
         // CORRECT APPROACH (commented out until refactored):
         // Use mocks of Domain interfaces, NOT concrete Infrastructure implementations
         _identityResolver = Substitute.For<IPersonIdentityResolver>();

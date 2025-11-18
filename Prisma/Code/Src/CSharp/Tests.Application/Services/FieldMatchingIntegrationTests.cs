@@ -2,16 +2,6 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
 /// Integration tests for <see cref="FieldMatchingService"/> covering end-to-end workflows, backward compatibility, and performance.
-/// 
-/// ⚠️ REFACTORING REQUIRED ⚠️
-/// This test violates clean architecture by directly instantiating Infrastructure.Classification types
-/// (MatchingPolicyService) instead of mocking the IMatchingPolicy interface.
-/// 
-/// ACTION REQUIRED:
-/// - Refactor to mock IMatchingPolicy interface
-/// - OR move this test to Tests.Infrastructure.Classification
-/// 
-/// Until refactored, all tests will fail with a clear error message.
 /// </summary>
 public class FieldMatchingIntegrationTests
 {
@@ -24,18 +14,13 @@ public class FieldMatchingIntegrationTests
 
     public FieldMatchingIntegrationTests(ITestOutputHelper output)
     {
-        throw new InvalidOperationException(
-            "⚠️ REFACTORING REQUIRED ⚠️\n" +
-            "This test violates clean architecture by directly instantiating Infrastructure.Classification types.\n" +
-            "Please refactor to mock IMatchingPolicy interface or move to Tests.Infrastructure.Classification.\n" +
-            "See class documentation for details.");
         _docxFieldExtractor = Substitute.For<IFieldExtractor<DocxSource>>();
         _pdfFieldExtractor = Substitute.For<IFieldExtractor<PdfSource>>();
         _xmlFieldExtractor = Substitute.For<IFieldExtractor<XmlSource>>();
         _logger = XUnitLogger.CreateLogger<FieldMatchingService>(output);
 
-        var options = Options.Create(new MatchingPolicyOptions());
-        _matchingPolicy = new MatchingPolicyService(options, Substitute.For<ILogger<MatchingPolicyService>>());
+        // Use mock instead of concrete Infrastructure implementation
+        _matchingPolicy = Substitute.For<IMatchingPolicy>();
 
         _service = new FieldMatchingService(
             _docxFieldExtractor,
@@ -92,6 +77,28 @@ public class FieldMatchingIntegrationTests
         _xmlFieldExtractor.ExtractFieldsAsync(Arg.Any<XmlSource>(), Arg.Any<FieldDefinition[]>())
             .Returns(Result<ExtractedFields>.Success(xmlFields));
 
+        // Configure matching policy mock - all sources agree, so high agreement level
+        _matchingPolicy.SelectBestValueAsync(Arg.Is<string>(s => s == "Expediente"), Arg.Any<List<FieldValue>>())
+            .Returns(Result<FieldMatchResult>.Success(new FieldMatchResult("Expediente", "A/AS1-2505-088637-PHM", 1.0f, "CONSENSUS")
+            {
+                AgreementLevel = 1.0f,
+                HasConflict = false
+            }));
+
+        _matchingPolicy.SelectBestValueAsync(Arg.Is<string>(s => s == "Causa"), Arg.Any<List<FieldValue>>())
+            .Returns(Result<FieldMatchResult>.Success(new FieldMatchResult("Causa", "Test Causa", 1.0f, "CONSENSUS")
+            {
+                AgreementLevel = 1.0f,
+                HasConflict = false
+            }));
+
+        _matchingPolicy.SelectBestValueAsync(Arg.Is<string>(s => s == "AccionSolicitada"), Arg.Any<List<FieldValue>>())
+            .Returns(Result<FieldMatchResult>.Success(new FieldMatchResult("AccionSolicitada", "Test Action", 1.0f, "CONSENSUS")
+            {
+                AgreementLevel = 1.0f,
+                HasConflict = false
+            }));
+
         var expediente = new Expediente { NumeroExpediente = "A/AS1-2505-088637-PHM" };
         var classification = new ClassificationResult();
 
@@ -134,6 +141,14 @@ public class FieldMatchingIntegrationTests
 
         _docxFieldExtractor.ExtractFieldsAsync(Arg.Any<DocxSource>(), Arg.Any<FieldDefinition[]>())
             .Returns(Result<ExtractedFields>.Success(docxFields));
+
+        // Configure matching policy mock for Expediente
+        _matchingPolicy.SelectBestValueAsync(Arg.Is<string>(s => s == "Expediente"), Arg.Any<List<FieldValue>>())
+            .Returns(Result<FieldMatchResult>.Success(new FieldMatchResult("Expediente", "A/AS1-2505-088637-PHM", 1.0f, "DOCX")
+            {
+                AgreementLevel = 1.0f,
+                HasConflict = false
+            }));
 
         // Act - Use generic IFieldExtractor<T> interface
         var result = await _service.MatchFieldsAndGenerateUnifiedRecordAsync(
@@ -203,6 +218,28 @@ public class FieldMatchingIntegrationTests
             .Returns(Result<ExtractedFields>.Success(pdfFields));
         _xmlFieldExtractor.ExtractFieldsAsync(Arg.Any<XmlSource>(), Arg.Any<FieldDefinition[]>())
             .Returns(Result<ExtractedFields>.Success(xmlFields));
+
+        // Configure matching policy mock - return immediately for performance testing
+        _matchingPolicy.SelectBestValueAsync(Arg.Is<string>(s => s == "Expediente"), Arg.Any<List<FieldValue>>())
+            .Returns(Result<FieldMatchResult>.Success(new FieldMatchResult("Expediente", "A/AS1-2505-088637-PHM", 1.0f, "CONSENSUS")
+            {
+                AgreementLevel = 1.0f,
+                HasConflict = false
+            }));
+
+        _matchingPolicy.SelectBestValueAsync(Arg.Is<string>(s => s == "Causa"), Arg.Any<List<FieldValue>>())
+            .Returns(Result<FieldMatchResult>.Success(new FieldMatchResult("Causa", "Test Causa", 1.0f, "CONSENSUS")
+            {
+                AgreementLevel = 1.0f,
+                HasConflict = false
+            }));
+
+        _matchingPolicy.SelectBestValueAsync(Arg.Is<string>(s => s == "AccionSolicitada"), Arg.Any<List<FieldValue>>())
+            .Returns(Result<FieldMatchResult>.Success(new FieldMatchResult("AccionSolicitada", "Test Action", 1.0f, "CONSENSUS")
+            {
+                AgreementLevel = 1.0f,
+                HasConflict = false
+            }));
 
         // Act
         var stopwatch = Stopwatch.StartNew();

@@ -15,5 +15,6 @@ global using Meziantou.Extensions.Logging.Xunit.v3;
 global using Microsoft.Extensions.Logging;
 global using Shouldly;
 global using Xunit;
+global using NetArchTest.Rules;
 
 

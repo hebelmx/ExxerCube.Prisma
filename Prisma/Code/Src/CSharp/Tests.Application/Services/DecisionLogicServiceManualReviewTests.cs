@@ -25,7 +25,7 @@ public class DecisionLogicServiceManualReviewTests
         _service = new DecisionLogicService(_personIdentityResolver, _legalDirectiveClassifier, _manualReviewerPanel, _auditLogger, _logger);
     }
 
-    #region IdentifyAndQueueReviewCasesAsync Tests
+     // IdentifyAndQueueReviewCasesAsync Tests
 
     /// <summary>
     /// Tests that IdentifyAndQueueReviewCasesAsync identifies and queues review cases successfully.
@@ -177,9 +177,9 @@ public class DecisionLogicServiceManualReviewTests
         result.Error.ShouldContain("Classification cannot be null");
     }
 
-    #endregion
+     // 
 
-    #region ProcessReviewDecisionAsync Tests
+     // ProcessReviewDecisionAsync Tests
 
     /// <summary>
     /// Tests that ProcessReviewDecisionAsync processes decision successfully.
@@ -316,6 +316,6 @@ public class DecisionLogicServiceManualReviewTests
         result.Error.ShouldContain("Decision cannot be null");
     }
 
-    #endregion
+     // 
 }
 

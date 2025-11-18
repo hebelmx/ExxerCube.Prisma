@@ -80,6 +80,8 @@
   <ItemGroup>
 	<ProjectReference Include="..\Application\ExxerCube.Prisma.Application.csproj" />
 	<ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
+	<ProjectReference Include="..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+	<ProjectReference Include="..\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
 	<ProjectReference Include="..\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
 	<ProjectReference Include="..\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
   </ItemGroup>

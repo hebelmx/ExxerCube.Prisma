@@ -24,7 +24,7 @@ public class ManualReviewerServiceTests : IDisposable
         _service = new ManualReviewerService(_dbContext, _logger);
     }
 
-    #region GetReviewCasesAsync Tests
+     // GetReviewCasesAsync Tests
 
     /// <summary>
     /// Tests that GetReviewCasesAsync returns review cases successfully.
@@ -226,9 +226,9 @@ public class ManualReviewerServiceTests : IDisposable
         result2.Error.ShouldContain("Page size must be between 1 and 1000");
     }
 
-    #endregion GetReviewCasesAsync Tests
+     //  GetReviewCasesAsync Tests
 
-    #region SubmitReviewDecisionAsync Tests
+     // SubmitReviewDecisionAsync Tests
 
     /// <summary>
     /// Tests that SubmitReviewDecisionAsync submits decision successfully.
@@ -463,9 +463,9 @@ public class ManualReviewerServiceTests : IDisposable
         result.Error.ShouldContain("Notes are required when overriding");
     }
 
-    #endregion SubmitReviewDecisionAsync Tests
+     //  SubmitReviewDecisionAsync Tests
 
-    #region GetFieldAnnotationsAsync Tests
+     // GetFieldAnnotationsAsync Tests
 
     /// <summary>
     /// Tests that GetFieldAnnotationsAsync returns field annotations successfully.
@@ -541,9 +541,9 @@ public class ManualReviewerServiceTests : IDisposable
         result.IsCancelled().ShouldBeTrue();
     }
 
-    #endregion GetFieldAnnotationsAsync Tests
+     //  GetFieldAnnotationsAsync Tests
 
-    #region IdentifyReviewCasesAsync Tests
+     // IdentifyReviewCasesAsync Tests
 
     /// <summary>
     /// Tests that IdentifyReviewCasesAsync identifies low confidence cases.
@@ -744,7 +744,7 @@ public class ManualReviewerServiceTests : IDisposable
         result.Error.ShouldContain("Classification cannot be null");
     }
 
-    #endregion IdentifyReviewCasesAsync Tests
+     //  IdentifyReviewCasesAsync Tests
 
     /// <inheritdoc />
     public void Dispose()

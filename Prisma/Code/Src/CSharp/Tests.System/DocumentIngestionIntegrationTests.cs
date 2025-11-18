@@ -1,18 +1,14 @@
-namespace ExxerCube.Prisma.Tests.Application.Services;
+namespace ExxerCube.Prisma.Tests.System;
 
 /// <summary>
-/// Integration tests for <see cref="DocumentIngestionService"/> that test the end-to-end workflow.
-/// These tests use real infrastructure components (in-memory database, file system) but mocked browser automation.
-/// 
-/// ⚠️ REFACTORING REQUIRED ⚠️
-/// This test violates clean architecture by directly instantiating Infrastructure.Database and Infrastructure.FileStorage types
-/// (PrismaDbContext, DownloadTrackerService, FileMetadataLoggerService, FileSystemDownloadStorageAdapter) instead of using mocks.
-/// 
-/// ACTION REQUIRED:
-/// - Refactor to mock Domain interfaces (IDownloadTracker, IFileMetadataLogger, IDownloadStorage)
-/// - OR move this test to Tests.Infrastructure.Database
-/// 
-/// Until refactored, all tests will fail with a clear error message.
+/// System-level integration tests for <see cref="DocumentIngestionService"/> that test complete workflows.
+/// These tests use real infrastructure components (in-memory database, file system) with mocked browser automation.
+///
+/// These tests belong in Tests.System because they:
+/// - Use real Infrastructure components (Database + FileStorage)
+/// - Test system-level integration across multiple Infrastructure layers
+/// - Verify database persistence and file system operations together
+/// - Test complete workflows with real Infrastructure components
 /// </summary>
 public class DocumentIngestionIntegrationTests : IDisposable
 {
@@ -30,11 +26,6 @@ public class DocumentIngestionIntegrationTests : IDisposable
     /// </summary>
     public DocumentIngestionIntegrationTests(ITestOutputHelper output)
     {
-        throw new InvalidOperationException(
-            "⚠️ REFACTORING REQUIRED ⚠️\n" +
-            "This test violates clean architecture by directly instantiating Infrastructure types.\n" +
-            "Please refactor to use mocks (IDownloadTracker, IFileMetadataLogger, IDownloadStorage) or move to Tests.Infrastructure.Database.\n" +
-            "See class documentation for details.");
         _tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(_tempDirectory);
 
@@ -57,7 +48,7 @@ public class DocumentIngestionIntegrationTests : IDisposable
         });
         var downloadStorage = new FileSystemDownloadStorageAdapter(_storageLogger, storageOptions);
 
-        // Mock browser automation agent for integration tests
+        // Mock browser automation agent for system tests
         _browserAutomationAgent = Substitute.For<IBrowserAutomationAgent>();
         var auditLogger = Substitute.For<IAuditLogger>();
 
@@ -94,15 +85,15 @@ public class DocumentIngestionIntegrationTests : IDisposable
             Content = fileContent
         };
 
-        _browserAutomationAgent.LaunchBrowserAsync(Arg.Any<System.Threading.CancellationToken>())
+        _browserAutomationAgent.LaunchBrowserAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        _browserAutomationAgent.NavigateToAsync(websiteUrl, Arg.Any<System.Threading.CancellationToken>())
+        _browserAutomationAgent.NavigateToAsync(websiteUrl, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, Arg.Any<System.Threading.CancellationToken>())
-            .Returns(Result<System.Collections.Generic.List<DownloadableFile>>.Success(new System.Collections.Generic.List<DownloadableFile> { downloadableFile }));
-        _browserAutomationAgent.DownloadFileAsync(downloadableFile.Url, Arg.Any<System.Threading.CancellationToken>())
+        _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, Arg.Any<CancellationToken>())
+            .Returns(Result<List<DownloadableFile>>.Success(new List<DownloadableFile> { downloadableFile }));
+        _browserAutomationAgent.DownloadFileAsync(downloadableFile.Url, Arg.Any<CancellationToken>())
             .Returns(Result<DownloadedFile>.Success(downloadedFile));
-        _browserAutomationAgent.CloseBrowserAsync(Arg.Any<System.Threading.CancellationToken>())
+        _browserAutomationAgent.CloseBrowserAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
@@ -167,15 +158,15 @@ public class DocumentIngestionIntegrationTests : IDisposable
         _dbContext.FileMetadata.Add(existingMetadata);
         await _dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        _browserAutomationAgent.LaunchBrowserAsync(Arg.Any<System.Threading.CancellationToken>())
+        _browserAutomationAgent.LaunchBrowserAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        _browserAutomationAgent.NavigateToAsync(websiteUrl, Arg.Any<System.Threading.CancellationToken>())
+        _browserAutomationAgent.NavigateToAsync(websiteUrl, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, Arg.Any<System.Threading.CancellationToken>())
-            .Returns(Result<System.Collections.Generic.List<DownloadableFile>>.Success(new System.Collections.Generic.List<DownloadableFile> { downloadableFile }));
-        _browserAutomationAgent.DownloadFileAsync(downloadableFile.Url, Arg.Any<System.Threading.CancellationToken>())
+        _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, Arg.Any<CancellationToken>())
+            .Returns(Result<List<DownloadableFile>>.Success(new List<DownloadableFile> { downloadableFile }));
+        _browserAutomationAgent.DownloadFileAsync(downloadableFile.Url, Arg.Any<CancellationToken>())
             .Returns(Result<DownloadedFile>.Success(downloadedFile));
-        _browserAutomationAgent.CloseBrowserAsync(Arg.Any<System.Threading.CancellationToken>())
+        _browserAutomationAgent.CloseBrowserAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act
