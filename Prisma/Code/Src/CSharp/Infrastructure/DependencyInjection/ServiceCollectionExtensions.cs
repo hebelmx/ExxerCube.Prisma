@@ -45,14 +45,15 @@ public static class ServiceCollectionExtensions
         });
         
         // Register Python interop service (CSnakes-based with circuit breaker)
-        services.AddScoped<IPythonInteropService>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
-            var innerService = new PrismaOcrWrapperAdapter(logger);
-            
-            var circuitBreakerLogger = provider.GetRequiredService<ILogger<CircuitBreakerPythonInteropService>>();
-            return new CircuitBreakerPythonInteropService(circuitBreakerLogger, innerService);
-        });
+        // Note: PrismaOcrWrapperAdapter has been removed - this registration needs to be updated with a new implementation
+        // services.AddScoped<IPythonInteropService>(provider =>
+        // {
+        //     var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+        //     var innerService = new PrismaOcrWrapperAdapter(logger);
+        //     
+        //     var circuitBreakerLogger = provider.GetRequiredService<ILogger<CircuitBreakerPythonInteropService>>();
+        //     return new CircuitBreakerPythonInteropService(circuitBreakerLogger, innerService);
+        // });
 
         // Register domain interface implementations using the abstract Python interop service
         services.AddScoped<IOcrExecutor>(provider =>

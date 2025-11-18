@@ -27,31 +27,32 @@ public static class PythonEnvironmentExtensions
 
         // Register CSnakes wrapper services
 
+        // Note: PrismaOcrWrapperAdapter has been removed - these registrations need to be updated with a new implementation
         // Register the main Prisma OCR wrapper adapter
-        services.AddScoped<IPythonInteropService>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
-            return new PrismaOcrWrapperAdapter(logger);
-        });
+        // services.AddScoped<IPythonInteropService>(provider =>
+        // {
+        //     var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+        //     return new PrismaOcrWrapperAdapter(logger);
+        // });
 
         // Register other interfaces with the same adapter
-        services.AddScoped<IImagePreprocessor>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
-            return new PrismaOcrWrapperAdapter(logger);
-        });
+        // services.AddScoped<IImagePreprocessor>(provider =>
+        // {
+        //     var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+        //     return new PrismaOcrWrapperAdapter(logger);
+        // });
 
-        services.AddScoped<IOcrExecutor>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
-            return new PrismaOcrWrapperAdapter(logger);
-        });
+        // services.AddScoped<IOcrExecutor>(provider =>
+        // {
+        //     var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+        //     return new PrismaOcrWrapperAdapter(logger);
+        // });
 
-        services.AddScoped<IFieldExtractor>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
-            return new PrismaOcrWrapperAdapter(logger);
-        });
+        // services.AddScoped<IFieldExtractor>(provider =>
+        // {
+        //     var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
+        //     return new PrismaOcrWrapperAdapter(logger);
+        // });
 
         return services;
     }
