@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  
+  <PropertyGroup>
+    <RootNamespace>ExxerAI.EnhancedRag.SystemTests</RootNamespace>
+    <AssemblyName>ExxerAI.EnhancedRag.SystemTests</AssemblyName>
+    </PropertyGroup>
+  
+  
+  <PropertyGroup>
+    </PropertyGroup>
+
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+          <ProjectReference Include="..\..\..\..\src\Infrastructure\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+  </ItemGroup>
+
+  
+  <ItemGroup Label="Global Usings">
+    
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+</Project>

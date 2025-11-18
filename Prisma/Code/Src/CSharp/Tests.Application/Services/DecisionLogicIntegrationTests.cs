@@ -57,7 +57,7 @@ public class DecisionLogicIntegrationTests
             }
         };
 
-        var documentText = @"Se ordena el BLOQUEO de la cuenta 1234567890 por un monto de $1,000,000.00 
+        var documentText = @"Se ordena el BLOQUEO de la cuenta 1234567890 por un monto de $1,000,000.00
                             conforme al Acuerdo 105/2021. Se solicita también la DOCUMENTACIÓN correspondiente.";
 
         var expediente = new Expediente
@@ -150,8 +150,8 @@ public class DecisionLogicIntegrationTests
         result.Value.Count.ShouldBeGreaterThan(0);
 
         // Verify expediente information is used in compliance actions
-        result.Value.ShouldAllBe(a => 
-            a.ExpedienteOrigen == expediente.NumeroExpediente || 
+        result.Value.ShouldAllBe(a =>
+            a.ExpedienteOrigen == expediente.NumeroExpediente ||
             a.OficioOrigen == expediente.NumeroOficio);
     }
 
@@ -163,7 +163,7 @@ public class DecisionLogicIntegrationTests
     public async Task ClassifyLegalDirectivesAsync_PerformanceWithinTarget_IV3()
     {
         // Arrange
-        var documentText = @"Se ordena el BLOQUEO de la cuenta 1234567890 por un monto de $1,000,000.00 
+        var documentText = @"Se ordena el BLOQUEO de la cuenta 1234567890 por un monto de $1,000,000.00
                             conforme al Acuerdo 105/2021. Se solicita también la DOCUMENTACIÓN correspondiente.
                             Se requiere TRANSFERENCIA de fondos y se solicita INFORMACIÓN sobre las operaciones.";
 
@@ -204,10 +204,10 @@ public class DecisionLogicIntegrationTests
         result.Value.ShouldNotBeNull();
         // Should deduplicate based on RFC variants
         result.Value.Count.ShouldBeLessThanOrEqualTo(2);
-        
+
         // Verify RFC variants were generated
-        result.Value.ShouldAllBe(p => 
-            string.IsNullOrWhiteSpace(p.Rfc) || 
+        result.Value.ShouldAllBe(p =>
+            string.IsNullOrWhiteSpace(p.Rfc) ||
             p.RfcVariants.Count > 0);
     }
 
@@ -250,7 +250,7 @@ public class DecisionLogicIntegrationTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value.Count.ShouldBeGreaterThan(0);
-        
+
         var blockAction = result.Value.FirstOrDefault(a => a.ActionType == ComplianceActionType.Block);
         blockAction.ShouldNotBeNull();
         blockAction.Confidence.ShouldBeGreaterThan(0);
@@ -282,4 +282,3 @@ public class DecisionLogicIntegrationTests
         // In a real scenario, we would verify log entries were written
     }
 }
-

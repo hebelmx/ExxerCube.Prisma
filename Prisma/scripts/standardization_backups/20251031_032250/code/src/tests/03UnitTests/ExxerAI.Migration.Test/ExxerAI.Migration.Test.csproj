@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TestLayer>System</TestLayer>
+    <TestSessionTimeout>600000</TestSessionTimeout>
+    <MaxCpuCount>1</MaxCpuCount>
+    <TestProjectType>SystemTests</TestProjectType>
+    <VSTestBlameHang>true</VSTestBlameHang>
+    <VSTestBlameHangTimeout>25min</VSTestBlameHangTimeout>
+    <VSTestBlameHangDumpType>full</VSTestBlameHangDumpType>
+    <TestCaseTimeout>1500000</TestCaseTimeout> 
+      
+    
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Code Analysis">
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>All</AnalysisMode>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Label="NuGet Package Resolution">
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Performance">
+    <TieredCompilation>true</TieredCompilation>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="../../../Core/ExxerAI.Domain/ExxerAI.Domain.csproj" />
+    <ProjectReference Include="../../../Core/ExxerAI.Application/ExxerAI.Application.csproj" />
+    
+    <ProjectReference Include="../../../Infrastructure/ExxerAI.Api/ExxerAI.Api.csproj" />
+    
+    <ProjectReference Include="../../../tests/Infrastructure/ExxerAI.TestInfrastructure/ExxerAI.TestInfrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
+  <!--
+    ============================================================================
+    DEPENDENCY SOURCE INFORMATION
+    ============================================================================
+    
+    📦 STANDARD TEST DEPENDENCIES ARE AUTOMATICALLY INHERITED FROM:
+       tests/Directory.Build.props
+    
+    This includes:
+    • XUnit v3 Framework (xunit.v3, xunit.v3.core, xunit.runner.visualstudio, etc.)
+    • Microsoft Testing Platform (Microsoft.Testing.Platform, etc.)
+    • Testing Utilities (NSubstitute, Shouldly, IndQuestResults, etc.)
+    • Logging (Meziantou.Extensions.Logging.Xunit.v3)
+    • Code Analysis (coverlet.collector)
+    • Global Usings (Xunit, NSubstitute, Shouldly, System.*, etc.)
+    • Project Capabilities (DiagnoseCapabilities, TestingPlatformServer, etc.)
+    • Standard Properties (IsTestProject, OutputType, TargetFramework, etc.)
+    
+    ⚠️  DO NOT DUPLICATE these packages here - they are already provided globally!
+    
+    📝 ONLY ADD PROJECT-SPECIFIC DEPENDENCIES BELOW:
+       (e.g., specific test libraries, mocks for this project's dependencies)
+    ============================================================================
+  -->

@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ExxerAI.Infrastructure.UnitTests</RootNamespace>
+    <AssemblyName>ExxerAI.Infrastructure.UnitTests</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+    <XunitStartupAssembly>ExxerAI.Infrastructure.UnitTests</XunitStartupAssembly>
+    <AssemblyTitle>ExxerAI Infrastructure Unit Tests</AssemblyTitle>
+    <Description>Unit Tests for ExxerAI Infrastructure Services</Description>
+    <Company>Exxerpro Solutions</Company>
+    <Product>ExxerAI Intelligence System</Product>
+    <Title>ExxerAI.Infrastructure.UnitTests</Title>
+  </PropertyGroup>
+  <PropertyGroup>
+		
+		</PropertyGroup>
+  <PropertyGroup>
+    <EnableDynamicPgo>true</EnableDynamicPgo>
+    <TieredCompilation>true</TieredCompilation>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="External\McpGoogleDriveServiceTests.cs" />
+    <ProjectReference Include="..\..\..\..\src\Infrastructure\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+  </ItemGroup>
+  <ItemGroup Label="Global Usings">
+    <Using Include="Microsoft.Agents.AI" />
+    <Using Include="Microsoft.Extensions.AI" />
+    <Using Include="ExxerAI.Domain.Entities" />
+    <Using Include="ExxerAI.Domain.ValueObjects" />
+    <Using Include="ExxerAI.Domain.Enums" />
+    <Using Include="ExxerAI.Application.Interfaces" />
+    <Using Include="ExxerAI.Application.DTOs" />
+    <Using Include="IndQuestResults" />
+    <Using Include="SixLabors.ImageSharp" />
+    <Using Include="SixLabors.ImageSharp.PixelFormats" />
+    <Using Include="SixLabors.ImageSharp.Processing" />
+    <Using Include="SixLabors.ImageSharp.Drawing.Processing" />
+    <Using Include="SixLabors.Fonts" />
+    <ProjectReference Include="..\..\..\..\src\Infrastructure\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../Core/ExxerAI.Application/ExxerAI.Application.csproj" />
+    <ProjectReference Include="../../../Core/ExxerAI.Domain/ExxerAI.Domain.csproj" />
+    <ProjectReference Include="../../../Infrastructure/ExxerAI.MCPServer/ExxerAI.MCPServer.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Infrastructure\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="External\McpGoogleDriveServiceTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Adapters\AI\" />
+  </ItemGroup>
+</Project>

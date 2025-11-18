@@ -1,3 +1,6 @@
+using ExxerCube.Prisma.Infrastructure.FileStorage;
+using Microsoft.Extensions.Options;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.FileStorage;
 
 /// <summary>
@@ -107,4 +110,3 @@ public class FileSystemDownloadStorageAdapterTests : IDisposable
         }
     }
 }
-

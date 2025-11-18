@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>ExxerAI.Nexus</AssemblyName>
+    <RootNamespace>ExxerAI.Nexus</RootNamespace>
+
+    <!-- MCP Server Configuration -->
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <PackageType>McpServer</PackageType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageId>ExxerAI.Nexus</PackageId>
+    <PackageTags>exxerai;infrastructure;nexus;document;processing;ocr;indexing;mcp</PackageTags>
+    <Description>Document processing, enrichment, OCR, and content indexing for the ExxerAI evocative architecture.</Description>
+  </PropertyGroup>
+
+  <!-- Include additional files for browsing the MCP server. -->
+  <ItemGroup>
+    <None Include=".mcp\server.json" Pack="true" PackagePath="/.mcp/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+      <ProjectReference Include="..\..\Core\ExxerAi.Axioms\ExxerAI.Axioms.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+    <ProjectReference Include="..\ExxerAI.Datastream\ExxerAI.Datastream.csproj" />
+    <ProjectReference Include="..\ExxerAI.Cortex\ExxerAI.Cortex.csproj" />
+    <ProjectReference Include="..\ExxerAI.Vault\ExxerAI.Vault.csproj" />
+  </ItemGroup>
+</Project>

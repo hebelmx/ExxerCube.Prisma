@@ -192,4 +192,3 @@ public class DocumentIngestionIntegrationTests : IDisposable
         return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
     }
 }
-

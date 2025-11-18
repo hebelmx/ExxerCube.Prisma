@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyTitle>ExxerAI CLI Tests</AssemblyTitle>
+    <Description>Unit Tests for ExxerAI Command Line Interface</Description>
+    <Company>Exxerpro Solutions</Company>
+    <Product>ExxerAI Intelligence System</Product>
+    <Title>ExxerAI.CLI.Tests</Title>
+  </PropertyGroup>
+  <PropertyGroup>
+    <EnableDynamicPgo>true</EnableDynamicPgo>
+    <TieredCompilation>true</TieredCompilation>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\ExxerAI.CLI.Library\ExxerAI.CLI.Library.csproj" />
+  </ItemGroup>
+</Project>

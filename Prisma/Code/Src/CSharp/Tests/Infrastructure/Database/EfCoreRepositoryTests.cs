@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Database.Repositories;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
 
 /// <summary>

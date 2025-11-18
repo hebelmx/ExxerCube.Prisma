@@ -1,0 +1,3 @@
+# Contoso Core
+
+Core abstractions.

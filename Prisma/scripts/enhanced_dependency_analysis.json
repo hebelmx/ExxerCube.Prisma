@@ -1,0 +1,2918 @@
+{
+  "analysis_date": "2025-10-30T01:10:37.214472",
+  "total_errors": 187,
+  "cs0246_errors": 133,
+  "cs0103_errors": 54,
+  "directory_build_props_namespaces": [
+    "Meziantou.Extensions.Logging.Xunit.v3",
+    "System.Text",
+    "Microsoft.Extensions.Logging",
+    "System.Threading",
+    "Xunit",
+    "IndQuestResults",
+    "IndQuestResults.Operations",
+    "System.Collections.Generic",
+    "System.Threading.Tasks",
+    "System.IO",
+    "System.Linq",
+    "Shouldly",
+    "System",
+    "NSubstitute"
+  ],
+  "errors_by_project": {
+    "ExxerAI.Domain.Nexus.Test": [
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1001",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ConflictResolutionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ConflictResolutionTests.cs",
+        "line": "40",
+        "error_code": "CS0103",
+        "full_error": "The name 'ConflictResolutionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "ConflictResolutionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ConflictResolutionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ConflictResolutionTests.cs",
+        "line": "41",
+        "error_code": "CS0103",
+        "full_error": "The name 'ConflictResolutionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "ConflictResolutionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ConflictResolutionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ConflictResolutionTests.cs",
+        "line": "42",
+        "error_code": "CS0103",
+        "full_error": "The name 'ConflictResolutionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "ConflictResolutionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ConflictResolutionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ConflictResolutionTests.cs",
+        "line": "43",
+        "error_code": "CS0103",
+        "full_error": "The name 'ConflictResolutionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "ConflictResolutionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ConflictResolutionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ConflictResolutionTests.cs",
+        "line": "44",
+        "error_code": "CS0103",
+        "full_error": "The name 'ConflictResolutionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "ConflictResolutionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ConflictResolutionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ConflictResolutionTests.cs",
+        "line": "45",
+        "error_code": "CS0103",
+        "full_error": "The name 'ConflictResolutionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "ConflictResolutionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "617",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "618",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "619",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "620",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "621",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "622",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "998",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "999",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1000",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1002",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1003",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1019",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1020",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1021",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1022",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1023",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1024",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentChangeType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentAssetTests.cs",
+        "line": "222",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentStatus' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentAssetTests.cs",
+        "line": "223",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentStatus' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentAssetTests.cs",
+        "line": "224",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentStatus' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentAssetTests.cs",
+        "line": "225",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentStatus' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentMetadataTests.cs",
+        "line": "38",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "DocumentType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentMetadataTests.cs",
+        "line": "39",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "DocumentType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentMetadataTests.cs",
+        "line": "40",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "DocumentType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentMetadataTests.cs",
+        "line": "41",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "DocumentType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DocumentAssets\\DocumentMetadataTests.cs",
+        "line": "42",
+        "error_code": "CS0103",
+        "full_error": "The name 'DocumentType' does not exist in the current context",
+        "resolution": {
+          "type": "DocumentType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "FieldType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DataAndExtraction\\FieldDefinitionTests.cs",
+        "line": "39",
+        "error_code": "CS0103",
+        "full_error": "The name 'FieldType' does not exist in the current context",
+        "resolution": {
+          "type": "FieldType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "FieldType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DataAndExtraction\\FieldDefinitionTests.cs",
+        "line": "40",
+        "error_code": "CS0103",
+        "full_error": "The name 'FieldType' does not exist in the current context",
+        "resolution": {
+          "type": "FieldType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "FieldType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DataAndExtraction\\FieldDefinitionTests.cs",
+        "line": "41",
+        "error_code": "CS0103",
+        "full_error": "The name 'FieldType' does not exist in the current context",
+        "resolution": {
+          "type": "FieldType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "FieldType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\DataAndExtraction\\FieldDefinitionTests.cs",
+        "line": "42",
+        "error_code": "CS0103",
+        "full_error": "The name 'FieldType' does not exist in the current context",
+        "resolution": {
+          "type": "FieldType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      },
+      {
+        "type": "PositionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\KeywordPatternTests.cs",
+        "line": "54",
+        "error_code": "CS0103",
+        "full_error": "The name 'PositionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "PositionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "PositionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\KeywordPatternTests.cs",
+        "line": "55",
+        "error_code": "CS0103",
+        "full_error": "The name 'PositionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "PositionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "PositionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\KeywordPatternTests.cs",
+        "line": "56",
+        "error_code": "CS0103",
+        "full_error": "The name 'PositionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "PositionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "PositionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\KeywordPatternTests.cs",
+        "line": "80",
+        "error_code": "CS0103",
+        "full_error": "The name 'PositionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "PositionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "PositionStrategy",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\KeywordPatternTests.cs",
+        "line": "81",
+        "error_code": "CS0103",
+        "full_error": "The name 'PositionStrategy' does not exist in the current context",
+        "resolution": {
+          "type": "PositionStrategy",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TruthRecordStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\TruthRecordTests.cs",
+        "line": "100",
+        "error_code": "CS0103",
+        "full_error": "The name 'TruthRecordStatus' does not exist in the current context",
+        "resolution": {
+          "type": "TruthRecordStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TruthRecordStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\TruthRecordTests.cs",
+        "line": "101",
+        "error_code": "CS0103",
+        "full_error": "The name 'TruthRecordStatus' does not exist in the current context",
+        "resolution": {
+          "type": "TruthRecordStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TruthRecordStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\TruthRecordTests.cs",
+        "line": "102",
+        "error_code": "CS0103",
+        "full_error": "The name 'TruthRecordStatus' does not exist in the current context",
+        "resolution": {
+          "type": "TruthRecordStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TruthRecordStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\TruthRecordTests.cs",
+        "line": "103",
+        "error_code": "CS0103",
+        "full_error": "The name 'TruthRecordStatus' does not exist in the current context",
+        "resolution": {
+          "type": "TruthRecordStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TruthRecordStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\TruthRecordTests.cs",
+        "line": "104",
+        "error_code": "CS0103",
+        "full_error": "The name 'TruthRecordStatus' does not exist in the current context",
+        "resolution": {
+          "type": "TruthRecordStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TruthRecordStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\TruthRecordTests.cs",
+        "line": "105",
+        "error_code": "CS0103",
+        "full_error": "The name 'TruthRecordStatus' does not exist in the current context",
+        "resolution": {
+          "type": "TruthRecordStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ValidationType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ValidationRuleTests.cs",
+        "line": "35",
+        "error_code": "CS0103",
+        "full_error": "The name 'ValidationType' does not exist in the current context",
+        "resolution": {
+          "type": "ValidationType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ValidationType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ValidationRuleTests.cs",
+        "line": "36",
+        "error_code": "CS0103",
+        "full_error": "The name 'ValidationType' does not exist in the current context",
+        "resolution": {
+          "type": "ValidationType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ValidationType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ValidationRuleTests.cs",
+        "line": "37",
+        "error_code": "CS0103",
+        "full_error": "The name 'ValidationType' does not exist in the current context",
+        "resolution": {
+          "type": "ValidationType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ValidationType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ValidationRuleTests.cs",
+        "line": "38",
+        "error_code": "CS0103",
+        "full_error": "The name 'ValidationType' does not exist in the current context",
+        "resolution": {
+          "type": "ValidationType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ValidationType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ValidationRuleTests.cs",
+        "line": "39",
+        "error_code": "CS0103",
+        "full_error": "The name 'ValidationType' does not exist in the current context",
+        "resolution": {
+          "type": "ValidationType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ValidationType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\ValidationRuleTests.cs",
+        "line": "40",
+        "error_code": "CS0103",
+        "full_error": "The name 'ValidationType' does not exist in the current context",
+        "resolution": {
+          "type": "ValidationType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DocumentChangeType",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\SchemaAndPatterns\\MCPTypesTests.cs",
+        "line": "1004",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DocumentChangeType' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DocumentChangeType",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TruthRecordStatus",
+        "project": "ExxerAI.Domain.Nexus.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\00Domain\\ExxerAI.Domain.Nexus.Test\\DocumentProcessing\\ValidationAndRules\\TruthRecordTests.cs",
+        "line": "106",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'TruthRecordStatus' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "TruthRecordStatus",
+          "project": "ExxerAI.Domain.Nexus.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      }
+    ],
+    "ExxerAI.Composition": [
+      {
+        "type": "API",
+        "project": "ExxerAI.Composition",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Composition\\Configuration\\CubeXplorerServiceCollectionExtensions.cs",
+        "line": "6",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'API' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "API",
+          "project": "ExxerAI.Composition",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      }
+    ],
+    "ExxerAI.Conduit": [
+      {
+        "type": "CollaborativeTaskEventArgs",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Swarms\\Communication\\CrossSwarmCommunicationHub.cs",
+        "line": "71",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'CollaborativeTaskEventArgs' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "CollaborativeTaskEventArgs",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Events",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "CommandExecutionResult",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\LinuxSshAgentService.cs",
+        "line": "163",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'CommandExecutionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "CommandExecutionResult",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "CommandExecutionResult",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\WindowsSshAgentService.cs",
+        "line": "239",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'CommandExecutionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "CommandExecutionResult",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "CrossSwarmMessageReceivedEventArgs",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Swarms\\Communication\\CrossSwarmCommunicationHub.cs",
+        "line": "52",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'CrossSwarmMessageReceivedEventArgs' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "CrossSwarmMessageReceivedEventArgs",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Events",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "CrossSwarmMessageReceivedEventArgs",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Swarms\\Communication\\CrossSwarmCommunicationHub.cs",
+        "line": "58",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'CrossSwarmMessageReceivedEventArgs' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "CrossSwarmMessageReceivedEventArgs",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Events",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "EIAContainerStatus",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\RemoteDockerService.cs",
+        "line": "102",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'EIAContainerStatus' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "EIAContainerStatus",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "EIAContainerStatus",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\RemoteDockerService.cs",
+        "line": "203",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'EIAContainerStatus' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "EIAContainerStatus",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "GoogleDriveM2MOptions",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\Extensions\\GoogleDriveM2MServiceCollectionExtensions.cs",
+        "line": "85",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'GoogleDriveM2MOptions' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "GoogleDriveM2MOptions",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Nexus.Extensions",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "GoogleDriveM2MValidationResult",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\Extensions\\GoogleDriveM2MServiceCollectionExtensions.cs",
+        "line": "187",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'GoogleDriveM2MValidationResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "GoogleDriveM2MValidationResult",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Nexus.Extensions",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IEIAA2AAgentLifecycleManager",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\HeterogeneousFormationStrategy.cs",
+        "line": "32",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IEIAA2AAgentLifecycleManager' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IEIAA2AAgentLifecycleManager",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IEIAA2AAgentLifecycleManager",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\HierarchicalFormationStrategy.cs",
+        "line": "67",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IEIAA2AAgentLifecycleManager' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IEIAA2AAgentLifecycleManager",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IEIAA2AAgentLifecycleManager",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\HomogeneousFormationStrategy.cs",
+        "line": "32",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IEIAA2AAgentLifecycleManager' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IEIAA2AAgentLifecycleManager",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IEIACentralAgentRegistry",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\CentralAgentRegistry.cs",
+        "line": "7",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IEIACentralAgentRegistry' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IEIACentralAgentRegistry",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IEIACentralAgentRegistry",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\MessageRouter.cs",
+        "line": "10",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IEIACentralAgentRegistry' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IEIACentralAgentRegistry",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IEIACentralAgentRegistry",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\MessageRouter.cs",
+        "line": "24",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IEIACentralAgentRegistry' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IEIACentralAgentRegistry",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IEIACentralAgentRegistry",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\TaskOrchestrator.cs",
+        "line": "10",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IEIACentralAgentRegistry' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IEIACentralAgentRegistry",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IEIACentralAgentRegistry",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\TaskOrchestrator.cs",
+        "line": "28",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IEIACentralAgentRegistry' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IEIACentralAgentRegistry",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IGoogleDriveM2MCredentialResolver",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\Extensions\\GoogleDriveM2MServiceCollectionExtensions.cs",
+        "line": "273",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IGoogleDriveM2MCredentialResolver' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IGoogleDriveM2MCredentialResolver",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IGoogleDriveM2MCredentialResolver",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\Extensions\\GoogleDriveM2MServiceProviderExtensions.cs",
+        "line": "19",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IGoogleDriveM2MCredentialResolver' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IGoogleDriveM2MCredentialResolver",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IMessageRouter",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\MessageRouter.cs",
+        "line": "7",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IMessageRouter' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IMessageRouter",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IMessageRouter",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\TaskOrchestrator.cs",
+        "line": "11",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IMessageRouter' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IMessageRouter",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IMessageRouter",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\TaskOrchestrator.cs",
+        "line": "28",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IMessageRouter' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IMessageRouter",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "InfrastructureStatisticsService",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\TaskRedistributionEngine.cs",
+        "line": "13",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'InfrastructureStatisticsService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "InfrastructureStatisticsService",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Nexus.Services",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "InfrastructureStatisticsService",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\TaskRedistributionEngine.cs",
+        "line": "30",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'InfrastructureStatisticsService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "InfrastructureStatisticsService",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Nexus.Services",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IRemoteDockerManager",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\RemoteDockerManager.cs",
+        "line": "9",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IRemoteDockerManager' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IRemoteDockerManager",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces.AgentCommunication",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IRemoteDockerManager",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\ServiceOrchestrationEngine.cs",
+        "line": "16",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IRemoteDockerManager' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IRemoteDockerManager",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces.AgentCommunication",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IRemoteDockerManager",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\ServiceOrchestrationEngine.cs",
+        "line": "39",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IRemoteDockerManager' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IRemoteDockerManager",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces.AgentCommunication",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ISshAgentService",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\LinuxSshAgentService.cs",
+        "line": "7",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ISshAgentService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ISshAgentService",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ISshAgentService",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\RemoteDockerManager.cs",
+        "line": "12",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ISshAgentService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ISshAgentService",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ISshAgentService",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\RemoteDockerManager.cs",
+        "line": "27",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ISshAgentService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ISshAgentService",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ISshAgentService",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\WindowsSshAgentService.cs",
+        "line": "12",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ISshAgentService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ISshAgentService",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAi.Axioms.Interfaces",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ITaskOrchestrator",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Communications\\TaskOrchestrator.cs",
+        "line": "7",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ITaskOrchestrator' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ITaskOrchestrator",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Application.Interfaces.A2AHub",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AdaptiveLearningEngine.cs",
+        "line": "17",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AdaptiveLearningEngine.cs",
+        "line": "116",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AdaptiveLearningEngine.cs",
+        "line": "487",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AdaptiveLearningEngine.cs",
+        "line": "622",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\OptimizationEngine.cs",
+        "line": "28",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\OptimizationEngine.cs",
+        "line": "233",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\OptimizationEngine.cs",
+        "line": "259",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\OptimizationEngine.cs",
+        "line": "279",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\OptimizationEngine.cs",
+        "line": "507",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "26",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "68",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "110",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "138",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "159",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "209",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "245",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "282",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "316",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "366",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "379",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "419",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "426",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "497",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "527",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "LearningEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\PatternRecognitionEngine.cs",
+        "line": "527",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LearningEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LearningEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "OrchestrationServicesMetrics",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\OrchestrationBackgroundService.cs",
+        "line": "208",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'OrchestrationServicesMetrics' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "OrchestrationServicesMetrics",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "OrchestrationStatusChangedEventArgs",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\ServiceOrchestrationEngine.cs",
+        "line": "67",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'OrchestrationStatusChangedEventArgs' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "OrchestrationStatusChangedEventArgs",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Events",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ServiceHealthChangedEventArgs",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\ServiceOrchestrationEngine.cs",
+        "line": "59",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ServiceHealthChangedEventArgs' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ServiceHealthChangedEventArgs",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Events",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmAlert",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\SwarmHealthMonitor.cs",
+        "line": "12",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmAlert' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmAlert",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmAlert",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\SwarmHealthMonitor.cs",
+        "line": "175",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmAlert' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmAlert",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmAlert",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\SwarmHealthMonitor.cs",
+        "line": "385",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmAlert' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmAlert",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmAlertEventArgs",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\SwarmHealthMonitor.cs",
+        "line": "24",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmAlertEventArgs' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmAlertEventArgs",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Events",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmConnectivityChangedEventArgs",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Swarms\\Communication\\CrossSwarmCommunicationHub.cs",
+        "line": "66",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmConnectivityChangedEventArgs' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmConnectivityChangedEventArgs",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Events",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmEvent",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AgentSwarmManager.cs",
+        "line": "208",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmEvent' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmEvent",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmHealthChangedEventArgs",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\SwarmHealthMonitor.cs",
+        "line": "19",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmHealthChangedEventArgs' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmHealthChangedEventArgs",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Events",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmLoadAnalysisResult",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\TaskRedistributionEngine.cs",
+        "line": "204",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmLoadAnalysisResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmLoadAnalysisResult",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmOperationResult",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AgentSwarmManager.cs",
+        "line": "117",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmOperationResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmOperationResult",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "SwarmOperationResult",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AgentSwarmManager.cs",
+        "line": "649",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'SwarmOperationResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "SwarmOperationResult",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TaskRedistributionResult",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AgentSwarmManager.cs",
+        "line": "480",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'TaskRedistributionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "TaskRedistributionResult",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "TaskRedistributionResult",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\AgentSwarmManager.cs",
+        "line": "974",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'TaskRedistributionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "TaskRedistributionResult",
+          "project": "ExxerAI.Conduit",
+          "namespace": "ExxerAI.Domain.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "UglyToad",
+        "project": "ExxerAI.Conduit",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Conduit\\AgentCommunication\\Orchestration\\TaskRedistributionEngine.cs",
+        "line": "1",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'UglyToad' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "UglyToad",
+          "project": "ExxerAI.Conduit",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      }
+    ],
+    "ExxerAI.EnhancedRag.System.Test": [
+      {
+        "type": "CrossEncoderRerankingService",
+        "project": "ExxerAI.EnhancedRag.System.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\06SystemTests\\ExxerAI.EnhancedRag.System.Test\\Services\\RerankingServiceTests.cs",
+        "line": "12",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'CrossEncoderRerankingService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "CrossEncoderRerankingService",
+          "project": "ExxerAI.EnhancedRag.System.Test",
+          "namespace": "ExxerAI.Nexus.Services",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "InMemoryBm25SearchService",
+        "project": "ExxerAI.EnhancedRag.System.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\06SystemTests\\ExxerAI.EnhancedRag.System.Test\\Services\\Bm25SearchServiceTests.cs",
+        "line": "12",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'InMemoryBm25SearchService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "InMemoryBm25SearchService",
+          "project": "ExxerAI.EnhancedRag.System.Test",
+          "namespace": "ExxerAI.Vault.Services",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ReciprocalRankFusionService",
+        "project": "ExxerAI.EnhancedRag.System.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\06SystemTests\\ExxerAI.EnhancedRag.System.Test\\Services\\RankFusionServiceTests.cs",
+        "line": "12",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ReciprocalRankFusionService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ReciprocalRankFusionService",
+          "project": "ExxerAI.EnhancedRag.System.Test",
+          "namespace": "ExxerAI.Vault.Services",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      }
+    ],
+    "ExxerAI.BusinessIntelligence.Test": [
+      {
+        "type": "DashboardService",
+        "project": "ExxerAI.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\09Standalone\\ExxerAI.BusinessIntelligence.Test\\Dashboard\\DashboardServiceTests.cs",
+        "line": "22",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DashboardService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DashboardService",
+          "project": "ExxerAI.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Nexus.Services",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DataConciliationEngine",
+        "project": "ExxerAI.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\09Standalone\\ExxerAI.BusinessIntelligence.Test\\DataConciliation\\DataConciliationEngineTests.cs",
+        "line": "20",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DataConciliationEngine' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DataConciliationEngine",
+          "project": "ExxerAI.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Nexus.Services",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "EconomicMonitoringService",
+        "project": "ExxerAI.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\09Standalone\\ExxerAI.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "16",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'EconomicMonitoringService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "EconomicMonitoringService",
+          "project": "ExxerAI.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Application.Services.BusinessIntelligence",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "KpiCalculationEngine",
+        "project": "ExxerAI.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\09Standalone\\ExxerAI.BusinessIntelligence.Test\\Kpis\\KpiCalculationEngineTests.cs",
+        "line": "19",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'KpiCalculationEngine' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "KpiCalculationEngine",
+          "project": "ExxerAI.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Vault.Services",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ProviderIntelligenceService",
+        "project": "ExxerAI.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\09Standalone\\ExxerAI.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "12",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ProviderIntelligenceService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ProviderIntelligenceService",
+          "project": "ExxerAI.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Application.Services.BusinessIntelligence",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QuestionParserService",
+        "project": "ExxerAI.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\09Standalone\\ExxerAI.BusinessIntelligence.Test\\ConversationalBI\\QuestionParserServiceTests.cs",
+        "line": "19",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QuestionParserService' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QuestionParserService",
+          "project": "ExxerAI.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Nexus.Services.ConversationalBI",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      }
+    ],
+    "ExxerAI.Application.BusinessIntelligence.Test": [
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "58",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "77",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "97",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "117",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "354",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "379",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "400",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "478",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "513",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "604",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "308",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "347",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "386",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "410",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "430",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "DateRange",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "725",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'DateRange' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "DateRange",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.DocumentProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "EIADescriptiveStatistics",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "42",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'EIADescriptiveStatistics' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "EIADescriptiveStatistics",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "EIADescriptiveStatistics",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\EconomicMonitoringServiceTests.cs",
+        "line": "574",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'EIADescriptiveStatistics' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "EIADescriptiveStatistics",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "EIADescriptiveStatistics",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "315",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'EIADescriptiveStatistics' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "EIADescriptiveStatistics",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "EIADescriptiveStatistics",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "354",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'EIADescriptiveStatistics' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "EIADescriptiveStatistics",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "EIADescriptiveStatistics",
+        "project": "ExxerAI.Application.BusinessIntelligence.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.BusinessIntelligence.Test\\ProviderIntelligenceServiceTests.cs",
+        "line": "731",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'EIADescriptiveStatistics' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "EIADescriptiveStatistics",
+          "project": "ExxerAI.Application.BusinessIntelligence.Test",
+          "namespace": "ExxerAI.Domain.CubeXplorer.Models",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      }
+    ],
+    "ExxerAI.Helix": [
+      {
+        "type": "IConfiguration",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\Extensions\\DatabaseServiceCollectionExtensions.cs",
+        "line": "17",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IConfiguration' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IConfiguration",
+          "project": "ExxerAI.Helix",
+          "namespace": "Microsoft.Extensions.Configuration",
+          "source": "package_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IConfiguration",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\Extensions\\DatabaseServiceCollectionExtensions.cs",
+        "line": "125",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IConfiguration' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IConfiguration",
+          "project": "ExxerAI.Helix",
+          "namespace": "Microsoft.Extensions.Configuration",
+          "source": "package_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "IConfiguration",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\Extensions\\DatabaseServiceCollectionExtensions.cs",
+        "line": "139",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'IConfiguration' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "IConfiguration",
+          "project": "ExxerAI.Helix",
+          "namespace": "Microsoft.Extensions.Configuration",
+          "source": "package_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ImageSharpAdapter",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\ImageProcessingAdapterFactory.cs",
+        "line": "9",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ImageSharpAdapter' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ImageSharpAdapter",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Helix.ImageProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "ImageSharpAdapter",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\ImageProcessingAdapterFactory.cs",
+        "line": "18",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'ImageSharpAdapter' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "ImageSharpAdapter",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Helix.ImageProcessing",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRCodeResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "36",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRCodeResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRCodeResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRCodeResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "204",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRCodeResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRCodeResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRCodeResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "246",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRCodeResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRCodeResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRGenerationOptions",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "161",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRGenerationOptions' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRGenerationOptions",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRProcessingOptions",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "38",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRProcessingOptions' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRProcessingOptions",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRProcessingOptions",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "206",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRProcessingOptions' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRProcessingOptions",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRProcessingOptions",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "248",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRProcessingOptions' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRProcessingOptions",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRValidationResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "98",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRValidationResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRValidationResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRValidationResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "296",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRValidationResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRValidationResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRValidationResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "381",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRValidationResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRValidationResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRValidationResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "440",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRValidationResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRValidationResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "QRValidationType",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\QRCodeProcessingService.cs",
+        "line": "100",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'QRValidationType' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "QRValidationType",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.TechnicalServices.TechStack",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "RegionBounds",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\OCRProcessingService.cs",
+        "line": "1365",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'RegionBounds' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "RegionBounds",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.DTOs",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "RegionBounds",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\OCRProcessingService.cs",
+        "line": "1421",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'RegionBounds' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "RegionBounds",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.DTOs",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "RegionBounds",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\OCRProcessingService.cs",
+        "line": "1509",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'RegionBounds' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "RegionBounds",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.DTOs",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "RegionExtractionResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\OCRProcessingService.cs",
+        "line": "674",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'RegionExtractionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "RegionExtractionResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.DTOs",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "RegionExtractionResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\OCRProcessingService.cs",
+        "line": "741",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'RegionExtractionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "RegionExtractionResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.DTOs",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "RegionExtractionResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\OCRProcessingService.cs",
+        "line": "1365",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'RegionExtractionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "RegionExtractionResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.DTOs",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "RegionExtractionResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\OCRProcessingService.cs",
+        "line": "1419",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'RegionExtractionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "RegionExtractionResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.DTOs",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      },
+      {
+        "type": "RegionExtractionResult",
+        "project": "ExxerAI.Helix",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\Infrastructure\\ExxerAI.Helix\\TechStack\\OCRProcessingService.cs",
+        "line": "1509",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'RegionExtractionResult' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "RegionExtractionResult",
+          "project": "ExxerAI.Helix",
+          "namespace": "ExxerAI.Application.DTOs",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      }
+    ],
+    "ExxerAI.Configuration.Test": [
+      {
+        "type": "LocalAIConfiguration",
+        "project": "ExxerAI.Configuration.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\03UnitTests\\ExxerAI.Configuration.Test\\Services\\ConfigurationServiceInterfaceTests.cs",
+        "line": "231",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'LocalAIConfiguration' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "LocalAIConfiguration",
+          "project": "ExxerAI.Configuration.Test",
+          "namespace": "ExxerAI.Domain.Configurations",
+          "source": "exxerai_type",
+          "action": "add_namespace_to_globalusings"
+        }
+      }
+    ],
+    "ExxerAI.RealTimeCommunication.Test": [
+      {
+        "type": "NetArchTest",
+        "project": "ExxerAI.RealTimeCommunication.Test",
+        "file": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\09Standalone\\ExxerAI.RealTimeCommunication.Test\\Architecture\\RealTimeCommunicationArchitectureTests.cs",
+        "line": "1",
+        "error_code": "CS0246",
+        "full_error": "The type or namespace name 'NetArchTest' could not be found (are you missing a using directive or an assembly reference?)",
+        "resolution": {
+          "type": "NetArchTest",
+          "project": "ExxerAI.RealTimeCommunication.Test",
+          "namespace": null,
+          "source": "unknown",
+          "action": "investigate",
+          "note": "Type not found in any known mappings"
+        }
+      }
+    ]
+  },
+  "globalusings_modifications": {
+    "ExxerAI.Domain.Nexus.Test": [
+      "ExxerAI.Domain.DocumentProcessing"
+    ],
+    "ExxerAI.Conduit": [
+      "ExxerAI.Application.Interfaces.A2AHub",
+      "ExxerAI.Domain.Events",
+      "ExxerAI.Domain.Models",
+      "ExxerAI.Nexus.Extensions",
+      "ExxerAI.Nexus.Services",
+      "ExxerAi.Axioms.Interfaces",
+      "ExxerAi.Axioms.Interfaces.AgentCommunication"
+    ],
+    "ExxerAI.EnhancedRag.System.Test": [
+      "ExxerAI.Nexus.Services",
+      "ExxerAI.Vault.Services"
+    ],
+    "ExxerAI.BusinessIntelligence.Test": [
+      "ExxerAI.Application.Services.BusinessIntelligence",
+      "ExxerAI.Nexus.Services",
+      "ExxerAI.Nexus.Services.ConversationalBI",
+      "ExxerAI.Vault.Services"
+    ],
+    "ExxerAI.Application.BusinessIntelligence.Test": [
+      "ExxerAI.Domain.CubeXplorer.Models",
+      "ExxerAI.Domain.DocumentProcessing"
+    ],
+    "ExxerAI.Helix": [
+      "ExxerAI.Application.DTOs",
+      "ExxerAI.Application.TechnicalServices.TechStack",
+      "ExxerAI.Helix.ImageProcessing",
+      "Microsoft.Extensions.Configuration"
+    ],
+    "ExxerAI.Configuration.Test": [
+      "ExxerAI.Domain.Configurations"
+    ]
+  },
+  "namespaces_already_present": {},
+  "unknown_types": {
+    "ExxerAI.Domain.Nexus.Test": [
+      "DocumentType",
+      "FieldType"
+    ],
+    "ExxerAI.Composition": [
+      "API"
+    ],
+    "ExxerAI.RealTimeCommunication.Test": [
+      "NetArchTest"
+    ],
+    "ExxerAI.Conduit": [
+      "UglyToad"
+    ]
+  },
+  "summary": {
+    "projects_needing_updates": 7,
+    "total_namespaces_to_add": 175,
+    "namespaces_already_present": 0,
+    "unknown_types": 12
+  }
+}

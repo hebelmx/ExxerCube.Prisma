@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>13</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    
+    <!-- NuGet Package Properties -->
+    <PackageId>ExxerAI.RealTimeCommunication</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Authors>ExxerAI Team</Authors>
+    <Company>ExxerAI</Company>
+    <Product>ExxerAI Real-Time Communication Library</Product>
+    <Description>Clean architecture abstractions and implementations for real-time communication with SignalR, WebSockets, and other providers. Includes improved patterns borrowed from battle-tested industrial solutions.</Description>
+    <Copyright>Copyright © ExxerAI $(Year)</Copyright>
+    <PackageProjectUrl>https://github.com/exxerai/realtimecommunication</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/exxerai/realtimecommunication</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>signalr;websockets;realtime;communication;clean-architecture;abstractions</PackageTags>
+    <PackageReleaseNotes>Initial release with clean architecture abstractions for real-time communication</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Assembly Properties -->
+    <AssemblyTitle>ExxerAI Real-Time Communication Library</AssemblyTitle>
+    <AssemblyDescription>Clean architecture abstractions and implementations for real-time communication</AssemblyDescription>
+    <AssemblyConfiguration>$(Configuration)</AssemblyConfiguration>
+    <AssemblyCompany>ExxerAI</AssemblyCompany>
+    <AssemblyProduct>ExxerAI.RealTimeCommunication</AssemblyProduct>
+    <AssemblyCopyright>Copyright © ExxerAI $(Year)</AssemblyCopyright>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="IndQuestResults" />
+		
+	</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ExxerAI.RealTimeCommunication.Tests" />
+    <InternalsVisibleTo Include="ExxerAI.Infrastructure" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" /> <!-- For NSubstitute testing -->
+  </ItemGroup>
+
+</Project>

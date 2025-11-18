@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  
+  
+  
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    
+    <AssemblyTitle>ExxerAI CLI Tests</AssemblyTitle>
+    <Description>Unit Tests for ExxerAI Command Line Interface</Description>
+    <Company>Exxerpro Solutions</Company>
+    <Product>ExxerAI Intelligence System</Product>
+    <Title>ExxerAI.CLI.Tests</Title>
+  </PropertyGroup>
+  
+  
+  
+  <PropertyGroup>
+    
+    <EnableDynamicPgo>true</EnableDynamicPgo>
+    <TieredCompilation>true</TieredCompilation>
+  </PropertyGroup>
+  
+  
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\ExxerAI.CLI.Library\ExxerAI.CLI.Library.csproj" />
+  </ItemGroup>
+
+  
+  
+  
+  </Project>
+  <!--
+    ============================================================================
+    DEPENDENCY SOURCE INFORMATION
+    ============================================================================
+    
+    📦 STANDARD TEST DEPENDENCIES ARE AUTOMATICALLY INHERITED FROM:
+       tests/Directory.Build.props
+    
+    This includes:
+    • XUnit v3 Framework (xunit.v3, xunit.v3.core, xunit.runner.visualstudio, etc.)
+    • Microsoft Testing Platform (Microsoft.Testing.Platform, etc.)
+    • Testing Utilities (NSubstitute, Shouldly, IndQuestResults, etc.)
+    • Logging (Meziantou.Extensions.Logging.Xunit.v3)
+    • Code Analysis (coverlet.collector)
+    • Global Usings (Xunit, NSubstitute, Shouldly, System.*, etc.)
+    • Project Capabilities (DiagnoseCapabilities, TestingPlatformServer, etc.)
+    • Standard Properties (IsTestProject, OutputType, TargetFramework, etc.)
+    
+    ⚠️  DO NOT DUPLICATE these packages here - they are already provided globally!
+    
+    📝 ONLY ADD PROJECT-SPECIFIC DEPENDENCIES BELOW:
+       (e.g., specific test libraries, mocks for this project's dependencies)
+    ============================================================================
+  -->

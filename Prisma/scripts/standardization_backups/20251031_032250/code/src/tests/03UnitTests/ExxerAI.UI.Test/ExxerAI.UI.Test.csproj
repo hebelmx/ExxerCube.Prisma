@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ExxerAI.UI.UnitTests</RootNamespace>
+    <AssemblyName>ExxerAI.UI.UnitTests</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../Core/ExxerAI.Application/ExxerAI.Application.csproj" />
+    <ProjectReference Include="../../../Core/ExxerAI.Domain/ExxerAI.Domain.csproj" />
+    <ProjectReference Include="../../../Presentation/CubeXplorer.UI.Web/CubeXplorer.UI.Web.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Microsoft.Playwright" />
+  </ItemGroup>
+  <ItemGroup Label="Additional Packages">
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Playwright" />
+  </ItemGroup>
+</Project>

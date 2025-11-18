@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Database.Repositories;
-
 namespace ExxerCube.Prisma.Tests.Domain.Repositories;
 
 public class OrderRepositoryTests

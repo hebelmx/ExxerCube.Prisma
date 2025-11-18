@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>ExxerAI.Core.UnitTests</RootNamespace>
+		<AssemblyName>ExxerAI.Core.UnitTests</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../../../Core/ExxerAI.Domain/ExxerAI.Domain.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="ValidationFeatures\" />
+	</ItemGroup>
+</Project>
+<!--
+    ============================================================================
+    DEPENDENCY SOURCE INFORMATION
+    ============================================================================
+
+    📦 STANDARD TEST DEPENDENCIES ARE AUTOMATICALLY INHERITED FROM:
+       tests/Directory.Build.props
+
+    This includes:
+    • XUnit v3 Framework (xunit.v3, xunit.v3.core, xunit.runner.visualstudio, etc.)
+    • Microsoft Testing Platform (Microsoft.Testing.Platform, etc.)
+    • Testing Utilities (NSubstitute, Shouldly, IndQuestResults, etc.)
+    • Logging (Meziantou.Extensions.Logging.Xunit.v3)
+    • Code Analysis (coverlet.collector)
+    • Global Usings (Xunit, NSubstitute, Shouldly, System.*, etc.)
+    • Project Capabilities (DiagnoseCapabilities, TestingPlatformServer, etc.)
+    • Standard Properties (IsTestProject, OutputType, TargetFramework, etc.)
+
+    ⚠️  DO NOT DUPLICATE these packages here - they are already provided globally!
+
+    📝 ONLY ADD PROJECT-SPECIFIC DEPENDENCIES BELOW:
+       (e.g., specific test libraries, mocks for this project's dependencies)
+    ============================================================================
+  -->

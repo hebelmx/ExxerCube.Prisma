@@ -1,0 +1,171 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ============================================================================ -->
+  <!-- 💼 CLEAN CODE STARTS WITH CLEAN TESTS! 💼 -->
+  <!-- "Your production code can NEVER aspire to be better than your testing code!" -->
+  <!-- EXXERAI.APPLICATION.LOGGING.TEST 📜 - APPLICATION LAYER TESTS -->
+  <!-- Evocative Architecture: Tests for structured logging, telemetry, and observability capabilities -->
+  <!-- ============================================================================ -->
+
+  <!-- ============================================================================ -->
+  <!-- CORE PROPERTIES -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <!-- XUnit v3 Configuration: Test projects are now executables -->
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Language Features -->
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Assembly Information -->
+    <RootNamespace>ExxerAI.Application.Logging.Tests</RootNamespace>
+    <AssemblyName>ExxerAI.Application.Logging.Test</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Testing Configuration -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CLEAN CODE STARTS WITH CLEAN TESTS! All CS86xx violations MUST be fixed -->
+    <!-- WarningsNotAsErrors REMOVED - CS86xx warnings are LIFE THREATENING -->
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+    <!-- Forbidden to add global scoped NoWarn - violator to this rule will be prosecuted -->
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- ASSEMBLY METADATA -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <Version>2025.10.30.001</Version>
+    <AssemblyVersion>2025.10.30.001</AssemblyVersion>
+    <FileVersion>2025.10.30.001</FileVersion>
+    <Company>Exxerpro Solutions SA de CV</Company>
+    <Authors>Abel Briones</Authors>
+    <Product>ExxerAI Intelligence System</Product>
+    <AssemblyTitle>ExxerAI.Application.Logging.Test - Logging Application Tests</AssemblyTitle>
+    <Description>📜 Tests for structured logging, telemetry, and observability capabilities</Description>
+    <Copyright>© 2025 Exxerpro Solutions SA de CV</Copyright>
+    <RepositoryUrl>https://github.com/Exxerpro/ExxerAI.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- TESTING PLATFORM PROPERTIES -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <!-- Microsoft Testing Platform Configuration -->
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformServer>true</TestingPlatformServer>
+    <!-- Performance Configuration -->
+    <EnableDynamicPgo>true</EnableDynamicPgo>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- RESULT AND RESULT ANALYZERS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Result and Result Analyzers">
+    <PackageReference Include="IndQuestResults" />
+    <PackageReference Include="IndQuestResults.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - XUNIT V3 UNIVERSAL CONFIGURATION -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="XUnit v3 Universal Configuration">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - TESTING FRAMEWORK -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Testing Framework">
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - LOGGING EXTENSIONS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Logging">
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - REACTIVE EXTENSIONS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Reactive Extensions">
+    <PackageReference Include="System.Reactive" />
+    <PackageReference Include="System.Reactive.Linq" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - TIME TESTING -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Time Testing">
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - ANALYZERS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="NSubstitute Analyzers">
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- MICROSOFT TESTING PLATFORM -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Microsoft Testing Platform">
+    <PackageReference Include="Microsoft.Testing.Platform" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- USING DIRECTIVES -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Global Usings">
+    <Using Include="IndQuestResults" />
+    <Using Include="IndQuestResults.Operations" />
+    <Using Include="IndQuestResults.Validation" />
+    <Using Include="Xunit" />
+    <Using Include="NSubstitute" />
+    <Using Include="Shouldly" />
+    <Using Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PROJECT REFERENCES - CORE LAYER -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Core Layer">
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\..\..\Core\ExxerAi.Axioms\ExxerAI.Axioms.csproj" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PROJECT CAPABILITIES -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Testing Platform Capabilities">
+    <ProjectCapability Include="DiagnoseCapabilities" />
+    <ProjectCapability Include="TestingPlatformServer" />
+    <ProjectCapability Include="TestContainer" />
+  </ItemGroup>
+
+</Project>

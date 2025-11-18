@@ -1,19 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Export;
-using IndQuestResults;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NSubstitute;
-using Shouldly;
-using Xunit;
-using Xunit.v3;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Export;
 
 /// <summary>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>ExxerAI.BusinessIntelligence.Tests</RootNamespace>
+		<AssemblyName>ExxerAI.BusinessIntelligence.Tests</AssemblyName>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+		<GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+		<XunitStartupAssembly>ExxerAI.BusinessIntelligence.Tests</XunitStartupAssembly>
+		<EnableDefaultStaticWebAssets>false</EnableDefaultStaticWebAssets>
+		<IncludePackageStaticWebAssets>false</IncludePackageStaticWebAssets>
+
+		<AssemblyTitle>ExxerAI Business Intelligence Tests</AssemblyTitle>
+		<Description>Unit and Integration Tests for ExxerAI Business Intelligence Services</Description>
+		<Company>Exxerpro Solutions</Company>
+		<Product>ExxerAI Intelligence System</Product>
+		<Title>ExxerAI.BusinessIntelligence.Tests</Title>
+	</PropertyGroup>
+
+	<PropertyGroup>
+	</PropertyGroup>
+
+	<PropertyGroup>
+
+		<EnableDynamicPgo>true</EnableDynamicPgo>
+		<TieredCompilation>true</TieredCompilation>
+	</PropertyGroup>
+
+	<ItemGroup Label="Global Usings">
+
+		<Using Include="System.Net.Http" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+		<ProjectReference Include="..\..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+		<ProjectReference Include="..\..\..\Infrastructure\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="appsettings.test.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+</Project>
+<!--
+    ============================================================================
+    DEPENDENCY SOURCE INFORMATION
+    ============================================================================
+
+    📦 STANDARD TEST DEPENDENCIES ARE AUTOMATICALLY INHERITED FROM:
+       tests/Directory.Build.props
+
+    This includes:
+    • XUnit v3 Framework (xunit.v3, xunit.v3.core, xunit.runner.visualstudio, etc.)
+    • Microsoft Testing Platform (Microsoft.Testing.Platform, etc.)
+    • Testing Utilities (NSubstitute, Shouldly, IndQuestResults, etc.)
+    • Logging (Meziantou.Extensions.Logging.Xunit.v3)
+    • Code Analysis (coverlet.collector)
+    • Global Usings (Xunit, NSubstitute, Shouldly, System.*, etc.)
+    • Project Capabilities (DiagnoseCapabilities, TestingPlatformServer, etc.)
+    • Standard Properties (IsTestProject, OutputType, TargetFramework, etc.)
+
+    ⚠️  DO NOT DUPLICATE these packages here - they are already provided globally!
+
+    📝 ONLY ADD PROJECT-SPECIFIC DEPENDENCIES BELOW:
+       (e.g., specific test libraries, mocks for this project's dependencies)
+    ============================================================================
+  -->

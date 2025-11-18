@@ -1,0 +1,63 @@
+global using System;
+global using System.Collections.Concurrent;
+global using System.Collections.Generic;
+global using System.Diagnostics;
+global using System.Linq;
+global using System.Runtime.InteropServices;
+global using System.Text;
+global using System.Text.Json;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.AspNetCore.SignalR;
+
+global using ExxerAI.Application.Common;
+global using ExxerAI.Application.DTOs;
+global using ExxerAI.Application.DTOs.Performance;
+global using ExxerAI.Application.Interfaces;
+global using ExxerAI.Application.Ports;
+global using ExxerAI.Application.Services;
+global using ExxerAI.Domain.Common;
+global using ExxerAI.Domain.Configurations;
+global using ExxerAI.Domain.Entities;
+global using ExxerAI.Domain.ValueObjects;
+global using ExxerAI.Domain.Entities.A2AHub;
+global using ExxerAI.Domain.ValueObjects.A2AHub;
+global using ExxerAI.Domain.Enums;
+global using ExxerAI.Domain.AI;
+global using ExxerAI.Domain.DT;
+global using ExxerAI.Domain.DocumentProcessing;
+global using ExxerAI.Domain.BusinessIntelligence;
+global using ExxerAI.Domain.BusinessIntelligence.Kpis;
+
+global using ExxerAi.Axioms.Models.LLM;
+global using ExxerAI.Axis.Services;
+global using ExxerAI.Axis.Abstractions;
+global using ExxerAI.Conduit.AgentCommunication;
+global using ExxerAI.RealTimeCommunication.Abstractions;
+global using ExxerAI.RealTimeCommunication.Models;
+global using ExxerAI.Cortex.AI;
+global using ExxerAI.Vault.Abstractions;
+global using ExxerAI.Gatekeeper.Extensions;
+global using ExxerAI.Datastream.Repositories;
+
+global using IndQuestResults;
+global using IndQuestResults.Operations;
+
+global using A2A;
+global using A2A.AspNetCore;
+global using Microsoft.Agents.AI.A2A;
+global using Microsoft.Agents.AI.Hosting.A2A;
+
+global using Docker.DotNet;
+global using Docker.DotNet.Models;
+global using Polly;
+global using Polly.Extensions.Http;
+global using OpenTelemetry.Metrics;
+global using OpenTelemetry.Trace;

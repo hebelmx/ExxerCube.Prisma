@@ -1,0 +1,75 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- ============================================================================ -->
+	<!-- EXXERAI.DOMAIN.AXIS.TEST 🏗️ - AXIS DOMAIN TEST BASE -->
+	<!-- Evocative Architecture: Structural backbone test base providing foundation -->
+	<!-- patterns for testing core abstractions, DI extensions, and shared contracts -->
+	<!-- ============================================================================ -->
+
+	<!-- ============================================================================ -->
+	<!-- ASSEMBLY METADATA -->
+	<!-- ============================================================================ -->
+	<PropertyGroup>
+		<Version>2025.10.30.001</Version>
+		<AssemblyVersion>2025.10.30.001</AssemblyVersion>
+		<FileVersion>2025.10.30.001</FileVersion>
+		<Company>Exxerpro Solutions SA de CV</Company>
+		<Authors>Abel Briones</Authors>
+		<Product>ExxerAI Intelligence System</Product>
+		<AssemblyTitle>ExxerAI.Domain.Axis.Test - Axis Domain Test Base</AssemblyTitle>
+		<Description>Structural backbone test base providing foundation patterns for testing core abstractions, DI extensions, and shared contracts</Description>
+		<Copyright>© 2025 Exxerpro Solutions SA de CV</Copyright>
+		<RepositoryUrl>https://github.com/Exxerpro/ExxerAI.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
+
+	<!-- ============================================================================ -->
+	<!-- CORE PROPERTIES -->
+	<!-- ============================================================================ -->
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+		<GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+	</PropertyGroup>
+
+	<!-- ============================================================================ -->
+	<!-- PACKAGE REFERENCES - XUNIT V3 UNIVERSAL CONFIGURATION -->
+	<!-- ============================================================================ -->
+	<ItemGroup Label="XUnit v3 Universal Configuration">
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+		<PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+	</ItemGroup>
+
+	<!-- ============================================================================ -->
+	<!-- PACKAGE REFERENCES - TESTING FRAMEWORK -->
+	<!-- ============================================================================ -->
+	<ItemGroup Label="Testing Framework">
+		<PackageReference Include="Shouldly" />
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="Meziantou.Extensions.Logging.Xunit" />
+	</ItemGroup>
+
+	<!-- ============================================================================ -->
+	<!-- PACKAGE REFERENCES - MICROSOFT EXTENSIONS -->
+	<!-- ============================================================================ -->
+	<ItemGroup Label="Microsoft Extensions">
+		<PackageReference Include="Microsoft.Extensions.Configuration" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+		<PackageReference Include="Microsoft.Extensions.Logging" />
+	</ItemGroup>
+
+	<!-- ============================================================================ -->
+	<!-- PROJECT REFERENCES - CORE LAYER -->
+	<!-- ============================================================================ -->
+	<ItemGroup Label="Core Layer">
+		<ProjectReference Include="..\\..\\..\\..\\src\\Core\\ExxerAI.Domain\\ExxerAI.Domain.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,399 @@
+[
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\SystemTests\\ExxerAI.Migration.SystemTests\\ExxerAI.Migration.SystemTests.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "RepositoryType",
+      "Authors",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\10Architecture\\ExxerAI.Architecture.Test\\ExxerAI.Architecture.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\08UITests\\ExxerAI.UI.Test\\ExxerAI.UI.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\08UITests\\ExxerAI.UI.Web.Test\\ExxerAI.UI.Web.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\07E2ETests\\ExxerAI.E2E.Test\\ExxerAI.E2E.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\05IntegrationTests\\ExxerAI.Integration.Test\\ExxerAI.Integration.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\03UnitTests\\ExxerAI.Api.Test\\ExxerAI.Api.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\03UnitTests\\ExxerAI.CLI.Test\\ExxerAI.CLI.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\03UnitTests\\ExxerAI.Configuration.Test\\ExxerAI.Configuration.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\03UnitTests\\ExxerAI.Core.Test\\ExxerAI.Core.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\03UnitTests\\ExxerAI.Migration.Test\\ExxerAI.Migration.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "RepositoryType",
+      "Authors",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\03UnitTests\\ExxerAI.UI.Test\\ExxerAI.UI.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\02AxiomsTDDTest\\ExxerAI.TddDebuggerAgent.Test\\ExxerAI.TddDebuggerAgent.Tests.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\02AxiomsTDDTest\\TddDebuggerAgent.Tests.Moved\\ExxerAI.TddDebuggerAgent.Tests.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "GenerateTestingPlatformEntryPoint",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Company",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion",
+      "Product"
+    ]
+  },
+  {
+    "project": "F:\\Dynamic\\ExxerAi\\ExxerAI\\code\\src\\tests\\01Application\\ExxerAI.Application.Test\\ExxerAI.Application.Test.csproj",
+    "removed_packages": [],
+    "added_properties": [
+      "ImplicitUsings",
+      "OutputType",
+      "IsTestProject",
+      "GenerateDocumentationFile",
+      "IsPackable",
+      "TreatWarningsAsErrors",
+      "Nullable",
+      "UseMicrosoftTestingPlatformRunner",
+      "TestingPlatformServer",
+      "TestingPlatformDotnetTestSupport"
+    ],
+    "added_metadata": [
+      "Version",
+      "Authors",
+      "RepositoryType",
+      "AssemblyVersion",
+      "Copyright",
+      "RepositoryUrl",
+      "FileVersion"
+    ]
+  }
+]

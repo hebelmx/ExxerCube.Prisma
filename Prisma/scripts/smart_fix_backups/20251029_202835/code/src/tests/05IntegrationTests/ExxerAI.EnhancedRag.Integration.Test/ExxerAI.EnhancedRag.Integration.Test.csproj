@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  
+  
+  
+  <PropertyGroup>
+    <WarningsAsErrors />
+    
+    
+    <RootNamespace>ExxerAI.EnhancedRag.Tests</RootNamespace>
+    <AssemblyName>ExxerAI.EnhancedRag.Tests</AssemblyName>
+    
+    <XunitStartupAssembly>ExxerAI.EnhancedRag.Tests</XunitStartupAssembly>
+    
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+  </PropertyGroup>
+  
+  
+  
+  
+  <PropertyGroup>
+    
+    </PropertyGroup>
+
+  
+  
+  
+  <ItemGroup Label="Global Usings">
+    
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    
+    
+    </ItemGroup>
+
+  <ItemGroup Label="Infrastructure References">
+    <ProjectReference Include="..\..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+    <ProjectReference Include="..\..\..\Infrastructure\ExxerAI.Cortex\ExxerAI.Cortex.csproj" />
+  </ItemGroup>
+
+
+  
+  
+  
+  </Project>
+  <!--
+    ============================================================================
+    DEPENDENCY SOURCE INFORMATION
+    ============================================================================
+    
+    📦 STANDARD TEST DEPENDENCIES ARE AUTOMATICALLY INHERITED FROM:
+       tests/Directory.Build.props
+    
+    This includes:
+    • XUnit v3 Framework (xunit.v3, xunit.v3.core, xunit.runner.visualstudio, etc.)
+    • Microsoft Testing Platform (Microsoft.Testing.Platform, etc.)
+    • Testing Utilities (NSubstitute, Shouldly, IndQuestResults, etc.)
+    • Logging (Meziantou.Extensions.Logging.Xunit.v3)
+    • Code Analysis (coverlet.collector)
+    • Global Usings (Xunit, NSubstitute, Shouldly, System.*, etc.)
+    • Project Capabilities (DiagnoseCapabilities, TestingPlatformServer, etc.)
+    • Standard Properties (IsTestProject, OutputType, TargetFramework, etc.)
+    
+    ⚠️  DO NOT DUPLICATE these packages here - they are already provided globally!
+    
+    📝 ONLY ADD PROJECT-SPECIFIC DEPENDENCIES BELOW:
+       (e.g., specific test libraries, mocks for this project's dependencies)
+    ============================================================================
+  -->

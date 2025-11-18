@@ -1,0 +1,16 @@
+{
+  "packageId": "Contoso.Core",
+  "version": "2.0.0",
+  "description": "Core abstractions for Contoso services.",
+  "projectUrl": "https://contoso.dev/core",
+  "licenseUrl": "https://contoso.dev/license",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/contoso/core",
+    "branch": "main"
+  },
+  "tags": [
+    "core",
+    "abstractions"
+  ]
+}

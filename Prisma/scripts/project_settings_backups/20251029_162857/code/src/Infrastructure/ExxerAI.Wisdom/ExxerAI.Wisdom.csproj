@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>ExxerAI.Wisdom</AssemblyName>
+    <RootNamespace>ExxerAI.Wisdom</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>Governance, policies, audit, and compliance for the ExxerAI evocative architecture.</Description>
+    <PackageTags>exxerai;infrastructure;wisdom;governance;policies;audit;compliance</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+    <ProjectReference Include="..\ExxerAI.Datastream\ExxerAI.Datastream.csproj" />
+    <ProjectReference Include="..\ExxerAI.Signal\ExxerAI.Signal.csproj" />
+      <ProjectReference Include="..\..\Core\ExxerAi.Axioms\ExxerAI.Axioms.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ExxerAI.Application.Ports.Tests</RootNamespace>
+    <AssemblyName>ExxerAI.Application.Ports.Test</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../Core/ExxerAI.Domain/ExxerAI.Domain.csproj" />
+    <ProjectReference Include="../../../Core/ExxerAI.Application/ExxerAI.Application.csproj" />
+  </ItemGroup>
+</Project>

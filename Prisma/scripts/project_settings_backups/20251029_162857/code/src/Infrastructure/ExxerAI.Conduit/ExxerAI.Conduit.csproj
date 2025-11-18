@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>ExxerAI.Conduit</AssemblyName>
+    <RootNamespace>ExxerAI.Conduit</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>Messaging, inter-agent communication, and orchestration for the ExxerAI evocative architecture.</Description>
+    <PackageTags>exxerai;infrastructure;conduit;messaging;agents;orchestration</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+    <ProjectReference Include="..\ExxerAI.Datastream\ExxerAI.Datastream.csproj" />
+    <ProjectReference Include="..\ExxerAI.Gatekeeper\ExxerAI.Gatekeeper.csproj" />
+    <ProjectReference Include="..\ExxerAI.Cortex\ExxerAI.Cortex.csproj" />
+    <ProjectReference Include="..\ExxerAI.Vault\ExxerAI.Vault.csproj" />
+    <ProjectReference Include="..\ExxerAI.Sentinel\ExxerAI.Sentinel.csproj" />
+      <ProjectReference Include="..\..\Core\ExxerAi.Axioms\ExxerAI.Axioms.csproj" />
+  </ItemGroup>
+
+</Project>

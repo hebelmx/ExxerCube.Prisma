@@ -1,0 +1,11 @@
+[
+  {
+    "path": "code/src/tests/10Architecture/ExxerAI.Architecture.Tests/ExxerAI.Architecture.Tests.csproj",
+    "findings": [
+      {
+        "name": "Add Microsoft.Testing.Extensions.HangDump reference",
+        "line": 177
+      }
+    ]
+  }
+]

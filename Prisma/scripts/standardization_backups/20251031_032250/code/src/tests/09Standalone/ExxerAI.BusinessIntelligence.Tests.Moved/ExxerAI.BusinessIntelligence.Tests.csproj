@@ -1,0 +1,166 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ============================================================================ -->
+  <!-- CORE PROPERTIES -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <!-- Test Project Configuration -->
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    
+    <!-- Language Features -->
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- Assembly Information -->
+    <RootNamespace>ExxerAI.BusinessIntelligence.Tests</RootNamespace>
+    <AssemblyName>ExxerAI.BusinessIntelligence.Tests</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    
+    <!-- Testing Configuration -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    
+    <!-- Assembly Metadata -->
+    <AssemblyVersion>2025.10.30.001</AssemblyVersion>
+    <FileVersion>2025.10.30.001</FileVersion>
+    <Company>Exxerpro Solutions SA de CV</Company>
+    <Authors>Abel Briones</Authors>
+    <Product>ExxerAI</Product>
+    <Copyright>© 2025 Exxerpro Solutions SA de CV</Copyright>
+    <RepositoryUrl>https://github.com/Exxerpro/ExxerAI.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    
+    <!-- Standalone Test Description -->
+    <AssemblyTitle>🧪 ExxerAI Business Intelligence Standalone Tests (Moved)</AssemblyTitle>
+    <Description>🧪 Standalone testing suite for isolated Business Intelligence services validation including KPI calculation, conversational BI, and data conciliation without external dependencies (legacy/moved tests)</Description>
+    <Title>ExxerAI.BusinessIntelligence.Tests.Moved - Standalone BI Testing</Title>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- TESTING PLATFORM PROPERTIES -->
+  <!-- ============================================================================ -->
+  <PropertyGroup>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformServer>true</TestingPlatformServer>
+    <!-- CRITICAL: Prevent duplicate entry points -->
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - CORE TESTING -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Core Testing">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - TESTING UTILITIES -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Testing Utilities">
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - LOGGING -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Logging">
+    <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - TIME TESTING -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Time Testing">
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - CODE ANALYSIS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Code Analysis">
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - MICROSOFT TESTING PLATFORM -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Microsoft Testing Platform">
+    <PackageReference Include="Microsoft.Testing.Platform" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Microsoft.Testing.Extensions.VSTestBridge" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - XUNIT V3 FRAMEWORK -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="xUnit v3">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.v3.core" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3.runner.inproc.console" />
+    <PackageReference Include="xunit.v3.runner.msbuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PROJECT REFERENCES -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\src\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Infrastructure\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Infrastructure\ExxerAI.Nexus.Library\ExxerAI.Nexus.Library.csproj" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PROJECT CAPABILITIES -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Testing Platform Capabilities">
+    <ProjectCapability Include="DiagnoseCapabilities" />
+    <ProjectCapability Include="TestingPlatformServer" />
+    <ProjectCapability Include="TestContainer" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- RESULT AND RESULT ANALYZERS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Result and Result Analyzers">
+    <PackageReference Include="IndQuestResults" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- GLOBAL USINGS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Global Usings">
+    <Using Include="System.Net.Http" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- TEST CONFIGURATION FILES -->
+  <!-- ============================================================================ -->
+  <ItemGroup>
+    <None Update="appsettings.test.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

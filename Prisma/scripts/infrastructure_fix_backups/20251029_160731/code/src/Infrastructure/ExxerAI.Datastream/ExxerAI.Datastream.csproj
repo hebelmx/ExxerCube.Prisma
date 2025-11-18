@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>ExxerAI.Datastream</AssemblyName>
+    <RootNamespace>ExxerAI.Datastream</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Description>Database access, repositories, Entity Framework Core, and data migrations for the ExxerAI evocative architecture.</Description>
+    <PackageTags>exxerai;infrastructure;datastream;database;ef-core;repositories</PackageTags>
+  </PropertyGroup>
+
+
+  
+  
+  <ItemGroup Label="Entity Framework Core">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Pgvector.EntityFrameworkCore" />
+  
+    
+    <!-- ASP.NET Core EF Extensions -->
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+  </ItemGroup>
+
+  
+  
+  
+  <ItemGroup Label="Core Framework">
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+   
+  </ItemGroup>
+  <!-- System Results -->
+  <ItemGroup  Label="IndQuestResults">
+    <PackageReference Include="IndQuestResults" />
+  </ItemGroup>
+  <!-- GLOBAL USINGS -->
+  <ItemGroup Label="Global Usings">
+    <Using Include="IndQuestResults" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\ExxerAI.Domain\ExxerAI.Domain.csproj" />
+    <ProjectReference Include="..\..\Core\ExxerAI.Application\ExxerAI.Application.csproj" />
+    <ProjectReference Include="..\..\Core\ExxerAi.Axioms\ExxerAI.Axioms.csproj" />
+    <ProjectReference Include="..\ExxerAI.Axis\ExxerAI.Axis.csproj" />
+  </ItemGroup>
+
+</Project>
