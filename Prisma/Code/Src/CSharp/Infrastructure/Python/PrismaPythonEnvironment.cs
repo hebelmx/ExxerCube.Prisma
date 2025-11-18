@@ -58,8 +58,11 @@ public static class PrismaPythonEnvironment
                     services
                             .WithPython()
                             .WithHome(Directory.GetCurrentDirectory()) // CSnakes will find the Python files
+                            .FromNuGet("3.12.4")
+                            .FromEnvironmentVariable("Python3_ROOT_DIR", "3.12.14")
                             .WithVirtualEnvironment(venvPath)
                             .WithUvInstaller() // Use pip to install packages from requirements.txt
+                                               //.WithPipInstaller()
                             .FromRedistributable(); // Download Python 3.12 and store it locally
                 });
 

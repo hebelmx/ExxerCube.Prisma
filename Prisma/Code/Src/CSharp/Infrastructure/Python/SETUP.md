@@ -18,7 +18,14 @@ The module depends on `ocr_modules` from `Prisma/Code/Src/Python/prisma-ocr-pipe
 
 If you encounter this error:
 
-1. **CSnakes Code Generation (Build-time)**: CSnakes needs to import `ocr_modules` during code generation to analyze types. Ensure:
+1. **CSnakes Code Generation (Build-time)**: CSnakes needs to import `ocr_modules` during code generation to analyze types. 
+
+   **Recommended**: Use the provided build script that automatically sets PYTHONPATH:
+   ```powershell
+   .\build-infrastructure.ps1
+   ```
+   
+   **Manual Setup**: If building manually, ensure:
    - Set `PYTHONPATH` environment variable before building to include `Prisma/Code/Src/Python/prisma-ocr-pipeline/src`
    - Or ensure `ocr_modules` is available in Python's default search path during build
    - The Python file must be parseable by CSnakes - avoid complex conditional imports that confuse the generator
@@ -33,9 +40,11 @@ If you encounter this error:
    - Must be importable by Python at both build-time (for CSnakes) and runtime
 
 4. **Rebuild the project**: CSnakes generates code during build. If the module isn't found:
-   - Clean and rebuild the solution
+   - **Use the build script**: `.\build-infrastructure.ps1` (recommended - handles PYTHONPATH automatically)
+   - Or manually: Clean and rebuild the solution with PYTHONPATH set
    - Ensure CSnakes source generation completed successfully
    - Check build output for CSnakes generator errors
+   - Verify the project file has CSnakes configuration properties (EmbedPythonSources, DefaultPythonItems, PythonRoot)
 
 ## Test Setup
 

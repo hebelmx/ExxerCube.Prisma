@@ -12,15 +12,42 @@ import io
 from PIL import Image
 import numpy as np
 
-# Import ocr_modules
-# Note: This import requires ocr_modules to be in Python path at runtime
-# CSnakes code generation will succeed if the module is available during build
-# If not available during build, ensure prisma-ocr-pipeline/src is in PYTHONPATH
-from ocr_modules import (
-    process_path, create_default_config, ProcessingConfig, OCRConfig,
-    extract_expediente, extract_causa, extract_accion_solicitada,
-    extract_dates, extract_amounts
-)
+# Import ocr_modules - lazy import to allow CSnakes code generation without ocr_modules
+# CSnakes source generator only needs to parse the file, not execute imports
+# Runtime will import ocr_modules when functions are called
+_ocr_modules_imported = False
+_process_path = None
+_create_default_config = None
+_ProcessingConfig = None
+_OCRConfig = None
+_extract_expediente = None
+_extract_causa = None
+_extract_accion_solicitada = None
+_extract_dates = None
+_extract_amounts = None
+
+def _ensure_ocr_modules():
+    """Lazy import ocr_modules only when needed at runtime."""
+    global _ocr_modules_imported, _process_path, _create_default_config
+    global _ProcessingConfig, _OCRConfig, _extract_expediente, _extract_causa
+    global _extract_accion_solicitada, _extract_dates, _extract_amounts
+    
+    if not _ocr_modules_imported:
+        from ocr_modules import (
+            process_path, create_default_config, ProcessingConfig, OCRConfig,
+            extract_expediente, extract_causa, extract_accion_solicitada,
+            extract_dates, extract_amounts
+        )
+        _process_path = process_path
+        _create_default_config = create_default_config
+        _ProcessingConfig = ProcessingConfig
+        _OCRConfig = OCRConfig
+        _extract_expediente = extract_expediente
+        _extract_causa = extract_causa
+        _extract_accion_solicitada = extract_accion_solicitada
+        _extract_dates = extract_dates
+        _extract_amounts = extract_amounts
+        _ocr_modules_imported = True
 
 def execute_ocr(image_data: bytes, config: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -37,8 +64,11 @@ def execute_ocr(image_data: bytes, config: Dict[str, Any]) -> Dict[str, Any]:
         # Convert bytes to PIL Image
         image = Image.open(io.BytesIO(image_data))
         
+        # Ensure ocr_modules is imported
+        _ensure_ocr_modules()
+        
         # Convert config dict to OCRConfig object
-        ocr_config = OCRConfig(
+        ocr_config = _OCRConfig(
             language=config.get('language', 'spa'),
             fallback_language=config.get('fallback_language', 'eng'),
             oem=config.get('oem', 3),
@@ -46,7 +76,7 @@ def execute_ocr(image_data: bytes, config: Dict[str, Any]) -> Dict[str, Any]:
         )
         
         # Create processing config
-        processing_config = ProcessingConfig(
+        processing_config = _ProcessingConfig(
             remove_watermark=True,
             deskew=True,
             binarize=True,
@@ -56,7 +86,7 @@ def execute_ocr(image_data: bytes, config: Dict[str, Any]) -> Dict[str, Any]:
         )
         
         # Process the image
-        result = process_path(image, processing_config)
+        result = _process_path(image, processing_config)
         
         # Convert result to dictionary
         return {
@@ -91,20 +121,23 @@ def extract_fields_from_text(text: str, confidence: float) -> Dict[str, Any]:
         Dictionary containing extracted fields
     """
     try:
+        # Ensure ocr_modules is imported
+        _ensure_ocr_modules()
+        
         # Extract expediente
-        expediente = extract_expediente(text)
+        expediente = _extract_expediente(text)
         
         # Extract causa
-        causa = extract_causa(text)
+        causa = _extract_causa(text)
         
         # Extract accion solicitada
-        accion_solicitada = extract_accion_solicitada(text)
+        accion_solicitada = _extract_accion_solicitada(text)
         
         # Extract dates
-        dates = extract_dates(text)
+        dates = _extract_dates(text)
         
         # Extract amounts
-        amounts = extract_amounts(text)
+        amounts = _extract_amounts(text)
         
         return {
             'expediente': expediente,
@@ -138,7 +171,8 @@ def extract_expediente_from_text(text: str) -> Optional[str]:
         Extracted expediente or None
     """
     try:
-        return extract_expediente(text)
+        _ensure_ocr_modules()
+        return _extract_expediente(text)
     except Exception:
         return None
 
@@ -153,7 +187,8 @@ def extract_causa_from_text(text: str) -> Optional[str]:
         Extracted causa or None
     """
     try:
-        return extract_causa(text)
+        _ensure_ocr_modules()
+        return _extract_causa(text)
     except Exception:
         return None
 
@@ -168,7 +203,8 @@ def extract_accion_solicitada_from_text(text: str) -> Optional[str]:
         Extracted accion solicitada or None
     """
     try:
-        return extract_accion_solicitada(text)
+        _ensure_ocr_modules()
+        return _extract_accion_solicitada(text)
     except Exception:
         return None
 
@@ -183,7 +219,8 @@ def extract_dates_from_text(text: str) -> List[str]:
         List of extracted dates
     """
     try:
-        return extract_dates(text)
+        _ensure_ocr_modules()
+        return _extract_dates(text)
     except Exception:
         return []
 
@@ -198,7 +235,8 @@ def extract_amounts_from_text(text: str) -> List[Dict[str, Any]]:
         List of extracted amounts with currency and value
     """
     try:
-        amounts = extract_amounts(text)
+        _ensure_ocr_modules()
+        amounts = _extract_amounts(text)
         return [
             {
                 'currency': amount.currency,
