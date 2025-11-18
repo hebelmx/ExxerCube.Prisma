@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using ExxerCube.Prisma.Domain.Entities;
 
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
 /// Consolidated metadata record combining data from XML, DOCX, and PDF sources.

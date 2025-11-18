@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
 /// Represents the result of matching a single field across multiple sources.

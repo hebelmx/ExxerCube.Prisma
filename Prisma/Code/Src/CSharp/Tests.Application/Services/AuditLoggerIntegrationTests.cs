@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Infrastructure.Database;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 

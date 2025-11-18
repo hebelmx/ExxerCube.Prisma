@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Domain.Entities;
 

@@ -1,5 +1,6 @@
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Application.Services;
 

@@ -1,6 +1,6 @@
 using System;
 
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
 /// Represents a document image with metadata for OCR processing.

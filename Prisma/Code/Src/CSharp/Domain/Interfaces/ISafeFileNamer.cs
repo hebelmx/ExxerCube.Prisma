@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
 
 namespace ExxerCube.Prisma.Domain.Interfaces;
@@ -19,8 +20,8 @@ public interface ISafeFileNamer
     /// <returns>A result containing the safe file name or an error.</returns>
     Task<Result<string>> GenerateSafeFileNameAsync(
         string originalFileName,
-        ExxerCube.Prisma.Domain.Entities.ClassificationResult classification,
-        ExxerCube.Prisma.Domain.Entities.ExtractedMetadata? metadata = null,
+        ClassificationResult classification,
+        ExtractedMetadata? metadata = null,
         CancellationToken cancellationToken = default);
 }
 

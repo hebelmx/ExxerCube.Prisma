@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
 /// Represents the final result of processing a single image.

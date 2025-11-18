@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
 /// Represents detailed classification scoring information for document classification.

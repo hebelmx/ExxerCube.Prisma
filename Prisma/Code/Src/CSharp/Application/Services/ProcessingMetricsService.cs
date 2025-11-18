@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Application.Services;
 

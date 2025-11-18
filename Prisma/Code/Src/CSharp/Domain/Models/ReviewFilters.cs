@@ -1,4 +1,6 @@
-namespace ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Enums;
+
+namespace ExxerCube.Prisma.Domain.Models;
 
 /// <summary>
 /// Represents filters for querying review cases.

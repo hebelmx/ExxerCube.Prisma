@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.FileSystem;
 
 /// <summary>

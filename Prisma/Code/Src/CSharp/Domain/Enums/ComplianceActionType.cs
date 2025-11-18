@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.Enums;
 
 /// <summary>
 /// Represents the type of compliance action to be taken based on legal directive classification.

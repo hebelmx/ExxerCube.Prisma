@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
 /// <summary>
@@ -204,10 +206,10 @@ public class MatchingPolicyOptionsTests
         var service = new MatchingPolicyService(optionsWrapper, logger);
 
         // Act - Service should handle invalid values gracefully (use defaults or clamp)
-        var values = new List<ExxerCube.Prisma.Domain.Entities.FieldValue>
+        var values = new List<FieldValue>
         {
-            new ExxerCube.Prisma.Domain.Entities.FieldValue("Test", "Value1", 0.9f, "DOCX"),
-            new ExxerCube.Prisma.Domain.Entities.FieldValue("Test", "Value2", 0.8f, "PDF")
+            new FieldValue("Test", "Value1", 0.9f, "DOCX"),
+            new FieldValue("Test", "Value2", 0.8f, "PDF")
         };
 
         var result = await service.SelectBestValueAsync("Test", values);
@@ -229,10 +231,10 @@ public class MatchingPolicyOptionsTests
         var service = new MatchingPolicyService(optionsWrapper, logger);
 
         // Act
-        var values = new List<ExxerCube.Prisma.Domain.Entities.FieldValue>
+        var values = new List<FieldValue>
         {
-            new ExxerCube.Prisma.Domain.Entities.FieldValue("Test", "Value1", 0.9f, "DOCX"),
-            new ExxerCube.Prisma.Domain.Entities.FieldValue("Test", "Value1", 0.8f, "PDF")
+            new FieldValue("Test", "Value1", 0.9f, "DOCX"),
+            new FieldValue("Test", "Value1", 0.8f, "PDF")
         };
 
         var result = await service.SelectBestValueAsync("Test", values);

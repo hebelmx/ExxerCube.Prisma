@@ -15,6 +15,7 @@ using PdfSharp.Pdf;
 using PdfSharp.Pdf.Security;
 using Azure.Security.KeyVault.Certificates;
 using Azure.Identity;
+using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Infrastructure.Export;
 

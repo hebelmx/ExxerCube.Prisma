@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Text;
+
+namespace ExxerCube.Prisma.Domain.Interfaces.Contracts;
 
 /// <summary>
 /// Represents a reusable description of how to query an entity, including filtering, sorting,

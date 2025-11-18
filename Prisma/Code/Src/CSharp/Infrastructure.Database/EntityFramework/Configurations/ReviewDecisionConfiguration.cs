@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
 
 /// <summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Models;
 
 namespace ExxerCube.Prisma.Application.Services;
 

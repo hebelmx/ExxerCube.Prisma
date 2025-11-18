@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.Enums;
 
 /// <summary>
 /// Represents the type of decision made during manual review.

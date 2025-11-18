@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.Models;
 
 /// <summary>
 /// Represents configuration for the entire processing pipeline.

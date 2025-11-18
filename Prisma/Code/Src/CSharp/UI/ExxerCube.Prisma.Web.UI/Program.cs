@@ -12,6 +12,7 @@ using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Application.Services;
+using ExxerCube.Prisma.Domain.Sources;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,8 +97,8 @@ builder.Services.AddScoped<MetadataExtractionService>();
 // Add Story 1.3 services: Field Matching and Unified Metadata Generation
 builder.Services.AddScoped<FieldMatchingService>();
 // Register FieldMatcherService instances for each source type
-builder.Services.AddScoped(typeof(IFieldMatcher<ExxerCube.Prisma.Domain.Entities.DocxSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<ExxerCube.Prisma.Domain.Entities.DocxSource>));
-builder.Services.AddScoped(typeof(IFieldMatcher<ExxerCube.Prisma.Domain.Entities.PdfSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<ExxerCube.Prisma.Domain.Entities.PdfSource>));
+builder.Services.AddScoped(typeof(IFieldMatcher<DocxSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<DocxSource>));
+builder.Services.AddScoped(typeof(IFieldMatcher<PdfSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<PdfSource>));
 
 // Add Story 1.4 services: Decision Logic (Identity Resolution and Legal Classification)
 builder.Services.AddScoped<DecisionLogicService>();

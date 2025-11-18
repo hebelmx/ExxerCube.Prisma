@@ -1,6 +1,7 @@
 using System;
+using ExxerCube.Prisma.Domain.Entities;
 
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
 /// Represents extracted metadata from regulatory documents (XML, DOCX, PDF).

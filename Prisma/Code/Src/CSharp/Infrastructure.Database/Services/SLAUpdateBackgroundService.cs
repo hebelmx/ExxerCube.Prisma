@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enums;
+
 namespace ExxerCube.Prisma.Infrastructure.Database.Services;
 
 /// <summary>
@@ -155,7 +157,7 @@ public class SLAUpdateBackgroundService : BackgroundService
                     }
 
                     // Check if escalation was triggered
-                    var wasEscalated = updatedStatus.EscalationLevel != ExxerCube.Prisma.Domain.Entities.EscalationLevel.None &&
+                    var wasEscalated = updatedStatus.EscalationLevel != EscalationLevel.None &&
                                       updatedStatus.EscalatedAt.HasValue;
 
                     if (wasEscalated)

@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using ExxerCube.Prisma.Domain.Entities;
 
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
 /// Represents a summary of compliance requirements extracted from PDF documents.

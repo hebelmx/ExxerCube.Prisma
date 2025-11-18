@@ -1,3 +1,7 @@
+using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Tests.Domain.Interfaces;
 
 /// <summary>

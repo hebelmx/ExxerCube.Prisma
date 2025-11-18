@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Infrastructure.Export;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Export;

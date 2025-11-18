@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Domain.Interfaces;
 

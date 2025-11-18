@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Entities;
+namespace ExxerCube.Prisma.Domain.Sources;
 
 /// <summary>
 /// Represents an XML document source for field extraction.
