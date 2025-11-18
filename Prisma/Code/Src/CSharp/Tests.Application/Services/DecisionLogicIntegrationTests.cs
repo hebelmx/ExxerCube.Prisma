@@ -40,6 +40,19 @@ public class DecisionLogicIntegrationTests
         var auditLogger = Substitute.For<IAuditLogger>();
         var manualReviewerPanel = Substitute.For<IManualReviewerPanel>();
 
+        // Configure audit logger to return success for all audit logging calls
+        auditLogger.LogAuditAsync(
+            Arg.Any<AuditActionType>(),
+            Arg.Any<ProcessingStage>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<bool>(),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
         _service = new DecisionLogicService(_identityResolver, _classifier, manualReviewerPanel, auditLogger, serviceLogger);
     }
 
@@ -84,6 +97,68 @@ public class DecisionLogicIntegrationTests
             AreaDescripcion = "ASEGURAMIENTO"
         };
 
+        // Configure mocks
+        var resolvedPerson1 = new Persona
+        {
+            ParteId = 1,
+            Nombre = "Juan",
+            Paterno = "Perez",
+            Materno = "Garcia",
+            Rfc = "PEGJ850101ABC",
+            Caracter = "Contribuyente Auditado",
+            PersonaTipo = "Fisica",
+            RfcVariants = new List<string> { "PEGJ850101ABC", "PEGJ850101" }
+        };
+
+        var resolvedPerson2 = new Persona
+        {
+            ParteId = 2,
+            Nombre = "Maria",
+            Paterno = "Lopez",
+            Materno = "Rodriguez",
+            Rfc = "LORM900202XYZ",
+            Caracter = "Patrón Determinado",
+            PersonaTipo = "Fisica",
+            RfcVariants = new List<string> { "LORM900202XYZ", "LORM900202" }
+        };
+
+        var resolvedList = new List<Persona> { resolvedPerson1, resolvedPerson2 };
+
+        _identityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var person = callInfo.Arg<Persona>();
+                var resolved = person.ParteId == 1 ? resolvedPerson1 : resolvedPerson2;
+                return Task.FromResult(Result<Persona>.Success(resolved));
+            });
+
+        _identityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<Persona>>.Success(resolvedList)));
+
+        _classifier.DetectLegalInstrumentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<string>>.Success(new List<string> { "Acuerdo 105/2021" })));
+
+        _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
+            {
+                new ComplianceAction
+                {
+                    ActionType = ComplianceActionType.Block,
+                    Confidence = 95,
+                    AccountNumber = "1234567890",
+                    Amount = 1000000.00m,
+                    ExpedienteOrigen = expediente.NumeroExpediente,
+                    OficioOrigen = expediente.NumeroOficio
+                },
+                new ComplianceAction
+                {
+                    ActionType = ComplianceActionType.Document,
+                    Confidence = 90,
+                    ExpedienteOrigen = expediente.NumeroExpediente,
+                    OficioOrigen = expediente.NumeroOficio
+                }
+            }));
+
         // Act
         var result = await _service.ProcessDecisionLogicAsync(persons, documentText, expediente, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -124,6 +199,28 @@ public class DecisionLogicIntegrationTests
         var originalNombre = existingPerson.Nombre;
         var originalComplementarios = existingPerson.Complementarios;
 
+        // Configure mocks
+        var mockResolvedPerson = new Persona
+        {
+            ParteId = 1,
+            Nombre = "Juan Carlos",
+            Paterno = "Perez",
+            Materno = "Garcia",
+            Rfc = "PEGJ850101ABC",
+            Caracter = "Contribuyente Auditado",
+            PersonaTipo = "Fisica",
+            Relacion = "Titular",
+            Domicilio = "Calle Principal 123",
+            Complementarios = "CURP: PEGJ850101HDFRRN01",
+            RfcVariants = new List<string> { "PEGJ850101ABC", "PEGJ850101" }
+        };
+
+        _identityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Persona>.Success(mockResolvedPerson)));
+
+        _identityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<Persona>>.Success(new List<Persona> { mockResolvedPerson })));
+
         // Act
         var result = await _service.ResolvePersonIdentitiesAsync(
             new List<Persona> { existingPerson },
@@ -158,6 +255,22 @@ public class DecisionLogicIntegrationTests
         // Document text that would have been extracted in Stage 2
         var documentText = "Se ordena el BLOQUEO conforme al expediente A/AS1-2505-088637-PHM";
 
+        // Configure mocks
+        _classifier.DetectLegalInstrumentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<string>>.Success(new List<string> { "Acuerdo 105/2021" })));
+
+        _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
+            {
+                new ComplianceAction
+                {
+                    ActionType = ComplianceActionType.Block,
+                    Confidence = 95,
+                    ExpedienteOrigen = expediente.NumeroExpediente,
+                    OficioOrigen = expediente.NumeroOficio
+                }
+            })));
+
         // Act
         var result = await _service.ClassifyLegalDirectivesAsync(documentText, expediente, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -190,6 +303,19 @@ public class DecisionLogicIntegrationTests
             NumeroOficio = "214-1-18714972/2025"
         };
 
+        // Configure mocks
+        _classifier.DetectLegalInstrumentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<string>>.Success(new List<string> { "Acuerdo 105/2021" })));
+
+        _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
+            {
+                new ComplianceAction { ActionType = ComplianceActionType.Block, Confidence = 95 },
+                new ComplianceAction { ActionType = ComplianceActionType.Document, Confidence = 90 },
+                new ComplianceAction { ActionType = ComplianceActionType.Transfer, Confidence = 85 },
+                new ComplianceAction { ActionType = ComplianceActionType.Information, Confidence = 80 }
+            })));
+
         // Act
         var stopwatch = Stopwatch.StartNew();
         var result = await _service.ClassifyLegalDirectivesAsync(documentText, expediente, cancellationToken: TestContext.Current.CancellationToken);
@@ -212,6 +338,34 @@ public class DecisionLogicIntegrationTests
             new Persona { ParteId = 1, Nombre = "Juan", Rfc = "PEGJ850101ABC" },
             new Persona { ParteId = 2, Nombre = "Juan", Rfc = "PEG-850101-ABC" } // Same RFC, different format
         };
+
+        // Configure mocks
+        var resolvedPerson1 = new Persona
+        {
+            ParteId = 1,
+            Nombre = "Juan",
+            Rfc = "PEGJ850101ABC",
+            RfcVariants = new List<string> { "PEGJ850101ABC", "PEG-850101-ABC", "PEGJ850101" }
+        };
+
+        var resolvedPerson2 = new Persona
+        {
+            ParteId = 2,
+            Nombre = "Juan",
+            Rfc = "PEG-850101-ABC",
+            RfcVariants = new List<string> { "PEGJ850101ABC", "PEG-850101-ABC", "PEGJ850101" }
+        };
+
+        _identityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var person = callInfo.Arg<Persona>();
+                return Task.FromResult(Result<Persona>.Success(person.ParteId == 1 ? resolvedPerson1 : resolvedPerson2));
+            });
+
+        // Mock deduplication to return both (or one if they're duplicates)
+        _identityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<Persona>>.Success(new List<Persona> { resolvedPerson1, resolvedPerson2 })));
 
         // Act
         var result = await _service.ResolvePersonIdentitiesAsync(persons, cancellationToken: TestContext.Current.CancellationToken);
@@ -237,6 +391,16 @@ public class DecisionLogicIntegrationTests
         // Arrange
         var documentText = "De conformidad con el Acuerdo 105/2021 y la Ley 123/2020, se ordena el BLOQUEO";
 
+        // Configure mocks
+        _classifier.DetectLegalInstrumentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<string>>.Success(new List<string> { "Acuerdo 105/2021", "Ley 123/2020" })));
+
+        _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
+            {
+                new ComplianceAction { ActionType = ComplianceActionType.Block, Confidence = 95 }
+            })));
+
         // Act
         var detectResult = await _classifier.DetectLegalInstrumentsAsync(documentText, TestContext.Current.CancellationToken);
         var classifyResult = await _service.ClassifyLegalDirectivesAsync(documentText, null, cancellationToken: TestContext.Current.CancellationToken);
@@ -259,6 +423,22 @@ public class DecisionLogicIntegrationTests
     {
         // Arrange
         var documentText = "Se ordena el BLOQUEO de la cuenta 1234567890 por un monto de $1,000,000.00";
+
+        // Configure mocks
+        _classifier.DetectLegalInstrumentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<string>>.Success(new List<string>())));
+
+        _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
+            {
+                new ComplianceAction
+                {
+                    ActionType = ComplianceActionType.Block,
+                    Confidence = 95,
+                    AccountNumber = "1234567890",
+                    Amount = 1000000.00m
+                }
+            })));
 
         // Act
         var result = await _service.ClassifyLegalDirectivesAsync(documentText, null, cancellationToken: TestContext.Current.CancellationToken);
@@ -289,6 +469,30 @@ public class DecisionLogicIntegrationTests
         };
 
         var documentText = "Se ordena el BLOQUEO de la cuenta 1234567890";
+
+        // Configure mocks
+        var resolvedPerson = new Persona
+        {
+            ParteId = 1,
+            Nombre = "Juan",
+            Rfc = "PEGJ850101ABC",
+            RfcVariants = new List<string> { "PEGJ850101ABC", "PEGJ850101" }
+        };
+
+        _identityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<Persona>.Success(resolvedPerson)));
+
+        _identityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<Persona>>.Success(new List<Persona> { resolvedPerson })));
+
+        _classifier.DetectLegalInstrumentsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<string>>.Success(new List<string>())));
+
+        _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
+            {
+                new ComplianceAction { ActionType = ComplianceActionType.Block, Confidence = 95 }
+            })));
 
         // Act
         var result = await _service.ProcessDecisionLogicAsync(persons, documentText, null, cancellationToken: TestContext.Current.CancellationToken);

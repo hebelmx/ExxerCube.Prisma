@@ -1,0 +1,214 @@
+   ExxerCube.Prisma.Tests.Application (9 tests) [0:50.530] Failed: 9 tests failed
+    ExxerCube.Prisma.Tests.Application.Services (9 tests) [0:50.530] Failed: 9 tests failed
+     DecisionLogicIntegrationTests (8 tests) [0:00.716] Failed: One or more child tests failed: 8 tests failed
+      ClassifyLegalDirectivesAsync_MapsToComplianceActions_WithConfidenceScores [0:00.012] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests.ClassifyLegalDirectivesAsync_MapsToComplianceActions_WithConfidenceScores() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\DecisionLogicIntegrationTests.cs:line 267
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+      ClassifyLegalDirectivesAsync_PerformanceWithinTarget_IV3 [0:00.003] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests.ClassifyLegalDirectivesAsync_PerformanceWithinTarget_IV3() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\DecisionLogicIntegrationTests.cs:line 199
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+      ClassifyLegalDirectivesAsync_UsesExtractedMetadata_IV2 [0:00.005] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests.ClassifyLegalDirectivesAsync_UsesExtractedMetadata_IV2() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\DecisionLogicIntegrationTests.cs:line 165
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+      ClassifyLegalDirectivesAsync_WithLegalInstruments_DetectsInstruments [0:00.007] Failed: System.NullReferenceException: Object reference not set to an instance of an object.
+System.NullReferenceException
+Object reference not set to an instance of an object.
+   at ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests.ClassifyLegalDirectivesAsync_WithLegalInstruments_DetectsInstruments() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\DecisionLogicIntegrationTests.cs:line 245
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+      ProcessDecisionLogicAsync_EndToEndWorkflow_CompletesSuccessfully [0:00.004] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests.ProcessDecisionLogicAsync_EndToEndWorkflow_CompletesSuccessfully() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\DecisionLogicIntegrationTests.cs:line 91
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+      ProcessDecisionLogicAsync_LogsAllDecisions_AC6 [0:00.552] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests.ProcessDecisionLogicAsync_LogsAllDecisions_AC6() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\DecisionLogicIntegrationTests.cs:line 297
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+      ResolvePersonIdentitiesAsync_DoesNotModifyExistingStructures_IV1 [0:00.003] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests.ResolvePersonIdentitiesAsync_DoesNotModifyExistingStructures_IV1() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\DecisionLogicIntegrationTests.cs:line 133
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+      ResolvePersonIdentitiesAsync_WithRfcVariants_HandlesVariants [0:00.007] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Application.Services.DecisionLogicIntegrationTests.ResolvePersonIdentitiesAsync_WithRfcVariants_HandlesVariants() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\DecisionLogicIntegrationTests.cs:line 220
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+     PlaywrightEndToEndTests (1 test) [0:10.297] Failed: One or more child tests failed: 1 test failed
+      Playwright_CanNavigateToPage_ShouldWork [0:04.264] Failed: Shouldly.ShouldAssertException: title
+Shouldly.ShouldAssertException
+title
+    should be
+"Test Page"
+    but was
+""
+    difference
+Difference     |  |    |    |    |    |    |    |    |    |   
+               | \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  
+Index          | 0    1    2    3    4    5    6    7    8    
+Expected Value | T    e    s    t    \s   P    a    g    e    
+Actual Value   |                                              
+Expected Code  | 84   101  115  116  32   80   97   103  101  
+Actual Code    |                                              
+   at ExxerCube.Prisma.Tests.Application.Services.PlaywrightEndToEndTests.Playwright_CanNavigateToPage_ShouldWork() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Application\Services\PlaywrightEndToEndTests.cs:line 45
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+   ExxerCube.Prisma.Tests.Domain (2 tests) [0:01.762] Failed: 2 tests failed
+    ExxerCube.Prisma.Tests.Domain (2 tests) [0:01.762] Failed: 2 tests failed
+     Repositories (2 tests) [0:01.267] Failed: 2 tests failed
+      IRepositoryContractTests (2 tests) [0:00.842] Failed: One or more child tests failed: 2 tests failed
+       FirstOrDefaultAsync_ShouldReturnSuccessWithNull_WhenNoMatchFound [0:00.245] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Domain.Repositories.IRepositoryContractTests.FirstOrDefaultAsync_ShouldReturnSuccessWithNull_WhenNoMatchFound() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Domain\Repositories\IRepositoryContractTests.cs:line 378
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+       GetByIdAsync_ShouldReturnSuccessWithNull_WhenEntityNotFound [0:00.006] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+Shouldly.ShouldAssertException
+result.IsSuccess
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Domain.Repositories.IRepositoryContractTests.GetByIdAsync_ShouldReturnSuccessWithNull_WhenEntityNotFound() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Domain\Repositories\IRepositoryContractTests.cs:line 71
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+

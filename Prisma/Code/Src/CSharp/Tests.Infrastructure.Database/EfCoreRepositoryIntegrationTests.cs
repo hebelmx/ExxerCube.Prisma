@@ -60,7 +60,8 @@ public sealed class EfCoreRepositoryIntegrationTests : IDisposable
         var result = await repository.GetByIdAsync("non-existent", TestContext.Current.CancellationToken);
 
         // Assert
-        result.IsSuccess.ShouldBeTrue();
+        // For nullable Result<T?>, use IsSuccessMayBeNull to check success (null is valid)
+        result.IsSuccessMayBeNull.ShouldBeTrue($"Expected success (may be null) but got failure. Error: {result.Error}");
         result.Value.ShouldBeNull();
     }
 
@@ -149,7 +150,8 @@ public sealed class EfCoreRepositoryIntegrationTests : IDisposable
 
         // Assert
         var retrieved = await repository.GetByIdAsync("file-004", TestContext.Current.CancellationToken);
-        retrieved.IsSuccess.ShouldBeTrue();
+        // For nullable Result<T?>, use IsSuccessMayBeNull to check success (null is valid after deletion)
+        retrieved.IsSuccessMayBeNull.ShouldBeTrue($"Expected success (may be null) but got failure. Error: {retrieved.Error}");
         retrieved.Value.ShouldBeNull();
     }
 

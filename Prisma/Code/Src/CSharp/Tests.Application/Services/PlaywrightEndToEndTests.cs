@@ -37,7 +37,10 @@ public class PlaywrightEndToEndTests : IDisposable
         _page = PlaywrightConfig.GetPage(_context);
 
         // Act
-        await _page.GotoAsync("data:text/html,<html><body><h1>Test Page</h1></body></html>");
+        var htmlContent = "<html><head><title>Test Page</title></head><body><h1>Test Page</h1></body></html>";
+        // Use GotoAsync with data URL instead of SetContentAsync to ensure proper HTML parsing
+        var dataUrl = $"data:text/html,{Uri.EscapeDataString(htmlContent)}";
+        await _page.GotoAsync(dataUrl);
         var title = await _page.TitleAsync();
         var heading = await _page.TextContentAsync("h1");
 

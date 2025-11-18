@@ -61,8 +61,8 @@ public sealed class IRepositoryContractTests
         var repository = Substitute.For<IRepository<TestEntity, Guid>>();
         var entityId = Guid.NewGuid();
 
-        repository.GetByIdAsync(entityId, Arg.Any<CancellationToken>())
-            .Returns(Result<TestEntity?>.Success(null));
+        repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<TestEntity?>.Success(null)));
 
         // Act
         var result = await repository.GetByIdAsync(entityId, TestContext.Current.CancellationToken);
@@ -368,8 +368,8 @@ public sealed class IRepositoryContractTests
         var repository = Substitute.For<IRepository<TestEntity, Guid>>();
         var spec = new TestSpecification { Criteria = e => e.Name == "NonExistent" };
 
-        repository.FirstOrDefaultAsync(spec, Arg.Any<CancellationToken>())
-            .Returns(Result<TestEntity?>.Success(null));
+        repository.FirstOrDefaultAsync(Arg.Any<ISpecification<TestEntity>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<TestEntity?>.Success(null)));
 
         // Act
         var result = await repository.FirstOrDefaultAsync(spec, TestContext.Current.CancellationToken);
