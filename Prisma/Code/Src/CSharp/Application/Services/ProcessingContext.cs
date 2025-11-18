@@ -1,6 +1,3 @@
-using System;
-using System.Diagnostics;
-
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>

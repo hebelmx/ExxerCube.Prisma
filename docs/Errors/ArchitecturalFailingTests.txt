@@ -1,0 +1,89 @@
+      Application_Services_Should_Not_Implement_Domain_Interfaces [0:01.015] Failed: Shouldly.ShouldAssertException: violations
+Shouldly.ShouldAssertException
+violations
+    should be empty but had
+1
+    item and was
+["Application services implement IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService"]
+
+Additional Info:
+    Application services must not implement Domain interfaces. Violations: Application services implement IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.Application_Services_Should_Not_Implement_Domain_Interfaces() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Architecture\HexagonalArchitectureTests.cs:line 154
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+      Application_Should_Depend_On_Domain [0:00.127] Failed: Shouldly.ShouldAssertException: result.IsSuccessful
+Shouldly.ShouldAssertException
+result.IsSuccessful
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Application must depend on Domain. This test validates that Application uses Domain types.
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.Application_Should_Depend_On_Domain() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Architecture\HexagonalArchitectureTests.cs:line 250
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+      Domain_Interfaces_Should_Only_Be_Implemented_In_Infrastructure [0:00.916] Failed: Shouldly.ShouldAssertException: violations
+Shouldly.ShouldAssertException
+violations
+    should be empty but had
+1
+    item and was
+["Application layer implements IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService"]
+
+Additional Info:
+    Domain interfaces must only be implemented in Infrastructure layer. Violations: Application layer implements IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.Domain_Interfaces_Should_Only_Be_Implemented_In_Infrastructure() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Architecture\HexagonalArchitectureTests.cs:line 118
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+      Infrastructure_Layers_Should_Not_Contain_Interfaces [0:00.088] Failed: Shouldly.ShouldAssertException: violations
+Shouldly.ShouldAssertException
+violations
+    should be empty but had
+1
+    item and was
+["ExxerCube.Prisma.Infrastructure.Database: ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext"]
+
+Additional Info:
+    Infrastructure layers must not contain interfaces. Violations: ExxerCube.Prisma.Infrastructure.Database: ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.Infrastructure_Layers_Should_Not_Contain_Interfaces() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Architecture\HexagonalArchitectureTests.cs:line 81
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+      Infrastructure_Should_Depend_On_Domain [0:00.032] Failed: Shouldly.ShouldAssertException: violations
+Shouldly.ShouldAssertException
+violations
+    should be empty but had
+6
+    items and was
+["ExxerCube.Prisma.Infrastructure.Database does not depend on Domain", "ExxerCube.Prisma.Infrastructure.Classification does not depend on Domain", "ExxerCube.Prisma.Infrastructure.Export does not depend on Domain", "ExxerCube.Prisma.Infrastructure.FileStorage does not depend on Domain", "ExxerCube.Prisma.Infrastructure.BrowserAutomation does not depend on Domain", "ExxerCube.Prisma.Infrastructure does not depend on Domain"]
+
+Additional Info:
+    All Infrastructure layers must depend on Domain. Violations: ExxerCube.Prisma.Infrastructure.Database does not depend on Domain; ExxerCube.Prisma.Infrastructure.Classification does not depend on Domain; ExxerCube.Prisma.Infrastructure.Export does not depend on Domain; ExxerCube.Prisma.Infrastructure.FileStorage does not depend on Domain; ExxerCube.Prisma.Infrastructure.BrowserAutomation does not depend on Domain; ExxerCube.Prisma.Infrastructure does not depend on Domain
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.Infrastructure_Should_Depend_On_Domain() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Architecture\HexagonalArchitectureTests.cs:line 273
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+      No_Duplicate_Class_Names_Across_Layers [0:00.069] Failed: Shouldly.ShouldAssertException: duplicates
+Shouldly.ShouldAssertException
+duplicates
+    should be empty but had
+2
+    items and was
+[["ServiceCollectionExtensions" => ["Infrastructure (ExxerCube.Prisma.Infrastructure.Database): ExxerCube.Prisma.Infrastructure.Database.DependencyInjection.ServiceCollectionExtensions", "Infrastructure (ExxerCube.Prisma.Infrastructure.Classification): ExxerCube.Prisma.Infrastructure.Classification.ServiceCollectionExtensions", "Infrastructure (ExxerCube.Prisma.Infrastructure.Extraction): ExxerCube.Prisma.Infrastructure.Extraction.ServiceCollectionExtensions", "Infrastructure (ExxerCube.Prisma.Infrastructure.Export): ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions", "Infrastructure (ExxerCube.Prisma.Infrastructure.FileStorage): ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection.ServiceCollectionExtensions", "Infrastructure (ExxerCube.Prisma.Infrastructure.BrowserAutomation): ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.ServiceCollectionExtensions", "Infrastructure (ExxerCube.Prisma.Infrastructure): ExxerCube.Prisma.Infrastructure.DependencyInjection.ServiceCollectionExtensions"]], ["<PrivateImplementationDetails>" => ["Infrastructure (ExxerCube.Prisma.Infrastructure.Classification): <PrivateImplementationDetails>", "Infrastructure (ExxerCube.Prisma.Infrastructure.Export): <PrivateImplementationDetails>", "Infrastructure (ExxerCube.Prisma.Infrastructure.FileStorage): <PrivateImplementationDetails>"]]]
+
+Additional Info:
+    No class types should be duplicated across layers. Duplicates found: ServiceCollectionExtensions in Infrastructure (ExxerCube.Prisma.Infrastructure.Database): ExxerCube.Prisma.Infrastructure.Database.DependencyInjection.ServiceCollectionExtensions, Infrastructure (ExxerCube.Prisma.Infrastructure.Classification): ExxerCube.Prisma.Infrastructure.Classification.ServiceCollectionExtensions, Infrastructure (ExxerCube.Prisma.Infrastructure.Extraction): ExxerCube.Prisma.Infrastructure.Extraction.ServiceCollectionExtensions, Infrastructure (ExxerCube.Prisma.Infrastructure.Export): ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions, Infrastructure (ExxerCube.Prisma.Infrastructure.FileStorage): ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection.ServiceCollectionExtensions, Infrastructure (ExxerCube.Prisma.Infrastructure.BrowserAutomation): ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection.ServiceCollectionExtensions, Infrastructure (ExxerCube.Prisma.Infrastructure): ExxerCube.Prisma.Infrastructure.DependencyInjection.ServiceCollectionExtensions; <PrivateImplementationDetails> in Infrastructure (ExxerCube.Prisma.Infrastructure.Classification): <PrivateImplementationDetails>, Infrastructure (ExxerCube.Prisma.Infrastructure.Export): <PrivateImplementationDetails>, Infrastructure (ExxerCube.Prisma.Infrastructure.FileStorage): <PrivateImplementationDetails>
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.No_Duplicate_Class_Names_Across_Layers() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Architecture\HexagonalArchitectureTests.cs:line 390
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+

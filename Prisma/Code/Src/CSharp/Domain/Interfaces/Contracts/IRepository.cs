@@ -19,12 +19,14 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         // 🔍 QUERIES
 
         /// <summary>
-        /// Retrieves a single entity by its identifier, returning <c>null</c> when it
-        /// does not exist in the backing store.
+        /// Retrieves a single entity by its identifier.
         /// </summary>
         /// <param name="id">Entity identifier to look for.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>A result that wraps the matching entity or <c>null</c> if it is not found.</returns>
+        /// <returns>
+        /// A result that wraps the matching entity on success, or a failure result when the entity
+        /// is not found (ROP-compliant: "not found" is treated as a failure case).
+        /// </returns>
         Task<Result<T?>> GetByIdAsync(TId id, CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -89,7 +91,10 @@ namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
         /// </summary>
         /// <param name="specification">Specification describing the query.</param>
         /// <param name="cancellationToken">Token used to cancel the request.</param>
-        /// <returns>A result with the entity or <c>null</c> when it does not exist.</returns>
+        /// <returns>
+        /// A result with the entity on success, or a failure result when no entity matches
+        /// (ROP-compliant: "not found" is treated as a failure case).
+        /// </returns>
         Task<Result<T?>> FirstOrDefaultAsync(
             ISpecification<T> specification,
             CancellationToken cancellationToken = default);

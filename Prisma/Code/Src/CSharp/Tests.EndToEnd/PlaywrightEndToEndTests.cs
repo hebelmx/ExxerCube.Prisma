@@ -34,7 +34,10 @@ public class PlaywrightEndToEndTests : IDisposable
         _page = PlaywrightConfig.GetPage(_context);
 
         // Act
-        await _page.GotoAsync("data:text/html,<html><body><h1>Test Page</h1></body></html>");
+        var htmlContent = "<html><head><title>Test Page</title></head><body><h1>Test Page</h1></body></html>";
+        // Use GotoAsync with data URL and proper encoding to ensure HTML parsing works correctly
+        var dataUrl = $"data:text/html,{Uri.EscapeDataString(htmlContent)}";
+        await _page.GotoAsync(dataUrl, new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
         var title = await _page.TitleAsync();
         var heading = await _page.TextContentAsync("h1");
 
@@ -42,7 +45,7 @@ public class PlaywrightEndToEndTests : IDisposable
         title.ShouldBe("Test Page");
         heading.ShouldBe("Test Page");
 
-        _logger.LogInformation("Playwright end-to-end test completed successfully");
+        _logger.LogInformation("Playwright navigation test completed successfully");
     }
 
     /// <summary>

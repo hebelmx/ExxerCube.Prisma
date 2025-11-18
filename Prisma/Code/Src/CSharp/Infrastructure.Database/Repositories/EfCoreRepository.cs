@@ -33,25 +33,33 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
     }
 
     /// <inheritdoc />
-    public Task<Result<T?>> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
+    public async Task<Result<T?>> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return Task.FromResult(ResultExtensions.Cancelled<T?>());
+            return ResultExtensions.Cancelled<T?>();
         }
 
         if (id is null)
         {
-            return Task.FromResult(Result<T?>.WithFailure("Identifier cannot be null"));
+            return Result<T?>.WithFailure("Identifier cannot be null");
         }
 
-        return ResultTryExtensions.TryAsync(
+        var result = await ResultTryExtensions.TryAsync(
             async () =>
             {
                 var valueTask = _dbSet.FindAsync(new object?[] { id }, cancellationToken);
                 return await valueTask.AsTask().ConfigureAwait(false);
             },
             ex => $"Failed to retrieve {typeof(T).Name} by id: {ex.Message}");
+
+        // ROP-compliant: "not found" is a failure case, not success with null
+        if (result.IsSuccess && result.Value is null)
+        {
+            return Result<T?>.WithFailure($"Entity of type {typeof(T).Name} with id {id} not found");
+        }
+
+        return result;
     }
 
     /// <inheritdoc />
@@ -182,25 +190,33 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
     }
 
     /// <inheritdoc />
-    public Task<Result<T?>> FirstOrDefaultAsync(
+    public async Task<Result<T?>> FirstOrDefaultAsync(
         ISpecification<T> specification,
         CancellationToken cancellationToken = default)
     {
         if (specification is null)
         {
-            return Task.FromResult(Result<T?>.WithFailure("Specification cannot be null"));
+            return Result<T?>.WithFailure("Specification cannot be null");
         }
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return Task.FromResult(ResultExtensions.Cancelled<T?>());
+            return ResultExtensions.Cancelled<T?>();
         }
 
-        return ResultTryExtensions.TryAsync(
+        var result = await ResultTryExtensions.TryAsync(
             () => SpecificationEvaluator<T>
                 .GetQuery(_dbSet.AsQueryable(), specification)
                 .FirstOrDefaultAsync(cancellationToken),
             ex => $"Failed to retrieve {typeof(T).Name} by specification: {ex.Message}");
+
+        // ROP-compliant: "not found" is a failure case, not success with null
+        if (result.IsSuccess && result.Value is null)
+        {
+            return Result<T?>.WithFailure($"No entity of type {typeof(T).Name} matching the specification was found");
+        }
+
+        return result;
     }
 
     /// <inheritdoc />

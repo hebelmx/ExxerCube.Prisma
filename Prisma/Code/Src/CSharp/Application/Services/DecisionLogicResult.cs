@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using ExxerCube.Prisma.Domain.Entities;
-
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>

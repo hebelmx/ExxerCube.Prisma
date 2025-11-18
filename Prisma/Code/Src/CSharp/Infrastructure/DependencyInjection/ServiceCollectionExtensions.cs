@@ -1,10 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.FileSystem;
-using ExxerCube.Prisma.Infrastructure.Python;
-
 namespace ExxerCube.Prisma.Infrastructure.DependencyInjection;
 
 /// <summary>
@@ -32,8 +25,8 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<HealthCheckService>();
 
-        // Register domain interfaces with their implementations
-        services.AddScoped<IOcrProcessingService>(provider =>
+        // Register Application service (does not implement Domain interface for architectural compliance)
+        services.AddScoped<OcrProcessingService>(provider =>
         {
             var imagePreprocessor = provider.GetRequiredService<IImagePreprocessor>();
             var ocrExecutor = provider.GetRequiredService<IOcrExecutor>();
@@ -42,6 +35,13 @@ public static class ServiceCollectionExtensions
             var metricsService = provider.GetRequiredService<ProcessingMetricsService>();
             
             return new OcrProcessingService(imagePreprocessor, ocrExecutor, fieldExtractor, logger, metricsService);
+        });
+
+        // Register Infrastructure adapter that implements Domain interface
+        services.AddScoped<IOcrProcessingService>(provider =>
+        {
+            var ocrProcessingService = provider.GetRequiredService<OcrProcessingService>();
+            return new OcrProcessingServiceAdapter(ocrProcessingService);
         });
         
         // Register Python interop service (CSnakes-based with circuit breaker)

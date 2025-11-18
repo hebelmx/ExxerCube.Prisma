@@ -1,22 +1,90 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.ValueObjects;
-
 namespace ExxerCube.Prisma.Application.Services;
+
+public interface IProcessingMetricsService
+{
+    /// <summary>
+    /// Gets the current processing statistics.
+    /// </summary>
+    ProcessingStatistics CurrentStatistics { get; }
+
+    /// <summary>
+    /// Gets the maximum number of concurrent processing operations.
+    /// </summary>
+    int MaxConcurrency { get; }
+
+    /// <summary>
+    /// Gets the current number of active processing operations.
+    /// </summary>
+    int ActiveProcessingCount { get; }
+
+    /// <summary>
+    /// Records the start of a document processing operation.
+    /// </summary>
+    /// <param name="documentId">The unique identifier for the document.</param>
+    /// <param name="sourcePath">The source path of the document.</param>
+    /// <returns>A processing context that should be disposed when processing completes.</returns>
+    Task<ProcessingContext> StartProcessingAsync(string documentId, string sourcePath);
+
+    /// <summary>
+    /// Records the completion of a document processing operation.
+    /// </summary>
+    /// <param name="context">The processing context.</param>
+    /// <param name="result">The processing result.</param>
+    /// <param name="isSuccess">Whether the processing was successful.</param>
+    Task CompleteProcessingAsync(ProcessingContext context, ProcessingResult? result, bool isSuccess);
+
+    /// <summary>
+    /// Records a processing error.
+    /// </summary>
+    /// <param name="context">The processing context.</param>
+    /// <param name="error">The error message.</param>
+    Task RecordErrorAsync(ProcessingContext context, string error);
+
+    /// <summary>
+    /// Gets the current processing statistics.
+    /// </summary>
+    /// <returns>The current processing statistics.</returns>
+    Task<ProcessingStatistics> GetCurrentStatisticsAsync();
+
+    /// <summary>
+    /// Gets detailed metrics for a specific document.
+    /// </summary>
+    /// <param name="documentId">The document identifier.</param>
+    /// <returns>The processing metrics for the document, or null if not found.</returns>
+    ProcessingMetrics? GetDocumentMetrics(string documentId);
+
+    /// <summary>
+    /// Gets all processing metrics.
+    /// </summary>
+    /// <returns>A list of all processing metrics.</returns>
+    List<ProcessingMetrics> GetAllMetrics();
+
+    /// <summary>
+    /// Gets recent processing events.
+    /// </summary>
+    /// <param name="count">The number of recent events to retrieve.</param>
+    /// <returns>A list of recent processing events.</returns>
+    List<ProcessingEvent> GetRecentEvents(int count = 100);
+
+    /// <summary>
+    /// Calculates throughput metrics for the specified time period.
+    /// </summary>
+    /// <param name="timeSpan">The time period to analyze.</param>
+    /// <returns>Throughput statistics for the period.</returns>
+    ThroughputStatistics CalculateThroughput(TimeSpan timeSpan);
+
+    /// <summary>
+    /// Checks if the system is meeting performance requirements.
+    /// </summary>
+    /// <returns>A result indicating whether performance requirements are met.</returns>
+    Task<Result<PerformanceValidation>> ValidatePerformanceAsync();
+}
 
 /// <summary>
 /// Service for collecting and managing performance metrics for OCR processing.
 /// Implements metrics collection, performance monitoring, and throughput analysis.
 /// </summary>
-public class ProcessingMetricsService : IDisposable
+public class ProcessingMetricsService : IDisposable, IProcessingMetricsService
 {
     private readonly ILogger<ProcessingMetricsService> _logger;
     private readonly ConcurrentDictionary<string, ProcessingMetrics> _documentMetrics;
@@ -56,7 +124,7 @@ public class ProcessingMetricsService : IDisposable
 
         // Start metrics aggregation timer (every 30 seconds)
         _metricsAggregationTimer = new Timer(AggregateMetrics, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
-        
+
         _logger.LogInformation("Processing metrics service initialized with max concurrency: {MaxConcurrency}", maxConcurrency);
     }
 
@@ -80,7 +148,7 @@ public class ProcessingMetricsService : IDisposable
             var stopwatch = Stopwatch.StartNew();
             var context = new ProcessingContext(documentId, sourcePath, stopwatch, this);
 
-            _logger.LogDebug("Started processing document {DocumentId} from {SourcePath}. Active: {ActiveCount}/{MaxConcurrency}", 
+            _logger.LogDebug("Started processing document {DocumentId} from {SourcePath}. Active: {ActiveCount}/{MaxConcurrency}",
                 documentId, sourcePath, ActiveProcessingCount, MaxConcurrency);
 
             return context;
@@ -133,7 +201,7 @@ public class ProcessingMetricsService : IDisposable
 
             _processingEvents.Enqueue(processingEvent);
 
-            _logger.LogInformation("Completed processing document {DocumentId} in {ProcessingTime:F2}s. Success: {IsSuccess}, Confidence: {Confidence:F2}%, Fields: {FieldCount}. Active: {ActiveCount}/{MaxConcurrency}", 
+            _logger.LogInformation("Completed processing document {DocumentId} in {ProcessingTime:F2}s. Success: {IsSuccess}, Confidence: {Confidence:F2}%, Fields: {FieldCount}. Active: {ActiveCount}/{MaxConcurrency}",
                 context.DocumentId, processingTime, isSuccess, confidence * 100, fieldCount, ActiveProcessingCount, MaxConcurrency);
 
             // Update current statistics
@@ -153,9 +221,9 @@ public class ProcessingMetricsService : IDisposable
     public async Task RecordErrorAsync(ProcessingContext context, string error)
     {
         await CompleteProcessingAsync(context, null, false).ConfigureAwait(false);
-        
+
         _logger.LogError("Processing error for document {DocumentId}: {Error}", context.DocumentId, error);
-        
+
         var errorEvent = new ProcessingEvent
         {
             DocumentId = context.DocumentId,
@@ -343,7 +411,7 @@ public class ProcessingMetricsService : IDisposable
                 LastUpdated = DateTime.UtcNow
             };
 
-            _logger.LogDebug("Metrics aggregated: {TotalDocs} total, {SuccessDocs} successful, {FailedDocs} failed, Avg time: {AvgTime:F2}s, Success rate: {SuccessRate:P1}", 
+            _logger.LogDebug("Metrics aggregated: {TotalDocs} total, {SuccessDocs} successful, {FailedDocs} failed, Avg time: {AvgTime:F2}s, Success rate: {SuccessRate:P1}",
                 totalDocuments, successfulDocuments, failedDocuments, averageProcessingTime, successRate);
         }
         catch (Exception ex)

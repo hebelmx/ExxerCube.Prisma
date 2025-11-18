@@ -1,13 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Interfaces;
-using System.IO;
-using System.Linq;
-
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>

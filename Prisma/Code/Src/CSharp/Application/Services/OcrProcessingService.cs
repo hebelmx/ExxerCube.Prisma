@@ -1,23 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using IndQuestResults;
-using IndQuestResults.Operations;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.ValueObjects;
-
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>
 /// Main OCR processing service that orchestrates the entire pipeline.
 /// Implements Railway Oriented Programming for error handling and performance monitoring.
+///
+/// Note: This service does not implement IOcrProcessingService directly to maintain architectural compliance.
+/// The Infrastructure layer provides OcrProcessingServiceAdapter which implements the Domain interface.
 /// </summary>
-public class OcrProcessingService : IOcrProcessingService
+public class OcrProcessingService
 {
     private readonly IImagePreprocessor _imagePreprocessor;
     private readonly IOcrExecutor _ocrExecutor;
@@ -38,7 +28,7 @@ public class OcrProcessingService : IOcrProcessingService
         IOcrExecutor ocrExecutor,
         IFieldExtractor fieldExtractor,
         ILogger<OcrProcessingService> logger,
-        ProcessingMetricsService metricsService)
+        IProcessingMetricsService metricsService)
     {
         _imagePreprocessor = imagePreprocessor;
         _ocrExecutor = ocrExecutor;
@@ -66,7 +56,7 @@ public class OcrProcessingService : IOcrProcessingService
         // Validate input first - return failure for null inputs
         if (imageData == null)
             return Result<ProcessingResult>.WithFailure($"Argument cannot be null: {nameof(imageData)}");
-        
+
         if (config == null)
             return Result<ProcessingResult>.WithFailure($"Argument cannot be null: {nameof(config)}");
 
@@ -86,7 +76,7 @@ public class OcrProcessingService : IOcrProcessingService
             }
 
             _logger.LogInformation("Starting document processing for {SourcePath}", imageData.SourcePath);
-            
+
             // Start metrics tracking
             processingContext = await _metricsService.StartProcessingAsync(documentId, imageData.SourcePath).ConfigureAwait(false);
 
@@ -98,14 +88,14 @@ public class OcrProcessingService : IOcrProcessingService
             }
 
             var preprocessResult = await _imagePreprocessor.PreprocessAsync(imageData, config).ConfigureAwait(false);
-            
+
             // Propagate cancellation from dependencies
             if (preprocessResult.IsCancelled())
             {
                 _logger.LogWarning("Document processing cancelled by preprocessor");
                 return ResultExtensions.Cancelled<ProcessingResult>();
             }
-            
+
             if (preprocessResult.IsSuccess)
             {
                 var preprocessedImage = preprocessResult.Value;
@@ -123,14 +113,14 @@ public class OcrProcessingService : IOcrProcessingService
                 }
 
                 var ocrResult = await _ocrExecutor.ExecuteOcrAsync(preprocessedImage, config.OCRConfig).ConfigureAwait(false);
-                
+
                 // Propagate cancellation from dependencies
                 if (ocrResult.IsCancelled())
                 {
                     _logger.LogWarning("Document processing cancelled by OCR executor");
                     return ResultExtensions.Cancelled<ProcessingResult>();
                 }
-                
+
                 if (ocrResult.IsSuccess)
                 {
                     var ocrResultValue = ocrResult.Value;
@@ -148,14 +138,14 @@ public class OcrProcessingService : IOcrProcessingService
                     }
 
                     var extractResult = await _fieldExtractor.ExtractFieldsAsync(ocrResultValue.Text, ocrResultValue.ConfidenceAvg).ConfigureAwait(false);
-                    
+
                     // Propagate cancellation from dependencies
                     if (extractResult.IsCancelled())
                     {
                         _logger.LogWarning("Document processing cancelled by field extractor");
                         return ResultExtensions.Cancelled<ProcessingResult>();
                     }
-                    
+
                     if (extractResult.IsSuccess)
                     {
                         var extractedFields = extractResult.Value;
@@ -194,18 +184,18 @@ public class OcrProcessingService : IOcrProcessingService
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             _logger.LogInformation("Document processing cancelled for {SourcePath}", imageData.SourcePath);
-            
+
             if (processingContext != null)
             {
                 await _metricsService.RecordErrorAsync(processingContext, "Operation cancelled").ConfigureAwait(false);
             }
-            
+
             return ResultExtensions.Cancelled<ProcessingResult>();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error processing document {SourcePath}", imageData.SourcePath);
-            
+
             if (processingContext != null)
             {
                 await _metricsService.RecordErrorAsync(processingContext, ex.Message).ConfigureAwait(false);
@@ -217,7 +207,7 @@ public class OcrProcessingService : IOcrProcessingService
                 await _metricsService.RecordErrorAsync(tempContext, ex.Message).ConfigureAwait(false);
                 tempContext.Dispose();
             }
-            
+
             return Result<ProcessingResult>.WithFailure($"Unexpected error: {ex.Message}", default, ex);
         }
         finally
@@ -235,8 +225,8 @@ public class OcrProcessingService : IOcrProcessingService
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of processing results or an error.</returns>
     public async Task<Result<List<ProcessingResult>>> ProcessDocumentsAsync(
-        IEnumerable<ImageData> imageDataList, 
-        ProcessingConfig config, 
+        IEnumerable<ImageData> imageDataList,
+        ProcessingConfig config,
         int maxConcurrency = 5,
         CancellationToken cancellationToken = default)
     {
@@ -250,7 +240,7 @@ public class OcrProcessingService : IOcrProcessingService
         // Validate inputs
         if (imageDataList == null)
             return Result<List<ProcessingResult>>.WithFailure($"Argument cannot be null: {nameof(imageDataList)}");
-        
+
         if (config == null)
             return Result<List<ProcessingResult>>.WithFailure($"Argument cannot be null: {nameof(config)}");
 
@@ -275,11 +265,11 @@ public class OcrProcessingService : IOcrProcessingService
         try
         {
             var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-            
+
             var successfulResults = new List<ProcessingResult>();
             var cancelledResults = new List<Result<ProcessingResult>>();
             var failedResults = new List<Result<ProcessingResult>>();
-            
+
             foreach (var result in results)
             {
                 if (result.IsCancelled())
@@ -302,7 +292,7 @@ public class OcrProcessingService : IOcrProcessingService
 
             // Handle cancellation with partial results
             var wasCancelled = cancellationToken.IsCancellationRequested || cancelledResults.Any();
-            
+
             if (wasCancelled)
             {
                 if (successfulResults.Count > 0)
@@ -313,12 +303,12 @@ public class OcrProcessingService : IOcrProcessingService
                     var cancelled = cancelledResults.Count;
                     var confidence = (double)completed / totalRequested;
                     var missingDataRatio = (double)(cancelled + failedResults.Count) / totalRequested;
-                    
+
                     _logger.LogWarning(
                         "Batch document processing cancelled. Returning {CompletedCount} of {TotalCount} processed documents. " +
                         "Cancelled: {CancelledCount}, Failed: {FailedCount}",
                         completed, totalRequested, cancelled, failedResults.Count);
-                    
+
                     return Result<List<ProcessingResult>>.WithWarnings(
                         warnings: new[] { $"Operation was cancelled. Processed {completed} of {totalRequested} documents." },
                         value: successfulResults,
@@ -337,7 +327,7 @@ public class OcrProcessingService : IOcrProcessingService
             // No cancellation - check for failures
             if (failedResults.Any())
             {
-                _logger.LogWarning("Batch processing completed with {FailedCount} failures out of {TotalCount}", 
+                _logger.LogWarning("Batch processing completed with {FailedCount} failures out of {TotalCount}",
                     failedResults.Count, imageDataArray.Length);
             }
 
@@ -348,7 +338,7 @@ public class OcrProcessingService : IOcrProcessingService
             // If we catch cancellation exception, try to collect any partial results
             // Note: Task.WhenAll may have completed some tasks before cancellation
             _logger.LogInformation("Batch document processing cancelled");
-            
+
             // If we have no way to collect partial results here, return cancelled
             // (In practice, Task.WhenAll will complete all tasks even if one throws)
             return ResultExtensions.Cancelled<List<ProcessingResult>>();
@@ -402,8 +392,8 @@ public class OcrProcessingService : IOcrProcessingService
     /// <param name="result">The processing result to log.</param>
     private Task LogProcessingResult(ProcessingResult result)
     {
-        _logger.LogInformation("Completed processing document {SourcePath} with {FieldCount} extracted fields", 
-            result.SourcePath, 
+        _logger.LogInformation("Completed processing document {SourcePath} with {FieldCount} extracted fields",
+            result.SourcePath,
             result.ExtractedFields.Fechas.Count + result.ExtractedFields.Montos.Count);
 
         return Task.CompletedTask;

@@ -1,17 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Enums;
-using ExxerCube.Prisma.Domain.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Application.Services;
 

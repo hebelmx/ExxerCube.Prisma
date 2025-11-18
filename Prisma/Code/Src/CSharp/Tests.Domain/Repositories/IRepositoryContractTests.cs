@@ -55,21 +55,23 @@ public sealed class IRepositoryContractTests
     }
 
     [Fact]
-    public async Task GetByIdAsync_ShouldReturnSuccessWithNull_WhenEntityNotFound()
+    public async Task GetByIdAsync_ShouldReturnFailure_WhenEntityNotFound()
     {
         // Arrange
         var repository = Substitute.For<IRepository<TestEntity, Guid>>();
         var entityId = Guid.NewGuid();
 
-        repository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result<TestEntity?>.Success(null)));
+        // ROP-compliant: "not found" is a failure case, not success with null
+        // NSubstitute auto-wraps Result<T> in Task<T> for async methods
+        repository.GetByIdAsync(entityId, Arg.Any<CancellationToken>())
+            .Returns(Result<TestEntity?>.WithFailure($"Entity with id {entityId} not found"));
 
         // Act
         var result = await repository.GetByIdAsync(entityId, TestContext.Current.CancellationToken);
 
-        // Assert - Contract: Must return Success with null when not found (not Failure)
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBeNull();
+        // Assert - Contract: Must return Failure when entity not found (ROP-compliant)
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldContain($"Entity with id {entityId} not found");
     }
 
     [Fact]
@@ -362,21 +364,25 @@ public sealed class IRepositoryContractTests
     }
 
     [Fact]
-    public async Task FirstOrDefaultAsync_ShouldReturnSuccessWithNull_WhenNoMatchFound()
+    public async Task FirstOrDefaultAsync_ShouldReturnFailure_WhenNoMatchFound()
     {
         // Arrange
         var repository = Substitute.For<IRepository<TestEntity, Guid>>();
         var spec = new TestSpecification { Criteria = e => e.Name == "NonExistent" };
 
-        repository.FirstOrDefaultAsync(Arg.Any<ISpecification<TestEntity>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result<TestEntity?>.Success(null)));
+        // ROP-compliant: "not found" is a failure case, not success with null
+        // Note: FirstOrDefault is a query operation that may legitimately return null,
+        // but in ROP, we treat "no match found" as a failure to maintain consistency
+        // NSubstitute auto-wraps Result<T> in Task<T> for async methods
+        repository.FirstOrDefaultAsync(spec, Arg.Any<CancellationToken>())
+            .Returns(Result<TestEntity?>.WithFailure("No entity matching the specification was found"));
 
         // Act
         var result = await repository.FirstOrDefaultAsync(spec, TestContext.Current.CancellationToken);
 
-        // Assert - Contract: Must return Success with null when no match found
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBeNull();
+        // Assert - Contract: Must return Failure when no match found (ROP-compliant)
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldContain("No entity matching the specification was found");
     }
 
     //
