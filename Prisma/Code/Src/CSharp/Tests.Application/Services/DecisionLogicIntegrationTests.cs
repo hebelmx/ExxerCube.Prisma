@@ -157,7 +157,7 @@ public class DecisionLogicIntegrationTests
                     ExpedienteOrigen = expediente.NumeroExpediente,
                     OficioOrigen = expediente.NumeroOficio
                 }
-            }));
+            })));
 
         // Act
         var result = await _service.ProcessDecisionLogicAsync(persons, documentText, expediente, cancellationToken: TestContext.Current.CancellationToken);
