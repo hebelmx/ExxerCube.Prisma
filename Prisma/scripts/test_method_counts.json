@@ -1,0 +1,515 @@
+{
+  "analysis_date": "2025-11-17T20:14:42.879772",
+  "projects": {
+    "ExxerCube.Prisma.Tests": {
+      "files": 54,
+      "methods": 455,
+      "file_details": [
+        {
+          "file": "Tests/Application/Services/AuditReportingServiceTests.cs",
+          "methods": 8
+        },
+        {
+          "file": "Tests/Application/Services/ConfigurationValidationServiceTests.cs",
+          "methods": 24
+        },
+        {
+          "file": "Tests/Application/Services/DecisionLogicIntegrationTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Application/Services/DecisionLogicServiceEdgeCaseTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests/Application/Services/DecisionLogicServiceManualReviewTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests/Application/Services/DecisionLogicServiceTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Application/Services/DocumentIngestionIntegrationTests.cs",
+          "methods": 2
+        },
+        {
+          "file": "Tests/Application/Services/DocumentIngestionServiceTests.cs",
+          "methods": 16
+        },
+        {
+          "file": "Tests/Application/Services/ExportServiceTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Application/Services/FieldMatchingServiceTests.cs",
+          "methods": 8
+        },
+        {
+          "file": "Tests/Application/Services/FileMetadataQueryServiceTests.cs",
+          "methods": 5
+        },
+        {
+          "file": "Tests/Application/Services/ManualReviewIntegrationTests.cs",
+          "methods": 3
+        },
+        {
+          "file": "Tests/Application/Services/MetadataExtractionIntegrationTests.cs",
+          "methods": 6
+        },
+        {
+          "file": "Tests/Application/Services/MetadataExtractionServiceTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests/Application/Services/OcrProcessingServiceTests.cs",
+          "methods": 6
+        },
+        {
+          "file": "Tests/Application/Services/SLATrackingServiceTests.cs",
+          "methods": 13
+        },
+        {
+          "file": "Tests/Domain/Common/ResultTests.cs",
+          "methods": 12
+        },
+        {
+          "file": "Tests/Domain/Repositories/OrderRepositoryTests.cs",
+          "methods": 3
+        },
+        {
+          "file": "Tests/Infrastructure.Classification/FieldMatcherServiceTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests/Infrastructure.Classification/FileClassifierServiceTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Infrastructure.Classification/LegalDirectiveClassifierServiceEdgeCaseTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests/Infrastructure.Classification/LegalDirectiveClassifierServiceTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests/Infrastructure.Classification/MatchingPolicyOptionsTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests/Infrastructure.Classification/MatchingPolicyServiceTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests/Infrastructure.Classification/PersonIdentityResolverServiceEdgeCaseTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests/Infrastructure.Classification/PersonIdentityResolverServiceTests.cs",
+          "methods": 8
+        },
+        {
+          "file": "Tests/Infrastructure.Export/DigitalPdfSignerTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Infrastructure.Export/ExportIntegrationTests.cs",
+          "methods": 3
+        },
+        {
+          "file": "Tests/Infrastructure.Export/PdfRequirementSummarizerServiceTests.cs",
+          "methods": 13
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/CompositeMetadataExtractorTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/FileTypeIdentifierServiceTests.cs",
+          "methods": 6
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "methods": 5
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/PdfOcrFieldExtractorEnhancedTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/XmlExpedienteParserTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests/Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests/Infrastructure.FileStorage/FileMoverServiceTests.cs",
+          "methods": 3
+        },
+        {
+          "file": "Tests/Infrastructure.FileStorage/SafeFileNamerServiceTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests/Infrastructure/Database/AuditLoggerIntegrationTests.cs",
+          "methods": 6
+        },
+        {
+          "file": "Tests/Infrastructure/Database/AuditLoggerServiceTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests/Infrastructure/Database/DownloadTrackerServiceTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests/Infrastructure/Database/EfCoreRepositoryTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests/Infrastructure/Database/FileMetadataLoggerServiceTests.cs",
+          "methods": 2
+        },
+        {
+          "file": "Tests/Infrastructure/Database/ManualReviewerServiceIntegrationTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests/Infrastructure/Database/ManualReviewerServiceTests.cs",
+          "methods": 22
+        },
+        {
+          "file": "Tests/Infrastructure/Database/SLAEnforcerServiceIntegrationTests.cs",
+          "methods": 8
+        },
+        {
+          "file": "Tests/Infrastructure/Database/SLAEnforcerServiceTests.cs",
+          "methods": 22
+        },
+        {
+          "file": "Tests/Infrastructure/FileStorage/FileSystemDownloadStorageAdapterTests.cs",
+          "methods": 3
+        },
+        {
+          "file": "Tests/Infrastructure/FileSystem/FileSystemLoaderTests.cs",
+          "methods": 13
+        },
+        {
+          "file": "Tests/Infrastructure/FileSystem/FileSystemOutputWriterTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests/Infrastructure/PythonInteropServiceTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests/Interfaces/IIManualReviewerPanelTests.cs",
+          "methods": 18
+        }
+      ]
+    },
+    "Tests.Application": {
+      "files": 16,
+      "methods": 144,
+      "file_details": [
+        {
+          "file": "Tests.Application/Services/AuditReportingServiceTests.cs",
+          "methods": 8
+        },
+        {
+          "file": "Tests.Application/Services/ConfigurationValidationServiceTests.cs",
+          "methods": 24
+        },
+        {
+          "file": "Tests.Application/Services/DecisionLogicIntegrationTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Application/Services/DecisionLogicServiceEdgeCaseTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests.Application/Services/DecisionLogicServiceManualReviewTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests.Application/Services/DecisionLogicServiceTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Application/Services/DocumentIngestionIntegrationTests.cs",
+          "methods": 2
+        },
+        {
+          "file": "Tests.Application/Services/DocumentIngestionServiceTests.cs",
+          "methods": 16
+        },
+        {
+          "file": "Tests.Application/Services/ExportServiceTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Application/Services/FieldMatchingServiceTests.cs",
+          "methods": 8
+        },
+        {
+          "file": "Tests.Application/Services/FileMetadataQueryServiceTests.cs",
+          "methods": 5
+        },
+        {
+          "file": "Tests.Application/Services/ManualReviewIntegrationTests.cs",
+          "methods": 3
+        },
+        {
+          "file": "Tests.Application/Services/MetadataExtractionIntegrationTests.cs",
+          "methods": 6
+        },
+        {
+          "file": "Tests.Application/Services/MetadataExtractionServiceTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests.Application/Services/OcrProcessingServiceTests.cs",
+          "methods": 6
+        },
+        {
+          "file": "Tests.Application/Services/SLATrackingServiceTests.cs",
+          "methods": 13
+        }
+      ]
+    },
+    "Tests.Domain": {
+      "files": 2,
+      "methods": 15,
+      "file_details": [
+        {
+          "file": "Tests.Domain/Common/ResultTests.cs",
+          "methods": 12
+        },
+        {
+          "file": "Tests.Domain/Repositories/OrderRepositoryTests.cs",
+          "methods": 3
+        }
+      ]
+    },
+    "Tests.Domain.Interfaces": {
+      "files": 2,
+      "methods": 19,
+      "file_details": [
+        {
+          "file": "Tests.Domain.Interfaces/IIManualReviewerPanelTests.cs",
+          "methods": 18
+        },
+        {
+          "file": "Tests.Domain.Interfaces/IPersonIdentityResolverContractExecutionTests.cs",
+          "methods": 1
+        }
+      ]
+    },
+    "Tests.Infrastructure.Extraction": {
+      "files": 9,
+      "methods": 48,
+      "file_details": [
+        {
+          "file": "Tests.Infrastructure.Extraction/CompositeMetadataExtractorTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests.Infrastructure.Extraction/FileTypeIdentifierServiceTests.cs",
+          "methods": 6
+        },
+        {
+          "file": "Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "methods": 5
+        },
+        {
+          "file": "Tests.Infrastructure.Extraction/PdfOcrFieldExtractorEnhancedTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Infrastructure.Extraction/XmlExpedienteParserTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "methods": 4
+        }
+      ]
+    },
+    "Tests.Infrastructure.Classification": {
+      "files": 8,
+      "methods": 78,
+      "file_details": [
+        {
+          "file": "Tests.Infrastructure.Classification/FieldMatcherServiceTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests.Infrastructure.Classification/FileClassifierServiceTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Infrastructure.Classification/LegalDirectiveClassifierServiceEdgeCaseTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests.Infrastructure.Classification/LegalDirectiveClassifierServiceTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests.Infrastructure.Classification/MatchingPolicyOptionsTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests.Infrastructure.Classification/MatchingPolicyServiceTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests.Infrastructure.Classification/PersonIdentityResolverServiceEdgeCaseTests.cs",
+          "methods": 11
+        },
+        {
+          "file": "Tests.Infrastructure.Classification/PersonIdentityResolverServiceTests.cs",
+          "methods": 8
+        }
+      ]
+    },
+    "Tests.Infrastructure.Database": {
+      "files": 9,
+      "methods": 85,
+      "file_details": [
+        {
+          "file": "Tests.Infrastructure.Database/AuditLoggerIntegrationTests.cs",
+          "methods": 6
+        },
+        {
+          "file": "Tests.Infrastructure.Database/AuditLoggerServiceTests.cs",
+          "methods": 10
+        },
+        {
+          "file": "Tests.Infrastructure.Database/DownloadTrackerServiceTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests.Infrastructure.Database/EfCoreRepositoryTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Infrastructure.Database/FileMetadataLoggerServiceTests.cs",
+          "methods": 2
+        },
+        {
+          "file": "Tests.Infrastructure.Database/ManualReviewerServiceIntegrationTests.cs",
+          "methods": 4
+        },
+        {
+          "file": "Tests.Infrastructure.Database/ManualReviewerServiceTests.cs",
+          "methods": 22
+        },
+        {
+          "file": "Tests.Infrastructure.Database/SLAEnforcerServiceIntegrationTests.cs",
+          "methods": 8
+        },
+        {
+          "file": "Tests.Infrastructure.Database/SLAEnforcerServiceTests.cs",
+          "methods": 22
+        }
+      ]
+    },
+    "Tests.Infrastructure.Export": {
+      "files": 3,
+      "methods": 23,
+      "file_details": [
+        {
+          "file": "Tests.Infrastructure.Export/DigitalPdfSignerTests.cs",
+          "methods": 7
+        },
+        {
+          "file": "Tests.Infrastructure.Export/ExportIntegrationTests.cs",
+          "methods": 3
+        },
+        {
+          "file": "Tests.Infrastructure.Export/PdfRequirementSummarizerServiceTests.cs",
+          "methods": 13
+        }
+      ]
+    },
+    "Tests.Infrastructure.FileSystem": {
+      "files": 3,
+      "methods": 27,
+      "file_details": [
+        {
+          "file": "Tests.Infrastructure.FileSystem/FileSystemDownloadStorageAdapterTests.cs",
+          "methods": 3
+        },
+        {
+          "file": "Tests.Infrastructure.FileSystem/FileSystemLoaderTests.cs",
+          "methods": 13
+        },
+        {
+          "file": "Tests.Infrastructure.FileSystem/FileSystemOutputWriterTests.cs",
+          "methods": 11
+        }
+      ]
+    },
+    "Tests.Infrastructure.Python": {
+      "files": 0,
+      "methods": 0,
+      "file_details": []
+    },
+    "Tests.System": {
+      "files": 0,
+      "methods": 0,
+      "file_details": []
+    },
+    "Tests.EndToEnd": {
+      "files": 0,
+      "methods": 0,
+      "file_details": []
+    },
+    "Tests.Architecture": {
+      "files": 0,
+      "methods": 0,
+      "file_details": []
+    },
+    "Tests.UI": {
+      "files": 0,
+      "methods": 0,
+      "file_details": []
+    }
+  },
+  "summary": {
+    "original_project_methods": 455,
+    "split_projects_methods": 439,
+    "total_files": 106,
+    "total_methods": 894,
+    "project_count": 14
+  }
+}
