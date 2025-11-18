@@ -72,7 +72,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
-    <ProjectReference Include="..\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
     <ProjectReference Include="..\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />

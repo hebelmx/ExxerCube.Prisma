@@ -9,7 +9,6 @@ global using System.Threading.Tasks;
 global using ExxerCube.Prisma.Domain;
 global using ExxerCube.Prisma.Domain.Entities;
 global using ExxerCube.Prisma.Infrastructure.Export;
-global using ExxerCube.Prisma.Infrastructure.Extraction;
 global using ExxerCube.Prisma.Domain.Interfaces;
 global using Microsoft.Extensions.Options;
 global using ExxerCube.Prisma.Testing.Abstractions;

@@ -11,7 +11,6 @@ global using ExxerCube.Prisma.Domain.Interfaces;
 global using ExxerCube.Prisma.Infrastructure.Database;
 global using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 global using ExxerCube.Prisma.Infrastructure.Database.Metrics;
-global using ExxerCube.Prisma.Application.Services;
 global using ExxerCube.Prisma.Testing.Abstractions;
 global using ExxerCube.Prisma.Testing.Infrastructure;
 global using ExxerCube.Prisma.Testing.Infrastructure.TestData;
