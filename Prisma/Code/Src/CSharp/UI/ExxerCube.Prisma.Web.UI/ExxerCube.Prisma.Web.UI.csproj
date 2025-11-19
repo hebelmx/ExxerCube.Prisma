@@ -9,8 +9,21 @@
     <NoWarn>$(NoWarn);BL0008</NoWarn>
     <!-- Suppress MUD0002 - MudBlazor analyzer false positives for attribute casing (known bug in MudBlazor v7 analyzer) -->
     <NoWarn>$(NoWarn);MUD0002</NoWarn>
-    <!-- Exclude NU1903 from being treated as error - DocumentFormat.OpenXml dependency vulnerability -->
-    <WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
+    <!-- 
+      Exclude NU1903 from being treated as error - DocumentFormat.OpenXml dependency vulnerability
+      Exclude NU1902 from being treated as error - OpenTelemetry.Api vulnerability (moderate severity)
+      
+      NU1902 Suppression Rationale:
+      - Package: OpenTelemetry.Api 1.10.0 (transitive dependency via OpenTelemetry.Instrumentation.Process)
+      - Vulnerability: GHSA-8785-wc3w-h8q6 (moderate severity)
+      - Reason: This is a transitive dependency from OpenTelemetry packages that we don't directly control.
+                The OpenTelemetry team is aware and will address in future versions.
+      - Risk Assessment: Moderate severity, not critical. The vulnerability is in a dependency we don't control.
+      - Monitoring: We will update OpenTelemetry packages when fixes are available.
+      - Reference: https://github.com/advisories/GHSA-8785-wc3w-h8q6
+    -->
+    <NoWarn>$(NoWarn);NU1902</NoWarn>
+    <WarningsNotAsErrors>NU1903;NU1902</WarningsNotAsErrors>
   </PropertyGroup>
 
 
@@ -27,6 +40,17 @@
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.Seq" />
     <PackageReference Include="Serilog.Settings.Configuration" />
+    <!-- OpenTelemetry for telemetry and distributed tracing -->
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" />
+    <!-- Note: SignalR instrumentation is included in ASP.NET Core instrumentation -->
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +62,12 @@
     <ProjectReference Include="..\..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
     <ProjectReference Include="..\..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
     <ProjectReference Include="..\..\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ExxerCube.Prisma.Tests.EndToEnd</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>

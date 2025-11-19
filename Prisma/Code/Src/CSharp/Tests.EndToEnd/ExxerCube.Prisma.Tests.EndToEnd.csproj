@@ -8,7 +8,9 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsNotAsErrors>NU1903;CS1591;IQR002</WarningsNotAsErrors>
+    <!-- NU1902: OpenTelemetry.Api vulnerability (transitive dependency, documented in SECURITY_SUPPRESSIONS.md) -->
+    <NoWarn>$(NoWarn);NU1902</NoWarn>
+    <WarningsNotAsErrors>NU1903;NU1902;IQR002</WarningsNotAsErrors>
     <WarningsAsErrors />
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -24,6 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Testing Utilities">
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.Playwright" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />

@@ -4,7 +4,7 @@ namespace ExxerCube.Prisma.Testing.Abstractions;
 /// Provides a common pattern for reusable test fixtures across projects, encapsulating setup and teardown flows.
 /// </summary>
 /// <remarks>
-/// Deriving fixtures should implement xUnit's <see cref="Xunit.IAsyncLifetime"/> or equivalent contract
+/// Deriving fixtures should implement xUnit's see cref="Xunit.IAsyncLifetime" or equivalent contract
 /// and delegate to <see cref="InitializeAsync"/> and <see cref="DisposeAsync"/> to ensure consistent lifecycle handling.
 /// </remarks>
 public abstract class TestFixtureBase

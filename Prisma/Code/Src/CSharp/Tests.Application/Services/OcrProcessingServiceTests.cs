@@ -4,7 +4,7 @@ using ExxerCube.Prisma.Domain.ValueObjects;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Contains unit tests for <see cref="OcrProcessingService"/>.
+/// Unit tests for <see cref="OcrProcessingService"/> covering preprocessing, OCR execution, extraction, and failure paths.
 /// </summary>
 public class OcrProcessingServiceTests
 {
@@ -15,7 +15,7 @@ public class OcrProcessingServiceTests
     private readonly ILogger<IOcrProcessingService> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="OcrProcessingServiceTests"/> class.
+    /// Initializes a new instance of the <see cref="OcrProcessingServiceTests"/> class with mocked pipeline dependencies.
     /// </summary>
     public OcrProcessingServiceTests()
     {
@@ -30,6 +30,7 @@ public class OcrProcessingServiceTests
     /// <summary>
     /// Tests that <see cref="OcrProcessingService.ProcessDocumentAsync"/> returns a successful result for valid input.
     /// </summary>
+    /// <returns>A task that completes after asserting successful OCR and extraction.</returns>
     [Fact]
     public async Task ProcessDocument_ValidDocument_ReturnsSuccessResult()
     {
@@ -66,6 +67,7 @@ public class OcrProcessingServiceTests
     /// <summary>
     /// Tests that <see cref="OcrProcessingService.ProcessDocumentAsync"/> returns a failure result for invalid image data.
     /// </summary>
+    /// <returns>A task that completes after asserting invalid input is rejected.</returns>
     [Fact]
     public async Task ProcessDocument_InvalidImageData_ReturnsFailureResult()
     {
@@ -89,6 +91,7 @@ public class OcrProcessingServiceTests
     /// <summary>
     /// Tests that <see cref="OcrProcessingService.ProcessDocumentAsync"/> returns a failure result when preprocessing fails.
     /// </summary>
+    /// <returns>A task that completes after asserting preprocessing failures are surfaced.</returns>
     [Fact]
     public async Task ProcessDocument_PreprocessingFails_ReturnsFailureResult()
     {
@@ -114,6 +117,7 @@ public class OcrProcessingServiceTests
     /// <summary>
     /// Tests that <see cref="OcrProcessingService.ProcessDocumentAsync"/> returns a failure result when OCR fails.
     /// </summary>
+    /// <returns>A task that completes after asserting OCR failures are surfaced.</returns>
     [Fact]
     public async Task ProcessDocument_OcrFails_ReturnsFailureResult()
     {
@@ -142,6 +146,7 @@ public class OcrProcessingServiceTests
     /// <summary>
     /// Tests that <see cref="OcrProcessingService.ProcessDocumentAsync"/> returns a failure result when field extraction fails.
     /// </summary>
+    /// <returns>A task that completes after asserting extraction failures are surfaced.</returns>
     [Fact]
     public async Task ProcessDocument_FieldExtractionFails_ReturnsFailureResult()
     {
@@ -173,6 +178,7 @@ public class OcrProcessingServiceTests
     /// <summary>
     /// Tests that <see cref="OcrProcessingService.ProcessDocumentsAsync"/> returns successful results for multiple documents.
     /// </summary>
+    /// <returns>A task that completes after asserting multiple documents process successfully.</returns>
     [Fact]
     public async Task ProcessDocuments_MultipleDocuments_ReturnsSuccessfulResults()
     {
@@ -213,6 +219,7 @@ public class OcrProcessingServiceTests
     /// </summary>
     /// <param name="sourcePath">The source path to test.</param>
     /// <param name="expectedError">The expected error message.</param>
+    /// <returns>A task that completes after asserting invalid input errors are returned.</returns>
     [Theory]
     [InlineData(null, "Image source path is required")]
     [InlineData("", "Image source path is required")]

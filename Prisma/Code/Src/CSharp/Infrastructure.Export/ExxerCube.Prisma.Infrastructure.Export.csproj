@@ -5,7 +5,8 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- Exclude NU1903 from being treated as error - System.IO.Packaging dependency vulnerability -->
-    <WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
+    <!-- NU1902: OpenTelemetry.Api vulnerability (transitive dependency, documented in SECURITY_SUPPRESSIONS.md) -->
+    <WarningsNotAsErrors>NU1903;NU1902</WarningsNotAsErrors>
     <WarningsAsErrors />
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>

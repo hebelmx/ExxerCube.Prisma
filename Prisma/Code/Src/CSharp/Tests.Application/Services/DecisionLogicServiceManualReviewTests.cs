@@ -4,7 +4,7 @@ using ExxerCube.Prisma.Domain.ValueObjects;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Unit tests for <see cref="DecisionLogicService"/> manual review extensions.
+/// Unit tests for <see cref="DecisionLogicService"/> manual review workflows, including case identification and cancellation handling.
 /// </summary>
 public class DecisionLogicServiceManualReviewTests
 {
@@ -16,7 +16,7 @@ public class DecisionLogicServiceManualReviewTests
     private readonly DecisionLogicService _service;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DecisionLogicServiceManualReviewTests"/> class.
+    /// Initializes the test suite with mocked collaborators and audit logging.
     /// </summary>
     public DecisionLogicServiceManualReviewTests()
     {
@@ -31,8 +31,9 @@ public class DecisionLogicServiceManualReviewTests
      // IdentifyAndQueueReviewCasesAsync Tests
 
     /// <summary>
-    /// Tests that IdentifyAndQueueReviewCasesAsync identifies and queues review cases successfully.
+    /// Verifies <see cref="DecisionLogicService.IdentifyAndQueueReviewCasesAsync"/> returns review cases when confidence is low.
     /// </summary>
+    /// <returns>A task that completes after review-case assertions are evaluated.</returns>
     [Fact]
     public async Task IdentifyAndQueueReviewCasesAsync_WithLowConfidence_ReturnsReviewCases()
     {
@@ -79,8 +80,9 @@ public class DecisionLogicServiceManualReviewTests
     }
 
     /// <summary>
-    /// Tests that IdentifyAndQueueReviewCasesAsync handles cancellation correctly.
+    /// Verifies cancellation is honored when identifying review cases.
     /// </summary>
+    /// <returns>A task that completes after cancellation assertions are evaluated.</returns>
     [Fact]
     public async Task IdentifyAndQueueReviewCasesAsync_WhenCancelled_ReturnsCancelledResult()
     {
@@ -102,8 +104,9 @@ public class DecisionLogicServiceManualReviewTests
     }
 
     /// <summary>
-    /// Tests that IdentifyAndQueueReviewCasesAsync returns failure when identification fails.
+    /// Verifies failures from the manual reviewer panel are surfaced to callers.
     /// </summary>
+    /// <returns>A task that completes after failure handling assertions are evaluated.</returns>
     [Fact]
     public async Task IdentifyAndQueueReviewCasesAsync_WhenIdentificationFails_ReturnsFailure()
     {
@@ -321,4 +324,3 @@ public class DecisionLogicServiceManualReviewTests
 
      // 
 }
-

@@ -30,6 +30,9 @@ public sealed class HexagonalArchitectureTests
 
     // Rule 1: Ports (Interfaces) → Domain Layer ONLY
 
+    /// <summary>
+    /// Asserts that all interfaces reside exclusively in the Domain.Interfaces namespace.
+    /// </summary>
     [Fact]
     public void All_Interfaces_Should_Be_In_Domain_Layer()
     {
@@ -44,6 +47,9 @@ public sealed class HexagonalArchitectureTests
             $"All interfaces must be in Domain.Interfaces namespace. Violations: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
+    /// <summary>
+    /// Ensures the application layer does not declare interfaces, preserving port placement in the domain.
+    /// </summary>
     [Fact]
     public void Application_Layer_Should_Not_Contain_Interfaces()
     {
@@ -57,6 +63,9 @@ public sealed class HexagonalArchitectureTests
             $"Application layer must not contain interfaces. Found: {string.Join(", ", interfaces.Select(t => t.FullName))}");
     }
 
+    /// <summary>
+    /// Ensures infrastructure projects do not introduce interfaces beyond infrastructure-specific abstractions.
+    /// </summary>
     [Fact]
     public void Infrastructure_Layers_Should_Not_Contain_Interfaces()
     {
@@ -94,6 +103,9 @@ public sealed class HexagonalArchitectureTests
 
     // Rule 2: Adapters (Implementations) → Infrastructure Layer ONLY
 
+    /// <summary>
+    /// Verifies domain interfaces are only implemented within infrastructure assemblies.
+    /// </summary>
     [Fact]
     public void Domain_Interfaces_Should_Only_Be_Implemented_In_Infrastructure()
     {
@@ -127,6 +139,9 @@ public sealed class HexagonalArchitectureTests
             $"Domain interfaces must only be implemented in Infrastructure layer. Violations: {string.Join("; ", violations)}");
     }
 
+    /// <summary>
+    /// Ensures application services do not implement domain interfaces, maintaining port/adapter boundaries.
+    /// </summary>
     [Fact]
     public void Application_Services_Should_Not_Implement_Domain_Interfaces()
     {
@@ -167,6 +182,9 @@ public sealed class HexagonalArchitectureTests
 
     // Rule 3: Dependency Flow - Infrastructure → Domain ← Application
 
+    /// <summary>
+    /// Validates the domain layer has no dependencies on the application layer.
+    /// </summary>
     [Fact]
     public void Domain_Should_Not_Depend_On_Application()
     {
@@ -179,6 +197,9 @@ public sealed class HexagonalArchitectureTests
             $"Domain must not depend on Application. Violations: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
+    /// <summary>
+    /// Verifies the domain layer has no references to infrastructure assemblies.
+    /// </summary>
     [Fact]
     public void Domain_Should_Not_Depend_On_Infrastructure()
     {
@@ -213,6 +234,9 @@ public sealed class HexagonalArchitectureTests
             $"Domain must not depend on Infrastructure. Violations: {string.Join("; ", violations)}");
     }
 
+    /// <summary>
+    /// Confirms the application layer does not depend directly on infrastructure assemblies.
+    /// </summary>
     [Fact]
     public void Application_Should_Not_Depend_On_Infrastructure()
     {
@@ -247,6 +271,9 @@ public sealed class HexagonalArchitectureTests
             $"Application must not depend on Infrastructure. Violations: {string.Join("; ", violations)}");
     }
 
+    /// <summary>
+    /// Verifies the application layer depends on the domain layer as intended.
+    /// </summary>
     [Fact]
     public void Application_Should_Depend_On_Domain()
     {
@@ -296,6 +323,9 @@ public sealed class HexagonalArchitectureTests
             $"This test validates that Application uses Domain types.");
     }
 
+    /// <summary>
+    /// Confirms infrastructure assemblies depend on the domain layer (but not vice versa).
+    /// </summary>
     [Fact]
     public void Infrastructure_Should_Depend_On_Domain()
     {
@@ -356,6 +386,9 @@ public sealed class HexagonalArchitectureTests
 
     // Rule 4: No Cross-Infrastructure Dependencies
 
+    /// <summary>
+    /// Ensures infrastructure projects do not depend on each other, preserving adapter isolation.
+    /// </summary>
     [Fact]
     public void Infrastructure_Projects_Should_Not_Depend_On_Each_Other()
     {
@@ -404,6 +437,9 @@ public sealed class HexagonalArchitectureTests
 
     // Rule 5: No Class Type Duplication
 
+    /// <summary>
+    /// Ensures class names are unique across the domain, application, and infrastructure layers.
+    /// </summary>
     [Fact]
     public void No_Duplicate_Class_Names_Across_Layers()
     {
@@ -475,6 +511,9 @@ public sealed class HexagonalArchitectureTests
             $"No class types should be duplicated across layers. Duplicates found: {string.Join("; ", duplicates.Select(d => $"{d.Key} in {string.Join(", ", d.Value)}"))}");
     }
 
+    /// <summary>
+    /// Ensures interface names are unique across the domain, application, and infrastructure layers.
+    /// </summary>
     [Fact]
     public void No_Duplicate_Interface_Names_Across_Layers()
     {
@@ -544,6 +583,9 @@ public sealed class HexagonalArchitectureTests
 
     // Rule 6: EF Core Violations
 
+    /// <summary>
+    /// Validates application layer does not reference EntityFrameworkCore directly.
+    /// </summary>
     [Fact]
     public void Application_Should_Not_Reference_EntityFrameworkCore()
     {
@@ -556,6 +598,9 @@ public sealed class HexagonalArchitectureTests
             $"Application must not reference EntityFrameworkCore. Violations: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
+    /// <summary>
+    /// Ensures domain entities are free of EF Core attributes to keep the domain persistence-agnostic.
+    /// </summary>
     [Fact]
     public void Domain_Entities_Should_Not_Have_EF_Core_Attributes()
     {

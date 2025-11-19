@@ -3,7 +3,7 @@ using ExxerCube.Prisma.Domain.Enums;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Unit tests for <see cref="AuditReportingService"/>.
+/// Unit tests for <see cref="AuditReportingService"/> covering CSV/JSON report generation paths.
 /// </summary>
 public class AuditReportingServiceTests
 {
@@ -12,7 +12,7 @@ public class AuditReportingServiceTests
     private readonly AuditReportingService _service;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AuditReportingServiceTests"/> class.
+    /// Initializes a new instance of the <see cref="AuditReportingServiceTests"/> class with mocked audit logger.
     /// </summary>
     public AuditReportingServiceTests(ITestOutputHelper output)
     {
@@ -24,6 +24,7 @@ public class AuditReportingServiceTests
     /// <summary>
     /// Tests that <see cref="AuditReportingService.GenerateClassificationReportCsvAsync"/> generates CSV correctly.
     /// </summary>
+    /// <returns>A task that completes after verifying CSV content.</returns>
     [Fact]
     public async Task GenerateClassificationReportCsvAsync_ValidRecords_ReturnsCsv()
     {
@@ -77,6 +78,7 @@ public class AuditReportingServiceTests
     /// <summary>
     /// Tests that <see cref="AuditReportingService.GenerateClassificationReportJsonAsync"/> generates JSON correctly.
     /// </summary>
+    /// <returns>A task that completes after verifying JSON content.</returns>
     [Fact]
     public async Task GenerateClassificationReportJsonAsync_ValidRecords_ReturnsJson()
     {

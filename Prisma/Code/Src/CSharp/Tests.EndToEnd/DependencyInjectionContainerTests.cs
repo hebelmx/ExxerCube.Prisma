@@ -1,3 +1,22 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using MudBlazor.Services;
+using ExxerCube.Prisma.Domain.Sources;
+using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.Database.HealthChecks;
+using ExxerCube.Prisma.Infrastructure.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction;
+using ExxerCube.Prisma.Infrastructure.Classification;
+using ExxerCube.Prisma.Web.UI;
+using ExxerCube.Prisma.Web.UI.Components.Account;
+
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>
@@ -120,7 +139,7 @@ public class DependencyInjectionContainerTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Act
-        var healthCheckService = serviceProvider.GetService<HealthCheckService>();
+        var healthCheckService = serviceProvider.GetService<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService>();
 
         // Assert
         healthCheckService.ShouldNotBeNull();
@@ -160,7 +179,7 @@ public class DependencyInjectionContainerTests
         var factory = serviceProvider.GetService<IDbContextFactory<ApplicationDbContext>>();
         factory.ShouldNotBeNull();
 
-        await using var context = await factory.CreateDbContextAsync();
+        await using var context = await factory.CreateDbContextAsync(TestContext.Current.CancellationToken);
         context.ShouldNotBeNull();
         context.Database.ShouldNotBeNull();
     }
@@ -235,7 +254,8 @@ public class DependencyInjectionContainerTests
     }
 
     /// <summary>
-    /// Builds a service collection matching Program.cs configuration for testing.
+    /// Builds a service collection using the actual Program.cs configuration for testing.
+    /// This ensures we test the real DI configuration, not a duplicate.
     /// </summary>
     /// <returns>The configured service collection.</returns>
     private static IServiceCollection BuildServiceCollection()
@@ -250,113 +270,12 @@ public class DependencyInjectionContainerTests
 
         builder.Host.UseSerilog();
 
-        // Add MudBlazor services
-        builder.Services.AddMudServices();
+        // Configure test database connection string
+        var testConnectionString = "Server=(localdb)\\mssqllocaldb;Database=TestDb_" + Guid.NewGuid() + ";Trusted_Connection=True;MultipleActiveResultSets=true";
+        builder.Configuration["ConnectionStrings:DefaultConnection"] = testConnectionString;
 
-        // Add SignalR for real-time updates
-        builder.Services.AddSignalR();
-
-        // Register SignalR hub as scoped
-        builder.Services.AddScoped<ProcessingHub>();
-
-        // Add OCR processing services with test configuration
-        var pythonModulesPath = Path.Combine(builder.Environment.ContentRootPath, "..", "..", "Python", "ocr_modules");
-        var pythonConfig = new ExxerCube.Prisma.Infrastructure.Python.PythonConfiguration
-        {
-            ModulesPath = pythonModulesPath,
-            PythonExecutablePath = "python",
-            MaxConcurrency = 5,
-            OperationTimeoutSeconds = 30,
-            EnableDebugging = false
-        };
-        builder.Services.AddOcrProcessingServices(pythonConfig);
-
-        // Add services to the container
-        builder.Services.AddRazorComponents()
-            .AddInteractiveServerComponents();
-
-        // Add API controllers
-        builder.Services.AddControllers();
-
-        // Add HttpClient for API calls
-        builder.Services.AddHttpClient("api", client =>
-        {
-            client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7062/");
-            client.Timeout = TimeSpan.FromMinutes(5);
-        });
-
-        builder.Services.AddCascadingAuthenticationState();
-        builder.Services.AddScoped<IdentityUserAccessor>();
-        builder.Services.AddScoped<IdentityRedirectManager>();
-        builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-
-        builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = IdentityConstants.ApplicationScheme;
-                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-            })
-            .AddIdentityCookies();
-
-        // Use in-memory database for testing
-        var connectionString = "Server=(localdb)\\mssqllocaldb;Database=TestDb_" + Guid.NewGuid() + ";Trusted_Connection=True;MultipleActiveResultSets=true";
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));
-        builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));
-        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-        builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddSignInManager()
-            .AddDefaultTokenProviders();
-
-        builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-
-        // Add Story 1.1 services: Browser Automation, File Storage, and Database services
-        builder.Services.AddDatabaseServices(connectionString, builder.Configuration);
-        builder.Services.AddBrowserAutomationServices(options =>
-        {
-            builder.Configuration.GetSection("BrowserAutomation").Bind(options);
-        });
-        builder.Services.AddFileStorageServices(options =>
-        {
-            builder.Configuration.GetSection("FileStorage").Bind(options);
-        });
-        builder.Services.AddScoped<DocumentIngestionService>();
-        builder.Services.AddScoped<FileMetadataQueryService>();
-        builder.Services.AddScoped<FileDownloadService>();
-
-        // Add Story 1.2 services: Extraction, Classification, and Metadata Extraction
-        builder.Services.AddExtractionServices();
-        builder.Services.AddClassificationServices(builder.Configuration);
-        builder.Services.AddScoped<MetadataExtractionService>();
-
-        // Add Story 1.3 services: Field Matching and Unified Metadata Generation
-        builder.Services.AddScoped<FieldMatchingService>();
-        builder.Services.AddScoped(typeof(IFieldMatcher<DocxSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<DocxSource>));
-        builder.Services.AddScoped(typeof(IFieldMatcher<PdfSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<PdfSource>));
-
-        // Add Story 1.4 services: Decision Logic
-        builder.Services.AddScoped<DecisionLogicService>();
-
-        // Add Story 1.5 services: SLA Tracking and Escalation
-        builder.Services.AddScoped<SLATrackingService>();
-
-        // Add Story 1.7 & 1.8 services: Export Generation
-        builder.Services.AddExportServices(builder.Configuration);
-        builder.Services.AddScoped<ExportService>();
-
-        // Add Story 1.9 services: Audit Reporting
-        builder.Services.AddScoped<AuditReportingService>();
-
-        // Add SLA health checks
-        builder.Services.AddHealthChecks()
-            .AddCheck<SLAEnforcerHealthCheck>(
-                "sla_enforcer",
-                tags: new[] { "sla", "database", "ready" })
-            .AddCheck<SLABackgroundJobHealthCheck>(
-                "sla_background_job",
-                tags: new[] { "sla", "background", "ready" });
+        // Use the actual Program.cs ConfigureServices method to ensure we test the real DI configuration
+        ExxerCube.Prisma.Web.UI.Program.ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 
         return builder.Services;
     }

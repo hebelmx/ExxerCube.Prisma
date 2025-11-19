@@ -44,16 +44,10 @@ public static class ServiceCollectionExtensions
             return new OcrProcessingServiceAdapter(ocrProcessingService);
         });
 
-        // Register Python interop service (CSnakes-based with circuit breaker)
-        // Note: PrismaOcrWrapperAdapter has been removed - this registration needs to be updated with a new implementation
-        // services.AddScoped<IPythonInteropService>(provider =>
-        // {
-        //     var logger = provider.GetRequiredService<ILogger<PrismaOcrWrapperAdapter>>();
-        //     var innerService = new PrismaOcrWrapperAdapter(logger);
-        //
-        //     var circuitBreakerLogger = provider.GetRequiredService<ILogger<CircuitBreakerPythonInteropService>>();
-        //     return new CircuitBreakerPythonInteropService(circuitBreakerLogger, innerService);
-        // });
+        // Register Python interop service (DEPRECATED - using dummy implementation)
+        // Note: IPythonInteropService is deprecated and will be removed in a future release.
+        // This is a temporary dummy implementation to allow the application to compile.
+        services.AddScoped<IPythonInteropService, DeprecatedPythonInteropService>();
 
         // Register domain interface implementations using the abstract Python interop service
         services.AddScoped<IOcrExecutor>(provider =>

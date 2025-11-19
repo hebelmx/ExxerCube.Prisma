@@ -8,6 +8,16 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<!-- 
+		  NU1902: OpenTelemetry.Api vulnerability (transitive dependency, documented in SECURITY_SUPPRESSIONS.md)
+		  - Package: OpenTelemetry.Api 1.10.0 (transitive dependency via OpenTelemetry.Instrumentation.Process)
+		  - Vulnerability: GHSA-8785-wc3w-h8q6 (moderate severity)
+		  - Reason: This is a transitive dependency from OpenTelemetry packages that we don't directly control.
+		            The OpenTelemetry team is aware and will address in future versions.
+		  - Reference: https://github.com/advisories/GHSA-8785-wc3w-h8q6
+		-->
+		<NoWarn>$(NoWarn);NU1902</NoWarn>
+		<WarningsNotAsErrors>$(WarningsNotAsErrors);NU1902</WarningsNotAsErrors>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>

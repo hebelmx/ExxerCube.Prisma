@@ -5,7 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>CS1591</NoWarn>
     <!-- CSnakes Configuration for .NET 10 -->
     <EmbedPythonSources>true</EmbedPythonSources>
     <DefaultPythonItems>true</DefaultPythonItems>

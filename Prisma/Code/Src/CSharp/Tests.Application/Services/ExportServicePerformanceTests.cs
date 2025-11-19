@@ -4,7 +4,7 @@ using ExxerCube.Prisma.Domain.ValueObjects;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Performance tests for <see cref="ExportService"/> to verify NFR8 and NFR9 requirements.
+/// Performance tests for <see cref="ExportService"/> to verify NFR8 and NFR9 timing and throughput requirements.
 /// </summary>
 public class ExportServicePerformanceTests
 {
@@ -18,7 +18,7 @@ public class ExportServicePerformanceTests
     private readonly ITestOutputHelper _output;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExportServicePerformanceTests"/> class.
+    /// Initializes a new instance of the <see cref="ExportServicePerformanceTests"/> class with mocked exporters and loggers.
     /// </summary>
     public ExportServicePerformanceTests(ITestOutputHelper output)
     {
@@ -56,7 +56,7 @@ public class ExportServicePerformanceTests
     }
 
     /// <summary>
-    /// Creates a typical unified metadata record for testing.
+    /// Creates a representative unified metadata record used in performance scenarios.
     /// </summary>
     private static UnifiedMetadataRecord CreateTypicalMetadata()
     {
@@ -91,6 +91,7 @@ public class ExportServicePerformanceTests
     /// <summary>
     /// Tests that ExportSiroXmlAsync completes within 5 seconds (NFR8).
     /// </summary>
+    /// <returns>A task that completes after timing assertions are evaluated.</returns>
     [Fact]
     [Trait("Category", "Performance")]
     public async Task ExportSiroXmlAsync_CompletesWithin5Seconds_NFR8()
@@ -193,6 +194,7 @@ public class ExportServicePerformanceTests
     /// <summary>
     /// Tests that bulk export operations perform efficiently.
     /// </summary>
+    /// <returns>A task that completes after bulk export performance assertions are evaluated.</returns>
     [Fact]
     [Trait("Category", "Performance")]
     public async Task BulkExportOperations_PerformEfficiently()

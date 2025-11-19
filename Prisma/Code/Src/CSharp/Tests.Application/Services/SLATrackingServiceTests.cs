@@ -3,7 +3,7 @@ using ExxerCube.Prisma.Domain.Enums;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Unit tests for <see cref="SLATrackingService"/>.
+/// Unit tests for <see cref="SLATrackingService"/> covering delegation, cancellation, and validation scenarios.
 /// </summary>
 public class SLATrackingServiceTests
 {
@@ -12,7 +12,7 @@ public class SLATrackingServiceTests
     private readonly SLATrackingService _service;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SLATrackingServiceTests"/> class.
+    /// Initializes a new instance of the <see cref="SLATrackingServiceTests"/> class with mocked SLA enforcer.
     /// </summary>
     public SLATrackingServiceTests(ITestOutputHelper output)
     {
@@ -24,6 +24,7 @@ public class SLATrackingServiceTests
     /// <summary>
     /// Tests that TrackSLAAsync delegates to ISLAEnforcer correctly.
     /// </summary>
+    /// <returns>A task that completes after delegation assertions are evaluated.</returns>
     [Fact]
     public async Task TrackSLAAsync_ValidInput_DelegatesToEnforcer()
     {
@@ -280,6 +281,7 @@ public class SLATrackingServiceTests
     /// <summary>
     /// Tests that GetBreachedCasesAsync delegates to ISLAEnforcer correctly.
     /// </summary>
+    /// <returns>A task that completes after verifying breached cases delegation.</returns>
     [Fact]
     public async Task GetBreachedCasesAsync_ValidInput_DelegatesToEnforcer()
     {
@@ -305,6 +307,7 @@ public class SLATrackingServiceTests
     /// <summary>
     /// Tests that EscalateCaseAsync delegates to ISLAEnforcer correctly.
     /// </summary>
+    /// <returns>A task that completes after escalation delegation assertions are evaluated.</returns>
     [Fact]
     public async Task EscalateCaseAsync_ValidInput_DelegatesToEnforcer()
     {
@@ -326,6 +329,7 @@ public class SLATrackingServiceTests
     /// <summary>
     /// Tests that EscalateCaseAsync handles enforcer failure correctly.
     /// </summary>
+    /// <returns>A task that completes after failure propagation assertions are evaluated.</returns>
     [Fact]
     public async Task EscalateCaseAsync_EnforcerFailure_ReturnsFailure()
     {

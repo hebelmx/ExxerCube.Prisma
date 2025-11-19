@@ -4,7 +4,7 @@ using ExxerCube.Prisma.Domain.ValueObjects;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Unit tests for <see cref="ExportService"/> orchestration logic.
+/// Unit tests for <see cref="ExportService"/> orchestration, covering summarization, exports, and logging behaviors.
 /// </summary>
 public class ExportServiceTests
 {
@@ -17,7 +17,7 @@ public class ExportServiceTests
     private readonly ExportService _exportService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExportServiceTests"/> class.
+    /// Initializes a new instance of the <see cref="ExportServiceTests"/> class with mocked export dependencies.
     /// </summary>
     public ExportServiceTests()
     {
@@ -39,6 +39,7 @@ public class ExportServiceTests
     /// <summary>
     /// Tests that signed PDF export with summarization orchestrates correctly.
     /// </summary>
+    /// <returns>A task that completes after verifying summarization and export audit steps.</returns>
     [Fact]
     public async Task ExportSignedPdfWithSummarizationAsync_ValidInput_OrchestratesCorrectly()
     {
@@ -101,6 +102,7 @@ public class ExportServiceTests
     /// <summary>
     /// Tests that signed PDF export continues without summary if summarization fails.
     /// </summary>
+    /// <returns>A task that completes after verifying export proceeds when summarization fails.</returns>
     [Fact]
     public async Task ExportSignedPdfWithSummarizationAsync_SummarizationFails_ContinuesWithoutSummary()
     {
@@ -194,6 +196,7 @@ public class ExportServiceTests
     /// <summary>
     /// Tests that signed PDF export handles cancellation correctly.
     /// </summary>
+    /// <returns>A task that completes after cancellation handling is asserted.</returns>
     [Fact]
     public async Task ExportSignedPdfWithSummarizationAsync_CancellationRequested_ReturnsCancelled()
     {
@@ -218,6 +221,7 @@ public class ExportServiceTests
     /// <summary>
     /// Tests that signed PDF export fails when metadata is null.
     /// </summary>
+    /// <returns>A task that completes after validating null metadata handling.</returns>
     [Fact]
     public async Task ExportSignedPdfWithSummarizationAsync_NullMetadata_ReturnsFailure()
     {
@@ -239,6 +243,7 @@ public class ExportServiceTests
     /// <summary>
     /// Tests that signed PDF export fails when output stream is null.
     /// </summary>
+    /// <returns>A task that completes after validating null stream handling.</returns>
     [Fact]
     public async Task ExportSignedPdfWithSummarizationAsync_NullOutputStream_ReturnsFailure()
     {
@@ -263,6 +268,7 @@ public class ExportServiceTests
     /// <summary>
     /// Tests that signed PDF export propagates PDF export failure.
     /// </summary>
+    /// <returns>A task that completes after asserting PDF export failures are propagated.</returns>
     [Fact]
     public async Task ExportSignedPdfWithSummarizationAsync_PdfExportFails_ReturnsFailure()
     {

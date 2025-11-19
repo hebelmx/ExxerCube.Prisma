@@ -4,7 +4,7 @@ using ExxerCube.Prisma.Domain.ValueObjects;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Unit tests for <see cref="MetadataExtractionService"/>.
+/// Unit tests for <see cref="MetadataExtractionService"/> covering successful extraction/classification flows and failure scenarios.
 /// </summary>
 public class MetadataExtractionServiceTests : IDisposable
 {
@@ -19,7 +19,7 @@ public class MetadataExtractionServiceTests : IDisposable
     private readonly string _testStoragePath;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MetadataExtractionServiceTests"/> class.
+    /// Initializes a new instance of the <see cref="MetadataExtractionServiceTests"/> class with mocked collaborators and temp storage.
     /// </summary>
     public MetadataExtractionServiceTests()
     {
@@ -44,6 +44,7 @@ public class MetadataExtractionServiceTests : IDisposable
     /// <summary>
     /// Tests that complete workflow succeeds for XML file.
     /// </summary>
+    /// <returns>A task that completes after verifying successful XML extraction workflow.</returns>
     [Fact]
     public async Task ProcessFileAsync_XmlFile_CompletesWorkflow()
     {
@@ -104,6 +105,7 @@ public class MetadataExtractionServiceTests : IDisposable
     /// <summary>
     /// Tests that workflow fails when file type identification fails.
     /// </summary>
+    /// <returns>A task that completes after asserting file-type identification failure is surfaced.</returns>
     [Fact]
     public async Task ProcessFileAsync_FileTypeIdentificationFails_ReturnsFailure()
     {
@@ -252,6 +254,7 @@ public class MetadataExtractionServiceTests : IDisposable
     /// <summary>
     /// Tests that workflow routes PDF files correctly.
     /// </summary>
+    /// <returns>A task that completes after verifying PDF extraction is invoked.</returns>
     [Fact]
     public async Task ProcessFileAsync_PdfFile_RoutesToPdfExtractor()
     {
@@ -299,6 +302,7 @@ public class MetadataExtractionServiceTests : IDisposable
     /// <summary>
     /// Tests that workflow fails when safe file naming fails.
     /// </summary>
+    /// <returns>A task that completes after asserting safe-file-name failures are surfaced.</returns>
     [Fact]
     public async Task ProcessFileAsync_SafeFileNamingFails_ReturnsFailure()
     {
@@ -338,6 +342,7 @@ public class MetadataExtractionServiceTests : IDisposable
     /// <summary>
     /// Tests that workflow fails when file move fails.
     /// </summary>
+    /// <returns>A task that completes after asserting file move failures are surfaced.</returns>
     [Fact]
     public async Task ProcessFileAsync_FileMoveFails_ReturnsFailure()
     {
@@ -380,6 +385,7 @@ public class MetadataExtractionServiceTests : IDisposable
     /// <summary>
     /// Tests that workflow handles unsupported file formats.
     /// </summary>
+    /// <returns>A task that completes after asserting unsupported formats are rejected.</returns>
     [Fact]
     public async Task ProcessFileAsync_UnsupportedFileFormat_ReturnsFailure()
     {
@@ -410,6 +416,7 @@ public class MetadataExtractionServiceTests : IDisposable
     /// <summary>
     /// Tests that workflow handles cancellation token.
     /// </summary>
+    /// <returns>A task that completes after cancellation handling assertions are evaluated.</returns>
     [Fact]
     public async Task ProcessFileAsync_CancellationRequested_ReturnsFailure()
     {
@@ -455,6 +462,7 @@ public class MetadataExtractionServiceTests : IDisposable
     /// <summary>
     /// Tests that workflow handles file not found.
     /// </summary>
+    /// <returns>A task that completes after asserting missing files are handled.</returns>
     [Fact]
     public async Task ProcessFileAsync_FileNotFound_ReturnsFailure()
     {
@@ -469,7 +477,7 @@ public class MetadataExtractionServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Disposes test resources.
+    /// Disposes temporary storage used during extraction tests.
     /// </summary>
     public void Dispose()
     {
@@ -479,4 +487,3 @@ public class MetadataExtractionServiceTests : IDisposable
         }
     }
 }
-

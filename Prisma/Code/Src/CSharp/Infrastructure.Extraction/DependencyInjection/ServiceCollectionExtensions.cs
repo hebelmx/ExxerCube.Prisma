@@ -30,7 +30,8 @@ public static class ServiceCollectionExtensions
         // Register generic field extractors for Story 1.3
         services.AddScoped<IFieldExtractor<DocxSource>, DocxFieldExtractor>();
         services.AddScoped<IFieldExtractor<PdfSource>, PdfOcrFieldExtractor>();
-        // Note: IFieldExtractor<XmlSource> can be added when XML field extractor is implemented
+        // Register dummy XML field extractor (temporary placeholder until full implementation is added)
+        services.AddScoped<IFieldExtractor<XmlSource>, XmlFieldExtractor>();
 
         return services;
     }

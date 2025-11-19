@@ -3,8 +3,7 @@ using ExxerCube.Prisma.Domain.Models;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Tests for the configuration validation service.
-/// Validates that configuration changes can be made without code modifications.
+/// Tests for <see cref="ConfigurationValidationService"/> ensuring configuration changes are validated without code modifications.
 /// </summary>
 public class ConfigurationValidationServiceTests
 {
@@ -12,7 +11,7 @@ public class ConfigurationValidationServiceTests
     private readonly ConfigurationValidationService _validationService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConfigurationValidationServiceTests"/> class.
+    /// Initializes a new instance of the <see cref="ConfigurationValidationServiceTests"/> class with a mocked logger.
     /// </summary>
     public ConfigurationValidationServiceTests()
     {
@@ -23,6 +22,7 @@ public class ConfigurationValidationServiceTests
     /// <summary>
     /// Tests that valid configurations pass validation.
     /// </summary>
+    /// <returns>An assertion on the validation result.</returns>
     [Fact]
     public void ValidateConfiguration_ValidConfig_ReturnsSuccess()
     {
@@ -43,6 +43,7 @@ public class ConfigurationValidationServiceTests
     /// <summary>
     /// Tests that invalid OCR language is detected.
     /// </summary>
+    /// <returns>An assertion on error detection.</returns>
     [Fact]
     public void ValidateConfiguration_InvalidOcrLanguage_ReturnsError()
     {
@@ -63,6 +64,7 @@ public class ConfigurationValidationServiceTests
     /// <summary>
     /// Tests that invalid OEM settings are detected.
     /// </summary>
+    /// <returns>An assertion on OEM validation errors.</returns>
     [Fact]
     public void ValidateConfiguration_InvalidOEM_ReturnsError()
     {

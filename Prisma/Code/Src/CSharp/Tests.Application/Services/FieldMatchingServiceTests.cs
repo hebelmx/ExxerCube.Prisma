@@ -5,17 +5,11 @@ using ExxerCube.Prisma.Infrastructure.Classification;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Unit tests for <see cref="FieldMatchingService"/>.
-///
-/// ⚠️ REFACTORING REQUIRED ⚠️
-/// This test violates clean architecture by directly instantiating Infrastructure.Classification types
-/// (MatchingPolicyService) instead of mocking the IMatchingPolicy interface.
-///
-/// ACTION REQUIRED:
-/// - Refactor to mock IMatchingPolicy interface instead of creating MatchingPolicyService
-///
-/// Until refactored, all tests will fail with a clear error message.
+/// Unit tests for <see cref="FieldMatchingService"/> focused on field definition validation and matching workflows.
 /// </summary>
+/// <remarks>
+/// ⚠️ Refactoring still recommended: use a mocked <see cref="IMatchingPolicy"/> rather than concrete <see cref="MatchingPolicyService"/>.
+/// </remarks>
 public class FieldMatchingServiceTests
 {
     private readonly IFieldExtractor<DocxSource> _docxFieldExtractor;
@@ -24,6 +18,9 @@ public class FieldMatchingServiceTests
     private readonly ILogger<FieldMatchingService> _logger;
     private readonly FieldMatchingService _service;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FieldMatchingServiceTests"/> class with mocked extractors and matching policy.
+    /// </summary>
     public FieldMatchingServiceTests()
     {
         //throw new InvalidOperationException(
@@ -47,6 +44,7 @@ public class FieldMatchingServiceTests
     }
 
     [Fact]
+    /// <returns>A task that completes after asserting failure when no sources are provided.</returns>
     public async Task MatchFieldsAndGenerateUnifiedRecordAsync_WithNoSources_ReturnsFailure()
     {
         // Arrange
@@ -69,6 +67,7 @@ public class FieldMatchingServiceTests
     }
 
     [Fact]
+    /// <returns>A task that completes after asserting failure when field definitions are null.</returns>
     public async Task MatchFieldsAndGenerateUnifiedRecordAsync_WithNullFieldDefinitions_ReturnsFailure()
     {
         // Arrange
@@ -91,6 +90,7 @@ public class FieldMatchingServiceTests
     }
 
     [Fact]
+    /// <returns>A task that completes after asserting failure when field definitions are empty.</returns>
     public async Task MatchFieldsAndGenerateUnifiedRecordAsync_WithEmptyFieldDefinitions_ReturnsFailure()
     {
         // Arrange
@@ -245,6 +245,7 @@ public class FieldMatchingServiceTests
     }
 
     [Fact]
+    /// <returns>A task that completes after asserting extraction failure still returns matches from other sources.</returns>
     public async Task MatchFieldsAndGenerateUnifiedRecordAsync_WithExtractionFailure_ContinuesWithOtherSources()
     {
         // Arrange
@@ -284,6 +285,7 @@ public class FieldMatchingServiceTests
     }
 
     [Fact]
+    /// <returns>A task that completes after asserting required-field warnings do not break success.</returns>
     public async Task MatchFieldsAndGenerateUnifiedRecordAsync_WithRequiredFields_ValidatesCompleteness()
     {
         // Arrange

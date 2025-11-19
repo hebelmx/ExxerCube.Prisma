@@ -4,7 +4,7 @@ using ExxerCube.Prisma.Domain.ValueObjects;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Integration tests for manual review workflow verifying IV1 and IV2 requirements.
+/// Integration tests for manual review workflows verifying IV1 and IV2 requirements.
 /// </summary>
 public class ManualReviewIntegrationTests
 {
@@ -16,7 +16,7 @@ public class ManualReviewIntegrationTests
     private readonly DecisionLogicService _service;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ManualReviewIntegrationTests"/> class.
+    /// Initializes a new instance of the <see cref="ManualReviewIntegrationTests"/> class with mocked collaborators.
     /// </summary>
     public ManualReviewIntegrationTests()
     {
@@ -31,6 +31,7 @@ public class ManualReviewIntegrationTests
     /// <summary>
     /// Tests IV1: Manual review interface does not disrupt existing document processing workflows.
     /// </summary>
+    /// <returns>A task that completes after validating the main workflow is intact.</returns>
     [Fact]
     public async Task ProcessDecisionLogicAsync_WithManualReview_DoesNotDisruptExistingWorkflow()
     {
@@ -75,6 +76,7 @@ public class ManualReviewIntegrationTests
     /// <summary>
     /// Tests IV2: Review decisions integrate with existing data models without breaking existing functionality.
     /// </summary>
+    /// <returns>A task that completes after verifying review decisions integrate correctly.</returns>
     [Fact]
     public async Task ProcessReviewDecisionAsync_WithExistingDataModels_IntegratesCorrectly()
     {
@@ -183,4 +185,3 @@ public class ManualReviewIntegrationTests
         processResult.IsSuccess.ShouldBeTrue();
     }
 }
-

@@ -5,7 +5,6 @@
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	<NoWarn>CS1591</NoWarn>
 
 	<!-- CSnakes Configuration for Python code generation -->
 	<EmbedPythonSources>true</EmbedPythonSources>

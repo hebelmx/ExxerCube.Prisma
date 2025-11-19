@@ -15,6 +15,10 @@ public class FieldMatchingIntegrationTests
     private readonly ILogger<FieldMatchingService> _logger;
     private readonly FieldMatchingService _service;
 
+    /// <summary>
+    /// Initializes the integration tests with mocked extractors and matching policy.
+    /// </summary>
+    /// <param name="output">xUnit output helper used for logging.</param>
     public FieldMatchingIntegrationTests(ITestOutputHelper output)
     {
         _docxFieldExtractor = Substitute.For<IFieldExtractor<DocxSource>>();
@@ -35,6 +39,7 @@ public class FieldMatchingIntegrationTests
 
     [Fact]
     [Trait("Category", "Integration")]
+    /// <returns>A task that completes after verifying all sources contribute to a unified record.</returns>
     public async Task MatchFieldsAndGenerateUnifiedRecordAsync_EndToEndWorkflow_AllSourcesContribute()
     {
         // Arrange - Simulate real-world scenario with XML, DOCX, and PDF sources
@@ -179,6 +184,7 @@ public class FieldMatchingIntegrationTests
     [Fact]
     [Trait("Category", "Integration")]
     [Trait("Category", "Performance")]
+    /// <returns>A task that completes after validating end-to-end workflow meets performance targets.</returns>
     public async Task MatchFieldsAndGenerateUnifiedRecordAsync_EndToEndPerformance_CompletesWithin2Seconds()
     {
         // Arrange - NFR4: Metadata extraction within 2 seconds for XML/DOCX, 30 seconds for PDF

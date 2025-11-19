@@ -1,7 +1,7 @@
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Unit tests for <see cref="DocumentIngestionService"/>.
+/// Unit tests for <see cref="DocumentIngestionService"/> covering success paths, validation failures, duplicates, and cancellation handling.
 /// </summary>
 public class DocumentIngestionServiceTests
 {
@@ -14,7 +14,7 @@ public class DocumentIngestionServiceTests
     private readonly DocumentIngestionService _service;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DocumentIngestionServiceTests"/> class.
+    /// Initializes a new instance of the <see cref="DocumentIngestionServiceTests"/> class with mocked ingestion dependencies.
     /// </summary>
     public DocumentIngestionServiceTests()
     {
@@ -36,6 +36,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> successfully ingests documents when all steps succeed.
     /// </summary>
+    /// <returns>A task that completes after verifying successful ingestion.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_AllStepsSucceed_ReturnsIngestedFiles()
     {
@@ -101,6 +102,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> skips duplicate files.
     /// </summary>
+    /// <returns>A task that completes after ensuring duplicates are ignored.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_DuplicateFile_SkipsFile()
     {
@@ -150,6 +152,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> handles browser launch failure.
     /// </summary>
+    /// <returns>A task that completes after asserting failure on launch issues.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_BrowserLaunchFails_ReturnsFailure()
     {
@@ -170,6 +173,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> handles navigation failure.
     /// </summary>
+    /// <returns>A task that completes after asserting navigation failures are surfaced.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_NavigationFails_ReturnsFailure()
     {
@@ -194,6 +198,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> handles file download failure gracefully.
     /// </summary>
+    /// <returns>A task that completes after verifying download failures skip affected files.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_FileDownloadFails_SkipsFileAndContinues()
     {
@@ -232,6 +237,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> handles storage save failure gracefully.
     /// </summary>
+    /// <returns>A task that completes after ensuring storage failures are reported per file.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_StorageSaveFails_ReturnsFailureForFile()
     {
@@ -283,6 +289,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> properly handles cancellation token at start.
     /// </summary>
+    /// <returns>A task that completes after cancellation behavior is asserted.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_CancellationRequestedAtStart_ReturnsCancelled()
     {
@@ -303,6 +310,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> processes multiple files correctly.
     /// </summary>
+    /// <returns>A task that completes after verifying multiple files are ingested.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_MultipleFiles_ProcessesAllFiles()
     {
@@ -373,6 +381,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> handles file identification failure.
     /// </summary>
+    /// <returns>A task that completes after asserting identification failures are surfaced.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_FileIdentificationFails_ReturnsFailure()
     {
@@ -399,6 +408,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> handles duplicate check failure gracefully.
     /// </summary>
+    /// <returns>A task that completes after asserting duplicate check failures are handled.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_DuplicateCheckFails_ReturnsFailureForFile()
     {
@@ -448,6 +458,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> validates null website URL.
     /// </summary>
+    /// <returns>A task that completes after validating null URL input handling.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_NullWebsiteUrl_ReturnsFailure()
     {
@@ -469,6 +480,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> validates empty website URL.
     /// </summary>
+    /// <returns>A task that completes after validating empty URL handling.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_EmptyWebsiteUrl_ReturnsFailure()
     {
@@ -490,6 +502,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> validates invalid URL format.
     /// </summary>
+    /// <returns>A task that completes after validating invalid URL handling.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_InvalidUrlFormat_ReturnsFailure()
     {
@@ -511,6 +524,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> validates null file patterns.
     /// </summary>
+    /// <returns>A task that completes after validating null file pattern handling.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_NullFilePatterns_ReturnsFailure()
     {
@@ -532,6 +546,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> validates empty file patterns array.
     /// </summary>
+    /// <returns>A task that completes after validating empty pattern handling.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_EmptyFilePatterns_ReturnsFailure()
     {
@@ -553,6 +568,7 @@ public class DocumentIngestionServiceTests
     /// <summary>
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> validates file patterns containing null values.
     /// </summary>
+    /// <returns>A task that completes after validating null entries in pattern list.</returns>
     [Fact]
     public async Task IngestDocumentsAsync_FilePatternsWithNullValues_ReturnsFailure()
     {
@@ -578,4 +594,3 @@ public class DocumentIngestionServiceTests
         return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
     }
 }
-

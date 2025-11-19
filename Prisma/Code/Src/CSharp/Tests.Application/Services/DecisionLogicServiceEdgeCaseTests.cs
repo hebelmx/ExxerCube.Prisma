@@ -1,7 +1,7 @@
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Edge case tests for <see cref="DecisionLogicService"/> covering null handling, cancellation, and exceptions.
+/// Edge case tests for <see cref="DecisionLogicService"/> covering null handling, cancellation, and exception scenarios.
 /// </summary>
 public class DecisionLogicServiceEdgeCaseTests
 {
@@ -13,7 +13,7 @@ public class DecisionLogicServiceEdgeCaseTests
     private readonly DecisionLogicService _service;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DecisionLogicServiceEdgeCaseTests"/> class.
+    /// Initializes a new instance of the <see cref="DecisionLogicServiceEdgeCaseTests"/> class with mocked collaborators.
     /// </summary>
     public DecisionLogicServiceEdgeCaseTests()
     {
@@ -28,6 +28,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ResolvePersonIdentitiesAsync handles null persons list correctly.
     /// </summary>
+    /// <returns>A task that completes after asserting null input yields an empty result set.</returns>
     [Fact]
     public async Task ResolvePersonIdentitiesAsync_WithNullPersons_ReturnsEmptyList()
     {
@@ -43,6 +44,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ResolvePersonIdentitiesAsync handles cancellation token correctly when no work is completed.
     /// </summary>
+    /// <returns>A task that completes after cancellation is propagated.</returns>
     [Fact]
     public async Task ResolvePersonIdentitiesAsync_WithCancellationRequested_HandlesGracefully()
     {
@@ -62,6 +64,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ResolvePersonIdentitiesAsync preserves partial results when cancellation occurs during batch processing (P1 Enhancement).
     /// </summary>
+    /// <returns>A task that completes after asserting partial results are preserved.</returns>
     [Fact]
     public async Task ResolvePersonIdentitiesAsync_WithCancellationDuringProcessing_PreservesPartialResults()
     {
@@ -119,6 +122,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ClassifyLegalDirectivesAsync handles null document text correctly.
     /// </summary>
+    /// <returns>A task that completes after asserting null text yields an empty result.</returns>
     [Fact]
     public async Task ClassifyLegalDirectivesAsync_WithNullDocumentText_ReturnsEmptyList()
     {
@@ -153,6 +157,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ProcessDecisionLogicAsync handles null persons list correctly.
     /// </summary>
+    /// <returns>A task that completes after asserting null persons are rejected.</returns>
     [Fact]
     public async Task ProcessDecisionLogicAsync_WithNullPersons_HandlesGracefully()
     {
@@ -171,6 +176,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ProcessDecisionLogicAsync handles null document text correctly.
     /// </summary>
+    /// <returns>A task that completes after asserting null text is rejected.</returns>
     [Fact]
     public async Task ProcessDecisionLogicAsync_WithNullDocumentText_HandlesGracefully()
     {
@@ -188,6 +194,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ProcessDecisionLogicAsync handles cancellation token correctly.
     /// </summary>
+    /// <returns>A task that completes after asserting cancellation is propagated.</returns>
     [Fact]
     public async Task ProcessDecisionLogicAsync_WithCancellationRequested_ReturnsFailure()
     {
@@ -208,6 +215,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ResolvePersonIdentitiesAsync handles exception from resolver correctly.
     /// </summary>
+    /// <returns>A task that completes after asserting resolver exceptions are handled.</returns>
     [Fact]
     public async Task ResolvePersonIdentitiesAsync_WithResolverException_HandlesGracefully()
     {
@@ -234,6 +242,7 @@ public class DecisionLogicServiceEdgeCaseTests
     /// <summary>
     /// Tests that ClassifyLegalDirectivesAsync handles exception from classifier correctly.
     /// </summary>
+    /// <returns>A task that completes after asserting classifier exceptions are surfaced.</returns>
     [Fact]
     public async Task ClassifyLegalDirectivesAsync_WithClassifierException_ReturnsFailure()
     {
@@ -254,4 +263,3 @@ public class DecisionLogicServiceEdgeCaseTests
         result.Error.ShouldContain("Failed to classify legal directives");
     }
 }
-

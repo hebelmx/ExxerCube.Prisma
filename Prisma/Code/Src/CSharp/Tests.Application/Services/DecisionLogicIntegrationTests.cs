@@ -3,18 +3,12 @@ using ExxerCube.Prisma.Domain.Enums;
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
-/// Integration tests for <see cref="DecisionLogicService"/> verifying end-to-end workflow and integration verification points.
-///
-/// ⚠️ REFACTORING REQUIRED ⚠️
-/// This test violates clean architecture by directly instantiating Infrastructure.Classification types
-/// (IPersonIdentityResolverService, ILegalDirectiveClassifierService) instead of using mocks.
-///
-/// ACTION REQUIRED:
-/// - Refactor to mock IPersonIdentityResolver and ILegalDirectiveClassifier interfaces
-/// - OR move this test to Tests.Infrastructure.Classification
-///
-/// Until refactored, all tests will fail with a clear error message.
+/// Integration tests for <see cref="DecisionLogicService"/> verifying end-to-end workflow and integration points.
 /// </summary>
+/// <remarks>
+/// ⚠️ Refactoring is still recommended: ensure Domain interfaces are mocked (as configured here) or move these to the
+/// Infrastructure.Classification test suite if concrete dependencies are required.
+/// </remarks>
 public class DecisionLogicIntegrationTests
 {
     private readonly DecisionLogicService _service;
@@ -22,7 +16,7 @@ public class DecisionLogicIntegrationTests
     private readonly ILegalDirectiveClassifier _classifier;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DecisionLogicIntegrationTests"/> class.
+    /// Initializes the test fixture with mocked Domain collaborators and stubbed audit logging.
     /// </summary>
     public DecisionLogicIntegrationTests()
     {
@@ -57,8 +51,9 @@ public class DecisionLogicIntegrationTests
     }
 
     /// <summary>
-    /// Tests end-to-end identity resolution and classification workflow (AC: 1-6).
+    /// Verifies the end-to-end identity resolution and classification workflow (AC: 1-6).
     /// </summary>
+    /// <returns>A task that completes after workflow assertions are evaluated.</returns>
     [Fact]
     public async Task ProcessDecisionLogicAsync_EndToEndWorkflow_CompletesSuccessfully()
     {
