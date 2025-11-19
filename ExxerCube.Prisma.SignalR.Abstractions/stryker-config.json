@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker-net/master/schemas/stryker-config.json",
+  "stryker-config": {
+    "project": "ExxerCube.Prisma.SignalR.Abstractions.csproj",
+    "test-projects": [
+      "ExxerCube.Prisma.SignalR.Abstractions.Tests.csproj"
+    ],
+    "mutate": [
+      "**/*.cs"
+    ],
+    "ignore-mutations": [],
+    "ignore-methods": [],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "coverage-analysis": "perTest",
+    "verbosity": "info",
+    "concurrency": 4,
+    "additional-timeout": 10000,
+    "break-on-initial-test-failure": false
+  }
+}
