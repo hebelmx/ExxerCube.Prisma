@@ -1,0 +1,20 @@
+global using Xunit;
+global using NSubstitute;
+global using Shouldly;
+global using Microsoft.Extensions.Logging;
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using ExxerCube.Prisma.SignalR.Abstractions.Abstractions.Hubs;
+global using ExxerCube.Prisma.SignalR.Abstractions.Abstractions.Health;
+global using ExxerCube.Prisma.SignalR.Abstractions.Abstractions.Dashboards;
+global using ExxerCube.Prisma.SignalR.Abstractions.Infrastructure.Connection;
+global using ExxerCube.Prisma.SignalR.Abstractions.Infrastructure.Messaging;
+global using IndQuestResults;
+global using IndQuestResults.Operations;
+global using Microsoft.AspNetCore.SignalR;
+global using Microsoft.AspNetCore.SignalR.Client;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;
+

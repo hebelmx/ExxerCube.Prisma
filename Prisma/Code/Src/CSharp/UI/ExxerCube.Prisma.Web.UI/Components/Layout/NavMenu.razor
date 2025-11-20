@@ -1,68 +1,124 @@
-﻿@implements IDisposable
+@implements IDisposable
 
+@using System.Diagnostics
+@using System.Linq
+@using ExxerCube.Prisma.Web.UI.Components.Shared.Navigation
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Rendering
+@using Microsoft.AspNetCore.Hosting
 @inject NavigationManager NavigationManager
+@inject IWebHostEnvironment HostEnvironment
 
 <MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    
-    <MudDivider Class="my-2" />
-    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Document Processing</MudText>
-    
-    <MudNavLink Href="document-processing" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DocumentScanner">
-        Upload & Process
+    <MudNavLink Href="@NavigationRegistry.HomeLink.Href"
+                Match="@NavigationRegistry.HomeLink.Match"
+                Icon="@NavigationRegistry.HomeLink.Icon"
+                Title="@NavigationRegistry.HomeLink.Description">
+        @NavigationRegistry.HomeLink.Title
     </MudNavLink>
-    <MudNavLink Href="document-processing-dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.CloudDownload">
-        Processing Dashboard
-    </MudNavLink>
-    <MudNavLink Href="dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Analytics">
-        Dashboard
-    </MudNavLink>
-    
-    <MudDivider Class="my-2" />
-    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Review & Compliance</MudText>
-    
-    <MudNavLink Href="manual-review" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Assignment">
-        Manual Review
-    </MudNavLink>
-    <MudNavLink Href="review-case-detail" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Description">
-        Case Detail
-    </MudNavLink>
-    <MudNavLink Href="sla-dashboard" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Schedule">
-        SLA Monitoring
-    </MudNavLink>
-    
-    <MudDivider Class="my-2" />
-    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Export & Audit</MudText>
-    
-    <MudNavLink Href="export-management" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.FileDownload">
-        Export Management
-    </MudNavLink>
-    <MudNavLink Href="audit-trail-viewer" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.History">
-        Audit Trail Viewer
-    </MudNavLink>
-    
-    <MudDivider Class="my-2" />
-    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Administration</MudText>
-    
-    <AuthorizeView Roles="Administrator">
-        <Authorized>
-            <MudNavLink Href="admin/database-migration" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Storage">
-                Database Migration
-            </MudNavLink>
-            <MudNavLink Href="admin/connection-string" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">
-                Connection String
-            </MudNavLink>
-        </Authorized>
-    </AuthorizeView>
-    
-    <MudDivider Class="my-2" />
-    <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Examples</MudText>
-    
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
-    <MudNavLink Href="oc-demo" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Image">OCR Demo</MudNavLink>
-    <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
-    
+
+    @foreach (var section in NavigationRegistry.PrimarySections)
+    {
+        var visibleLinks = section.Links.Where(link => link.IncludeInPrimaryNavigation).ToList();
+        if (!visibleLinks.Any())
+        {
+            continue;
+        }
+
+        <MudDivider Class="my-2" />
+        <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">@(section.Title)</MudText>
+
+        @foreach (var link in visibleLinks)
+        {
+            if (RequiresRoleGate(link))
+            {
+                <AuthorizeView Roles="@link.RolesCsv" Policy="@link.Policy">
+                    <Authorized>
+                        @NavLinkFragment(link, link.Href, false)
+                    </Authorized>
+                    <NotAuthorized>
+                        @if (AllowDevNavigation)
+                        {
+                            @NavLinkFragment(link, link.EffectiveDevelopmentHref, true)
+                        }
+                    </NotAuthorized>
+                </AuthorizeView>
+            }
+            else if (link.RequiresAuthentication)
+            {
+                <AuthorizeView>
+                    <Authorized>
+                        @NavLinkFragment(link, link.Href, false)
+                    </Authorized>
+                    <NotAuthorized>
+                        @if (AllowDevNavigation)
+                        {
+                            @NavLinkFragment(link, link.EffectiveDevelopmentHref, true)
+                        }
+                    </NotAuthorized>
+                </AuthorizeView>
+            }
+            else
+            {
+                @NavLinkFragment(link, link.Href, false)
+            }
+        }
+    }
+
+    @if (NavigationRegistry.ExampleLinks.Count > 0)
+    {
+        <MudDivider Class="my-2" />
+        <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted">Examples</MudText>
+
+        @foreach (var link in NavigationRegistry.ExampleLinks)
+        {
+            if (link.RequiresAuthentication)
+            {
+                <AuthorizeView>
+                    <Authorized>
+                        @NavLinkFragment(link, link.Href, false)
+                    </Authorized>
+                    <NotAuthorized>
+                        @if (AllowDevNavigation)
+                        {
+                            @NavLinkFragment(link, link.EffectiveDevelopmentHref, true)
+                        }
+                    </NotAuthorized>
+                </AuthorizeView>
+            }
+            else
+            {
+                @NavLinkFragment(link, link.Href, false)
+            }
+        }
+    }
+
+    @if (AllowDevNavigation)
+    {
+        <MudDivider Class="my-2" />
+        <MudText Typo="Typo.caption" Class="px-3 py-1 text-muted d-flex align-center">
+            <MudIcon Icon="@Icons.Material.Filled.Science" Class="mr-1" />
+            Development Quick Access
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Dense="true" Class="mx-3 mb-2" Elevation="0">
+            Every page is temporarily accessible while debugging—even the ones that typically require authorization.
+        </MudAlert>
+        <MudNavGroup Title="All Pages" Icon="@Icons.Material.Filled.Explore" Expanded="true">
+            @foreach (var link in NavigationRegistry.AllLinks.OrderBy(l => l.Title, StringComparer.OrdinalIgnoreCase))
+            {
+                <MudNavLink Href="@link.EffectiveDevelopmentHref" Match="@link.Match" Icon="@link.Icon" Title="@link.Description">
+                    @link.Title
+                    @if (link.RequiresAuthorization)
+                    {
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="Color.Warning" Class="ml-2">
+                            Auth
+                        </MudChip>
+                    }
+                </MudNavLink>
+            }
+        </MudNavGroup>
+    }
+
     <MudDivider Class="my-2" />
     <AuthorizeView>
         <Authorized>
@@ -82,15 +138,41 @@
     </AuthorizeView>
 </MudNavMenu>
 
-
 @code {
     private string? currentUrl;
+    private bool AllowDevNavigation => HostEnvironment.IsDevelopment() || Debugger.IsAttached;
 
     protected override void OnInitialized()
     {
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
     }
+
+    private RenderFragment NavLinkFragment(NavigationLink link, string href, bool showDevBadge) => builder =>
+    {
+        builder.OpenComponent<MudNavLink>(0);
+        builder.AddAttribute(1, nameof(MudNavLink.Href), href);
+        builder.AddAttribute(2, nameof(MudNavLink.Match), link.Match);
+        builder.AddAttribute(3, nameof(MudNavLink.Icon), link.Icon);
+        builder.AddAttribute(4, "title", link.Description);
+        builder.AddAttribute(5, nameof(MudNavLink.ChildContent), (RenderFragment)(childBuilder =>
+        {
+            childBuilder.AddContent(0, link.Title);
+            if (showDevBadge)
+            {
+                childBuilder.OpenComponent<MudIcon>(1);
+                childBuilder.AddAttribute(2, nameof(MudIcon.Icon), Icons.Material.Filled.Science);
+                childBuilder.AddAttribute(3, nameof(MudIcon.Color), Color.Warning);
+                childBuilder.AddAttribute(4, "Class", "ml-2");
+                childBuilder.AddAttribute(5, nameof(MudIcon.Size), Size.Small);
+                childBuilder.CloseComponent();
+            }
+        }));
+        builder.CloseComponent();
+    };
+
+    private static bool RequiresRoleGate(NavigationLink link) =>
+        (link.RequiredRoles is { Length: > 0 }) || !string.IsNullOrWhiteSpace(link.Policy);
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
@@ -103,4 +185,3 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-

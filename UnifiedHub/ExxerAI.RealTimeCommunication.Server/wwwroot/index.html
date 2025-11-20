@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExxerAI RealTime Communication Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@latest/dist/browser/signalr.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: white; margin-bottom: 30px; text-align: center; font-size: 2.5em; }
+        .hubs { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .hub-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        .hub-card:hover { transform: translateY(-5px); }
+        .hub-card h2 { color: #667eea; margin-bottom: 15px; font-size: 1.3em; }
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .status.connected { background: #10b981; color: white; }
+        .status.disconnected { background: #ef4444; color: white; }
+        .messages {
+            height: 150px;
+            overflow-y: auto;
+            background: #f3f4f6;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .message {
+            padding: 5px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+        }
+        .message:last-child { border-bottom: none; }
+        .controls { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+        .btn:hover { background: #5568d3; }
+        .btn:disabled { background: #9ca3af; cursor: not-allowed; }
+        input {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📡 ExxerAI RealTime Communication Dashboard</h1>
+
+        <div class="hubs">
+            <div class="hub-card">
+                <h2>🖥️ System Hub</h2>
+                <span class="status disconnected" id="system-status">Disconnected</span>
+                <div class="messages" id="system-messages"></div>
+            </div>
+            <div class="hub-card">
+                <h2>🤖 Agent Hub</h2>
+                <span class="status disconnected" id="agent-status">Disconnected</span>
+                <div class="messages" id="agent-messages"></div>
+            </div>
+            <div class="hub-card">
+                <h2>📋 Task Hub</h2>
+                <span class="status disconnected" id="task-status">Disconnected</span>
+                <div class="messages" id="task-messages"></div>
+            </div>
+            <div class="hub-card">
+                <h2>📄 Document Hub</h2>
+                <span class="status disconnected" id="document-status">Disconnected</span>
+                <div class="messages" id="document-messages"></div>
+            </div>
+            <div class="hub-card">
+                <h2>💰 Economic Hub</h2>
+                <span class="status disconnected" id="economic-status">Disconnected</span>
+                <div class="messages" id="economic-messages"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h2 style="color: #667eea; margin-bottom: 15px;">Controls</h2>
+            <button class="btn" onclick="connectAll()">Connect All</button>
+            <button class="btn" onclick="disconnectAll()">Disconnect All</button>
+            <br/>
+            <input type="text" id="messageInput" placeholder="Enter message..." style="width: 300px;"/>
+            <button class="btn" onclick="broadcastMessage()">Broadcast to System</button>
+        </div>
+    </div>
+
+    <script>
+        const connections = {};
+        const hubNames = ['system', 'agent', 'task', 'document', 'economic'];
+
+        async function createConnection(hubName) {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl(`/hubs/${hubName}`)
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on('TestMessage', (data) => {
+                addMessage(hubName, `TestMessage: ${JSON.stringify(data)}`);
+            });
+
+            connection.on('SystemEvent', (data) => {
+                addMessage(hubName, `SystemEvent: ${JSON.stringify(data)}`);
+            });
+
+            connection.on('AgentEvent', (data) => {
+                addMessage(hubName, `AgentEvent: ${JSON.stringify(data)}`);
+            });
+
+            connection.onclose(() => {
+                updateStatus(hubName, false);
+            });
+
+            connection.onreconnected(() => {
+                updateStatus(hubName, true);
+            });
+
+            return connection;
+        }
+
+        async function connectAll() {
+            for (const hubName of hubNames) {
+                if (!connections[hubName]) {
+                    connections[hubName] = await createConnection(hubName);
+                }
+                try {
+                    await connections[hubName].start();
+                    updateStatus(hubName, true);
+                    addMessage(hubName, 'Connected successfully!');
+                } catch (err) {
+                    console.error(`Error connecting to ${hubName}:`, err);
+                    addMessage(hubName, `Connection failed: ${err.message}`);
+                }
+            }
+        }
+
+        async function disconnectAll() {
+            for (const hubName of hubNames) {
+                if (connections[hubName]) {
+                    await connections[hubName].stop();
+                    updateStatus(hubName, false);
+                }
+            }
+        }
+
+        async function broadcastMessage() {
+            const message = document.getElementById('messageInput').value;
+            if (!message || !connections.system) return;
+
+            try {
+                await connections.system.invoke('BroadcastMessage', 'TestMessage', { content: message, timestamp: new Date().toISOString() });
+                document.getElementById('messageInput').value = '';
+            } catch (err) {
+                console.error('Error broadcasting:', err);
+            }
+        }
+
+        function updateStatus(hubName, connected) {
+            const statusEl = document.getElementById(`${hubName}-status`);
+            statusEl.textContent = connected ? 'Connected' : 'Disconnected';
+            statusEl.className = `status ${connected ? 'connected' : 'disconnected'}`;
+        }
+
+        function addMessage(hubName, message) {
+            const messagesEl = document.getElementById(`${hubName}-messages`);
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message';
+            messageEl.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            messagesEl.appendChild(messageEl);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        // Auto-connect on page load
+        window.addEventListener('load', connectAll);
+    </script>
+</body>
+</html>

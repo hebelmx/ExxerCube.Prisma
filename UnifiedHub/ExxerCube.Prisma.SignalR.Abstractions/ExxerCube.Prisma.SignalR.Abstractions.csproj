@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Framework Configuration -->
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    
+    <!-- Nullable and Implicit Configuration -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- Assembly Configuration -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RootNamespace>ExxerCube.Prisma.SignalR.Abstractions</RootNamespace>
+    <AssemblyName>ExxerCube.Prisma.SignalR.Abstractions</AssemblyName>
+    
+    <!-- Quality Assurance -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    
+    <!-- NuGet Package Configuration -->
+    <IsPackable>true</IsPackable>
+    <PackageId>ExxerCube.Prisma.SignalR.Abstractions</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Exxerpro Solutions SA de CV</Authors>
+    <Company>Exxerpro Solutions SA de CV</Company>
+    <Product>ExxerCube.Prisma SignalR Abstractions</Product>
+    <Description>🚂 Transport-agnostic real-time communication abstraction following Clean Architecture principles. Think of it as a transportation hub (train station/airport) where something moves (messages), something tracks (health/metrics), and something displays (dashboards). Currently implemented with SignalR, but the abstraction layer allows easy transport swapping (WebSockets, gRPC, etc.) without changing application code. Perfect for dashboards, health checks, and real-time UI updates - universal needs across all applications.</Description>
+    <PackageTags>signalr;blazor;realtime;dashboard;health-check;monitoring;hexagonal-architecture;clean-architecture;railway-oriented-programming;abstractions;transport-agnostic;websocket;grpc;exxercube</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Exxerpro/ExxerCube.Prisma.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/Exxerpro/ExxerCube.Prisma</PackageProjectUrl>
+    <Copyright>© 2025 Exxerpro Solutions SA de CV</Copyright>
+    
+    <!-- Assembly Metadata -->
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - CORE FRAMEWORK -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Core Framework">
+    <PackageReference Include="IndQuestResults" Version="1.1.0" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - SIGNALR -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="SignalR">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
+  </ItemGroup>
+
+  <!-- ============================================================================ -->
+  <!-- PACKAGE REFERENCES - BLAZOR -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Blazor">
+    <PackageReference Include="MudBlazor" Version="8.11" />
+  </ItemGroup>
+
+</Project>
+

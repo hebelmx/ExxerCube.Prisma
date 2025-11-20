@@ -1,0 +1,1245 @@
+{
+  "batch_info": {
+    "total_documents": 25,
+    "timestamp": "2025-08-23T10:51:30.033647",
+    "validation_type": "ground_truth_comparison"
+  },
+  "individual_results": [
+    {
+      "fixture_number": 130,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture130.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033736",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 44,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture044.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033760",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 13,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture013.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033779",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 223,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture223.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033791",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 246,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture246.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033800",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 18,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture018.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033808",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 98,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture098.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033818",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 244,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture244.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033828",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 138,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture138.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033836",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 164,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture164.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033845",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 77,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture077.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033854",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 65,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture065.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033861",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 150,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture150.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033868",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 210,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture210.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033876",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 160,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture160.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033883",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 202,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture202.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033889",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 32,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture032.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033898",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 102,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture102.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033907",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 213,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture213.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033916",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 73,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture073.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033922",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 66,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture066.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033929",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 33,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture033.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033935",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 255,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture255.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033943",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 141,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture141.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033950",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    },
+    {
+      "fixture_number": 190,
+      "image_path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Docs/Fixtures999/Fixture190.png",
+      "validation_status": "success",
+      "timestamp": "2025-08-23T10:51:30.033956",
+      "text_validation": {
+        "similarity_score": 1.0,
+        "ocr_text_length": 0,
+        "expected_elements": 0
+      },
+      "field_validation": {
+        "field_accuracy": {
+          "fecha": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "autoridadEmisora": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "expediente": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "tipoRequerimiento": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          },
+          "motivacion": {
+            "accuracy": 1.0,
+            "match_type": "exact",
+            "ocr_value": "",
+            "ground_truth": ""
+          }
+        },
+        "exact_matches": 0,
+        "partial_matches": 0,
+        "total_fields": 5
+      }
+    }
+  ],
+  "aggregate_metrics": {
+    "validation_success_rate": 100.0,
+    "avg_text_similarity": 1.0,
+    "field_accuracy_averages": {
+      "fecha": {
+        "avg_accuracy": 1.0,
+        "min_accuracy": 1.0,
+        "max_accuracy": 1.0,
+        "samples": 25
+      },
+      "autoridadEmisora": {
+        "avg_accuracy": 1.0,
+        "min_accuracy": 1.0,
+        "max_accuracy": 1.0,
+        "samples": 25
+      },
+      "expediente": {
+        "avg_accuracy": 1.0,
+        "min_accuracy": 1.0,
+        "max_accuracy": 1.0,
+        "samples": 25
+      },
+      "tipoRequerimiento": {
+        "avg_accuracy": 1.0,
+        "min_accuracy": 1.0,
+        "max_accuracy": 1.0,
+        "samples": 25
+      },
+      "motivacion": {
+        "avg_accuracy": 1.0,
+        "min_accuracy": 1.0,
+        "max_accuracy": 1.0,
+        "samples": 25
+      }
+    }
+  }
+}

@@ -7,7 +7,11 @@
 <MudSnackbarProvider />
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudStaticNavDrawerToggle DrawerId="nav-drawer" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" />
+        <MudStaticNavDrawerToggle DrawerId="nav-drawer"
+                                  Icon="@Icons.Material.Filled.Menu"
+                                  Color="Color.Inherit"
+                                  Edge="Edge.Start"
+                                  AriaLabel="Open navigation menu" />
         <MudText Typo="Typo.h5" Class="ml-3">ExxerCube.Prisma</MudText>
         <MudSpacer />
         <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
@@ -99,5 +103,4 @@
         // Cleanup if needed
     }
 }
-
 

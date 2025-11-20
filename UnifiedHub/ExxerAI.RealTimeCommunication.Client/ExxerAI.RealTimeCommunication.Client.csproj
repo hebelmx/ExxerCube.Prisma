@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ExxerAI.RealTimeCommunication.Client</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExxerCube.Prisma.SignalR.Abstractions\ExxerCube.Prisma.SignalR.Abstractions.csproj" />
+    <ProjectReference Include="..\ExxerAI.RealTimeCommunication.Server\ExxerAI.RealTimeCommunication.Server.csproj" />
+  </ItemGroup>
+
+  <!-- MudBlazor for UI graphs and components (version inherited from ExxerCube.Prisma.SignalR.Abstractions) -->
+
+</Project>

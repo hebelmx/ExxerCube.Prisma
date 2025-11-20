@@ -4,3 +4,8 @@ pytesseract
 numpy
 unidecode
 pdf2image
+jsonschema
+requests
+tqdm
+python-docx
+reportlab

@@ -1,0 +1,380 @@
+{
+  "requirement_profiles": [
+    {
+      "id": "222AAA-44444444442025",
+      "authority": "SUBDELEGACION 8 SAN ANGEL",
+      "requirement_type": "ASEGURAMIENTO",
+      "subtype": null,
+      "mandatory_fields": [
+        "plazoDias",
+        "aseguramiento"
+      ],
+      "sla_days": [
+        7,
+        7
+      ],
+      "aseguramiento": true,
+      "hints": [
+        "“Para efectos de la inmunización ordenada en el presente oficio se solicita instruye a las instituciones de crédito y entidades financieras para que los depósitos se encuentran sean identificados inmovilizados retenidos y conservados a disp"
+      ],
+      "error_bias": [
+        "omisión",
+        "abreviac",
+        "acentuación apresurada"
+      ],
+      "fields": [
+        "AutoridadNombre",
+        "Caracter",
+        "Cnbv_AreaClave",
+        "Cnbv_AreaDescripcion",
+        "Cnbv_DiasPlazo",
+        "Cnbv_FechaPublicacion",
+        "Cnbv_Folio",
+        "Cnbv_NumeroExpediente",
+        "Cnbv_NumeroOficio",
+        "Cnbv_OficioYear",
+        "Cnbv_SolicitudSiara",
+        "Complementarios",
+        "Domicilio",
+        "Expediente",
+        "InstruccionesCuentasPorConocer",
+        "Materno",
+        "Nombre",
+        "NombreSolicitante",
+        "ParteId",
+        "Paterno",
+        "Persona",
+        "PersonaId",
+        "PersonasSolicitud",
+        "Referencia",
+        "Referencia1",
+        "Referencia2",
+        "Relacion",
+        "Rfc",
+        "SolicitudEspecifica",
+        "SolicitudEspecificaId",
+        "SolicitudPartes",
+        "TieneAseguramiento"
+      ]
+    },
+    {
+      "id": "333BBB-44444444442025",
+      "authority": "ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \"2\"",
+      "requirement_type": "HACENDARIO",
+      "subtype": null,
+      "mandatory_fields": [
+        "plazoDias"
+      ],
+      "sla_days": [
+        10,
+        10
+      ],
+      "aseguramiento": false,
+      "hints": [
+        "Sector: Casas de Bolsa\n1.\tCopia Certificada de los estados de cuenta \n2.\tCopia certificada de contratos de intermediación bursátil en su caso las modificaciones\n3.\tDocumentos de identificación que presentó el titular al abrir los contratos\n"
+      ],
+      "error_bias": [
+        "omisión",
+        "abreviac",
+        "acentuación apresurada"
+      ],
+      "fields": [
+        "AutoridadNombre",
+        "Caracter",
+        "Cnbv_AreaClave",
+        "Cnbv_AreaDescripcion",
+        "Cnbv_DiasPlazo",
+        "Cnbv_FechaPublicacion",
+        "Cnbv_Folio",
+        "Cnbv_NumeroExpediente",
+        "Cnbv_NumeroOficio",
+        "Cnbv_OficioYear",
+        "Cnbv_SolicitudSiara",
+        "Complementarios",
+        "Domicilio",
+        "Expediente",
+        "InstruccionesCuentasPorConocer",
+        "Materno",
+        "Nombre",
+        "NombreSolicitante",
+        "ParteId",
+        "Paterno",
+        "Persona",
+        "PersonaId",
+        "PersonasSolicitud",
+        "Referencia",
+        "Referencia1",
+        "Referencia2",
+        "Relacion",
+        "Rfc",
+        "SolicitudEspecifica",
+        "SolicitudEspecificaId",
+        "SolicitudPartes",
+        "TieneAseguramiento"
+      ]
+    },
+    {
+      "id": "333ccc-6666666662025",
+      "authority": "JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.\n",
+      "requirement_type": "JUDICIAL",
+      "subtype": null,
+      "mandatory_fields": [
+        "plazoDias",
+        "aseguramiento"
+      ],
+      "sla_days": [
+        3,
+        3
+      ],
+      "aseguramiento": true,
+      "hints": [
+        "Suena girar atento oficio por las conductas electrónicos respectivos a través del sistema de atención a requerimientos de información de autoridades (SIARA), el cual se encuentra en la página de internet oficial visible en él link Siara.cnB"
+      ],
+      "error_bias": [
+        "omisión",
+        "abreviac",
+        "acentuación apresurada"
+      ],
+      "fields": [
+        "AutoridadNombre",
+        "Caracter",
+        "Cnbv_AreaClave",
+        "Cnbv_AreaDescripcion",
+        "Cnbv_DiasPlazo",
+        "Cnbv_FechaPublicacion",
+        "Cnbv_Folio",
+        "Cnbv_NumeroExpediente",
+        "Cnbv_NumeroOficio",
+        "Cnbv_OficioYear",
+        "Cnbv_SolicitudSiara",
+        "Complementarios",
+        "Domicilio",
+        "Expediente",
+        "InstruccionesCuentasPorConocer",
+        "Materno",
+        "Nombre",
+        "NombreSolicitante",
+        "ParteId",
+        "Paterno",
+        "Persona",
+        "PersonaId",
+        "PersonasSolicitud",
+        "Referencia",
+        "Referencia1",
+        "Referencia2",
+        "Relacion",
+        "Rfc",
+        "SolicitudEspecifica",
+        "SolicitudEspecificaId",
+        "SolicitudPartes",
+        "TieneAseguramiento"
+      ]
+    },
+    {
+      "id": "555CCC-66666662025",
+      "authority": "UNIDAD DE INTELIGENCIA FINANCIERA",
+      "requirement_type": "Operaciones Ilícitas",
+      "subtype": null,
+      "mandatory_fields": [
+        "plazoDias"
+      ],
+      "sla_days": [
+        1,
+        1
+      ],
+      "aseguramiento": false,
+      "hints": [
+        "En cumplimiento al \"ACUERDO 144/2025 DEL TITULAR DE LA UNIDAD DE INTELIGENCIA FINANCIERA POR EL QUE SE ELIMINA A HUGO PACO LUIS MCDONALD DE LA LISTA DE PERSONAS BLOQUEADAS DE LA SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO, EN CUMPLIMIENTO AL A"
+      ],
+      "error_bias": [
+        "omisión",
+        "abreviac",
+        "acentuación apresurada"
+      ],
+      "fields": [
+        "AutoridadEspecificaNombre",
+        "AutoridadNombre",
+        "Caracter",
+        "Cnbv_AreaClave",
+        "Cnbv_AreaDescripcion",
+        "Cnbv_DiasPlazo",
+        "Cnbv_FechaPublicacion",
+        "Cnbv_Folio",
+        "Cnbv_NumeroExpediente",
+        "Cnbv_NumeroOficio",
+        "Cnbv_OficioYear",
+        "Cnbv_SolicitudSiara",
+        "Complementarios",
+        "Domicilio",
+        "Expediente",
+        "InstruccionesCuentasPorConocer",
+        "Materno",
+        "Nombre",
+        "NombreSolicitante",
+        "ParteId",
+        "Paterno",
+        "Persona",
+        "PersonaId",
+        "PersonasSolicitud",
+        "Referencia",
+        "Referencia1",
+        "Referencia2",
+        "Relacion",
+        "Rfc",
+        "SolicitudEspecifica",
+        "SolicitudEspecificaId",
+        "SolicitudPartes",
+        "TieneAseguramiento"
+      ]
+    },
+    {
+      "id": "Checklist+2+Demo+AA-row5",
+      "authority": "CNBV/IMSS (Excel)",
+      "requirement_type": "Información Financiera",
+      "subtype": null,
+      "mandatory_fields": [],
+      "sla_days": [
+        3,
+        10
+      ],
+      "aseguramiento": false,
+      "hints": [
+        "Etapa 2 4 De los 3 documentos del oficio,  se debe de extraer la información señalada en la pestaña \"Datos descargados\" >>>>>>"
+      ],
+      "error_bias": [
+        "nota rápida",
+        "siglas"
+      ]
+    },
+    {
+      "id": "Checklist+2+Demo+AA-row6",
+      "authority": "CNBV/IMSS (Excel)",
+      "requirement_type": "Información Financiera",
+      "subtype": null,
+      "mandatory_fields": [],
+      "sla_days": [
+        3,
+        10
+      ],
+      "aseguramiento": false,
+      "hints": [
+        "Etapa 2 5 La información que se extraer de 2 documentos se debe de comparar para validar que coincida,  en caso de no coincidir debe de mostrar un alertamiento."
+      ],
+      "error_bias": [
+        "nota rápida",
+        "siglas"
+      ]
+    },
+    {
+      "id": "Checklist+2+Demo+AA-row7",
+      "authority": "CNBV/IMSS (Excel)",
+      "requirement_type": "Información Financiera",
+      "subtype": null,
+      "mandatory_fields": [],
+      "sla_days": [
+        3,
+        10
+      ],
+      "aseguramiento": false,
+      "hints": [
+        "Etapa 3 6 Con la información descargada en la Etapa 2,  debe de generar  un Layout con los campos señalados en la pestaña \"Datos Carga de Oficio\" en formato Excel.  >>>>>>"
+      ],
+      "error_bias": [
+        "nota rápida",
+        "siglas"
+      ]
+    },
+    {
+      "id": "Checklist+2+Demo+AA-row8",
+      "authority": "CNBV/IMSS (Excel)",
+      "requirement_type": "Bloqueo de Cuentas",
+      "subtype": null,
+      "mandatory_fields": [],
+      "sla_days": [
+        3,
+        10
+      ],
+      "aseguramiento": true,
+      "hints": [
+        "Etapa 4 7 Debe generar un resumen del  oficio PDF,  que separa en 5 apartados \n1. Requiere Bloqueo\n2. Requiere Desbloqueo \n3. Requieres documentación\n4. Requiere Transferencia de Fondos\n5. Requiere In"
+      ],
+      "error_bias": [
+        "nota rápida",
+        "siglas"
+      ]
+    },
+    {
+      "id": "Full_Feature_Design_Pipeline_UTF8-row29",
+      "authority": "CNBV/IMSS (Excel)",
+      "requirement_type": "Bloqueo de Cuentas",
+      "subtype": null,
+      "mandatory_fields": [],
+      "sla_days": [
+        3,
+        10
+      ],
+      "aseguramiento": true,
+      "hints": [
+        "29 Summarize PDF content into predefined requirement categories IPdfRequirementSummarizer Extract semantic cues from OCR text and classify content into predefined buckets (e.g., bloqueo, documentación"
+      ],
+      "error_bias": [
+        "nota rápida",
+        "siglas"
+      ]
+    },
+    {
+      "id": "Revised_Compliance_Interface_Spec-row34",
+      "authority": "CNBV/IMSS (Excel)",
+      "requirement_type": "Bloqueo de Cuentas",
+      "subtype": null,
+      "mandatory_fields": [],
+      "sla_days": [
+        3,
+        10
+      ],
+      "aseguramiento": true,
+      "hints": [
+        "34 Summarize PDF content into predefined requirement categories IPdfRequirementSummarizer Extract semantic cues from OCR text and classify content into predefined buckets (e.g., bloqueo, documentación"
+      ],
+      "error_bias": [
+        "nota rápida",
+        "siglas"
+      ]
+    }
+  ],
+  "metadata_fields": {
+    "AutoridadNombre": 4,
+    "Caracter": 4,
+    "Cnbv_AreaClave": 4,
+    "Cnbv_AreaDescripcion": 4,
+    "Cnbv_DiasPlazo": 4,
+    "Cnbv_FechaPublicacion": 4,
+    "Cnbv_Folio": 4,
+    "Cnbv_NumeroExpediente": 4,
+    "Cnbv_NumeroOficio": 4,
+    "Cnbv_OficioYear": 4,
+    "Cnbv_SolicitudSiara": 4,
+    "Complementarios": 4,
+    "Domicilio": 4,
+    "Expediente": 4,
+    "InstruccionesCuentasPorConocer": 4,
+    "Materno": 4,
+    "Nombre": 4,
+    "NombreSolicitante": 4,
+    "ParteId": 4,
+    "Paterno": 4,
+    "Persona": 4,
+    "PersonaId": 4,
+    "PersonasSolicitud": 4,
+    "Referencia": 4,
+    "Referencia1": 4,
+    "Referencia2": 4,
+    "Relacion": 4,
+    "Rfc": 4,
+    "SolicitudEspecifica": 4,
+    "SolicitudEspecificaId": 4,
+    "SolicitudPartes": 4,
+    "TieneAseguramiento": 4,
+    "AutoridadEspecificaNombre": 1
+  }
+}

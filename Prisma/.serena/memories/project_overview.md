@@ -1,0 +1,5 @@
+# Project Overview
+- C#/.NET 10 solution for the ExxerCube Prisma OCR platform: hexagonal architecture that processes Spanish legal documents, bridges C# orchestration with existing Python OCR/ML modules, and includes a Blazor-based web UI plus supporting services.
+- Repo layout highlights: `Code/Src/CSharp` hosts the main solution (`ExxerCube.Prisma.sln`) with Domain, Application, and multiple Infrastructure subprojects; `Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI` contains the Blazor UI; `Code/Src/CSharp/Tests.*` folders hold unit/integration/e2e projects; `Code/Src/Python` and `scripts/` contain auxiliary automation, tooling, and migration helpers; `Fixtures/` and `Missions/` provide sample data and task metadata.
+- Solution emphasizes clean separation of concerns (domain/application/infrastructure), async processing, Railway-Oriented `Result<T>` flows, and deep Python interop via `csnakes`.
+- Quality goals from README: warnings treated as errors, comprehensive structured logging & telemetry, 80%+ coverage, concurrent document handling, and thorough documentation per component.

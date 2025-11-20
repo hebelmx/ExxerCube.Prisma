@@ -1,0 +1,795 @@
+{
+  "222AAA-44444444442025.docx": {
+    "type": "docx",
+    "paragraphs": [
+      "VICEPRESIDENCIA DE SUPERVISIÓN DE PROCESOS PREVENTIVOS",
+      "Dirección General de Atención a Autoridades",
+      "COORDINACIÓN DE ATENCIÓN A AUTORIDADES “A”",
+      "CNBV.4S.1,214-1,\"04/06/2025\",<2>",
+      "Ciudad de México, a 04 de Junio de 2025 .",
+      "Oficio Núm.: 222/AAA/-4444444444/2025",
+      "Folio   Núm.: A/AS1- 1111-222222-AAA",
+      "Registro: 6789 Año : 2025",
+      "ASUNTO: Para   su   atención,   se   remite   oficio  girado por",
+      "EL INSTITUTO MEXICANO DEL SEGURO SOCIAL – COORDINACION DE COBRANZA, SUBDELEGACION 8 SAN ANGEL",
+      "MXNALBCO",
+      "01 ENERO PISO 1000 PONIENTE",
+      "06000 CIUDAD DE MÉXICO",
+      "At’n :",
+      "PEPE TOÑO PALOMA FLORES",
+      "DIRECTOR",
+      "Con fundamento en lo dispuesto por los artículos 142, segundo y tercer párrafo s , de la Ley de Instituciones de Crédito, 19 de la Ley de la Comisión Nacional Bancaria y de Valores, y 49, fracciones I y III , del Reglamento Interior de la Comisión Nacional Bancaria y de Valores, por conducto de esta Comisión se remite el o ficio No. AGAFADAFSON2/2025/000084 del 09 de Abril de 2025 , emitido por EL INSTITUTO MEXICANO DEL SEGURO SOCIAL – COORDINACION DE COBRANZA, SUBDELEGACION 8 SAN ANGEL , a efecto de que se sirva atender de inmediato la solicitud contenida en el mismo, conforme a derecho.",
+      "Asimismo, le agradeceré que la información y documentación que se sirva proporcionar al respecto sea en forma COMPLETA y LEGIBLE, o en su caso, indi car las razones por las cuales no es enviada de esa manera .",
+      "Se le concede a esa Entidad Financiera , un plazo de SIETE DIA(S) HABIL(ES), contado(s) a partir del día hábil siguiente a l que surta sus efectos la notificación del presente, para proporcionar la respuesta al presente oficio y la información y documentación correspondiente, por los medios electrónicos establecidos, así como de manera física en los casos que proceda, en las oficinas de esta Comisión sitas en Av. Insurgentes Sur No. 1971, Plaza Inn, Torre Sur, Nivel Avenida, Col. Guadalupe Inn, Alcaldía Álvaro Obregón, C.P. 01020, Ciudad de México , apercibiéndole que, en caso de incumplimiento, se hará acreedora a la imposición de la sanción establecida en los ordenamientos legales aplicables.",
+      "Sin otro particular, le envío un saludo.",
+      "Atentamente .",
+      "DR. OCAMPO DE ZARAGOZA X",
+      "COORDINADOR DE ATENCIÓN",
+      "A AUTORIDADES “A”",
+      "04/06/2025",
+      "COORDINACIÓN DE ATENCIÓN A",
+      "AUTORIDADES “A”",
+      "NOTA: En su contestación, sírvase citar número de oficio y expediente.",
+      "PHM"
+    ]
+  },
+  "222AAA-44444444442025.pdf": {
+    "type": "pdf",
+    "pages": []
+  },
+  "222AAA-44444444442025.xml": {
+    "type": "xml",
+    "path": "Prisma\\Fixtures\\PRP1\\222AAA-44444444442025.xml",
+    "content": "<ns0:Expediente xmlns:ns0=\"http://www.cnbv.gob.mx\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n  <ns0:Cnbv_NumeroOficio>222/AAA/-4444444444/2025</ns0:Cnbv_NumeroOficio>\n  <ns0:Cnbv_NumeroExpediente>A/AS1-1111-222222-AAA    </ns0:Cnbv_NumeroExpediente>\n  <ns0:Cnbv_SolicitudSiara>AGAFADAFSON2/2025/000084</ns0:Cnbv_SolicitudSiara>\n  <ns0:Cnbv_Folio>6789</ns0:Cnbv_Folio>\n  <ns0:Cnbv_OficioYear>2025</ns0:Cnbv_OficioYear>\n  <ns0:Cnbv_AreaClave>3</ns0:Cnbv_AreaClave>\n  <ns0:Cnbv_AreaDescripcion>ASEGURAMIENTO</ns0:Cnbv_AreaDescripcion>\n  <ns0:Cnbv_FechaPublicacion>2025-06-05</ns0:Cnbv_FechaPublicacion>\n  <ns0:Cnbv_DiasPlazo>7</ns0:Cnbv_DiasPlazo>\n  <ns0:AutoridadNombre>SUBDELEGACION 8 SAN ANGEL</ns0:AutoridadNombre>\n  <ns0:NombreSolicitante xsi:nil=\"true\" />\n  <ns0:Referencia>                         </ns0:Referencia>\n  <ns0:Referencia1>                         </ns0:Referencia1>\n  <ns0:Referencia2>IMSSCOB/40/01/001283/2025</ns0:Referencia2>\n  <ns0:TieneAseguramiento>true</ns0:TieneAseguramiento>\n  <ns0:SolicitudPartes>\n    <ns0:ParteId>1</ns0:ParteId>\n    <ns0:Caracter>Patrón Determinado</ns0:Caracter>\n    <ns0:Persona>Moral</ns0:Persona>\n    <ns0:Paterno />\n    <ns0:Materno />\n    <ns0:Nombre>AEROLINEAS PAYASO ORGULLO NACIONAL</ns0:Nombre>\n    <ns0:Rfc>             </ns0:Rfc>\n  </ns0:SolicitudPartes>\n  <ns0:SolicitudEspecifica>\n    <ns0:SolicitudEspecificaId>1</ns0:SolicitudEspecificaId>\n    <ns0:InstruccionesCuentasPorConocer>“Para efectos de la inmunización ordenada en el presente oficio se solicita instruye a las instituciones de crédito y entidades financieras para que los depósitos se encuentran sean identificados inmovilizados retenidos y conservados a disposición del de doble pago en caso de desobediencia en términos de la instituto mexicano del seguro social hasta por el monto antes indicado no así el excedente que pudiera existir a la cuenta objeto del embargo apercibiéndoles dispuestos en el artículo 160 del código fiscal de la federación exceptuando de embargo de las cuentas destinadas al pago de sueldos y salarios de conformidad con lo señalado en el artículo 157 fracción x del mismo ordenamiento legal.\nAsí mismo debe de estar a lo preceptuado en los artículos 142 de la ley de los instituciones de crédito y 192 de la ley de mercado de valores.\nFinalmente es importante que esa H. Comisión nos de a conocer los datos sobre el importe de los depósitos inmovilizados y el número y tipo de cuenta la fecha de inmovilización así como la denominación de las instituciones de crédito o entidad financiera en donde se localizan los saldos”</ns0:InstruccionesCuentasPorConocer>\n    <ns0:PersonasSolicitud>\n      <ns0:PersonaId>1</ns0:PersonaId>\n      <ns0:Caracter>Patrón Determinado</ns0:Caracter>\n      <ns0:Persona>Moral</ns0:Persona>\n      <ns0:Paterno />\n      <ns0:Materno />\n      <ns0:Nombre>EAEROLÍNEAS PAYASO ORGULLO NACIONALIVE, S.A. DE C.V.</ns0:Nombre>\n      <ns0:Rfc>APON33333444</ns0:Rfc>\n      <ns0:Relacion />\n      <ns0:Domicilio>Pza. de la Constitución S/N  CP 066V60 Col centro , CDMX</ns0:Domicilio>\n      <ns0:Complementarios>Y33 W 22512 01</ns0:Complementarios>\n    </ns0:PersonasSolicitud>\n  </ns0:SolicitudEspecifica>\n</ns0:Expediente>"
+  },
+  "333BBB-44444444442025.docx": {
+    "type": "docx",
+    "paragraphs": [
+      "VICEPRESIDENCIA DE SUPERVISIÓN DE PROCESOS PREVENTIVOS",
+      "Dirección General de Atención a Autoridades",
+      "Coordinación de Atención a Autoridades “C”",
+      "CNBV.4S.1,214-3,\"04/06/2025\",<2>",
+      "MXNALBCO",
+      "01 ENERO PISO 1000 PONIENTE",
+      "06000 CIUDAD DE MÉXICO",
+      "Ciudad de México, a 04 de Junio de 2025 .",
+      "Oficio No. 333 / BBB/ - 4444444444/2025",
+      "Exp. H/IN1- 1111 - 222222-AAA",
+      "Folio: 12345 Año:  2025",
+      "ASUNTO: Se requiere información.",
+      "At’n :",
+      "PEPE TOÑO PALOMA FLORES",
+      "DIRECTOR",
+      "Con fundamento en lo dispuesto por los artículos 142 , segundo y tercer párrafos de la Ley de Instituciones de Crédito, 19 de la Ley de la Comisión Naci onal Bancaria y de Valores, y 49 , fracci ones I y lll , del Reglamento Interior de la Comisión Nacional Bancaria y de Valores, por conducto de esta Comisión se remite el oficio AGAFADAFSON2/2025/000083 , de fecha 29 de Mayo de 2025 , emitido por LA ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \"2\" , a efecto de que se sirva atender la solicitud contenida en el mismo, conforme a derecho.",
+      "Asimismo, le agradeceré que la información y documentación que se sirva proporcionar al respecto sea en forma COMPLETA y LEGIBLE, o en su caso, indicar las razones por las cuales no es enviada de esa manera.",
+      "Se le concede a esa Entidad Financiera , un plazo de DIEZ DIA(S) HABIL(ES), contado(s) a partir del día hábil siguiente a l que surta sus efectos la notificación del presente, para proporcionar la respuesta al presente oficio y la información y documentación correspondiente, por los medios electrónicos establecidos, así como de manera física en los casos que proceda, en las oficinas de esta Comisión sitas en Av. Insurgentes Sur No. 1971, Plaza Inn, Torre Sur, Nivel Avenida, Col. Guadalupe Inn, Alcaldía Álvaro Obregón, C.P. 01020, Ciudad de México , apercibiéndole que, en caso de incumplimiento, se hará acreedora a la imposición de la sanción establecida en los ordenamientos legales aplicables.",
+      "Sin otro particular, le envío un saludo.",
+      "Atentamente.",
+      "MTRA. CHUYITA ATIYUHC TOTI",
+      "COORDINADOR A DE ATENCIÓN",
+      "A AUTORIDADES “ C ”",
+      "NOTA : En su contestación, sírvase citar número de oficio y expediente.",
+      "VPV."
+    ]
+  },
+  "333BBB-44444444442025.pdf": {
+    "type": "pdf",
+    "pages": []
+  },
+  "333BBB-44444444442025.xml": {
+    "type": "xml",
+    "path": "Prisma\\Fixtures\\PRP1\\333BBB-44444444442025.xml",
+    "content": "<ns0:Expediente xmlns:ns0=\"http://www.cnbv.gob.mx\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n  <ns0:Cnbv_NumeroOficio>333/BBB/-4444444444/2025  </ns0:Cnbv_NumeroOficio>\n  <ns0:Cnbv_NumeroExpediente>H/IN1-1111-222222-AAA    </ns0:Cnbv_NumeroExpediente>\n  <ns0:Cnbv_SolicitudSiara>AGAFADAFSON2/2025/000083</ns0:Cnbv_SolicitudSiara>\n  <ns0:Cnbv_Folio>12345</ns0:Cnbv_Folio>\n  <ns0:Cnbv_OficioYear>2025</ns0:Cnbv_OficioYear>\n  <ns0:Cnbv_AreaClave>1</ns0:Cnbv_AreaClave>\n  <ns0:Cnbv_AreaDescripcion>HACENDARIO</ns0:Cnbv_AreaDescripcion>\n  <ns0:Cnbv_FechaPublicacion>2025-06-04</ns0:Cnbv_FechaPublicacion>\n  <ns0:Cnbv_DiasPlazo>10</ns0:Cnbv_DiasPlazo>\n  <ns0:AutoridadNombre>ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA \"2\"</ns0:AutoridadNombre>\n  <ns0:NombreSolicitante xsi:nil=\"true\" />\n  <ns0:Referencia>GRM4500039/24</ns0:Referencia>\n  <ns0:Referencia1>                         </ns0:Referencia1>\n  <ns0:Referencia2>AGAFADAFSON2/2025/000083                                                                                                                                                                                </ns0:Referencia2>\n  <ns0:TieneAseguramiento>false</ns0:TieneAseguramiento>\n  <ns0:SolicitudPartes>\n    <ns0:ParteId>1</ns0:ParteId>\n    <ns0:Caracter>Contribuyente Auditado</ns0:Caracter>\n    <ns0:Persona>Moral</ns0:Persona>\n    <ns0:Paterno />\n    <ns0:Materno />\n    <ns0:Nombre>ABARROTEROS FALSOS DE LA NACION</ns0:Nombre>\n    <ns0:Rfc>             </ns0:Rfc>\n  </ns0:SolicitudPartes>\n  <ns0:SolicitudEspecifica>\n    <ns0:SolicitudEspecificaId>1</ns0:SolicitudEspecificaId>\n    <ns0:InstruccionesCuentasPorConocer>Sector: Casas de Bolsa\n1.\tCopia Certificada de los estados de cuenta \n2.\tCopia certificada de contratos de intermediación bursátil en su caso las modificaciones\n3.\tDocumentos de identificación que presentó el titular al abrir los contratos\n4.\tcomprobante de domicilio que presenta el titular al abrir los contratos \nSector: Instituciones de Banca Múltiple.\n1.\tCopia convertir picada de estados de cuenta\n2.\tcopia certificada de estados de cuenta de intermediación bursátil en su caso las modificaciones\n3.\tcopia certificada del contrato de cajas de seguridad\n4.\tcopia certificada de las tarjetas de firma autorizada si en su caso las modificaciones\n5.\tdocumentos de identificación que presentó el titular al abrir la cuenta\n6.\tcomprobante de domicilio que presentó el titular al abrir la cuenta\n\nSector : Sociedades financieras de Objeto Múltiple\n1.\tCopia certificada de los estados de cuenta\n2.\tcopia certificada de contratos en su caso modificaciones\n3.\tdocumentos de intermediación que presentó el titular al abrir la cuenta-contrato\n4.\tcomprobante de domicilio que presentó el titular al abrir el contrato</ns0:InstruccionesCuentasPorConocer>\n    <ns0:PersonasSolicitud>\n      <ns0:PersonaId>1</ns0:PersonaId>\n      <ns0:Caracter>Tercero vinculado fiscalmente</ns0:Caracter>\n      <ns0:Persona>Fisica</ns0:Persona>\n      <ns0:Paterno>PEREZ</ns0:Paterno>\n      <ns0:Materno>Y PEREZ</ns0:Materno>\n      <ns0:Nombre>JHON DOE</ns0:Nombre>\n      <ns0:Rfc>DOPJ111111222</ns0:Rfc>\n      <ns0:Relacion />\n      <ns0:Domicilio>Parque Lira S/N 1 Sec Bosque de Chapultepec CP 11850</ns0:Domicilio>\n      <ns0:Complementarios />\n    </ns0:PersonasSolicitud>\n  </ns0:SolicitudEspecifica>\n</ns0:Expediente>"
+  },
+  "333ccc-6666666662025.docx": {
+    "type": "docx",
+    "paragraphs": [
+      "VICEPRESIDENCIA DE SUPERVISIÓN DE PROCESOS PREVENTIVOS",
+      "Dirección General de Atención a Autoridades",
+      "COORDINACIÓN DE ATENCIÓN A AUTORIDADES “A”",
+      "CNBV.4S.1,214-1,\"04/06/2025\",<2>",
+      "Ciudad de México, a 04 de Junio de 2025 .",
+      "Oficio Núm.: 333 / ccc /- 666666666 /2025",
+      "Folio   Núm.: A/AS1- 4444 - 5555555 - HHHH",
+      "Registro: 1011 Año : 2025",
+      "ASUNTO: Se remite oficio girado por LA UNIDAD DE",
+      "INTELIGENCIA FINANCIERA",
+      "MXNALBCO",
+      "01 ENERO PISO 1000 PONIENTE",
+      "06000 CIUDAD DE MÉXICO",
+      "At’n :",
+      "PEPE TOÑO PALOMA FLORES",
+      "DIRECTOR",
+      "URGENTE Y CONFIDENCIAL",
+      "Con fundamento en lo dispuesto por los artículos 142, segundo y tercer párrafos de la Ley de Instituciones de Crédito, 19 de la Ley de la Comisión Nacional Bancaria y de Valores y 49, fracciones I y II, del Reglamento Interior de la Comisión Nacional Bancaria y de Valores, por conducto de esta Comisión se remite el Oficio No AGAFADAFSON2/2025/000085 , de fecha 06 de Junio de 2025, suscrito por LA UNIDAD DE INTELIGENCIA FINANCIERA, a efecto de que se sirva atender la solicitud contenida en el mismo, conforme a derecho.",
+      "Asimismo, le agradeceré que la información y documentación que se sirva proporcionar al respecto sea en forma COMPLETA y LEGIBLE, o en su caso, indique las razones por las cuales no es enviada de esa manera.",
+      "Se le concede a esa Entidad Financiera, un plazo de UN DÍA HÁBIL , contado(s) a partir del día hábil siguiente al que surta sus efectos la notificación del presente, para proporcionar la respuesta al presente oficio y la información y documentación correspondiente, por los medios electrónicos establecidos, así como de manera física en los casos que proceda, en las oficinas de esta Comisión sitas en Av. Insurgentes Sur No. 1971, Plaza Inn , Torre Sur, Nivel Avenida, Col. Guadalupe Inn , Alcaldía Álvaro Obregón, C.P. 01020, Ciudad de México , apercibiéndole que, en caso de incumplimiento, se hará acreedora a la imposición de la sanción establecida en los ordenamientos legales aplicables.",
+      "Esa Entidad Financiera deberá abstenerse de proporcionar directa o indirectamente a la persona respecto de la cual se solicita la documentación y/o información, cualquier noticia sobre el requerimiento de que se trata, con objeto de no incurrir en actos que pudieran entorpecer las investigaciones o diligencias que en el ámbito de su competencia realiza la autoridad; lo anterior, con excepción de los casos de clientes o usuarios que se encuentren comprendidos en la Lista de Personas Bloqueadas, en cuyo supuesto una vez efectuada la suspensión inmediata de los actos, operaciones o servicios, deberán proceder conforme a lo instruido por la autoridad en su oficio de referencia, en cuanto a comunicar al cliente o usuario de que se trate, que fue introducido en dicha Lista por la Secretaría de Hacienda y Crédito Público, a través de la Unidad de Inteligencia Financiera.",
+      "Sin otro particular, le envío un saludo. .",
+      "Atentamente .",
+      "DR. OCAMPO DE ZARAGOZA X",
+      "COORDINADOR DE ATENCIÓN",
+      "A AUTORIDADES “A”",
+      "NOTA: En su contestación, sírvase citar número de oficio y expediente.",
+      "PHM"
+    ]
+  },
+  "333ccc-6666666662025.pdf": {
+    "type": "pdf",
+    "pages": []
+  },
+  "333ccc-6666666662025.xml": {
+    "type": "xml",
+    "path": "Prisma\\Fixtures\\PRP1\\333ccc-6666666662025.xml",
+    "content": "<ns0:Expediente xmlns:ns0=\"http://www.cnbv.gob.mx\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n  <ns0:Cnbv_NumeroOficio>333/ccc/-666666666/2025</ns0:Cnbv_NumeroOficio>\n  <ns0:Cnbv_NumeroExpediente>A/AS1-4444-5555555-HHHH</ns0:Cnbv_NumeroExpediente>\n  <ns0:Cnbv_SolicitudSiara>AGAFADAFSON2/2025/000085</ns0:Cnbv_SolicitudSiara>\n  <ns0:Cnbv_Folio>1011</ns0:Cnbv_Folio>\n  <ns0:Cnbv_OficioYear>2025</ns0:Cnbv_OficioYear>\n  <ns0:Cnbv_AreaClave>2</ns0:Cnbv_AreaClave>\n  <ns0:Cnbv_AreaDescripcion>JUDICIAL</ns0:Cnbv_AreaDescripcion>\n  <ns0:Cnbv_FechaPublicacion>2025-06-04</ns0:Cnbv_FechaPublicacion>\n  <ns0:Cnbv_DiasPlazo>3</ns0:Cnbv_DiasPlazo>\n  <ns0:AutoridadNombre>JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.\n</ns0:AutoridadNombre>\n  <ns0:NombreSolicitante xsi:nil=\"true\" />\n  <ns0:Referencia />\n  <ns0:Referencia1>840/2025                 </ns0:Referencia1>\n  <ns0:Referencia2>3031/2025                                                                                                                                                                                               </ns0:Referencia2>\n  <ns0:TieneAseguramiento>true</ns0:TieneAseguramiento>\n  <ns0:SolicitudPartes>\n    <ns0:ParteId>1</ns0:ParteId>\n    <ns0:Caracter>Actor</ns0:Caracter>\n    <ns0:Persona>Fisica</ns0:Persona>\n    <ns0:Paterno>&amp;nbsp;</ns0:Paterno>\n    <ns0:Materno>&amp;nbsp;</ns0:Materno>\n    <ns0:Nombre>BSSA Banco del Sur Sociedad Anónima , institución de banca múltiple , grupo financiero   BSSA</ns0:Nombre>\n    <ns0:Rfc>             </ns0:Rfc>\n  </ns0:SolicitudPartes>\n  <ns0:SolicitudPartes>\n    <ns0:ParteId>2</ns0:ParteId>\n    <ns0:Caracter>Demandado</ns0:Caracter>\n    <ns0:Persona>Fisica</ns0:Persona>\n    <ns0:Paterno>ZU</ns0:Paterno>\n    <ns0:Materno>CARNAL</ns0:Materno>\n    <ns0:Nombre>MARCELO </ns0:Nombre>\n    <ns0:Rfc>             </ns0:Rfc>\n  </ns0:SolicitudPartes>\n  <ns0:SolicitudEspecifica>\n    <ns0:SolicitudEspecificaId>1</ns0:SolicitudEspecificaId>\n    <ns0:InstruccionesCuentasPorConocer>Suena girar atento oficio por las conductas electrónicos respectivos a través del sistema de atención a requerimientos de información de autoridades (SIARA), el cual se encuentra en la página de internet oficial visible en él link Siara.cnBV.BOB.MX a la comisión nacional bancaria y de valores utilizando los formatos estandarizados a fin de que por su conducto requiera la totalidad de las instituciones de crédito y financieras casas de bolsa, bolsa mexicana de valores e instituto para el depósito de valores individual que formen parte del sistema financiero mexicano indicándoles que deberán llevar a cabo la retención de dinero depositado en las cuentas bancarias de inversión nómina ahorro cheques débito cuenta corriente cuentas de valor cuentas de empresas y negocios moneda nacional o extranjera aperturas a nombre de la parte demandada como titular o titular o beneficiario en alguna institución de crédito y o financiera casa de bolsa. bolsa mexicana de valores instituto del depósito de valores que forman parte del sistema financiero mexicano así como otros bienes fungibles como joyas títulos de crédito y valores en general depositados en cajas de seguridad así como en los valores a que se refiere el artículo 2 fracción XXVI fecha de la ley de mercado de valores hasta por la cantidad de $76,813.31 pesos ( SETENTA Y SEIS MIL OCHOCIENTOS TRECE PESOS  31/100  ) lo anterior siempre y cuando se encuentre a nombre de MARCELO ZU CARNAL  con RFC  ZUCM444444555, CURP a y fecha de nacimiento, \nesto efecto de garantizar el adeudo que tiene con la parte actora en el presente juicio con el apercibimiento donde que no hacerlo hará acreedor a una multa de 4,500 pesos(CUATO MIL QUINIENTOS PESOS 0/100 M.N.) \n.</ns0:InstruccionesCuentasPorConocer>\n    <ns0:PersonasSolicitud>\n      <ns0:PersonaId>1</ns0:PersonaId>\n      <ns0:Caracter>Demandado</ns0:Caracter>\n      <ns0:Persona>Fisica</ns0:Persona>\n      <ns0:Paterno>ZU</ns0:Paterno>\n      <ns0:Materno>CARNAL</ns0:Materno>\n      <ns0:Nombre>MARCELO</ns0:Nombre>\n      <ns0:Rfc>ZUCM444444555</ns0:Rfc>\n      <ns0:Relacion />\n      <ns0:Domicilio />\n      <ns0:Complementarios>CURP: ZUCM444444ABCDEF, Fecha de nacimiento  01/01/1991</ns0:Complementarios>\n    </ns0:PersonasSolicitud>\n  </ns0:SolicitudEspecifica>\n</ns0:Expediente>"
+  },
+  "555CCC-66666662025.docx": {
+    "type": "docx",
+    "paragraphs": [
+      "VICEPRESIDENCIA DE SUPERVISIÓN DE PROCESOS PREVENTIVOS",
+      "Dirección General de Atención a Autoridades",
+      "COORDINACIÓN DE ATENCIÓN A AUTORIDADES “A”",
+      "CNBV.4S.1,214-1,\"04/06/2025\",<2>",
+      "Ciudad de México, a 04 de Junio de 2025 .",
+      "Oficio Núm.: 555 / CCC /- 6666666 /2025",
+      "Folio   Núm.: E/DE - 3333 - 4444444 -AAA",
+      "Registro: 1213 Año : 2025",
+      "ASUNTO: Se remite oficio girado por LA UNIDAD DE",
+      "INTELIGENCIA FINANCIERA",
+      "MXNALBCO",
+      "01 ENERO PISO 1000 PONIENTE",
+      "06000 CIUDAD DE MÉXICO",
+      "At’n :",
+      "PEPE TOÑO PALOMA FLORES",
+      "DIRECTOR",
+      "URGENTE Y CONFIDENCIAL",
+      "Con fundamento en lo dispuesto por los artículos 87-B, octavo párrafo de la Ley General de Organizaciones y Actividades Auxiliares del Crédito, 19 de la Ley de la Comisión Nacional Bancaria y de Valores, y 49, fracciones I y II, del Reglamento Interior de la Comisión Nacional Bancaria y de Valores, por conducto de esta Comisión se remite el Oficio No AGAFADAFSON2/2025/000087 , de fecha 05 de Junio de 2025, suscrito por LA UNIDAD DE INTELIGENCIA FINANCIERA, a efecto de que se sirva atender la solicitud contenida en el mismo, conforme a derecho.",
+      "Asimismo, le agradeceré que la información y documentación que se sirva proporcionar al respecto sea en forma COMPLETA y LEGIBLE, o en su caso, indique las razones por las cuales no es enviada de esa manera.",
+      "Se le concede a esa Entidad Financiera, un plazo de UN DÍA HÁBIL , contado(s) a partir del día hábil siguiente al que surta sus efectos la notificación del presente, para proporcionar la respuesta al presente oficio y la información y documentación",
+      "correspondiente, por los medios electrónicos establecidos, así como de manera física en los casos que proceda, en las oficinas de esta Comisión sitas en Av. Insurgentes Sur No. 1971, Plaza Inn , Torre Sur, Nivel Avenida, Col. Guadalupe Inn , Alcaldía Álvaro Obregón, C.P. 01020, Ciudad de México , apercibiéndole que, en caso de incumplimiento, se hará acreedora a la imposición de la sanción establecida en los ordenamientos legales aplicables.",
+      "Esa Entidad Financiera deberá abstenerse de proporcionar directa o indirectamente a la persona respecto de la cual se solicita la documentación y/o información, cualquier noticia sobre el requerimiento de que se trata, con objeto de no incurrir en actos que pudieran entorpecer las investigaciones o diligencias que en el ámbito de su competencia realiza la autoridad; lo anterior, con excepción de los casos de clientes o usuarios que se encuentren comprendidos en la Lista de Personas Bloqueadas, en cuyo supuesto una vez efectuada la suspensión inmediata de los actos, operaciones o servicios, deberán proceder conforme a lo instruido por la autoridad en su oficio de referencia, en cuanto a comunicar al cliente o usuario de que se trate, que fue introducido en dicha Lista por la Secretaría de Hacienda y Crédito Público, a través de la Unidad de Inteligencia Financiera.",
+      "Sin otro particular, le envío un saludo.",
+      "Atentamente .",
+      "DR. JAIRO CAMPOS H.",
+      "COORDINADOR DE ATENCIÓN",
+      "A AUTORIDADES “A”",
+      "NOTA: En su contestación, sírvase citar número de oficio y expediente.",
+      "PHM"
+    ]
+  },
+  "555CCC-66666662025.pdf": {
+    "type": "pdf",
+    "pages": [
+      "Administración General  de Auditoría Fiscal Federal  \nAdministración Desconcentrada de Auditoría Fiscal  de Sonora “2”  \n \n \nNo. De Identificación del  Requerimiento  \nAGAFADAFSON2/2025/00008 7 \n \n \n \nJuan Juan Melón Sandía  \nVicepresidente de Supervisión de Procesos Preventivos  \nComisión Nacional Bancaria y de valores  \nInsurgentes Sur 1971, Conjunto Plaza Inn, col.  Guadalupe Inn,  \nDel  Alvaro obregón,  C.P. 01020, Ciudad de México  \nP r e s e n t e \nDatos generales del solicitante  \n \nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL  \nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE \nSONORA “2”    \nMesa,  Turno y/o Unidad,  Secretaría etc: ADMINSTRAIÓN \nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2”  \nAVE. RODOLFO ELEIAS CALLES PTE,  No 1111, Col centro, \nMunicipio Centro  CP 00001  \n Requerimiento  Hacendario   \n \nMTRO. GUADALUPE PEPITA PEPITA  \nADMINISTRADOR  DESCONCENTRADA DE \nAUTORÍA FISCAL DE SONORA “2”  \nTel.  (55) 1111 -2222  \nCorreo: lupita.pepita.pepita@sat.gob.mx\n   \n \n \nFacultades de la Autoridad  \nLista de personas bloqueadas  \nArtículo 115 de la ley de instituciones de crédito 91 de la ley de fondos de inversión 46 bis y 124 de la \nley de ahorro y crédito  popular 87 de 95 de la ley federal de organizaciones y actividades auxiliares de \ncrédito 129 de la ley de unión de crédito 212 de la ley de mercado de valores 7172 de la ley de regular  \nlas actividades de sociedades cooperativas de ahorro y préstamo  58 de la ley para regular las \ninstituciones de tecnología financiera  2, 5, 6 fracciones  11, 13 y 14 de la ley federal para la prevención \ne identificación de operaciones con recursos de procedencia ilícita  6 fracciones 7 y 8 y 10  fracción 34  \ndel reglamento interior de la secretaría  de hacienda y crédito público  así como el 70 y 71 de las \ndisposiciones de carácter general  a qué se refiere el artículo 115 de la ley  de instituciones de crédito",
+      "6364 y 67  de la disposición de carácter general a que se  refiere el artículo 91 de la ley de fondos de \ninversión  7374 y 77 de las disposiciones de carácter general a que se refiere el artículo 124 de la ley de \nahorro y crédito popular  6162 y 65 de las disposiciones de carácter general a que se refieren los \nartículos 115 de la ley de instituciones de crédito relacionados con el 87 de  de la ley general de \norganizaciones y actividades auxiliares de crédito 95 bis  de este último ordenamiento aplicables a las \nsociedades financieras  de objeto múltiple 5960 y 63 de las disposiciones de carácter general a que se \nrefiere el artículo 95 de la ley general de organizaciones  y actividades auxiliares del crédito  aplicables \na la casas  de cambio 68  y 69 de las disposiciones de carácter general a que se refiere el artículo 95 de \nla ley general de organizaciones  y actividades auxiliares del crédito aplicables a los almacenes \ngenerales de depósitos  59 y 60 y 63 de las disposiciones de carácter general a que se refiere el artículo \n129 de la ley de  uniones de crédito 6970 y 73 de las disposiciones de carácter general  a qué se refiere \nel artículo 212 de la ley de mercado de valores  7374 y 77 de las disposiciones de carácter general a que \nse refiere el artículo 7172  de la ley para regular las actividades de las sociedades cooperativas de \nahorro y préstamo  6061 y 64 de las disposiciones de carácter general a que se refiere el artículo 58 de \nla ley para regular las instituciones de tecnología financiera  en correlación con los artículos 139  Quater \ny 400 bis del código penal federal  \n \nMotivación del  requerimiento  \nEN CUMPLIMIENTO AL ACUERDO 11/ 25 DEL TITULAR DE LA UNIDAD DE INTELIGENCIA FINANCIERA \nPORQUE SE ELIMINA A HUGO PACO LUIS MCDONALD DE LA LISTA DE PERSONAS BLOQUEADAS DE \nLA SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO EN CUMPLIMIENTO DEL AMPARO EN REVISIÓN  \n22/24 DEL SEGUNDO TRIBUNAL COLEGIADO EN MATERIA ADMINISTRATIVA Y DE TRABAJO DEL \nDÉCIMO PRIMER CIRCUITO EN RELACIÓN CON EL JUICIO DE AMPARO   33/23 DEL JUZGADO QUINTO \nDE DISTRITO EN EL ESTADO DE MICHOACÁN  \n \nOrigen del requerimiento  \n \nNo. Te expediente lista de personas bloqueadas  \n \nAntecedentes : \nAcuerdos  987654 , emitido por el titular de la unidad de inteligencia financiera  de inclusión  LPB.  \nOficio AAA/F/B/1234/2021 co n folio SIara UIFB/2000/00001",
+      "partes que integran el expediente , proceso o juicio:  \nNombre  Carácter  \nHUGO PACO LUIS MCDONALD  Investigado  \n     \n \n \nSolicitudes específicas: 1  \nPersonas de quien se requiere información         \nNombre  RFC  Carácter  Dirección  Datos \ncomplementarios  \nHUGO PACO \nLUIS MCDONALD  LUMH111111111  Investigado  No se cuenta  Se trata de la \nmisma persona \ncon variante en el \nRFC  \nHUGO PACO \nLUIS MCDONALD  LUMH222222222  Investigado  No se cuenta  Se trata de la \nmisma persona \ncon variante en el \nRFC  \n \nCuentas por conocer   \nSector: Almacenes generales de depósitos  \nSector: Casas de Bolsa  \nSector: Casas de cam bio \nSector : Instituciones de Banca de Desarrollo  \nSector: Instituciones de Banca Múltiple.  \nSector: Instituciones de Financiamiento Colectivo  \nSector: Instituciones  de Fondos de  Pago Electrónico  \nSector : Sociedades Cooperativas de Ahorro y Prestamos  \nInstrucciones sobre las cuentas por conocer",
+      "En cumplimiento al \"ACUERDO 144/2025 DEL TITULAR DE LA UNIDAD DE INTELIGENCIA FINANCIERA \nPOR EL QUE SE ELIMINA A HUGO PACO LUIS MCDONALD  DE LA LISTA DE PERSONAS BLOQUEADAS \nDE LA SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO, EN CUMPLIMIENTO AL AMPARO EN REVISÓN \n45/2024 DEL SEGUNDO TRIBUNAL COLEGIADO EN MATERIAS ADMINISTRATIVA Y DE TRABAJO DEL \nDÉCIMO PRIMER CIRCUITO, EN RELACIÓN CON EL JUICIO DE AMPARO 487/2023 DEL JUZGADO \nQUINTO DE DISTRITO EN EL ESTADO DE MICHOACÁN\", se solicita requerir al oficial de cumplimiento \nde las Instituciones Financieras lo siguiente:  \nPRIMERO. Dejar sin efectos el Acuerdo 105/2021 del Titular de la Unidad de Inteligencia Financiera, \nasí como el oficio 110/F/B/4469/2021, con Folio SIARA UIFB/2021/000104 ÚNICAMENTE por lo que \nrespecta a HUGO PACO LUIS MCDONALD .  \nSEGUNDO. Se elimina de la Lista de Personas Bloqueadas a HUGO PACO LUIS MCDONALD . \nPor lo que se deben reanudar los actos, operaciones y/o servicios financieros que le fueron \nsuspendidos a HUGO PACO LUIS MCDONALD , entre los que se encuentran de manera enunciativa, \nmás no limitativa, las cuentas siguientes:  \n1) 00466773850, 2) 00453965120, ambas aperturadas en Uruapan; y 3) 00195019117 en la sucursal \nubicada en Nueva Italia, Michoacán de Ocampo, todas de la institución bancaria Banco BBVA \nBancomer, Sociedad Anónima, Institución de Banca Múltiple, Grupo Financi ero BBVA Bancomer.  \nTERCERO. La presente determinación no representa la eliminación de la Lista de Personas \nBloqueadas de otras personas físicas o morales designadas mediante el Acuerdo 105/2021 del Titular \nde la Unidad de Inteligencia Financiera.  \nCUARTO. Dicha eliminación surtirá efectos siempre y cuando los actos, operaciones y/o servicios se \nhayan visto afectados por la emisión del Acuerdo 105/2021; es decir, la presente eliminación NO \nSURTIRÁ EFECTOS si las cuentas bancarias o demás productos fi nancieros contratados a nombre de \nHUGO PACO LUIS MCDONALD , fueron suspendidos de manera directa o indirecta por diverso \nAcuerdo de inclusión a la Lista de Personas Bloqueadas emitido por el Titular de la Unidad de \nInteligencia Financiera o por diversa autoridad.  \n \nDerivado de lo anterior solicitó a la comisión nacional bancaria y de valores sea atendido  el presente \nrequerimiento y gestionado por medio de del sistema de atención de requerimientos autoridad (SI a r \na contando con   el folio AGAFADAFSON2/2025/00008 7",
+      "__________________________________  \nMTRO. GUADALUPE PEPITA PEPITA  \nADMINISTRADOR  DESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2”"
+    ]
+  },
+  "555CCC-66666662025.xml": {
+    "type": "xml",
+    "path": "Prisma\\Fixtures\\PRP1\\555CCC-66666662025.xml",
+    "content": "<ns0:Expediente xmlns:ns0=\"http://www.cnbv.gob.mx\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n  <ns0:Cnbv_NumeroOficio>555/CCC/-6666666/2025      </ns0:Cnbv_NumeroOficio>\n  <ns0:Cnbv_NumeroExpediente>E/DE-3333-4444444-AAA     </ns0:Cnbv_NumeroExpediente>\n  <ns0:Cnbv_SolicitudSiara>AGAFADAFSON2/2025/000087</ns0:Cnbv_SolicitudSiara>\n  <ns0:Cnbv_Folio>1213</ns0:Cnbv_Folio>\n  <ns0:Cnbv_OficioYear>2025</ns0:Cnbv_OficioYear>\n  <ns0:Cnbv_AreaClave>4</ns0:Cnbv_AreaClave>\n  <ns0:Cnbv_AreaDescripcion>Operaciones Ilícitas</ns0:Cnbv_AreaDescripcion>\n  <ns0:Cnbv_FechaPublicacion>2025-06-05</ns0:Cnbv_FechaPublicacion>\n  <ns0:Cnbv_DiasPlazo>1</ns0:Cnbv_DiasPlazo>\n  <ns0:AutoridadNombre>UNIDAD DE INTELIGENCIA FINANCIERA</ns0:AutoridadNombre>\n  <ns0:AutoridadEspecificaNombre>DIRECCION GENERAL DE LO CONTENCIOSO</ns0:AutoridadEspecificaNombre>\n  <ns0:NombreSolicitante xsi:nil=\"true\" />\n  <ns0:Referencia>Lista de Personas Bloqueadas</ns0:Referencia>\n  <ns0:Referencia1>110/K/2992/2025</ns0:Referencia1>\n  <ns0:Referencia2 />\n  <ns0:TieneAseguramiento>false</ns0:TieneAseguramiento>\n  <ns0:SolicitudPartes>\n    <ns0:ParteId>1</ns0:ParteId>\n    <ns0:Caracter>Investigado</ns0:Caracter>\n    <ns0:Persona>Fisica</ns0:Persona>\n    <ns0:Paterno>LUIS</ns0:Paterno>\n    <ns0:Materno>MCDONALD</ns0:Materno>\n    <ns0:Nombre>HUGO PACO</ns0:Nombre>\n    <ns0:Rfc>             </ns0:Rfc>\n  </ns0:SolicitudPartes>\n  <ns0:SolicitudEspecifica>\n    <ns0:SolicitudEspecificaId>1</ns0:SolicitudEspecificaId>\n    <ns0:InstruccionesCuentasPorConocer>En cumplimiento al \"ACUERDO 144/2025 DEL TITULAR DE LA UNIDAD DE INTELIGENCIA FINANCIERA POR EL QUE SE ELIMINA A HUGO PACO LUIS MCDONALD DE LA LISTA DE PERSONAS BLOQUEADAS DE LA SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO, EN CUMPLIMIENTO AL AMPARO EN REVISÓN 45/2024 DEL SEGUNDO TRIBUNAL COLEGIADO EN MATERIAS ADMINISTRATIVA Y DE TRABAJO DEL DÉCIMO PRIMER CIRCUITO, EN RELACIÓN CON EL JUICIO DE AMPARO 487/2023 DEL JUZGADO QUINTO DE DISTRITO EN EL ESTADO DE MICHOACÁN\", se solicita requerir al oficial de cumplimiento de las Instituciones Financieras lo siguiente: \nPRIMERO. Dejar sin efectos el Acuerdo 105/2021 del Titular de la Unidad de Inteligencia Financiera, así como el oficio 110/F/B/4469/2021, con Folio SIARA UIFB/2021/000104 ÚNICAMENTE por lo que respecta a HUGO PACO LUIS MCDONALD. \nSEGUNDO. Se elimina de la Lista de Personas Bloqueadas a HUGO PACO LUIS MCDONALD.\nPor lo que se deben reanudar los actos, operaciones y/o servicios financieros que le fueron suspendidos a HUGO PACO LUIS MCDONALD, entre los que se encuentran de manera enunciativa, más no limitativa, las cuentas siguientes:\n1) 00466773850, 2) 00453965120, ambas aperturadas en Uruapan; y 3) 00195019117 en la sucursal ubicada en Nueva Italia, Michoacán de Ocampo, todas de la institución bancaria Banco BBVA Bancomer, Sociedad Anónima, Institución de Banca Múltiple, Grupo Financiero BBVA Bancomer.\nTERCERO. La presente determinación no representa la eliminación de la Lista de Personas Bloqueadas de otras personas físicas o morales designadas mediante el Acuerdo 105/2021 del Titular de la Unidad de Inteligencia Financiera. \nCUARTO. Dicha eliminación surtirá efectos siempre y cuando los actos, operaciones y/o servicios se hayan visto afectados por la emisión del Acuerdo 105/2021; es decir, la presente eliminación NO SURTIRÁ EFECTOS si las cuentas bancarias o demás productos financieros contratados a nombre de HUGO PACO LUIS MCDONALD, fueron suspendidos de manera directa o indirecta por diverso Acuerdo de inclusión a la Lista de Personas Bloqueadas emitido por el Titular de la Unidad de Inteligencia Financiera o por diversa autoridad.</ns0:InstruccionesCuentasPorConocer>\n    <ns0:PersonasSolicitud>\n      <ns0:PersonaId>1</ns0:PersonaId>\n      <ns0:Caracter>Investigado</ns0:Caracter>\n      <ns0:Persona>Fisica</ns0:Persona>\n      <ns0:Paterno>LUIS</ns0:Paterno>\n      <ns0:Materno>MCDONALD</ns0:Materno>\n      <ns0:Nombre>HUGO PACO</ns0:Nombre>\n      <ns0:Rfc>LUMH111111111</ns0:Rfc>\n      <ns0:Relacion />\n      <ns0:Domicilio>NO SE CUENTA</ns0:Domicilio>\n      <ns0:Complementarios>Se trata de la misma persona con variante en el RFC</ns0:Complementarios>\n    </ns0:PersonasSolicitud>\n    <ns0:PersonasSolicitud>\n      <ns0:PersonaId>2</ns0:PersonaId>\n      <ns0:Caracter>Investigado</ns0:Caracter>\n      <ns0:Persona>Fisica</ns0:Persona>\n      <ns0:Paterno>LUIS</ns0:Paterno>\n      <ns0:Materno>MCDONALD</ns0:Materno>\n      <ns0:Nombre>HUGO PACO</ns0:Nombre>\n      <ns0:Rfc>LUMH222222222</ns0:Rfc>\n      <ns0:Relacion />\n      <ns0:Domicilio>NO SE CUENTA</ns0:Domicilio>\n      <ns0:Complementarios>Se trata de la misma persona con variante en el RFC</ns0:Complementarios>\n    </ns0:PersonasSolicitud>\n  </ns0:SolicitudEspecifica>\n</ns0:Expediente>"
+  },
+  "Checklist+2+Demo+AA.xlsx": {
+    "type": "xlsx",
+    "rows": [
+      [
+        "Checklist Proceso  Atención a Autoridades",
+        "",
+        "",
+        ""
+      ],
+      [
+        "Paso ",
+        "Descripción",
+        "Ejemplo "
+      ],
+      [
+        "Etapa 1",
+        "1",
+        "El primer paso  es ejemplificar como se puede descargar los 3 documentos que forman el oficios (PDF ,  XML,  Word),  de un sitio en donde se encuentren publicados a un equipo de forma automática."
+      ],
+      [
+        "Etapa 1",
+        "2",
+        "Debe generar un listado con el nombre del archivo descargado y la extensión del  tipo de documento."
+      ],
+      [
+        "Etapa 1",
+        "3",
+        "El listado generado,  lo deben de comparar contra el listado de la pestaña \"Listado\" y verificar cual  falta y cual sobra. ",
+        ">>>>>>"
+      ],
+      [
+        "Etapa 2",
+        "4",
+        "De los 3 documentos del oficio,  se debe de extraer la información señalada en la pestaña \"Datos descargados\"",
+        ">>>>>>"
+      ],
+      [
+        "Etapa 2",
+        "5",
+        "La información que se extraer de 2 documentos se debe de comparar para validar que coincida,  en caso de no coincidir debe de mostrar un alertamiento."
+      ],
+      [
+        "Etapa 3",
+        "6",
+        "Con la información descargada en la Etapa 2,  debe de generar  un Layout con los campos señalados en la pestaña \"Datos Carga de Oficio\" en formato Excel. ",
+        ">>>>>>"
+      ],
+      [
+        "Etapa 4",
+        "7",
+        "Debe generar un resumen del  oficio PDF,  que separa en 5 apartados \n1. Requiere Bloqueo\n2. Requiere Desbloqueo \n3. Requieres documentación\n4. Requiere Transferencia de Fondos\n5. Requiere Información\n\nPuede tomar como referencia el  detalle de la pestaña \"Tipo_Origen_Criterio Doc\"",
+        ">>>>>>"
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ],
+      [
+        ""
+      ]
+    ]
+  },
+  "Full_Feature_Design_Pipeline_UTF8.xlsx": {
+    "type": "xlsx",
+    "rows": [
+      [
+        "Feature #",
+        "Description",
+        "Interface/Component",
+        "Algorithm Proposal",
+        "Etapa"
+      ],
+      [
+        "1",
+        "Launch browser agent to access specified page",
+        "IBrowserAutomationAgent",
+        "Start a browser session with navigation and automation capability",
+        "Etapa.1"
+      ],
+      [
+        "2",
+        "Identify and download new files from target source",
+        "IBrowserAutomationAgent",
+        "Detect downloadable resources by structure or pattern",
+        "Etapa.1"
+      ],
+      [
+        "3",
+        "Detect and ignore previously downloaded files",
+        "IDownloadTracker",
+        "Avoid redundant downloads using content identity checking",
+        "Etapa.1"
+      ],
+      [
+        "4",
+        "Save downloaded files to a configured directory",
+        "IDownloadStorage",
+        "Store file contents using deterministic paths and names",
+        "Etapa.1"
+      ],
+      [
+        "5",
+        "Record file metadata (name, URL, timestamp, checksum)",
+        "IFileMetadataLogger",
+        "Log identifying attributes of each download consistently",
+        "Etapa.1"
+      ],
+      [
+        "6",
+        "Extract file type and validate expected format (PDF, ZIP, DOCX)",
+        "IFileTypeIdentifier",
+        "Identify file type based on content, not just extension",
+        "Etapa.2"
+      ],
+      [
+        "7",
+        "Parse embedded metadata if available (XML or DOCX content)",
+        "IMetadataExtractor",
+        "Read available structured metadata without requiring a fixed schema",
+        "Etapa.2"
+      ],
+      [
+        "8",
+        "Normalize file names based on content-derived rules",
+        "IFileNormalizer",
+        "Generate clean and consistent file names based on extracted data",
+        "Etapa.2"
+      ],
+      [
+        "9",
+        "Apply deterministic classification logic to assign main category (Level 1)",
+        "IFileClassifier",
+        "Use field-to-label matching rules to determine main category",
+        "Etapa.2"
+      ],
+      [
+        "10",
+        "Apply secondary classification logic for subcategories (Level 2 or 3)",
+        "IFileClassifier",
+        "Apply rule sets or decision tree to assign subcategory",
+        "Etapa.2"
+      ],
+      [
+        "11",
+        "Move files into corresponding folder paths based on classification",
+        "IFileMover",
+        "Relocate files based on classification result and structure",
+        "Etapa.2"
+      ],
+      [
+        "12",
+        "Handle duplicate or ambiguous files based on configurable policy",
+        "IRuleScorer",
+        "Resolve naming conflicts using rule-based decisions",
+        "Etapa.2"
+      ],
+      [
+        "13",
+        "Identify scanned image-based files (non-searchable PDFs)",
+        "IScanDetector",
+        "Check for presence of textual data layer to identify scanned documents",
+        "Etapa.2"
+      ],
+      [
+        "14",
+        "Apply image cleanup for OCR or downstream processing",
+        "IScanCleaner",
+        "Clean visual artifacts to improve text extraction and readability",
+        "Etapa.2"
+      ],
+      [
+        "15",
+        "Extract text from images using OCR fallback",
+        "IMetadataExtractor",
+        "Extract readable content from image-based text sections",
+        "Etapa.2"
+      ],
+      [
+        "16",
+        "Log all actions taken per file (download, classification, move)",
+        "IAuditLogger",
+        "Track all processing steps in a secure and structured log",
+        "Etapa.2"
+      ],
+      [
+        "17",
+        "Generate audit record with classification decisions and scores",
+        "IAuditLogger",
+        "Record classification and compliance actions in persistent format",
+        "Etapa.2"
+      ],
+      [
+        "18",
+        "Export summary of current classification state (e.g., CSV, JSON)",
+        "IReportGenerator",
+        "Produce output summaries suitable for review and reporting",
+        "Etapa.2"
+      ],
+      [
+        "19",
+        "Provide CLI or API interface to run tasks and retrieve status",
+        "IAgentController",
+        "Enable execution through command interface or service calls",
+        "Etapa.2"
+      ],
+      [
+        "20",
+        "Parse optional XML metadata into a structured object",
+        "IXmlNullableParser<T>",
+        "Convert semi-structured XML into a flexible data object",
+        "Etapa.2"
+      ],
+      [
+        "21",
+        "Extract structured metadata fields from DOCX",
+        "IFieldExtractor<T> → DocxFieldExtractor",
+        "Extract values from editable text based on known label patterns",
+        "Etapa.2"
+      ],
+      [
+        "22",
+        "Extract structured fields from OCR’d PDF documents",
+        "IFieldExtractor<T> → PdfOcrFieldExtractor",
+        "Identify key field content using text block analysis",
+        "Etapa.2"
+      ],
+      [
+        "23",
+        "Match field values across XML, DOCX, and PDF",
+        "IFieldMatcher<T>",
+        "Compare field values from different sources and find agreement",
+        "Etapa.2"
+      ],
+      [
+        "24",
+        "Generate unified metadata record for system processing",
+        "IFieldMatcher<T>",
+        "Consolidate best values into a single consistent record",
+        "Etapa.3"
+      ],
+      [
+        "25",
+        "Generate Excel layout from unified metadata for structured data delivery",
+        "ILayoutGenerator",
+        "Construct structured tabular data using defined schema and write to spreadsheet-compatible format",
+        "Etapa.3"
+      ],
+      [
+        "26",
+        "Report field-level match confidence and origin trace",
+        "IFieldAgreement",
+        "Annotate field origins and agreement levels",
+        "Etapa.4"
+      ],
+      [
+        "27",
+        "Define customizable matching policy",
+        "IMatchingPolicy",
+        "Apply configurable decision rules to control matching",
+        "Etapa.4"
+      ],
+      [
+        "28",
+        "Validate completeness and consistency of final match result",
+        "IFieldMatcher<T>",
+        "Ensure required fields are complete and results are trustworthy",
+        "Etapa.4"
+      ],
+      [
+        "29",
+        "Summarize PDF content into predefined requirement categories",
+        "IPdfRequirementSummarizer",
+        "Extract semantic cues from OCR text and classify content into predefined buckets (e.g., bloqueo, documentación)",
+        "Etapa.4"
+      ],
+      [
+        "30",
+        "Match semantic labels to category references from configuration",
+        "ICriterionMapper",
+        "Use keyword or rule-based lookup to map content excerpts to labeled categories",
+        "Etapa.4"
+      ]
+    ]
+  },
+  "Revised_Compliance_Interface_Spec.xlsx": {
+    "type": "xlsx",
+    "rows": [
+      [
+        "FeatureID",
+        "FeatureDescription",
+        "InterfaceComponent",
+        "AlgorithmProposal",
+        "Stage"
+      ],
+      [
+        "1",
+        "Launch browser agent to access specified page",
+        "IBrowserAutomationAgent",
+        "Start a browser session with navigation and automation capability",
+        "Etapa.1"
+      ],
+      [
+        "2",
+        "Identify and download new files from target source",
+        "IBrowserAutomationAgent",
+        "Detect downloadable resources by structure or pattern",
+        "Etapa.1"
+      ],
+      [
+        "3",
+        "Detect and ignore previously downloaded files",
+        "IDownloadTracker",
+        "Avoid redundant downloads using content identity checking",
+        "Etapa.1"
+      ],
+      [
+        "4",
+        "Save downloaded files to a configured directory",
+        "IDownloadStorage",
+        "Store file contents using deterministic paths and names",
+        "Etapa.1"
+      ],
+      [
+        "5",
+        "Record file metadata (name, URL, timestamp, checksum)",
+        "IFileMetadataLogger",
+        "Log identifying attributes of each download consistently",
+        "Etapa.1"
+      ],
+      [
+        "6",
+        "Extract file type and validate expected format (PDF, ZIP, DOCX)",
+        "IFileTypeIdentifier",
+        "Identify file type based on content, not just extension",
+        "Etapa.2"
+      ],
+      [
+        "7",
+        "Parse embedded metadata if available (XML or DOCX content)",
+        "IMetadataExtractor",
+        "Read available structured metadata without requiring a fixed schema",
+        "Etapa.2"
+      ],
+      [
+        "8",
+        "Normalize file names based on content-derived rules (includes safe naming and duplication handling)",
+        "ISafeFileNamer",
+        "Generate clean and consistent file names based on extracted data Ensure filenames are unique and safe for storage using hash and timestamp strategy.",
+        "Etapa.2"
+      ],
+      [
+        "9",
+        "Apply deterministic classification logic to assign main category (Level 1)",
+        "IFileClassifier",
+        "Use field-to-label matching rules to determine main category",
+        "Etapa.2"
+      ],
+      [
+        "10",
+        "Apply secondary classification logic for subcategories (Level 2 or 3)",
+        "IFileClassifier",
+        "Apply rule sets or decision tree to assign subcategory",
+        "Etapa.2"
+      ],
+      [
+        "11",
+        "Move files into corresponding folder paths based on classification",
+        "IFileMover",
+        "Relocate files based on classification result and structure",
+        "Etapa.2"
+      ],
+      [
+        "12",
+        "Handle duplicate or ambiguous files based on configurable policy",
+        "IRuleScorer",
+        "Resolve naming conflicts using rule-based decisions",
+        "Etapa.2"
+      ],
+      [
+        "13",
+        "Identify scanned image-based files (non-searchable PDFs)",
+        "IScanDetector",
+        "Check for presence of textual data layer to identify scanned documents",
+        "Etapa.2"
+      ],
+      [
+        "14",
+        "Apply image cleanup for OCR or downstream processing",
+        "IScanCleaner",
+        "Clean visual artifacts to improve text extraction and readability",
+        "Etapa.2"
+      ],
+      [
+        "15",
+        "Extract text from images using OCR fallback",
+        "IMetadataExtractor",
+        "Extract readable content from image-based text sections",
+        "Etapa.2"
+      ],
+      [
+        "16",
+        "Log all actions taken per file (download, classification, move)",
+        "IAuditLogger",
+        "Track all processing steps in a secure and structured log",
+        "Etapa.2"
+      ],
+      [
+        "17",
+        "Generate audit record with classification decisions and scores",
+        "IAuditLogger",
+        "Record classification and compliance actions in persistent format",
+        "Etapa.2"
+      ],
+      [
+        "18",
+        "Export summary of current classification state (e.g., CSV, JSON)",
+        "IReportGenerator",
+        "Produce output summaries suitable for review and reporting",
+        "Etapa.2"
+      ],
+      [
+        "19",
+        "Parse optional XML metadata into a structured object",
+        "IXmlNullableParser<T>",
+        "Convert semi-structured XML into a flexible data object",
+        "Etapa.2"
+      ],
+      [
+        "20",
+        "Track remaining time for regulatory response based on SLA and alert on breach risk.",
+        "ISLAEnforcer",
+        "Calculate deadline based on date of intake and current timestamp. Trigger escalation if within critical threshold (e.g., 4h left).",
+        "Etapa.3"
+      ],
+      [
+        "21",
+        "Resolve person identity across RFC variants and alias names.",
+        "IPersonIdentityResolver",
+        "Use RFC, full name, and optional metadata to deduplicate and consolidate entity records.",
+        "Etapa.3"
+      ],
+      [
+        "22",
+        "Interpret legal clauses and map to action (e.g., block, unblock, ignore).",
+        "ILegalDirectiveClassifier",
+        "Detect references to legal instruments (e.g., Acuerdo 105/2021) and return actionable directive classification.",
+        "Etapa.3"
+      ],
+      [
+        "23",
+        "Support human review of ambiguous classification or extractions.",
+        "IManualReviewerPanel",
+        "Visual interface with field-level annotations, editable overrides, and submission confirmation workflow.",
+        "Etapa.3"
+      ],
+      [
+        "24",
+        "UI frontend bundle for compliance officers and reviewers.",
+        "IUIBundle",
+        "Technology-agnostic front-end UI library to support validation, editing, and submission of extracted data.",
+        "Etapa.3"
+      ],
+      [
+        "25",
+        "Export final compliance package in regulator-specific format (e.g., XML or signed PDF).",
+        "IResponseExporter",
+        "Map validated data to regulatory schema. Use digital signature module for PDF or XML.",
+        "Etapa.4"
+      ],
+      [
+        "26",
+        "Extract structured metadata fields from DOCX",
+        "IFieldExtractor<T> → DocxFieldExtractor",
+        "Extract values from editable text based on known label patterns",
+        "Etapa.2"
+      ],
+      [
+        "27",
+        "Extract structured fields from OCR’d PDF documents",
+        "IFieldExtractor<T> → PdfOcrFieldExtractor",
+        "Identify key field content using text block analysis",
+        "Etapa.2"
+      ],
+      [
+        "28",
+        "Match field values across XML, DOCX, and PDF",
+        "IFieldMatcher<T>",
+        "Compare field values from different sources and find agreement",
+        "Etapa.2"
+      ],
+      [
+        "29",
+        "Generate unified metadata record for system processing",
+        "IFieldMatcher<T>",
+        "Consolidate best values into a single consistent record",
+        "Etapa.3"
+      ],
+      [
+        "30",
+        "Generate Excel layout from unified metadata for structured data delivery",
+        "ILayoutGenerator",
+        "Construct structured tabular data using defined schema and write to spreadsheet-compatible format",
+        "Etapa.3"
+      ],
+      [
+        "31",
+        "Report field-level match confidence and origin trace",
+        "IFieldAgreement",
+        "Annotate field origins and agreement levels",
+        "Etapa.4"
+      ],
+      [
+        "32",
+        "Define customizable matching policy",
+        "IMatchingPolicy",
+        "Apply configurable decision rules to control matching",
+        "Etapa.4"
+      ],
+      [
+        "33",
+        "Validate completeness and consistency of final match result",
+        "IFieldMatcher<T>",
+        "Ensure required fields are complete and results are trustworthy",
+        "Etapa.4"
+      ],
+      [
+        "34",
+        "Summarize PDF content into predefined requirement categories",
+        "IPdfRequirementSummarizer",
+        "Extract semantic cues from OCR text and classify content into predefined buckets (e.g., bloqueo, documentación)",
+        "Etapa.4"
+      ],
+      [
+        "35",
+        "Match semantic labels to category references from configuration",
+        "ICriterionMapper",
+        "Use keyword or rule-based lookup to map content excerpts to labeled categories",
+        "Etapa.4"
+      ],
+      [
+        "36",
+        "Track remaining time for regulatory response based on SLA and alert on breach risk.",
+        "ISLAEnforcer",
+        "Calculate deadline based on date of intake and current timestamp. Trigger escalation if within critical threshold (e.g., 4h left).",
+        "Etapa.3"
+      ],
+      [
+        "37",
+        "Resolve person identity across RFC variants and alias names.",
+        "IPersonIdentityResolver",
+        "Use RFC, full name, and optional metadata to deduplicate and consolidate entity records.",
+        "Etapa.3"
+      ],
+      [
+        "38",
+        "Interpret legal clauses and map to action (e.g., block, unblock, ignore).",
+        "ILegalDirectiveClassifier",
+        "Detect references to legal instruments (e.g., Acuerdo 105/2021) and return actionable directive classification.",
+        "Etapa.3"
+      ],
+      [
+        "39",
+        "Support human review of ambiguous classification or extractions.",
+        "IManualReviewerPanel",
+        "Visual interface with field-level annotations, editable overrides, and submission confirmation workflow.",
+        "Etapa.3"
+      ],
+      [
+        "40",
+        "UI frontend bundle for compliance officers and reviewers.",
+        "IUIBundle",
+        "Technology-agnostic front-end UI library to support validation, editing, and submission of extracted data.",
+        "Etapa.3"
+      ]
+    ]
+  }
+}
