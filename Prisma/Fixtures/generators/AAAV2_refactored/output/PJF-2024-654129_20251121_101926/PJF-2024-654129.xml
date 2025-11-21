@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>PJF/2024/654129</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>OF-4358-2025</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Departamento de Cobranza</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>PJF/2024/654129</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>EXP-3779-2020</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>21/11/2025</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>6</Cnbv_DiasPlazo>
+  <AutoridadNombre>Instituto Mexicano del Seguro Social</AutoridadNombre>
+  <NombreSolicitante>Berta Acosta Maldonado</NombreSolicitante>
+  <Referencia>REF-4619</Referencia>
+  <Referencia1>REF1-9692</Referencia1>
+  <Referencia2>REF2-4395</Referencia2>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Noelia Villagómez Suárez</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Proceder al aseguramiento inmediato de las cuentas identificadas
+- Proporcionar informacion de todas las cuentas bancarias
+- Incluir números de cuenta, saldos y movimientos
+- Detallar operaciones superiores a $100,000.00 MN
+- Notificar el monto total asegurado</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Noelia Villagómez Suárez</Nombre>
+    <Rfc>VISN480803OZT</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Periférico Ayala No. 9994, Col. San María José de la Montaña, Municipio Vieja Japón, Yucatán, C.P. 48598</Domicilio>
+    <Complementarios>Tel: 637-096-0807, Email: rolando22@example.net</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

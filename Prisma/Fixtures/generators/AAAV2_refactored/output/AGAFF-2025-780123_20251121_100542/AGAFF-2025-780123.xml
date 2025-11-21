@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>AGAFF/2025/780123</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>OF-8435-2025</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Tribunal Colegiado</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>AGAFF/2025/780123</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>EXP-9980-2021</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>21/11/2025</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>5</Cnbv_DiasPlazo>
+  <AutoridadNombre>Poder Judicial de la Federación</AutoridadNombre>
+  <NombreSolicitante>Ana Ledesma Lugo</NombreSolicitante>
+  <Referencia>REF-1467</Referencia>
+  <Referencia1>REF1-3085</Referencia1>
+  <Referencia2>REF2-5952</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Liliana Matos Longoria</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Detallar operaciones superiores a $100,000.00 MN
+- Proporcionar información de todas las cuentas bancarias
+- Indicar titulares y co-titulares de las cuentas
+- Incluir números de cuenta, saldos y movimientos
+- Especificar fechas de apertura y cierre de cuentas</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Liliana Matos Longoria</Nombre>
+    <Rfc>MALL8003275SX</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Eje vial Sur Corrales No. 7319, Col. Nueva Venezuela, Municipio Vieja Turquía, Baja California Sur, C.P. 25333</Domicilio>
+    <Complementarios>Tel: 1-120-248-3128x420, Email: beltrancornelio@example.net</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>

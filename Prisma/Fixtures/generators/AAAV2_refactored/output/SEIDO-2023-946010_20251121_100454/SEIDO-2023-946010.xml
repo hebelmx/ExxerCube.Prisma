@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SolicitudRequerimiento xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_SolicitudSiara>SEIDO/2023/946010</Cnbv_SolicitudSiara>
+  <Cnbv_NumeroOficio>OF-3098-2025</Cnbv_NumeroOficio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaDescripcion>Subprocuraduría Especializada en Investigación de Delitos Federales</Cnbv_AreaDescripcion>
+  <Cnbv_Folio>SEIDO/2023/946010</Cnbv_Folio>
+  <Cnbv_NumeroExpediente>EXP-2325-2020</Cnbv_NumeroExpediente>
+  <Cnbv_FechaPublicacion>21/11/2025</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>5</Cnbv_DiasPlazo>
+  <AutoridadNombre>Fiscalía General de la República</AutoridadNombre>
+  <NombreSolicitante>Jos Mateo Ibarra</NombreSolicitante>
+  <Referencia>REF-5131</Referencia>
+  <Referencia1>REF1-4333</Referencia1>
+  <Referencia2>REF2-8884</Referencia2>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <Nombre>Hugo Castillo Holguín</Nombre>
+    <Caracter>Investigado</Caracter>
+  </SolicitudPartes>
+  <InstruccionesCuentasPorConocer>- Indicar titulares y co-titulares de las cuentas
+- Especificar fechas de apertura y cierre de cuentas
+- Detallar operaciones superiores a $100,000.00 MN
+- Proporcionar información de todas las cuentas bancarias
+- Incluir números de cuenta, saldos y movimientos</InstruccionesCuentasPorConocer>
+  <PersonasSolicitud>
+    <Nombre>Hugo Castillo Holguín</Nombre>
+    <Rfc>CAHH950114V03</Rfc>
+    <Caracter>Investigado</Caracter>
+    <Domicilio>Circuito Michoacán de Ocampo No. 8752, Col. Nueva Guatemala, Municipio San Óscar los bajos, Querétaro, C.P. 67901</Domicilio>
+    <Complementarios>Tel: 1-114-348-5370x19227, Email: eveliomoya@example.net</Complementarios>
+  </PersonasSolicitud>
+</SolicitudRequerimiento>
