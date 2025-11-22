@@ -55,9 +55,9 @@ public class GotOcr2Executor : IOcrExecutor
                 return Result<OCRResult>.Failure("Image data is empty");
             }
 
-            // Get the Python module wrapper using dynamic type
+            // Get the Python module wrapper using strongly-typed interface
             // CSnakes generates extension methods at compile time from Python files
-            dynamic gotOcr2Module = ((dynamic)_pythonEnvironment).GotOcr2Wrapper();
+            var gotOcr2Module = _pythonEnvironment.GotOcr2Wrapper();
 
             // Execute OCR using the Python wrapper
             // Python function signature: execute_ocr(image_bytes: bytes, language: str, confidence_threshold: float)

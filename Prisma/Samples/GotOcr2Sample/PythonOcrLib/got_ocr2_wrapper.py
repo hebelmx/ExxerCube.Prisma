@@ -51,8 +51,8 @@ _model = None
 _processor = None
 _model_loaded = False
 _device_config_initialized = False
-HAS_CUDA = False
-DEVICE = "cpu"
+HAS_CUDA = True
+DEVICE = "cuda"
 DTYPE = None
 
 # -------------------------------
@@ -67,20 +67,45 @@ def load_model():
     """
     global _model, _processor, _model_loaded, _device_config_initialized, HAS_CUDA, DEVICE, DTYPE
 
+    print("[DEBUG] load_model() called")
+    print(f"[DEBUG] _model_loaded: {_model_loaded}")
+    print(f"[DEBUG] _model is None: {_model is None}")
+    print(f"[DEBUG] _processor is None: {_processor is None}")
+
     if _model_loaded and _model is not None and _processor is not None:
+        print("[DEBUG] Returning cached model")
         return _model, _processor
 
     try:
+        print("[DEBUG] Starting model load process...")
+        print(f"[DEBUG] sys.path: {sys.path[:3]}...")  # First 3 entries
+        print(f"[DEBUG] Current working directory: {os.getcwd()}")
+
         # Import libraries here (sys.path cleaned at module level)
+        print("[DEBUG] Importing torch...")
         import torch
-        from transformers import AutoProcessor, AutoModelForImageTextToText
+        print(f"[DEBUG] torch imported successfully, version: {torch.__version__}")
+
+        print("[DEBUG] Importing transformers...")
+        import transformers
+        print(f"[DEBUG] transformers imported successfully, version: {transformers.__version__}")
+
+        print("[DEBUG] Getting AutoProcessor from transformers...")
+        AutoProcessor = transformers.AutoProcessor
+        print(f"[DEBUG] AutoProcessor type: {type(AutoProcessor)}")
+
+        print("[DEBUG] Getting AutoModelForImageTextToText from transformers...")
+        AutoModelForImageTextToText = transformers.AutoModelForImageTextToText
+        print(f"[DEBUG] AutoModelForImageTextToText type: {type(AutoModelForImageTextToText)}")
 
         # Initialize device config if not done
         if not _device_config_initialized:
+            print("[DEBUG] Initializing device config...")
             HAS_CUDA = is_cuda_supported()
             DEVICE = "cuda" if HAS_CUDA else "cpu"
             DTYPE = torch.bfloat16 if HAS_CUDA else torch.float32
             _device_config_initialized = True
+            print(f"[DEBUG] Device config initialized: CUDA={HAS_CUDA}, DEVICE={DEVICE}, DTYPE={DTYPE}")
 
         print(f"[INFO] Loading GOT-OCR2 model: {MODEL_ID}")
         print(f"[INFO] Device: {DEVICE}, dtype: {DTYPE}")
@@ -104,7 +129,19 @@ def load_model():
         return _model, _processor
 
     except Exception as e:
-        print(f"[ERROR] Failed to load GOT-OCR2: {e}")
+        import traceback
+        print(f"[ERROR] Failed to load GOT-OCR2!")
+        print(f"[ERROR] Exception type: {type(e).__name__}")
+        print(f"[ERROR] Exception message: {str(e)}")
+        print(f"[ERROR] Exception args: {e.args}")
+        print(f"[ERROR] Traceback:")
+        traceback.print_exc()
+        print(f"[ERROR] Global state at failure:")
+        print(f"[ERROR]   _model_loaded: {_model_loaded}")
+        print(f"[ERROR]   _device_config_initialized: {_device_config_initialized}")
+        print(f"[ERROR]   HAS_CUDA: {HAS_CUDA}")
+        print(f"[ERROR]   DEVICE: {DEVICE}")
+        print(f"[ERROR]   DTYPE: {DTYPE}")
         raise
 
 def get_model_info() -> str:
@@ -286,11 +323,20 @@ def health_check() -> bool:
     Returns:
         True if model loads successfully, False otherwise
     """
+    print("[DEBUG] health_check() called")
     try:
-        load_model()
+        print("[DEBUG] Calling load_model() from health_check...")
+        result = load_model()
+        print(f"[DEBUG] load_model() returned: {type(result)}")
+        print("[DEBUG] Health check PASSED")
         return True
     except Exception as e:
-        print(f"[ERROR] Health check failed: {e}")
+        import traceback
+        print(f"[ERROR] Health check failed!")
+        print(f"[ERROR] Exception type: {type(e).__name__}")
+        print(f"[ERROR] Exception message: {str(e)}")
+        print(f"[ERROR] Traceback:")
+        traceback.print_exc()
         return False
 
 # -------------------------------

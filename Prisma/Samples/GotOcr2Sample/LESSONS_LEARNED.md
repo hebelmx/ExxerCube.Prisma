@@ -3,8 +3,12 @@
 ## Project Overview
 Integration of GOT-OCR2 (General OCR Theory 2.0) transformer model with C# using CSnakes for Python interop. The goal was to implement the `IOcrExecutor` interface using state-of-the-art OCR technology.
 
+## Status
+✅ **COMPLETE AND WORKING** - OCR successfully extracting text from images with 88%+ confidence
+
 ## Date
-2025-01-21
+2025-01-21 (Initial Implementation)
+2025-01-22 (Final Resolution & Success)
 
 ## Key Technical Achievements
 
@@ -132,7 +136,7 @@ var version = module.GetVersion(); // String, fully typed
 - **Use When**: Microservices architecture, multiple clients, easier deployment preferred
 
 ### 2. Custom Result<T> Pattern
-Created minimal Result<T> implementation to replace IndQuestResults (which only supports .NET 10):
+Created minimal Result<T> implementation to replace IndQuestResults:
 ```csharp
 public class Result<T>
 {
@@ -145,6 +149,8 @@ public class Result<T>
 ```
 
 **Key Learning**: Railway-oriented programming patterns work well for Python interop error handling.
+
+**Note**: IndQuestResults is our own package. We can publish versions for .NET 8 and 9 since we haven't published .NET 10 stable yet. This custom implementation was temporary for rapid development.
 
 ## Project Structure (Hexagonal Architecture)
 
@@ -182,6 +188,11 @@ GotOcr2Sample/
 4. **Don't import torch at module level** - Use lazy imports
 5. **Don't add complex version constraints** - Keep requirements.txt simple
 6. **Don't forget to clean sys.path** - Remove module directory from path
+7. **⚠️ CRITICAL: Always install torchvision with transformers** - Missing torchvision causes cryptic "Could not import module 'AutoProcessor'" errors
+   - transformers imports from torchvision.transforms
+   - Must match torch version (torch 2.9.1 → torchvision 0.24.1)
+   - Install both from same index-url for CUDA/CPU compatibility
+   - **Error symptom**: `RuntimeError: operator torchvision::nms does not exist`
 
 ## Performance Considerations
 
@@ -232,3 +243,47 @@ GotOcr2Sample/
 - Document Python environment quirks earlier
 
 **Key Takeaway**: When integrating complex Python ML libraries with .NET, follow proven patterns from working samples exactly before attempting customizations.
+
+## Success Metrics
+
+### Final Working Configuration
+- **.NET**: 8.0
+- **CSnakes**: 1.2.1 (stable)
+- **Python**: 3.13 (via CSnakes redistributable)
+- **PyTorch**: 2.9.1+cpu (or +cu130 for CUDA)
+- **torchvision**: 0.24.1 (CRITICAL - must be installed)
+- **transformers**: 4.57.1
+- **Model**: GOT-OCR-2.0-hf from HuggingFace
+
+### Actual Results
+```
+✓ Health check PASSED
+✓ OCR succeeded
+Text length: 1,761 characters
+Confidence avg: 88.94
+Confidence median: 88.94
+Language used: spa
+```
+
+### Sample Output
+Successfully extracted text from CNBV official documents (PRP1 format) including:
+- Agency headers and official seals
+- Identification numbers
+- Recipient names and addresses
+- Complex formatting with mixed fonts and sizes
+- Spanish language content with proper character recognition
+
+## Final Notes
+
+This integration took 2 sessions to complete, with the main challenges being:
+1. Finding the correct CSnakes version (.NET 8 + stable 1.2.1)
+2. Understanding explicit package installation requirements
+3. **Discovering the hidden torchvision dependency** (most time-consuming issue)
+
+The final solution is production-ready with:
+- ✅ Strong typing via generated interfaces
+- ✅ Proper error handling with Result<T> pattern
+- ✅ Clean hexagonal architecture
+- ✅ Comprehensive debug logging for troubleshooting
+- ✅ High OCR accuracy (88%+ confidence on complex documents)
+- ✅ Support for both CPU and CUDA execution

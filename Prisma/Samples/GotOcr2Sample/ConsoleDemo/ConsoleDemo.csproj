@@ -20,10 +20,4 @@
         <PackageReference Include="CSnakes.Runtime" Version="1.*-*" />
     </ItemGroup>
 
-    <ItemGroup>
-      <None Update="requirements.txt">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
 </Project>

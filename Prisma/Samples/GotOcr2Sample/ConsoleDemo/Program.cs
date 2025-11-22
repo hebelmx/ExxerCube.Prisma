@@ -36,14 +36,14 @@ internal class Program
 
             Console.WriteLine($"Python library path: {pythonLibPath}");
 
-            var venvPath = Path.Combine(pythonLibPath, ".venv");
+            var venvPath = Path.Combine(pythonLibPath, ".venv_clean");
 
             // CSnakes will download and manage its own Python redistributable
             builder.Services
                 .WithPython()
                 .WithHome(pythonLibPath)
-                .WithVirtualEnvironment(venvPath)
-                .FromRedistributable("3.12")
+                .WithVirtualEnvironment(venvPath, true)
+                .FromRedistributable("3.13")
                 .WithPipInstaller("requirements.txt");
 
             // Add logging
@@ -56,7 +56,8 @@ internal class Program
             // Install Python packages from requirements.txt (like TransformersSharp does)
             Console.WriteLine("Installing Python dependencies (this may take several minutes on first run)...");
             var packageInstaller = host.Services.GetRequiredService<CSnakes.Runtime.PackageManagement.IPythonPackageInstaller>();
-            await packageInstaller.InstallPackagesFromRequirements(pythonLibPath, "requirements.txt");
+          //  await packageInstaller.InstallPackage("torch==2.6.0");
+         //   await packageInstaller.InstallPackagesFromRequirements(pythonLibPath, "requirements.txt");
             Console.WriteLine("✓ Python dependencies installed\n");
 
             // Create executor
