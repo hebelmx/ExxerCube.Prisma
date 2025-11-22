@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>GotOcr2Sample.Infrastructure</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Domain\Domain.csproj" />
+        <ProjectReference Include="..\PythonOcrLib\PythonOcrLib.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="CSnakes.Runtime" Version="1.*-*" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.7" />
+    </ItemGroup>
+
+</Project>
