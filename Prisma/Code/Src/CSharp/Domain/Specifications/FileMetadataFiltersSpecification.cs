@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Interfaces.Contracts;
-
 namespace ExxerCube.Prisma.Domain.Specifications;
 
 /// <summary>

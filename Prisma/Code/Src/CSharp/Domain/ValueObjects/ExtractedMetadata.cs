@@ -1,6 +1,3 @@
-using System;
-using ExxerCube.Prisma.Domain.Entities;
-
 namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>

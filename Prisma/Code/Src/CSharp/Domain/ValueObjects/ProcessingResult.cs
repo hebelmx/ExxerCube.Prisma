@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>

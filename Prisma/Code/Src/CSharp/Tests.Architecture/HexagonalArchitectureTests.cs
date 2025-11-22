@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+
 namespace ExxerCube.Prisma.Tests.Architecture;
 
 /// <summary>
@@ -21,7 +23,7 @@ public sealed class HexagonalArchitectureTests
     {
         typeof(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext).Assembly,
         typeof(ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService).Assembly,
-        typeof(ExxerCube.Prisma.Infrastructure.Extraction.XmlMetadataExtractor).Assembly,
+        typeof(XmlMetadataExtractor).Assembly,
         typeof(ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner).Assembly,
         typeof(ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter).Assembly,
         typeof(ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter).Assembly,

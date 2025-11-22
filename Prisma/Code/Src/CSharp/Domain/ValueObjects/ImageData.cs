@@ -1,5 +1,3 @@
-using System;
-
 namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>

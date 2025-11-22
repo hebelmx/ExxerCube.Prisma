@@ -3,7 +3,7 @@ namespace ExxerCube.Prisma.Application.Services;
 /// <summary>
 /// Represents a processing context for tracking individual document processing.
 /// </summary>
-public class ProcessingContext : IDisposable
+public class ProcessingContext : IDisposable, IProcessingContext
 {
     private readonly ProcessingMetricsService _metricsService;
     private bool _disposed;

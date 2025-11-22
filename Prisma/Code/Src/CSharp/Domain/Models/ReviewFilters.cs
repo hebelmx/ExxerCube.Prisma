@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Domain.Enums;
-
 namespace ExxerCube.Prisma.Domain.Models;
 
 /// <summary>

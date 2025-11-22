@@ -1,6 +1,3 @@
-using System;
-using ExxerCube.Prisma.Domain.Interfaces;
-
 namespace ExxerCube.Prisma.Domain.Entities;
 
 /// <summary>

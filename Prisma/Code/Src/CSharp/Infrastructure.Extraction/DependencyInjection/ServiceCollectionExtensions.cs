@@ -1,7 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Sources;
-
 namespace ExxerCube.Prisma.Infrastructure.Extraction;
 
 /// <summary>

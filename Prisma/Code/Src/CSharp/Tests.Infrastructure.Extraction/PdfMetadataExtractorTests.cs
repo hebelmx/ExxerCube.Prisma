@@ -1,5 +1,6 @@
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 

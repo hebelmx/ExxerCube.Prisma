@@ -2,6 +2,7 @@ using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
