@@ -4,10 +4,10 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using GotOcr2Sample.Domain;
 using GotOcr2Sample.Domain.Interfaces;
 using GotOcr2Sample.Domain.Models;
 using GotOcr2Sample.Domain.ValueObjects;
+using IndQuestResults;
 using Microsoft.Extensions.Logging;
 
 namespace GotOcr2Sample.Infrastructure;

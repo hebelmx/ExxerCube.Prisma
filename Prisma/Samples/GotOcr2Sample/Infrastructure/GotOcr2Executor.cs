@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CSnakes.Runtime;
-using GotOcr2Sample.Domain;
 using GotOcr2Sample.Domain.Interfaces;
 using GotOcr2Sample.Domain.Models;
 using GotOcr2Sample.Domain.ValueObjects;
+using IndQuestResults;
 using Microsoft.Extensions.Logging;
 
 namespace GotOcr2Sample.Infrastructure;

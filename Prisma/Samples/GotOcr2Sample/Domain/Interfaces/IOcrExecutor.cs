@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using GotOcr2Sample.Domain.Models;
 using GotOcr2Sample.Domain.ValueObjects;
+using IndQuestResults;
 
 namespace GotOcr2Sample.Domain.Interfaces;
 
