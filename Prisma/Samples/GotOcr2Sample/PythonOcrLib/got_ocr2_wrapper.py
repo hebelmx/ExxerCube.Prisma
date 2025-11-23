@@ -43,8 +43,61 @@ def is_cuda_supported() -> bool:
     except Exception:
         return False
 
+def select_optimal_device(batch_size: int = 1) -> Tuple[str, any]:
+    """
+    Select optimal device based on batch size and strategy
+
+    Args:
+        batch_size: Number of images to process
+
+    Returns:
+        Tuple of (device, dtype)
+
+    Strategy:
+    - "auto": GPU for batch_size >= GPU_BATCH_THRESHOLD, else CPU
+    - "cuda": GPU if available, else CPU
+    - "cpu": Always CPU
+    - "force_cuda": Always GPU (for testing)
+    """
+    import torch
+
+    has_cuda = is_cuda_supported()
+
+    if DEVICE_STRATEGY == "cpu":
+        return "cpu", torch.float32
+
+    if DEVICE_STRATEGY == "force_cuda":
+        if has_cuda:
+            return "cuda", torch.bfloat16
+        else:
+            print("[WARNING] force_cuda requested but CUDA not available, falling back to CPU")
+            return "cpu", torch.float32
+
+    if DEVICE_STRATEGY == "cuda":
+        if has_cuda:
+            return "cuda", torch.bfloat16
+        else:
+            return "cpu", torch.float32
+
+    # "auto" strategy (default)
+    if has_cuda and batch_size >= GPU_BATCH_THRESHOLD:
+        print(f"[INFO] Using GPU for batch_size={batch_size} (threshold={GPU_BATCH_THRESHOLD})")
+        return "cuda", torch.bfloat16
+    else:
+        reason = f"batch_size={batch_size} < threshold={GPU_BATCH_THRESHOLD}" if has_cuda else "CUDA not available"
+        print(f"[INFO] Using CPU ({reason})")
+        return "cpu", torch.float32
+
 # Model configuration
 MODEL_ID = os.getenv("GOT_OCR2_MODEL_ID", "stepfun-ai/GOT-OCR-2.0-hf")
+
+# Device selection strategy
+# - "auto": Use GPU for batch_size >= threshold, CPU otherwise (smart default)
+# - "cuda": Always use GPU if available
+# - "cpu": Always use CPU
+# - "force_cuda": Force CUDA even for single images (for testing)
+DEVICE_STRATEGY = os.getenv("GOT_OCR2_DEVICE_STRATEGY", "auto")
+GPU_BATCH_THRESHOLD = int(os.getenv("GOT_OCR2_GPU_BATCH_THRESHOLD", "4"))  # Use GPU for 4+ images
 
 # Global model and processor (lazy loaded)
 _model = None
@@ -113,7 +166,7 @@ def load_model():
         _model = AutoModelForImageTextToText.from_pretrained(
             MODEL_ID,
             device_map=DEVICE,
-            torch_dtype=DTYPE,
+            dtype=DTYPE,
             trust_remote_code=True
         )
 
@@ -151,7 +204,8 @@ def get_model_info() -> str:
     Returns:
         String with model information
     """
-    return f"GOT-OCR2 ({MODEL_ID}) on {DEVICE} with dtype {DTYPE}"
+    cuda_status = "available" if is_cuda_supported() else "not available"
+    return f"GOT-OCR2 ({MODEL_ID}) | Strategy: {DEVICE_STRATEGY} | CUDA: {cuda_status} | Threshold: {GPU_BATCH_THRESHOLD}"
 
 # -------------------------------
 # OCR Execution Functions
@@ -159,7 +213,8 @@ def get_model_info() -> str:
 def execute_ocr(
     image_bytes: bytes,
     language: str = "spa",
-    confidence_threshold: float = 0.7
+    confidence_threshold: float = 0.7,
+    batch_size: int = 1
 ) -> Tuple[str, float, float, List[float], str]:
     """
     Execute OCR on image bytes using GOT-OCR2
@@ -171,6 +226,7 @@ def execute_ocr(
         image_bytes: Raw image data as bytes (from C# byte[])
         language: Primary language code (e.g., "spa", "eng")
         confidence_threshold: Confidence threshold (0.0 to 1.0)
+        batch_size: Number of images in batch (for device selection)
 
     Returns:
         Tuple containing:
@@ -190,14 +246,24 @@ def execute_ocr(
         import torch
         from PIL import Image
 
+        # Select optimal device for this operation
+        device, dtype = select_optimal_device(batch_size)
+
         # Load model (cached after first call)
         model, processor = load_model()
+
+        # Move model to selected device if needed
+        if model.device.type != device:
+            print(f"[INFO] Moving model from {model.device.type} to {device}")
+            model = model.to(device)
+            if dtype:
+                model = model.to(dtype)
 
         # Convert bytes to PIL Image
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
         # Process image with GOT-OCR2 processor
-        inputs = processor(image, return_tensors="pt").to(DEVICE)
+        inputs = processor(image, return_tensors="pt").to(device)
 
         # Generate OCR output
         with torch.no_grad():

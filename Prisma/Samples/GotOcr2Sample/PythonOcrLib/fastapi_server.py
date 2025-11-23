@@ -95,7 +95,7 @@ def load_model():
     _model = AutoModelForImageTextToText.from_pretrained(
         MODEL_ID,
         device_map=DEVICE,
-        torch_dtype=DTYPE,
+        dtype=DTYPE,
         trust_remote_code=True
     )
 
