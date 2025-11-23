@@ -7,6 +7,7 @@ global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
 global using System.Xml.Linq;
+global using CSnakes.Runtime;
 global using DocumentFormat.OpenXml.Packaging;
 global using DocumentFormat.OpenXml.Wordprocessing;
 global using ExxerCube.Prisma.Domain.Entities;

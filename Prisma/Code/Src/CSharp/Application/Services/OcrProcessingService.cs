@@ -61,7 +61,7 @@ public class OcrProcessingService
             return Result<ProcessingResult>.WithFailure($"Argument cannot be null: {nameof(config)}");
 
         var documentId = Guid.NewGuid().ToString();
-        ProcessingContext? processingContext = null;
+        IProcessingContext? processingContext = null;
 
         try
         {

@@ -54,7 +54,7 @@ public class ProcessingMetricsService : IDisposable, IProcessingMetricsService
     /// <param name="documentId">The unique identifier for the document.</param>
     /// <param name="sourcePath">The source path of the document.</param>
     /// <returns>A processing context that should be disposed when processing completes.</returns>
-    public async Task<ProcessingContext> StartProcessingAsync(string documentId, string sourcePath)
+    public async Task<IProcessingContext> StartProcessingAsync(string documentId, string sourcePath)
     {
         await _metricsLock.WaitAsync().ConfigureAwait(false);
         try
@@ -85,7 +85,7 @@ public class ProcessingMetricsService : IDisposable, IProcessingMetricsService
     /// <param name="context">The processing context.</param>
     /// <param name="result">The processing result.</param>
     /// <param name="isSuccess">Whether the processing was successful.</param>
-    public async Task CompleteProcessingAsync(ProcessingContext context, ProcessingResult? result, bool isSuccess)
+    public async Task CompleteProcessingAsync(IProcessingContext context, ProcessingResult? result, bool isSuccess)
     {
         await _metricsLock.WaitAsync().ConfigureAwait(false);
         try
@@ -138,7 +138,7 @@ public class ProcessingMetricsService : IDisposable, IProcessingMetricsService
     /// </summary>
     /// <param name="context">The processing context.</param>
     /// <param name="error">The error message.</param>
-    public async Task RecordErrorAsync(ProcessingContext context, string error)
+    public async Task RecordErrorAsync(IProcessingContext context, string error)
     {
         await _metricsLock.WaitAsync().ConfigureAwait(false);
         try

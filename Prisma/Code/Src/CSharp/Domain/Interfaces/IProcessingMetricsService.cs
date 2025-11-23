@@ -17,15 +17,15 @@ namespace ExxerCube.Prisma.Domain.Interfaces;
 /// <para>
 /// Typical usage pattern:
 /// <list type="number">
-/// <item>Call <see cref="StartProcessingAsync"/> at the beginning of document processing to obtain a <see cref="ExxerCube.Prisma.Application.Services.ProcessingContext"/>.</item>
+/// <item>Call <see cref="StartProcessingAsync"/> at the beginning of document processing to obtain a <see cref="IProcessingContext"/>.</item>
 /// <item>Process the document using the returned context.</item>
 /// <item>Call <see cref="CompleteProcessingAsync"/> on success or <see cref="RecordErrorAsync"/> on failure.</item>
-/// <item>Dispose the <see cref="ProcessingContext"/> when finished.</item>
+/// <item>Dispose the <see cref="IProcessingContext"/> when finished.</item>
 /// </list>
 /// </para>
 /// </remarks>
 /// <seealso cref="IProcessingMetricsService"/>
-/// <seealso cref="ProcessingContext"/>
+/// <seealso cref="IProcessingContext"/>
 /// <seealso cref="ProcessingStatistics"/>
 /// <seealso cref="ProcessingMetrics"/>
 public interface IProcessingMetricsService
@@ -79,7 +79,7 @@ public interface IProcessingMetricsService
     /// <param name="sourcePath">The file system path or source location of the document. Must not be null or empty.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> that represents the asynchronous operation. The task result contains
-    /// a <see cref="ExxerCube.Prisma.Application.Services.ProcessingContext"/> instance that tracks the processing operation and must be disposed
+    /// a <see cref="IProcessingContext"/> instance that tracks the processing operation and must be disposed
     /// when processing completes or fails.
     /// </returns>
     /// <remarks>
@@ -96,13 +96,13 @@ public interface IProcessingMetricsService
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="documentId"/> or <paramref name="sourcePath"/> is null or empty.</exception>
     /// <seealso cref="CompleteProcessingAsync"/>
     /// <seealso cref="RecordErrorAsync"/>
-    /// <seealso cref="ExxerCube.Prisma.Application.Services.ProcessingContext"/>
+    /// <seealso cref="IProcessingContext"/>
     Task<IProcessingContext> StartProcessingAsync(string documentId, string sourcePath);
 
     /// <summary>
     /// Records the successful or unsuccessful completion of a document processing operation.
     /// </summary>
-    /// <param name="context">The <see cref="ExxerCube.Prisma.Application.Services.ProcessingContext"/> obtained from <see cref="StartProcessingAsync"/>. Must not be null.</param>
+    /// <param name="context">The <see cref="IProcessingContext"/> obtained from <see cref="StartProcessingAsync"/>. Must not be null.</param>
     /// <param name="result">The processing result containing OCR results and extracted fields. Can be null if processing failed before completion.</param>
     /// <param name="isSuccess">A boolean value indicating whether the processing operation completed successfully. True for success, false for failure.</param>
     /// <returns>
@@ -128,7 +128,7 @@ public interface IProcessingMetricsService
     /// <summary>
     /// Records a processing error for a document operation and marks it as failed.
     /// </summary>
-    /// <param name="context">The <see cref="ExxerCube.Prisma.Application.Services.ProcessingContext"/> obtained from <see cref="StartProcessingAsync"/>. Must not be null.</param>
+    /// <param name="context">The <see cref="IProcessingContext"/> obtained from <see cref="StartProcessingAsync"/>. Must not be null.</param>
     /// <param name="error">A descriptive error message explaining what went wrong during processing. Must not be null or empty.</param>
     /// <returns>
     /// A <see cref="Task"/> that represents the asynchronous operation. The task completes when the error has been

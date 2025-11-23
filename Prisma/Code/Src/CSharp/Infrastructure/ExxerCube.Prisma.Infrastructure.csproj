@@ -6,6 +6,9 @@
 	<Nullable>enable</Nullable>
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
+	<!-- Suppress CS1591 for CSnakes generated code (missing XML comments) -->
+	<NoWarn>$(NoWarn);CS1591</NoWarn>
+
 	<!-- CSnakes Configuration for Python code generation -->
 	<EmbedPythonSources>true</EmbedPythonSources>
 	<DefaultPythonItems>true</DefaultPythonItems>

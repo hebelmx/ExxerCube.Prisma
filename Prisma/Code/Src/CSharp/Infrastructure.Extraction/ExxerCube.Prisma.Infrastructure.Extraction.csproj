@@ -24,10 +24,12 @@
       <NoWarn>NU1903</NoWarn>
     </PackageReference>
     <PackageReference Include="IndQuestResults" />
+    <PackageReference Include="CSnakes.Runtime" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
   </ItemGroup>
 
 </Project>
