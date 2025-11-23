@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
     <ProjectReference Include="..\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ExxerCube.Prisma.Application.Services;
+using ExxerCube.Prisma.Domain.Interfaces;
 
 namespace ExxerCube.Prisma.Web.UI.Controllers;
 
@@ -12,7 +13,7 @@ namespace ExxerCube.Prisma.Web.UI.Controllers;
 public class MetricsController : ControllerBase
 {
     private readonly ILogger<MetricsController> _logger;
-    private readonly ProcessingMetricsService _metricsService;
+    private readonly IProcessingMetricsService _metricsService;
     private readonly HealthCheckService _healthCheckService;
 
     /// <summary>
@@ -23,7 +24,7 @@ public class MetricsController : ControllerBase
     /// <param name="healthCheckService">The health check service.</param>
     public MetricsController(
         ILogger<MetricsController> logger,
-        ProcessingMetricsService metricsService,
+        IProcessingMetricsService metricsService,
         HealthCheckService healthCheckService)
     {
         _logger = logger;

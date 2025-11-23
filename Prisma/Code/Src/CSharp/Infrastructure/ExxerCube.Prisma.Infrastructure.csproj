@@ -42,6 +42,7 @@
   <ItemGroup>
 	<ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
 	<ProjectReference Include="..\Application\ExxerCube.Prisma.Application.csproj" />
+	<ProjectReference Include="..\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
   </ItemGroup>
 
   <ItemGroup>

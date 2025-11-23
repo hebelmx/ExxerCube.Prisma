@@ -2,21 +2,31 @@ using System;
 using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using static Microsoft.Playwright.Assertions;
+using ExxerCube.Prisma.Tests.UI.Infrastructure;
 
 namespace ExxerCube.Prisma.Tests.UI.Navigation;
 
 public class NavigationSmokeTests : IAsyncLifetime
 {
     private const string BaseUrlEnvironmentVariable = "PRISMA_UI_BASEURL";
-    private const string DefaultBaseUrl = "https://localhost:5001";
+    private PrismaWebApplicationFactory? _factory;
     private IPlaywright? _playwright;
     private IBrowser? _browser;
+    private string? _baseUrl;
 
-    private static string BaseUrl =>
-        Environment.GetEnvironmentVariable(BaseUrlEnvironmentVariable)?.TrimEnd('/') ?? DefaultBaseUrl;
+    private string BaseUrl => _baseUrl ??
+        Environment.GetEnvironmentVariable(BaseUrlEnvironmentVariable)?.TrimEnd('/') ??
+        throw new InvalidOperationException("Base URL not initialized");
 
     public async ValueTask InitializeAsync()
     {
+        // Start the web application
+        _factory = new PrismaWebApplicationFactory();
+
+        // Get the server URL - WebApplicationFactory uses HTTP by default for test server
+        var server = _factory.Server;
+        _baseUrl = _factory.Server.BaseAddress.ToString().TrimEnd('/');
+
         _playwright = await Playwright.CreateAsync();
         _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
@@ -32,6 +42,7 @@ public class NavigationSmokeTests : IAsyncLifetime
         }
 
         _playwright?.Dispose();
+        _factory?.Dispose();
     }
 
     [Fact]

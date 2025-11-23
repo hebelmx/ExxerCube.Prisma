@@ -1,11 +1,11 @@
-namespace ExxerCube.Prisma.Application.Services;
+namespace ExxerCube.Prisma.Infrastructure.Metrics;
 
 /// <summary>
 /// Represents a processing context for tracking individual document processing.
 /// </summary>
 public class ProcessingContext : IProcessingContext
 {
-    private readonly ProcessingMetricsService _metricsService;
+    private readonly IProcessingMetricsService _metricsService;
     private bool _disposed;
 
     /// <summary>
@@ -30,7 +30,7 @@ public class ProcessingContext : IProcessingContext
     /// <param name="sourcePath">The source path.</param>
     /// <param name="stopwatch">The stopwatch.</param>
     /// <param name="metricsService">The metrics service.</param>
-    internal ProcessingContext(string documentId, string sourcePath, Stopwatch stopwatch, ProcessingMetricsService metricsService)
+    internal ProcessingContext(string documentId, string sourcePath, Stopwatch stopwatch, IProcessingMetricsService metricsService)
     {
         DocumentId = documentId;
         SourcePath = sourcePath;

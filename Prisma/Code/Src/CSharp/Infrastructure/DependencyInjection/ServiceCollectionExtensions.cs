@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Infrastructure.Metrics;
+
 namespace ExxerCube.Prisma.Infrastructure.DependencyInjection;
 
 /// <summary>
@@ -16,12 +18,8 @@ public static class ServiceCollectionExtensions
         // Register Python configuration
         services.AddSingleton(pythonConfiguration);
 
-        // Register metrics and monitoring services
-        services.AddSingleton<ProcessingMetricsService>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<ProcessingMetricsService>>();
-            return new ProcessingMetricsService(logger, pythonConfiguration.MaxConcurrency);
-        });
+        // Register metrics services
+        services.AddMetricsServices(pythonConfiguration.MaxConcurrency);
 
         services.AddScoped<HealthCheckService>();
 
@@ -32,7 +30,7 @@ public static class ServiceCollectionExtensions
             var ocrExecutor = provider.GetRequiredService<IOcrExecutor>();
             var fieldExtractor = provider.GetRequiredService<IFieldExtractor>();
             var logger = provider.GetRequiredService<ILogger<IOcrProcessingService>>();
-            var metricsService = provider.GetRequiredService<ProcessingMetricsService>();
+            var metricsService = provider.GetRequiredService<IProcessingMetricsService>();
 
             return new OcrProcessingService(imagePreprocessor, ocrExecutor, fieldExtractor, logger, metricsService);
         });

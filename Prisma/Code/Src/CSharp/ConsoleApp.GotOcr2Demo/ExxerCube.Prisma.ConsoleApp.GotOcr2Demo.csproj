@@ -8,17 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Reference main project assemblies -->
-    <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
-    <ProjectReference Include="..\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- Microsoft Extensions for DI and Hosting -->
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="CSnakes.Runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
+    <ProjectReference Include="..\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
   </ItemGroup>
 
 </Project>

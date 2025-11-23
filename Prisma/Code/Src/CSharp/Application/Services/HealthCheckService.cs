@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Interfaces;
+
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>
@@ -7,7 +9,7 @@ namespace ExxerCube.Prisma.Application.Services;
 public class HealthCheckService
 {
     private readonly ILogger<HealthCheckService> _logger;
-    private readonly ProcessingMetricsService _metricsService;
+    private readonly IProcessingMetricsService _metricsService;
     private readonly IFileLoader _fileLoader;
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IImagePreprocessor _imagePreprocessor;
@@ -38,7 +40,7 @@ public class HealthCheckService
     /// <param name="outputWriter">The output writer service.</param>
     public HealthCheckService(
         ILogger<HealthCheckService> logger,
-        ProcessingMetricsService metricsService,
+        IProcessingMetricsService metricsService,
         IFileLoader fileLoader,
         IOcrExecutor ocrExecutor,
         IImagePreprocessor imagePreprocessor,

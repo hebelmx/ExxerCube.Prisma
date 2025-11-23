@@ -35,6 +35,13 @@
     <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
   </ItemGroup>
 
+  <ItemGroup Label="NSubstitute Analyzers">
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <ItemGroup Label="Microsoft Testing Platform">
     <PackageReference Include="Microsoft.Testing.Platform" />
     <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
@@ -65,21 +72,12 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup Label="Project-Specific Packages">
-    <PackageReference Include="Microsoft.Playwright" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-  </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\UI\ExxerCube.Prisma.Web.UI\ExxerCube.Prisma.Web.UI.csproj" />
-    <ProjectReference Include="..\Application\ExxerCube.Prisma.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
     <ProjectReference Include="..\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <ProjectReference Include="..\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Testing Platform Capabilities">

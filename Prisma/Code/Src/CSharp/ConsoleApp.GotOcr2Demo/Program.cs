@@ -1,12 +1,3 @@
-using CSnakes.Runtime;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Infrastructure.Extraction.GotOcr2;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
 namespace ExxerCube.Prisma.ConsoleApp.GotOcr2Demo;
 
 /// <summary>
@@ -24,23 +15,22 @@ internal class Program
             var builder = Host.CreateApplicationBuilder(args);
 
             // Setup Python environment for GOT-OCR2
-            var pythonLibPath = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "..", "..", "..", "..", "Infrastructure.Python.GotOcr2"
-            );
-            pythonLibPath = Path.GetFullPath(pythonLibPath);
+            // Files are copied to output directory/python by build
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var pythonLibPath = Path.Combine(baseDirectory, "python");
 
             Console.WriteLine($"Python library path: {pythonLibPath}");
 
-            var venvPath = Path.Combine(pythonLibPath, ".venv_gotor2");
+            var venvPath = Path.Combine(baseDirectory, ".venv_gotor2");
 
-            // Configure CSnakes Python environment
+            // Configure CSnakes Python environment (proven configuration from GotOcr2Sample)
+            var requirementsPath = Path.Combine(baseDirectory, "requirements.txt");
             builder.Services
                 .WithPython()
                 .WithHome(pythonLibPath)
-                .WithVirtualEnvironment(venvPath, ensureEnvironment: true)
+                .WithVirtualEnvironment(venvPath)
                 .FromRedistributable("3.13")
-                .WithPipInstaller("requirements.txt");
+                .WithPipInstaller(requirementsPath);
 
             // Add logging
             builder.Logging.ClearProviders();
@@ -52,15 +42,18 @@ internal class Program
 
             var host = builder.Build();
 
-            // Install Python packages from requirements.txt
-            Console.WriteLine("Installing Python dependencies (this may take several minutes on first run)...");
-            var packageInstaller = host.Services.GetRequiredService<CSnakes.Runtime.PackageManagement.IPythonPackageInstaller>();
-            await packageInstaller.InstallPackagesFromRequirements(pythonLibPath, "requirements.txt");
-            Console.WriteLine("✓ Python dependencies installed\n");
+            // CSnakes will automatically create venv and install packages on first run
+            Console.WriteLine("Initializing Python environment (this may take several minutes on first run)...");
+            Console.WriteLine("- Downloading Python 3.13 redistributable if needed");
+            Console.WriteLine("- Creating virtual environment");
+            Console.WriteLine("- Installing PyTorch, transformers, and GOT-OCR2 dependencies");
+            Console.WriteLine("- Downloading GOT-OCR2 model (~3-5GB) on first health check\n");
 
             // Get services
             var pythonEnv = host.Services.GetRequiredService<IPythonEnvironment>();
             var executor = host.Services.GetRequiredService<IOcrExecutor>();
+
+            Console.WriteLine("✓ Python environment initialized\n");
 
             // Run demos
             await RunHealthCheckDemo(pythonEnv);

@@ -1,4 +1,6 @@
-namespace ExxerCube.Prisma.Application.Services;
+using ExxerCube.Prisma.Domain.ValueObjects;
+
+namespace ExxerCube.Prisma.Infrastructure.Metrics;
 
 /// <summary>
 /// Service for collecting and managing performance metrics for OCR processing.
