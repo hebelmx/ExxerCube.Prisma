@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace ExxerCube.Prisma.ConsoleApp.GotOcr2Demo;
 
 /// <summary>
@@ -7,7 +9,22 @@ internal class Program
 {
     private static async Task<int> Main(string[] args)
     {
-        Console.WriteLine("=== ExxerCube.Prisma - GOT-OCR2 Integration Demo ===\n");
+        // Configure Serilog early for diagnostics
+        var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        var logFilePath = Path.Combine(baseDirectory, "logs", "gotocr2-demo-.log");
+
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .WriteTo.File(
+                logFilePath,
+                rollingInterval: RollingInterval.Day,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                retainedFileCountLimit: 7)
+            .CreateLogger();
+
+        Log.Information("=== ExxerCube.Prisma - GOT-OCR2 Integration Demo ===");
+        Log.Information("Log file: {LogFilePath}", logFilePath);
 
         try
         {
@@ -16,10 +33,10 @@ internal class Program
 
             // Setup Python environment for GOT-OCR2
             // Files are copied to output directory/python by build
-            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var pythonLibPath = Path.Combine(baseDirectory, "python");
 
-            Console.WriteLine($"Python library path: {pythonLibPath}");
+            Log.Information("Python library path: {PythonLibPath}", pythonLibPath);
+            Log.Information("Base directory: {BaseDirectory}", baseDirectory);
 
             var venvPath = Path.Combine(baseDirectory, ".venv_gotor2");
 
@@ -32,47 +49,42 @@ internal class Program
                 .FromRedistributable("3.13")
                 .WithPipInstaller(requirementsPath);
 
-            // Add logging
-            builder.Logging.ClearProviders();
-            builder.Logging.AddConsole();
-            builder.Logging.SetMinimumLevel(LogLevel.Information);
+            // Add Serilog
+            builder.Services.AddSerilog(Log.Logger);
 
             // Register OCR executor
             builder.Services.AddScoped<IOcrExecutor, GotOcr2OcrExecutor>();
 
             var host = builder.Build();
-
+            var logger = host.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
             // CSnakes will automatically create venv and install packages on first run
-            Console.WriteLine("Initializing Python environment (this may take several minutes on first run)...");
-            Console.WriteLine("- Downloading Python 3.13 redistributable if needed");
-            Console.WriteLine("- Creating virtual environment");
-            Console.WriteLine("- Installing PyTorch, transformers, and GOT-OCR2 dependencies");
-            Console.WriteLine("- Downloading GOT-OCR2 model (~3-5GB) on first health check\n");
+            Log.Information("Initializing Python environment (this may take several minutes on first run)...");
+            Log.Information("- Downloading Python 3.13 redistributable if needed");
+            Log.Information("- Creating virtual environment");
+            Log.Information("- Installing PyTorch, transformers, and GOT-OCR2 dependencies");
+            Log.Information("- Downloading GOT-OCR2 model (~3-5GB) on first health check");
 
             // Get services
             var pythonEnv = host.Services.GetRequiredService<IPythonEnvironment>();
             var executor = host.Services.GetRequiredService<IOcrExecutor>();
 
-            Console.WriteLine("✓ Python environment initialized\n");
+            Log.Information("✓ Python environment initialized");
 
             // Run demos
             await RunHealthCheckDemo(pythonEnv);
-            await RunOcrDemo(executor, args);
+            await RunOcrDemo(executor, logger, args);
 
+            Log.Information("Demo completed successfully");
             return 0;
         }
         catch (Exception ex)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"\n[ERROR] {ex.Message}");
-            Console.ResetColor();
-            Console.WriteLine($"\nStack trace:\n{ex.StackTrace}");
-            if (ex.InnerException != null)
-            {
-                Console.WriteLine($"\nInner exception: {ex.InnerException.Message}");
-                Console.WriteLine($"Inner stack trace:\n{ex.InnerException.StackTrace}");
-            }
+            Log.Fatal(ex, "Fatal error in GOT-OCR2 demo");
             return 1;
+        }
+        finally
+        {
+            await Log.CloseAndFlushAsync();
         }
     }
 
@@ -121,51 +133,50 @@ internal class Program
         }
     }
 
-    private static async Task RunOcrDemo(IOcrExecutor executor, string[] args)
+    private static async Task RunOcrDemo(IOcrExecutor executor, Microsoft.Extensions.Logging.ILogger logger, string[] args)
     {
         Console.WriteLine("\n--- OCR Execution Demo ---");
 
-        // Get image path from args or use default
-        string imagePath;
+        // Use file locator helper with detailed logging
+        var imagePath = FixtureFileLocator.LocateFixtureImage(logger, args);
 
-        if (args.Length > 0 && File.Exists(args[0]))
+        if (imagePath == null)
         {
-            imagePath = args[0];
-        }
-        else
-        {
-            // Look for fixtures in solution
-            var fixturesPath = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "..", "..", "..", "..", "..", "..", "..", "Fixtures", "PRP1"
-            );
-            fixturesPath = Path.GetFullPath(fixturesPath);
-
-            if (!Directory.Exists(fixturesPath))
-            {
-                Console.WriteLine($"\n⚠ Fixtures directory not found: {fixturesPath}");
-                Console.WriteLine("Usage: dotnet run <image-path>");
-                Console.WriteLine("       dotnet run path/to/document.jpg");
-                return;
-            }
-
-            var jpgFiles = Directory.GetFiles(fixturesPath, "*.jpg", SearchOption.TopDirectoryOnly);
-
-            if (jpgFiles.Length == 0)
-            {
-                Console.WriteLine("\n⚠ No image file specified and no fixtures found.");
-                Console.WriteLine("Usage: dotnet run <image-path>");
-                return;
-            }
-
-            imagePath = jpgFiles[0];
+            Console.WriteLine("\n⚠ Could not locate any fixture images.");
+            Console.WriteLine("Usage: dotnet run <image-path>");
+            Console.WriteLine("       dotnet run \"C:\\path\\to\\document.jpg\"");
+            return;
         }
 
-        Console.WriteLine($"\nProcessing image: {Path.GetFileName(imagePath)}");
+        Log.Information("✓ File located: {FileName}", Path.GetFileName(imagePath));
 
-        // Read image
-        var imageBytes = await File.ReadAllBytesAsync(imagePath);
-        var imageData = new ImageData(imageBytes, imagePath);
+        // Check file type
+        var fileExtension = Path.GetExtension(imagePath).ToLowerInvariant();
+        var isPdf = fileExtension == ".pdf";
+
+        if (isPdf)
+        {
+            Log.Information("PDF file detected - GOT-OCR2 supports PDF natively!");
+
+            // Get page count for logging
+            try
+            {
+                var pdfBytes = await File.ReadAllBytesAsync(imagePath);
+                using var pdfDocument = PdfDocument.Open(pdfBytes);
+                Log.Information("PDF contains {PageCount} page(s)", pdfDocument.NumberOfPages);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Could not read PDF metadata, will attempt OCR anyway");
+            }
+        }
+
+        // Read file (PDF or image) - GOT-OCR2 handles both
+        Log.Debug("Reading file: {FilePath}", imagePath);
+        var fileBytes = await File.ReadAllBytesAsync(imagePath);
+        Log.Debug("File size: {Size:N0} bytes", fileBytes.Length);
+
+        var imageData = new ImageData(fileBytes, imagePath);
 
         // Configure OCR (Spanish with moderate confidence threshold)
         var config = new OCRConfig(
@@ -176,42 +187,40 @@ internal class Program
             confidenceThreshold: 0.7f
         );
 
-        Console.WriteLine($"Running OCR with language={config.Language}, threshold={config.ConfidenceThreshold}...\n");
+        Log.Information("Running OCR with language={Language}, threshold={Threshold:F2}", config.Language, config.ConfidenceThreshold);
 
         // Execute OCR
         var startTime = DateTime.UtcNow;
+        Log.Debug("Starting OCR execution at {StartTime}", startTime);
         var result = await executor.ExecuteOcrAsync(imageData, config);
         var elapsed = DateTime.UtcNow - startTime;
+        Log.Debug("OCR execution completed in {Elapsed:F2}s", elapsed.TotalSeconds);
 
         // Display results
         if (result.IsSuccess)
         {
             var ocrResult = result.Value;
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("✓ OCR succeeded");
-            Console.ResetColor();
+            Log.Information("✓ OCR succeeded");
+            Log.Information("Results:");
+            Log.Information("  Text length: {Length} characters", ocrResult?.Text.Length ?? 0);
+            Log.Information("  Confidence avg: {ConfidenceAvg:F2}%", ocrResult?.ConfidenceAvg);
+            Log.Information("  Confidence median: {ConfidenceMedian:F2}%", ocrResult?.ConfidenceMedian);
+            Log.Information("  Language: {Language}", ocrResult?.LanguageUsed);
+            Log.Information("  Processing time: {ProcessingTime:F2}s", elapsed.TotalSeconds);
 
-            Console.WriteLine($"\nResults:");
-            Console.WriteLine($"  Text length: {ocrResult?.Text.Length ?? 0} characters");
-            Console.WriteLine($"  Confidence avg: {ocrResult?.ConfidenceAvg:F2}%");
-            Console.WriteLine($"  Confidence median: {ocrResult?.ConfidenceMedian:F2}%");
-            Console.WriteLine($"  Language: {ocrResult?.LanguageUsed}");
-            Console.WriteLine($"  Processing time: {elapsed.TotalSeconds:F2}s");
-
-            Console.WriteLine($"\nExtracted text (first 500 chars):");
-            Console.WriteLine(new string('-', 80));
             var preview = ocrResult?.Text.Length > 500
                 ? ocrResult.Text.Substring(0, 500) + "..."
                 : ocrResult?.Text;
-            Console.WriteLine(preview);
-            Console.WriteLine(new string('-', 80));
+
+            Log.Information("Extracted text (first 500 chars):");
+            Log.Information("{Separator}", new string('-', 80));
+            Log.Information("{Preview}", preview);
+            Log.Information("{Separator}", new string('-', 80));
         }
         else
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"✗ OCR failed: {result.Error}");
-            Console.ResetColor();
+            Log.Error("✗ OCR failed: {Error}", result.Error);
         }
     }
 }

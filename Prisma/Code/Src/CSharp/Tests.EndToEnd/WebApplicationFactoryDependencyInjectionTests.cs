@@ -1,3 +1,4 @@
+using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -67,6 +68,7 @@ public class WebApplicationFactoryDependencyInjectionTests : IClassFixture<TestW
 
         // Infrastructure Services
         scopedProvider.GetService<IDbContextFactory<ApplicationDbContext>>().ShouldNotBeNull();
+        
         scopedProvider.GetService<ProcessingHub>().ShouldNotBeNull();
         scopedProvider.GetService<IdentityUserAccessor>().ShouldNotBeNull();
         scopedProvider.GetService<IdentityRedirectManager>().ShouldNotBeNull();

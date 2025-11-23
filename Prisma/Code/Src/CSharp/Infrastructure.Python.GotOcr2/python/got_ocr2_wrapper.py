@@ -241,16 +241,33 @@ def execute_ocr(
         ...     image_data = f.read()
         >>> text, avg, median, scores, lang = execute_ocr(image_data, "spa", 0.7)
     """
+    print("[DEBUG] ========================================")
+    print("[DEBUG] execute_ocr() called")
+    print(f"[DEBUG] Parameters:")
+    print(f"[DEBUG]   language: {language}")
+    print(f"[DEBUG]   confidence_threshold: {confidence_threshold}")
+    print(f"[DEBUG]   batch_size: {batch_size}")
+    print(f"[DEBUG]   image_bytes length: {len(image_bytes):,} bytes")
+
     try:
         # Import libraries here (sys.path cleaned at module level)
+        print("[DEBUG] Importing torch...")
         import torch
+        print(f"[DEBUG] torch version: {torch.__version__}")
+
+        print("[DEBUG] Importing PIL.Image...")
         from PIL import Image
+        print("[DEBUG] PIL.Image imported successfully")
 
         # Select optimal device for this operation
+        print(f"[DEBUG] Selecting optimal device for batch_size={batch_size}...")
         device, dtype = select_optimal_device(batch_size)
+        print(f"[DEBUG] Selected device: {device}, dtype: {dtype}")
 
         # Load model (cached after first call)
+        print("[DEBUG] Loading GOT-OCR2 model (cached if previously loaded)...")
         model, processor = load_model()
+        print(f"[DEBUG] Model loaded, current device: {model.device.type}")
 
         # Move model to selected device if needed
         if model.device.type != device:
@@ -258,14 +275,70 @@ def execute_ocr(
             model = model.to(device)
             if dtype:
                 model = model.to(dtype)
+            print(f"[DEBUG] Model moved to {device}")
+        else:
+            print(f"[DEBUG] Model already on {device}, no move needed")
 
-        # Convert bytes to PIL Image
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        # Detect if this is a PDF or image
+        print("[DEBUG] Detecting file type from bytes signature...")
+        is_pdf = image_bytes.startswith(b'%PDF')
+        print(f"[DEBUG] File type: {'PDF' if is_pdf else 'Image'}")
 
-        # Process image with GOT-OCR2 processor
-        inputs = processor(image, return_tensors="pt").to(device)
+        if is_pdf:
+            # Convert PDF to image using pdf2image (PyMuPDF alternative)
+            print("[DEBUG] Converting PDF to images...")
+            try:
+                import fitz  # PyMuPDF
+                print("[DEBUG] Using PyMuPDF (fitz) for PDF processing")
+
+                # Open PDF from bytes
+                pdf_document = fitz.open(stream=image_bytes, filetype="pdf")
+                print(f"[DEBUG] PDF opened, {len(pdf_document)} page(s) found")
+
+                # Convert first page to image (for now, process only first page)
+                # TODO: Support multi-page PDFs
+                page = pdf_document[0]
+                print(f"[DEBUG] Processing page 1 of {len(pdf_document)}")
+
+                # Render page to image at 300 DPI for high quality OCR
+                mat = fitz.Matrix(300/72, 300/72)  # 300 DPI
+                pix = page.get_pixmap(matrix=mat)
+                print(f"[DEBUG] Page rendered to pixmap: {pix.width}x{pix.height} pixels")
+
+                # Convert pixmap to PIL Image
+                img_data = pix.tobytes("ppm")
+                image = Image.open(io.BytesIO(img_data)).convert("RGB")
+                print(f"[DEBUG] Converted to PIL Image: size={image.size}, mode={image.mode}")
+
+                pdf_document.close()
+                print("[DEBUG] PDF document closed")
+
+            except ImportError:
+                print("[ERROR] PyMuPDF (fitz) not installed. Install with: pip install pymupdf")
+                print("[ERROR] Falling back to treating PDF as image (will likely fail)")
+                # Fallback: try to open as image (will fail for PDFs)
+                image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+            # Process the converted image
+            print("[DEBUG] Processing converted PDF page with GOT-OCR2 processor...")
+            inputs = processor(image, return_tensors="pt").to(device)
+            print(f"[DEBUG] Input tensors created from PDF, shape: {inputs['input_ids'].shape}")
+        else:
+            # Convert image bytes to PIL Image
+            print("[DEBUG] Converting bytes to PIL Image...")
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+            print(f"[DEBUG] Image loaded: size={image.size}, mode={image.mode}")
+
+            # Process image with GOT-OCR2 processor
+            print("[DEBUG] Processing image with GOT-OCR2 processor...")
+            inputs = processor(image, return_tensors="pt").to(device)
+            print(f"[DEBUG] Input tensors created, shape: {inputs['input_ids'].shape}")
 
         # Generate OCR output
+        print("[DEBUG] Generating OCR output (this may take a while)...")
+        import time
+        start_time = time.time()
+
         with torch.no_grad():
             generate_ids = model.generate(
                 **inputs,
@@ -275,19 +348,29 @@ def execute_ocr(
                 max_new_tokens=4096,
             )
 
+        generation_time = time.time() - start_time
+        print(f"[DEBUG] OCR generation completed in {generation_time:.2f}s")
+        print(f"[DEBUG] Generated token count: {generate_ids.shape[1] - inputs['input_ids'].shape[1]}")
+
         # Decode the generated text
+        print("[DEBUG] Decoding generated tokens to text...")
         extracted_text = processor.decode(
             generate_ids[0, inputs["input_ids"].shape[1]:],
             skip_special_tokens=True
         )
+        print(f"[DEBUG] Raw extracted text length: {len(extracted_text)} characters")
 
         # Clean up text
         extracted_text = extracted_text.strip() if extracted_text else ""
+        print(f"[DEBUG] Cleaned text length: {len(extracted_text)} characters")
+        print(f"[DEBUG] Text preview (first 200 chars): {extracted_text[:200]}...")
 
         # Calculate confidence metrics
         # Note: GOT-OCR2 doesn't provide per-word confidence scores like Tesseract
         # We use a heuristic based on text length and quality
+        print("[DEBUG] Calculating confidence heuristic...")
         confidence_score = calculate_confidence_heuristic(extracted_text, confidence_threshold)
+        print(f"[DEBUG] Calculated confidence score: {confidence_score:.2f}%")
 
         # For compatibility with IOcrExecutor interface, we return the same confidence
         # for avg and median since we don't have per-word scores
@@ -296,6 +379,13 @@ def execute_ocr(
 
         # Return a single confidence score in the list (no per-word scores available)
         confidences = [confidence_score]
+
+        print(f"[SUCCESS] OCR completed successfully")
+        print(f"[SUCCESS]   Text length: {len(extracted_text)} characters")
+        print(f"[SUCCESS]   Confidence: {confidence_avg:.2f}%")
+        print(f"[SUCCESS]   Language: {language}")
+        print(f"[SUCCESS]   Processing time: {generation_time:.2f}s")
+        print("[DEBUG] ========================================")
 
         return (
             extracted_text,
@@ -306,8 +396,13 @@ def execute_ocr(
         )
 
     except Exception as e:
+        import traceback
         error_msg = f"OCR execution failed: {str(e)}"
         print(f"[ERROR] {error_msg}")
+        print(f"[ERROR] Exception type: {type(e).__name__}")
+        print(f"[ERROR] Traceback:")
+        traceback.print_exc()
+        print("[DEBUG] ========================================")
         # Return empty result with zero confidence on error
         return ("", 0.0, 0.0, [0.0], language)
 

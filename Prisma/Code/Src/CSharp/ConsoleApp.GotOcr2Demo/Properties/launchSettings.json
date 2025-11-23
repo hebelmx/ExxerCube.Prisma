@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ExxerCube.Prisma.ConsoleApp.GotOcr2Demo": {
+      "commandName": "Project",
+      "commandLineArgs": "run \"F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Samples\\GotOcr2Sample\\PythonOcrLib\\PRP1222AAA-44444444442025.pdf\""
+    }
+  }
+}
