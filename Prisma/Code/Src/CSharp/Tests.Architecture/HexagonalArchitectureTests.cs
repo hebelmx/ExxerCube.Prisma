@@ -75,9 +75,11 @@ public sealed class HexagonalArchitectureTests
 
         // Exclude infrastructure-specific interfaces that are not Domain ports
         // IPrismaDbContext: EF Core DbContext abstraction, infrastructure-specific (not a Domain port)
+        // IPrismaOcrWrapper: CSnakes auto-generated interface, infrastructure-specific (not a Domain port)
         var excludedInterfaces = new HashSet<string>
         {
-            "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext"
+            "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext",
+            "CSnakes.Runtime.IPrismaOcrWrapper"
         };
 
         foreach (var infrastructureAssembly in InfrastructureAssemblies)

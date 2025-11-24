@@ -273,7 +273,7 @@ public class Program
                         // Add Entity Framework Core instrumentation
                         .AddEntityFrameworkCoreInstrumentation(options =>
                         {
-                            options.SetDbStatementForText = true;
+                            //  options.SetDbStatementForText = true;
                             options.EnrichWithIDbCommand = (activity, command) =>
                             {
                                 activity.SetTag("db.command.text", command.CommandText);
