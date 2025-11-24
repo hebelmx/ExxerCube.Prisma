@@ -59,10 +59,23 @@ Passed! - Failed: 0, Passed: 6, Skipped: 0, Total: 6
 
 ## If Tests Fail
 
+### ⚠️ KNOWN ISSUE: Corrupted transformers Package
+If you see `FileNotFoundError` for transformers files:
+```bash
+# Delete corrupted venv
+cd bin\...\net10.0
+rm -rf .venv_gotor2_tests
+
+# Rerun tests (CSnakes recreates venv automatically)
+dotnet test Tests.Infrastructure.Extraction.GotOcr2
+```
+
+### Other Issues
 1. Check venv created: `dir bin\...\net10.0\.venv_gotor2_tests`
 2. Re-run setup: `setup_manual_venv.bat`
 3. Check logs in: `bin\...\net10.0\TestResults\`
-4. See **FIXES_APPLIED.md** → Troubleshooting section
+4. See **DIAGNOSIS_FOUND.md** for root cause analysis
+5. See **FIXES_APPLIED.md** → Troubleshooting section
 
 ---
 

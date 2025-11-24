@@ -55,9 +55,6 @@ internal class Program
 
             // Install Python packages from requirements.txt (like TransformersSharp does)
             Console.WriteLine("Installing Python dependencies (this may take several minutes on first run)...");
-            var packageInstaller = host.Services.GetRequiredService<CSnakes.Runtime.PackageManagement.IPythonPackageInstaller>();
-          //  await packageInstaller.InstallPackage("torch==2.6.0");
-         //   await packageInstaller.InstallPackagesFromRequirements(pythonLibPath, "requirements.txt");
             Console.WriteLine("✓ Python dependencies installed\n");
 
             // Create executor

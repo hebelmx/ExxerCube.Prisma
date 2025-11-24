@@ -1,6 +1,4 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using Castle.Core.Logging;
 using CSnakes.Runtime;
 using GotOcr2Sample.Domain.Interfaces;
 using GotOcr2Sample.Domain.Models;
@@ -9,7 +7,11 @@ using GotOcr2Sample.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Shouldly;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace GotOcr2Sample.Tests;
@@ -24,9 +26,13 @@ public class IntegrationTests : IDisposable
     private readonly IHost _host;
     private readonly IOcrExecutor _executor;
     private readonly string _fixturesPath;
+    private readonly ILogger<IntegrationTests> _logger;
+    private readonly ITestOutputHelper _output;
 
-    public IntegrationTests()
+    public IntegrationTests(ITestOutputHelper output)
     {
+        _output = output;
+        _logger = XunitLogger.CreateLogger<IntegrationTests>.CreateLogger<IntegrationTests>();
         // Setup Python environment path
         var pythonLibPath = Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory,
@@ -42,9 +48,9 @@ public class IntegrationTests : IDisposable
         builder.Services
             .WithPython()
             .WithHome(pythonLibPath)
-            .WithVirtualEnvironment(venvPath)
-            .FromEnvironmentVariable("Python3_ROOT_DIR", "3.12")
-            .WithPipInstaller();
+            .WithVirtualEnvironment(venvPath, true)
+            .FromRedistributable("3.13")
+            .WithPipInstaller("requirements.txt");
 
         builder.Logging.AddConsole();
         builder.Logging.SetMinimumLevel(LogLevel.Information);
@@ -64,7 +70,7 @@ public class IntegrationTests : IDisposable
         _fixturesPath = Path.GetFullPath(_fixturesPath);
     }
 
-    [Fact(Skip = "Requires GOT-OCR2 model download (~5GB). Run manually.")]
+    [Fact]
     public async Task ExecuteOcrAsync_WithRealPdfFixture_ExtractsText()
     {
         // Arrange
@@ -84,6 +90,7 @@ public class IntegrationTests : IDisposable
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
         result.Value.Text.ShouldNotBeEmpty();
         result.Value.ConfidenceAvg.ShouldBeGreaterThan(0);
 
@@ -92,7 +99,7 @@ public class IntegrationTests : IDisposable
         Console.WriteLine($"Text preview: {result.Value.Text.Substring(0, Math.Min(200, result.Value.Text.Length))}...");
     }
 
-    [Fact(Skip = "Requires GOT-OCR2 model download (~5GB). Run manually.")]
+    [Fact]
     public async Task ExecuteOcrAsync_WithMultipleFixtures_ProcessesAll()
     {
         // Arrange
@@ -114,7 +121,8 @@ public class IntegrationTests : IDisposable
 
             var result = await _executor.ExecuteOcrAsync(imageData, config);
 
-            if (result.IsSuccess)
+            if (result.IsSuccess && result.Value is not null)
+
             {
                 successCount++;
                 Console.WriteLine($"✓ {Path.GetFileName(imageFile)}: {result.Value.Text.Length} chars, {result.Value.ConfidenceAvg:F2}% confidence");
@@ -130,7 +138,7 @@ public class IntegrationTests : IDisposable
         Console.WriteLine($"\nProcessed {successCount}/{imageFiles.Length} files successfully");
     }
 
-    [Fact(Skip = "Requires GOT-OCR2 model download (~5GB). Run manually.")]
+    [Fact]
     public async Task ExecuteOcrAsync_WithPdfPage_ExtractsSpanishText()
     {
         // Arrange
@@ -150,6 +158,8 @@ public class IntegrationTests : IDisposable
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+
         result.Value.LanguageUsed.ShouldBe("spa");
 
         // Check for Spanish content indicators
@@ -166,7 +176,7 @@ public class IntegrationTests : IDisposable
         Console.WriteLine($"Extracted Spanish text: {result.Value.Text.Length} characters");
     }
 
-    [Fact(Skip = "Requires Python environment setup")]
+    [Fact]
     public async Task ExecuteOcrAsync_WithInvalidImage_ReturnsFailureOrEmptyResult()
     {
         // Arrange
@@ -179,15 +189,11 @@ public class IntegrationTests : IDisposable
 
         // Assert
         // Either fails or returns empty text
-        if (result.IsSuccess)
-        {
-            result.Value.Text.ShouldBeEmpty();
-            result.Value.ConfidenceAvg.ShouldBe(0);
-        }
-        else
-        {
-            result.IsFailure.ShouldBeTrue();
-        }
+        result.IsSuccess.ShouldBeTrue();
+
+        result.Value.ShouldNotBeNull();
+        result.Value.Text.ShouldBeEmpty();
+        result.Value.ConfidenceAvg.ShouldBe(0);
     }
 
     public void Dispose()
