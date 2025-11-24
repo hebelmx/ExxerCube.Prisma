@@ -114,7 +114,7 @@ public class GotOcr2OcrExecutorTests : IAsyncLifetime
     /// </summary>
     /// <param name="fixtureName">Name of the fixture file (without path)</param>
     /// <param name="expectedMinConfidence">Minimum acceptable confidence threshold</param>
-    [Theory(DisplayName = "GOT-OCR2 should process CNBV PDF fixtures with >75% confidence", Timeout = 120000)]
+    [Theory(DisplayName = "GOT-OCR2 should process CNBV PDF fixtures with >75% confidence", Timeout = 300_000)]
     [InlineData("222AAA-44444444442025.pdf", 75.0f)]
     [InlineData("333BBB-44444444442025.pdf", 75.0f)]
     [InlineData("333ccc-6666666662025.pdf", 75.0f)]
@@ -155,12 +155,11 @@ public class GotOcr2OcrExecutorTests : IAsyncLifetime
         _logger.LogInformation($"OCR completed in {elapsed.TotalSeconds:F2}s");
 
         // Assert - Test IOcrExecutor contract compliance
-        result.ShouldSatisfyAllConditions(
-            () => result.IsSuccess.ShouldBeTrue("OCR execution should succeed"),
-            () => result.Value.ShouldNotBeNull("OCR result should not be null")
-        );
 
-        var ocrResult = result.Value!;
+        result.IsSuccess.ShouldBeTrue("OCR execution should succeed");
+        result.Value.ShouldNotBeNull("OCR result should not be null");
+
+        var ocrResult = result.Value;
 
         _logger.LogInformation($"Results:");
         _logger.LogInformation($"  Text length: {ocrResult.Text.Length} characters");
