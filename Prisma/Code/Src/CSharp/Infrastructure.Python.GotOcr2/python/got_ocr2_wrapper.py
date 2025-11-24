@@ -18,11 +18,19 @@ from typing import Optional, Tuple, List
 warnings.filterwarnings("ignore")
 
 # Configure Python logging (works in CSnakes unlike print())
+# Also write to a file for debugging
+import tempfile
+_log_file = os.path.join(tempfile.gettempdir(), 'got_ocr2_debug.log')
 logging.basicConfig(
     level=logging.DEBUG,
-    format='[%(levelname)s] %(message)s'
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # Still try stderr
+        logging.FileHandler(_log_file, mode='a')  # Also write to file
+    ]
 )
 logger = logging.getLogger(__name__)
+logger.info(f"GOT-OCR2 wrapper initialized. Debug log: {_log_file}")
 
 # Remove current directory from sys.path to prevent torch import conflicts
 # Keep original path for restoration
@@ -333,8 +341,12 @@ def execute_ocr(
         )
 
     except Exception as e:
+        import traceback
         error_msg = f"OCR execution failed: {str(e)}"
         logger.error(f"{error_msg}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Traceback:")
+        traceback.print_exc()
         # Return empty result with zero confidence on error
         return ("", 0.0, 0.0, [0.0], language)
 

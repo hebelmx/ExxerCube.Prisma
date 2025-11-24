@@ -32,18 +32,24 @@ public class GotOcr2OcrExecutor : IOcrExecutor
     {
         try
         {
-            _logger.LogInformation(
-                "Executing GOT-OCR2 OCR on image: {SourcePath}, Page: {PageNumber}/{TotalPages}",
-                imageData.SourcePath,
-                imageData.PageNumber,
-                imageData.TotalPages);
+            // Validate input first (before any logging that accesses imageData properties)
+            if (imageData == null)
+            {
+                _logger.LogWarning("Null image data provided");
+                return Result<OCRResult>.Failure("Image data is null");
+            }
 
-            // Validate input
             if (imageData.Data == null || imageData.Data.Length == 0)
             {
                 _logger.LogWarning("Empty image data provided");
                 return Result<OCRResult>.Failure("Image data is empty");
             }
+
+            _logger.LogInformation(
+                "Executing GOT-OCR2 OCR on image: {SourcePath}, Page: {PageNumber}/{TotalPages}",
+                imageData.SourcePath,
+                imageData.PageNumber,
+                imageData.TotalPages);
 
             // Get the Python module wrapper using CSnakes-generated strongly-typed extension method
             var gotOcr2Module = _pythonEnvironment.GotOcr2Wrapper();
@@ -70,6 +76,14 @@ public class GotOcr2OcrExecutor : IOcrExecutor
             double confidenceMedian = pythonResult.Item3;
             dynamic confidencesListDynamic = pythonResult.Item4; // IEnumerable<double> from CSnakes
             string languageUsed = pythonResult.Item5;
+
+            // Log if Python returned empty results (indicates an error was caught silently)
+            if (string.IsNullOrEmpty(extractedText) && confidenceAvg == 0.0)
+            {
+                _logger.LogWarning(
+                    "Python returned empty OCR result with 0 confidence. This typically indicates an exception was caught in Python. " +
+                    "Check Python logs or enable Python diagnostic output.");
+            }
 
             // Convert confidences to List<float> - cast dynamic to IEnumerable first
             var confidences = ((System.Collections.Generic.IEnumerable<double>)confidencesListDynamic)

@@ -11,10 +11,18 @@ import io
 import os
 import sys
 import warnings
+import logging
 from typing import Optional, Tuple, List
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
+
+# Configure Python logging (works in CSnakes unlike print())
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='[%(levelname)s] %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Remove current directory from sys.path to prevent torch import conflicts
 # Keep original path for restoration
@@ -70,7 +78,7 @@ def select_optimal_device(batch_size: int = 1) -> Tuple[str, any]:
         if has_cuda:
             return "cuda", torch.bfloat16
         else:
-            print("[WARNING] force_cuda requested but CUDA not available, falling back to CPU")
+            logger.warning("force_cuda requested but CUDA not available, falling back to CPU")
             return "cpu", torch.float32
 
     if DEVICE_STRATEGY == "cuda":
@@ -81,11 +89,11 @@ def select_optimal_device(batch_size: int = 1) -> Tuple[str, any]:
 
     # "auto" strategy (default)
     if has_cuda and batch_size >= GPU_BATCH_THRESHOLD:
-        print(f"[INFO] Using GPU for batch_size={batch_size} (threshold={GPU_BATCH_THRESHOLD})")
+        logger.info(f"Using GPU for batch_size={batch_size} (threshold={GPU_BATCH_THRESHOLD})")
         return "cuda", torch.bfloat16
     else:
         reason = f"batch_size={batch_size} < threshold={GPU_BATCH_THRESHOLD}" if has_cuda else "CUDA not available"
-        print(f"[INFO] Using CPU ({reason})")
+        logger.info(f"Using CPU ({reason})")
         return "cpu", torch.float32
 
 # Model configuration
@@ -120,48 +128,48 @@ def load_model():
     """
     global _model, _processor, _model_loaded, _device_config_initialized, HAS_CUDA, DEVICE, DTYPE
 
-    print("[DEBUG] load_model() called")
-    print(f"[DEBUG] _model_loaded: {_model_loaded}")
-    print(f"[DEBUG] _model is None: {_model is None}")
-    print(f"[DEBUG] _processor is None: {_processor is None}")
+    logger.debug("load_model() called")
+    logger.debug(f"_model_loaded: {_model_loaded}")
+    logger.debug(f"_model is None: {_model is None}")
+    logger.debug(f"_processor is None: {_processor is None}")
 
     if _model_loaded and _model is not None and _processor is not None:
-        print("[DEBUG] Returning cached model")
+        logger.debug("Returning cached model")
         return _model, _processor
 
     try:
-        print("[DEBUG] Starting model load process...")
-        print(f"[DEBUG] sys.path: {sys.path[:3]}...")  # First 3 entries
-        print(f"[DEBUG] Current working directory: {os.getcwd()}")
+        logger.debug("Starting model load process...")
+        logger.debug(f"sys.path: {sys.path[:3]}...")  # First 3 entries
+        logger.debug(f"Current working directory: {os.getcwd()}")
 
         # Import libraries here (sys.path cleaned at module level)
-        print("[DEBUG] Importing torch...")
+        logger.debug("Importing torch...")
         import torch
-        print(f"[DEBUG] torch imported successfully, version: {torch.__version__}")
+        logger.debug(f"torch imported successfully, version: {torch.__version__}")
 
-        print("[DEBUG] Importing transformers...")
+        logger.debug("Importing transformers...")
         import transformers
-        print(f"[DEBUG] transformers imported successfully, version: {transformers.__version__}")
+        logger.debug(f"transformers imported successfully, version: {transformers.__version__}")
 
-        print("[DEBUG] Getting AutoProcessor from transformers...")
+        logger.debug("Getting AutoProcessor from transformers...")
         AutoProcessor = transformers.AutoProcessor
-        print(f"[DEBUG] AutoProcessor type: {type(AutoProcessor)}")
+        logger.debug(f"AutoProcessor type: {type(AutoProcessor)}")
 
-        print("[DEBUG] Getting AutoModelForImageTextToText from transformers...")
+        logger.debug("Getting AutoModelForImageTextToText from transformers...")
         AutoModelForImageTextToText = transformers.AutoModelForImageTextToText
-        print(f"[DEBUG] AutoModelForImageTextToText type: {type(AutoModelForImageTextToText)}")
+        logger.debug(f"AutoModelForImageTextToText type: {type(AutoModelForImageTextToText)}")
 
         # Initialize device config if not done
         if not _device_config_initialized:
-            print("[DEBUG] Initializing device config...")
+            logger.debug("Initializing device config...")
             HAS_CUDA = is_cuda_supported()
             DEVICE = "cuda" if HAS_CUDA else "cpu"
             DTYPE = torch.bfloat16 if HAS_CUDA else torch.float32
             _device_config_initialized = True
-            print(f"[DEBUG] Device config initialized: CUDA={HAS_CUDA}, DEVICE={DEVICE}, DTYPE={DTYPE}")
+            logger.debug(f"Device config initialized: CUDA={HAS_CUDA}, DEVICE={DEVICE}, DTYPE={DTYPE}")
 
-        print(f"[INFO] Loading GOT-OCR2 model: {MODEL_ID}")
-        print(f"[INFO] Device: {DEVICE}, dtype: {DTYPE}")
+        logger.info(f"Loading GOT-OCR2 model: {MODEL_ID}")
+        logger.info(f"Device: {DEVICE}, dtype: {DTYPE}")
 
         _model = AutoModelForImageTextToText.from_pretrained(
             MODEL_ID,
@@ -177,24 +185,24 @@ def load_model():
         )
 
         _model_loaded = True
-        print(f"[SUCCESS] GOT-OCR2 loaded successfully on {DEVICE}")
+        logger.info(f"GOT-OCR2 loaded successfully on {DEVICE}")
 
         return _model, _processor
 
     except Exception as e:
         import traceback
-        print(f"[ERROR] Failed to load GOT-OCR2!")
-        print(f"[ERROR] Exception type: {type(e).__name__}")
-        print(f"[ERROR] Exception message: {str(e)}")
-        print(f"[ERROR] Exception args: {e.args}")
-        print(f"[ERROR] Traceback:")
+        logger.error(f"Failed to load GOT-OCR2!")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Exception message: {str(e)}")
+        logger.error(f"Exception args: {e.args}")
+        logger.error(f"Traceback:")
         traceback.print_exc()
-        print(f"[ERROR] Global state at failure:")
-        print(f"[ERROR]   _model_loaded: {_model_loaded}")
-        print(f"[ERROR]   _device_config_initialized: {_device_config_initialized}")
-        print(f"[ERROR]   HAS_CUDA: {HAS_CUDA}")
-        print(f"[ERROR]   DEVICE: {DEVICE}")
-        print(f"[ERROR]   DTYPE: {DTYPE}")
+        logger.error(f"Global state at failure:")
+        logger.error(f"  _model_loaded: {_model_loaded}")
+        logger.error(f"  _device_config_initialized: {_device_config_initialized}")
+        logger.error(f"  HAS_CUDA: {HAS_CUDA}")
+        logger.error(f"  DEVICE: {DEVICE}")
+        logger.error(f"  DTYPE: {DTYPE}")
         raise
 
 def get_model_info() -> str:
@@ -254,7 +262,7 @@ def execute_ocr(
 
         # Move model to selected device if needed
         if model.device.type != device:
-            print(f"[INFO] Moving model from {model.device.type} to {device}")
+            logger.info(f"Moving model from {model.device.type} to {device}")
             model = model.to(device)
             if dtype:
                 model = model.to(dtype)
@@ -307,7 +315,7 @@ def execute_ocr(
 
     except Exception as e:
         error_msg = f"OCR execution failed: {str(e)}"
-        print(f"[ERROR] {error_msg}")
+        logger.error(f"{error_msg}")
         # Return empty result with zero confidence on error
         return ("", 0.0, 0.0, [0.0], language)
 
@@ -369,10 +377,10 @@ def execute_ocr_from_file(
             image_bytes = f.read()
         return execute_ocr(image_bytes, language, confidence_threshold)
     except FileNotFoundError:
-        print(f"[ERROR] File not found: {file_path}")
+        logger.error(f"File not found: {file_path}")
         return ("", 0.0, 0.0, [0.0], language)
     except Exception as e:
-        print(f"[ERROR] Failed to read file: {e}")
+        logger.error(f"Failed to read file: {e}")
         return ("", 0.0, 0.0, [0.0], language)
 
 # -------------------------------
@@ -389,19 +397,19 @@ def health_check() -> bool:
     Returns:
         True if model loads successfully, False otherwise
     """
-    print("[DEBUG] health_check() called")
+    logger.debug("health_check() called")
     try:
-        print("[DEBUG] Calling load_model() from health_check...")
+        logger.debug("Calling load_model() from health_check...")
         result = load_model()
-        print(f"[DEBUG] load_model() returned: {type(result)}")
-        print("[DEBUG] Health check PASSED")
+        logger.debug(f"load_model() returned: {type(result)}")
+        logger.debug("Health check PASSED")
         return True
     except Exception as e:
         import traceback
-        print(f"[ERROR] Health check failed!")
-        print(f"[ERROR] Exception type: {type(e).__name__}")
-        print(f"[ERROR] Exception message: {str(e)}")
-        print(f"[ERROR] Traceback:")
+        logger.error(f"Health check failed!")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Exception message: {str(e)}")
+        logger.error(f"Traceback:")
         traceback.print_exc()
         return False
 
