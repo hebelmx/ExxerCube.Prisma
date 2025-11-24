@@ -1,0 +1,63 @@
+@page "/login"
+@inject Siara.Simulator.Services.AuthenticationService AuthService
+@inject NavigationManager NavManager
+
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <img src="/logo.png" alt="Government Seal" />
+            <div>
+                <h3>Sistema de Atención de Requerimientos de Autoridad</h3>
+                <p>(SIMULACIÓN)</p>
+            </div>
+        </div>
+        
+        <h4 class="login-title">Acceso al Portal de Instituciones Financieras</h4>
+
+        <EditForm Model="@_model" OnValidSubmit="HandleLogin" FormName="loginForm">
+            <DataAnnotationsValidator />
+            
+            <div class="form-group">
+                <label for="password">Contraseña de Acceso:</label>
+                <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
+                <ValidationMessage For="@(() => _model.Password)" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="alert alert-danger mt-2" role="alert">
+                    @_errorMessage
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary btn-block mt-3">Ingresar</button>
+        </EditForm>
+        
+        <div class="login-footer">
+            <p>&copy; @DateTime.Now.Year - Comisión Nacional Bancaria y de Valores (Simulación)</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly LoginModel _model = new();
+    private string? _errorMessage;
+
+    private void HandleLogin()
+    {
+        if (AuthService.Login(_model.Password ?? ""))
+        {
+            NavManager.NavigateTo("/");
+        }
+        else
+        {
+            _errorMessage = "Contraseña incorrecta. Intente de nuevo.";
+        }
+    }
+
+    public class LoginModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La contraseña es requerida.")]
+        public string? Password { get; set; }
+    }
+}

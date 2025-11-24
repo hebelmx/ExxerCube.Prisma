@@ -633,3 +633,9 @@ __marimo__/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Generated document artifacts
+bulk_generated_documents/
+bulk_generated_documents_py/
+test_batch_output/
+bulk_generated_documents_all_formats/
