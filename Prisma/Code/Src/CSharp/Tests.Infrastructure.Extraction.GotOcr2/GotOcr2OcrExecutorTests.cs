@@ -27,18 +27,26 @@ public class GotOcr2OcrExecutorTests : IAsyncLifetime
 
         var baseDirectory = AppContext.BaseDirectory;
         var pythonLibPath = Path.Combine(baseDirectory, "python");
-        var venvPath = Path.Combine(baseDirectory, ".venv_gotor2_tests");
+        var venvPath = Path.Combine(baseDirectory, ".venv_gotocr2_manual");
         var requirementsPath = Path.Combine(baseDirectory, "requirements.txt");
 
         _logger.LogInformation($"Base directory: {baseDirectory}");
         _logger.LogInformation($"Python lib path: {pythonLibPath}");
         _logger.LogInformation($"Venv path: {venvPath}");
+        _logger.LogInformation($"Requirements path: {requirementsPath}");
+
+        // Verify paths exist
+        _logger.LogInformation($"Python lib exists: {Directory.Exists(pythonLibPath)}");
+        _logger.LogInformation($"Venv exists: {Directory.Exists(venvPath)}");
+        _logger.LogInformation($"Requirements exists: {File.Exists(requirementsPath)}");
 
         // Configure CSnakes Python environment
+        // Strategy: Pre-create venv with correct Python 3.13 + packages
+        // CSnakes will detect it exists and skip download/installation
         builder.Services
             .WithPython()
             .WithHome(pythonLibPath)
-            .WithVirtualEnvironment(venvPath)
+            .WithVirtualEnvironment(venvPath, true)
             .FromRedistributable("3.13")
             .WithPipInstaller(requirementsPath);
 
@@ -51,7 +59,7 @@ public class GotOcr2OcrExecutorTests : IAsyncLifetime
         // Get Python environment to trigger initialization (Singleton - OK from root)
         _logger.LogInformation("Getting Python environment from DI...");
         var pythonEnv = _host.Services.GetRequiredService<IPythonEnvironment>();
-        _logger.LogInformation("Python environment obtained: {PythonEnvType}", pythonEnv.GetType().FullName);
+        _logger.LogInformation("✓ Python environment obtained: {PythonEnvType}", pythonEnv.GetType().FullName);
 
         // Health check: Test Python imports and versions
         _logger.LogInformation("=== Python Environment Health Check ===");

@@ -268,7 +268,26 @@ def execute_ocr(
                 model = model.to(dtype)
 
         # Convert bytes to PIL Image
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        # Support both PDF and image formats
+        try:
+            # Try as direct image first
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        except Exception:
+            # If that fails, try as PDF using PyMuPDF
+            import fitz  # PyMuPDF
+            logger.debug("Direct image loading failed, attempting PDF conversion")
+
+            pdf_doc = fitz.open(stream=image_bytes, filetype="pdf")
+            if len(pdf_doc) == 0:
+                raise ValueError("PDF has no pages")
+
+            # Convert first page to image
+            page = pdf_doc[0]
+            pix = page.get_pixmap(dpi=300)  # High DPI for better OCR
+            img_bytes = pix.tobytes("png")
+            image = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+            pdf_doc.close()
+            logger.debug(f"Converted PDF page to image: {image.size}")
 
         # Process image with GOT-OCR2 processor
         inputs = processor(image, return_tensors="pt").to(device)
