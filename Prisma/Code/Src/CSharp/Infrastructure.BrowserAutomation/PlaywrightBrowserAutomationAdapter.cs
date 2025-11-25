@@ -196,6 +196,75 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent
         }
     }
 
+    /// <inheritdoc />
+    public async Task<Result> FillInputAsync(string selector, string value, CancellationToken cancellationToken = default)
+    {
+        if (_page == null)
+        {
+            return Result.WithFailure("Browser session not launched. Call LaunchBrowserAsync first.");
+        }
+
+        try
+        {
+            _logger.LogInformation("Filling input field: {Selector} with value (length: {Length})", selector, value.Length);
+            await _page.FillAsync(selector, value);
+            _logger.LogInformation("Successfully filled input field: {Selector}", selector);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fill input field: {Selector}", selector);
+            return Result.WithFailure($"Failed to fill input {selector}: {ex.Message}", ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> ClickElementAsync(string selector, CancellationToken cancellationToken = default)
+    {
+        if (_page == null)
+        {
+            return Result.WithFailure("Browser session not launched. Call LaunchBrowserAsync first.");
+        }
+
+        try
+        {
+            _logger.LogInformation("Clicking element: {Selector}", selector);
+            await _page.ClickAsync(selector);
+            _logger.LogInformation("Successfully clicked element: {Selector}", selector);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to click element: {Selector}", selector);
+            return Result.WithFailure($"Failed to click element {selector}: {ex.Message}", ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> WaitForSelectorAsync(string selector, int? timeoutMs = null, CancellationToken cancellationToken = default)
+    {
+        if (_page == null)
+        {
+            return Result.WithFailure("Browser session not launched. Call LaunchBrowserAsync first.");
+        }
+
+        try
+        {
+            _logger.LogInformation("Waiting for selector: {Selector} (timeout: {Timeout}ms)", selector, timeoutMs ?? _options.PageTimeoutMs);
+            await _page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions
+            {
+                Timeout = timeoutMs ?? _options.PageTimeoutMs
+            });
+            _logger.LogInformation("Successfully found selector: {Selector}", selector);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to find selector: {Selector}", selector);
+            return Result.WithFailure($"Failed to find selector {selector}: {ex.Message}", ex);
+        }
+    }
+
     private static bool MatchesPattern(string fileName, string pattern)
     {
         // Simple pattern matching: supports *.ext format

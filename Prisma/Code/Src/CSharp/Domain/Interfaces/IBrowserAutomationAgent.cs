@@ -46,4 +46,30 @@ public interface IBrowserAutomationAgent
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result indicating success or failure.</returns>
     Task<Result> CloseBrowserAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Fills a text input field with the specified value.
+    /// </summary>
+    /// <param name="selector">CSS selector or text to locate the input field.</param>
+    /// <param name="value">The value to fill into the input field.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
+    Task<Result> FillInputAsync(string selector, string value, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Clicks an element on the page.
+    /// </summary>
+    /// <param name="selector">CSS selector or text to locate the element.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
+    Task<Result> ClickElementAsync(string selector, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Waits for an element to be visible on the page.
+    /// </summary>
+    /// <param name="selector">CSS selector to locate the element.</param>
+    /// <param name="timeoutMs">Timeout in milliseconds. If null, uses default page timeout.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>A result indicating success or failure.</returns>
+    Task<Result> WaitForSelectorAsync(string selector, int? timeoutMs = null, CancellationToken cancellationToken = default);
 }
