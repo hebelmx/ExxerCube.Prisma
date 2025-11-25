@@ -116,6 +116,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.Extrac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2", "Tests.Infrastructure.Extraction.GotOcr2\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.csproj", "{0D50F351-25CE-4B5C-9021-95975F10610E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.BrowserAutomation.E2E", "Tests.Infrastructure.BrowserAutomation.E2E", "{18B605C4-EB59-3358-8EE8-C83C5DF52CF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E", "Tests.Infrastructure.BrowserAutomation.E2E\ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.csproj", "{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure.BrowserAutomation", "Infrastructure.BrowserAutomation", "{3BA97A2F-2012-1B33-C533-05703E4C5813}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{78DDA25A-7C38-13C4-DE39-740FEE45D7B1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Abstractions", "Abstractions", "{FDC478F0-4B7C-C457-9E18-8E0295ADAF71}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{11DBDC77-71FD-4961-616D-E4DF1B1B0C75}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -522,6 +534,18 @@ Global
 		{0D50F351-25CE-4B5C-9021-95975F10610E}.Release|x64.Build.0 = Release|Any CPU
 		{0D50F351-25CE-4B5C-9021-95975F10610E}.Release|x86.ActiveCfg = Release|Any CPU
 		{0D50F351-25CE-4B5C-9021-95975F10610E}.Release|x86.Build.0 = Release|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Debug|x64.Build.0 = Debug|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Debug|x86.Build.0 = Debug|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Release|x64.ActiveCfg = Release|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Release|x64.Build.0 = Release|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Release|x86.ActiveCfg = Release|Any CPU
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -570,6 +594,7 @@ Global
 		{429E8B33-0C9F-444D-85A0-ED88F8DB23AD} = {3166389F-1D09-47D5-A74A-5F2F2DDB9120}
 		{D2D3DB95-8A8D-4066-8E3A-A53C2A480CF5} = {8110EF5A-ABEA-BA9D-641B-08C80D3EB151}
 		{0D50F351-25CE-4B5C-9021-95975F10610E} = {56E66B46-BE15-4AD1-B371-252E84EDB669}
+		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97} = {18B605C4-EB59-3358-8EE8-C83C5DF52CF3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F4D9C48-36D8-465A-9065-D491D435A0F6}

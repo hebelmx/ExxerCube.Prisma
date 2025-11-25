@@ -78,7 +78,7 @@ public class PdfOcrFieldExtractorTests
                 .Returns(Result<OCRResult>.Success(ocrResult));
 
             // Act
-            var result = await d_extractor.ExtractFieldsAsync(source, fieldDefinitions);
+            var result = await _extractor.ExtractFieldsAsync(source, fieldDefinitions);
 
             // Assert
             result.IsSuccess.ShouldBeTrue();

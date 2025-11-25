@@ -1,0 +1,370 @@
+@page "/browser-automation"
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Domain
+@using ExxerCube.Prisma.Infrastructure.BrowserAutomation
+@using Microsoft.Extensions.Options
+@inject IBrowserAutomationAgent BrowserAgent
+@inject IOptions<BrowserAutomationOptions> BrowserOptions
+@inject ISnackbar Snackbar
+
+<PageTitle>Browser Automation - Document Download</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h3" GutterBottom="true">
+            <MudIcon Icon="@Icons.Material.Filled.Language" Class="mr-2" />
+            Browser Automation - Document Download
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Automated browser navigation and document download from public sources using Playwright.
+            This demonstrates the browser automation infrastructure for regulatory document collection.
+        </MudText>
+
+        <MudDivider Class="my-4" />
+
+        <!-- Configuration Panel (Expandable) -->
+        <MudExpansionPanels Class="mb-4">
+            <MudExpansionPanel Text="Advanced Configuration (Edit for MVP Demo)">
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_siaraUrl" Label="SIARA Simulator URL" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_gutenbergUrl" Label="Gutenberg Base URL" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_archiveUrl" Label="Internet Archive Base URL" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudNumericField @bind-Value="_browserTimeoutMs" Label="Browser Timeout (ms)" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudNumericField @bind-Value="_pageTimeoutMs" Label="Page Timeout (ms)" Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+
+        <!-- Controls -->
+        <MudGrid Class="mb-4">
+            <MudItem xs="12" md="4">
+                <MudSelect T="string" @bind-Value="_selectedSource" Label="Document Source" Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("gutenberg")">Project Gutenberg (Economics Books)</MudSelectItem>
+                    <MudSelectItem Value="@("archive")">Internet Archive (Financial Markets)</MudSelectItem>
+                    <MudSelectItem Value="@("siara")">SIARA Simulator (CNBV Dummies)</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudNumericField @bind-Value="_downloadCount" Label="Number of Files" Variant="Variant.Outlined"
+                                 Min="1" Max="10" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudSwitch @bind-Value="_showBrowser" Label="Show Browser (Headed Mode)" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12" md="2" Class="d-flex align-center">
+                <MudChip T="string" Size="Size.Small" Color="@(_showBrowser ? Color.Success : Color.Default)">
+                    @(_showBrowser ? "Visible" : "Headless")
+                </MudChip>
+            </MudItem>
+        </MudGrid>
+
+        <MudStack Row="true" Spacing="2" Class="mb-6">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       OnClick="StartDownload" Disabled="@_isDownloading"
+                       StartIcon="@Icons.Material.Filled.Download">
+                Start Download
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                       OnClick="ClearDownloads" Disabled="@_isDownloading"
+                       StartIcon="@Icons.Material.Filled.Clear">
+                Clear Downloads
+            </MudButton>
+        </MudStack>
+
+        <!-- Progress Section -->
+        @if (_isDownloading)
+        {
+            <MudPaper Class="pa-4 mb-4" Outlined="true">
+                <MudText Typo="Typo.h6" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.CloudDownload" Class="mr-2" />
+                    Download Progress
+                </MudText>
+                <MudProgressLinear Color="Color.Primary" Value="@_progressPercent" Class="my-4" />
+                <MudText Typo="Typo.body2">
+                    @_statusMessage
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Downloaded: @_downloadedFiles.Count / @_downloadCount files
+                </MudText>
+            </MudPaper>
+        }
+
+        <!-- Downloaded Files List -->
+        @if (_downloadedFiles.Any())
+        {
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.FolderOpen" Class="mr-2" />
+                Downloaded Files (@_downloadedFiles.Count)
+            </MudText>
+
+            <MudDataGrid T="DownloadedFile" Items="@_downloadedFiles" Hover="true" Dense="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.FileName" Title="File Name" />
+                    <PropertyColumn Property="x => x.Format" Title="Format" />
+                    <TemplateColumn Title="Size">
+                        <CellTemplate>
+                            @FormatFileSize(context.Item.Content?.Length ?? 0)
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Source">
+                        <CellTemplate>
+                            <MudChip T="string" Size="Size.Small" Color="@GetSourceColor(context.Item.Url)">
+                                @GetSourceName(context.Item.Url)
+                            </MudChip>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Actions">
+                        <CellTemplate>
+                            <MudIconButton Icon="@Icons.Material.Filled.Info" Size="Size.Small"
+                                           OnClick="@(() => ShowFileDetails(context.Item))" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        }
+        else if (!_isDownloading)
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-4">
+                No files downloaded yet. Select a source and click "Start Download" to begin.
+            </MudAlert>
+        }
+    </MudPaper>
+</MudContainer>
+
+@using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets
+@inject IOptions<NavigationTargetOptions> NavigationTargetOptions
+
+@code {
+    private string _selectedSource = "gutenberg";
+    private int _downloadCount = 3;
+    private bool _isDownloading = false;
+    private bool _showBrowser = true; // Default to headed mode for demo visibility
+    private int _progressPercent = 0;
+    private string _statusMessage = "";
+    private List<DownloadedFile> _downloadedFiles = new();
+
+    // Editable configuration (initialized from appsettings.json)
+    private string _siaraUrl = "";
+    private string _gutenbergUrl = "";
+    private string _archiveUrl = "";
+    private int _browserTimeoutMs = 30000;
+    private int _pageTimeoutMs = 30000;
+
+    // Gutenberg book IDs (from E2E tests)
+    private readonly string[] _gutenbergBookIds = new[] { "3300", "30107", "1232" };
+
+    protected override void OnInitialized()
+    {
+        // Load configuration from appsettings.json
+        _siaraUrl = NavigationTargetOptions.Value.SiaraUrl ?? "https://localhost:5002";
+        _gutenbergUrl = NavigationTargetOptions.Value.GutenbergUrl ?? "https://www.gutenberg.org";
+        _archiveUrl = NavigationTargetOptions.Value.ArchiveUrl ?? "https://archive.org";
+        _browserTimeoutMs = BrowserOptions.Value.BrowserLaunchTimeoutMs;
+        _pageTimeoutMs = BrowserOptions.Value.PageTimeoutMs;
+    }
+
+    private async Task StartDownload()
+    {
+        _isDownloading = true;
+        _progressPercent = 0;
+        _statusMessage = _showBrowser ? "Launching browser in headed mode (visible)..." : "Launching browser in headless mode...";
+        StateHasChanged();
+
+        // Declare customAgent before try block so it's accessible in finally
+        IBrowserAutomationAgent? customAgent = null;
+
+        try
+        {
+            // Create custom browser agent with headed/headless mode based on toggle and editable config
+            var customOptions = new BrowserAutomationOptions
+            {
+                Headless = !_showBrowser, // Invert: showBrowser=true means Headless=false
+                BrowserLaunchTimeoutMs = _browserTimeoutMs,
+                PageTimeoutMs = _pageTimeoutMs
+            };
+            var customOptionsWrapper = Microsoft.Extensions.Options.Options.Create(customOptions);
+            customAgent = new PlaywrightBrowserAutomationAdapter(
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<PlaywrightBrowserAutomationAdapter>.Instance,
+                customOptionsWrapper);
+
+            // Launch browser with custom options
+            var launchResult = await customAgent.LaunchBrowserAsync();
+            if (!launchResult.IsSuccess)
+            {
+                Snackbar.Add($"Failed to launch browser: {launchResult.Error}", Severity.Error);
+                return;
+            }
+
+            _statusMessage = _showBrowser ? "Browser launched in headed mode (you should see it!)" : "Browser launched in headless mode";
+            StateHasChanged();
+
+            _statusMessage = "Browser launched successfully";
+            StateHasChanged();
+
+            if (_selectedSource == "gutenberg")
+            {
+                await DownloadFromGutenberg(customAgent);
+            }
+            else if (_selectedSource == "archive")
+            {
+                await NavigateToArchive(customAgent);
+            }
+            else if (_selectedSource == "siara")
+            {
+                await NavigateToSiara(customAgent);
+            }
+
+            Snackbar.Add($"Downloaded {_downloadedFiles.Count} files successfully!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            // Close browser if it was created
+            if (customAgent != null)
+            {
+                await customAgent.CloseBrowserAsync();
+            }
+            _isDownloading = false;
+            _progressPercent = 100;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DownloadFromGutenberg(IBrowserAutomationAgent agent)
+    {
+        var booksToDownload = _gutenbergBookIds.Take(_downloadCount);
+        var totalBooks = booksToDownload.Count();
+        var currentBook = 0;
+
+        foreach (var bookId in booksToDownload)
+        {
+            currentBook++;
+            _statusMessage = $"Processing book {currentBook}/{totalBooks} (ID: {bookId})...";
+            _progressPercent = (currentBook - 1) * 100 / totalBooks;
+            StateHasChanged();
+
+            // Navigate to book page (use editable URL)
+            var bookUrl = $"{_gutenbergUrl}/ebooks/{bookId}";
+            var navResult = await agent.NavigateToAsync(bookUrl);
+
+            if (!navResult.IsSuccess)
+            {
+                Snackbar.Add($"Failed to navigate to book {bookId}", Severity.Warning);
+                continue;
+            }
+
+            await Task.Delay(1000); // Small delay for visibility
+
+            // Download plain text format (most reliable) - use editable URL
+            var txtUrl = $"{_gutenbergUrl}/cache/epub/{bookId}/pg{bookId}.txt";
+            _statusMessage = $"Downloading plain text for book {bookId}...";
+            StateHasChanged();
+
+            var downloadResult = await agent.DownloadFileAsync(txtUrl);
+            if (downloadResult.IsSuccess && downloadResult.Value != null)
+            {
+                _downloadedFiles.Add(downloadResult.Value);
+                Snackbar.Add($"Downloaded: {downloadResult.Value.FileName}", Severity.Success);
+            }
+
+            await Task.Delay(500);
+        }
+
+        _progressPercent = 100;
+    }
+
+    private async Task NavigateToArchive(IBrowserAutomationAgent agent)
+    {
+        _statusMessage = "Navigating to Internet Archive (demo only - downloads restricted)...";
+        StateHasChanged();
+
+        var archiveUrl = $"{_archiveUrl}/search.php?query=financial%20markets";
+        var navResult = await agent.NavigateToAsync(archiveUrl);
+
+        if (navResult.IsSuccess)
+        {
+            _statusMessage = "Successfully navigated to Internet Archive search results";
+            Snackbar.Add("Internet Archive has restricted downloads. Use Gutenberg for demo.", Severity.Info);
+        }
+
+        await Task.Delay(3000); // Show page for 3 seconds
+        _progressPercent = 100;
+    }
+
+    private async Task NavigateToSiara(IBrowserAutomationAgent agent)
+    {
+        _statusMessage = "Navigating to SIARA Simulator (CNBV document simulator)...";
+        StateHasChanged();
+
+        // Use editable SIARA URL
+        _statusMessage = $"Connecting to SIARA at {_siaraUrl}...";
+        StateHasChanged();
+
+        var navResult = await agent.NavigateToAsync(_siaraUrl);
+
+        if (navResult.IsSuccess)
+        {
+            _statusMessage = "Successfully navigated to SIARA Simulator - viewing CNBV regulatory documents";
+            Snackbar.Add("Connected to SIARA Simulator successfully!", Severity.Success);
+
+            // Keep browser open for demo (5 seconds to show the SIARA dashboard)
+            await Task.Delay(5000);
+        }
+        else
+        {
+            _statusMessage = $"Failed to connect to SIARA: {navResult.Error}";
+            Snackbar.Add($"SIARA connection failed. Make sure SIARA Simulator is running at {_siaraUrl}", Severity.Warning);
+        }
+
+        _progressPercent = 100;
+    }
+
+    private void ClearDownloads()
+    {
+        _downloadedFiles.Clear();
+        _progressPercent = 0;
+        _statusMessage = "";
+        Snackbar.Add("Download list cleared", Severity.Info);
+    }
+
+    private void ShowFileDetails(DownloadedFile file)
+    {
+        Snackbar.Add($"File: {file.FileName}, Size: {FormatFileSize(file.Content?.Length ?? 0)}, Format: {file.Format}",
+                     Severity.Info);
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024:F1} KB";
+        return $"{bytes / (1024 * 1024):F2} MB";
+    }
+
+    private Color GetSourceColor(string url)
+    {
+        if (url.Contains("gutenberg")) return Color.Primary;
+        if (url.Contains("archive.org")) return Color.Secondary;
+        return Color.Default;
+    }
+
+    private string GetSourceName(string url)
+    {
+        if (url.Contains("gutenberg")) return "Gutenberg";
+        if (url.Contains("archive.org")) return "Archive";
+        return "Unknown";
+    }
+}

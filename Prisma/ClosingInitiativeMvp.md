@@ -188,10 +188,10 @@ All data has to come for all documents, we must swow one for one procesin small 
 
 # PROGRESS TRACKER
 
-**Last Updated**: 2025-01-24 (Evening Session)
+**Last Updated**: 2025-01-25 (Morning Session)
 **Target MVP Demo**: TBA (This week or next week)
-**Current Phase**: MVP Preparation - Navigation System Completed
-**Latest Commit**: `2c7e5d9` - feat(mvp): Implement navigation system with 3 document sources and fix Web UI DI
+**Current Phase**: MVP Preparation - ModelEnum Infrastructure Complete
+**Latest Commit**: Pending - feat(mvp): Implement RequirementType ModelEnum with database dictionary
 
 ---
 
@@ -257,6 +257,113 @@ All data has to come for all documents, we must swow one for one procesin small 
 - Home.razor updated with 3 navigation cards in MudGrid layout
 
 ### Integration & Demo Flow 🔄 (PARTIALLY COMPLETE)
+
+**STAKEHOLDER PRESENTATION FLOW** (5-Step Demo):
+
+**PIPELINE ARCHITECTURE** (Sequential Processing):
+```
+Step 1: Download → Step 2a: Pre-Parse Storage (date/filename) →
+Step 3: OCR + Classify → Step 2b: Post-Parse Storage (date/type/filename) →
+Step 4: Report Generation → Step 5: Search (database query)
+```
+**Key Insight**: Step 2 occurs TWICE in pipeline - before parsing (date-based) and after classification (type-based)
+
+**Step 1: Multi-Source Document Download**
+- [x] **SIARA Simulator**: Fake double for demo purposes → ✅ Running on https://localhost:5002
+  - [x] Download official CNBV documents (XML/PDF/DOCX)
+  - [x] Configurable Poisson arrival rate (0.1-60 cases/min)
+- [x] **Gutenberg Library**: Real site download → ✅ Navigation target configured
+  - [ ] Playwright visible mode automation → ⏳ Recording needed
+  - [ ] Demonstrate public domain document download
+- [x] **Internet Archive**: Real site download → ✅ Navigation target configured
+  - [ ] Playwright visible mode automation → ⏳ Recording needed
+  - [ ] Prove real-world browser automation
+
+**Step 2: Document Organization & Storage** (PRE-PARSING)
+- [ ] **Multi-Tier Storage with Failover**:
+  - [ ] Primary: Root folder (checked/validated)
+  - [ ] Secondary: Second drive path (failover #1)
+  - [ ] Tertiary: Network location path (failover #2)
+  - [ ] Error handling: If any fails → skip, log alert, continue (no blocking)
+- [ ] **Pre-Processing Folder Structure** (by date + filename only - NOT YET PARSED):
+  - [ ] Pattern: `{RootFolder}/{Year}/{Month}/{Day}/[{Hour}]/{OriginalFileName}`
+  - [ ] Hour subfolder: Only if volume requires (skip minute/second)
+  - [ ] Auto-create missing folders in hierarchy
+  - [ ] Configuration: All 3 storage paths in appsettings.json
+- [ ] **Post-Classification Folder Structure** (after Step 3 parsing):
+  - [ ] Pattern: `{RootFolder}/{Year}/{Month}/{Day}/{RequirementType}/{OriginalFileName}`
+  - [ ] RequirementType: Judicial/Fiscal/PLD/Aseguramiento/Unknown (see Step 3 SmartEnum)
+
+**Step 3: Document Reading & Classification (Real-World Imperfections)**
+- [ ] **Error Handling Demonstration**:
+  - [ ] Missing fields (2-3 examples) - handle incomplete data gracefully
+  - [ ] Missing documents (max 2-3) - detect document gaps
+  - [ ] Unmatching data - identify XML ↔ PDF mismatches
+  - [ ] Mistyping errors - OCR mistakes, source typos
+- [x] **Smart Classification by Requirement Type** (ModelEnum Pattern): ✅ **COMPLETE (2025-01-25)**
+  - [x] **Known Types** (from legal research - CNBV R29-2911):
+    - [x] Type 100: Judicial (Solicitud de Información) - Art. 142 LIC
+    - [x] Type 101: Aseguramiento (Aseguramiento/Bloqueo) - SAME DAY execution
+    - [x] Type 102: Desbloqueo (Release of frozen funds)
+    - [x] Type 103: Transferencia (Electronic transfer to government account)
+    - [x] Type 104: SituacionFondos (Cashier's check to judicial authority)
+  - [x] **Unknown Type Handling** (ModelEnum Pattern):
+    - [x] Type 999: `Unknown` for unrecognized requirements at classification time
+    - [x] Persisted `RequirementTypeDictionary` table in database schema
+    - [x] Seed data from `RequirementType` enum (6 types with keyword patterns)
+    - [x] System can evolve without code changes when new legal requirements appear
+  - [ ] **Post-Classification File Reorganization**:
+    - [ ] Move from `{Date}/{OriginalFileName}` → `{Date}/{RequirementType}/{OriginalFileName}`
+    - [ ] Update database record with requirement type
+- [ ] **OCR Processing**:
+  - [ ] Tesseract primary extraction (3-6s)
+  - [ ] GOT-OCR2 fallback on low confidence (140s)
+  - [ ] Display confidence scores in UI
+
+**ModelEnum Infrastructure Details** (2025-01-25):
+- Ported production-tested EnumModel from IndTraceV2025 project
+- Thread-safe singleton caching with O(1) lookup performance (ConcurrentDictionary)
+- Created `ILookupEntity` marker interface for EF Core DbSet registration
+- Created `RequirementType` ModelEnum with 6 types (5 known + Unknown)
+- Created `RequirementTypeDictionary` entity with full configuration and seed data
+- Migration applied to `prisma` database: `20251125151117_AddRequirementTypeDictionary`
+- All seed data includes legal references, keyword patterns, and processing notes
+- Files created:
+  - `Domain/Interfaces/ILookupEntity.cs` (Infrastructure.Database:71)
+  - `Domain/Enum/EnumModel.cs` (RequirementTypeDictionaryConfiguration.cs:63-69)
+  - `Domain/Enum/RequirementType.cs` (RequirementType.cs:25-75)
+  - `Domain/Entities/RequirementTypeDictionary.cs` (RequirementTypeDictionary.cs:1-76)
+  - `Infrastructure.Database/EntityFramework/Configurations/RequirementTypeDictionaryConfiguration.cs`
+  - `Infrastructure.Database/Migrations/20251125151117_AddRequirementTypeDictionary.cs`
+
+**Step 4: Real-Time Reporting with Confidence Intervals**
+- [ ] **Live Report Generation**:
+  - [ ] Real-time processing status (accounting for OCR time)
+  - [ ] Confidence interval display per field
+  - [ ] Visual indicators (high/medium/low confidence)
+- [ ] **Manual Review Workflow**:
+  - [ ] Flag low-confidence extractions (< 70%?)
+  - [ ] Request human validation for uncertain fields
+  - [ ] Human-in-the-loop approval queue
+  - [ ] Toast notifications for review requests
+
+**Step 5: Historical Document Search** (STAKEHOLDER ATTRACTION FEATURE 💎)
+- [ ] **Why This Matters**: "Natural question stakeholders fall in love with" - demonstrates the real value of database persistence
+- [ ] **Simple but Powerful Implementation**:
+  - [ ] Single table: Exported data from processed documents
+  - [ ] Document viewer: Display PDFs and XMLs inline
+  - [ ] Search UI: Query interface with filters
+- [ ] **Search Capabilities**:
+  - [ ] Search by date range (Year/Month/Day from folder structure)
+  - [ ] Search by request number (NumeroRequerimiento)
+  - [ ] Search by authority type (AutoridadRequiriente)
+  - [ ] Search by client name/RFC
+  - [ ] Search by requirement type (Judicial/Fiscal/PLD/Aseguramiento/Unknown)
+- [ ] **Display Results**:
+  - [ ] List view with metadata (date, type, confidence, status)
+  - [ ] Click to view: PDF viewer + XML viewer side-by-side
+  - [ ] Export search results to CSV/Excel
+
 - [x] **End-to-End Pipeline** - Navigation Phase Complete:
   - [x] Navigate to document source (3 sources: SIARA/Archive/Gutenberg) → ✅ UI buttons working
   - [ ] Download document (XML/PDF/DOCX) → ⏳ Playwright automation pending
@@ -264,10 +371,11 @@ All data has to come for all documents, we must swow one for one procesin small 
   - [ ] Fallback mechanism demo (Tesseract → GOT-OCR2) → ✅ Logic exists, needs UI demo
   - [ ] Field extraction from real PRP1 fixtures → ⏳ Fixture integration pending
   - [ ] Export to CNBV format → ⏳ Export service integration pending
-- [ ] **Stakeholder Presentation**:
-  - [ ] Demo script/flow
+- [ ] **Stakeholder Presentation Materials**:
+  - [ ] Demo script following 5-step flow
   - [ ] Key talking points (architecture, compliance, ROI)
   - [ ] Risk mitigation narrative
+  - [ ] Prepare 2-3 imperfect fixtures for error handling demo
 
 **Status** (2025-01-24): Navigation foundation complete. Next: Playwright automation for downloads + OCR demo flow.
 
@@ -423,10 +531,32 @@ All data has to come for all documents, we must swow one for one procesin small 
    - Option 3: Use SQL authentication
 2. [ ] Apply database migrations (ApplicationDbContext + PrismaDbContext)
 3. [ ] Test Web UI startup end-to-end
-4. [ ] Integrate Fixtures/PRP1/ into demo flow
-5. [ ] Test complete pipeline (Navigate → Download → OCR → Extract → Export)
-6. [ ] Verify OCR confidence display and fallback mechanism
-7. [ ] Create demo script and talking points
+4. [ ] **Step 2a Implementation**: Pre-parsing document storage (RIGHT AFTER DOWNLOAD)
+   - [ ] Configure 3-tier storage paths in appsettings.json (primary/secondary/tertiary)
+   - [ ] Implement failover logic (skip, log, continue on failure)
+   - [ ] Auto-create folder hierarchy: `{Root}/{Year}/{Month}/{Day}/[{Hour}]/`
+   - [ ] Save with original filename (not parsed yet)
+5. [ ] **Step 3 Implementation**: Error handling & classification demo
+   - [ ] Prepare 2-3 imperfect fixtures (missing fields, unmatching data, typos)
+   - [ ] Implement SmartEnum for requirement types (parse law for valid types)
+   - [ ] Create persisted dictionary table for unknown requirement types
+   - [ ] Implement requirement type classification UI
+   - [ ] Display OCR confidence scores
+6. [ ] **Step 2b Implementation**: Post-classification file reorganization
+   - [ ] Move files from `{Date}/` → `{Date}/{RequirementType}/`
+   - [ ] Update database records with requirement type and new path
+7. [ ] **Step 4 Implementation**: Real-time reporting & manual review
+   - [ ] Build confidence interval display
+   - [ ] Create manual review workflow UI
+   - [ ] Add toast notifications for low-confidence alerts
+8. [ ] **Step 5 Implementation**: Historical search capability (STAKEHOLDER WOW FACTOR)
+   - [ ] Create single table for exported document data
+   - [ ] Build search UI with filters (date range, request#, authority, client RFC, requirement type)
+   - [ ] Implement PDF + XML side-by-side viewer
+   - [ ] Add export to CSV/Excel functionality
+9. [ ] Integrate Fixtures/PRP1/ into demo flow
+10. [ ] Test complete pipeline: Download → Store(pre) → OCR/Classify → Store(post) → Report → Search
+11. [ ] Create demo script following 5-step presentation flow
 
 ### ⏳ Day 7 PENDING: Stakeholder Preparation
 1. [ ] Final demo run-through
@@ -434,10 +564,14 @@ All data has to come for all documents, we must swow one for one procesin small 
 3. [ ] Risk narrative and next steps (P1 transition)
 
 **Current Status** (2025-01-24 Evening):
-- Navigation system: ✅ 100% complete
+- **Step 1** (Navigation): ✅ 90% complete (Playwright automation pending)
+- **Step 2** (Organization): ❌ 0% complete (needs implementation)
+- **Step 3** (Classification): ⏳ 40% complete (OCR exists, error demo pending)
+- **Step 4** (Reporting): ⏳ 20% complete (confidence logic exists, UI pending)
+- **Step 5** (Search): ❌ 0% complete (needs full implementation)
 - DI registration: ✅ 100% complete
 - Database setup: ⏳ Blocked by SQL Server trigger
-- **Estimated completion**: 1-2 days after database issue resolved
+- **Estimated completion**: 3-5 days after database issue resolved (more work than initially scoped)
 
 ---
 
@@ -492,22 +626,41 @@ All data has to come for all documents, we must swow one for one procesin small 
 
 ---
 
-**STATUS SUMMARY** (Updated 2025-01-24):
-- **Foundation**: ✅ Complete (architecture, OCR, tests)
-- **MVP Critical Path**: ✅ 85% → **Navigation system complete, DI fixed, pending database migrations only**
-  - ✅ Navigation targets (SIARA, Archive, Gutenberg)
-  - ✅ SIARA simulator running with configurable Poisson arrivals
-  - ✅ All DI services registered correctly
-  - ✅ Configuration externalized to JSON
-  - ⏳ Database migrations blocked by SQL Server trigger
+**STATUS SUMMARY** (Updated 2025-01-25 Morning):
+- **Foundation**: ✅ Complete (architecture, OCR, tests, ModelEnum infrastructure)
+- **MVP Critical Path**: ⏳ 55% → **Revised scope based on 5-step presentation flow**
+  - ✅ Step 1 (Navigation): 90% complete
+  - ❌ Step 2 (Organization): 0% complete - needs implementation
+  - ⏳ Step 3 (Classification): **60% complete** ✅ ModelEnum complete, error demo pending
+  - ⏳ Step 4 (Reporting): 20% complete - UI pending
+  - ❌ Step 5 (Search): 0% complete - needs implementation
+  - ✅ Database migrations applied to both PrismaID and prisma databases
 - **P1 Preparation**: ⏳ 10% (requirements gathered, implementation pending)
 - **P2 Planning**: ⏳ 5% (framework identified, detailed proposal pending)
 
-**CONFIDENCE LEVEL**: 🟢 Very High - Navigation + DI complete, only DB migration blocker remains
+**CONFIDENCE LEVEL**: 🟢 High - Database blocker resolved, ModelEnum infrastructure complete
 
-**Session Summary** (2025-01-24):
-- **Completed**: Navigation system (3 sources), DI fixes (3 services), SIARA configurable arrivals
-- **Remaining**: Resolve SQL trigger → Apply migrations → Full E2E testing
-- **Timeline**: MVP demo-ready within 1-2 days after database issue resolved
+**CRITICAL GAPS IDENTIFIED**:
+1. **Document Organization System** (Step 2) - Not in original MVP scope
+2. **Real-Time Reporting UI** (Step 4) - Confidence display exists, but reporting dashboard missing
+3. **Historical Search** (Step 5) - Completely new feature
+4. **Error Handling Demo** (Step 3) - Need to prepare imperfect fixtures intentionally
+
+**Session Summary** (2025-01-25 Morning):
+- **COMPLETED**:
+  - ✅ Ported ModelEnum infrastructure from IndTraceV2025 (production-tested)
+  - ✅ Created RequirementType enum with 6 types based on CNBV R29-2911 legal research
+  - ✅ Created RequirementTypeDictionary table with seed data (keyword patterns, legal notes)
+  - ✅ Applied migration to prisma database successfully
+  - ✅ Fixed 2 compilation errors in test files (typo + missing parameter)
+  - ✅ Full solution builds with 0 errors (33 projects)
+  - ✅ Database blocker resolved (SQL Server connection working)
+- **Updated**: ClosingInitiativeMvp.md with ModelEnum infrastructure details
+- **Remaining Work**:
+  - Step 2: Folder management system (pre/post classification)
+  - Step 3: Prepare 2-3 imperfect fixtures, classification UI
+  - Step 4: Real-time reporting dashboard with confidence intervals
+  - Step 5: Search UI and query implementation
+- **Revised Timeline**: 3-4 days for remaining MVP features (database issue resolved)
 
 ───────────────────────────────────────────────

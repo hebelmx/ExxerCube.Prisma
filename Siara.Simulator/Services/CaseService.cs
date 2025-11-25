@@ -19,6 +19,7 @@ public class CaseService : IDisposable
     private readonly ConcurrentBag<Case> _activeCases = new();
     private List<string> _availableCaseIds = new();
     private HashSet<string> _servedCaseIds = new();
+    private bool _isStarted = false;
 
     // Configurable simulation parameters
     private double _averageArrivalsPerMinute = 6.0;
@@ -60,23 +61,33 @@ public class CaseService : IDisposable
     public CaseService(ILogger<CaseService> logger, IHostEnvironment env)
     {
         _logger = logger;
-        
+
         // Determine paths relative to the application's content root
         _documentSourcePath = Path.Combine(env.ContentRootPath, "..", "bulk_generated_documents_all_formats");
         _persistenceFilePath = Path.Combine(env.ContentRootPath, "cases.json");
 
         _timer = new Timer();
         _timer.Elapsed += OnTimerElapsed;
-        
-        InitializeService();
+
+        _logger.LogInformation("CaseService created. Waiting for Start() call...");
     }
 
-    private void InitializeService()
+    /// <summary>
+    /// Starts the case simulation. Should be called when Dashboard page loads.
+    /// </summary>
+    public void Start()
     {
-        _logger.LogInformation("Initializing Case Service...");
+        if (_isStarted)
+        {
+            _logger.LogInformation("CaseService already started. Ignoring duplicate Start() call.");
+            return;
+        }
+
+        _isStarted = true;
+        _logger.LogInformation("Starting Case Service...");
         LoadServedCases();
         DiscoverAvailableCases();
-        
+
         // Start the simulation
         ScheduleNextCase();
     }
@@ -119,12 +130,15 @@ public class CaseService : IDisposable
             
             _activeCases.Add(newCase);
             _servedCaseIds.Add(newCaseId);
-            
+
             // Persist the new state
             SaveServedCases();
 
             // Notify the UI
+            var subscriberCount = OnCaseArrived?.GetInvocationList().Length ?? 0;
+            _logger.LogInformation("Firing OnCaseArrived event - {Count} subscribers", subscriberCount);
             OnCaseArrived?.Invoke();
+            _logger.LogInformation("OnCaseArrived event fired");
         }
         catch (Exception ex)
         {

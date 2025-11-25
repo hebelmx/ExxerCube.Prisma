@@ -65,6 +65,13 @@ internal static class NavigationRegistry
                     Match: NavLinkMatch.All,
                     Tags: new[] { "downloads", "ingestion", "browser automation" }),
                 new NavigationLink(
+                    "Browser Automation",
+                    "/browser-automation",
+                    Icons.Material.Filled.Language,
+                    "Automated browser navigation and document download from Gutenberg and Internet Archive.",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "browser", "automation", "download", "playwright", "gutenberg", "archive" }),
+                new NavigationLink(
                     "Analytics Dashboard",
                     "/dashboard",
                     Icons.Material.Filled.Analytics,

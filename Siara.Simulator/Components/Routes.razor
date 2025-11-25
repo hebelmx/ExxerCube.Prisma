@@ -3,14 +3,17 @@
 
 <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        @if (AuthService.IsAuthenticated)
+        @{
+            var isLoginPage = routeData.PageType == typeof(Components.Pages.Login);
+        }
+        @if (AuthService.IsAuthenticated || isLoginPage)
         {
             <RouteView RouteData="routeData" DefaultLayout="typeof(Components.Layout.MainLayout)" />
             <FocusOnNavigate RouteData="routeData" Selector="h1" />
         }
         else
         {
-            <RedirectToLogin />
+            <NavigateToLogin />
         }
     </Found>
     <NotFound>
@@ -22,19 +25,6 @@
 </Router>
 
 @code {
-    // This component is a simple helper to perform the navigation.
-    // It's placed here to keep it self-contained with the Routes component that uses it.
-    private IComponent RedirectToLogin => new RedirectToLoginComponent();
-
-    private class RedirectToLoginComponent : IComponent
-    {
-        [Inject] private NavigationManager NavManager { get; set; } = default!;
-
-        public void Attach(RenderHandle renderHandle)
-        {
-            NavManager.NavigateTo("/login");
-        }
-
-        public Task SetParametersAsync(ParameterView parameters) => Task.CompletedTask;
-    }
+    // Routes component handles authentication-based navigation.
+    // Unauthenticated users are redirected to /login via NavigateToLogin component.
 }

@@ -6,6 +6,7 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 public class FileMetadataQueryServiceTests
 {
     private readonly IRepository<FileMetadata, string> _repository;
+    private readonly ISpecificationFactory _specificationFactory;
     private readonly ILogger<FileMetadataQueryService> _logger;
     private readonly FileMetadataQueryService _service;
 
@@ -15,8 +16,9 @@ public class FileMetadataQueryServiceTests
     public FileMetadataQueryServiceTests()
     {
         _repository = Substitute.For<IRepository<FileMetadata, string>>();
+        _specificationFactory = Substitute.For<ISpecificationFactory>();
         _logger = Substitute.For<ILogger<FileMetadataQueryService>>();
-        _service = new FileMetadataQueryService(_repository, _logger);
+        _service = new FileMetadataQueryService(_repository, _specificationFactory, _logger);
     }
 
     /// <summary>

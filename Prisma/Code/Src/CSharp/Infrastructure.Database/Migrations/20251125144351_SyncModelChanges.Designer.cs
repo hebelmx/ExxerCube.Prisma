@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExxerCube.Prisma.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(PrismaDbContext))]
-    partial class PrismaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125144351_SyncModelChanges")]
+    partial class SyncModelChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,125 +190,6 @@ namespace ExxerCube.Prisma.Infrastructure.Database.Migrations
                         .HasDatabaseName("IX_Persona_Rfc");
 
                     b.ToTable("Persona", (string)null);
-                });
-
-            modelBuilder.Entity("ExxerCube.Prisma.Domain.Entities.RequirementTypeDictionary", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<DateTime>("DiscoveredAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("DiscoveredFromDocument")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("KeywordPattern")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_RequirementTypeDictionary_IsActive");
-
-                    b.ToTable("RequirementTypeDictionary", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 100,
-                            CreatedBy = "System",
-                            DiscoveredAt = new DateTime(2025, 1, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Solicitud de Información",
-                            IsActive = true,
-                            KeywordPattern = "solicita información|estados de cuenta",
-                            Name = "Judicial",
-                            Notes = "Art. 142 LIC - Judicial/Fiscal/Administrative information requests"
-                        },
-                        new
-                        {
-                            Id = 101,
-                            CreatedBy = "System",
-                            DiscoveredAt = new DateTime(2025, 1, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Aseguramiento/Bloqueo",
-                            IsActive = true,
-                            KeywordPattern = "asegurar|bloquear|embargar",
-                            Name = "Aseguramiento",
-                            Notes = "Art. 2(V)(b) - SAME DAY execution required"
-                        },
-                        new
-                        {
-                            Id = 102,
-                            CreatedBy = "System",
-                            DiscoveredAt = new DateTime(2025, 1, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Desbloqueo",
-                            IsActive = true,
-                            KeywordPattern = "desbloquear|liberar",
-                            Name = "Desbloqueo",
-                            Notes = "R29 Type 102 - Release of frozen funds"
-                        },
-                        new
-                        {
-                            Id = 103,
-                            CreatedBy = "System",
-                            DiscoveredAt = new DateTime(2025, 1, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Transferencia Electrónica",
-                            IsActive = true,
-                            KeywordPattern = "transferir.*CLABE|CLABE.*transferir",
-                            Name = "Transferencia",
-                            Notes = "R29 Type 103 - Electronic transfer to government account"
-                        },
-                        new
-                        {
-                            Id = 104,
-                            CreatedBy = "System",
-                            DiscoveredAt = new DateTime(2025, 1, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Situación de Fondos",
-                            IsActive = true,
-                            KeywordPattern = "cheque de caja|poner a disposición",
-                            Name = "SituacionFondos",
-                            Notes = "R29 Type 104 - Cashier's check to judicial authority"
-                        },
-                        new
-                        {
-                            Id = 999,
-                            CreatedBy = "System",
-                            DiscoveredAt = new DateTime(2025, 1, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DisplayName = "Desconocido",
-                            IsActive = true,
-                            Name = "Unknown",
-                            Notes = "Fallback for unrecognized requirement types - triggers manual review"
-                        });
                 });
 
             modelBuilder.Entity("ExxerCube.Prisma.Domain.Entities.ReviewCase", b =>

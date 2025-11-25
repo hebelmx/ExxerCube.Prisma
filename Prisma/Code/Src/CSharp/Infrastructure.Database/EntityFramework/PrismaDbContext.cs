@@ -49,6 +49,12 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
     /// </summary>
     public DbSet<AuditRecord> AuditRecords { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the RequirementTypeDictionary entity set.
+    /// Lookup table for CNBV requirement types (seeded from legal research).
+    /// </summary>
+    public DbSet<RequirementTypeDictionary> RequirementTypeDictionary { get; set; } = null!;
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,5 +66,6 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
         modelBuilder.ApplyConfiguration(new ReviewCaseConfiguration());
         modelBuilder.ApplyConfiguration(new ReviewDecisionConfiguration());
         modelBuilder.ApplyConfiguration(new AuditRecordConfiguration());
+        modelBuilder.ApplyConfiguration(new RequirementTypeDictionaryConfiguration());
     }
 }

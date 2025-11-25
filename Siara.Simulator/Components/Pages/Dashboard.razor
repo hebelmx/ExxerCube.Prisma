@@ -1,6 +1,8 @@
 @page "/"
 @inject Siara.Simulator.Services.CaseService CaseService
+@inject ILogger<Dashboard> Logger
 @implements IDisposable
+@implements IAsyncDisposable
 
 <PageTitle>SIARA - Bandeja de Requerimientos</PageTitle>
 
@@ -74,27 +76,48 @@
 
     protected override void OnInitialized()
     {
+        Logger.LogInformation("Dashboard.OnInitialized called");
+
         // Subscribe to events
         CaseService.OnCaseArrived += HandleCaseArrived;
         CaseService.OnSettingsChanged += HandleSettingsChanged;
 
+        Logger.LogInformation("Dashboard subscribed to CaseService events");
+
+        // Start the simulation (deferred from app startup)
+        CaseService.Start();
+
         // Load initial cases and settings
         _cases = CaseService.GetActiveCases();
         _arrivalRate = CaseService.AverageArrivalsPerMinute;
+
+        Logger.LogInformation("Dashboard initialized with {Count} cases", _cases.Count());
     }
 
     private void HandleCaseArrived()
     {
+        Logger.LogInformation("Dashboard.HandleCaseArrived triggered - marshalling to UI thread");
+
         // When a new case arrives, get the updated list and refresh the UI
-        _cases = CaseService.GetActiveCases();
-        InvokeAsync(StateHasChanged);
+        // Must use InvokeAsync because event is fired from background timer thread
+        _ = InvokeAsync(() =>
+        {
+            _cases = CaseService.GetActiveCases();
+            Logger.LogInformation("Dashboard now has {Count} cases", _cases.Count());
+            StateHasChanged();
+        });
     }
 
     private void HandleSettingsChanged()
     {
+        Logger.LogInformation("Dashboard.HandleSettingsChanged triggered - marshalling to UI thread");
+
         // When settings change, refresh the UI
-        _arrivalRate = CaseService.AverageArrivalsPerMinute;
-        InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(() =>
+        {
+            _arrivalRate = CaseService.AverageArrivalsPerMinute;
+            StateHasChanged();
+        });
     }
 
     private void OnArrivalRateChanged(ChangeEventArgs e)
@@ -108,6 +131,8 @@
 
     public void Dispose()
     {
+        Logger.LogInformation("Dashboard.Dispose - unsubscribing from events");
+
         // Unsubscribe from events to prevent memory leaks
         CaseService.OnCaseArrived -= HandleCaseArrived;
         CaseService.OnSettingsChanged -= HandleSettingsChanged;
