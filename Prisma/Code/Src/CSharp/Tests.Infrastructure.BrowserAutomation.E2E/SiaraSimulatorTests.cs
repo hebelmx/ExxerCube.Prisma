@@ -11,11 +11,20 @@ public class SiaraSimulatorTests : IAsyncLifetime
     private readonly ILogger<SiaraSimulatorTests> _logger;
     private IBrowserAutomationAgent? _automationAgent;
     private readonly string _downloadPath;
+    private Process? _simulatorProcess; // Track simulator process if we started it
+    private bool _simulatorStartedByTest = false; // Flag to track if we started the simulator
 
     // Siara Simulator configuration
     private const string SimulatorUrl = "http://localhost:5001";
-    private const int SimulatorStartupWaitMs = 3000; // 3 seconds for simulator to be ready
+    private const int SimulatorStartupWaitMs = 8000; // 8 seconds for simulator to be ready
     private const int PostLoginWaitMs = 5000; // 5 seconds after login for UI to load
+
+    // Path to the deployed simulator executable
+    private static readonly string SimulatorExePath = Path.GetFullPath(
+        Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "..", "..", "..", "..", "..", "..",
+            "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe"));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SiaraSimulatorTests"/> class.
@@ -34,9 +43,21 @@ public class SiaraSimulatorTests : IAsyncLifetime
 
     /// <summary>
     /// Initialize browser automation agent in headed mode for visual demo.
+    /// Also checks if simulator is running and starts it if needed.
     /// </summary>
     public async ValueTask InitializeAsync()
     {
+        // Check if simulator is already running
+        if (!await IsSimulatorRunningAsync())
+        {
+            _logger.LogInformation("Simulator not running. Starting simulator...");
+            await StartSimulatorAsync();
+        }
+        else
+        {
+            _logger.LogInformation("Simulator is already running");
+        }
+
         _logger.LogInformation("Initializing browser automation agent in headed mode...");
 
         // Create options for headed mode (visible browser for demo)
@@ -397,5 +418,116 @@ public class SiaraSimulatorTests : IAsyncLifetime
                 _logger.LogWarning(ex, "Failed to cleanup download path: {DownloadPath}", _downloadPath);
             }
         }
+
+        // Stop simulator if we started it
+        if (_simulatorStartedByTest && _simulatorProcess != null)
+        {
+            _logger.LogInformation("Stopping simulator that was started by test...");
+            try
+            {
+                if (!_simulatorProcess.HasExited)
+                {
+                    _simulatorProcess.Kill(entireProcessTree: true);
+                    _simulatorProcess.WaitForExit(5000); // Wait up to 5 seconds
+                    _logger.LogInformation("Simulator stopped successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to stop simulator process");
+            }
+            finally
+            {
+                _simulatorProcess?.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Checks if the SIARA Simulator is running on localhost:5001
+    /// </summary>
+    private async Task<bool> IsSimulatorRunningAsync()
+    {
+        try
+        {
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+            var response = await httpClient.GetAsync(SimulatorUrl);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Starts the SIARA Simulator executable
+    /// </summary>
+    private async Task StartSimulatorAsync()
+    {
+        // Verify the executable exists
+        if (!File.Exists(SimulatorExePath))
+        {
+            throw new FileNotFoundException(
+                $"Simulator executable not found at: {SimulatorExePath}. " +
+                $"Please ensure the simulator has been published to Deployments/Siara.Simulator/app/");
+        }
+
+        _logger.LogInformation("Starting simulator from: {Path}", SimulatorExePath);
+
+        // Start the simulator process
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = SimulatorExePath,
+            WorkingDirectory = Path.GetDirectoryName(SimulatorExePath),
+            UseShellExecute = false,
+            CreateNoWindow = false, // Show window so user can see it running
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+
+        _simulatorProcess = Process.Start(startInfo);
+        if (_simulatorProcess == null)
+        {
+            throw new InvalidOperationException("Failed to start simulator process");
+        }
+
+        _simulatorStartedByTest = true;
+
+        // Log simulator output
+        _simulatorProcess.OutputDataReceived += (sender, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                _logger.LogInformation("[SIMULATOR] {Output}", e.Data);
+            }
+        };
+        _simulatorProcess.ErrorDataReceived += (sender, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                _logger.LogWarning("[SIMULATOR ERROR] {Output}", e.Data);
+            }
+        };
+        _simulatorProcess.BeginOutputReadLine();
+        _simulatorProcess.BeginErrorReadLine();
+
+        _logger.LogInformation("Simulator process started (PID: {ProcessId}). Waiting for it to be ready...", _simulatorProcess.Id);
+
+        // Wait for simulator to be ready
+        var maxAttempts = 40; // 40 attempts * 500ms = 20 seconds
+        var attempt = 0;
+        while (attempt < maxAttempts)
+        {
+            await Task.Delay(500);
+            if (await IsSimulatorRunningAsync())
+            {
+                _logger.LogInformation("Simulator is ready and responding on {Url}", SimulatorUrl);
+                return;
+            }
+            attempt++;
+        }
+
+        throw new TimeoutException($"Simulator did not become ready within 20 seconds on {SimulatorUrl}");
     }
 }

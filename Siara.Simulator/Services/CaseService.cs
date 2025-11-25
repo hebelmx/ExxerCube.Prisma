@@ -120,6 +120,49 @@ public class CaseService : IDisposable
     /// </summary>
     public IEnumerable<Case> GetActiveCases() => _activeCases.OrderByDescending(c => c.ArrivalTimestamp);
 
+    /// <summary>
+    /// Resets the simulation: clears all active cases, resets served cases tracking, and restarts the simulation.
+    /// </summary>
+    public void Reset()
+    {
+        _logger.LogInformation("Resetting Case Service...");
+
+        // Stop the timer
+        _timer.Stop();
+
+        // Clear active cases
+        _activeCases.Clear();
+
+        // Clear served case IDs
+        _servedCaseIds.Clear();
+
+        // Delete persistence file
+        try
+        {
+            if (File.Exists(_persistenceFilePath))
+            {
+                File.Delete(_persistenceFilePath);
+                _logger.LogInformation("Deleted persistence file: {PersistenceFile}", _persistenceFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete persistence file: {PersistenceFile}", _persistenceFilePath);
+        }
+
+        // Rediscover available cases
+        DiscoverAvailableCases();
+
+        // Restart the simulation
+        if (_isStarted)
+        {
+            _logger.LogInformation("Restarting simulation after reset");
+            ScheduleNextCase();
+        }
+
+        _logger.LogInformation("Case Service reset complete");
+    }
+
     private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
     {
         try

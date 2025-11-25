@@ -33,6 +33,14 @@
                 Distribución: Poisson (tiempo entre llegadas exponencial)
             </small>
         </div>
+        <div class="control-group">
+            <button class="btn btn-warning btn-reset" @onclick="OnResetSimulation">
+                🔄 Reiniciar Simulación
+            </button>
+            <small class="form-text text-muted">
+                Limpia todos los casos y reinicia la simulación desde cero
+            </small>
+        </div>
     </div>
 
     <div class="case-list">
@@ -136,6 +144,33 @@
         width: 30%;
         text-align: center;
     }
+
+    .control-group {
+        margin-bottom: 15px;
+    }
+
+    .btn-reset {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    }
+
+    .btn-reset:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.5);
+    }
+
+    .btn-reset:active {
+        transform: translateY(0);
+    }
 </style>
 
 @code {
@@ -219,6 +254,20 @@
             _arrivalRate = newRate;
             CaseService.AverageArrivalsPerMinute = newRate;
         }
+    }
+
+    private void OnResetSimulation()
+    {
+        Logger.LogInformation("Reset simulation button clicked");
+
+        // Reset the case service
+        CaseService.Reset();
+
+        // Update the UI
+        _cases = CaseService.GetActiveCases();
+        StateHasChanged();
+
+        Logger.LogInformation("Simulation reset complete");
     }
 
     public void Dispose()
