@@ -1,6 +1,7 @@
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using Siara.Simulator.Components;
+using Siara.Simulator.Configuration;
 using Siara.Simulator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure Serilog
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
+
+// Configure SimulatorSettings from appsettings.json
+builder.Services.Configure<SimulatorSettings>(
+    builder.Configuration.GetSection("SimulatorSettings"));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

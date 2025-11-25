@@ -639,3 +639,4 @@ bulk_generated_documents/
 bulk_generated_documents_py/
 test_batch_output/
 bulk_generated_documents_all_formats/
+/nul

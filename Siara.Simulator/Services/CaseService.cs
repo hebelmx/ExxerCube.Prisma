@@ -1,6 +1,10 @@
 using System.Collections.Concurrent;
+using System.Reactive;
+using System.Reactive.Subjects;
 using System.Text.Json;
 using System.Timers;
+using Microsoft.Extensions.Options;
+using Siara.Simulator.Configuration;
 using Siara.Simulator.Models;
 using Timer = System.Timers.Timer;
 
@@ -13,6 +17,7 @@ namespace Siara.Simulator.Services;
 public class CaseService : IDisposable
 {
     private readonly ILogger<CaseService> _logger;
+    private readonly SimulatorSettings _settings;
     private readonly string _documentSourcePath;
     private readonly string _persistenceFilePath;
     private readonly Timer _timer;
@@ -21,8 +26,12 @@ public class CaseService : IDisposable
     private HashSet<string> _servedCaseIds = new();
     private bool _isStarted = false;
 
+    // Observable subjects for reactive notifications
+    private readonly Subject<Case> _caseArrivedSubject = new();
+    private readonly Subject<Unit> _settingsChangedSubject = new();
+
     // Configurable simulation parameters
-    private double _averageArrivalsPerMinute = 6.0;
+    private double _averageArrivalsPerMinute;
 
     /// <summary>
     /// Gets or sets the average number of case arrivals per minute.
@@ -44,32 +53,46 @@ public class CaseService : IDisposable
             }
 
             _logger.LogInformation("Arrival rate changed to {Rate} cases/minute", _averageArrivalsPerMinute);
-            OnSettingsChanged?.Invoke();
+            _settingsChangedSubject.OnNext(Unit.Default);
         }
     }
 
     /// <summary>
-    /// Event that fires when a new case "arrives".
+    /// Observable that emits when a new case arrives, providing the new Case object.
     /// </summary>
-    public event Action? OnCaseArrived;
+    public IObservable<Case> CaseArrived => _caseArrivedSubject;
 
     /// <summary>
-    /// Event that fires when simulation settings change.
+    /// Observable that emits when simulation settings change.
     /// </summary>
-    public event Action? OnSettingsChanged;
+    public IObservable<Unit> SettingsChanged => _settingsChangedSubject;
 
-    public CaseService(ILogger<CaseService> logger, IHostEnvironment env)
+    public CaseService(
+        ILogger<CaseService> logger,
+        IHostEnvironment env,
+        IOptions<SimulatorSettings> options)
     {
         _logger = logger;
+        _settings = options.Value;
 
-        // Determine paths relative to the application's content root
-        _documentSourcePath = Path.Combine(env.ContentRootPath, "..", "bulk_generated_documents_all_formats");
-        _persistenceFilePath = Path.Combine(env.ContentRootPath, "cases.json");
+        // Determine paths - support both absolute and relative paths
+        _documentSourcePath = Path.IsPathRooted(_settings.DocumentSourcePath)
+            ? _settings.DocumentSourcePath
+            : Path.Combine(env.ContentRootPath, _settings.DocumentSourcePath);
+
+        _persistenceFilePath = Path.IsPathRooted(_settings.PersistenceFilePath)
+            ? _settings.PersistenceFilePath
+            : Path.Combine(env.ContentRootPath, _settings.PersistenceFilePath);
+
+        // Initialize arrival rate from configuration
+        _averageArrivalsPerMinute = _settings.AverageArrivalsPerMinute;
 
         _timer = new Timer();
         _timer.Elapsed += OnTimerElapsed;
 
-        _logger.LogInformation("CaseService created. Waiting for Start() call...");
+        _logger.LogInformation("CaseService created with DocumentSourcePath: {DocumentPath}, PersistenceFile: {PersistenceFile}",
+            _documentSourcePath, _persistenceFilePath);
+        _logger.LogInformation("Initial arrival rate: {Rate} cases/minute", _averageArrivalsPerMinute);
     }
 
     /// <summary>
@@ -103,9 +126,9 @@ public class CaseService : IDisposable
         {
             // Stop the timer to prevent re-entrancy while processing
             _timer.Stop();
-            
+
             _logger.LogInformation("Timer elapsed. Generating a new case.");
-            
+
             string? newCaseId = GetNextAvailableCaseId();
             if (newCaseId == null)
             {
@@ -127,18 +150,17 @@ public class CaseService : IDisposable
                     case ".html": newCase.HtmlPath = GetRelativePath(file); break;
                 }
             }
-            
+
             _activeCases.Add(newCase);
             _servedCaseIds.Add(newCaseId);
 
             // Persist the new state
             SaveServedCases();
 
-            // Notify the UI
-            var subscriberCount = OnCaseArrived?.GetInvocationList().Length ?? 0;
-            _logger.LogInformation("Firing OnCaseArrived event - {Count} subscribers", subscriberCount);
-            OnCaseArrived?.Invoke();
-            _logger.LogInformation("OnCaseArrived event fired");
+            // Notify subscribers via Observable
+            _logger.LogInformation("Publishing new case arrival to CaseArrived observable - Case ID: {CaseId}", newCaseId);
+            _caseArrivedSubject.OnNext(newCase);
+            _logger.LogInformation("CaseArrived notification published successfully");
         }
         catch (Exception ex)
         {
@@ -203,6 +225,22 @@ public class CaseService : IDisposable
     {
         try
         {
+            // Check if reset is requested
+            if (_settings.ResetCasesOnStartup)
+            {
+                _logger.LogInformation("ResetCasesOnStartup is enabled. Starting with empty served cases list.");
+                _servedCaseIds = new HashSet<string>();
+
+                // Optionally delete the persistence file
+                if (File.Exists(_persistenceFilePath))
+                {
+                    File.Delete(_persistenceFilePath);
+                    _logger.LogInformation("Deleted persistence file: {PersistenceFile}", _persistenceFilePath);
+                }
+
+                return;
+            }
+
             if (File.Exists(_persistenceFilePath))
             {
                 var json = File.ReadAllText(_persistenceFilePath);
@@ -213,11 +251,12 @@ public class CaseService : IDisposable
             else
             {
                 _servedCaseIds = new HashSet<string>();
+                _logger.LogInformation("No persistence file found. Starting with empty served cases list.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load served cases from cases.json. Starting fresh.");
+            _logger.LogError(ex, "Failed to load served cases from {PersistenceFile}. Starting fresh.", _persistenceFilePath);
             _servedCaseIds = new HashSet<string>();
         }
     }
@@ -247,5 +286,11 @@ public class CaseService : IDisposable
     {
         _timer.Elapsed -= OnTimerElapsed;
         _timer.Dispose();
+
+        // Complete the subjects to signal no more values will be emitted
+        _caseArrivedSubject.OnCompleted();
+        _settingsChangedSubject.OnCompleted();
+        _caseArrivedSubject.Dispose();
+        _settingsChangedSubject.Dispose();
     }
 }

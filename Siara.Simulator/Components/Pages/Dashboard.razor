@@ -1,10 +1,13 @@
 @page "/"
+@rendermode InteractiveServer
 @inject Siara.Simulator.Services.CaseService CaseService
 @inject ILogger<Dashboard> Logger
+@inject IJSRuntime JSRuntime
 @implements IDisposable
-@implements IAsyncDisposable
 
 <PageTitle>SIARA - Bandeja de Requerimientos</PageTitle>
+
+<div id="particles-js"></div>
 
 <div class="dashboard-container">
     <div class="dashboard-header">
@@ -70,19 +73,134 @@
     </div>
 </div>
 
+<style>
+    #particles-js {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        background: linear-gradient(135deg, #006847 0%, #004830 100%);
+    }
+
+    .dashboard-container {
+        position: relative;
+        z-index: 1;
+    }
+
+    .dashboard-header, .simulation-controls, .case-list {
+        background-color: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        margin: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 215, 0, 0.1));
+        border-left: 5px solid #FFD700;
+    }
+
+    .simulation-controls {
+        background-color: rgba(255, 255, 255, 0.98);
+        border-left: 5px solid #006847;
+    }
+
+    .case-list table {
+        table-layout: auto;
+    }
+
+    .case-list table th:first-child,
+    .case-list table td:first-child {
+        width: 35%;
+        min-width: 280px;
+        font-weight: 500;
+        color: #006847;
+    }
+
+    .case-list table th:nth-child(2),
+    .case-list table td:nth-child(2) {
+        width: 20%;
+        white-space: nowrap;
+    }
+
+    .case-list table th:nth-child(3),
+    .case-list table td:nth-child(3) {
+        width: 15%;
+        text-align: center;
+    }
+
+    .case-list table th:nth-child(4),
+    .case-list table td:nth-child(4) {
+        width: 30%;
+        text-align: center;
+    }
+</style>
+
 @code {
     private IEnumerable<Siara.Simulator.Models.Case> _cases = new List<Siara.Simulator.Models.Case>();
     private double _arrivalRate = 6.0;
+    private IDisposable? _caseArrivedSubscription;
+    private IDisposable? _settingsChangedSubscription;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Logger.LogInformation("Initializing particles.js background");
+            try
+            {
+                // Use the custom helper function that ensures particles.js is loaded
+                await JSRuntime.InvokeVoidAsync("initializeParticles");
+                Logger.LogInformation("particles.js initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error initializing particles.js");
+            }
+        }
+    }
 
     protected override void OnInitialized()
     {
         Logger.LogInformation("Dashboard.OnInitialized called");
 
-        // Subscribe to events
-        CaseService.OnCaseArrived += HandleCaseArrived;
-        CaseService.OnSettingsChanged += HandleSettingsChanged;
+        // Subscribe to observables
+        _caseArrivedSubscription = CaseService.CaseArrived.Subscribe(
+            onNext: newCase =>
+            {
+                Logger.LogInformation("Dashboard received new case notification - Case ID: {CaseId}", newCase.Id);
+                _ = InvokeAsync(() =>
+                {
+                    _cases = CaseService.GetActiveCases();
+                    Logger.LogInformation("Dashboard now has {Count} cases", _cases.Count());
+                    StateHasChanged();
+                    Logger.LogInformation("StateHasChanged called successfully");
+                });
+            },
+            onError: ex =>
+            {
+                Logger.LogError(ex, "Error in CaseArrived observable");
+            });
 
-        Logger.LogInformation("Dashboard subscribed to CaseService events");
+        _settingsChangedSubscription = CaseService.SettingsChanged.Subscribe(
+            onNext: unit =>
+            {
+                Logger.LogInformation("Dashboard received settings change notification");
+                _ = InvokeAsync(() =>
+                {
+                    _arrivalRate = CaseService.AverageArrivalsPerMinute;
+                    StateHasChanged();
+                    Logger.LogInformation("Settings updated and StateHasChanged called");
+                });
+            },
+            onError: ex =>
+            {
+                Logger.LogError(ex, "Error in SettingsChanged observable");
+            });
+
+        Logger.LogInformation("Dashboard subscribed to CaseService observables");
 
         // Start the simulation (deferred from app startup)
         CaseService.Start();
@@ -92,32 +210,6 @@
         _arrivalRate = CaseService.AverageArrivalsPerMinute;
 
         Logger.LogInformation("Dashboard initialized with {Count} cases", _cases.Count());
-    }
-
-    private void HandleCaseArrived()
-    {
-        Logger.LogInformation("Dashboard.HandleCaseArrived triggered - marshalling to UI thread");
-
-        // When a new case arrives, get the updated list and refresh the UI
-        // Must use InvokeAsync because event is fired from background timer thread
-        _ = InvokeAsync(() =>
-        {
-            _cases = CaseService.GetActiveCases();
-            Logger.LogInformation("Dashboard now has {Count} cases", _cases.Count());
-            StateHasChanged();
-        });
-    }
-
-    private void HandleSettingsChanged()
-    {
-        Logger.LogInformation("Dashboard.HandleSettingsChanged triggered - marshalling to UI thread");
-
-        // When settings change, refresh the UI
-        _ = InvokeAsync(() =>
-        {
-            _arrivalRate = CaseService.AverageArrivalsPerMinute;
-            StateHasChanged();
-        });
     }
 
     private void OnArrivalRateChanged(ChangeEventArgs e)
@@ -131,10 +223,20 @@
 
     public void Dispose()
     {
-        Logger.LogInformation("Dashboard.Dispose - unsubscribing from events");
+        Logger.LogInformation("Dashboard.Dispose - disposing observable subscriptions and particles");
 
-        // Unsubscribe from events to prevent memory leaks
-        CaseService.OnCaseArrived -= HandleCaseArrived;
-        CaseService.OnSettingsChanged -= HandleSettingsChanged;
+        // Dispose subscriptions to prevent memory leaks
+        _caseArrivedSubscription?.Dispose();
+        _settingsChangedSubscription?.Dispose();
+
+        // Cleanup particles.js
+        try
+        {
+            JSRuntime.InvokeVoidAsync("destroyParticles");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error destroying particles.js");
+        }
     }
 }
