@@ -3,47 +3,368 @@
 @inject NavigationManager NavManager
 @inject ILogger<Login> Logger
 
-<div class="login-container">
-    <div class="login-box">
-        <div class="login-header">
-            <img src="/logo-gobierno.jpg" alt="Government Seal" style="width: 80px; height: 80px; object-fit: contain;" />
-            <div>
-                <h3>Sistema de Atención de Requerimientos de Autoridad</h3>
-                <p>(SIMULACIÓN)</p>
+<div class="siara-login-page">
+    <!-- Top Banner with Government Branding -->
+    <div class="government-banner">
+        <div class="banner-content">
+            <div class="gov-logos">
+                <img src="/logo-gobierno.jpg" alt="Gobierno de México" class="gov-seal" />
+            </div>
+            <div class="gov-text">
+                <h1>Gobierno de México</h1>
+                <p class="subtitle">Comisión Nacional Bancaria y de Valores</p>
             </div>
         </div>
-        
-        <h4 class="login-title">Acceso al Portal de Instituciones Financieras</h4>
+    </div>
 
-        <EditForm Model="@_model" OnSubmit="HandleLogin" FormName="loginForm">
-            <DataAnnotationsValidator />
+    <!-- SIARA Header -->
+    <div class="siara-header">
+        <div class="siara-header-content">
+            <h2>SIARA</h2>
+            <p>Sistema de Atención de Requerimientos de Autoridad</p>
+            <div class="simulation-badge">
+                <span class="badge-text">⚠️ SIMULACIÓN - ENTORNO DE PRUEBAS ⚠️</span>
+            </div>
+        </div>
+    </div>
 
-            <div class="form-group mb-3">
-                <label for="username">Usuario:</label>
-                <InputText id="username" class="form-control" @bind-Value="_model.Username" placeholder="Institución Financiera" />
+    <!-- Login Form Container -->
+    <div class="login-container">
+        <div class="login-card">
+            <div class="card-header">
+                <h3>Acceso al Sistema</h3>
+                <p>Portal de Instituciones Financieras</p>
             </div>
 
-            <div class="form-group mb-3">
-                <label for="password">Contraseña de Acceso:</label>
-                <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" />
-                <ValidationMessage For="@(() => _model.Password)" />
-            </div>
+            <div class="card-body">
+                <EditForm Model="@_model" OnSubmit="HandleLogin" FormName="loginForm">
+                    <DataAnnotationsValidator />
 
-            @if (!string.IsNullOrEmpty(_errorMessage))
-            {
-                <div class="alert alert-danger mt-2" role="alert">
-                    @_errorMessage
+                    <div class="form-group">
+                        <label for="username" class="form-label">
+                            <strong>Usuario:</strong>
+                        </label>
+                        <InputText
+                            id="username"
+                            class="form-input"
+                            @bind-Value="_model.Username"
+                            placeholder="Ingrese su usuario"
+                            autocomplete="username" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <strong>Contraseña:</strong>
+                        </label>
+                        <InputText
+                            id="password"
+                            type="password"
+                            class="form-input"
+                            @bind-Value="_model.Password"
+                            placeholder="Ingrese su contraseña"
+                            autocomplete="current-password" />
+                        <ValidationMessage For="@(() => _model.Password)" />
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert-error">
+                            <strong>Error:</strong> @_errorMessage
+                        </div>
+                    }
+
+                    <button type="submit" class="btn-login">
+                        Ingresar al Sistema
+                    </button>
+                </EditForm>
+
+                <div class="help-text">
+                    <p><small>💡 <strong>Nota de Simulación:</strong> Cualquier usuario y contraseña son válidos para acceder al sistema de pruebas.</small></p>
                 </div>
-            }
+            </div>
+        </div>
 
-            <button type="submit" class="btn btn-primary btn-block mt-3">Ingresar</button>
-        </EditForm>
-        
-        <div class="login-footer">
-            <p>&copy; @DateTime.Now.Year - Comisión Nacional Bancaria y de Valores (Simulación)</p>
+        <div class="security-notice">
+            <p><strong>Aviso de Seguridad:</strong></p>
+            <p>Este es un entorno de simulación para pruebas. No ingrese información real o confidencial.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <div class="footer-content">
+            <p>&copy; @DateTime.Now.Year Comisión Nacional Bancaria y de Valores</p>
+            <p class="simulation-notice">ENTORNO DE SIMULACIÓN - NO ES EL SISTEMA REAL</p>
         </div>
     </div>
 </div>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .siara-login-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Government Banner */
+    .government-banner {
+        background: linear-gradient(90deg, #6d1f1f 0%, #8b2e2e 100%);
+        color: white;
+        padding: 15px 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .banner-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .gov-seal {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+    }
+
+    .gov-text h1 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .gov-text .subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    /* SIARA Header */
+    .siara-header {
+        background: white;
+        border-bottom: 4px solid #8b2e2e;
+        padding: 20px 0;
+    }
+
+    .siara-header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        text-align: center;
+    }
+
+    .siara-header h2 {
+        font-size: 36px;
+        font-weight: 700;
+        color: #6d1f1f;
+        margin-bottom: 5px;
+    }
+
+    .siara-header p {
+        font-size: 16px;
+        color: #555;
+        margin-bottom: 10px;
+    }
+
+    .simulation-badge {
+        margin-top: 10px;
+    }
+
+    .badge-text {
+        display: inline-block;
+        background: #ff6b35;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 14px;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+    }
+
+    /* Login Container */
+    .login-container {
+        max-width: 500px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #6d1f1f 0%, #8b2e2e 100%);
+        color: white;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .card-header h3 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .card-header p {
+        font-size: 14px;
+        opacity: 0.95;
+    }
+
+    .card-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #8b2e2e;
+    }
+
+    .form-input::placeholder {
+        color: #999;
+    }
+
+    .alert-error {
+        background: #fee;
+        border: 1px solid #fcc;
+        color: #c33;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .btn-login {
+        width: 100%;
+        background: linear-gradient(135deg, #6d1f1f 0%, #8b2e2e 100%);
+        color: white;
+        border: none;
+        padding: 14px 20px;
+        font-size: 16px;
+        font-weight: 700;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 10px;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(109, 31, 31, 0.3);
+    }
+
+    .btn-login:active {
+        transform: translateY(0);
+    }
+
+    .help-text {
+        margin-top: 20px;
+        padding: 15px;
+        background: #fffbea;
+        border: 1px solid #ffe066;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .help-text p {
+        color: #666;
+        font-size: 13px;
+        margin: 0;
+    }
+
+    .security-notice {
+        margin-top: 20px;
+        padding: 15px;
+        background: #fff3cd;
+        border: 2px solid #ffc107;
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .security-notice p {
+        margin: 5px 0;
+        color: #856404;
+        font-size: 13px;
+    }
+
+    .security-notice p:first-child {
+        font-weight: 700;
+    }
+
+    /* Footer */
+    .page-footer {
+        background: #333;
+        color: white;
+        padding: 20px 0;
+        margin-top: 60px;
+        text-align: center;
+    }
+
+    .footer-content p {
+        margin: 5px 0;
+        font-size: 13px;
+    }
+
+    .simulation-notice {
+        color: #ffc107;
+        font-weight: 700;
+        margin-top: 8px;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 600px) {
+        .banner-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .siara-header h2 {
+            font-size: 28px;
+        }
+
+        .login-container {
+            margin: 20px auto;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+    }
+</style>
 
 @code {
     private readonly LoginModel _model = new();
