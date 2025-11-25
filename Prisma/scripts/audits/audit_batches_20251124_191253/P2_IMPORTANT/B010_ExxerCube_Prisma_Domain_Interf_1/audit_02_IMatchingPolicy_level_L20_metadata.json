@@ -1,0 +1,17 @@
+{
+  "project": "Interfaces",
+  "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+  "class": "IMatchingPolicy",
+  "method": "level",
+  "line": 20,
+  "pattern": "magic_percentage",
+  "severity": "MEDIUM",
+  "category": "Hardcoded Values",
+  "line_preview": "/// <returns>A result containing the agreement level (0.0-1.0) or an error.</returns>",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Domain\\Interfaces\\IMatchingPolicy.cs",
+  "relative_path": "Domain\\Interfaces\\IMatchingPolicy.cs",
+  "file_name": "IMatchingPolicy.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udcca Extract to configuration with documentation",
+  "pattern_key": "ExxerCube.Prisma.Domain.Interfaces.IMatchingPolicy.level"
+}

@@ -19,14 +19,43 @@ public class CaseService : IDisposable
     private readonly ConcurrentBag<Case> _activeCases = new();
     private List<string> _availableCaseIds = new();
     private HashSet<string> _servedCaseIds = new();
-    
+
     // Configurable simulation parameters
-    private const double AverageArrivalsPerMinute = 6.0;
+    private double _averageArrivalsPerMinute = 6.0;
+
+    /// <summary>
+    /// Gets or sets the average number of case arrivals per minute.
+    /// Valid range: 0.1 to 60 cases per minute.
+    /// </summary>
+    public double AverageArrivalsPerMinute
+    {
+        get => _averageArrivalsPerMinute;
+        set
+        {
+            if (value is < 0.1 or > 60)
+            {
+                _logger.LogWarning("Attempted to set arrival rate to {Rate}, clamping to valid range [0.1, 60]", value);
+                _averageArrivalsPerMinute = Math.Clamp(value, 0.1, 60);
+            }
+            else
+            {
+                _averageArrivalsPerMinute = value;
+            }
+
+            _logger.LogInformation("Arrival rate changed to {Rate} cases/minute", _averageArrivalsPerMinute);
+            OnSettingsChanged?.Invoke();
+        }
+    }
 
     /// <summary>
     /// Event that fires when a new case "arrives".
     /// </summary>
     public event Action? OnCaseArrived;
+
+    /// <summary>
+    /// Event that fires when simulation settings change.
+    /// </summary>
+    public event Action? OnSettingsChanged;
 
     public CaseService(ILogger<CaseService> logger, IHostEnvironment env)
     {
@@ -116,7 +145,7 @@ public class CaseService : IDisposable
             return;
         }
 
-        var delay = DistributionService.GetNextPoissonDelay(AverageArrivalsPerMinute);
+        var delay = DistributionService.GetNextPoissonDelay(_averageArrivalsPerMinute);
         _timer.Interval = delay.TotalMilliseconds;
         _timer.Start();
         _logger.LogInformation("Next case scheduled in {Delay} seconds.", delay.TotalSeconds.ToString("F2"));

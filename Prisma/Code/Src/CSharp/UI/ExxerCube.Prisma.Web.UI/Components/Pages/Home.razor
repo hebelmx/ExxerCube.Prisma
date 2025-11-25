@@ -74,6 +74,93 @@
             </MudItem>
         </MudGrid>
 
+        <!-- Document Sources -->
+        <MudDivider Class="my-6" />
+        <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Language" Class="mr-2" />
+            Document Sources
+        </MudText>
+
+        <MudGrid Class="mb-6">
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="3" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mr-2" />
+                            SIARA Simulator
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            Sistema de Atención de Requerimientos de Autoridad (CNBV)
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Simulated regulatory document source with Poisson arrival distribution
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                   OnClick="@(() => NavigateToSource("siara"))"
+                                   StartIcon="@Icons.Material.Filled.Launch">
+                            Open SIARA
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="3" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.Archive" Class="mr-2" />
+                            Internet Archive
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            Digital library of free books, movies, music, and more
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Demo navigation to archive.org for document processing pipeline
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                                   OnClick="@(() => NavigateToSource("archive"))"
+                                   StartIcon="@Icons.Material.Filled.Launch">
+                            Open Archive
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudCard Elevation="3" Class="h-100">
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h6">
+                            <MudIcon Icon="@Icons.Material.Filled.MenuBook" Class="mr-2" />
+                            Project Gutenberg
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            Free eBooks - Over 70,000 free books available
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Demo navigation to gutenberg.org for document extraction testing
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Tertiary"
+                                   OnClick="@(() => NavigateToSource("gutenberg"))"
+                                   StartIcon="@Icons.Material.Filled.Launch">
+                            Open Gutenberg
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
         <!-- Technology Stack -->
         <MudDivider Class="my-6" />
         <MudText Typo="Typo.h5" GutterBottom="true" Class="mb-4">
@@ -108,4 +195,35 @@
     </MudPaper>
 </MudContainer>
 
+@using Microsoft.Extensions.Options
+@using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets
+@inject IOptions<NavigationTargetOptions> NavigationTargetOptions
 
+@code {
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    private void NavigateToSource(string sourceId)
+    {
+        var options = NavigationTargetOptions.Value;
+
+        // Get URL from configuration based on source ID
+        var url = sourceId.ToLower() switch
+        {
+            "siara" => options.SiaraUrl ?? "https://localhost:5002",
+            "archive" => options.ArchiveUrl ?? "https://archive.org",
+            "gutenberg" => options.GutenbergUrl ?? "https://www.gutenberg.org",
+            _ => null
+        };
+
+        if (!string.IsNullOrEmpty(url))
+        {
+            Snackbar.Add($"Opening {sourceId.ToUpper()} in new window...", Severity.Info);
+            NavigationManager.NavigateTo(url, forceLoad: true);
+        }
+        else
+        {
+            Snackbar.Add($"Navigation target '{sourceId}' not configured", Severity.Error);
+        }
+    }
+}

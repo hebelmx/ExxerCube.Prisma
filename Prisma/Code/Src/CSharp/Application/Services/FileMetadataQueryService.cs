@@ -1,5 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces.Contracts;
-using ExxerCube.Prisma.Domain.Specifications;
+using ExxerCube.Prisma.Domain.Interfaces.Factories;
 
 namespace ExxerCube.Prisma.Application.Services;
 
@@ -9,18 +9,22 @@ namespace ExxerCube.Prisma.Application.Services;
 public class FileMetadataQueryService
 {
     private readonly IRepository<FileMetadata, string> _metadataRepository;
+    private readonly ISpecificationFactory _specificationFactory;
     private readonly ILogger<FileMetadataQueryService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileMetadataQueryService"/> class.
     /// </summary>
     /// <param name="metadataRepository">The repository used to query metadata.</param>
+    /// <param name="specificationFactory">The factory for creating query specifications.</param>
     /// <param name="logger">The logger instance.</param>
     public FileMetadataQueryService(
         IRepository<FileMetadata, string> metadataRepository,
+        ISpecificationFactory specificationFactory,
         ILogger<FileMetadataQueryService> logger)
     {
         _metadataRepository = metadataRepository;
+        _specificationFactory = specificationFactory;
         _logger = logger;
     }
 
@@ -44,7 +48,7 @@ public class FileMetadataQueryService
             return ResultExtensions.Cancelled<List<FileMetadata>>();
         }
 
-        var specification = new FileMetadataFiltersSpecification(startDate, endDate, format);
+        var specification = _specificationFactory.CreateFileMetadataFilters(startDate, endDate, format);
         var filesResult = await _metadataRepository
             .ListAsync(specification, cancellationToken)
             .ConfigureAwait(false);
@@ -149,7 +153,7 @@ public class FileMetadataQueryService
             return ResultExtensions.Cancelled<DownloadStatistics>();
         }
 
-        var specification = new FileMetadataFiltersSpecification(startDate, endDate, null);
+        var specification = _specificationFactory.CreateFileMetadataFilters(startDate, endDate, null);
         var filesResult = await _metadataRepository
             .ListAsync(specification, cancellationToken)
             .ConfigureAwait(false);

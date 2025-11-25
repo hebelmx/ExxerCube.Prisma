@@ -1,7 +1,3 @@
-using DocumentFormat.OpenXml;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
-
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>

@@ -1,0 +1,17 @@
+{
+  "project": "Tests.Architecture",
+  "namespace": "ExxerCube.Prisma.Tests.Architecture",
+  "class": "in",
+  "method": "NotImplementedException",
+  "line": 752,
+  "pattern": "not_implemented_exception",
+  "severity": "HIGH",
+  "category": "Incomplete Implementation",
+  "line_preview": "// - throw new NotImplementedException(): ~11 bytes",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Tests.Architecture\\HexagonalArchitectureTests.cs",
+  "relative_path": "Tests.Architecture\\HexagonalArchitectureTests.cs",
+  "file_name": "HexagonalArchitectureTests.cs",
+  "is_test_file": true,
+  "recommendation": "\ud83d\udea8 CRITICAL: Replace with actual implementation or return Result<T>.Failure()",
+  "pattern_key": "ExxerCube.Prisma.Tests.Architecture.in.NotImplementedException"
+}

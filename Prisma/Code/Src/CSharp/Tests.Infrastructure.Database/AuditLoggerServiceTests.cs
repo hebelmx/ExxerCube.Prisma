@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Domain.Enums;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
 
 /// <summary>
@@ -205,7 +203,7 @@ public class AuditLoggerServiceTests : IDisposable
     {
         // Arrange
         var correlationId = Guid.NewGuid().ToString();
-        
+
         // Create record first (will have current timestamp)
         await _service.LogAuditAsync(
             AuditActionType.Download,
@@ -395,4 +393,3 @@ public class AuditLoggerServiceTests : IDisposable
         _dbContext?.Dispose();
     }
 }
-

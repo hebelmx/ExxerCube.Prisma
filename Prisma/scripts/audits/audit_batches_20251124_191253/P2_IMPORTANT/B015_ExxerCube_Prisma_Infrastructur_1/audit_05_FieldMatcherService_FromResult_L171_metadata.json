@@ -1,0 +1,17 @@
+{
+  "project": "Infrastructure.Classification",
+  "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+  "class": "FieldMatcherService",
+  "method": "FromResult",
+  "line": 171,
+  "pattern": "task_from_result",
+  "severity": "MEDIUM",
+  "category": "Other",
+  "line_preview": "return Task.FromResult(Result<UnifiedMetadataRecord>.WithFailure($\"Error generating unified record: {ex.Message}\", default(UnifiedMetadataRecord), ex));",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Infrastructure.Classification\\FieldMatcherService.cs",
+  "relative_path": "Infrastructure.Classification\\FieldMatcherService.cs",
+  "file_name": "FieldMatcherService.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udccb Review and address based on context",
+  "pattern_key": "ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService.FromResult"
+}

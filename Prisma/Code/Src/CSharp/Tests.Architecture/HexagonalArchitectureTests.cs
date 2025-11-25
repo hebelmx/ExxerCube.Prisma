@@ -28,6 +28,7 @@ public sealed class HexagonalArchitectureTests
         typeof(ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter).Assembly,
         typeof(ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter).Assembly,
         typeof(ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader).Assembly,
+        typeof(ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService).Assembly,
     };
 
     // Rule 1: Ports (Interfaces) → Domain Layer ONLY
@@ -216,6 +217,7 @@ public sealed class HexagonalArchitectureTests
             "ExxerCube.Prisma.Infrastructure.FileStorage",
             "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
             "ExxerCube.Prisma.Infrastructure.FileSystem",
+            "ExxerCube.Prisma.Infrastructure.Metrics",
         };
 
         var violations = new List<string>();
@@ -253,6 +255,7 @@ public sealed class HexagonalArchitectureTests
             "ExxerCube.Prisma.Infrastructure.FileStorage",
             "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
             "ExxerCube.Prisma.Infrastructure.FileSystem",
+            "ExxerCube.Prisma.Infrastructure.Metrics",
         };
 
         var violations = new List<string>();
@@ -405,6 +408,7 @@ public sealed class HexagonalArchitectureTests
             "ExxerCube.Prisma.Infrastructure.FileStorage",
             "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
             "ExxerCube.Prisma.Infrastructure.FileSystem",
+            "ExxerCube.Prisma.Infrastructure.Metrics",
         };
 
         var violations = new List<string>();
@@ -639,6 +643,151 @@ public sealed class HexagonalArchitectureTests
 
         violations.ShouldBeEmpty(
             $"Domain entities must not have EF Core attributes. Violations: {string.Join("; ", violations)}");
+    }
+
+    //
+
+    // Rule 7: ITTDD Technical Debt Detection
+
+    /// <summary>
+    /// Ensures every interface in Domain.Interfaces has at least one implementation in Infrastructure.
+    /// This detects architectural gaps where interfaces exist but implementations are missing.
+    /// ITTDD (Interface-Test-Driven Development) intentionally creates interfaces before implementations,
+    /// but this test ensures we don't forget to implement them.
+    /// </summary>
+    [Fact]
+    public void All_Domain_Interfaces_Should_Have_At_Least_One_Implementation()
+    {
+        var domainInterfaces = Types.InAssembly(DomainAssembly)
+            .That()
+            .AreInterfaces()
+            .And()
+            .ResideInNamespace("ExxerCube.Prisma.Domain.Interfaces")
+            .GetTypes()
+            .ToList();
+
+        var unimplementedInterfaces = new List<string>();
+
+        foreach (var domainInterface in domainInterfaces)
+        {
+            // Search all Infrastructure assemblies for implementations
+            var hasImplementation = false;
+
+            foreach (var infrastructureAssembly in InfrastructureAssemblies)
+            {
+                var implementations = Types.InAssembly(infrastructureAssembly)
+                    .That()
+                    .AreClasses()
+                    .And()
+                    .ImplementInterface(domainInterface)
+                    .GetTypes()
+                    .ToList();
+
+                if (implementations.Any())
+                {
+                    hasImplementation = true;
+                    break;
+                }
+            }
+
+            if (!hasImplementation)
+            {
+                unimplementedInterfaces.Add(domainInterface.FullName ?? domainInterface.Name);
+            }
+        }
+
+        unimplementedInterfaces.ShouldBeEmpty(
+            $"All Domain interfaces must have at least one implementation in Infrastructure. " +
+            $"Missing implementations for: {string.Join(", ", unimplementedInterfaces)}. " +
+            $"This indicates architectural gaps where interfaces were defined (ITTDD) but never implemented.");
+    }
+
+    /// <summary>
+    /// Detects stub/placeholder implementations that indicate technical debt.
+    /// Scans Infrastructure implementations for common patterns:
+    /// - NotImplementedException
+    /// - Empty method bodies
+    /// - Methods that only throw exceptions
+    /// - TODO/FIXME comments in implementation classes
+    /// </summary>
+    [Fact]
+    public void No_Stub_Implementations_Should_Exist()
+    {
+        var violations = new List<string>();
+
+        foreach (var infrastructureAssembly in InfrastructureAssemblies)
+        {
+            var implementationTypes = Types.InAssembly(infrastructureAssembly)
+                .That()
+                .AreClasses()
+                .GetTypes()
+                .Where(t => !t.IsAbstract) // Skip abstract classes
+                .ToList();
+
+            foreach (var type in implementationTypes)
+            {
+                // Check if type implements any Domain interface
+                var implementsDomainInterface = type.GetInterfaces()
+                    .Any(i => i.Namespace?.StartsWith("ExxerCube.Prisma.Domain.Interfaces") == true);
+
+                if (!implementsDomainInterface)
+                    continue; // Only check Infrastructure implementations of Domain interfaces
+
+                // Get all public methods (excluding inherited object methods)
+                var methods = type.GetMethods(System.Reflection.BindingFlags.Public |
+                                             System.Reflection.BindingFlags.Instance |
+                                             System.Reflection.BindingFlags.DeclaredOnly)
+                    .Where(m => !m.IsSpecialName) // Exclude property getters/setters
+                    .ToList();
+
+                foreach (var method in methods)
+                {
+                    try
+                    {
+                        var methodBody = method.GetMethodBody();
+
+                        // Skip methods without bodies (abstract, extern, etc.)
+                        if (methodBody == null)
+                            continue;
+
+                        // Check for suspiciously small method bodies (likely empty or throw-only)
+                        // Typical IL byte counts:
+                        // - Empty method: ~2 bytes (just ret)
+                        // - throw new NotImplementedException(): ~11 bytes
+                        // - Real implementation: typically >20 bytes
+                        if (methodBody.GetILAsByteArray()?.Length <= 15)
+                        {
+                            // Whitelist: Known legitimate simple implementations
+                            var whitelistedMethods = new[]
+                            {
+                                "ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.GetSupportedExtensions",
+                                "ExxerCube.Prisma.Infrastructure.DependencyInjection.OcrProcessingServiceAdapter.ProcessDocumentAsync"
+                            };
+
+                            var fullMethodName = $"{type.FullName}.{method.Name}";
+                            if (whitelistedMethods.Contains(fullMethodName))
+                                continue; // Skip whitelisted methods
+
+                            violations.Add(
+                                $"{type.FullName}.{method.Name}: Suspicious method body " +
+                                $"({methodBody.GetILAsByteArray()?.Length ?? 0} bytes IL). " +
+                                $"Likely empty or only throws exception (stub implementation).");
+                        }
+                    }
+                    catch
+                    {
+                        // Skip methods that can't be analyzed (generic methods, etc.)
+                        continue;
+                    }
+                }
+            }
+        }
+
+        violations.ShouldBeEmpty(
+            $"No stub/placeholder implementations should exist. Found {violations.Count} suspicious methods: " +
+            $"{string.Join("; ", violations.Take(10))}" +
+            (violations.Count > 10 ? $" ... and {violations.Count - 10} more." : "") +
+            $" These indicate technical debt where implementations were created but not properly implemented.");
     }
 
     //

@@ -1,0 +1,17 @@
+{
+  "project": "Models",
+  "namespace": "ExxerCube.Prisma.Domain.Models",
+  "class": "ReviewFilters",
+  "method": "filter",
+  "line": 9,
+  "pattern": "magic_numbers",
+  "severity": "MEDIUM",
+  "category": "Hardcoded Values",
+  "line_preview": "/// Gets or sets the minimum confidence level filter (0-100, nullable).",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Domain\\Models\\ReviewFilters.cs",
+  "relative_path": "Domain\\Models\\ReviewFilters.cs",
+  "file_name": "ReviewFilters.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udccb Review and address based on context",
+  "pattern_key": "ExxerCube.Prisma.Domain.Models.ReviewFilters.filter"
+}

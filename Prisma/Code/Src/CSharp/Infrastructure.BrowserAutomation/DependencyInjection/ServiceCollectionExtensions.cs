@@ -1,8 +1,3 @@
-using System;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using ExxerCube.Prisma.Domain.Interfaces;
-
 namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 
 /// <summary>
@@ -30,6 +25,16 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddScoped<IBrowserAutomationAgent, PlaywrightBrowserAutomationAdapter>();
+
+        // Register navigation targets with keyed services for runtime selection
+        services.Configure<NavigationTargetOptions>(options =>
+        {
+            // Configure from appsettings.json - will be bound in Web UI
+        });
+
+        services.AddKeyedScoped<INavigationTarget, SiaraNavigationTarget>("siara");
+        services.AddKeyedScoped<INavigationTarget, InternetArchiveNavigationTarget>("archive");
+        services.AddKeyedScoped<INavigationTarget, GutenbergNavigationTarget>("gutenberg");
 
         return services;
     }

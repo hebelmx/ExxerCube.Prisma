@@ -1,0 +1,17 @@
+{
+  "project": "Helpers",
+  "namespace": "ExxerCube.Prisma.ConsoleApp.GotOcr2Demo.Helpers",
+  "class": "FixtureFileLocator",
+  "method": "LogInformation",
+  "line": 123,
+  "pattern": "return_null",
+  "severity": "MEDIUM",
+  "category": "Other",
+  "line_preview": "return null;",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\ConsoleApp.GotOcr2Demo\\Helpers\\FixtureFileLocator.cs",
+  "relative_path": "ConsoleApp.GotOcr2Demo\\Helpers\\FixtureFileLocator.cs",
+  "file_name": "FixtureFileLocator.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udccb Review and address based on context",
+  "pattern_key": "ExxerCube.Prisma.ConsoleApp.GotOcr2Demo.Helpers.FixtureFileLocator.LogInformation"
+}

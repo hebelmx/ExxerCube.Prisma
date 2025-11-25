@@ -1,4 +1,7 @@
-namespace ExxerCube.Prisma.Domain.Specifications;
+using System.Linq.Expressions;
+using ExxerCube.Prisma.Domain.Interfaces.Contracts;
+
+namespace ExxerCube.Prisma.Infrastructure.Database.Specifications;
 
 /// <summary>
 /// Encapsulates the filtering, ordering and paging rules for retrieving file metadata records.

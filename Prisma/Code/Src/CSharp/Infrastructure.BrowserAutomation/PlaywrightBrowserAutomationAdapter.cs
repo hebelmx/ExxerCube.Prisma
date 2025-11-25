@@ -1,15 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using IndQuestResults;
-using ExxerCube.Prisma.Domain.Interfaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Playwright;
-
 namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation;
 
 /// <summary>
@@ -265,4 +253,3 @@ public class BrowserAutomationOptions
     /// </summary>
     public List<string> FilePatterns { get; set; } = new() { "*.pdf", "*.xml", "*.docx" };
 }
-

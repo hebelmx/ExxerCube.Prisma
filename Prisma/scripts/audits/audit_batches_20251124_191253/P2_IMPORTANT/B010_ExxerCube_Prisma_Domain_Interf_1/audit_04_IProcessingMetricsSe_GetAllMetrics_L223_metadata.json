@@ -1,0 +1,17 @@
+{
+  "project": "Interfaces",
+  "namespace": "ExxerCube.Prisma.Domain.Interfaces",
+  "class": "IProcessingMetricsService",
+  "method": "GetAllMetrics",
+  "line": 223,
+  "pattern": "magic_numbers",
+  "severity": "MEDIUM",
+  "category": "Hardcoded Values",
+  "line_preview": "/// <param name=\"count\">The maximum number of recent events to retrieve. Defaults to 100 if not specified. Must be greater than zero.</param>",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Domain\\Interfaces\\IProcessingMetricsService.cs",
+  "relative_path": "Domain\\Interfaces\\IProcessingMetricsService.cs",
+  "file_name": "IProcessingMetricsService.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udccb Review and address based on context",
+  "pattern_key": "ExxerCube.Prisma.Domain.Interfaces.IProcessingMetricsService.GetAllMetrics"
+}

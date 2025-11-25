@@ -1,0 +1,17 @@
+{
+  "project": "Infrastructure.BrowserAutomation",
+  "namespace": "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
+  "class": "PlaywrightBrowserAutomationAdapter",
+  "method": "catch",
+  "line": 80,
+  "pattern": "generic_exception_catch",
+  "severity": "MEDIUM",
+  "category": "Poor Exception Handling",
+  "line_preview": "catch (Exception ex)",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Infrastructure.BrowserAutomation\\PlaywrightBrowserAutomationAdapter.cs",
+  "relative_path": "Infrastructure.BrowserAutomation\\PlaywrightBrowserAutomationAdapter.cs",
+  "file_name": "PlaywrightBrowserAutomationAdapter.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udee1\ufe0f Use specific exception types and Result<T> pattern",
+  "pattern_key": "ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.catch"
+}

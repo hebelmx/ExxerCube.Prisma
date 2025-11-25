@@ -1,0 +1,17 @@
+{
+  "project": "Services",
+  "namespace": "ExxerCube.Prisma.Application.Services",
+  "class": "ConfigurationValidationService",
+  "method": "if",
+  "line": 217,
+  "pattern": "magic_numbers",
+  "severity": "MEDIUM",
+  "category": "Hardcoded Values",
+  "line_preview": "else if (config.BatchSize > 100)",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Application\\Services\\ConfigurationValidationService.cs",
+  "relative_path": "Application\\Services\\ConfigurationValidationService.cs",
+  "file_name": "ConfigurationValidationService.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udccb Review and address based on context",
+  "pattern_key": "ExxerCube.Prisma.Application.Services.ConfigurationValidationService.if"
+}

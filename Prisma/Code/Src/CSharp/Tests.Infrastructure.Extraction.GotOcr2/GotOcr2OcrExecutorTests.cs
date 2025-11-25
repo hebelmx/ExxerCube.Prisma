@@ -1,5 +1,3 @@
-using IndQuestResults;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2;
 
 /// <summary>

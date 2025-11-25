@@ -1,0 +1,17 @@
+{
+  "project": "Infrastructure.Classification",
+  "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+  "class": "FileClassifierService",
+  "method": "FromResult",
+  "line": 67,
+  "pattern": "task_from_result",
+  "severity": "MEDIUM",
+  "category": "Other",
+  "line_preview": "return Task.FromResult(Result<ClassificationResult>.Success(result));",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Infrastructure.Classification\\FileClassifierService.cs",
+  "relative_path": "Infrastructure.Classification\\FileClassifierService.cs",
+  "file_name": "FileClassifierService.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udccb Review and address based on context",
+  "pattern_key": "ExxerCube.Prisma.Infrastructure.Classification.FileClassifierService.FromResult"
+}

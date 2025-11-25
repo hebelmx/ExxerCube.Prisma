@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Metrics;
-
 namespace ExxerCube.Prisma.Infrastructure.DependencyInjection;
 
 /// <summary>
@@ -18,8 +16,9 @@ public static class ServiceCollectionExtensions
         // Register Python configuration
         services.AddSingleton(pythonConfiguration);
 
-        // Register metrics services
-        services.AddMetricsServices(pythonConfiguration.MaxConcurrency);
+        // NOTE: Metrics services should be registered in the composition root (Program.cs/Startup.cs)
+        // to avoid Infrastructure → Infrastructure.Metrics coupling.
+        // services.AddMetricsServices(pythonConfiguration.MaxConcurrency);
 
         services.AddScoped<HealthCheckService>();
 

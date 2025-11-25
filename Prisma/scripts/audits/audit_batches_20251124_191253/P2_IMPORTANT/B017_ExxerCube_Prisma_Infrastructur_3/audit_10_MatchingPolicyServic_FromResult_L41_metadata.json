@@ -1,0 +1,17 @@
+{
+  "project": "Infrastructure.Classification",
+  "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+  "class": "MatchingPolicyService",
+  "method": "FromResult",
+  "line": 41,
+  "pattern": "task_from_result",
+  "severity": "MEDIUM",
+  "category": "Other",
+  "line_preview": "return Task.FromResult(Result<FieldMatchResult>.WithFailure(\"No values provided for matching\"));",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Infrastructure.Classification\\MatchingPolicyService.cs",
+  "relative_path": "Infrastructure.Classification\\MatchingPolicyService.cs",
+  "file_name": "MatchingPolicyService.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udccb Review and address based on context",
+  "pattern_key": "ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService.FromResult"
+}

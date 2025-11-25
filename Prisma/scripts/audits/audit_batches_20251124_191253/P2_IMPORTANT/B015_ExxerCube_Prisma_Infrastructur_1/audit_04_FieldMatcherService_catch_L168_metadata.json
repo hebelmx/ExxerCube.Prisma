@@ -1,0 +1,17 @@
+{
+  "project": "Infrastructure.Classification",
+  "namespace": "ExxerCube.Prisma.Infrastructure.Classification",
+  "class": "FieldMatcherService",
+  "method": "catch",
+  "line": 168,
+  "pattern": "generic_exception_catch",
+  "severity": "MEDIUM",
+  "category": "Poor Exception Handling",
+  "line_preview": "catch (Exception ex)",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Infrastructure.Classification\\FieldMatcherService.cs",
+  "relative_path": "Infrastructure.Classification\\FieldMatcherService.cs",
+  "file_name": "FieldMatcherService.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udee1\ufe0f Use specific exception types and Result<T> pattern",
+  "pattern_key": "ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService.catch"
+}

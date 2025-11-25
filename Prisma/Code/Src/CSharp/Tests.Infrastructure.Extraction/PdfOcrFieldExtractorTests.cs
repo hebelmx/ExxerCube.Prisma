@@ -1,8 +1,3 @@
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.Sources;
-using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
@@ -83,7 +78,7 @@ public class PdfOcrFieldExtractorTests
                 .Returns(Result<OCRResult>.Success(ocrResult));
 
             // Act
-            var result = await _extractor.ExtractFieldsAsync(source, fieldDefinitions);
+            var result = await d_extractor.ExtractFieldsAsync(source, fieldDefinitions);
 
             // Assert
             result.IsSuccess.ShouldBeTrue();
@@ -226,4 +221,3 @@ public class PdfOcrFieldExtractorTests
         result.Error.ShouldContain("not found");
     }
 }
-

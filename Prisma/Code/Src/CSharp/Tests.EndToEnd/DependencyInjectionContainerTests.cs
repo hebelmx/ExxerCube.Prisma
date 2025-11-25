@@ -1,22 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using MudBlazor.Services;
-using ExxerCube.Prisma.Domain.Sources;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Database.HealthChecks;
-using ExxerCube.Prisma.Infrastructure.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Extraction;
-using ExxerCube.Prisma.Infrastructure.Classification;
-using ExxerCube.Prisma.Web.UI;
-using ExxerCube.Prisma.Web.UI.Components.Account;
-
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>
@@ -88,7 +69,7 @@ public class DependencyInjectionContainerTests
         // Test Scoped services
         using var scope1 = serviceProvider.CreateScope();
         using var scope2 = serviceProvider.CreateScope();
-        
+
         var scoped1 = scope1.ServiceProvider.GetService<DocumentIngestionService>();
         var scoped2 = scope2.ServiceProvider.GetService<DocumentIngestionService>();
         scoped1.ShouldNotBeNull();
@@ -280,4 +261,3 @@ public class DependencyInjectionContainerTests
         return builder.Services;
     }
 }
-

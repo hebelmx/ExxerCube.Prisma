@@ -29,9 +29,15 @@ public static class ServiceCollectionExtensions
         // Register dummy XML field extractor (temporary placeholder until full implementation is added)
         services.AddScoped<IFieldExtractor<XmlSource>, XmlFieldExtractor>();
 
-        // Register OCR executor - using GOT-OCR2 as default implementation
-        // TODO: Add Tesseract implementation and use keyed services for runtime selection
-        services.AddScoped<IOcrExecutor, GotOcr2.GotOcr2OcrExecutor>();
+        // Register OCR executors with keyed services for runtime selection
+        // Tesseract: Fast, traditional OCR (3-6s, 80-93% confidence)
+        services.AddKeyedScoped<IOcrExecutor, Teseract.TesseractOcrExecutor>("Tesseract");
+
+        // GOT-OCR2: Transformer-based, slower but more accurate (140s, 88%+ confidence)
+        services.AddKeyedScoped<IOcrExecutor, GotOcr2.GotOcr2OcrExecutor>("GotOcr2");
+
+        // Default: Use Tesseract as primary (fast), fallback to GOT-OCR2 for low confidence
+        services.AddScoped<IOcrExecutor, Teseract.TesseractOcrExecutor>();
 
         return services;
     }

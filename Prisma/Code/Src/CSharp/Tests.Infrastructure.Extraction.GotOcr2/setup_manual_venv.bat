@@ -105,6 +105,11 @@ pip install safetensors==0.7.0
 echo   DONE
 
 echo.
+echo Step 11: Installing safetensors...
+pip install PyMuPDF==1.26.6 
+echo   DONE
+
+echo.
 echo ============================================
 echo VERIFICATION
 echo ============================================

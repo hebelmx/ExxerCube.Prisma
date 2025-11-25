@@ -1,23 +1,3 @@
-using System.Net.Http;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using MudBlazor.Services;
-using ExxerCube.Prisma.Domain.Sources;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Database.HealthChecks;
-using ExxerCube.Prisma.Infrastructure.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Extraction;
-using ExxerCube.Prisma.Infrastructure.Classification;
-using ExxerCube.Prisma.Web.UI;
-using ExxerCube.Prisma.Web.UI.Components.Account;
-
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>
@@ -68,7 +48,7 @@ public class WebApplicationFactoryDependencyInjectionTests : IClassFixture<TestW
 
         // Infrastructure Services
         scopedProvider.GetService<IDbContextFactory<ApplicationDbContext>>().ShouldNotBeNull();
-        
+
         scopedProvider.GetService<ProcessingHub>().ShouldNotBeNull();
         scopedProvider.GetService<IdentityUserAccessor>().ShouldNotBeNull();
         scopedProvider.GetService<IdentityRedirectManager>().ShouldNotBeNull();
@@ -163,7 +143,7 @@ public class WebApplicationFactoryDependencyInjectionTests : IClassFixture<TestW
         // In test environment, health checks may fail due to database connectivity, but the service should be registered
         // Just verify the endpoint responded (status code is set, even if it's an error)
         response.ShouldNotBeNull();
-        
+
         // Verify we can read the response (endpoint exists and is accessible)
         var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         content.ShouldNotBeNull();
@@ -192,4 +172,3 @@ public class WebApplicationFactoryDependencyInjectionTests : IClassFixture<TestW
         pdfMatcher.ShouldNotBeNull();
     }
 }
-

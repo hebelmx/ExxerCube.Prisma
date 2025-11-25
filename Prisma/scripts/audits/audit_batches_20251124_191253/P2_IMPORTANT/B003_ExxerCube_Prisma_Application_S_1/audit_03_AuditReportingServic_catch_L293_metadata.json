@@ -1,0 +1,17 @@
+{
+  "project": "Services",
+  "namespace": "ExxerCube.Prisma.Application.Services",
+  "class": "AuditReportingService",
+  "method": "catch",
+  "line": 293,
+  "pattern": "generic_exception_catch",
+  "severity": "MEDIUM",
+  "category": "Poor Exception Handling",
+  "line_preview": "catch (Exception ex)",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Application\\Services\\AuditReportingService.cs",
+  "relative_path": "Application\\Services\\AuditReportingService.cs",
+  "file_name": "AuditReportingService.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udee1\ufe0f Use specific exception types and Result<T> pattern",
+  "pattern_key": "ExxerCube.Prisma.Application.Services.AuditReportingService.catch"
+}

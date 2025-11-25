@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
@@ -126,4 +124,3 @@ public class FileTypeIdentifierServiceTests
         result.Error.ShouldContain("null or empty");
     }
 }
-

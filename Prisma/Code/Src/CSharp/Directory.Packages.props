@@ -25,6 +25,10 @@
     <PackageVersion Include="PdfSharp" Version="6.2.3" />
     <PackageVersion Include="PdfPig" Version="0.1.12" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <!-- Tesseract OCR engine -->
+    <PackageVersion Include="Tesseract" Version="5.2.0" />
+    <!-- PDFtoImage for PDF rendering (cross-platform, high-level API) -->
+    <PackageVersion Include="PDFtoImage" Version="5.2.0" />
     <!-- Polly for resilience and transient-fault-handling -->
     <PackageVersion Include="Polly" Version="8.6.5" />
     <!-- Drawing elements  -->

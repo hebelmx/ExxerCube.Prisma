@@ -7,6 +7,8 @@ using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Logs;
 using System.Diagnostics;
+using ExxerCube.Prisma.Infrastructure.Python;
+using ExxerCube.Prisma.Infrastructure.Metrics;
 
 namespace ExxerCube.Prisma.Web.UI;
 
@@ -122,6 +124,12 @@ public class Program
         };
         services.AddOcrProcessingServices(pythonConfig);
 
+        // Add Python environment services (required for GOT-OCR2)
+        services.AddPrismaPythonEnvironment();
+
+        // Add metrics services (needed for Dashboard and HealthCheckService)
+        services.AddMetricsServices(pythonConfig.MaxConcurrency);
+
         // Add services to the container.
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
@@ -168,6 +176,12 @@ public class Program
         {
             configuration.GetSection("BrowserAutomation").Bind(options);
         });
+
+        // Configure navigation targets
+        services.Configure<ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets.NavigationTargetOptions>(options =>
+        {
+            configuration.GetSection("NavigationTargets").Bind(options);
+        });
         services.AddFileStorageServices(options =>
         {
             configuration.GetSection("FileStorage").Bind(options);
@@ -175,6 +189,10 @@ public class Program
         services.AddScoped<DocumentIngestionService>();
         services.AddScoped<FileMetadataQueryService>();
         services.AddScoped<FileDownloadService>();
+
+        // Register ISpecificationFactory (created during architecture cleanup)
+        services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.Factories.ISpecificationFactory,
+            ExxerCube.Prisma.Infrastructure.Database.Factories.SpecificationFactory>();
 
         // Add Story 1.2 services: Extraction, Classification, and Metadata Extraction
         services.AddExtractionServices();

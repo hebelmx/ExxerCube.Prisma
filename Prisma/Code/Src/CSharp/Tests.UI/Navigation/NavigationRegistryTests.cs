@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Microsoft.AspNetCore.Components;
-using ExxerCube.Prisma.Web.UI.Components.Shared.Navigation;
-using UiProgram = ExxerCube.Prisma.Web.UI.Program;
-
 namespace ExxerCube.Prisma.Tests.UI.Navigation;
 
 public class NavigationRegistryTests

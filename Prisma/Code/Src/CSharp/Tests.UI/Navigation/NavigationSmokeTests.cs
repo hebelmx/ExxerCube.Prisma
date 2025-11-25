@@ -1,9 +1,3 @@
-using System;
-using System.Text.RegularExpressions;
-using Microsoft.Playwright;
-using static Microsoft.Playwright.Assertions;
-using ExxerCube.Prisma.Tests.UI.Infrastructure;
-
 namespace ExxerCube.Prisma.Tests.UI.Navigation;
 
 public class NavigationSmokeTests : IAsyncLifetime

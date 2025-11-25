@@ -3,6 +3,7 @@
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <!-- Exclude NU1903 from being treated as error - DocumentFormat.OpenXml dependency vulnerability -->
@@ -25,6 +26,9 @@
     </PackageReference>
     <PackageReference Include="IndQuestResults" />
     <PackageReference Include="CSnakes.Runtime" />
+    <PackageReference Include="Tesseract" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="PDFtoImage" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,17 @@
+{
+  "project": "Services",
+  "namespace": "ExxerCube.Prisma.Application.Services",
+  "class": "ExportService",
+  "method": "catch",
+  "line": 302,
+  "pattern": "generic_exception_catch",
+  "severity": "MEDIUM",
+  "category": "Poor Exception Handling",
+  "line_preview": "catch (Exception ex)",
+  "full_path": "F:\\Dynamic\\ExxerCubeBanamex\\ExxerCube.Prisma\\Prisma\\Code\\Src\\CSharp\\Application\\Services\\ExportService.cs",
+  "relative_path": "Application\\Services\\ExportService.cs",
+  "file_name": "ExportService.cs",
+  "is_test_file": false,
+  "recommendation": "\ud83d\udee1\ufe0f Use specific exception types and Result<T> pattern",
+  "pattern_key": "ExxerCube.Prisma.Application.Services.ExportService.catch"
+}
