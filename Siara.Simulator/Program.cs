@@ -57,14 +57,21 @@ builder.Services.AddSingleton<CaseService>();
 // - Secure password hashing and validation
 // - CSRF protection, rate limiting, etc.
 // ============================================================================
-if (builder.Environment.IsDevelopment())
+
+// Register authentication service (always - this is a simulator/demo)
+builder.Services.AddSingleton<AuthenticationService>();
+
+// Log warning if not in development mode
+if (!builder.Environment.IsDevelopment())
 {
-    builder.Services.AddSingleton<AuthenticationService>();
-}
-else
-{
-    throw new InvalidOperationException(
-        "SIARA Simulator is for development/demo only and should not run in production.");
+    Console.WriteLine("==============================================");
+    Console.WriteLine("⚠️  WARNING: SIARA SIMULATOR RUNNING");
+    Console.WriteLine("==============================================");
+    Console.WriteLine("This is a SIMULATOR/DEMO environment.");
+    Console.WriteLine("It is NOT the real SIARA system.");
+    Console.WriteLine("Do NOT use for production purposes.");
+    Console.WriteLine("Do NOT enter real confidential data.");
+    Console.WriteLine("==============================================");
 }
 
 var app = builder.Build();
