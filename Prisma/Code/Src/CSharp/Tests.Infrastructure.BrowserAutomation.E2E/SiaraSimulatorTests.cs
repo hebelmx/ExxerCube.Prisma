@@ -140,11 +140,11 @@ public class SiaraSimulatorTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Complete E2E workflow: Navigate to Siara Simulator, login, view dashboard, and continuously
-    /// monitor for 3 minutes downloading each document as cases arrive and opening them.
-    /// Demonstrates full access flow with real-time document processing in headed mode.
+    /// Complete E2E workflow: Navigate to Siara Simulator, login, view dashboard,
+    /// monitor for 3 minutes downloading documents, then open all documents and display for 2 minutes.
+    /// Simple stakeholder demo in headed mode.
     /// </summary>
-    [Fact(Timeout = 360000)] // 6 minute timeout (3 min watch + startup/login time)
+    [Fact(Timeout = 480000)] // 8 minute timeout (3 min watch + 2 min display + startup)
     public async Task SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed()
     {
         // Arrange
@@ -201,32 +201,34 @@ public class SiaraSimulatorTests : IAsyncLifetime
             _logger.LogInformation("Viewing case list...");
             await Task.Delay(3000, TestContext.Current.CancellationToken); // 3 second pause to view dashboard
 
-            // STEP 5: Watch SIARA Simulator for 3 Minutes - Download Cases as They Arrive
+            // STEP 5: Watch SIARA Simulator for 3 Minutes - Download Cases
             _logger.LogInformation("");
-            _logger.LogInformation("STEP 5: CONTINUOUS MONITORING MODE");
-            _logger.LogInformation("Watching SIARA Simulator dashboard for 3 minutes...");
-            _logger.LogInformation("Will download each document as new cases arrive");
-            _logger.LogInformation("Documents will be opened AFTER monitoring to prevent browser navigation");
-            _logger.LogInformation("The simulation generates cases using Poisson distribution");
+            _logger.LogInformation("STEP 5: CONTINUOUS MONITORING (3 minutes)");
+            _logger.LogInformation("Watching SIARA Simulator dashboard...");
+            _logger.LogInformation("Downloading documents as they arrive");
             _logger.LogInformation("");
 
             var (downloadResults, filePaths) = await WatchAndDownloadContinuouslyAsync();
             downloadedFiles.AddRange(downloadResults);
 
-            // STEP 5B: Open All Downloaded Documents
+            // STEP 5B: Open All Documents and Display for 2 Minutes
             if (filePaths.Any())
             {
                 _logger.LogInformation("");
-                _logger.LogInformation("STEP 5B: Opening Downloaded Documents");
-                _logger.LogInformation("Opening {Count} documents in separate windows...", filePaths.Count);
+                _logger.LogInformation("STEP 5B: Opening All Downloaded Documents");
+                _logger.LogInformation("Opening {Count} documents...", filePaths.Count);
 
                 foreach (var filePath in filePaths)
                 {
                     OpenDocument(filePath);
-                    await Task.Delay(300, TestContext.Current.CancellationToken); // Small delay between opening
+                    await Task.Delay(200, TestContext.Current.CancellationToken);
                 }
 
-                _logger.LogInformation("✓ All documents opened successfully");
+                _logger.LogInformation("✓ All documents opened");
+                _logger.LogInformation("");
+                _logger.LogInformation("Displaying documents for 2 minutes...");
+                await Task.Delay(TimeSpan.FromMinutes(2), TestContext.Current.CancellationToken);
+                _logger.LogInformation("✓ Display period complete");
             }
 
             // STEP 6: Validate Results and Open Download Manifest
@@ -498,19 +500,9 @@ public class SiaraSimulatorTests : IAsyncLifetime
         var pollIntervalSeconds = 10;
         var endTime = DateTime.Now.AddMinutes(watchDurationMinutes);
 
-        _logger.LogInformation("===========================================");
-        _logger.LogInformation("STARTING CONTINUOUS MONITORING");
-        _logger.LogInformation("===========================================");
-        _logger.LogInformation("Watch duration: {Duration} minutes", watchDurationMinutes);
-        _logger.LogInformation("Poll interval: {Interval} seconds", pollIntervalSeconds);
-        _logger.LogInformation("Will check for new cases every {Interval}s and download immediately as they arrive", pollIntervalSeconds);
+        _logger.LogInformation("Monitoring for {Duration} minutes (poll every {Interval}s)", watchDurationMinutes, pollIntervalSeconds);
         _logger.LogInformation("End time: {EndTime:HH:mm:ss}", endTime);
-        _logger.LogInformation("");
-        _logger.LogInformation("📋 EXPECTATION:");
-        _logger.LogInformation("   - Each case has 3 documents (PDF, DOCX, XML)");
-        _logger.LogInformation("   - Need at least 9 documents (3 complete cases) for test to pass");
-        _logger.LogInformation("   - With Poisson distribution, expect much more than 9 documents");
-        _logger.LogInformation("   - Documents will be opened AFTER monitoring to prevent browser navigation");
+        _logger.LogInformation("Expecting ~18 cases (54 documents) with Poisson λ=6 cases/min");
         _logger.LogInformation("");
 
         var pollCount = 0;
@@ -519,7 +511,7 @@ public class SiaraSimulatorTests : IAsyncLifetime
         {
             pollCount++;
             var remainingSeconds = (int)(endTime - DateTime.Now).TotalSeconds;
-            _logger.LogInformation("[Poll #{Count}] Checking for new cases... (Time remaining: {Remaining}s)",
+            _logger.LogInformation("[Poll {Count}] {Remaining}s remaining",
                 pollCount, remainingSeconds);
 
             try
@@ -541,13 +533,10 @@ public class SiaraSimulatorTests : IAsyncLifetime
 
                     if (newFiles.Any())
                     {
-                        _logger.LogInformation("  🎯 NEW CASE ARRIVED! Found {Count} new document(s) to download", newFiles.Count);
+                        _logger.LogInformation("  New case: {Count} documents", newFiles.Count);
 
-                        // Download each new file immediately
                         foreach (var fileInfo in newFiles)
                         {
-                            _logger.LogInformation("  → Downloading: {FileName} ({Format})", fileInfo.FileName, fileInfo.Format);
-
                             var downloadResult = await _automationAgent.DownloadFileAsync(
                                 fileInfo.Url,
                                 TestContext.Current.CancellationToken);
@@ -556,37 +545,18 @@ public class SiaraSimulatorTests : IAsyncLifetime
                             {
                                 var downloadedFile = downloadResult.Value;
                                 downloadedFiles.Add(downloadedFile);
-                                _downloadedDocuments.Add(downloadedFile.FileName); // Track this download
+                                _downloadedDocuments.Add(downloadedFile.FileName);
 
-                                _logger.LogInformation("    ✓ Downloaded: {FileName} ({Size:N0} bytes)",
-                                    downloadedFile.FileName,
-                                    downloadedFile.Content?.Length ?? 0);
-
-                                // Save to disk immediately
+                                // Save to disk
                                 var filePath = Path.Combine(_downloadPath, downloadedFile.FileName);
                                 await File.WriteAllBytesAsync(filePath, downloadedFile.Content!, TestContext.Current.CancellationToken);
-                                _logger.LogInformation("    💾 Saved to: {Path}", filePath);
-
-                                // Track path for opening later (prevents browser navigation during monitoring)
                                 downloadedFilePaths.Add(filePath);
-                                _logger.LogInformation("    📋 Queued for opening after monitoring completes");
 
-                                // Update manifest immediately
+                                // Update manifest
                                 await AppendToManifestAsync(downloadedFile);
-
-                                await Task.Delay(500, TestContext.Current.CancellationToken); // Small delay between downloads
-                            }
-                            else
-                            {
-                                _logger.LogWarning("    ✗ Failed to download {FileName}: {Error}",
-                                    fileInfo.FileName, downloadResult.Error);
                             }
                         }
-                    }
-                    else
-                    {
-                        _logger.LogInformation("  No new documents (Total on page: {Total}, Already downloaded: {Downloaded})",
-                            availableFiles.Count, _downloadedDocuments.Count);
+                        _logger.LogInformation("  Downloaded and saved {Count} files", newFiles.Count);
                     }
                 }
                 else
@@ -599,25 +569,19 @@ public class SiaraSimulatorTests : IAsyncLifetime
                 _logger.LogWarning(ex, "Error during poll #{Count}", pollCount);
             }
 
-            // Wait before next poll (only if time remaining)
+            // Wait before next poll
             if (DateTime.Now < endTime)
             {
                 var nextPollDelay = Math.Min(pollIntervalSeconds * 1000, (int)(endTime - DateTime.Now).TotalMilliseconds);
                 if (nextPollDelay > 0)
                 {
-                    _logger.LogInformation("  ⏱ Waiting {Seconds}s before next check...", nextPollDelay / 1000);
                     await Task.Delay(nextPollDelay, TestContext.Current.CancellationToken);
                 }
             }
         }
 
         _logger.LogInformation("");
-        _logger.LogInformation("===========================================");
-        _logger.LogInformation("MONITORING PERIOD COMPLETE");
-        _logger.LogInformation("===========================================");
-        _logger.LogInformation("Total polls: {Count}", pollCount);
-        _logger.LogInformation("Total documents downloaded: {Count}", downloadedFiles.Count);
-        _logger.LogInformation("Documents queued for opening: {Count}", downloadedFilePaths.Count);
+        _logger.LogInformation("Monitoring complete: {Polls} polls, {Docs} documents downloaded", pollCount, downloadedFiles.Count);
         _logger.LogInformation("");
 
         return (downloadedFiles, downloadedFilePaths);
