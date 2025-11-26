@@ -1,0 +1,1055 @@
+   ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2 (54 tests) [10:38.112] Aborted: 12 tests failed
+    ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2 (54 tests) [10:38.112] Aborted: 12 tests failed
+     GotOcr2OcrExecutorDegradedTests (25 tests) [9:58.460] Aborted: 7 tests failed
+      GOT-OCR2 degraded fixtures should exist (16 tests) [0:00.012] Success
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q1_Poor/222AAA-44444444442025_page-0001.jpg ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\222AAA-44444444442025_page-0001.jpg
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q1_Poor directory exists: True
+Files in Q1_Poor: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q1_Poor", imageName: "333BBB-44444444442025_page1.png") [0:00.001] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q1_Poor/333BBB-44444444442025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q1_Poor directory exists: True
+Files in Q1_Poor: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q1_Poor/333ccc-6666666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q1_Poor directory exists: True
+Files in Q1_Poor: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q1_Poor", imageName: "555CCC-66666662025_page1.png") [0:00.001] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q1_Poor/555CCC-66666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\555CCC-66666662025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q1_Poor directory exists: True
+Files in Q1_Poor: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q2_MediumPoor/222AAA-44444444442025_page-0001.jpg ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q2_MediumPoor directory exists: True
+Files in Q2_MediumPoor: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q2_MediumPoor/333BBB-44444444442025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q2_MediumPoor directory exists: True
+Files in Q2_MediumPoor: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q2_MediumPoor/333ccc-6666666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q2_MediumPoor directory exists: True
+Files in Q2_MediumPoor: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "555CCC-66666662025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q2_MediumPoor/555CCC-66666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q2_MediumPoor directory exists: True
+Files in Q2_MediumPoor: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q3_Low", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q3_Low/222AAA-44444444442025_page-0001.jpg ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\222AAA-44444444442025_page-0001.jpg
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q3_Low directory exists: True
+Files in Q3_Low: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q3_Low", imageName: "333BBB-44444444442025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q3_Low/333BBB-44444444442025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\333BBB-44444444442025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q3_Low directory exists: True
+Files in Q3_Low: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q3_Low", imageName: "333ccc-6666666662025_page1.png") [0:00.002] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q3_Low/333ccc-6666666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\333ccc-6666666662025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q3_Low directory exists: True
+Files in Q3_Low: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q3_Low", imageName: "555CCC-66666662025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q3_Low/555CCC-66666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\555CCC-66666662025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q3_Low directory exists: True
+Files in Q3_Low: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q4_VeryLow", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q4_VeryLow/222AAA-44444444442025_page-0001.jpg ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\222AAA-44444444442025_page-0001.jpg
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q4_VeryLow directory exists: True
+Files in Q4_VeryLow: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q4_VeryLow", imageName: "333BBB-44444444442025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q4_VeryLow/333BBB-44444444442025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\333BBB-44444444442025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q4_VeryLow directory exists: True
+Files in Q4_VeryLow: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q4_VeryLow", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q4_VeryLow/333ccc-6666666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\333ccc-6666666662025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q4_VeryLow directory exists: True
+Files in Q4_VeryLow: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+       GOT-OCR2 degraded fixtures should exist(qualityLevel: "Q4_VeryLow", imageName: "555CCC-66666662025_page1.png") [0:00.000] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q4_VeryLow/555CCC-66666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\555CCC-66666662025_page1.png
+File.Exists check: True
+Fixtures directory exists: True
+PRP1_Degraded directory exists: True
+Q4_VeryLow directory exists: True
+Files in Q4_VeryLow: 222AAA-44444444442025_page-0001.jpg, 333BBB-44444444442025_page1.png, 333ccc-6666666662025_page1.png, 555CCC-66666662025_page1.png
+
+      GOT-OCR2 robustness test on degraded images (7 tests) [9:58.416] Aborted: 7 tests failed
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 70) [0:55.928] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q1_Poor/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 70%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\222AAA-44444444442025_page-0001.jpg
+Image file size: 416,329 bytes
+Starting GOT-OCR2 execution on Q1_Poor quality...
+>>> TIMER START <<<
+>>> TIMER END: 55.91s <<<
+
+=== GOT-OCR2 RESULTS (Q1_Poor) ===
+  Quality Level: Q1_Poor
+  Document: 222AAA-44444444442025_page-0001.jpg
+  Execution time: 55.91s
+  Text length: 806 characters
+  Confidence avg: 74.74%
+  Confidence median: 74.74%
+  Language used: spa
+  Text preview (first 200 chars): ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL 
+ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE 
+SONORA “2” 
+Mesa,  Turno y/o Unidad, Secretaría etc: ADMINSTRAION 
+DESCONCENTRADA DE AUTORÍA FISCA
+✓ GOT-OCR2 successfully processed Q1_Poor degraded image
+✓ Robustness validated for 222AAA-44444444442025_page-0001.jpg
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q1_Poor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 70) [1:45.328] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q1_Poor/333BBB-44444444442025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 70%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
+Image file size: 1,341,303 bytes
+Starting GOT-OCR2 execution on Q1_Poor quality...
+>>> TIMER START <<<
+>>> TIMER END: 105.33s <<<
+
+=== GOT-OCR2 RESULTS (Q1_Poor) ===
+  Quality Level: Q1_Poor
+  Document: 333BBB-44444444442025_page1.png
+  Execution time: 105.33s
+  Text length: 1680 characters
+  Confidence avg: 89.13%
+  Confidence median: 89.13%
+  Language used: spa
+  Text preview (first 200 chars): Administración General de Auditoría Fiscal Federal
+Administración Desconcentrada de Auditoría Fiscal de Sonora "2"
+Juan Juan Melón Sandía
+Vicepresidente de Supervisión de Procesos Preventivos
+Comisión
+✓ GOT-OCR2 successfully processed Q1_Poor degraded image
+✓ Robustness validated for 333BBB-44444444442025_page1.png
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 70) [0:58.907] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q1_Poor/333ccc-6666666662025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 70%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
+Image file size: 1,188,804 bytes
+Starting GOT-OCR2 execution on Q1_Poor quality...
+>>> TIMER START <<<
+>>> TIMER END: 58.83s <<<
+
+=== GOT-OCR2 RESULTS (Q1_Poor) ===
+  Quality Level: Q1_Poor
+  Document: 333ccc-6666666662025_page1.png
+  Execution time: 58.83s
+  Text length: 1011 characters
+  Confidence avg: 85.77%
+  Confidence median: 85.77%
+  Language used: spa
+  Text preview (first 200 chars): Administración General de Auditoría Fiscal Federal
+Administración Desconcentrada de Auditoría Fiscal de Sonora "2"
+Juan Juan Melón Sandía
+Vicepresidente de Supervisión de Procesos Preventivos
+Comisión
+✓ GOT-OCR2 successfully processed Q1_Poor degraded image
+✓ Robustness validated for 333ccc-6666666662025_page1.png
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q1_Poor", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 70) [1:36.504] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q1_Poor/555CCC-66666662025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 70%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\555CCC-66666662025_page1.png
+Image file size: 1,295,339 bytes
+Starting GOT-OCR2 execution on Q1_Poor quality...
+>>> TIMER START <<<
+>>> TIMER END: 96.50s <<<
+
+=== GOT-OCR2 RESULTS (Q1_Poor) ===
+  Quality Level: Q1_Poor
+  Document: 555CCC-66666662025_page1.png
+  Execution time: 96.50s
+  Text length: 1804 characters
+  Confidence avg: 84.63%
+  Confidence median: 84.63%
+  Language used: spa
+  Text preview (first 200 chars): Administración General  de Auditoría Fiscal Federal
+Administración Desconcentrada de Auditoría Fiscal  de Sonora “2”
+No. De Identificación del  Requerimiento
+AGAFADAFSON2/2025/000087
+Juan Juan Melón S
+✓ GOT-OCR2 successfully processed Q1_Poor degraded image
+✓ Robustness validated for 555CCC-66666662025_page1.png
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q2_MediumPoor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 60) [1:51.135] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q2_MediumPoor/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 60%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg
+Image file size: 283,990 bytes
+Starting GOT-OCR2 execution on Q2_MediumPoor quality...
+>>> TIMER START <<<
+>>> TIMER END: 111.13s <<<
+
+=== GOT-OCR2 RESULTS (Q2_MediumPoor) ===
+  Quality Level: Q2_MediumPoor
+  Document: 222AAA-44444444442025_page-0001.jpg
+  Execution time: 111.13s
+  Text length: 1902 characters
+  Confidence avg: 86.49%
+  Confidence median: 86.49%
+  Language used: spa
+  Text preview (first 200 chars): Adm i n i s t r a c i o n  G e n e r a l  d e  A u d i t o r i a  F i s c a l  F e d e r a l  
+Ad m i n i s t r a c i o n  D e s c o n c e n t r a d a  d e  A u d i t o r i a  F i s c a l  d e  S o n 
+✓ GOT-OCR2 successfully processed Q2_MediumPoor degraded image
+✓ Robustness validated for 222AAA-44444444442025_page-0001.jpg
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 60) [0:55.091] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q2_MediumPoor/333ccc-6666666662025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 60%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
+Image file size: 1,177,561 bytes
+Starting GOT-OCR2 execution on Q2_MediumPoor quality...
+>>> TIMER START <<<
+>>> TIMER END: 55.09s <<<
+
+=== GOT-OCR2 RESULTS (Q2_MediumPoor) ===
+  Quality Level: Q2_MediumPoor
+  Document: 333ccc-6666666662025_page1.png
+  Execution time: 55.09s
+  Text length: 1015 characters
+  Confidence avg: 86.08%
+  Confidence median: 86.08%
+  Language used: spa
+  Text preview (first 200 chars): Admmistracion Gereiaia de Auditoria Fiscal Federat
+Admmistracion Descoccentrada de Auldotria Fiscal de Sonora 2
+Juan Juan Melon Sandia
+Vicepresidente de Supervision de Procesos Preventivos:
+Comisión N
+✓ GOT-OCR2 successfully processed Q2_MediumPoor degraded image
+✓ Robustness validated for 333ccc-6666666662025_page1.png
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q2_MediumPoor", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 60) [0:25.413] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q2_MediumPoor/555CCC-66666662025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 60%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
+Image file size: 1,248,550 bytes
+Starting GOT-OCR2 execution on Q2_MediumPoor quality...
+>>> TIMER START <<<
+>>> TIMER END: 25.40s <<<
+
+=== GOT-OCR2 RESULTS (Q2_MediumPoor) ===
+  Quality Level: Q2_MediumPoor
+  Document: 555CCC-66666662025_page1.png
+  Execution time: 25.40s
+  Text length: 211 characters
+  Confidence avg: 25.10%
+  Confidence median: 25.10%
+  Language used: spa
+  Text preview (first 200 chars): Adm i n i s t r a c i o n  G e n e r a t  d e  A u d i t o r i a  F i s c a l  F e d e r a l  
+Adm i n i s t r a c i o n  D e s c o n c e n t r a d a  d e  A u d i t o r i a  F i s c a l  d e  S o n o
+✓ GOT-OCR2 successfully processed Q2_MediumPoor degraded image
+✓ Robustness validated for 555CCC-66666662025_page1.png
+
+      GOT-OCR2 should reject empty image data (degraded tests) [0:00.013] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+      GOT-OCR2 should reject null image data (degraded tests) [0:00.001] Success
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+     TesseractOcrExecutorDegradedTests (29 tests) [0:39.652] Failed: One or more child tests failed: 5 tests failed
+      Tesseract degraded fixtures should exist (16 tests) [0:00.003] Success
+       Tesseract degraded fixtures should exist(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q1_Poor/222AAA-44444444442025_page-0001.jpg ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\222AAA-44444444442025_page-0001.jpg
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q1_Poor", imageName: "333BBB-44444444442025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q1_Poor/333BBB-44444444442025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q1_Poor/333ccc-6666666662025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q1_Poor", imageName: "555CCC-66666662025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q1_Poor/555CCC-66666662025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\555CCC-66666662025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q2_MediumPoor/222AAA-44444444442025_page-0001.jpg ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q2_MediumPoor/333BBB-44444444442025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q2_MediumPoor/333ccc-6666666662025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "555CCC-66666662025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q2_MediumPoor/555CCC-66666662025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q3_Low", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q3_Low/222AAA-44444444442025_page-0001.jpg ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\222AAA-44444444442025_page-0001.jpg
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q3_Low", imageName: "333BBB-44444444442025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q3_Low/333BBB-44444444442025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\333BBB-44444444442025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q3_Low", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q3_Low/333ccc-6666666662025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\333ccc-6666666662025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q3_Low", imageName: "555CCC-66666662025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q3_Low/555CCC-66666662025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\555CCC-66666662025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q4_VeryLow", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q4_VeryLow/222AAA-44444444442025_page-0001.jpg ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\222AAA-44444444442025_page-0001.jpg
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q4_VeryLow", imageName: "333BBB-44444444442025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q4_VeryLow/333BBB-44444444442025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\333BBB-44444444442025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q4_VeryLow", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q4_VeryLow/333ccc-6666666662025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\333ccc-6666666662025_page1.png
+
+       Tesseract degraded fixtures should exist(qualityLevel: "Q4_VeryLow", imageName: "555CCC-66666662025_page1.png") [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== Checking Degraded Fixture: Q4_VeryLow/555CCC-66666662025_page1.png ===
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\555CCC-66666662025_page1.png
+
+      Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback (11 tests) [0:39.639] Failed: One or more child tests failed: 5 tests failed
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 55) [0:01.656] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q1_Poor/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 55%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\222AAA-44444444442025_page-0001.jpg
+Image file size: 416,329 bytes
+Starting Tesseract execution on Q1_Poor quality...
+>>> TIMER START <<<
+>>> TIMER END: 1.66s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 84.55x faster <<<
+
+=== TESSERACT RESULTS (Q1_Poor) ===
+  Quality Level: Q1_Poor
+  Document: 222AAA-44444444442025_page-0001.jpg
+  Execution time: 1.66s
+  Text length: 1810 characters
+  Confidence avg: 87.27%
+  Confidence median: 96.30%
+  Language used: spa
+  Text preview (first 200 chars): A sl 5 s/ sl
+E E E E E
+Administración General de Auditoría Fiscal Federal
+Administración Desconcentrada de Auditoría Fiscal de Sonora 2"
+[ No. De Identificación del Requerimiento
+[ AGAFADAFSON2/2025/0
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 1.66s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+✓ Tesseract successfully processed Q1_Poor degraded image
+✓ Robustness validated for 222AAA-44444444442025_page-0001.jpg
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q1_Poor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 55) [0:01.360] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q1_Poor/333BBB-44444444442025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 55%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
+Image file size: 1,341,303 bytes
+Starting Tesseract execution on Q1_Poor quality...
+>>> TIMER START <<<
+>>> TIMER END: 1.36s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 103.03x faster <<<
+
+=== TESSERACT RESULTS (Q1_Poor) ===
+  Quality Level: Q1_Poor
+  Document: 333BBB-44444444442025_page1.png
+  Execution time: 1.36s
+  Text length: 1842 characters
+  Confidence avg: 83.96%
+  Confidence median: 95.65%
+  Language used: spa
+  Text preview (first 200 chars): Pe / L / Y) 4 / Z /
+3 Si Y Y Y
+E E E E E
+Administración General de Auditoría Fiscal Federal
+Administración Desconcentrada de Auditoría Fiscal de Sonora"2"
+[No. De Identificaciónidel Requerimiento
+TAGA
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 1.36s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+✓ Tesseract successfully processed Q1_Poor degraded image
+✓ Robustness validated for 333BBB-44444444442025_page1.png
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 55) [0:01.376] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q1_Poor/333ccc-6666666662025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 55%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
+Image file size: 1,188,804 bytes
+Starting Tesseract execution on Q1_Poor quality...
+>>> TIMER START <<<
+>>> TIMER END: 1.37s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 101.86x faster <<<
+
+=== TESSERACT RESULTS (Q1_Poor) ===
+  Quality Level: Q1_Poor
+  Document: 333ccc-6666666662025_page1.png
+  Execution time: 1.37s
+  Text length: 1188 characters
+  Confidence avg: 78.59%
+  Confidence median: 93.18%
+  Language used: spa
+  Text preview (first 200 chars): A Z A A É
+, HE
+4 E 4 EA
+Administración General de Auditoría Fiscal Federal
+Administración Desconcentrada de Auditoría Fiscal de Sonora 2"
+PESE eS E Añ
+No. De Identificación del Requerímignto'
+AGAFADAF
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 1.37s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+✓ Tesseract successfully processed Q1_Poor degraded image
+✓ Robustness validated for 333ccc-6666666662025_page1.png
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q1_Poor", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 55) [0:01.536] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q1_Poor/555CCC-66666662025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 55%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\555CCC-66666662025_page1.png
+Image file size: 1,295,339 bytes
+Starting Tesseract execution on Q1_Poor quality...
+>>> TIMER START <<<
+>>> TIMER END: 1.53s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 91.22x faster <<<
+
+=== TESSERACT RESULTS (Q1_Poor) ===
+  Quality Level: Q1_Poor
+  Document: 555CCC-66666662025_page1.png
+  Execution time: 1.53s
+  Text length: 1822 characters
+  Confidence avg: 92.42%
+  Confidence median: 96.73%
+  Language used: spa
+  Text preview (first 200 chars): J da o q
+. Y E) E/ Y) E Y)
+Administración General de Auditoría Fiscal Federal E
+Administración Desconcentrada de Auditoría Fiscal de Sonora 2"
+No. De Identificación del Requerimiento
+'AGAFADAFSON2/202
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 1.53s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+✓ Tesseract successfully processed Q1_Poor degraded image
+✓ Robustness validated for 555CCC-66666662025_page1.png
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q2_MediumPoor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 45) [0:03.238] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q2_MediumPoor/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 45%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg
+Image file size: 283,990 bytes
+Starting Tesseract execution on Q2_MediumPoor quality...
+>>> TIMER START <<<
+>>> TIMER END: 3.17s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 44.12x faster <<<
+
+=== TESSERACT RESULTS (Q2_MediumPoor) ===
+  Quality Level: Q2_MediumPoor
+  Document: 222AAA-44444444442025_page-0001.jpg
+  Execution time: 3.17s
+  Text length: 2170 characters
+  Confidence avg: 52.84%
+  Confidence median: 48.90%
+  Language used: spa
+  Text preview (first 200 chars): S A a 2 . a A Eo
+pe E 2 E, A
+7 k 5 r Mm 7 A E ,
+: FTE DD O
+o - A LZ Ed A A El -
+: 3; DA E A
+We ha A MA ¿ A 7
+A 1 ES pe Ep ds
+S Adiminiciración General de Auditoria Fiscal Fedoía- $ E Ñ PA z SS
+: -Aami
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 3.17s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+✓ Tesseract successfully processed Q2_MediumPoor degraded image
+✓ Robustness validated for 222AAA-44444444442025_page-0001.jpg
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 45) [0:02.049] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q2_MediumPoor/333BBB-44444444442025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 45%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
+Image file size: 1,239,189 bytes
+Starting Tesseract execution on Q2_MediumPoor quality...
+>>> TIMER START <<<
+>>> TIMER END: 2.05s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 68.35x faster <<<
+
+=== TESSERACT RESULTS (Q2_MediumPoor) ===
+  Quality Level: Q2_MediumPoor
+  Document: 333BBB-44444444442025_page1.png
+  Execution time: 2.05s
+  Text length: 2060 characters
+  Confidence avg: 48.02%
+  Confidence median: 42.08%
+  Language used: spa
+  Text preview (first 200 chars): E . A ES y E z pa z
+, : e e] o A a
+E Ñ A - SS . GA
+A EE EZ ES MES .-
+y AO E AA a E
+TS A AA A O AS
+¿ HE MES UA Mo E
+TA Ms pS a
+A O au z .
+Agmisistración Genersi de Ayanoria Fiscal Fedoral ss A e 2% a E
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 2.05s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+✓ Tesseract successfully processed Q2_MediumPoor degraded image
+✓ Robustness validated for 333BBB-44444444442025_page1.png
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q2_MediumPoor", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 45) [0:02.951] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q2_MediumPoor/555CCC-66666662025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 45%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
+Image file size: 1,248,550 bytes
+Starting Tesseract execution on Q2_MediumPoor quality...
+>>> TIMER START <<<
+>>> TIMER END: 2.95s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 47.45x faster <<<
+
+=== TESSERACT RESULTS (Q2_MediumPoor) ===
+  Quality Level: Q2_MediumPoor
+  Document: 555CCC-66666662025_page1.png
+  Execution time: 2.95s
+  Text length: 2896 characters
+  Confidence avg: 52.95%
+  Confidence median: 50.42%
+  Language used: spa
+  Text preview (first 200 chars): a a a z ES] .
+ari MOST y z dea A
+. E A A 7 ES z
+A EA A AA A
+, z TIA de UA Miu
+z Pd Via MA CLA E E
+ha a A e: zo e z
+ón Genersi de Audhoria Fiscal Federal : : R
+50 5 contada de Autueria Fiscal de Sonora
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 2.95s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+✓ Tesseract successfully processed Q2_MediumPoor degraded image
+✓ Robustness validated for 555CCC-66666662025_page1.png
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q4_VeryLow", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 5) [0:01.850] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q4_VeryLow/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q4_VeryLow
+Expected Min Confidence: 5%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\222AAA-44444444442025_page-0001.jpg
+Image file size: 229,204 bytes
+Starting Tesseract execution on Q4_VeryLow quality...
+>>> TIMER START <<<
+>>> TIMER END: 1.85s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 75.71x faster <<<
+
+=== TESSERACT RESULTS (Q4_VeryLow) ===
+  Quality Level: Q4_VeryLow
+  Document: 222AAA-44444444442025_page-0001.jpg
+  Execution time: 1.85s
+  Text length: 3 characters
+  Confidence avg: 0.00%
+  Confidence median: 0.00%
+  Language used: spa
+  Text preview (first 200 chars): s
+s
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 1.85s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+⚠️ Q4_VeryLow QUALITY THRESHOLD REACHED
+   Tesseract baseline performance:
+   - Text length: 3 chars
+   - Confidence: 0.00%
+   - Confidence entries: 0
+
+   ⚠️ PRODUCTION SYSTEM SHOULD:
+   1. Detect confidence < 10% → Trigger fallback
+   2. Try GOT-OCR2 (expected better performance on degraded images)
+   3. OR apply digital enhancement preprocessing
+   4. OR return explicit quality failure
+   ⚠️ DO NOT silently accept 0% confidence results!
+✓ Q4_VeryLow baseline documented: Confidence=0.00%, TextLength=3
+✓ This quality level requires fallback mechanism in production
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q4_VeryLow", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 5) [0:00.799] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q4_VeryLow/333BBB-44444444442025_page1.png ===
+Quality Level: Q4_VeryLow
+Expected Min Confidence: 5%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\333BBB-44444444442025_page1.png
+Image file size: 1,283,031 bytes
+Starting Tesseract execution on Q4_VeryLow quality...
+>>> TIMER START <<<
+>>> TIMER END: 0.80s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 175.40x faster <<<
+
+=== TESSERACT RESULTS (Q4_VeryLow) ===
+  Quality Level: Q4_VeryLow
+  Document: 333BBB-44444444442025_page1.png
+  Execution time: 0.80s
+  Text length: 2 characters
+  Confidence avg: 0.00%
+  Confidence median: 0.00%
+  Language used: spa
+  Text preview (first 200 chars): ss
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 0.80s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+⚠️ Q4_VeryLow QUALITY THRESHOLD REACHED
+   Tesseract baseline performance:
+   - Text length: 2 chars
+   - Confidence: 0.00%
+   - Confidence entries: 0
+
+   ⚠️ PRODUCTION SYSTEM SHOULD:
+   1. Detect confidence < 10% → Trigger fallback
+   2. Try GOT-OCR2 (expected better performance on degraded images)
+   3. OR apply digital enhancement preprocessing
+   4. OR return explicit quality failure
+   ⚠️ DO NOT silently accept 0% confidence results!
+✓ Q4_VeryLow baseline documented: Confidence=0.00%, TextLength=2
+✓ This quality level requires fallback mechanism in production
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q4_VeryLow", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 5) [0:01.143] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q4_VeryLow/333ccc-6666666662025_page1.png ===
+Quality Level: Q4_VeryLow
+Expected Min Confidence: 5%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\333ccc-6666666662025_page1.png
+Image file size: 1,255,419 bytes
+Starting Tesseract execution on Q4_VeryLow quality...
+>>> TIMER START <<<
+>>> TIMER END: 1.14s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 122.55x faster <<<
+
+=== TESSERACT RESULTS (Q4_VeryLow) ===
+  Quality Level: Q4_VeryLow
+  Document: 333ccc-6666666662025_page1.png
+  Execution time: 1.14s
+  Text length: 1 characters
+  Confidence avg: 14.85%
+  Confidence median: 14.85%
+  Language used: spa
+  Text preview (first 200 chars): E
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 1.14s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+⚠️ Q4_VeryLow QUALITY THRESHOLD REACHED
+   Tesseract baseline performance:
+   - Text length: 1 chars
+   - Confidence: 14.85%
+   - Confidence entries: 1
+
+   ⚠️ PRODUCTION SYSTEM SHOULD:
+   1. Detect confidence < 10% → Trigger fallback
+   2. Try GOT-OCR2 (expected better performance on degraded images)
+   3. OR apply digital enhancement preprocessing
+   4. OR return explicit quality failure
+   ⚠️ DO NOT silently accept 0% confidence results!
+✓ Q4_VeryLow baseline documented: Confidence=14.85%, TextLength=1
+✓ This quality level requires fallback mechanism in production
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q4_VeryLow", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 5) [0:02.051] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q4_VeryLow/555CCC-66666662025_page1.png ===
+Quality Level: Q4_VeryLow
+Expected Min Confidence: 5%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\555CCC-66666662025_page1.png
+Image file size: 1,303,607 bytes
+Starting Tesseract execution on Q4_VeryLow quality...
+>>> TIMER START <<<
+>>> TIMER END: 2.05s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 68.32x faster <<<
+
+=== TESSERACT RESULTS (Q4_VeryLow) ===
+  Quality Level: Q4_VeryLow
+  Document: 555CCC-66666662025_page1.png
+  Execution time: 2.05s
+  Text length: 3 characters
+  Confidence avg: 51.80%
+  Confidence median: 51.80%
+  Language used: spa
+  Text preview (first 200 chars): pon
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 2.05s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+⚠️ Q4_VeryLow QUALITY THRESHOLD REACHED
+   Tesseract baseline performance:
+   - Text length: 3 chars
+   - Confidence: 51.80%
+   - Confidence entries: 1
+
+   ⚠️ PRODUCTION SYSTEM SHOULD:
+   1. Detect confidence < 10% → Trigger fallback
+   2. Try GOT-OCR2 (expected better performance on degraded images)
+   3. OR apply digital enhancement preprocessing
+   4. OR return explicit quality failure
+   ⚠️ DO NOT silently accept 0% confidence results!
+✓ Q4_VeryLow baseline documented: Confidence=51.80%, TextLength=3
+✓ This quality level requires fallback mechanism in production
+✓ Liskov Substitution Principle: Tesseract implements IOcrExecutor contract
+
+      Tesseract should reject empty image data (degraded tests) [0:00.000] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+      Tesseract should reject null image data (degraded tests) [0:00.001] Success
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing

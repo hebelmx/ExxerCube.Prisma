@@ -1,0 +1,808 @@
+   ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2 (12 tests) [39:18.128] Failed: 12 tests failed
+    ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2 (12 tests) [39:18.128] Failed: 12 tests failed
+     GotOcr2OcrExecutorDegradedTests (7 tests) [38:38.476] Failed: 7 tests failed
+      GOT-OCR2 robustness test on degraded images (7 tests) [38:38.430] Failed: 7 tests failed
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 60) [0:11.809] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text (null)
+        should not be null or white space
+
+    Additional Info:
+        Should extract some text even from degraded image
+
+--------------- Error 2 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    0
+
+    Additional Info:
+        Should extract meaningful text from Q2_MediumPoor quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q2_MediumPoor/333BBB-44444444442025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 60%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
+Image file size: 1,239,189 bytes
+Starting GOT-OCR2 execution on Q2_MediumPoor quality...
+>>> TIMER START <<<
+>>> TIMER END: 11.80s <<<
+
+=== GOT-OCR2 RESULTS (Q2_MediumPoor) ===
+  Quality Level: Q2_MediumPoor
+  Document: 333BBB-44444444442025_page1.png
+  Execution time: 11.80s
+  Text length: 0 characters
+  Confidence avg: 0.00%
+  Confidence median: 0.00%
+  Language used: spa
+  Text preview (first 200 chars): 
+>>> TIMER END (FAILED): 11.81s <<<
+GOT-OCR2 FAILED on Q2_MediumPoor quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text (null)
+        should not be null or white space
+
+    Additional Info:
+        Should extract some text even from degraded image
+
+--------------- Error 2 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    0
+
+    Additional Info:
+        Should extract meaningful text from Q2_MediumPoor quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+Inner exception
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q3_Low", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 40) [0:12.180] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    1
+
+    Additional Info:
+        Should extract meaningful text from Q3_Low quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q3_Low/333BBB-44444444442025_page1.png ===
+Quality Level: Q3_Low
+Expected Min Confidence: 40%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\333BBB-44444444442025_page1.png
+Image file size: 1,378,696 bytes
+Starting GOT-OCR2 execution on Q3_Low quality...
+>>> TIMER START <<<
+>>> TIMER END: 12.18s <<<
+
+=== GOT-OCR2 RESULTS (Q3_Low) ===
+  Quality Level: Q3_Low
+  Document: 333BBB-44444444442025_page1.png
+  Execution time: 12.18s
+  Text length: 1 characters
+  Confidence avg: 40.03%
+  Confidence median: 40.03%
+  Language used: spa
+  Text preview (first 200 chars): 5
+>>> TIMER END (FAILED): 12.18s <<<
+GOT-OCR2 FAILED on Q3_Low quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    1
+
+    Additional Info:
+        Should extract meaningful text from Q3_Low quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+Inner exception
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q3_Low", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 40) [0:11.444] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    1
+
+    Additional Info:
+        Should extract meaningful text from Q3_Low quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q3_Low/333ccc-6666666662025_page1.png ===
+Quality Level: Q3_Low
+Expected Min Confidence: 40%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\333ccc-6666666662025_page1.png
+Image file size: 1,375,506 bytes
+Starting GOT-OCR2 execution on Q3_Low quality...
+>>> TIMER START <<<
+>>> TIMER END: 11.44s <<<
+
+=== GOT-OCR2 RESULTS (Q3_Low) ===
+  Quality Level: Q3_Low
+  Document: 333ccc-6666666662025_page1.png
+  Execution time: 11.44s
+  Text length: 1 characters
+  Confidence avg: 40.03%
+  Confidence median: 40.03%
+  Language used: spa
+  Text preview (first 200 chars): 5
+>>> TIMER END (FAILED): 11.44s <<<
+GOT-OCR2 FAILED on Q3_Low quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    1
+
+    Additional Info:
+        Should extract meaningful text from Q3_Low quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+Inner exception
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q4_VeryLow", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 20) [0:12.676] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    8
+
+    Additional Info:
+        Should extract meaningful text from Q4_VeryLow quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q4_VeryLow/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q4_VeryLow
+Expected Min Confidence: 20%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\222AAA-44444444442025_page-0001.jpg
+Image file size: 229,204 bytes
+Starting GOT-OCR2 execution on Q4_VeryLow quality...
+>>> TIMER START <<<
+>>> TIMER END: 12.67s <<<
+
+=== GOT-OCR2 RESULTS (Q4_VeryLow) ===
+  Quality Level: Q4_VeryLow
+  Document: 222AAA-44444444442025_page-0001.jpg
+  Execution time: 12.67s
+  Text length: 8 characters
+  Confidence avg: 40.24%
+  Confidence median: 40.24%
+  Language used: spa
+  Text preview (first 200 chars): Thankful
+>>> TIMER END (FAILED): 12.67s <<<
+GOT-OCR2 FAILED on Q4_VeryLow quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    8
+
+    Additional Info:
+        Should extract meaningful text from Q4_VeryLow quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+Inner exception
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q4_VeryLow", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 20) [0:13.120] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    8
+
+    Additional Info:
+        Should extract meaningful text from Q4_VeryLow quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q4_VeryLow/333BBB-44444444442025_page1.png ===
+Quality Level: Q4_VeryLow
+Expected Min Confidence: 20%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\333BBB-44444444442025_page1.png
+Image file size: 1,283,031 bytes
+Starting GOT-OCR2 execution on Q4_VeryLow quality...
+>>> TIMER START <<<
+>>> TIMER END: 13.11s <<<
+
+=== GOT-OCR2 RESULTS (Q4_VeryLow) ===
+  Quality Level: Q4_VeryLow
+  Document: 333BBB-44444444442025_page1.png
+  Execution time: 13.11s
+  Text length: 8 characters
+  Confidence avg: 40.24%
+  Confidence median: 40.24%
+  Language used: spa
+  Text preview (first 200 chars): Thankful
+>>> TIMER END (FAILED): 13.12s <<<
+GOT-OCR2 FAILED on Q4_VeryLow quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    8
+
+    Additional Info:
+        Should extract meaningful text from Q4_VeryLow quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+Inner exception
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q4_VeryLow", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 20) [0:16.275] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    4
+
+    Additional Info:
+        Should extract meaningful text from Q4_VeryLow quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q4_VeryLow/333ccc-6666666662025_page1.png ===
+Quality Level: Q4_VeryLow
+Expected Min Confidence: 20%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\333ccc-6666666662025_page1.png
+Image file size: 1,255,419 bytes
+Starting GOT-OCR2 execution on Q4_VeryLow quality...
+>>> TIMER START <<<
+>>> TIMER END: 16.12s <<<
+
+=== GOT-OCR2 RESULTS (Q4_VeryLow) ===
+  Quality Level: Q4_VeryLow
+  Document: 333ccc-6666666662025_page1.png
+  Execution time: 16.12s
+  Text length: 4 characters
+  Confidence avg: 40.12%
+  Confidence median: 40.12%
+  Language used: spa
+  Text preview (first 200 chars): Whik
+>>> TIMER END (FAILED): 16.23s <<<
+GOT-OCR2 FAILED on Q4_VeryLow quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    4
+
+    Additional Info:
+        Should extract meaningful text from Q4_VeryLow quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+Inner exception
+
+       GOT-OCR2 robustness test on degraded images(qualityLevel: "Q4_VeryLow", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 20) [0:12.580] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    3
+
+    Additional Info:
+        Should extract meaningful text from Q4_VeryLow quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+
+=== Initializing GOT-OCR2 Degraded Image Test Instance ===
+Using shared Python environment from collection fixture
+GOT-OCR2 executor created for degraded image testing
+
+=== ROBUSTNESS TEST: Q4_VeryLow/555CCC-66666662025_page1.png ===
+Quality Level: Q4_VeryLow
+Expected Min Confidence: 20%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q4_VeryLow\555CCC-66666662025_page1.png
+Image file size: 1,303,607 bytes
+Starting GOT-OCR2 execution on Q4_VeryLow quality...
+>>> TIMER START <<<
+>>> TIMER END: 12.57s <<<
+
+=== GOT-OCR2 RESULTS (Q4_VeryLow) ===
+  Quality Level: Q4_VeryLow
+  Document: 555CCC-66666662025_page1.png
+  Execution time: 12.57s
+  Text length: 3 characters
+  Confidence avg: 40.09%
+  Confidence median: 40.09%
+  Language used: spa
+  Text preview (first 200 chars): GNR
+>>> TIMER END (FAILED): 12.58s <<<
+GOT-OCR2 FAILED on Q4_VeryLow quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.Text.Length
+        should be greater than
+    50
+        but was
+    3
+
+    Additional Info:
+        Should extract meaningful text from Q4_VeryLow quality (minimum 50 chars)
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.GotOcr2OcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_MeasuresRobustness(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\GotOcr2OcrExecutorDegradedTests.cs:line 200
+Inner exception
+
+     TesseractOcrExecutorDegradedTests (5 tests) [0:39.652] Failed: One or more child tests failed: 5 tests failed
+      Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback (5 tests) [0:39.639] Failed: One or more child tests failed: 5 tests failed
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 45) [0:01.729] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    45f
+        but was
+    42.62268f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q2_MediumPoor
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q2_MediumPoor/333ccc-6666666662025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 45%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
+Image file size: 1,177,561 bytes
+Starting Tesseract execution on Q2_MediumPoor quality...
+>>> TIMER START <<<
+>>> TIMER END: 1.73s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 81.05x faster <<<
+
+=== TESSERACT RESULTS (Q2_MediumPoor) ===
+  Quality Level: Q2_MediumPoor
+  Document: 333ccc-6666666662025_page1.png
+  Execution time: 1.73s
+  Text length: 1564 characters
+  Confidence avg: 42.62%
+  Confidence median: 36.48%
+  Language used: spa
+  Text preview (first 200 chars): Ú Ea 7 S S ; $ ss
+. y Se AO E de dá E
+A A. pe a A a os
+A A A A
+- . , 3 MaS , 3
+. E? e ¿E A WT A
+z administración Geñerai qe Aúcroris Fisegt Federal ES - , ES
+Adraimstración Desconcentrado de Alseitori
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 1.73s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+>>> TIMER END (FAILED): 1.73s <<<
+Tesseract FAILED on Q2_MediumPoor quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    45f
+        but was
+    42.62268f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q2_MediumPoor
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+Inner exception
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q3_Low", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 30) [0:04.954] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    30f
+        but was
+    27.105913f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q3_Low
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q3_Low/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q3_Low
+Expected Min Confidence: 30%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\222AAA-44444444442025_page-0001.jpg
+Image file size: 249,015 bytes
+Starting Tesseract execution on Q3_Low quality...
+>>> TIMER START <<<
+>>> TIMER END: 4.95s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 28.27x faster <<<
+
+=== TESSERACT RESULTS (Q3_Low) ===
+  Quality Level: Q3_Low
+  Document: 222AAA-44444444442025_page-0001.jpg
+  Execution time: 4.95s
+  Text length: 1195 characters
+  Confidence avg: 27.11%
+  Confidence median: 26.03%
+  Language used: spa
+  Text preview (first 200 chars): NEON Ue Ea: NES O A y 7 MN
+poa A E Y AE 1 A A 7 A
+da e E E E 7 E E MU A A
+ale AO ES o A DN A A AS A S
+E ña A - AA AA AAA
+A ci a A A e
+5 ISA AO ATRAS RITA TR DASH an e AE AR EN E "a NS AS
+PEE IST AS RO
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 4.95s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+>>> TIMER END (FAILED): 4.95s <<<
+Tesseract FAILED on Q3_Low quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    30f
+        but was
+    27.105913f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q3_Low
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+Inner exception
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q3_Low", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 30) [0:06.013] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    30f
+        but was
+    25.578636f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q3_Low
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q3_Low/333BBB-44444444442025_page1.png ===
+Quality Level: Q3_Low
+Expected Min Confidence: 30%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\333BBB-44444444442025_page1.png
+Image file size: 1,378,696 bytes
+Starting Tesseract execution on Q3_Low quality...
+>>> TIMER START <<<
+>>> TIMER END: 5.96s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 23.49x faster <<<
+
+=== TESSERACT RESULTS (Q3_Low) ===
+  Quality Level: Q3_Low
+  Document: 333BBB-44444444442025_page1.png
+  Execution time: 5.96s
+  Text length: 1274 characters
+  Confidence avg: 25.58%
+  Confidence median: 24.36%
+  Language used: spa
+  Text preview (first 200 chars): o ds E A A A A
+a AN PEA A A E A
+E $ A A A
+O A A A AA
+yy ue A o E E SEDE:
+e 5 E FP e E E EA sz
+A ff A A o REA) e E SS
+A A E ES E
+e A A 5 a A O
+eE: ZN E A E AE TEE SA E A e E
+y ho DENT E E AA ER AE AS P
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 5.96s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+>>> TIMER END (FAILED): 6.00s <<<
+Tesseract FAILED on Q3_Low quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    30f
+        but was
+    25.578636f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q3_Low
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+Inner exception
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q3_Low", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 30) [0:03.283] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    30f
+        but was
+    25.89934f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q3_Low
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q3_Low/333ccc-6666666662025_page1.png ===
+Quality Level: Q3_Low
+Expected Min Confidence: 30%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\333ccc-6666666662025_page1.png
+Image file size: 1,375,506 bytes
+Starting Tesseract execution on Q3_Low quality...
+>>> TIMER START <<<
+>>> TIMER END: 3.28s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 42.72x faster <<<
+
+=== TESSERACT RESULTS (Q3_Low) ===
+  Quality Level: Q3_Low
+  Document: 333ccc-6666666662025_page1.png
+  Execution time: 3.28s
+  Text length: 748 characters
+  Confidence avg: 25.90%
+  Confidence median: 25.11%
+  Language used: spa
+  Text preview (first 200 chars): a A o Ear da e .
+a A Lada. a E. e me ON o
+E 2 A E A A
+TA EA A Ea ES
+A A E ES A E e
+E AAA A o e 2
+E A A A A 3 DARE E e
+NO E OS A, Pe e Ye AS
+A o e ein "Doe. Te il
+e ME o A E A AE.
+a E A O E A A
+E A NA 
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 3.28s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+>>> TIMER END (FAILED): 3.28s <<<
+Tesseract FAILED on Q3_Low quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    30f
+        but was
+    25.89934f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q3_Low
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+Inner exception
+
+       Tesseract robustness: Q1-Q3 pass, Q4 documents quality threshold for fallback(qualityLevel: "Q3_Low", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 30) [0:03.637] Failed: Shouldly.ShouldAssertException: ocrResult
+Shouldly.ShouldAssertException
+ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    30f
+        but was
+    25.777517f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q3_Low
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+
+=== Initializing Tesseract Degraded Image Test Instance ===
+Using shared Tesseract executor from collection fixture
+Tesseract executor created for degraded image testing
+
+=== TESSERACT ROBUSTNESS TEST: Q3_Low/555CCC-66666662025_page1.png ===
+Quality Level: Q3_Low
+Expected Min Confidence: 30%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\Fixtures\PRP1_Degraded\Q3_Low\555CCC-66666662025_page1.png
+Image file size: 1,404,009 bytes
+Starting Tesseract execution on Q3_Low quality...
+>>> TIMER START <<<
+>>> TIMER END: 3.64s <<<
+>>> EXPECTED GOT-OCR2 TIME: ~140s <<<
+>>> SPEEDUP: 38.51x faster <<<
+
+=== TESSERACT RESULTS (Q3_Low) ===
+  Quality Level: Q3_Low
+  Document: 555CCC-66666662025_page1.png
+  Execution time: 3.64s
+  Text length: 1091 characters
+  Confidence avg: 25.78%
+  Confidence median: 25.33%
+  Language used: spa
+  Text preview (first 200 chars): EE A A OS Mi as? Esposas o
+
+z A rn OS alles aaa o
+A A e A A
+pi E HE RS A O A E A E
+A A TA AZ MA CLA CAES CO
+A Le Ei dea e Mal a A eros
+
+ici PA O A A : s E E ON E ¿
+PEO AE E ai TT ce E
+o a E A A a
+A ES
+
+=== COMPARISON WITH GOT-OCR2 ===
+  Expected GOT-OCR2 time: ~140s (Tesseract: 3.64s)
+  Expected GOT-OCR2 confidence: Higher on degraded images
+  Trade-off: Speed vs Accuracy on poor quality documents
+>>> TIMER END (FAILED): 3.64s <<<
+Tesseract FAILED on Q3_Low quality
+Shouldly.ShouldAssertException: ocrResult
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    ocrResult.ConfidenceAvg
+        should be greater than or equal to
+    30f
+        but was
+    25.777517f
+
+    Additional Info:
+        Confidence should meet minimum threshold for Q3_Low
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.TesseractOcrExecutorDegradedTests.ExecuteOcrAsync_DegradedImages_CompareWithGotOcr2(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Tests.Infrastructure.Extraction.GotOcr2\TesseractOcrExecutorDegradedTests.cs:line 222
+Inner exception
