@@ -3,9 +3,43 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 /// <summary>
 /// XML parser implementation for extracting Expediente entities from XML documents.
 /// </summary>
+/// <remarks>
+/// ╔════════════════════════════════════════════════════════════════════════════════╗
+/// ║                            🗺️ ROADMAP / FUTURE ENHANCEMENTS                    ║
+/// ╠════════════════════════════════════════════════════════════════════════════════╣
+/// ║ TODO: FUZZY SEARCH FOR MISSING FIELDS                                          ║
+/// ║ ─────────────────────────────────────────────────────────────────────────────  ║
+/// ║ After all exact field matching is exhausted (including Cnbv_ prefixes),       ║
+/// ║ implement fuzzy search to match XML elements to domain properties when:        ║
+/// ║   • Element name doesn't match exactly                                         ║
+/// ║   • Typos or variations in XML field names                                     ║
+/// ║   • Different naming conventions (camelCase vs PascalCase vs snake_case)       ║
+/// ║                                                                                 ║
+/// ║ Implementation approach:                                                        ║
+/// ║   1. Track all XML elements found vs domain properties required                ║
+/// ║   2. For unmatched domain properties, use fuzzy matching (Levenshtein)         ║
+/// ║   3. Log warnings for fuzzy-matched fields (compliance audit trail)            ║
+/// ║   4. Require minimum confidence threshold for fuzzy matches                    ║
+/// ║                                                                                 ║
+/// ║ See: MinimumFieldsProvidedBySamples for baseline field expectations            ║
+/// ╚════════════════════════════════════════════════════════════════════════════════╝
+/// </remarks>
 public class XmlExpedienteParser : IXmlNullableParser<Expediente>
 {
     private readonly ILogger<XmlExpedienteParser> _logger;
+
+    /// <summary>
+    /// Minimum number of fields that should be extractable based on real PRP1 sample fixtures.
+    /// Used as baseline for validation and future fuzzy matching implementation.
+    /// </summary>
+    /// <remarks>
+    /// Based on 4 PRP1 fixtures (222AAA, 333BBB, 333ccc, 555CCC):
+    /// - Root fields: ~15 (NumeroExpediente, NumeroOficio, FechaPublicacion, etc.)
+    /// - SolicitudPartes: 1+ with 10 fields each
+    /// - SolicitudEspecifica: 1+ (currently 3 fields, should be 11+ when domain fixed)
+    /// Total expected: ~30+ fields per document minimum.
+    /// </remarks>
+    private const int MinimumFieldsProvidedBySamples = 30;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="XmlExpedienteParser"/> class.
@@ -82,10 +116,30 @@ public class XmlExpedienteParser : IXmlNullableParser<Expediente>
             {
                 var especifica = new SolicitudEspecifica
                 {
-                    RequerimientoId = GetElementValue(especificaElement, "RequerimientoId") ?? string.Empty,
-                    Descripcion = GetElementValue(especificaElement, "Descripcion") ?? string.Empty,
-                    Tipo = GetElementValue(especificaElement, "Tipo") ?? string.Empty
+                    SolicitudEspecificaId = int.TryParse(GetElementValue(especificaElement, "SolicitudEspecificaId"), out var especificaId) ? especificaId : 0,
+                    InstruccionesCuentasPorConocer = GetElementValue(especificaElement, "InstruccionesCuentasPorConocer") ?? string.Empty
                 };
+
+                // Parse nested PersonasSolicitud collection
+                var personasSolicitudElements = especificaElement.Elements().Where(e => e.Name.LocalName == "PersonasSolicitud");
+                foreach (var personaElement in personasSolicitudElements)
+                {
+                    var persona = new PersonaSolicitud
+                    {
+                        PersonaId = int.TryParse(GetElementValue(personaElement, "PersonaId"), out var personaId) ? personaId : 0,
+                        Caracter = GetElementValue(personaElement, "Caracter") ?? string.Empty,
+                        Persona = GetElementValue(personaElement, "Persona") ?? string.Empty, // XML uses <Persona> not <PersonaTipo>
+                        Paterno = GetElementValue(personaElement, "Paterno"),
+                        Materno = GetElementValue(personaElement, "Materno"),
+                        Nombre = GetElementValue(personaElement, "Nombre") ?? string.Empty,
+                        Rfc = GetElementValue(personaElement, "Rfc"),
+                        Relacion = GetElementValue(personaElement, "Relacion"),
+                        Domicilio = GetElementValue(personaElement, "Domicilio"),
+                        Complementarios = GetElementValue(personaElement, "Complementarios")
+                    };
+                    especifica.PersonasSolicitud.Add(persona);
+                }
+
                 expediente.SolicitudEspecificas.Add(especifica);
             }
 
