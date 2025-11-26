@@ -3,9 +3,15 @@
 @using ExxerCube.Prisma.Domain
 @using ExxerCube.Prisma.Infrastructure.BrowserAutomation
 @using Microsoft.Extensions.Options
+@using AngleSharp.Html.Parser
+@using System.Diagnostics
+@using Microsoft.JSInterop
+@using Microsoft.Extensions.Logging
 @inject IBrowserAutomationAgent BrowserAgent
 @inject IOptions<BrowserAutomationOptions> BrowserOptions
 @inject ISnackbar Snackbar
+@inject ILogger<BrowserAutomationDemo> Logger
+@implements IDisposable
 
 <PageTitle>Browser Automation - Document Download</PageTitle>
 
@@ -67,6 +73,45 @@
                 </MudChip>
             </MudItem>
         </MudGrid>
+
+        <!-- SIARA Simulator Controls (only shown when SIARA is selected) -->
+        @if (_selectedSource == "siara")
+        {
+            <MudPaper Class="pa-4 mb-4" Outlined="true">
+                <MudText Typo="Typo.h6" GutterBottom="true">
+                    <MudIcon Icon="@Icons.Material.Filled.Settings" Class="mr-2" />
+                    SIARA Simulator Service
+                </MudText>
+                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Success"
+                               OnClick="StartSimulator" Disabled="@(_isSimulatorRunning || _isSimulatorStarting)"
+                               StartIcon="@Icons.Material.Filled.PlayArrow">
+                        Start Simulator
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error"
+                               OnClick="StopSimulator" Disabled="@(!_isSimulatorRunning || _isSimulatorStopping)"
+                               StartIcon="@Icons.Material.Filled.Stop">
+                        Stop Simulator
+                    </MudButton>
+                    <MudChip T="string" Size="Size.Medium" Color="@(_isSimulatorRunning ? Color.Success : Color.Default)">
+                        @(_isSimulatorRunning ? "Running" : "Stopped")
+                    </MudChip>
+                    @if (_isSimulatorStarting)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <MudText Typo="Typo.body2">Starting...</MudText>
+                    }
+                    @if (_isSimulatorStopping)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <MudText Typo="Typo.body2">Stopping...</MudText>
+                    }
+                </MudStack>
+                <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Secondary">
+                    Simulator URL: @_siaraUrl
+                </MudText>
+            </MudPaper>
+        }
 
         <MudStack Row="true" Spacing="2" Class="mb-6">
             <MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -161,17 +206,27 @@
     private int _browserTimeoutMs = 30000;
     private int _pageTimeoutMs = 30000;
 
+    // SIARA Simulator process management
+    private Process? _simulatorProcess;
+    private bool _isSimulatorRunning = false;
+    private bool _isSimulatorStarting = false;
+    private bool _isSimulatorStopping = false;
+    private bool _simulatorStartedByUI = false;
+
     // Gutenberg book IDs (from E2E tests)
     private readonly string[] _gutenbergBookIds = new[] { "3300", "30107", "1232" };
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Load configuration from appsettings.json
-        _siaraUrl = NavigationTargetOptions.Value.SiaraUrl ?? "https://localhost:5002";
+        _siaraUrl = NavigationTargetOptions.Value.SiaraUrl ?? "http://localhost:5001";
         _gutenbergUrl = NavigationTargetOptions.Value.GutenbergUrl ?? "https://www.gutenberg.org";
         _archiveUrl = NavigationTargetOptions.Value.ArchiveUrl ?? "https://archive.org";
         _browserTimeoutMs = BrowserOptions.Value.BrowserLaunchTimeoutMs;
         _pageTimeoutMs = BrowserOptions.Value.PageTimeoutMs;
+
+        // Check if SIARA simulator is already running
+        _isSimulatorRunning = await IsSimulatorRunningAsync();
     }
 
     private async Task StartDownload()
@@ -343,7 +398,7 @@
         _statusMessage = "Entering credentials...";
         StateHasChanged();
 
-        var fillUsernameResult = await agent.FillInputAsync("#username", "demo_user");
+        var fillUsernameResult = await agent.FillInputAsync("#username", "BancoDemo");
         if (!fillUsernameResult.IsSuccess)
         {
             _statusMessage = $"Failed to fill username: {fillUsernameResult.Error}";
@@ -355,7 +410,7 @@
         await Task.Delay(500);
 
         // Fill password field (any password works in demo mode)
-        var fillPasswordResult = await agent.FillInputAsync("#password", "demo_pass");
+        var fillPasswordResult = await agent.FillInputAsync("#password", "demo123");
         if (!fillPasswordResult.IsSuccess)
         {
             _statusMessage = $"Failed to fill password: {fillPasswordResult.Error}";
@@ -382,82 +437,135 @@
         // Wait for dashboard to load after login
         _statusMessage = "Logging in... waiting for dashboard...";
         StateHasChanged();
-        await Task.Delay(3000);
+        await Task.Delay(5000); // Match test: PostLoginWaitMs = 5000
 
-        _statusMessage = "Successfully logged in! SIARA Simulator auto-started. Waiting for documents to appear...";
+        _statusMessage = "Successfully logged in! Viewing dashboard for 3 seconds...";
         Snackbar.Add("SIARA login successful - simulator running!", Severity.Success);
         StateHasChanged();
+        await Task.Delay(3000); // Match test: pause to view dashboard
 
-        // Wait for documents to appear (SIARA auto-starts and generates cases via Poisson distribution)
-        // Poll for documents with retries
-        var maxAttempts = 10; // 10 attempts * 6 seconds = 60 seconds max wait
-        var attemptDelay = 6000; // 6 seconds between attempts (rate is ~6 cases/min, expect ~1 case per attempt)
-        var identifyResult = default(Result<List<DownloadableFile>>);
+        // Watch SIARA for a period (like the test does - 3 minutes, but we'll use shorter for demo)
+        _statusMessage = "Watching SIARA dashboard as cases arrive...";
+        SafeStateHasChanged();
 
-        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        try
         {
-            _statusMessage = $"Waiting for documents... (attempt {attempt}/{maxAttempts}, expecting Poisson arrivals ~6 cases/min)";
-            _progressPercent = (attempt - 1) * 100 / maxAttempts;
-            StateHasChanged();
-
-            // Try to identify downloadable files
-            identifyResult = await agent.IdentifyDownloadableFilesAsync(new[] { "*.pdf", "*.docx", "*.xml" });
-
-            if (identifyResult.IsSuccess && identifyResult.Value != null && identifyResult.Value.Any())
-            {
-                _statusMessage = $"Documents found after {attempt} attempt(s)! Found {identifyResult.Value.Count} document links.";
-                Snackbar.Add($"Found {identifyResult.Value.Count} documents!", Severity.Success);
-                StateHasChanged();
-                break;
-            }
-
-            // No documents yet, wait before next attempt
-            if (attempt < maxAttempts)
-            {
-                await Task.Delay(attemptDelay);
-            }
+            await Task.Delay(TimeSpan.FromMinutes(3)); // Match test: watch for 3 minutes
         }
-
-        // Check if we found documents after all attempts
-        if (identifyResult == null || !identifyResult.IsSuccess || identifyResult.Value == null || !identifyResult.Value.Any())
+        catch (TaskCanceledException)
         {
-            _statusMessage = "Timeout: No documents appeared after 60 seconds. SIARA may be too slow or not generating cases.";
-            Snackbar.Add("No SIARA documents found after waiting. Try increasing arrival rate or checking simulator.", Severity.Warning);
-            _progressPercent = 100;
+            Logger.LogInformation("SIARA watch period cancelled - user likely navigated away");
             return;
         }
 
-        var availableFiles = identifyResult.Value;
-        var filesToDownload = availableFiles.Take(_downloadCount).ToList();
-        var totalFiles = filesToDownload.Count;
+        _statusMessage = "Watch period complete. Collecting documents from page...";
+        _progressPercent = 50;
+        SafeStateHasChanged();
 
-        _statusMessage = $"Found {availableFiles.Count} documents. Downloading {totalFiles} files...";
-        StateHasChanged();
-
-        var currentFile = 0;
-        foreach (var downloadableFile in filesToDownload)
+        // STEP: Collect Documents using AngleSharp + HttpClient (matches test approach)
+        try
         {
-            currentFile++;
-            _statusMessage = $"Downloading SIARA document {currentFile}/{totalFiles} ({downloadableFile.FileName})...";
-            _progressPercent = (currentFile - 1) * 100 / totalFiles;
-            StateHasChanged();
+            using var httpClient = new HttpClient();
 
-            var downloadResult = await agent.DownloadFileAsync(downloadableFile.Url);
-            if (downloadResult.IsSuccess && downloadResult.Value != null)
+            // Fetch HTML from dashboard
+            _statusMessage = "Fetching dashboard HTML...";
+            SafeStateHasChanged();
+            var html = await httpClient.GetStringAsync($"{_siaraUrl}/");
+
+            // Parse HTML with AngleSharp
+            var parser = new HtmlParser();
+            var document = await parser.ParseDocumentAsync(html);
+
+            // Find all document links (PDF, DOCX, XML)
+            var docLinks = document.QuerySelectorAll("a[href$='.pdf'], a[href$='.docx'], a[href$='.xml']")
+                .Select(a => a.GetAttribute("href"))
+                .Where(href => !string.IsNullOrEmpty(href))
+                .Select(href => href!.StartsWith("http") ? href : $"{_siaraUrl}{href}")
+                .Distinct()
+                .ToList();
+
+            _statusMessage = $"Found {docLinks.Count} document links in HTML";
+            SafeStateHasChanged();
+            SafeSnackbarAdd($"Found {docLinks.Count} documents!", Severity.Success);
+
+            if (!docLinks.Any())
             {
-                _downloadedFiles.Add(downloadResult.Value);
-                Snackbar.Add($"Downloaded: {downloadResult.Value.FileName}", Severity.Success);
-            }
-            else
-            {
-                Snackbar.Add($"Failed to download: {downloadableFile.FileName}", Severity.Warning);
+                _statusMessage = "No documents found on dashboard";
+                SafeSnackbarAdd("No SIARA documents found. Simulator may not have generated any cases yet.", Severity.Warning);
+                _progressPercent = 100;
+                return;
             }
 
-            await Task.Delay(500); // Small delay between downloads
+            // Download documents
+            var linksToDownload = docLinks.Take(_downloadCount).ToList();
+            _statusMessage = $"Downloading {linksToDownload.Count} documents...";
+            SafeStateHasChanged();
+
+            const int maxConcurrentDownloads = 3;
+            for (int i = 0; i < linksToDownload.Count; i += maxConcurrentDownloads)
+            {
+                var batch = linksToDownload.Skip(i).Take(maxConcurrentDownloads).ToList();
+                var downloadTasks = batch.Select(async link =>
+                {
+                    var fileName = Path.GetFileName(link);
+
+                    _statusMessage = $"Downloading {fileName}...";
+                    SafeStateHasChanged();
+
+                    var bytes = await httpClient.GetByteArrayAsync(link);
+
+                    var downloadedFile = new DownloadedFile
+                    {
+                        FileName = fileName,
+                        Content = bytes,
+                        Url = link,
+                        Format = DetermineFileFormat(fileName)
+                    };
+
+                    _downloadedFiles.Add(downloadedFile);
+                    SafeSnackbarAdd($"Downloaded: {fileName}", Severity.Success);
+                });
+
+                await Task.WhenAll(downloadTasks);
+
+                _progressPercent = 50 + ((i + maxConcurrentDownloads) * 50 / linksToDownload.Count);
+                SafeStateHasChanged();
+
+                if (i + maxConcurrentDownloads < linksToDownload.Count)
+                {
+                    await Task.Delay(300);
+                }
+            }
+
+            _statusMessage = $"Successfully downloaded {_downloadedFiles.Count(f => f.Url.Contains(_siaraUrl))} SIARA documents";
+            _progressPercent = 100;
+            SafeStateHasChanged();
         }
+        catch (JSDisconnectedException ex)
+        {
+            Logger.LogInformation(ex, "Circuit disconnected during SIARA document collection");
+            // User navigated away - this is fine, just stop processing
+        }
+        catch (Exception ex)
+        {
+            _statusMessage = $"Error collecting documents: {ex.Message}";
+            Logger.LogError(ex, "Error collecting SIARA documents");
+            SafeSnackbarAdd($"Failed to collect documents: {ex.Message}", Severity.Error);
+            _progressPercent = 100;
+        }
+    }
 
-        _statusMessage = $"Successfully downloaded {_downloadedFiles.Count(f => f.Url.Contains(_siaraUrl))} SIARA documents";
-        _progressPercent = 100;
+    private FileFormat DetermineFileFormat(string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".pdf" => FileFormat.Pdf,
+            ".xml" => FileFormat.Xml,
+            ".docx" => FileFormat.Docx,
+            ".zip" => FileFormat.Zip,
+            _ => FileFormat.Pdf
+        };
     }
 
     private void ClearDownloads()
@@ -495,5 +603,240 @@
         if (url.Contains("archive.org")) return "Archive";
         if (url.Contains("localhost:5001") || url.Contains("localhost:5002") || url.Contains("siara")) return "SIARA";
         return "Unknown";
+    }
+
+    // ========== SIARA Simulator Process Management ==========
+
+    /// <summary>
+    /// Gets the path to the SIARA Simulator executable.
+    /// Searches from current directory up to solution root.
+    /// </summary>
+    private static string GetSimulatorPath()
+    {
+        // Start from current directory (web app location)
+        var currentDir = Directory.GetCurrentDirectory();
+
+        // Find solution root by looking for Deployments folder
+        var searchDir = new DirectoryInfo(currentDir);
+        while (searchDir != null)
+        {
+            // Check if we found the solution root (has Deployments folder)
+            var deploymentsPath = Path.Combine(searchDir.FullName, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
+            if (File.Exists(deploymentsPath))
+            {
+                return deploymentsPath;
+            }
+
+            // Move up one directory
+            searchDir = searchDir.Parent;
+        }
+
+        // Fallback: construct from typical structure
+        return Path.GetFullPath(
+            Path.Combine(
+                currentDir,
+                "..", "..", "..", "..", "..", "..",
+                "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe"));
+    }
+
+    /// <summary>
+    /// Checks if the SIARA Simulator is running.
+    /// </summary>
+    private async Task<bool> IsSimulatorRunningAsync()
+    {
+        try
+        {
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+            var response = await httpClient.GetAsync(_siaraUrl);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Starts the SIARA Simulator executable.
+    /// </summary>
+    private async Task StartSimulator()
+    {
+        _isSimulatorStarting = true;
+        StateHasChanged();
+
+        try
+        {
+            var simulatorExePath = GetSimulatorPath();
+
+            // Verify the executable exists
+            if (!File.Exists(simulatorExePath))
+            {
+                Snackbar.Add($"Simulator executable not found at: {simulatorExePath}", Severity.Error);
+                return;
+            }
+
+            // Start the simulator process
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = simulatorExePath,
+                WorkingDirectory = Path.GetDirectoryName(simulatorExePath),
+                UseShellExecute = false,
+                CreateNoWindow = false, // Show window so user can see it running
+                RedirectStandardOutput = false,
+                RedirectStandardError = false
+            };
+
+            _simulatorProcess = Process.Start(startInfo);
+            if (_simulatorProcess == null)
+            {
+                Snackbar.Add("Failed to start simulator process", Severity.Error);
+                return;
+            }
+
+            _simulatorStartedByUI = true;
+            Snackbar.Add($"Simulator process started (PID: {_simulatorProcess.Id})", Severity.Info);
+
+            // Wait for simulator to be ready (max 20 seconds)
+            var maxAttempts = 40; // 40 attempts * 500ms = 20 seconds
+            var attempt = 0;
+            while (attempt < maxAttempts)
+            {
+                await Task.Delay(500);
+                if (await IsSimulatorRunningAsync())
+                {
+                    _isSimulatorRunning = true;
+                    Snackbar.Add($"SIARA Simulator is ready at {_siaraUrl}", Severity.Success);
+                    return;
+                }
+                attempt++;
+            }
+
+            Snackbar.Add($"Simulator started but not responding on {_siaraUrl} after 20 seconds", Severity.Warning);
+            _isSimulatorRunning = false;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error starting simulator: {ex.Message}", Severity.Error);
+            _isSimulatorRunning = false;
+        }
+        finally
+        {
+            _isSimulatorStarting = false;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// Stops the SIARA Simulator if it was started by the UI.
+    /// </summary>
+    private async Task StopSimulator()
+    {
+        _isSimulatorStopping = true;
+        StateHasChanged();
+
+        try
+        {
+            if (_simulatorStartedByUI && _simulatorProcess != null)
+            {
+                if (!_simulatorProcess.HasExited)
+                {
+                    _simulatorProcess.Kill(entireProcessTree: true);
+                    _simulatorProcess.WaitForExit(5000); // Wait up to 5 seconds
+                    Snackbar.Add("Simulator stopped successfully", Severity.Success);
+                }
+                _simulatorProcess.Dispose();
+                _simulatorProcess = null;
+            }
+            else
+            {
+                Snackbar.Add("Cannot stop simulator - it was not started by this page", Severity.Warning);
+            }
+
+            _isSimulatorRunning = false;
+            _simulatorStartedByUI = false;
+
+            // Double check if it's really stopped
+            await Task.Delay(1000);
+            _isSimulatorRunning = await IsSimulatorRunningAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error stopping simulator: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isSimulatorStopping = false;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// Safely calls StateHasChanged, catching JSDisconnectedException when circuit is disconnected.
+    /// </summary>
+    private void SafeStateHasChanged()
+    {
+        try
+        {
+            StateHasChanged();
+        }
+        catch (JSDisconnectedException ex)
+        {
+            // Circuit disconnected (user closed browser, network issue, etc.)
+            // This is expected behavior - log and continue
+            Logger.LogDebug(ex, "SignalR circuit disconnected - user likely navigated away");
+        }
+        catch (ObjectDisposedException ex)
+        {
+            // Component already disposed
+            Logger.LogDebug(ex, "Component disposed during StateHasChanged");
+        }
+    }
+
+    /// <summary>
+    /// Safely shows a snackbar message, catching JSDisconnectedException.
+    /// </summary>
+    private void SafeSnackbarAdd(string message, Severity severity)
+    {
+        try
+        {
+            Snackbar.Add(message, severity);
+        }
+        catch (JSDisconnectedException ex)
+        {
+            Logger.LogDebug(ex, "Cannot show snackbar - circuit disconnected: {Message}", message);
+        }
+        catch (ObjectDisposedException ex)
+        {
+            Logger.LogDebug(ex, "Cannot show snackbar - component disposed: {Message}", message);
+        }
+    }
+
+    /// <summary>
+    /// Cleanup resources when page is disposed.
+    /// Stops simulator if it was started by the UI.
+    /// </summary>
+    public void Dispose()
+    {
+        // Stop simulator if we started it
+        if (_simulatorStartedByUI && _simulatorProcess != null)
+        {
+            try
+            {
+                if (!_simulatorProcess.HasExited)
+                {
+                    _simulatorProcess.Kill(entireProcessTree: true);
+                    _simulatorProcess.WaitForExit(5000);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw during disposal
+                Logger.LogWarning(ex, "Error stopping simulator during disposal");
+            }
+            finally
+            {
+                _simulatorProcess?.Dispose();
+            }
+        }
     }
 }

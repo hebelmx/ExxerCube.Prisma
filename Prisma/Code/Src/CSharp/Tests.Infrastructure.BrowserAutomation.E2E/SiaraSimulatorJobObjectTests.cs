@@ -1,25 +1,31 @@
+using ExxerCube.Prisma.Testing.Infrastructure;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E;
 
 /// <summary>
-/// End-to-end tests for Siara Simulator integration.
-/// Tests run in headed mode to demonstrate login and document download capabilities.
+/// End-to-end tests for Siara Simulator integration using Job Objects for guaranteed process cleanup.
+/// IMPROVED VERSION: Uses DocumentOpener with Windows Job Objects to prevent resource leaks.
+/// Tests run in headed mode to demonstrate login and document download capabilities for stakeholders.
 /// Uses IBrowserAutomationAgent interface for proper hexagonal architecture compliance.
 /// </summary>
-public class SiaraSimulatorTests : IAsyncLifetime
+/// <remarks>
+/// This test is critical for stakeholder demos (devs, lawyers, financial) to secure project funding.
+/// Job Objects ensure ALL viewer processes (Adobe Reader, Word, etc.) are cleaned up automatically.
+/// </remarks>
+public class SiaraSimulatorJobObjectTests : IAsyncLifetime
 {
     private readonly ITestOutputHelper _output;
-    private readonly ILogger<SiaraSimulatorTests> _logger;
+    private readonly ILogger<SiaraSimulatorJobObjectTests> _logger;
     private IBrowserAutomationAgent? _automationAgent;
     private readonly string _downloadPath;
     private readonly string _manifestFilePath;
     private readonly HashSet<string> _downloadedDocuments = new(); // Track downloaded documents
-    private readonly List<Process> _openedDocumentProcesses = new(); // Track opened document processes for cleanup
+    private DocumentOpener? _documentOpener; // Job Object-based document tracking - IMPROVED!
     private Process? _simulatorProcess; // Track simulator process if we started it
     private bool _simulatorStartedByTest = false; // Flag to track if we started the simulator
 
     // Siara Simulator configuration
     private const string SimulatorUrl = "http://localhost:5001";
-
     private const int SimulatorStartupWaitMs = 8000; // 8 seconds for simulator to be ready
     private const int PostLoginWaitMs = 5000; // 5 seconds after login for UI to load
 
@@ -56,13 +62,13 @@ public class SiaraSimulatorTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SiaraSimulatorTests"/> class.
+    /// Initializes a new instance of the <see cref="SiaraSimulatorJobObjectTests"/> class.
     /// </summary>
     /// <param name="output">xUnit test output helper for logging.</param>
-    public SiaraSimulatorTests(ITestOutputHelper output)
+    public SiaraSimulatorJobObjectTests(ITestOutputHelper output)
     {
         _output = output;
-        _logger = XUnitLogger.CreateLogger<SiaraSimulatorTests>(output);
+        _logger = XUnitLogger.CreateLogger<SiaraSimulatorJobObjectTests>(output);
 
         // Create organized download path structure: SIARA_Downloads/YYYY/MM/DD/
         var baseDownloadPath = Path.Combine(
@@ -138,6 +144,11 @@ public class SiaraSimulatorTests : IAsyncLifetime
         launchResult.IsSuccess.ShouldBeTrue($"Failed to launch browser: {launchResult.Error}");
 
         _logger.LogInformation("Browser automation agent initialized successfully");
+
+        // Initialize document opener with Job Object tracking - GUARANTEED cleanup!
+        _documentOpener = new DocumentOpener(XUnitLogger.CreateLogger<DocumentOpener>(_output));
+        _logger.LogInformation("✓ Document opener initialized with Windows Job Objects");
+        _logger.LogInformation("  → ALL viewer processes will be automatically cleaned up on disposal");
     }
 
     /// <summary>
@@ -431,6 +442,57 @@ public class SiaraSimulatorTests : IAsyncLifetime
     }
 
     /// <summary>
+    /// RECORD MODE: Launch browser, navigate to Siara Simulator, then pause for manual control.
+    /// Use this test to explore the UI, find download links, and identify element selectors.
+    /// Press Ctrl+C in console when done exploring.
+    /// </summary>
+    [Fact(Timeout = 600000)] // 10 minute timeout for manual exploration
+    public async Task RecordMode_SiaraSimulator_ManualExploration()
+    {
+        // Arrange
+        _automationAgent.ShouldNotBeNull("Browser automation agent not initialized");
+
+        _logger.LogInformation("=== RECORD MODE ACTIVATED ===");
+        _logger.LogInformation("Browser will stay open for manual control");
+        _logger.LogInformation("Explore Siara Simulator UI manually");
+        _logger.LogInformation("Find login form, document links, and download buttons");
+        _logger.LogInformation("Press Ctrl+C when done to stop test");
+        _logger.LogInformation("================================");
+
+        try
+        {
+            // Wait for simulator to be ready
+            await Task.Delay(SimulatorStartupWaitMs, TestContext.Current.CancellationToken);
+
+            // Navigate to Siara Simulator
+            _logger.LogInformation("Navigating to: {Url}", SimulatorUrl);
+            var navResult = await _automationAgent.NavigateToAsync(SimulatorUrl, TestContext.Current.CancellationToken);
+            navResult.IsSuccess.ShouldBeTrue("Navigation should succeed");
+
+            _logger.LogInformation("✓ Page loaded: {Url}", SimulatorUrl);
+            _logger.LogInformation("");
+            _logger.LogInformation("NOW IN MANUAL CONTROL MODE:");
+            _logger.LogInformation("1. Try logging in with any username/password");
+            _logger.LogInformation("2. Look for document lists or download links");
+            _logger.LogInformation("3. Inspect elements with browser DevTools (F12)");
+            _logger.LogInformation("4. Note CSS selectors, IDs, and URL patterns");
+            _logger.LogInformation("");
+            _logger.LogInformation("Browser will stay open for 10 minutes or until you press Ctrl+C");
+
+            // Keep browser open for manual exploration
+            await Task.Delay(TimeSpan.FromMinutes(10), TestContext.Current.CancellationToken);
+        }
+        catch (TaskCanceledException)
+        {
+            _logger.LogInformation("Manual exploration session ended by user (Ctrl+C)");
+        }
+        finally
+        {
+            _logger.LogInformation("=== RECORD MODE SESSION COMPLETE ===");
+        }
+    }
+
+    /// <summary>
     /// Performs login to Siara Simulator.
     /// Any username and password will work for authentication (demo mode).
     /// </summary>
@@ -578,37 +640,14 @@ public class SiaraSimulatorTests : IAsyncLifetime
 
     /// <summary>
     /// Opens a document using the default system application in a new window.
-    /// Tracks the process for cleanup to prevent resource leaks.
+    /// Uses Job Objects to automatically track ALL processes including children (Adobe Reader, Word, etc.).
+    /// GUARANTEED cleanup on disposal - no leaked processes!
     /// </summary>
     /// <param name="filePath">Path to the document to open.</param>
     private void OpenDocument(string filePath)
     {
-        try
-        {
-            _logger.LogInformation("    📂 Opening document in new window: {FileName}", Path.GetFileName(filePath));
-
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = filePath,
-                UseShellExecute = true, // Opens in separate window (doesn't navigate browser away)
-                WindowStyle = ProcessWindowStyle.Normal
-            };
-
-            var process = Process.Start(startInfo);
-            if (process != null)
-            {
-                _openedDocumentProcesses.Add(process);
-                _logger.LogInformation("    ✓ Document opened in new window (PID: {ProcessId})", process.Id);
-            }
-            else
-            {
-                _logger.LogWarning("    ⚠ Document opened but process handle not available");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to open document: {FilePath}", filePath);
-        }
+        // Job Objects handle all the complexity - just one line!
+        _documentOpener?.OpenDocument(filePath);
     }
 
     /// <summary>
@@ -694,29 +733,14 @@ public class SiaraSimulatorTests : IAsyncLifetime
             }
         }
 
-        // Cleanup opened document processes to prevent resource leaks
-        if (_openedDocumentProcesses.Any())
+        // Cleanup document opener - Job Objects automatically kill ALL processes and children!
+        if (_documentOpener != null)
         {
-            _logger.LogInformation("Cleaning up {Count} opened document processes...", _openedDocumentProcesses.Count);
-            foreach (var process in _openedDocumentProcesses)
-            {
-                try
-                {
-                    if (!process.HasExited)
-                    {
-                        _logger.LogInformation("  Closing document process (PID: {ProcessId})", process.Id);
-                        process.Kill(entireProcessTree: true);
-                        process.WaitForExit(2000); // Wait up to 2 seconds
-                    }
-                    process.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to close document process");
-                }
-            }
-            _openedDocumentProcesses.Clear();
-            _logger.LogInformation("✓ All document processes cleaned up");
+            _logger.LogInformation("Cleaning up document opener (opened {Count} documents)...",
+                _documentOpener.OpenedDocumentCount);
+            _documentOpener.Dispose();
+            _logger.LogInformation("✓ All document processes cleaned up via Job Objects");
+            _logger.LogInformation("  → Guaranteed cleanup of ALL viewers (Adobe Reader, Word, etc.)");
         }
 
         // NOTE: We do NOT cleanup the download directory - documents are kept organized by date
