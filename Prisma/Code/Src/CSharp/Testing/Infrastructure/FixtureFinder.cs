@@ -155,4 +155,72 @@ public static class FixtureFinder
                 string.Join("\n", missingFiles.Select(f => $"  - {f}")));
         }
     }
+
+    /// <summary>
+    /// Finds the bulk_generated_documents_all_formats directory by searching up from the current directory.
+    /// </summary>
+    /// <returns>The full path to the bulk documents directory.</returns>
+    /// <exception cref="DirectoryNotFoundException">Thrown when the bulk documents directory cannot be found.</exception>
+    public static string FindBulkDocumentsPath()
+    {
+        var searchPaths = new[]
+        {
+            // Strategy 1: Start from current directory (test runner working directory)
+            Directory.GetCurrentDirectory(),
+
+            // Strategy 2: Start from test assembly location
+            AppDomain.CurrentDomain.BaseDirectory,
+
+            // Strategy 3: Start from entry assembly location (if different)
+            Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location ?? "")
+        };
+
+        foreach (var startPath in searchPaths.Where(p => !string.IsNullOrEmpty(p)))
+        {
+            var foundPath = SearchForBulkDocuments(startPath!);
+            if (foundPath != null)
+            {
+                return foundPath;
+            }
+        }
+
+        throw new DirectoryNotFoundException(
+            $"Could not find bulk_generated_documents_all_formats directory. Searched from:\n" +
+            string.Join("\n", searchPaths.Where(p => !string.IsNullOrEmpty(p))));
+    }
+
+    /// <summary>
+    /// Searches for the bulk_generated_documents_all_formats directory by walking up the directory tree.
+    /// </summary>
+    /// <param name="startPath">The starting directory path.</param>
+    /// <returns>The full path to the bulk documents directory, or null if not found.</returns>
+    private static string? SearchForBulkDocuments(string startPath)
+    {
+        var currentDir = new DirectoryInfo(startPath);
+
+        // Walk up the directory tree (max 15 levels to prevent infinite loops)
+        for (int i = 0; i < 15 && currentDir != null; i++)
+        {
+            // Look for "bulk_generated_documents_all_formats" directory in current directory
+            var bulkDir = Path.Combine(currentDir.FullName, "bulk_generated_documents_all_formats");
+            if (Directory.Exists(bulkDir))
+            {
+                return bulkDir;
+            }
+
+            // Look for "ExxerCube.Prisma" directory (solution root marker)
+            if (currentDir.Name == "ExxerCube.Prisma")
+            {
+                var bulkInRoot = Path.Combine(currentDir.FullName, "bulk_generated_documents_all_formats");
+                if (Directory.Exists(bulkInRoot))
+                {
+                    return bulkInRoot;
+                }
+            }
+
+            currentDir = currentDir.Parent;
+        }
+
+        return null;
+    }
 }

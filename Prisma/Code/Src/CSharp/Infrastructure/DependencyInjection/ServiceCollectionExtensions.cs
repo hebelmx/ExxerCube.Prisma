@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Infrastructure.NoOp;
+
 namespace ExxerCube.Prisma.Infrastructure.DependencyInjection;
 
 /// <summary>
@@ -41,14 +43,13 @@ public static class ServiceCollectionExtensions
             return new OcrProcessingServiceAdapter(ocrProcessingService);
         });
 
-        // Register Python interop service (DEPRECATED - using dummy implementation)
-        // Note: IPythonInteropService is deprecated and will be removed in a future release.
-        // This is a temporary dummy implementation to allow the application to compile.
-        services.AddScoped<IPythonInteropService, DeprecatedPythonInteropService>();
+        // DEPRECATED: All IPythonInteropService-related registrations are commented out.
+        // The new Tesseract/GOT-OCR2 implementations in Infrastructure.Extraction do not require Python interop.
+        // These old services had low cohesion and poor coupling - they are replaced by:
+        // - IOcrExecutor implementations: TesseractOcrExecutor, GotOcr2OcrExecutor (Infrastructure.Extraction)
+        // - IFieldExtractor<T> implementations: XmlFieldExtractor, PdfOcrFieldExtractor, DocxFieldExtractor (Infrastructure.Extraction)
 
-        // DEPRECATED: IOcrExecutor registration is commented out because it conflicts with the new
-        // Tesseract/GOT-OCR2 implementations registered in Infrastructure.Extraction.
-        // The Extraction layer registers TesseractOcrExecutor as the default IOcrExecutor.
+        // services.AddScoped<IPythonInteropService, DeprecatedPythonInteropService>();
 
         // services.AddScoped<IOcrExecutor>(provider =>
         // {
@@ -57,21 +58,12 @@ public static class ServiceCollectionExtensions
         //     return new OcrProcessingAdapter(logger, pythonInteropService);
         // });
 
-        // TEMPORARY: These registrations still use the deprecated adapter because there are no
-        // Tesseract-based implementations yet. They will be removed in a future refactoring.
-        services.AddScoped<IImagePreprocessor>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<OcrProcessingAdapter>>();
-            var pythonInteropService = provider.GetRequiredService<IPythonInteropService>();
-            return new OcrProcessingAdapter(logger, pythonInteropService);
-        });
-
-        services.AddScoped<IFieldExtractor>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<OcrProcessingAdapter>>();
-            var pythonInteropService = provider.GetRequiredService<IPythonInteropService>();
-            return new OcrProcessingAdapter(logger, pythonInteropService);
-        });
+        // Register no-op implementations for IImagePreprocessor and IFieldExtractor
+        // These are pass-through implementations used by the legacy OcrProcessingService
+        // Modern OCR engines (Tesseract, GOT-OCR2) handle preprocessing internally
+        // Field extraction is handled separately by typed extractors (XmlFieldExtractor, etc.)
+        services.AddScoped<IImagePreprocessor, NoOpImagePreprocessor>();
+        services.AddScoped<IFieldExtractor, NoOpFieldExtractor>();
 
         // Register file system adapters
         services.AddScoped<IFileLoader, FileSystemLoader>();

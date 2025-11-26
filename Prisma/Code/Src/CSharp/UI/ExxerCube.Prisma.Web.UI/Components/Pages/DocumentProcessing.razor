@@ -9,6 +9,7 @@
 @using ExxerCube.Prisma.Domain.Models
 @using ExxerCube.Prisma.Domain.ValueObjects
 @using Microsoft.JSInterop
+@using ExxerCube.Prisma.Testing.Infrastructure
 @inject IOcrProcessingService OcrService
 @inject IProcessingMetricsService MetricsService
 @inject IXmlNullableParser<Expediente> XmlParser
@@ -960,12 +961,18 @@
     private bool isBatchProcessing = false;
     private BatchSummary? batchSummary;
 
-    // Fixtures path relative to Web.UI project
+    // Fixtures path using robust FixtureFinder (same as tests)
     private string GetFixturesPath()
     {
-        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-        // Path: UI/bin/Debug/net10.0 -> go up to Prisma root, then Fixtures/PRP1
-        return Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "..", "Fixtures", "PRP1"));
+        try
+        {
+            return FixtureFinder.FindFixturesPath("PRP1");
+        }
+        catch (DirectoryNotFoundException ex)
+        {
+            Logger.LogError(ex, "Failed to locate PRP1 fixtures directory");
+            return string.Empty;
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -1626,10 +1633,20 @@
             batchSummary = null;
             StateHasChanged();
 
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            // Navigate from: Prisma/Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI/bin/Debug/net10.0
-            // To: ExxerCube.Prisma root (7 levels up, then bulk_generated_documents_all_formats)
-            var bulkPath = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "..", "..", "bulk_generated_documents_all_formats"));
+            // Use intelligent FixtureFinder to locate bulk documents directory
+            string bulkPath;
+            try
+            {
+                bulkPath = FixtureFinder.FindBulkDocumentsPath();
+                Logger.LogInformation("Found bulk documents path: {BulkPath}", bulkPath);
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                errorMessage = $"Failed to locate bulk documents directory: {ex.Message}";
+                Snackbar.Add(errorMessage, Severity.Error);
+                Logger.LogError(ex, "Failed to locate bulk documents directory");
+                return;
+            }
 
             Logger.LogInformation("Loading random sample from: {BulkPath}", bulkPath);
 
