@@ -13,6 +13,7 @@ public class SiaraSimulatorTests : IAsyncLifetime
     private readonly string _downloadPath;
     private readonly string _manifestFilePath;
     private readonly HashSet<string> _downloadedDocuments = new(); // Track downloaded documents
+    private readonly List<Process> _openedDocumentProcesses = new(); // Track opened document processes for cleanup
     private Process? _simulatorProcess; // Track simulator process if we started it
     private bool _simulatorStartedByTest = false; // Flag to track if we started the simulator
 
@@ -602,23 +603,33 @@ public class SiaraSimulatorTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Opens a document using the default system application.
+    /// Opens a document using the default system application in a new window.
+    /// Tracks the process for cleanup to prevent resource leaks.
     /// </summary>
     /// <param name="filePath">Path to the document to open.</param>
     private void OpenDocument(string filePath)
     {
         try
         {
-            _logger.LogInformation("    📂 Opening document: {FileName}", Path.GetFileName(filePath));
+            _logger.LogInformation("    📂 Opening document in new window: {FileName}", Path.GetFileName(filePath));
 
             var startInfo = new ProcessStartInfo
             {
                 FileName = filePath,
-                UseShellExecute = true
+                UseShellExecute = true, // Opens in separate window (doesn't navigate browser away)
+                WindowStyle = ProcessWindowStyle.Normal
             };
 
-            Process.Start(startInfo);
-            _logger.LogInformation("    ✓ Document opened successfully");
+            var process = Process.Start(startInfo);
+            if (process != null)
+            {
+                _openedDocumentProcesses.Add(process);
+                _logger.LogInformation("    ✓ Document opened in new window (PID: {ProcessId})", process.Id);
+            }
+            else
+            {
+                _logger.LogWarning("    ⚠ Document opened but process handle not available");
+            }
         }
         catch (Exception ex)
         {
@@ -691,9 +702,11 @@ public class SiaraSimulatorTests : IAsyncLifetime
 
     /// <summary>
     /// Cleanup resources after test execution.
+    /// Closes browser, stops simulator, and cleans up all opened document processes.
     /// </summary>
     public async ValueTask DisposeAsync()
     {
+        // Close browser
         if (_automationAgent != null)
         {
             var closeResult = await _automationAgent.CloseBrowserAsync(TestContext.Current.CancellationToken);
@@ -705,6 +718,31 @@ public class SiaraSimulatorTests : IAsyncLifetime
             {
                 _logger.LogWarning("Failed to close browser: {Error}", closeResult.Error);
             }
+        }
+
+        // Cleanup opened document processes to prevent resource leaks
+        if (_openedDocumentProcesses.Any())
+        {
+            _logger.LogInformation("Cleaning up {Count} opened document processes...", _openedDocumentProcesses.Count);
+            foreach (var process in _openedDocumentProcesses)
+            {
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        _logger.LogInformation("  Closing document process (PID: {ProcessId})", process.Id);
+                        process.Kill(entireProcessTree: true);
+                        process.WaitForExit(2000); // Wait up to 2 seconds
+                    }
+                    process.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to close document process");
+                }
+            }
+            _openedDocumentProcesses.Clear();
+            _logger.LogInformation("✓ All document processes cleaned up");
         }
 
         // NOTE: We do NOT cleanup the download directory - documents are kept organized by date
