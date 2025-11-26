@@ -324,21 +324,105 @@
             return;
         }
 
-        _statusMessage = "Successfully navigated to SIARA Simulator - identifying documents...";
-        Snackbar.Add("Connected to SIARA Simulator successfully!", Severity.Success);
+        _statusMessage = "Connected to SIARA - performing login...";
         StateHasChanged();
 
-        // Wait for page to load completely
-        await Task.Delay(2000);
-
-        // Identify downloadable files (PDF, DOCX, XML)
-        var identifyResult = await agent.IdentifyDownloadableFilesAsync(new[] { "*.pdf", "*.docx", "*.xml" });
-
-        if (!identifyResult.IsSuccess || identifyResult.Value == null || !identifyResult.Value.Any())
+        // Wait for login form to load
+        var waitResult = await agent.WaitForSelectorAsync("#username", 10000);
+        if (!waitResult.IsSuccess)
         {
-            _statusMessage = "No downloadable documents found on SIARA dashboard";
-            Snackbar.Add("SIARA Simulator has no documents available yet. Wait for cases to be generated.", Severity.Info);
-            await Task.Delay(3000);
+            _statusMessage = "Login form not found - SIARA may already be logged in or unavailable";
+            Snackbar.Add("Could not find login form", Severity.Warning);
+            _progressPercent = 100;
+            return;
+        }
+
+        await Task.Delay(1000);
+
+        // Fill username field (any username works in demo mode)
+        _statusMessage = "Entering credentials...";
+        StateHasChanged();
+
+        var fillUsernameResult = await agent.FillInputAsync("#username", "demo_user");
+        if (!fillUsernameResult.IsSuccess)
+        {
+            _statusMessage = $"Failed to fill username: {fillUsernameResult.Error}";
+            Snackbar.Add("Login failed at username field", Severity.Error);
+            _progressPercent = 100;
+            return;
+        }
+
+        await Task.Delay(500);
+
+        // Fill password field (any password works in demo mode)
+        var fillPasswordResult = await agent.FillInputAsync("#password", "demo_pass");
+        if (!fillPasswordResult.IsSuccess)
+        {
+            _statusMessage = $"Failed to fill password: {fillPasswordResult.Error}";
+            Snackbar.Add("Login failed at password field", Severity.Error);
+            _progressPercent = 100;
+            return;
+        }
+
+        await Task.Delay(500);
+
+        // Click login button
+        _statusMessage = "Clicking login button...";
+        StateHasChanged();
+
+        var clickResult = await agent.ClickElementAsync("button[type='submit']");
+        if (!clickResult.IsSuccess)
+        {
+            _statusMessage = $"Failed to click login: {clickResult.Error}";
+            Snackbar.Add("Login button click failed", Severity.Error);
+            _progressPercent = 100;
+            return;
+        }
+
+        // Wait for dashboard to load after login
+        _statusMessage = "Logging in... waiting for dashboard...";
+        StateHasChanged();
+        await Task.Delay(3000);
+
+        _statusMessage = "Successfully logged in! SIARA Simulator auto-started. Waiting for documents to appear...";
+        Snackbar.Add("SIARA login successful - simulator running!", Severity.Success);
+        StateHasChanged();
+
+        // Wait for documents to appear (SIARA auto-starts and generates cases via Poisson distribution)
+        // Poll for documents with retries
+        var maxAttempts = 10; // 10 attempts * 6 seconds = 60 seconds max wait
+        var attemptDelay = 6000; // 6 seconds between attempts (rate is ~6 cases/min, expect ~1 case per attempt)
+        var identifyResult = default(Result<List<DownloadableFile>>);
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            _statusMessage = $"Waiting for documents... (attempt {attempt}/{maxAttempts}, expecting Poisson arrivals ~6 cases/min)";
+            _progressPercent = (attempt - 1) * 100 / maxAttempts;
+            StateHasChanged();
+
+            // Try to identify downloadable files
+            identifyResult = await agent.IdentifyDownloadableFilesAsync(new[] { "*.pdf", "*.docx", "*.xml" });
+
+            if (identifyResult.IsSuccess && identifyResult.Value != null && identifyResult.Value.Any())
+            {
+                _statusMessage = $"Documents found after {attempt} attempt(s)! Found {identifyResult.Value.Count} document links.";
+                Snackbar.Add($"Found {identifyResult.Value.Count} documents!", Severity.Success);
+                StateHasChanged();
+                break;
+            }
+
+            // No documents yet, wait before next attempt
+            if (attempt < maxAttempts)
+            {
+                await Task.Delay(attemptDelay);
+            }
+        }
+
+        // Check if we found documents after all attempts
+        if (identifyResult == null || !identifyResult.IsSuccess || identifyResult.Value == null || !identifyResult.Value.Any())
+        {
+            _statusMessage = "Timeout: No documents appeared after 60 seconds. SIARA may be too slow or not generating cases.";
+            Snackbar.Add("No SIARA documents found after waiting. Try increasing arrival rate or checking simulator.", Severity.Warning);
             _progressPercent = 100;
             return;
         }
