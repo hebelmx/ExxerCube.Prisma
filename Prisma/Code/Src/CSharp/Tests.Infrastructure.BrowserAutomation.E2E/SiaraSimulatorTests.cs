@@ -216,12 +216,23 @@ public class SiaraSimulatorTests : IAsyncLifetime
             {
                 _logger.LogInformation("");
                 _logger.LogInformation("STEP 5B: Opening All Downloaded Documents");
-                _logger.LogInformation("Opening {Count} documents...", filePaths.Count);
+                _logger.LogInformation("Opening {Count} documents in batches...", filePaths.Count);
 
-                foreach (var filePath in filePaths)
+                // Open documents with controlled concurrency (2 at a time with 500ms delay)
+                const int maxConcurrentOpens = 2;
+                for (int i = 0; i < filePaths.Count; i += maxConcurrentOpens)
                 {
-                    OpenDocument(filePath);
-                    await Task.Delay(200, TestContext.Current.CancellationToken);
+                    var batch = filePaths.Skip(i).Take(maxConcurrentOpens).ToList();
+
+                    // Open batch concurrently
+                    var openTasks = batch.Select(filePath => Task.Run(() => OpenDocument(filePath)));
+                    await Task.WhenAll(openTasks);
+
+                    // Delay between batches to prevent overwhelming the system
+                    if (i + maxConcurrentOpens < filePaths.Count)
+                    {
+                        await Task.Delay(500, TestContext.Current.CancellationToken);
+                    }
                 }
 
                 _logger.LogInformation("✓ All documents opened");
@@ -535,25 +546,39 @@ public class SiaraSimulatorTests : IAsyncLifetime
                     {
                         _logger.LogInformation("  New case: {Count} documents", newFiles.Count);
 
-                        foreach (var fileInfo in newFiles)
+                        // Download with controlled concurrency (3 at a time with 300ms delay)
+                        const int maxConcurrentDownloads = 3;
+                        for (int i = 0; i < newFiles.Count; i += maxConcurrentDownloads)
                         {
-                            var downloadResult = await _automationAgent.DownloadFileAsync(
-                                fileInfo.Url,
-                                TestContext.Current.CancellationToken);
-
-                            if (downloadResult.IsSuccess && downloadResult.Value != null)
+                            var batch = newFiles.Skip(i).Take(maxConcurrentDownloads).ToList();
+                            var downloadTasks = batch.Select(async fileInfo =>
                             {
-                                var downloadedFile = downloadResult.Value;
-                                downloadedFiles.Add(downloadedFile);
-                                _downloadedDocuments.Add(downloadedFile.FileName);
+                                var downloadResult = await _automationAgent.DownloadFileAsync(
+                                    fileInfo.Url,
+                                    TestContext.Current.CancellationToken);
 
-                                // Save to disk
-                                var filePath = Path.Combine(_downloadPath, downloadedFile.FileName);
-                                await File.WriteAllBytesAsync(filePath, downloadedFile.Content!, TestContext.Current.CancellationToken);
-                                downloadedFilePaths.Add(filePath);
+                                if (downloadResult.IsSuccess && downloadResult.Value != null)
+                                {
+                                    var downloadedFile = downloadResult.Value;
+                                    downloadedFiles.Add(downloadedFile);
+                                    _downloadedDocuments.Add(downloadedFile.FileName);
 
-                                // Update manifest
-                                await AppendToManifestAsync(downloadedFile);
+                                    // Save to disk
+                                    var filePath = Path.Combine(_downloadPath, downloadedFile.FileName);
+                                    await File.WriteAllBytesAsync(filePath, downloadedFile.Content!, TestContext.Current.CancellationToken);
+                                    downloadedFilePaths.Add(filePath);
+
+                                    // Update manifest
+                                    await AppendToManifestAsync(downloadedFile);
+                                }
+                            });
+
+                            await Task.WhenAll(downloadTasks);
+
+                            // Small delay between batches
+                            if (i + maxConcurrentDownloads < newFiles.Count)
+                            {
+                                await Task.Delay(300, TestContext.Current.CancellationToken);
                             }
                         }
                         _logger.LogInformation("  Downloaded and saved {Count} files", newFiles.Count);
