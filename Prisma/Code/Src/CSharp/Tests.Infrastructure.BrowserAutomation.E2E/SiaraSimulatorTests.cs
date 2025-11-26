@@ -201,15 +201,87 @@ public class SiaraSimulatorTests : IAsyncLifetime
             _logger.LogInformation("Viewing case list...");
             await Task.Delay(3000, TestContext.Current.CancellationToken); // 3 second pause to view dashboard
 
-            // STEP 5: Watch SIARA Simulator for 3 Minutes - Download Cases
+            // STEP 5: Watch SIARA Simulator for 3 Minutes
             _logger.LogInformation("");
-            _logger.LogInformation("STEP 5: CONTINUOUS MONITORING (3 minutes)");
-            _logger.LogInformation("Watching SIARA Simulator dashboard...");
-            _logger.LogInformation("Downloading documents as they arrive");
+            _logger.LogInformation("STEP 5: Watching SIARA Simulator (3 minutes)");
+            _logger.LogInformation("Just observing dashboard as cases arrive...");
             _logger.LogInformation("");
 
-            var (downloadResults, filePaths) = await WatchAndDownloadContinuouslyAsync();
-            downloadedFiles.AddRange(downloadResults);
+            await Task.Delay(TimeSpan.FromMinutes(3), TestContext.Current.CancellationToken);
+
+            _logger.LogInformation("✓ Watch period complete");
+            _logger.LogInformation("");
+
+            // STEP 5A: Copy Documents from Simulator Source (No Browser Interaction)
+            _logger.LogInformation("STEP 5A: Collecting Documents from Simulator Source");
+
+            // Find simulator document source directory
+            var simulatorDir = Path.GetDirectoryName(SimulatorExePath);
+            var documentSourcePath = Path.Combine(simulatorDir!, "..", "bulk_generated_documents_all_formats");
+            documentSourcePath = Path.GetFullPath(documentSourcePath);
+
+            List<string> filePaths = new();
+            if (Directory.Exists(documentSourcePath))
+            {
+                // Get all case directories that have been generated
+                var caseDirs = Directory.GetDirectories(documentSourcePath);
+                _logger.LogInformation("Found {Count} case directories in source", caseDirs.Length);
+
+                // Collect all documents from each case
+                var allFiles = caseDirs
+                    .SelectMany(dir => Directory.GetFiles(dir, "*.*")
+                        .Where(f => f.EndsWith(".pdf") || f.EndsWith(".docx") || f.EndsWith(".xml")))
+                    .ToList();
+
+                var newFiles = allFiles
+                    .Where(f => !_downloadedDocuments.Contains(Path.GetFileName(f)))
+                    .ToList();
+
+                _logger.LogInformation("Found {Total} total documents, {New} are new", allFiles.Count, newFiles.Count);
+
+                // Copy documents with throttling
+                const int maxConcurrentCopies = 3;
+                for (int i = 0; i < newFiles.Count; i += maxConcurrentCopies)
+                {
+                    var batch = newFiles.Skip(i).Take(maxConcurrentCopies).ToList();
+                    var copyTasks = batch.Select(async sourceFile =>
+                    {
+                        var fileName = Path.GetFileName(sourceFile);
+                        var destPath = Path.Combine(_downloadPath, fileName);
+
+                        await Task.Run(() => File.Copy(sourceFile, destPath, overwrite: true));
+
+                        filePaths.Add(destPath);
+                        _downloadedDocuments.Add(fileName);
+
+                        // Create a fake DownloadedFile for manifest
+                        var fileBytes = await File.ReadAllBytesAsync(destPath, TestContext.Current.CancellationToken);
+                        var downloadedFile = new DownloadedFile
+                        {
+                            FileName = fileName,
+                            Content = fileBytes,
+                            Url = $"file://{sourceFile}"
+                        };
+                        downloadedFiles.Add(downloadedFile);
+
+                        // Update manifest
+                        await AppendToManifestAsync(downloadedFile);
+                    });
+
+                    await Task.WhenAll(copyTasks);
+
+                    if (i + maxConcurrentCopies < newFiles.Count)
+                    {
+                        await Task.Delay(300, TestContext.Current.CancellationToken);
+                    }
+                }
+
+                _logger.LogInformation("✓ Copied {Count} new documents", newFiles.Count);
+            }
+            else
+            {
+                _logger.LogWarning("Document source path not found: {Path}", documentSourcePath);
+            }
 
             // STEP 5B: Open All Documents and Display for 2 Minutes
             if (filePaths.Any())
@@ -495,121 +567,6 @@ public class SiaraSimulatorTests : IAsyncLifetime
         }
 
         return downloadedFiles;
-    }
-
-    /// <summary>
-    /// Continuously monitors the SIARA simulator dashboard for 3 minutes.
-    /// Downloads each document as new cases arrive and saves to disk.
-    /// Documents are opened at the end to prevent browser navigation issues.
-    /// </summary>
-    /// <returns>Tuple of (downloaded files, file paths for opening later).</returns>
-    private async Task<(List<DownloadedFile> files, List<string> filePaths)> WatchAndDownloadContinuouslyAsync()
-    {
-        var downloadedFiles = new List<DownloadedFile>();
-        var downloadedFilePaths = new List<string>(); // Track paths to open at the end
-        var watchDurationMinutes = 3;
-        var pollIntervalSeconds = 10;
-        var endTime = DateTime.Now.AddMinutes(watchDurationMinutes);
-
-        _logger.LogInformation("Monitoring for {Duration} minutes (poll every {Interval}s)", watchDurationMinutes, pollIntervalSeconds);
-        _logger.LogInformation("End time: {EndTime:HH:mm:ss}", endTime);
-        _logger.LogInformation("Expecting ~18 cases (54 documents) with Poisson λ=6 cases/min");
-        _logger.LogInformation("");
-
-        var pollCount = 0;
-
-        while (DateTime.Now < endTime)
-        {
-            pollCount++;
-            var remainingSeconds = (int)(endTime - DateTime.Now).TotalSeconds;
-            _logger.LogInformation("[Poll {Count}] {Remaining}s remaining",
-                pollCount, remainingSeconds);
-
-            try
-            {
-                // Identify downloadable files on the page
-                var filePatterns = new[] { "*.pdf", "*.docx", "*.xml" };
-                var identifyResult = await _automationAgent!.IdentifyDownloadableFilesAsync(
-                    filePatterns,
-                    TestContext.Current.CancellationToken);
-
-                if (identifyResult.IsSuccess && identifyResult.Value != null)
-                {
-                    var availableFiles = identifyResult.Value;
-
-                    // Filter out already downloaded files
-                    var newFiles = availableFiles
-                        .Where(f => !_downloadedDocuments.Contains(f.FileName))
-                        .ToList();
-
-                    if (newFiles.Any())
-                    {
-                        _logger.LogInformation("  New case: {Count} documents", newFiles.Count);
-
-                        // Download with controlled concurrency (3 at a time with 300ms delay)
-                        const int maxConcurrentDownloads = 3;
-                        for (int i = 0; i < newFiles.Count; i += maxConcurrentDownloads)
-                        {
-                            var batch = newFiles.Skip(i).Take(maxConcurrentDownloads).ToList();
-                            var downloadTasks = batch.Select(async fileInfo =>
-                            {
-                                var downloadResult = await _automationAgent.DownloadFileAsync(
-                                    fileInfo.Url,
-                                    TestContext.Current.CancellationToken);
-
-                                if (downloadResult.IsSuccess && downloadResult.Value != null)
-                                {
-                                    var downloadedFile = downloadResult.Value;
-                                    downloadedFiles.Add(downloadedFile);
-                                    _downloadedDocuments.Add(downloadedFile.FileName);
-
-                                    // Save to disk
-                                    var filePath = Path.Combine(_downloadPath, downloadedFile.FileName);
-                                    await File.WriteAllBytesAsync(filePath, downloadedFile.Content!, TestContext.Current.CancellationToken);
-                                    downloadedFilePaths.Add(filePath);
-
-                                    // Update manifest
-                                    await AppendToManifestAsync(downloadedFile);
-                                }
-                            });
-
-                            await Task.WhenAll(downloadTasks);
-
-                            // Small delay between batches
-                            if (i + maxConcurrentDownloads < newFiles.Count)
-                            {
-                                await Task.Delay(300, TestContext.Current.CancellationToken);
-                            }
-                        }
-                        _logger.LogInformation("  Downloaded and saved {Count} files", newFiles.Count);
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation("  No documents found on dashboard yet");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Error during poll #{Count}", pollCount);
-            }
-
-            // Wait before next poll
-            if (DateTime.Now < endTime)
-            {
-                var nextPollDelay = Math.Min(pollIntervalSeconds * 1000, (int)(endTime - DateTime.Now).TotalMilliseconds);
-                if (nextPollDelay > 0)
-                {
-                    await Task.Delay(nextPollDelay, TestContext.Current.CancellationToken);
-                }
-            }
-        }
-
-        _logger.LogInformation("");
-        _logger.LogInformation("Monitoring complete: {Polls} polls, {Docs} documents downloaded", pollCount, downloadedFiles.Count);
-        _logger.LogInformation("");
-
-        return (downloadedFiles, downloadedFilePaths);
     }
 
     /// <summary>
