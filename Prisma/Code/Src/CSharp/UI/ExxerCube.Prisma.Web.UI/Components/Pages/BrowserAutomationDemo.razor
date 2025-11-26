@@ -316,20 +316,63 @@
 
         var navResult = await agent.NavigateToAsync(_siaraUrl);
 
-        if (navResult.IsSuccess)
-        {
-            _statusMessage = "Successfully navigated to SIARA Simulator - viewing CNBV regulatory documents";
-            Snackbar.Add("Connected to SIARA Simulator successfully!", Severity.Success);
-
-            // Keep browser open for demo (5 seconds to show the SIARA dashboard)
-            await Task.Delay(5000);
-        }
-        else
+        if (!navResult.IsSuccess)
         {
             _statusMessage = $"Failed to connect to SIARA: {navResult.Error}";
             Snackbar.Add($"SIARA connection failed. Make sure SIARA Simulator is running at {_siaraUrl}", Severity.Warning);
+            _progressPercent = 100;
+            return;
         }
 
+        _statusMessage = "Successfully navigated to SIARA Simulator - identifying documents...";
+        Snackbar.Add("Connected to SIARA Simulator successfully!", Severity.Success);
+        StateHasChanged();
+
+        // Wait for page to load completely
+        await Task.Delay(2000);
+
+        // Identify downloadable files (PDF, DOCX, XML)
+        var identifyResult = await agent.IdentifyDownloadableFilesAsync(new[] { "*.pdf", "*.docx", "*.xml" });
+
+        if (!identifyResult.IsSuccess || identifyResult.Value == null || !identifyResult.Value.Any())
+        {
+            _statusMessage = "No downloadable documents found on SIARA dashboard";
+            Snackbar.Add("SIARA Simulator has no documents available yet. Wait for cases to be generated.", Severity.Info);
+            await Task.Delay(3000);
+            _progressPercent = 100;
+            return;
+        }
+
+        var availableFiles = identifyResult.Value;
+        var filesToDownload = availableFiles.Take(_downloadCount).ToList();
+        var totalFiles = filesToDownload.Count;
+
+        _statusMessage = $"Found {availableFiles.Count} documents. Downloading {totalFiles} files...";
+        StateHasChanged();
+
+        var currentFile = 0;
+        foreach (var downloadableFile in filesToDownload)
+        {
+            currentFile++;
+            _statusMessage = $"Downloading SIARA document {currentFile}/{totalFiles} ({downloadableFile.FileName})...";
+            _progressPercent = (currentFile - 1) * 100 / totalFiles;
+            StateHasChanged();
+
+            var downloadResult = await agent.DownloadFileAsync(downloadableFile.Url);
+            if (downloadResult.IsSuccess && downloadResult.Value != null)
+            {
+                _downloadedFiles.Add(downloadResult.Value);
+                Snackbar.Add($"Downloaded: {downloadResult.Value.FileName}", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"Failed to download: {downloadableFile.FileName}", Severity.Warning);
+            }
+
+            await Task.Delay(500); // Small delay between downloads
+        }
+
+        _statusMessage = $"Successfully downloaded {_downloadedFiles.Count(f => f.Url.Contains(_siaraUrl))} SIARA documents";
         _progressPercent = 100;
     }
 
@@ -358,6 +401,7 @@
     {
         if (url.Contains("gutenberg")) return Color.Primary;
         if (url.Contains("archive.org")) return Color.Secondary;
+        if (url.Contains("localhost:5001") || url.Contains("localhost:5002") || url.Contains("siara")) return Color.Success;
         return Color.Default;
     }
 
@@ -365,6 +409,7 @@
     {
         if (url.Contains("gutenberg")) return "Gutenberg";
         if (url.Contains("archive.org")) return "Archive";
+        if (url.Contains("localhost:5001") || url.Contains("localhost:5002") || url.Contains("siara")) return "SIARA";
         return "Unknown";
     }
 }
