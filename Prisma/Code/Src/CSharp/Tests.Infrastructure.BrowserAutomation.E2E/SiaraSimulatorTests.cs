@@ -212,75 +212,132 @@ public class SiaraSimulatorTests : IAsyncLifetime
             _logger.LogInformation("✓ Watch period complete");
             _logger.LogInformation("");
 
-            // STEP 5A: Copy Documents from Simulator Source (No Browser Interaction)
-            _logger.LogInformation("STEP 5A: Collecting Documents from Simulator Source");
-
-            // Find simulator document source directory
-            var simulatorDir = Path.GetDirectoryName(SimulatorExePath);
-            var documentSourcePath = Path.Combine(simulatorDir!, "..", "bulk_generated_documents_all_formats");
-            documentSourcePath = Path.GetFullPath(documentSourcePath);
+            // STEP 5A: Collect Documents using AngleSharp + HttpClient
+            _logger.LogInformation("STEP 5A: Collecting Documents from Page");
 
             List<string> filePaths = new();
-            if (Directory.Exists(documentSourcePath))
+
+            try
             {
-                // Get all case directories that have been generated
-                var caseDirs = Directory.GetDirectories(documentSourcePath);
-                _logger.LogInformation("Found {Count} case directories in source", caseDirs.Length);
+                // Fetch HTML from dashboard using HttpClient
+                using var httpClient = new HttpClient();
+                var html = await httpClient.GetStringAsync($"{SimulatorUrl}/", TestContext.Current.CancellationToken);
 
-                // Collect all documents from each case
-                var allFiles = caseDirs
-                    .SelectMany(dir => Directory.GetFiles(dir, "*.*")
-                        .Where(f => f.EndsWith(".pdf") || f.EndsWith(".docx") || f.EndsWith(".xml")))
+                // Parse HTML with AngleSharp
+                var parser = new HtmlParser();
+                var document = await parser.ParseDocumentAsync(html);
+
+                // Find all document links (PDF, DOCX, XML)
+                var docLinks = document.QuerySelectorAll("a[href$='.pdf'], a[href$='.docx'], a[href$='.xml']")
+                    .Select(a => a.GetAttribute("href"))
+                    .Where(href => !string.IsNullOrEmpty(href))
+                    .Select(href => href!.StartsWith("http") ? href : $"{SimulatorUrl}{href}")
+                    .Distinct()
                     .ToList();
 
-                var newFiles = allFiles
-                    .Where(f => !_downloadedDocuments.Contains(Path.GetFileName(f)))
+                _logger.LogInformation("Found {Count} document links in HTML", docLinks.Count);
+
+                var newLinks = docLinks
+                    .Where(link => !_downloadedDocuments.Contains(Path.GetFileName(link)))
                     .ToList();
 
-                _logger.LogInformation("Found {Total} total documents, {New} are new", allFiles.Count, newFiles.Count);
+                _logger.LogInformation("Found {New} new documents to download", newLinks.Count);
 
-                // Copy documents with throttling
-                const int maxConcurrentCopies = 3;
-                for (int i = 0; i < newFiles.Count; i += maxConcurrentCopies)
+                const int maxConcurrentDownloads = 3;
+                for (int i = 0; i < newLinks.Count; i += maxConcurrentDownloads)
                 {
-                    var batch = newFiles.Skip(i).Take(maxConcurrentCopies).ToList();
-                    var copyTasks = batch.Select(async sourceFile =>
+                    var batch = newLinks.Skip(i).Take(maxConcurrentDownloads).ToList();
+                    var downloadTasks = batch.Select(async link =>
                     {
-                        var fileName = Path.GetFileName(sourceFile);
+                        var fileName = Path.GetFileName(link);
                         var destPath = Path.Combine(_downloadPath, fileName);
 
-                        await Task.Run(() => File.Copy(sourceFile, destPath, overwrite: true));
+                        var bytes = await httpClient.GetByteArrayAsync(link, TestContext.Current.CancellationToken);
+                        await File.WriteAllBytesAsync(destPath, bytes, TestContext.Current.CancellationToken);
 
                         filePaths.Add(destPath);
                         _downloadedDocuments.Add(fileName);
 
-                        // Create a fake DownloadedFile for manifest
-                        var fileBytes = await File.ReadAllBytesAsync(destPath, TestContext.Current.CancellationToken);
                         var downloadedFile = new DownloadedFile
                         {
                             FileName = fileName,
-                            Content = fileBytes,
-                            Url = $"file://{sourceFile}"
+                            Content = bytes,
+                            Url = link
                         };
                         downloadedFiles.Add(downloadedFile);
 
-                        // Update manifest
                         await AppendToManifestAsync(downloadedFile);
                     });
 
-                    await Task.WhenAll(copyTasks);
+                    await Task.WhenAll(downloadTasks);
 
-                    if (i + maxConcurrentCopies < newFiles.Count)
+                    if (i + maxConcurrentDownloads < newLinks.Count)
                     {
                         await Task.Delay(300, TestContext.Current.CancellationToken);
                     }
                 }
 
-                _logger.LogInformation("✓ Copied {Count} new documents", newFiles.Count);
+                _logger.LogInformation("✓ Downloaded {Count} documents using AngleSharp + HttpClient", newLinks.Count);
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning("Document source path not found: {Path}", documentSourcePath);
+                _logger.LogWarning(ex, "AngleSharp method failed, falling back to file copy");
+
+                // FALLBACK: Copy from file system
+                var simulatorDir = Path.GetDirectoryName(SimulatorExePath);
+                var documentSourcePath = Path.Combine(simulatorDir!, "..", "bulk_generated_documents_all_formats");
+                documentSourcePath = Path.GetFullPath(documentSourcePath);
+
+                if (Directory.Exists(documentSourcePath))
+                {
+                    var caseDirs = Directory.GetDirectories(documentSourcePath);
+                    var allFiles = caseDirs
+                        .SelectMany(dir => Directory.GetFiles(dir, "*.*")
+                            .Where(f => f.EndsWith(".pdf") || f.EndsWith(".docx") || f.EndsWith(".xml")))
+                        .ToList();
+
+                    var newFiles = allFiles
+                        .Where(f => !_downloadedDocuments.Contains(Path.GetFileName(f)))
+                        .ToList();
+
+                    _logger.LogInformation("Fallback: Copying {Count} files from disk", newFiles.Count);
+
+                    const int maxConcurrentCopies = 3;
+                    for (int i = 0; i < newFiles.Count; i += maxConcurrentCopies)
+                    {
+                        var batch = newFiles.Skip(i).Take(maxConcurrentCopies).ToList();
+                        var copyTasks = batch.Select(async sourceFile =>
+                        {
+                            var fileName = Path.GetFileName(sourceFile);
+                            var destPath = Path.Combine(_downloadPath, fileName);
+
+                            await Task.Run(() => File.Copy(sourceFile, destPath, overwrite: true));
+
+                            filePaths.Add(destPath);
+                            _downloadedDocuments.Add(fileName);
+
+                            var fileBytes = await File.ReadAllBytesAsync(destPath, TestContext.Current.CancellationToken);
+                            var downloadedFile = new DownloadedFile
+                            {
+                                FileName = fileName,
+                                Content = fileBytes,
+                                Url = $"file://{sourceFile}"
+                            };
+                            downloadedFiles.Add(downloadedFile);
+
+                            await AppendToManifestAsync(downloadedFile);
+                        });
+
+                        await Task.WhenAll(copyTasks);
+
+                        if (i + maxConcurrentCopies < newFiles.Count)
+                        {
+                            await Task.Delay(300, TestContext.Current.CancellationToken);
+                        }
+                    }
+
+                    _logger.LogInformation("✓ Fallback complete: Copied {Count} files", newFiles.Count);
+                }
             }
 
             // STEP 5B: Open All Documents and Display for 2 Minutes

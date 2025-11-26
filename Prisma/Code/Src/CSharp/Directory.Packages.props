@@ -2,6 +2,7 @@
 <Project>
   <ItemGroup>
     <!-- Azure SDK packages -->
+    <PackageVersion Include="AngleSharp" Version="1.4.0" />
     <PackageVersion Include="Azure.Identity" Version="1.18.0-beta.2" />
     <PackageVersion Include="Azure.Security.KeyVault.Certificates" Version="4.8.0" />
     <!-- BouncyCastle for cryptographic operations -->

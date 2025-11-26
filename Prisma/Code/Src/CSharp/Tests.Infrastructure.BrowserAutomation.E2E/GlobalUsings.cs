@@ -8,6 +8,8 @@ global using System.Linq;
 global using System.Net.Http;
 global using System.Threading;
 global using System.Threading.Tasks;
+global using AngleSharp;
+global using AngleSharp.Html.Parser;
 global using ExxerCube.Prisma.Domain;
 global using ExxerCube.Prisma.Domain.Interfaces;
 global using ExxerCube.Prisma.Infrastructure.BrowserAutomation;
