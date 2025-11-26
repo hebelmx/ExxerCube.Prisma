@@ -39,6 +39,12 @@ public static class ServiceCollectionExtensions
         // Default: Use Tesseract as primary (fast), fallback to GOT-OCR2 for low confidence
         services.AddScoped<IOcrExecutor, Teseract.TesseractOcrExecutor>();
 
+        // Register comparison service
+        services.AddScoped<IDocumentComparisonService, DocumentComparisonService>();
+
+        // Register bulk processing service
+        services.AddScoped<IBulkProcessingService, BulkProcessingService>();
+
         return services;
     }
 }

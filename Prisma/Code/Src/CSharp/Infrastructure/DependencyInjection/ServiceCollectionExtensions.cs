@@ -46,14 +46,19 @@ public static class ServiceCollectionExtensions
         // This is a temporary dummy implementation to allow the application to compile.
         services.AddScoped<IPythonInteropService, DeprecatedPythonInteropService>();
 
-        // Register domain interface implementations using the abstract Python interop service
-        services.AddScoped<IOcrExecutor>(provider =>
-        {
-            var logger = provider.GetRequiredService<ILogger<OcrProcessingAdapter>>();
-            var pythonInteropService = provider.GetRequiredService<IPythonInteropService>();
-            return new OcrProcessingAdapter(logger, pythonInteropService);
-        });
+        // DEPRECATED: IOcrExecutor registration is commented out because it conflicts with the new
+        // Tesseract/GOT-OCR2 implementations registered in Infrastructure.Extraction.
+        // The Extraction layer registers TesseractOcrExecutor as the default IOcrExecutor.
 
+        // services.AddScoped<IOcrExecutor>(provider =>
+        // {
+        //     var logger = provider.GetRequiredService<ILogger<OcrProcessingAdapter>>();
+        //     var pythonInteropService = provider.GetRequiredService<IPythonInteropService>();
+        //     return new OcrProcessingAdapter(logger, pythonInteropService);
+        // });
+
+        // TEMPORARY: These registrations still use the deprecated adapter because there are no
+        // Tesseract-based implementations yet. They will be removed in a future refactoring.
         services.AddScoped<IImagePreprocessor>(provider =>
         {
             var logger = provider.GetRequiredService<ILogger<OcrProcessingAdapter>>();

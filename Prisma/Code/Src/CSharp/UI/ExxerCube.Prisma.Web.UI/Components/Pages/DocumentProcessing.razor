@@ -12,32 +12,35 @@
 @inject IOcrProcessingService OcrService
 @inject IProcessingMetricsService MetricsService
 @inject IXmlNullableParser<Expediente> XmlParser
+@inject IDocumentComparisonService ComparisonService
+@inject IBulkProcessingService BulkProcessingService
+@inject ILogger<DocumentProcessing> Logger
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
-<PageTitle>XML Extraction Demo</PageTitle>
+<PageTitle>Document Processing</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudPaper Class="pa-6" Elevation="3">
         <MudText Typo="Typo.h3" Class="mb-2">
             <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
-            XML Extraction Demo
+            Document Processing
         </MudText>
         <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mb-4">
-            CNBV Expediente Data Extraction - Live Demo
+            CNBV Expediente Data Extraction
         </MudText>
         
         <MudText Typo="Typo.body2" Class="mb-3">
             Process documents with OCR or extract data from XML. Click any sample below to see instant results.
         </MudText>
 
-        <!-- XML Extraction Demo Section -->
+        <!-- XML Processing Section -->
         <MudCard Class="mb-4">
             <MudCardHeader>
                 <MudText Typo="Typo.h6">
                     <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
-                    XML Extraction - CNBV Expedientes
+                    XML Processing - CNBV Expedientes
                 </MudText>
             </MudCardHeader>
             <MudCardContent>
@@ -407,6 +410,357 @@
             </MudCardContent>
         </MudCard>
 
+        <!-- OCR Processing Section -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                    OCR Processing - PDF Documents
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2" Class="mb-3">
+                    Click any PDF fixture to extract text with OCR (Tesseract):
+                </MudText>
+
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                                   OnClick="@(() => LoadPdfFixture("222AAA-44444444442025.pdf"))" Disabled="isProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                            PRP1: 222AAA PDF
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" Size="Size.Large"
+                                   OnClick="@(() => LoadPdfFixture("333BBB-44444444442025.pdf"))" Disabled="isProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                            PRP1: 333BBB PDF
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" Size="Size.Large"
+                                   OnClick="@(() => LoadPdfFixture("333ccc-666666662025.pdf"))" Disabled="isProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                            PRP1: 333ccc PDF
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth="true" Size="Size.Large"
+                                   OnClick="@(() => LoadPdfFixture("555CCC-6666662025.pdf"))" Disabled="isProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                            PRP1: 555CCC PDF
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+
+                @if (ocrProcessingResult != null)
+                {
+                    <MudAlert Severity="Severity.Success" Class="mt-4 mb-2" Icon="@Icons.Material.Filled.CheckCircle">
+                        <strong>OCR Complete!</strong> Successfully processed <strong>@currentPdfFixtureName</strong>
+                    </MudAlert>
+
+                    <MudGrid Class="mt-2">
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                                    @($"{ocrProcessingResult.OCRResult.ConfidenceAvg:F1}%")
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">OCR Confidence</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                                    @ocrProcessingResult.OCRResult.Text.Length
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Characters Extracted</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                                    @((ocrProcessingResult.ExtractedFields.Expediente ?? "").Length)
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Expediente Length</MudText>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudDivider Class="my-4" />
+
+                    <MudTabs Elevation="0" Rounded="true" Position="Position.Top" Color="Color.Primary">
+                        <MudTabPanel Text="Extracted Text" Icon="@Icons.Material.Filled.TextFields">
+                            <MudTextField Value="@ocrProcessingResult.OCRResult.Text"
+                                         Label="OCR Extracted Text"
+                                         ReadOnly="true"
+                                         Variant="Variant.Outlined"
+                                         Lines="15"
+                                         Class="mud-code mt-3" />
+                        </MudTabPanel>
+
+                        <MudTabPanel Text="OCR Details" Icon="@Icons.Material.Filled.Info">
+                            <MudGrid Class="mt-3">
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Value="@($"{ocrProcessingResult.OCRResult.ConfidenceAvg:F2}%")"
+                                                 Label="Average Confidence"
+                                                 ReadOnly="true"
+                                                 Variant="Variant.Outlined" />
+                                </MudItem>
+                                <MudItem xs="12" sm="6">
+                                    <MudTextField Value="@ocrProcessingResult.OCRResult.Text.Length.ToString()"
+                                                 Label="Characters Extracted"
+                                                 ReadOnly="true"
+                                                 Variant="Variant.Outlined" />
+                                </MudItem>
+                            </MudGrid>
+                        </MudTabPanel>
+                    </MudTabs>
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Comparison Section -->
+        <MudCard Class="mb-4" Style="@(canCompare ? "" : "opacity: 0.6; pointer-events: none;")">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+                    XML vs OCR Comparison
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (!canCompare)
+                {
+                    <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.Info">
+                        Process both an XML and a PDF document above to enable comparison.
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Large"
+                               OnClick="CompareResults" Disabled="@(isProcessing || !canCompare)">
+                        <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+                        Compare XML vs OCR
+                    </MudButton>
+                }
+
+                @if (comparisonResult != null)
+                {
+                    <MudDivider Class="my-4" />
+
+                    <!-- Summary Stats -->
+                    <MudGrid Class="mt-4">
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                                    @comparisonResult.MatchCount / @comparisonResult.TotalFields
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Exact Matches</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Percent" Color="Color.Info" Size="Size.Large" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                                    @($"{comparisonResult.OverallSimilarity:P0}")
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Overall Similarity</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.BarChart" Color="Color.Warning" Size="Size.Large" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                                    @($"{comparisonResult.MatchPercentage:F0}%")
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Match Percentage</MudText>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+
+                    <!-- Detailed Field Comparison Table -->
+                    <MudTable Items="@comparisonResult.FieldComparisons" Class="mt-4" Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="500px">
+                        <HeaderContent>
+                            <MudTh>Field</MudTh>
+                            <MudTh>XML Value</MudTh>
+                            <MudTh>OCR Value</MudTh>
+                            <MudTh>Similarity</MudTh>
+                            <MudTh>Status</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Field"><strong>@context.FieldName</strong></MudTd>
+                            <MudTd DataLabel="XML"><code style="font-size: 0.85em;">@context.XmlValue</code></MudTd>
+                            <MudTd DataLabel="OCR"><code style="font-size: 0.85em;">@context.OcrValue</code></MudTd>
+                            <MudTd DataLabel="Similarity">
+                                <MudProgressLinear Value="@(context.Similarity * 100)" Color="@GetSimilarityColor(context.Similarity)" Size="Size.Small" />
+                                <MudText Typo="Typo.caption">@($"{context.Similarity:P0}")</MudText>
+                            </MudTd>
+                            <MudTd DataLabel="Status">
+                                <MudChip T="string" Color="@GetStatusColor(context.Status)" Size="Size.Small" Variant="Variant.Filled">
+                                    @context.Status
+                                </MudChip>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Bulk Processing Section -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Filled.BatchPrediction" Class="mr-2" />
+                    Batch Processing (Max 4 Documents)
+                </MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudAlert Severity="Severity.Info" Class="mb-3" Icon="@Icons.Material.Filled.Info">
+                    <strong>Stakeholder Demo Mode:</strong> Process up to 4 random documents with XML + OCR + Comparison. Uses Tesseract only (~5-10s per document).
+                </MudAlert>
+
+                <MudStack Row="true" Spacing="2" Class="mb-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                               OnClick="LoadRandomSample" Disabled="isProcessing">
+                        <MudIcon Icon="@Icons.Material.Filled.Shuffle" Class="mr-2" />
+                        Load Random Sample (4 docs)
+                    </MudButton>
+
+                    @if (bulkDocuments.Any())
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Success"
+                                   OnClick="ProcessBatch" Disabled="isProcessing || isBatchProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Class="mr-2" />
+                            Process Batch (@bulkDocuments.Count docs)
+                        </MudButton>
+                    }
+                </MudStack>
+
+                @if (bulkDocuments.Any())
+                {
+                    <MudTable Items="@bulkDocuments" Dense="true" Hover="true" Striped="true" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Document ID</MudTh>
+                            <MudTh>Status</MudTh>
+                            <MudTh>OCR Confidence</MudTh>
+                            <MudTh>Match Rate</MudTh>
+                            <MudTh>Time</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Document">
+                                <code style="font-size: 0.85em;">@context.Id</code>
+                            </MudTd>
+                            <MudTd DataLabel="Status">
+                                @if (context.Status == BulkProcessingStatus.Pending)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Pending</MudChip>
+                                }
+                                else if (context.Status == BulkProcessingStatus.ProcessingXml)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Icon="@Icons.Material.Filled.Autorenew">Processing XML...</MudChip>
+                                }
+                                else if (context.Status == BulkProcessingStatus.ProcessingOcr)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning" Icon="@Icons.Material.Filled.Autorenew">Processing OCR...</MudChip>
+                                }
+                                else if (context.Status == BulkProcessingStatus.Comparing)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Icon="@Icons.Material.Filled.Autorenew">Comparing...</MudChip>
+                                }
+                                else if (context.Status == BulkProcessingStatus.Complete)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">Complete</MudChip>
+                                }
+                                else if (context.Status == BulkProcessingStatus.Error)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error">Error</MudChip>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Confidence">
+                                @if (context.Result?.OcrConfidence != null)
+                                {
+                                    <MudText>@($"{context.Result.OcrConfidence:F1}%")</MudText>
+                                }
+                                else
+                                {
+                                    <MudText>-</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Match">
+                                @if (context.Result?.Comparison != null)
+                                {
+                                    <MudText Color="@(context.Result.Comparison.MatchPercentage >= 80 ? Color.Success : Color.Warning)">
+                                        @($"{context.Result.Comparison.MatchPercentage:F0}%")
+                                    </MudText>
+                                }
+                                else
+                                {
+                                    <MudText>-</MudText>
+                                }
+                            </MudTd>
+                            <MudTd DataLabel="Time">
+                                @if (context.Result != null)
+                                {
+                                    <MudText Typo="Typo.caption">@($"{context.Result.ProcessingTimeMs}ms")</MudText>
+                                }
+                                else
+                                {
+                                    <MudText>-</MudText>
+                                }
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+
+                    @if (batchSummary != null)
+                    {
+                        <MudDivider Class="my-4" />
+                        <MudGrid>
+                            <MudItem xs="12" sm="3">
+                                <MudPaper Class="pa-3" Elevation="2">
+                                    <MudText Typo="Typo.h4" Align="Align.Center">@batchSummary.SuccessCount</MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center">Successful</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="3">
+                                <MudPaper Class="pa-3" Elevation="2">
+                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.AvgOcrConfidence:F1}%")</MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center">Avg OCR Confidence</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="3">
+                                <MudPaper Class="pa-3" Elevation="2">
+                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.AvgMatchRate:F0}%")</MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center">Avg Match Rate</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="3">
+                                <MudPaper Class="pa-3" Elevation="2">
+                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.TotalTimeMs / 1000.0:F1}s")</MudText>
+                                    <MudText Typo="Typo.body2" Align="Align.Center">Total Time</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+                    }
+                }
+            </MudCardContent>
+        </MudCard>
+
         <!-- OCR Upload Section -->
         <MudExpansionPanels Class="mb-4">
             <MudExpansionPanel Text="OCR Document Processing (Advanced)" Icon="@Icons.Material.Filled.CloudUpload">
@@ -592,6 +946,19 @@
     private string errorMessage = "";
     private string jsonResult = "";
     private HubConnection? hubConnection;
+
+    // OCR Processing state
+    private ProcessingResult? ocrProcessingResult;
+    private string currentPdfFixtureName = "";
+
+    // Comparison state
+    private ComparisonResult? comparisonResult;
+    private bool canCompare => xmlExpediente != null && ocrProcessingResult != null;
+
+    // Bulk processing state
+    private List<BulkDocument> bulkDocuments = new();
+    private bool isBatchProcessing = false;
+    private BatchSummary? batchSummary;
 
     // Fixtures path relative to Web.UI project
     private string GetFixturesPath()
@@ -921,6 +1288,206 @@
         }
     }
 
+    private async Task LoadPdfFixture(string pdfFileName)
+    {
+        if (OcrService == null)
+        {
+            Snackbar.Add("OCR Service is not available. Please check service configuration.", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            isProcessing = true;
+            processingStatus = "Loading PDF fixture...";
+            processingMessage = $"Loading {pdfFileName}";
+            processingProgress = 0;
+            errorMessage = "";
+            processingResult = null;
+            ocrProcessingResult = null;
+            xmlExpediente = null;
+            extractedFieldCount = 0;
+
+            StateHasChanged();
+
+            // Build fixture path
+            var fixturesPath = GetFixturesPath();
+            var pdfPath = Path.Combine(fixturesPath, pdfFileName);
+
+            if (!File.Exists(pdfPath))
+            {
+                errorMessage = $"PDF fixture not found: {pdfPath}";
+                Snackbar.Add(errorMessage, Severity.Error);
+                return;
+            }
+
+            processingProgress = 20;
+            StateHasChanged();
+
+            // Read PDF file
+            var pdfBytes = await File.ReadAllBytesAsync(pdfPath);
+
+            processingStatus = "Processing with OCR...";
+            processingProgress = 40;
+            StateHasChanged();
+
+            // Create image data for OCR processing
+            var imageData = new ImageData
+            {
+                Data = pdfBytes,
+                SourcePath = pdfPath,
+                PageNumber = 1,
+                TotalPages = 1
+            };
+
+            // Create processing configuration with 75% confidence threshold
+            var config = new ProcessingConfig
+            {
+                OCRConfig = new OCRConfig
+                {
+                    Language = "spa",
+                    ConfidenceThreshold = 75.0f
+                },
+                RemoveWatermark = true,
+                Deskew = true,
+                Binarize = true,
+                ExtractSections = true,
+                NormalizeText = true
+            };
+
+            // Process document with OCR
+            processingStatus = "Extracting text with Tesseract...";
+            processingProgress = 60;
+            StateHasChanged();
+
+            var result = await OcrService.ProcessDocumentAsync(imageData, config);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                ocrProcessingResult = result.Value;
+                currentPdfFixtureName = pdfFileName;
+                processingStatus = "Completed";
+                processingProgress = 100;
+                processingMessage = "PDF processed successfully with OCR";
+
+                Snackbar.Add(
+                    $"Success! OCR confidence: {ocrProcessingResult.OCRResult.ConfidenceAvg:F1}%, extracted {ocrProcessingResult.OCRResult.Text.Length} characters from {pdfFileName}",
+                    Severity.Success,
+                    config => { config.VisibleStateDuration = 5000; });
+            }
+            else
+            {
+                errorMessage = result.Error ?? "OCR processing failed";
+                processingStatus = "Failed";
+                processingProgress = 0;
+                Snackbar.Add($"Failed to process {pdfFileName}: {errorMessage}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error processing PDF: {ex.Message}";
+            processingStatus = "Failed";
+            processingProgress = 0;
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CompareResults()
+    {
+        if (!canCompare || ComparisonService == null)
+        {
+            Snackbar.Add("Cannot compare: both XML and OCR results are required.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            isProcessing = true;
+            processingStatus = "Comparing XML vs OCR...";
+            processingProgress = 50;
+            StateHasChanged();
+
+            Logger.LogInformation("Starting comparison: XML vs OCR");
+
+            // Create Expediente from OCR processing result
+            var ocrExpediente = ParseOcrToExpediente(ocrProcessingResult!);
+
+            // Perform comparison
+            comparisonResult = await ComparisonService.CompareExpedientesAsync(xmlExpediente!, ocrExpediente);
+
+            processingStatus = "Comparison complete";
+            processingProgress = 100;
+
+            Snackbar.Add(
+                $"Comparison complete: {comparisonResult.MatchCount}/{comparisonResult.TotalFields} exact matches ({comparisonResult.MatchPercentage:F0}% match rate)",
+                Severity.Success,
+                config => { config.VisibleStateDuration = 5000; });
+
+            Logger.LogInformation("Comparison complete: {MatchCount}/{TotalFields} matches",
+                comparisonResult.MatchCount, comparisonResult.TotalFields);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error during comparison: {ex.Message}";
+            processingStatus = "Comparison failed";
+            Snackbar.Add($"Comparison failed: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Comparison failed");
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private Expediente ParseOcrToExpediente(ProcessingResult ocrResult)
+    {
+        // For now, create a simple Expediente from extracted fields
+        // In a real implementation, this would parse the OCR text more thoroughly
+        var expediente = new Expediente
+        {
+            NumeroExpediente = ocrResult.ExtractedFields.Expediente ?? "",
+            NumeroOficio = "", // TODO: Extract from OCR text
+            SolicitudSiara = "", // TODO: Extract from OCR text
+            Folio = 0,
+            OficioYear = DateTime.Now.Year,
+            AreaClave = 0,
+            AreaDescripcion = "",
+            FechaPublicacion = DateTime.MinValue,
+            DiasPlazo = 0,
+            AutoridadNombre = "",
+            NombreSolicitante = null,
+            Referencia = "",
+            Referencia1 = "",
+            Referencia2 = "",
+            TieneAseguramiento = false
+        };
+
+        return expediente;
+    }
+
+    private Color GetStatusColor(string status) => status switch
+    {
+        "Match" => Color.Success,
+        "Partial" => Color.Warning,
+        "Different" => Color.Error,
+        "Missing" => Color.Default,
+        _ => Color.Default
+    };
+
+    private Color GetSimilarityColor(float similarity)
+    {
+        if (similarity >= 0.9f) return Color.Success;
+        if (similarity >= 0.7f) return Color.Info;
+        if (similarity >= 0.5f) return Color.Warning;
+        return Color.Error;
+    }
+
     private int CountExtractedFields(Expediente expediente)
     {
         int count = 0;
@@ -1046,6 +1613,160 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Failed to copy: {ex.Message}", Severity.Error);
+        }
+    }
+
+    // Batch processing methods
+    private async Task LoadRandomSample()
+    {
+        try
+        {
+            isProcessing = true;
+            bulkDocuments.Clear();
+            batchSummary = null;
+            StateHasChanged();
+
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            // Navigate from: Prisma/Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI/bin/Debug/net10.0
+            // To: ExxerCube.Prisma root (7 levels up, then bulk_generated_documents_all_formats)
+            var bulkPath = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "..", "..", "bulk_generated_documents_all_formats"));
+
+            Logger.LogInformation("Loading random sample from: {BulkPath}", bulkPath);
+
+            var result = await BulkProcessingService.GetRandomSampleAsync(4, bulkPath);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                bulkDocuments = result.Value;
+                Snackbar.Add($"Loaded {bulkDocuments.Count} documents for processing", Severity.Success);
+                Logger.LogInformation("Successfully loaded {Count} documents", bulkDocuments.Count);
+            }
+            else
+            {
+                errorMessage = $"Failed to load sample: {result.Error}";
+                Snackbar.Add(errorMessage, Severity.Error);
+                Logger.LogError("Failed to load sample: {Error}", result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading sample: {ex.Message}";
+            Snackbar.Add(errorMessage, Severity.Error);
+            Logger.LogError(ex, "Error loading random sample");
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ProcessBatch()
+    {
+        if (bulkDocuments.Count == 0)
+        {
+            Snackbar.Add("No documents to process. Load a sample first.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            isBatchProcessing = true;
+            batchSummary = null;
+            errorMessage = "";
+            StateHasChanged();
+
+            Logger.LogInformation("Starting batch processing of {Count} documents", bulkDocuments.Count);
+
+            var totalStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var successCount = 0;
+            var totalOcrConfidence = 0f;
+            var totalMatchRate = 0f;
+            var processedCount = 0;
+
+            // Process each document sequentially
+            foreach (var document in bulkDocuments)
+            {
+                try
+                {
+                    Logger.LogInformation("Processing document: {DocumentId}", document.Id);
+
+                    var result = await BulkProcessingService.ProcessDocumentAsync(document);
+
+                    if (result.IsSuccess && result.Value != null)
+                    {
+                        document.Result = result.Value;
+
+                        if (result.Value.Success)
+                        {
+                            successCount++;
+                            processedCount++;
+
+                            if (result.Value.OcrConfidence.HasValue)
+                            {
+                                totalOcrConfidence += result.Value.OcrConfidence.Value;
+                            }
+
+                            if (result.Value.Comparison != null)
+                            {
+                                totalMatchRate += result.Value.Comparison.MatchPercentage;
+                            }
+
+                            Logger.LogInformation("Document {DocumentId} processed successfully", document.Id);
+                        }
+                        else
+                        {
+                            document.ErrorMessage = result.Value.ErrorMessage;
+                            Logger.LogWarning("Document {DocumentId} processing failed: {Error}", document.Id, result.Value.ErrorMessage);
+                        }
+                    }
+                    else
+                    {
+                        document.Status = BulkProcessingStatus.Error;
+                        document.ErrorMessage = result.Error;
+                        Logger.LogError("Document {DocumentId} processing error: {Error}", document.Id, result.Error);
+                    }
+
+                    // Update UI after each document
+                    StateHasChanged();
+                }
+                catch (Exception ex)
+                {
+                    document.Status = BulkProcessingStatus.Error;
+                    document.ErrorMessage = ex.Message;
+                    Logger.LogError(ex, "Exception processing document {DocumentId}", document.Id);
+                    StateHasChanged();
+                }
+            }
+
+            totalStopwatch.Stop();
+
+            // Calculate summary statistics
+            batchSummary = new BatchSummary
+            {
+                SuccessCount = successCount,
+                TotalCount = bulkDocuments.Count,
+                AvgOcrConfidence = processedCount > 0 ? totalOcrConfidence / processedCount : 0f,
+                AvgMatchRate = processedCount > 0 ? totalMatchRate / processedCount : 0f,
+                TotalTimeMs = totalStopwatch.ElapsedMilliseconds
+            };
+
+            Logger.LogInformation("Batch processing complete: {Success}/{Total} successful in {Time}ms",
+                successCount, bulkDocuments.Count, totalStopwatch.ElapsedMilliseconds);
+
+            Snackbar.Add($"Batch processing complete: {successCount}/{bulkDocuments.Count} successful",
+                successCount == bulkDocuments.Count ? Severity.Success : Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Batch processing error: {ex.Message}";
+            Snackbar.Add(errorMessage, Severity.Error);
+            Logger.LogError(ex, "Batch processing error");
+        }
+        finally
+        {
+            isBatchProcessing = false;
+            StateHasChanged();
         }
     }
 

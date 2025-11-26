@@ -37,13 +37,13 @@
 
 @code {
     private bool _drawerOpen = true;
-    private bool _isDarkMode = false;
+    private bool _isDarkMode = true;
     private MudTheme _currentTheme = new();
 
     protected override void OnInitialized()
     {
         // Load theme preference from localStorage or use default
-        _isDarkMode = false; // Default to light mode
+        _isDarkMode = true; // Default to dark mode
         _currentTheme = CreateTheme(_isDarkMode);
     }
 

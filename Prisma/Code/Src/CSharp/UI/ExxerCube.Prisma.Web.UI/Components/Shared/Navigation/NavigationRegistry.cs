@@ -51,12 +51,12 @@ internal static class NavigationRegistry
             new[]
             {
                 new NavigationLink(
-                    "XML Extraction Demo",
+                    "Document Processing",
                     "/document-processing",
                     Icons.Material.Filled.Description,
-                    "One-click demo: Extract CNBV expediente data from XML files. Click any PRP1 fixture to see instant results.",
+                    "Extract CNBV expediente data from XML and PDF files with OCR. Click any PRP1 fixture to see instant results.",
                     Match: NavLinkMatch.All,
-                    Tags: new[] { "xml", "extraction", "expediente", "cnbv", "demo", "prp1", "stakeholder" }),
+                    Tags: new[] { "xml", "ocr", "extraction", "expediente", "cnbv", "pdf", "prp1", "stakeholder" }),
                 new NavigationLink(
                     "Processing Dashboard",
                     "/document-processing-dashboard",
