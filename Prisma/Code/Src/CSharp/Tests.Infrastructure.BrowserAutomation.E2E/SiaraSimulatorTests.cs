@@ -211,23 +211,37 @@ public class SiaraSimulatorTests : IAsyncLifetime
             var downloadResults = await WatchAndDownloadContinuouslyAsync();
             downloadedFiles.AddRange(downloadResults);
 
-            // STEP 6: Open Download Manifest at the End
+            // STEP 6: Validate Results and Open Download Manifest
             _logger.LogInformation("");
-            _logger.LogInformation("STEP 6: Opening Download Manifest");
-            _logger.LogInformation("Total documents downloaded in this session: {Count}", downloadedFiles.Count);
-            _logger.LogInformation("Download location: {Path}", _downloadPath);
+            _logger.LogInformation("STEP 6: Validating Download Results");
+            _logger.LogInformation("===========================================");
 
-            if (downloadedFiles.Count > 0)
+            const int minRequiredDocuments = 9; // 3 cases × 3 documents (PDF, DOCX, XML)
+            var totalCases = downloadedFiles.Count / 3; // Each case has 3 documents
+
+            _logger.LogInformation("Total documents downloaded: {Count}", downloadedFiles.Count);
+            _logger.LogInformation("Estimated cases processed: ~{Cases}", totalCases);
+            _logger.LogInformation("Minimum required: {Min} documents (3 cases)", minRequiredDocuments);
+            _logger.LogInformation("Download location: {Path}", _downloadPath);
+            _logger.LogInformation("");
+
+            if (downloadedFiles.Count >= minRequiredDocuments)
             {
-                _logger.LogInformation("✓ Successfully processed {Count} new documents", downloadedFiles.Count);
+                _logger.LogInformation("✅ SUCCESS! Downloaded {Count} documents from ~{Cases} cases",
+                    downloadedFiles.Count, totalCases);
+                _logger.LogInformation("Opening download manifest...");
                 OpenManifestFile();
             }
             else
             {
-                _logger.LogWarning("⚠ No NEW documents were downloaded (may have been downloaded previously)");
+                _logger.LogError("❌ FAILURE! Only downloaded {Count} documents (need {Min})",
+                    downloadedFiles.Count, minRequiredDocuments);
+                _logger.LogError("Each case has 3 documents (PDF, DOCX, XML)");
+                _logger.LogError("Test requires at least 3 complete cases");
+
                 if (File.Exists(_manifestFilePath))
                 {
-                    _logger.LogInformation("Opening existing manifest to show previous downloads...");
+                    _logger.LogInformation("Opening manifest to show what was downloaded...");
                     OpenManifestFile();
                 }
             }
@@ -235,11 +249,17 @@ public class SiaraSimulatorTests : IAsyncLifetime
             // Final pause to show completion
             _logger.LogInformation("");
             _logger.LogInformation("===========================================");
-            _logger.LogInformation("E2E Workflow Complete - Test Passed");
+            _logger.LogInformation("E2E Workflow Complete");
             _logger.LogInformation("===========================================");
             await Task.Delay(3000, TestContext.Current.CancellationToken); // 3 second final pause
 
-            // Assert - Login should succeed even if no documents available
+            // Assert - Must have downloaded at least 9 documents (3 cases)
+            downloadedFiles.Count.ShouldBeGreaterThanOrEqualTo(minRequiredDocuments,
+                $"Test requires at least {minRequiredDocuments} documents (3 cases × 3 documents each). " +
+                $"Only {downloadedFiles.Count} documents were downloaded. " +
+                $"The simulation may need more time or a higher arrival rate.");
+
+            // Assert - Login should succeed
             loginResult.ShouldBeTrue("Login and UI access should be successful");
         }
         finally
@@ -466,6 +486,11 @@ public class SiaraSimulatorTests : IAsyncLifetime
         _logger.LogInformation("Poll interval: {Interval} seconds", pollIntervalSeconds);
         _logger.LogInformation("Will check for new cases every {Interval}s and download immediately as they arrive", pollIntervalSeconds);
         _logger.LogInformation("End time: {EndTime:HH:mm:ss}", endTime);
+        _logger.LogInformation("");
+        _logger.LogInformation("📋 EXPECTATION:");
+        _logger.LogInformation("   - Each case has 3 documents (PDF, DOCX, XML)");
+        _logger.LogInformation("   - Need at least 9 documents (3 complete cases) for test to pass");
+        _logger.LogInformation("   - With Poisson distribution, expect much more than 9 documents");
         _logger.LogInformation("");
 
         var pollCount = 0;
