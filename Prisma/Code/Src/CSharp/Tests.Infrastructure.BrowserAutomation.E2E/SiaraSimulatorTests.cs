@@ -139,16 +139,16 @@ public class SiaraSimulatorTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Complete E2E workflow: Navigate to Siara Simulator, login, view dashboard, and download documents.
-    /// Demonstrates full access flow with delays for visual demonstration in headed mode.
+    /// Complete E2E workflow: Navigate to Siara Simulator, login, view dashboard, and continuously
+    /// monitor for 3 minutes downloading each document as cases arrive and opening them.
+    /// Demonstrates full access flow with real-time document processing in headed mode.
     /// </summary>
-    [Fact(Timeout = 300000)] // 5 minute timeout (headed mode is slower)
+    [Fact(Timeout = 360000)] // 6 minute timeout (3 min watch + startup/login time)
     public async Task SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed()
     {
         // Arrange
         _automationAgent.ShouldNotBeNull("Browser automation agent not initialized");
         var downloadedFiles = new List<DownloadedFile>();
-        var targetDownloadCount = 3; // Target: download at least 3 documents
 
         _logger.LogInformation("===========================================");
         _logger.LogInformation("Starting SIARA Simulator E2E Test - Full Workflow");
@@ -200,48 +200,36 @@ public class SiaraSimulatorTests : IAsyncLifetime
             _logger.LogInformation("Viewing case list...");
             await Task.Delay(3000, TestContext.Current.CancellationToken); // 3 second pause to view dashboard
 
-            // STEP 5: Wait for Cases to Appear and Download Documents
+            // STEP 5: Watch SIARA Simulator for 3 Minutes - Download Cases as They Arrive
             _logger.LogInformation("");
-            _logger.LogInformation("STEP 5: Waiting for Cases to Appear (Minimum 3 cases required)");
-            _logger.LogInformation("The simulation generates cases using Poisson distribution.");
-            _logger.LogInformation("This may take 1-3 minutes depending on arrival rate...");
+            _logger.LogInformation("STEP 5: CONTINUOUS MONITORING MODE");
+            _logger.LogInformation("Watching SIARA Simulator dashboard for 3 minutes...");
+            _logger.LogInformation("Will download and open each document as new cases arrive");
+            _logger.LogInformation("The simulation generates cases using Poisson distribution");
+            _logger.LogInformation("");
 
-            var downloadResults = await WaitForCasesAndDownloadAsync(targetDownloadCount);
+            var downloadResults = await WatchAndDownloadContinuouslyAsync();
             downloadedFiles.AddRange(downloadResults);
+
+            // STEP 6: Open Download Manifest at the End
+            _logger.LogInformation("");
+            _logger.LogInformation("STEP 6: Opening Download Manifest");
+            _logger.LogInformation("Total documents downloaded in this session: {Count}", downloadedFiles.Count);
+            _logger.LogInformation("Download location: {Path}", _downloadPath);
 
             if (downloadedFiles.Count > 0)
             {
-                _logger.LogInformation("✓ Found and downloaded {Count} new documents", downloadedFiles.Count);
-
-                // STEP 6: Save Documents to Disk
-                _logger.LogInformation("");
-                _logger.LogInformation("STEP 6: Saving Documents to Organized Folder Structure");
-                _logger.LogInformation("Base path: {Path}", _downloadPath);
-
-                foreach (var file in downloadedFiles)
-                {
-                    if (file.Content != null)
-                    {
-                        var filePath = Path.Combine(_downloadPath, file.FileName);
-                        await File.WriteAllBytesAsync(filePath, file.Content, TestContext.Current.CancellationToken);
-                        _logger.LogInformation("  ✓ Saved: {FileName} ({Size:N0} bytes)",
-                            file.FileName,
-                            file.Content.Length);
-
-                        // Add to manifest
-                        await AppendToManifestAsync(file);
-                    }
-                }
-                _logger.LogInformation("✓ All documents saved to: {Path}", _downloadPath);
-
-                // STEP 7: Open Download Manifest
-                _logger.LogInformation("");
-                _logger.LogInformation("STEP 7: Opening Download Manifest");
+                _logger.LogInformation("✓ Successfully processed {Count} new documents", downloadedFiles.Count);
                 OpenManifestFile();
             }
             else
             {
-                _logger.LogWarning("⚠ No NEW documents were available for download (may have been downloaded previously)");
+                _logger.LogWarning("⚠ No NEW documents were downloaded (may have been downloaded previously)");
+                if (File.Exists(_manifestFilePath))
+                {
+                    _logger.LogInformation("Opening existing manifest to show previous downloads...");
+                    OpenManifestFile();
+                }
             }
 
             // Final pause to show completion
@@ -459,28 +447,35 @@ public class SiaraSimulatorTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Waits for cases to appear on the dashboard and downloads new documents.
-    /// Polls the dashboard every 10 seconds for up to 3 minutes waiting for cases to appear.
-    /// Only downloads documents that haven't been downloaded before (tracked in _downloadedDocuments).
+    /// Continuously monitors the SIARA simulator dashboard for 3 minutes.
+    /// Downloads and opens each document as new cases arrive.
+    /// Saves documents to disk and updates manifest in real-time.
     /// </summary>
-    /// <param name="targetCount">Minimum number of documents to wait for.</param>
     /// <returns>List of newly downloaded files.</returns>
-    private async Task<List<DownloadedFile>> WaitForCasesAndDownloadAsync(int targetCount)
+    private async Task<List<DownloadedFile>> WatchAndDownloadContinuouslyAsync()
     {
         var downloadedFiles = new List<DownloadedFile>();
-        var maxWaitMinutes = 3;
+        var watchDurationMinutes = 3;
         var pollIntervalSeconds = 10;
-        var maxAttempts = (maxWaitMinutes * 60) / pollIntervalSeconds; // 18 attempts (3 minutes)
-        var attempt = 0;
+        var endTime = DateTime.Now.AddMinutes(watchDurationMinutes);
 
-        _logger.LogInformation("Starting case arrival polling (max {MaxWait} minutes, checking every {Interval} seconds)...",
-            maxWaitMinutes, pollIntervalSeconds);
+        _logger.LogInformation("===========================================");
+        _logger.LogInformation("STARTING CONTINUOUS MONITORING");
+        _logger.LogInformation("===========================================");
+        _logger.LogInformation("Watch duration: {Duration} minutes", watchDurationMinutes);
+        _logger.LogInformation("Poll interval: {Interval} seconds", pollIntervalSeconds);
+        _logger.LogInformation("Will check for new cases every {Interval}s and download immediately as they arrive", pollIntervalSeconds);
+        _logger.LogInformation("End time: {EndTime:HH:mm:ss}", endTime);
+        _logger.LogInformation("");
 
-        while (attempt < maxAttempts)
+        var pollCount = 0;
+
+        while (DateTime.Now < endTime)
         {
-            attempt++;
-            _logger.LogInformation("Poll attempt {Attempt}/{MaxAttempts} - Checking for available documents...",
-                attempt, maxAttempts);
+            pollCount++;
+            var remainingSeconds = (int)(endTime - DateTime.Now).TotalSeconds;
+            _logger.LogInformation("[Poll #{Count}] Checking for new cases... (Time remaining: {Remaining}s)",
+                pollCount, remainingSeconds);
 
             try
             {
@@ -499,74 +494,111 @@ public class SiaraSimulatorTests : IAsyncLifetime
                         .Where(f => !_downloadedDocuments.Contains(f.FileName))
                         .ToList();
 
-                    _logger.LogInformation("  Found {Total} total files, {New} are NEW (not previously downloaded)",
-                        availableFiles.Count, newFiles.Count);
-
-                    if (newFiles.Count >= targetCount)
+                    if (newFiles.Any())
                     {
-                        _logger.LogInformation("✓ Target met! Found {Count} new documents ready for download", newFiles.Count);
+                        _logger.LogInformation("  🎯 NEW CASE ARRIVED! Found {Count} new document(s) to download", newFiles.Count);
 
-                        // Download the new files
-                        var filesToDownload = newFiles.Take(targetCount).ToList();
-                        _logger.LogInformation("Downloading {Count} new documents...", filesToDownload.Count);
-
-                        for (int i = 0; i < filesToDownload.Count; i++)
+                        // Download each new file immediately
+                        foreach (var fileInfo in newFiles)
                         {
-                            var file = filesToDownload[i];
-                            _logger.LogInformation("  [{Index}/{Total}] Downloading: {FileName} ({Format})",
-                                i + 1, filesToDownload.Count, file.FileName, file.Format);
+                            _logger.LogInformation("  → Downloading: {FileName} ({Format})", fileInfo.FileName, fileInfo.Format);
 
                             var downloadResult = await _automationAgent.DownloadFileAsync(
-                                file.Url,
+                                fileInfo.Url,
                                 TestContext.Current.CancellationToken);
 
                             if (downloadResult.IsSuccess && downloadResult.Value != null)
                             {
-                                downloadedFiles.Add(downloadResult.Value);
-                                _downloadedDocuments.Add(downloadResult.Value.FileName); // Track this download
+                                var downloadedFile = downloadResult.Value;
+                                downloadedFiles.Add(downloadedFile);
+                                _downloadedDocuments.Add(downloadedFile.FileName); // Track this download
+
                                 _logger.LogInformation("    ✓ Downloaded: {FileName} ({Size:N0} bytes)",
-                                    downloadResult.Value.FileName,
-                                    downloadResult.Value.Content?.Length ?? 0);
+                                    downloadedFile.FileName,
+                                    downloadedFile.Content?.Length ?? 0);
+
+                                // Save to disk immediately
+                                var filePath = Path.Combine(_downloadPath, downloadedFile.FileName);
+                                await File.WriteAllBytesAsync(filePath, downloadedFile.Content!, TestContext.Current.CancellationToken);
+                                _logger.LogInformation("    💾 Saved to: {Path}", filePath);
+
+                                // Update manifest immediately
+                                await AppendToManifestAsync(downloadedFile);
+
+                                // Open the document
+                                OpenDocument(filePath);
+
+                                await Task.Delay(1000, TestContext.Current.CancellationToken); // 1 second delay between documents
                             }
                             else
                             {
                                 _logger.LogWarning("    ✗ Failed to download {FileName}: {Error}",
-                                    file.FileName, downloadResult.Error);
+                                    fileInfo.FileName, downloadResult.Error);
                             }
-
-                            await Task.Delay(500, TestContext.Current.CancellationToken); // Small delay between downloads
                         }
-
-                        _logger.LogInformation("✓ Successfully downloaded {Count} new documents", downloadedFiles.Count);
-                        return downloadedFiles;
                     }
                     else
                     {
-                        _logger.LogInformation("  Waiting for more cases... (need {Need} more)",
-                            targetCount - newFiles.Count);
+                        _logger.LogInformation("  No new documents (Total on page: {Total}, Already downloaded: {Downloaded})",
+                            availableFiles.Count, _downloadedDocuments.Count);
                     }
                 }
                 else
                 {
-                    _logger.LogInformation("  No documents found yet on dashboard");
+                    _logger.LogInformation("  No documents found on dashboard yet");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Error during polling attempt {Attempt}", attempt);
+                _logger.LogWarning(ex, "Error during poll #{Count}", pollCount);
             }
 
-            // Wait before next poll
-            if (attempt < maxAttempts)
+            // Wait before next poll (only if time remaining)
+            if (DateTime.Now < endTime)
             {
-                _logger.LogInformation("  Waiting {Seconds} seconds before next check...", pollIntervalSeconds);
-                await Task.Delay(pollIntervalSeconds * 1000, TestContext.Current.CancellationToken);
+                var nextPollDelay = Math.Min(pollIntervalSeconds * 1000, (int)(endTime - DateTime.Now).TotalMilliseconds);
+                if (nextPollDelay > 0)
+                {
+                    _logger.LogInformation("  ⏱ Waiting {Seconds}s before next check...", nextPollDelay / 1000);
+                    await Task.Delay(nextPollDelay, TestContext.Current.CancellationToken);
+                }
             }
         }
 
-        _logger.LogWarning("⚠ Timeout: Did not find {TargetCount} new documents after {MaxWait} minutes",
-            targetCount, maxWaitMinutes);
+        _logger.LogInformation("");
+        _logger.LogInformation("===========================================");
+        _logger.LogInformation("MONITORING PERIOD COMPLETE");
+        _logger.LogInformation("===========================================");
+        _logger.LogInformation("Total polls: {Count}", pollCount);
+        _logger.LogInformation("Total documents downloaded: {Count}", downloadedFiles.Count);
+        _logger.LogInformation("");
+
         return downloadedFiles;
+    }
+
+    /// <summary>
+    /// Opens a document using the default system application.
+    /// </summary>
+    /// <param name="filePath">Path to the document to open.</param>
+    private void OpenDocument(string filePath)
+    {
+        try
+        {
+            _logger.LogInformation("    📂 Opening document: {FileName}", Path.GetFileName(filePath));
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = filePath,
+                UseShellExecute = true
+            };
+
+            Process.Start(startInfo);
+            _logger.LogInformation("    ✓ Document opened successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to open document: {FilePath}", filePath);
+        }
     }
 
     /// <summary>
