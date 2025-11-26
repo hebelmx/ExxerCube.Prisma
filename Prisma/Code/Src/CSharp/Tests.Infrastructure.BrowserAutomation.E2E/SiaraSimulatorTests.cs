@@ -20,11 +20,36 @@ public class SiaraSimulatorTests : IAsyncLifetime
     private const int PostLoginWaitMs = 5000; // 5 seconds after login for UI to load
 
     // Path to the deployed simulator executable
-    private static readonly string SimulatorExePath = Path.GetFullPath(
-        Path.Combine(
-            Directory.GetCurrentDirectory(),
-            "..", "..", "..", "..", "..", "..",
-            "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe"));
+    // Navigate from test assembly location to solution root, then to Deployments
+    private static readonly string SimulatorExePath = GetSimulatorPath();
+
+    private static string GetSimulatorPath()
+    {
+        // Start from current directory (test assembly location)
+        var currentDir = Directory.GetCurrentDirectory();
+
+        // Find solution root by looking for .git or Deployments folder
+        var searchDir = new DirectoryInfo(currentDir);
+        while (searchDir != null)
+        {
+            // Check if we found the solution root (has Deployments folder)
+            var deploymentsPath = Path.Combine(searchDir.FullName, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
+            if (File.Exists(deploymentsPath))
+            {
+                return deploymentsPath;
+            }
+
+            // Move up one directory
+            searchDir = searchDir.Parent;
+        }
+
+        // Fallback: construct from typical structure
+        return Path.GetFullPath(
+            Path.Combine(
+                currentDir,
+                "..", "..", "..", "..", "..", "..", "..",
+                "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe"));
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SiaraSimulatorTests"/> class.
