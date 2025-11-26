@@ -11,58 +11,430 @@
 @using Microsoft.JSInterop
 @inject IOcrProcessingService OcrService
 @inject IProcessingMetricsService MetricsService
+@inject IXmlNullableParser<Expediente> XmlParser
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
-<PageTitle>Document Processing</PageTitle>
+<PageTitle>XML Extraction Demo</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudPaper Class="pa-6" Elevation="3">
-        <h1 class="mud-typography mud-typography-h4 mb-4">
-            Document Processing
-        </h1>
+        <MudText Typo="Typo.h3" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+            XML Extraction Demo
+        </MudText>
+        <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mb-4">
+            CNBV Expediente Data Extraction - Live Demo
+        </MudText>
         
         <MudText Typo="Typo.body2" Class="mb-3">
-            Upload a document to process with our advanced OCR pipeline. The system will extract key information and provide real-time processing updates.
+            Process documents with OCR or extract data from XML. Click any sample below to see instant results.
         </MudText>
 
-        <!-- Document Upload Section -->
+        <!-- XML Extraction Demo Section -->
         <MudCard Class="mb-4">
             <MudCardHeader>
                 <MudText Typo="Typo.h6">
-                    <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Class="mr-2" />
-                    Document Upload
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                    XML Extraction - CNBV Expedientes
                 </MudText>
             </MudCardHeader>
             <MudCardContent>
                 <MudText Typo="Typo.body2" Class="mb-3">
-                    Select a document to process. Supported formats: PDF, PNG, JPG, JPEG, TIFF, BMP (Max: 20MB)
+                    Click any PRP1 fixture to see instant extraction of all fields:
                 </MudText>
-                
+
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                                   OnClick="@(() => LoadXmlFixture("222AAA-44444444442025.xml"))" Disabled="isProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.FileCopy" Class="mr-2" />
+                            PRP1: 222AAA
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" Size="Size.Large"
+                                   OnClick="@(() => LoadXmlFixture("333BBB-44444444442025.xml"))" Disabled="isProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.FileCopy" Class="mr-2" />
+                            PRP1: 333BBB
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" Size="Size.Large"
+                                   OnClick="@(() => LoadXmlFixture("333ccc-666666662025.xml"))" Disabled="isProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.FileCopy" Class="mr-2" />
+                            PRP1: 333ccc
+                        </MudButton>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth="true" Size="Size.Large"
+                                   OnClick="@(() => LoadXmlFixture("555CCC-6666662025.xml"))" Disabled="isProcessing">
+                            <MudIcon Icon="@Icons.Material.Filled.FileCopy" Class="mr-2" />
+                            PRP1: 555CCC
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+
+                @if (xmlExpediente != null)
+                {
+                    <MudAlert Severity="Severity.Success" Class="mt-4 mb-2" Icon="@Icons.Material.Filled.CheckCircle">
+                        <strong>Extraction Complete!</strong> Successfully extracted data from <strong>@currentFixtureName</strong>
+                        <MudButton Variant="Variant.Text" Color="Color.Success" Size="Size.Small" Class="ml-2"
+                                   OnClick="@(() => showSourceXml = !showSourceXml)">
+                            @(showSourceXml ? "Hide" : "View") Source XML
+                        </MudButton>
+                    </MudAlert>
+
+                    <MudGrid Class="mt-2">
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large"
+                                             Style="animation: checkmark-pop 0.5s ease-out 0.8s both;" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold; animation: count-up 1s ease-out;">
+                                    <span id="fieldCount">@extractedFieldCount</span>
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Fields Extracted</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large"
+                                             Style="animation: checkmark-pop 0.5s ease-out 1s both;" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold; animation: count-up 1s ease-out 0.2s both;">
+                                    <span id="partesCount">@xmlExpediente.SolicitudPartes.Count</span>
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Partes</MudText>
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); position: relative; overflow: hidden;">
+                                <div style="position: absolute; top: 10px; right: 10px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large"
+                                             Style="animation: checkmark-pop 0.5s ease-out 1.2s both;" />
+                                </div>
+                                <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold; animation: count-up 1s ease-out 0.4s both;">
+                                    <span id="especificasCount">@xmlExpediente.SolicitudEspecificas.Count</span>
+                                </MudText>
+                                <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Específicas</MudText>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+
+                    <style>
+                        @@keyframes count-up {
+                            from {
+                                opacity: 0;
+                                transform: translateY(20px) scale(0.8);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateY(0) scale(1);
+                            }
+                        }
+                        @@keyframes checkmark-pop {
+                            0% {
+                                opacity: 0;
+                                transform: scale(0);
+                            }
+                            50% {
+                                transform: scale(1.2);
+                            }
+                            100% {
+                                opacity: 1;
+                                transform: scale(1);
+                            }
+                        }
+                    </style>
+
+                    @if (showSourceXml && !string.IsNullOrEmpty(sourceXmlContent))
+                    {
+                        <MudPaper Class="pa-4 mt-3" Elevation="2">
+                            <MudText Typo="Typo.h6" Class="mb-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-2" />
+                                Source XML File: @currentFixtureName
+                            </MudText>
+                            <MudTextField Value="@sourceXmlContent" Label="XML Content" ReadOnly="true"
+                                         Variant="Variant.Outlined" Lines="15" Class="mud-code" />
+                        </MudPaper>
+                    }
+
+                    <MudDivider Class="my-4" />
+
+                    <MudText Typo="Typo.h5" Class="mb-3">
+                        <MudIcon Icon="@Icons.Material.Filled.Visibility" Class="mr-2" />
+                        Extracted Data
+                    </MudText>
+
+                    <MudPaper Class="pa-4" Elevation="2">
+                        <MudTabs Elevation="0" Rounded="true" Position="Position.Top" Color="Color.Primary">
+                            <MudTabPanel Text="Información General" Icon="@Icons.Material.Filled.Info">
+                                <MudSimpleTable Striped="true" Hover="true" Dense="false" Class="mt-3">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 35%;">XML Source</th>
+                                            <th style="width: 10%; text-align: center;"></th>
+                                            <th>Extracted Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code style="color: #666;">&lt;NumeroExpediente&gt;@xmlExpediente.NumeroExpediente&lt;/...&gt;</code></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                <MudChip T="string" Color="Color.Primary" Size="Size.Small">@xmlExpediente.NumeroExpediente</MudChip>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code style="color: #666;">&lt;NumeroOficio&gt;@xmlExpediente.NumeroOficio&lt;/...&gt;</code></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                <MudChip T="string" Color="Color.Secondary" Size="Size.Small">@xmlExpediente.NumeroOficio</MudChip>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code style="color: #666;">&lt;SolicitudSiara&gt;@xmlExpediente.SolicitudSiara&lt;/...&gt;</code></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                <MudChip T="string" Color="Color.Info" Size="Size.Small">@xmlExpediente.SolicitudSiara</MudChip>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code style="color: #666;">&lt;FechaPublicacion&gt;@xmlExpediente.FechaPublicacion.ToString("yyyy-MM-dd")&lt;/...&gt;</code></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @xmlExpediente.FechaPublicacion.ToString("dd/MM/yyyy")
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code style="color: #666;">&lt;DiasPlazo&gt;@xmlExpediente.DiasPlazo&lt;/...&gt;</code></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @xmlExpediente.DiasPlazo días
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code style="color: #666;">&lt;AreaDescripcion&gt;@xmlExpediente.AreaDescripcion&lt;/...&gt;</code></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @xmlExpediente.AreaDescripcion
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><code style="color: #666;">&lt;AutoridadNombre&gt;@xmlExpediente.AutoridadNombre&lt;/...&gt;</code></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @xmlExpediente.AutoridadNombre
+                                            </td>
+                                        </tr>
+                                        @if (!string.IsNullOrWhiteSpace(xmlExpediente.NombreSolicitante))
+                                        {
+                                            <tr>
+                                                <td><code style="color: #666;">&lt;NombreSolicitante&gt;@xmlExpediente.NombreSolicitante&lt;/...&gt;</code></td>
+                                                <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                                <td>
+                                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                    @xmlExpediente.NombreSolicitante
+                                                </td>
+                                            </tr>
+                                        }
+                                        <tr>
+                                            <td><code style="color: #666;">&lt;Referencia&gt;@xmlExpediente.Referencia&lt;/...&gt;</code></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @xmlExpediente.Referencia
+                                            </td>
+                                        </tr>
+                                        @if (xmlExpediente.TieneAseguramiento)
+                                        {
+                                            <tr>
+                                                <td><code style="color: #666;">&lt;TieneAseguramiento&gt;true&lt;/...&gt;</code></td>
+                                                <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Success" /></td>
+                                                <td>
+                                                    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                    <MudChip T="string" Color="Color.Warning" Size="Size.Small">Sí</MudChip>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </MudSimpleTable>
+                            </MudTabPanel>
+
+                            <MudTabPanel Text="@($"Partes ({xmlExpediente.SolicitudPartes.Count})")" Icon="@Icons.Material.Filled.People">
+                                @if (xmlExpediente.SolicitudPartes.Any())
+                                {
+                                    @foreach (var (parte, index) in xmlExpediente.SolicitudPartes.Select((p, i) => (p, i)))
+                                    {
+                                        <MudPaper Class="pa-4 mb-3" Elevation="2">
+                                            <MudText Typo="Typo.h6" Class="mb-3">
+                                                <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" />
+                                                Parte @(index + 1): @parte.Nombre @parte.Paterno @parte.Materno
+                                                <MudChip T="string" Size="Size.Small" Color="@(parte.PersonaTipo == "FISICA" ? Color.Info : Color.Success)" Class="ml-2">
+                                                    @parte.PersonaTipo
+                                                </MudChip>
+                                            </MudText>
+
+                                            <MudSimpleTable Dense="true" Hover="true">
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="width: 30%;"><strong>Carácter</strong></td>
+                                                        <td>@parte.Caracter</td>
+                                                    </tr>
+                                                    @if (!string.IsNullOrWhiteSpace(parte.Rfc))
+                                                    {
+                                                        <tr>
+                                                            <td><strong>RFC</strong></td>
+                                                            <td>@parte.Rfc</td>
+                                                        </tr>
+                                                    }
+                                                    @if (!string.IsNullOrWhiteSpace(parte.Relacion))
+                                                    {
+                                                        <tr>
+                                                            <td><strong>Relación</strong></td>
+                                                            <td>@parte.Relacion</td>
+                                                        </tr>
+                                                    }
+                                                    @if (!string.IsNullOrWhiteSpace(parte.Domicilio))
+                                                    {
+                                                        <tr>
+                                                            <td><strong>Domicilio</strong></td>
+                                                            <td>@parte.Domicilio</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </MudSimpleTable>
+                                        </MudPaper>
+                                    }
+                                }
+                                else
+                                {
+                                    <MudAlert Severity="Severity.Info">No hay partes registradas en este expediente.</MudAlert>
+                                }
+                            </MudTabPanel>
+
+                            <MudTabPanel Text="@($"Específicas ({xmlExpediente.SolicitudEspecificas.Count})")" Icon="@Icons.Material.Filled.Assignment">
+                                @if (xmlExpediente.SolicitudEspecificas.Any())
+                                {
+                                    @foreach (var (especifica, index) in xmlExpediente.SolicitudEspecificas.Select((e, i) => (e, i)))
+                                    {
+                                        <MudPaper Class="pa-4 mb-3" Elevation="2">
+                                            <MudText Typo="Typo.h6" Class="mb-3">
+                                                <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+                                                Solicitud Específica @(index + 1)
+                                            </MudText>
+
+                                            @if (!string.IsNullOrWhiteSpace(especifica.InstruccionesCuentasPorConocer))
+                                            {
+                                                <MudAlert Severity="Severity.Normal" Class="mb-3">
+                                                    <strong>Instrucciones:</strong><br />
+                                                    @especifica.InstruccionesCuentasPorConocer
+                                                </MudAlert>
+                                            }
+
+                                            @if (especifica.PersonasSolicitud.Any())
+                                            {
+                                                <MudText Typo="Typo.subtitle1" Class="mt-3 mb-2">
+                                                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mr-1" />
+                                                    Personas (@especifica.PersonasSolicitud.Count)
+                                                </MudText>
+
+                                                <MudSimpleTable Dense="true" Striped="true">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Nombre</th>
+                                                            <th>Tipo</th>
+                                                            <th>RFC</th>
+                                                            <th>Relación</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var persona in especifica.PersonasSolicitud)
+                                                        {
+                                                            <tr>
+                                                                <td>@persona.Nombre @persona.Paterno @persona.Materno</td>
+                                                                <td>
+                                                                    <MudChip T="string" Size="Size.Small" Color="@(persona.Persona == "FISICA" ? Color.Info : Color.Success)">
+                                                                        @persona.Persona
+                                                                    </MudChip>
+                                                                </td>
+                                                                <td>@(persona.Rfc ?? "-")</td>
+                                                                <td>@(persona.Relacion ?? "-")</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </MudSimpleTable>
+                                            }
+                                        </MudPaper>
+                                    }
+                                }
+                                else
+                                {
+                                    <MudAlert Severity="Severity.Info">No hay solicitudes específicas en este expediente.</MudAlert>
+                                }
+                            </MudTabPanel>
+
+                            <MudTabPanel Text="Complete Object" Icon="@Icons.Material.Filled.DataObject">
+                                <MudText Typo="Typo.body2" Class="mb-3">
+                                    Complete dump of the extracted <code>Expediente</code> object showing all fields and nested collections:
+                                </MudText>
+                                <MudTextField Value="@jsonResult"
+                                             Label="Complete Expediente Object (JSON)"
+                                             ReadOnly="true"
+                                             Variant="Variant.Outlined"
+                                             Lines="25"
+                                             Style="font-family: 'Courier New', monospace; font-size: 12px;" />
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-2"
+                                           OnClick="@(() => CopyToClipboard(jsonResult))">
+                                    <MudIcon Icon="@Icons.Material.Filled.ContentCopy" Class="mr-2" />
+                                    Copy to Clipboard
+                                </MudButton>
+                            </MudTabPanel>
+                        </MudTabs>
+                    </MudPaper>
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <!-- OCR Upload Section -->
+        <MudExpansionPanels Class="mb-4">
+            <MudExpansionPanel Text="OCR Document Processing (Advanced)" Icon="@Icons.Material.Filled.CloudUpload">
+                <MudAlert Severity="Severity.Info" Class="mb-3">
+                    <strong>Note:</strong> OCR processing uses Tesseract (fast, ~5-10 seconds). If Tesseract confidence is low, the system will automatically fall back to GOT-OCR2 (slower, ~2-3 minutes).
+                </MudAlert>
+
+                <MudText Typo="Typo.body2" Class="mb-3">
+                    Upload PDF, PNG, JPG, JPEG, TIFF, BMP files for OCR text extraction (Max: 20MB)
+                </MudText>
+
                 <InputFile OnChange="OnFileSelected" accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp" class="form-control" />
-                
+
                 @if (selectedFile != null)
                 {
                     <MudChip T="string" Color="Color.Success" Class="mt-2">
                         <MudIcon Icon="@Icons.Material.Filled.Check" Class="mr-1" />
                         @selectedFile.Name (@FormatFileSize(selectedFile.Size))
                     </MudChip>
-                    
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" 
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary"
                                Class="mt-3" OnClick="ProcessDocument" Disabled="isProcessing">
                         <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Class="mr-2" />
-                        Process Document
+                        Extract Text with OCR
                     </MudButton>
                 }
-                else
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
-                        No file selected. Please choose a document to upload.
-                    </MudText>
-                }
-            </MudCardContent>
-        </MudCard>
+            </MudExpansionPanel>
+        </MudExpansionPanels>
 
         <!-- Processing Status Section -->
         @if (isProcessing || currentJobId != null)
@@ -92,86 +464,90 @@
             </MudCard>
         }
 
-        <!-- Results Section -->
+        <!-- OCR Results Section -->
         @if (processingResult != null)
         {
             <MudCard Class="mb-4">
                 <MudCardHeader>
                     <MudText Typo="Typo.h6">
                         <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
-                        Processing Results
+                        OCR Processing Results
                     </MudText>
                 </MudCardHeader>
                 <MudCardContent>
                     <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
                         <MudTabPanel Text="Extracted Fields">
-                            <MudGrid>
-                                <MudItem xs="12" sm="6">
-                                    <MudTextField @bind-Value="processingResult.ExtractedFields.Expediente" 
-                                                 Label="Expediente" ReadOnly="true" Variant="Variant.Outlined" />
-                                </MudItem>
-                                <MudItem xs="12" sm="6">
-                                    <MudTextField @bind-Value="processingResult.ExtractedFields.Causa" 
-                                                 Label="Causa" ReadOnly="true" Variant="Variant.Outlined" />
-                                </MudItem>
-                                <MudItem xs="12">
-                                    <MudTextField @bind-Value="processingResult.ExtractedFields.AccionSolicitada" 
-                                                 Label="Acción Solicitada" ReadOnly="true" Variant="Variant.Outlined" 
-                                                 Lines="3" />
-                                </MudItem>
-                                
-                                @if (processingResult.ExtractedFields.Fechas.Any())
-                                {
-                                    <MudItem xs="12">
-                                        <MudText Typo="Typo.subtitle2" Class="mb-2">Fechas Encontradas:</MudText>
-                                        <MudChipSet T="string">
-                                            @foreach (var fecha in processingResult.ExtractedFields.Fechas)
-                                            {
-                                                <MudChip T="string" Color="Color.Info">@fecha</MudChip>
-                                            }
-                                        </MudChipSet>
+                                <MudGrid>
+                                    <MudItem xs="12" sm="6">
+                                        <MudTextField @bind-Value="processingResult.ExtractedFields.Expediente"
+                                                     Label="Expediente" ReadOnly="true" Variant="Variant.Outlined" />
                                     </MudItem>
-                                }
-                                
-                                @if (processingResult.ExtractedFields.Montos.Any())
-                                {
-                                    <MudItem xs="12">
-                                        <MudText Typo="Typo.subtitle2" Class="mb-2">Montos Encontrados:</MudText>
-                                        <MudChipSet T="string">
-                                            @foreach (var monto in processingResult.ExtractedFields.Montos)
-                                            {
-                                                <MudChip T="string" Color="Color.Success">@monto.Value @monto.Currency</MudChip>
-                                            }
-                                        </MudChipSet>
+                                    <MudItem xs="12" sm="6">
+                                        <MudTextField @bind-Value="processingResult.ExtractedFields.Causa"
+                                                     Label="Causa" ReadOnly="true" Variant="Variant.Outlined" />
                                     </MudItem>
-                                }
-                            </MudGrid>
-                        </MudTabPanel>
-                        
-                        <MudTabPanel Text="OCR Details">
-                            <MudGrid>
-                                <MudItem xs="12" sm="6">
-                                    <MudTextField Value="@(processingResult.OCRResult.ConfidenceAvg.ToString("F2"))" 
-                                                 Label="Average Confidence (%)" ReadOnly="true" 
-                                                 Variant="Variant.Outlined" />
-                                </MudItem>
-                                <MudItem xs="12" sm="6">
-                                    <MudTextField Value="@(processingResult.OCRResult.Text.Length.ToString())" 
-                                                 Label="Characters Extracted" ReadOnly="true" 
-                                                 Variant="Variant.Outlined" />
-                                </MudItem>
-                                <MudItem xs="12">
-                                    <MudTextField Value="@processingResult.OCRResult.Text" 
-                                                 Label="Extracted Text" ReadOnly="true" Variant="Variant.Outlined" 
-                                                 Lines="10" />
-                                </MudItem>
-                            </MudGrid>
-                        </MudTabPanel>
-                        
-                        <MudTabPanel Text="Raw JSON">
-                            <MudTextField Value="@jsonResult" Label="JSON Result" ReadOnly="true" 
-                                         Variant="Variant.Outlined" Lines="15" />
-                        </MudTabPanel>
+                                    <MudItem xs="12">
+                                        <MudTextField @bind-Value="processingResult.ExtractedFields.AccionSolicitada"
+                                                     Label="Acción Solicitada" ReadOnly="true" Variant="Variant.Outlined"
+                                                     Lines="3" />
+                                    </MudItem>
+
+                                    @if (processingResult.ExtractedFields.Fechas.Any())
+                                    {
+                                        <MudItem xs="12">
+                                            <MudText Typo="Typo.subtitle2" Class="mb-2">Fechas Encontradas:</MudText>
+                                            <MudChipSet T="string">
+                                                @foreach (var fecha in processingResult.ExtractedFields.Fechas)
+                                                {
+                                                    <MudChip T="string" Color="Color.Info">@fecha</MudChip>
+                                                }
+                                            </MudChipSet>
+                                        </MudItem>
+                                    }
+
+                                    @if (processingResult.ExtractedFields.Montos.Any())
+                                    {
+                                        <MudItem xs="12">
+                                            <MudText Typo="Typo.subtitle2" Class="mb-2">Montos Encontrados:</MudText>
+                                            <MudChipSet T="string">
+                                                @foreach (var monto in processingResult.ExtractedFields.Montos)
+                                                {
+                                                    <MudChip T="string" Color="Color.Success">@monto.Value @monto.Currency</MudChip>
+                                                }
+                                            </MudChipSet>
+                                        </MudItem>
+                                    }
+                                </MudGrid>
+                            </MudTabPanel>
+                        }
+
+                        @if (processingResult != null)
+                        {
+                            <MudTabPanel Text="OCR Details">
+                                <MudGrid>
+                                    <MudItem xs="12" sm="6">
+                                        <MudTextField Value="@(processingResult.OCRResult.ConfidenceAvg.ToString("F2"))"
+                                                     Label="Average Confidence (%)" ReadOnly="true"
+                                                     Variant="Variant.Outlined" />
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6">
+                                        <MudTextField Value="@(processingResult.OCRResult.Text.Length.ToString())"
+                                                     Label="Characters Extracted" ReadOnly="true"
+                                                     Variant="Variant.Outlined" />
+                                    </MudItem>
+                                    <MudItem xs="12">
+                                        <MudTextField Value="@processingResult.OCRResult.Text"
+                                                     Label="Extracted Text" ReadOnly="true" Variant="Variant.Outlined"
+                                                     Lines="10" />
+                                    </MudItem>
+                                </MudGrid>
+                            </MudTabPanel>
+
+                            <MudTabPanel Text="Raw JSON">
+                                <MudTextField Value="@jsonResult" Label="JSON Result" ReadOnly="true"
+                                             Variant="Variant.Outlined" Lines="15" />
+                            </MudTabPanel>
+                        }
                     </MudTabs>
                     
                     <MudDivider Class="my-4" />
@@ -208,30 +584,33 @@
     private string processingMessage = "";
     private int processingProgress = 0;
     private ProcessingResult? processingResult;
+    private Expediente? xmlExpediente;
+    private int extractedFieldCount = 0;
+    private string currentFixtureName = "";
+    private string sourceXmlContent = "";
+    private bool showSourceXml = false;
     private string errorMessage = "";
     private string jsonResult = "";
     private HubConnection? hubConnection;
 
+    // Fixtures path relative to Web.UI project
+    private string GetFixturesPath()
+    {
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        // Path: UI/bin/Debug/net10.0 -> go up to Prisma root, then Fixtures/PRP1
+        return Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "..", "Fixtures", "PRP1"));
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await InitializeSignalR();
-        
-        // Test service availability
-        try
-        {
-            if (OcrService != null)
-            {
-                Snackbar.Add("OCR Service is available", Severity.Success);
-            }
-            else
-            {
-                Snackbar.Add("OCR Service is not available", Severity.Warning);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Service initialization error: {ex.Message}", Severity.Error);
-        }
+        // Don't show confusing "available" messages on page load
+        // Services will show errors when actually used if not available
+    }
+
+    private bool IsXmlFile()
+    {
+        return selectedFile?.Name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase) ?? false;
     }
 
     private async Task InitializeSignalR()
@@ -286,6 +665,13 @@
             return;
         }
 
+        // Check if it's an XML file
+        if (IsXmlFile())
+        {
+            await ProcessXmlDocument();
+            return;
+        }
+
         if (OcrService == null)
         {
             Snackbar.Add("OCR Service is not available. Please check service configuration.", Severity.Error);
@@ -300,6 +686,8 @@
             processingProgress = 0;
             errorMessage = "";
             processingResult = null;
+            xmlExpediente = null;
+            extractedFieldCount = 0;
             currentJobId = Guid.NewGuid().ToString();
 
             StateHasChanged();
@@ -345,10 +733,10 @@
                 processingStatus = "Completed";
                 processingProgress = 100;
                 processingMessage = "Document processed successfully";
-                
+
                 // Record successful completion
                 await MetricsService.CompleteProcessingAsync(processingContext, processingResult, true);
-                
+
                 jsonResult = JsonSerializer.Serialize(processingResult, new JsonSerializerOptions { WriteIndented = true });
                 Snackbar.Add("Document processed successfully!", Severity.Success);
             }
@@ -357,10 +745,10 @@
                 errorMessage = result.Error ?? "Processing failed";
                 processingStatus = "Failed";
                 processingProgress = 0;
-                
+
                 // Record error
                 await MetricsService.RecordErrorAsync(processingContext, errorMessage);
-                
+
                 Snackbar.Add($"Processing failed: {errorMessage}", Severity.Error);
             }
         }
@@ -376,6 +764,195 @@
             isProcessing = false;
             StateHasChanged();
         }
+    }
+
+    private async Task ProcessXmlDocument()
+    {
+        if (selectedFile == null || XmlParser == null)
+        {
+            Snackbar.Add("XML Parser is not available. Please check service configuration.", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            isProcessing = true;
+            processingStatus = "Parsing XML...";
+            processingMessage = "Extracting data from XML document";
+            processingProgress = 0;
+            errorMessage = "";
+            processingResult = null;
+            xmlExpediente = null;
+            currentJobId = Guid.NewGuid().ToString();
+
+            StateHasChanged();
+
+            // Read XML file content
+            processingProgress = 20;
+            StateHasChanged();
+
+            using var stream = selectedFile.OpenReadStream(maxAllowedSize: 20971520);
+            var xmlContent = await ReadStreamToBytes(stream);
+
+            // Parse XML using the parser
+            processingStatus = "Extracting fields...";
+            processingProgress = 50;
+            StateHasChanged();
+
+            var result = await XmlParser.ParseAsync(xmlContent);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                xmlExpediente = result.Value;
+                extractedFieldCount = CountExtractedFields(xmlExpediente);
+                processingStatus = "Completed";
+                processingProgress = 100;
+                processingMessage = "XML parsed successfully";
+
+                jsonResult = JsonSerializer.Serialize(xmlExpediente, new JsonSerializerOptions { WriteIndented = true });
+                Snackbar.Add($"XML extracted successfully! Found {extractedFieldCount} fields.", Severity.Success);
+            }
+            else
+            {
+                errorMessage = result.Error ?? "XML parsing failed";
+                processingStatus = "Failed";
+                processingProgress = 0;
+                Snackbar.Add($"XML parsing failed: {errorMessage}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error parsing XML: {ex.Message}";
+            processingStatus = "Failed";
+            processingProgress = 0;
+            Snackbar.Add($"XML parsing failed: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadXmlFixture(string fixtureFileName)
+    {
+        if (XmlParser == null)
+        {
+            Snackbar.Add("XML Parser is not available. Please check service configuration.", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            isProcessing = true;
+            processingStatus = "Loading fixture...";
+            processingMessage = $"Loading {fixtureFileName}";
+            processingProgress = 0;
+            errorMessage = "";
+            processingResult = null;
+            xmlExpediente = null;
+            extractedFieldCount = 0;
+
+            StateHasChanged();
+
+            // Build fixture path
+            var fixturesPath = GetFixturesPath();
+            var fixturePath = Path.Combine(fixturesPath, fixtureFileName);
+
+            if (!File.Exists(fixturePath))
+            {
+                errorMessage = $"Fixture not found: {fixturePath}";
+                Snackbar.Add(errorMessage, Severity.Error);
+                return;
+            }
+
+            processingProgress = 30;
+            StateHasChanged();
+
+            // Read fixture file
+            var xmlContent = await File.ReadAllBytesAsync(fixturePath);
+
+            // Store source XML for display
+            sourceXmlContent = System.Text.Encoding.UTF8.GetString(xmlContent);
+
+            processingStatus = "Extracting fields...";
+            processingProgress = 60;
+            StateHasChanged();
+
+            // Parse XML
+            var result = await XmlParser.ParseAsync(xmlContent);
+
+            if (result.IsSuccess && result.Value != null)
+            {
+                xmlExpediente = result.Value;
+                extractedFieldCount = CountExtractedFields(xmlExpediente);
+                currentFixtureName = fixtureFileName;
+                processingStatus = "Completed";
+                processingProgress = 100;
+                processingMessage = $"Loaded {fixtureFileName} successfully";
+
+                jsonResult = JsonSerializer.Serialize(xmlExpediente, new JsonSerializerOptions { WriteIndented = true });
+
+                // Show detailed success message
+                Snackbar.Add(
+                    $"Success! Extracted {extractedFieldCount} fields, {xmlExpediente.SolicitudPartes.Count} partes, {xmlExpediente.SolicitudEspecificas.Count} específicas from {fixtureFileName}",
+                    Severity.Success,
+                    config => { config.VisibleStateDuration = 5000; });
+            }
+            else
+            {
+                errorMessage = result.Error ?? "XML parsing failed";
+                processingStatus = "Failed";
+                processingProgress = 0;
+                Snackbar.Add($"Failed to load {fixtureFileName}: {errorMessage}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading fixture: {ex.Message}";
+            processingStatus = "Failed";
+            processingProgress = 0;
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private int CountExtractedFields(Expediente expediente)
+    {
+        int count = 0;
+
+        // Count root level fields (non-empty strings and non-default values)
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroExpediente)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroOficio)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.SolicitudSiara)) count++;
+        if (expediente.Folio != 0) count++;
+        if (expediente.OficioYear != DateTime.Now.Year && expediente.OficioYear != 0) count++;
+        if (expediente.AreaClave != 0) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AreaDescripcion)) count++;
+        if (expediente.FechaPublicacion != DateTime.MinValue) count++;
+        if (expediente.DiasPlazo != 0) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AutoridadNombre)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AutoridadEspecificaNombre)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.NombreSolicitante)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia1)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia2)) count++;
+
+        // Count SolicitudPartes fields (10 fields per parte)
+        count += expediente.SolicitudPartes.Count * 10;
+
+        // Count SolicitudEspecificas fields (2 base + nested PersonasSolicitud)
+        foreach (var especifica in expediente.SolicitudEspecificas)
+        {
+            count += 2; // SolicitudEspecificaId + InstruccionesCuentasPorConocer
+            count += especifica.PersonasSolicitud.Count * 10; // 10 fields per persona
+        }
+
+        return count;
     }
 
     private async Task<byte[]> ReadStreamToBytes(Stream stream)
@@ -456,6 +1033,19 @@
             var text = processingResult.OCRResult.Text;
             var fileName = $"ocr_text_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
             await JSRuntime.InvokeVoidAsync("downloadFile", text, fileName, "text/plain");
+        }
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Snackbar.Add("Copied to clipboard!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to copy: {ex.Message}", Severity.Error);
         }
     }
 

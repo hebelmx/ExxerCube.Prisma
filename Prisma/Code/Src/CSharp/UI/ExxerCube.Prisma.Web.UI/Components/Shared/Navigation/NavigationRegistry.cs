@@ -51,12 +51,12 @@ internal static class NavigationRegistry
             new[]
             {
                 new NavigationLink(
-                    "Upload & Process",
+                    "XML Extraction Demo",
                     "/document-processing",
-                    Icons.Material.Filled.DocumentScanner,
-                    "Upload legal documents, run OCR, and monitor real-time processing updates.",
+                    Icons.Material.Filled.Description,
+                    "One-click demo: Extract CNBV expediente data from XML files. Click any PRP1 fixture to see instant results.",
                     Match: NavLinkMatch.All,
-                    Tags: new[] { "ocr", "upload", "documents", "pipeline" }),
+                    Tags: new[] { "xml", "extraction", "expediente", "cnbv", "demo", "prp1", "stakeholder" }),
                 new NavigationLink(
                     "Processing Dashboard",
                     "/document-processing-dashboard",
