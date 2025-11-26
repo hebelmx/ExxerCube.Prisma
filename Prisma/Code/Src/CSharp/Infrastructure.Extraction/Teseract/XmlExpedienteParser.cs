@@ -23,8 +23,11 @@ public class XmlExpedienteParser : IXmlNullableParser<Expediente>
     {
         try
         {
-            var xmlString = System.Text.Encoding.UTF8.GetString(xmlContent);
-            var doc = XDocument.Parse(xmlString);
+            // Use StreamReader to automatically handle UTF-8 BOM (Byte Order Mark)
+            // Real CNBV XML files often have BOM (EF BB BF) which causes parsing errors
+            using var stream = new MemoryStream(xmlContent);
+            using var reader = new StreamReader(stream, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            var doc = XDocument.Load(reader);
             var root = doc.Root;
 
             if (root == null)
@@ -52,15 +55,16 @@ public class XmlExpedienteParser : IXmlNullableParser<Expediente>
                 TieneAseguramiento = bool.TryParse(GetElementValue(root, "TieneAseguramiento"), out var tieneAseg) && tieneAseg
             };
 
-            // Parse SolicitudPartes
-            var partesElements = root.Elements("SolicitudPartes").Elements("Parte");
+            // Parse SolicitudPartes (XML structure: <SolicitudPartes> contains fields directly, not a collection)
+            // Note: XML uses singular "SolicitudPartes" element (not a collection wrapper)
+            var partesElements = root.Elements().Where(e => e.Name.LocalName == "SolicitudPartes");
             foreach (var parteElement in partesElements)
             {
                 var parte = new SolicitudParte
                 {
                     ParteId = int.TryParse(GetElementValue(parteElement, "ParteId"), out var parteId) ? parteId : 0,
                     Caracter = GetElementValue(parteElement, "Caracter") ?? string.Empty,
-                    PersonaTipo = GetElementValue(parteElement, "PersonaTipo") ?? string.Empty,
+                    PersonaTipo = GetElementValue(parteElement, "Persona") ?? string.Empty, // XML uses <Persona> not <PersonaTipo>
                     Paterno = GetElementValue(parteElement, "Paterno"),
                     Materno = GetElementValue(parteElement, "Materno"),
                     Nombre = GetElementValue(parteElement, "Nombre") ?? string.Empty,
@@ -72,8 +76,8 @@ public class XmlExpedienteParser : IXmlNullableParser<Expediente>
                 expediente.SolicitudPartes.Add(parte);
             }
 
-            // Parse SolicitudEspecificas
-            var especificasElements = root.Elements("SolicitudEspecificas").Elements("Especifica");
+            // Parse SolicitudEspecifica (XML structure: singular element, not "SolicitudEspecificas" collection)
+            var especificasElements = root.Elements().Where(e => e.Name.LocalName == "SolicitudEspecifica");
             foreach (var especificaElement in especificasElements)
             {
                 var especifica = new SolicitudEspecifica
@@ -97,7 +101,34 @@ public class XmlExpedienteParser : IXmlNullableParser<Expediente>
 
     private static string? GetElementValue(XElement? parent, string elementName)
     {
-        return parent?.Element(elementName)?.Value;
+        if (parent == null)
+        {
+            return null;
+        }
+
+        // Try to get element without namespace first (handles local names correctly)
+        var element = parent.Elements().FirstOrDefault(e => e.Name.LocalName == elementName);
+        if (element == null)
+        {
+            // Try with Cnbv_ prefix (CNBV standard format)
+            element = parent.Elements().FirstOrDefault(e => e.Name.LocalName == $"Cnbv_{elementName}");
+        }
+
+        if (element == null)
+        {
+            return null;
+        }
+
+        // Check for xsi:nil="true" attribute (XML null representation)
+        var nilAttribute = element.Attributes().FirstOrDefault(a => a.Name.LocalName == "nil");
+        if (nilAttribute != null && nilAttribute.Value.Equals("true", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        // Return value, or null if empty (empty XML elements should be treated as null for optional fields)
+        var value = element.Value;
+        return string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }
 

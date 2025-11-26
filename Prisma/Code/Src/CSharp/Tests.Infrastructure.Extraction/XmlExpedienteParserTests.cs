@@ -55,23 +55,22 @@ public class XmlExpedienteParserTests
 
     /// <summary>
     /// Tests that XML with SolicitudPartes is parsed correctly.
+    /// Updated to match real PRP1 XML structure (no <Parte> wrapper).
     /// </summary>
     [Fact]
     public async Task ParseAsync_XmlWithPartes_ParsesPartes()
     {
-        // Arrange
+        // Arrange - Updated to match real CNBV XML structure
         var xml = @"<?xml version=""1.0""?>
 <Expediente>
     <NumeroExpediente>A/AS1-2505-088637-PHM</NumeroExpediente>
     <SolicitudPartes>
-        <Parte>
-            <ParteId>1</ParteId>
-            <Caracter>Contribuyente</Caracter>
-            <PersonaTipo>Fisica</PersonaTipo>
-            <Nombre>Juan</Nombre>
-            <Paterno>Perez</Paterno>
-            <Rfc>PERJ800101ABC</Rfc>
-        </Parte>
+        <ParteId>1</ParteId>
+        <Caracter>Contribuyente</Caracter>
+        <Persona>Fisica</Persona>
+        <Nombre>Juan</Nombre>
+        <Paterno>Perez</Paterno>
+        <Rfc>PERJ800101ABC</Rfc>
     </SolicitudPartes>
 </Expediente>";
         var xmlBytes = System.Text.Encoding.UTF8.GetBytes(xml);
@@ -85,6 +84,7 @@ public class XmlExpedienteParserTests
         result.Value.SolicitudPartes.ShouldNotBeNull();
         result.Value.SolicitudPartes.Count.ShouldBe(1);
         result.Value.SolicitudPartes[0].Nombre.ShouldBe("Juan");
+        result.Value.SolicitudPartes[0].PersonaTipo.ShouldBe("Fisica"); // Now correctly mapped from <Persona>
         result.Value.SolicitudPartes[0].Rfc.ShouldBe("PERJ800101ABC");
     }
 
