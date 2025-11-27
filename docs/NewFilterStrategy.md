@@ -19,8 +19,8 @@ Different document sources require different enhancement parameters:
 ### Phase 1: Baseline Testing (Degraded Images, No Enhancement)
 - Q1_Poor: 78-92% confidence (production quality)
 - Q2_MediumPoor: 42-53% confidence (below 70% threshold)
-- Q3_Low: 25-27% confidence
-- Q4_VeryLow: 0-15% confidence
+- Q3_Low: 25-27% confidence <-->  No worth try to rescue
+- Q4_VeryLow: 0-15% confidence <--> No worth try to rescue
 
 ### Phase 2: Standard Enhancement (Light Filters)
 **Pipeline:** CLAHE (clipLimit=2.0) + NLM Denoising (h=10) + Bilateral Filter + Unsharp Mask
@@ -119,7 +119,8 @@ Algorithm can't optimize both simultaneously → compromised mediocre solution
 **Analogy:** Asking one pair of glasses to work for both near-sighted AND far-sighted people.
 
 ---
-
+<- New Filter optimization strategy ->
+---
 ## Multi-Stage Cluster-Based Optimization Strategy
 
 ### Stage 1: Generate Degradation Spectrum
@@ -129,32 +130,32 @@ Algorithm can't optimize both simultaneously → compromised mediocre solution
 Pristine (100%) → Q1 (78-92%) → Q2 (42-53%) → Q3 (25-27%) → Q4 (0-15%)
      ↑              ↑              ↑              ↑              ↑
   Perfect        Light         Medium       HOPELESS       HOPELESS
-                                            LIMIT (D0)
+                               LIMIT (D0)   LIMIT (D0)
 ```
 
-**New Fine-Grained Spectrum (Pristine → Q3 ONLY):**
+**New Fine-Grained Spectrum (Pristine → Q2 ONLY):**
 ```
-Pristine → D90 → D80 → D70 → D60 → D50 → D40 → D30 → Q3(D0)
-(100%)    (90%)  (80%)  (70%)  (60%)  (50%)  (40%)  (30%)  (25%)
-   ↑                                                           ↑
-Perfect                                            RESCUABLE LIMIT
-                                                   (anything beyond is hopeless)
+Pristine → D90 → D80 → D70 → D60 → D50 → Q2(D0)
+(100%)    (90%)  (80%)  (70%)  (60%)  (50%)  
+   ↑                                   ↑
+Perfect                  RESCUABLE LIMIT
+                     (anything beyond is hopeless)
 ```
 
-**Key Insight:** Q2 is **D0** - the worst degradation level that's still rescuable. Q4 and beyond cannot be rescued by any filter - don't waste optimization time on hopeless cases.
+**Key Insight:** Q2 is **D0** - the worst degradation level that's still rescuable. Q3 and beyond cannot be rescued by any filter - don't waste optimization time on hopeless cases.
 
 **Implementation:**
 ```python
 def generate_degradation_spectrum(pristine_image, num_levels=10):
     """
-    Generate degradation spectrum from Pristine to Q3 (D0).
+    Generate degradation spectrum from Pristine to Q2 (D0).
 
-    Q3 is the rescuable limit - beyond this, no filter can help.
+    Q2 is the rescuable limit - beyond this, no filter can help.
     """
     degraded_images = []
 
     for level in range(num_levels):
-        # Intensity: 0.0 (pristine) to 1.0 (Q3 level)
+        # Intensity: 0.0 (pristine) to 1.0 (Q2 level)
         intensity = level / (num_levels - 1)
 
         # Apply degradation filters with increasing intensity
@@ -176,7 +177,7 @@ def generate_degradation_spectrum(pristine_image, num_levels=10):
     return degraded_images
 ```
 
-**Output:** 10 degradation levels for each of 4 documents = **40 test images** total
+**Output:** 5 degradation levels for each of 4 documents = **20 test images** total
 
 ---
 
@@ -198,7 +199,7 @@ def build_performance_matrix(pareto_filters, degradation_spectrum):
     for filter_id, filter_params in enumerate(pareto_filters):
         matrix[filter_id] = {}
 
-        # Test on all degradation levels (D100 → D25/Q3)
+        # Test on all degradation levels (D100 → D50/Q2)
         for degradation_level in degradation_spectrum:
             matrix[filter_id][degradation_level['level']] = {}
 
@@ -760,51 +761,6 @@ def analyze_noise_spectrum(image):
 
 ---
 
-### Approach #4: Reference-Based Optimization (Most Sophisticated)
-
-**Concept:** Compare enhanced image against a "perfect" reference document, iteratively tune parameters to maximize similarity.
-
-**Implementation:**
-```python
-def optimize_filters_against_reference(degraded_img, reference_img):
-    """Find best filter params by comparing to reference."""
-    from skimage.metrics import structural_similarity as ssim
-
-    best_ssim = 0
-    best_params = None
-
-    # Grid search over parameter space
-    for denoise_h in [5, 10, 15, 20, 30]:
-        for clahe_clip in [1.5, 2.0, 2.5, 3.0]:
-            # Apply filters
-            enhanced = apply_filters(degraded_img, denoise_h, clahe_clip)
-
-            # Compare to reference (SSIM = structural similarity)
-            similarity = ssim(enhanced, reference_img, data_range=255)
-
-            if similarity > best_ssim:
-                best_ssim = similarity
-                best_params = (denoise_h, clahe_clip)
-
-    return best_params, best_ssim
-```
-
-**Advantages:**
-- Objectively optimal parameters for that specific document
-- Can validate enhancement effectiveness
-- Useful for testing/tuning
-
-**Disadvantages:**
-- Requires reference "perfect" document (not available in production)
-- Computationally expensive (grid search)
-- Only useful for testing/development
-
-**Use in Testing:**
-- Use pristine PRP1 originals as references
-- Optimize against degraded versions
-- Validate that adaptive approach selects similar parameters
-
----
 
 ## Implementation Roadmap
 
