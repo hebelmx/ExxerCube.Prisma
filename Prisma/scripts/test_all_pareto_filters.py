@@ -21,6 +21,7 @@ Usage:
 import json
 import cv2
 import numpy as np
+import os
 import pytesseract
 from pathlib import Path
 from PIL import Image, ImageEnhance, ImageFilter
@@ -28,6 +29,10 @@ import Levenshtein
 from typing import Dict, List, Tuple
 import pandas as pd
 from datetime import datetime
+
+# Configure Tesseract path and tessdata
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+os.environ['TESSDATA_PREFIX'] = r'C:\Program Files\Tesseract-OCR\tessdata'
 
 # ============================================================================
 # Configuration
