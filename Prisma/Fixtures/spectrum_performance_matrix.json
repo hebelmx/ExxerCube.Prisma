@@ -1,0 +1,193 @@
+{
+  "matrix": {
+    "222AAA": {
+      "filename": "222AAA-44444444442025_page-0001.jpg",
+      "levels": {
+        "Q0_Pristine": {
+          "edit_distance": 0,
+          "text_length": 1882,
+          "baseline_length": 1882
+        },
+        "Q05_VeryGood": {
+          "edit_distance": 183,
+          "text_length": 1863,
+          "baseline_length": 1882
+        },
+        "Q1_Poor": {
+          "edit_distance": 175,
+          "text_length": 1823,
+          "baseline_length": 1882
+        },
+        "Q15_Medium": {
+          "edit_distance": 1127,
+          "text_length": 2719,
+          "baseline_length": 1882
+        },
+        "Q2_MediumPoor": {
+          "edit_distance": 810,
+          "text_length": 2243,
+          "baseline_length": 1882
+        }
+      }
+    },
+    "333BBB": {
+      "filename": "333BBB-44444444442025_page1.png",
+      "levels": {
+        "Q0_Pristine": {
+          "edit_distance": 0,
+          "text_length": 1809,
+          "baseline_length": 1809
+        },
+        "Q05_VeryGood": {
+          "edit_distance": 103,
+          "text_length": 1798,
+          "baseline_length": 1809
+        },
+        "Q1_Poor": {
+          "edit_distance": 109,
+          "text_length": 1848,
+          "baseline_length": 1809
+        },
+        "Q15_Medium": {
+          "edit_distance": 1030,
+          "text_length": 2579,
+          "baseline_length": 1809
+        },
+        "Q2_MediumPoor": {
+          "edit_distance": 738,
+          "text_length": 2095,
+          "baseline_length": 1809
+        }
+      }
+    },
+    "333ccc": {
+      "filename": "333ccc-6666666662025_page1.png",
+      "levels": {
+        "Q0_Pristine": {
+          "edit_distance": 0,
+          "text_length": 1140,
+          "baseline_length": 1140
+        },
+        "Q05_VeryGood": {
+          "edit_distance": 109,
+          "text_length": 1175,
+          "baseline_length": 1140
+        },
+        "Q1_Poor": {
+          "edit_distance": 148,
+          "text_length": 1194,
+          "baseline_length": 1140
+        },
+        "Q15_Medium": {
+          "edit_distance": 420,
+          "text_length": 1421,
+          "baseline_length": 1140
+        },
+        "Q2_MediumPoor": {
+          "edit_distance": 829,
+          "text_length": 1583,
+          "baseline_length": 1140
+        }
+      }
+    },
+    "555CCC": {
+      "filename": "555CCC-66666662025_page1.png",
+      "levels": {
+        "Q0_Pristine": {
+          "edit_distance": 0,
+          "text_length": 1794,
+          "baseline_length": 1794
+        },
+        "Q05_VeryGood": {
+          "edit_distance": 58,
+          "text_length": 1849,
+          "baseline_length": 1794
+        },
+        "Q1_Poor": {
+          "edit_distance": 34,
+          "text_length": 1826,
+          "baseline_length": 1794
+        },
+        "Q15_Medium": {
+          "edit_distance": 676,
+          "text_length": 2347,
+          "baseline_length": 1794
+        },
+        "Q2_MediumPoor": {
+          "edit_distance": 1662,
+          "text_length": 2938,
+          "baseline_length": 1794
+        }
+      }
+    }
+  },
+  "analysis": {
+    "222AAA": {
+      "curve": [
+        0,
+        183,
+        175,
+        1127,
+        810
+      ],
+      "q0_to_q1_degradation": 175,
+      "q1_to_q2_degradation": 635,
+      "total_degradation": 810,
+      "avg_degradation_rate": 202.5,
+      "sensitivity": "HIGH",
+      "q2_edit_distance": 810
+    },
+    "333BBB": {
+      "curve": [
+        0,
+        103,
+        109,
+        1030,
+        738
+      ],
+      "q0_to_q1_degradation": 109,
+      "q1_to_q2_degradation": 629,
+      "total_degradation": 738,
+      "avg_degradation_rate": 184.5,
+      "sensitivity": "HIGH",
+      "q2_edit_distance": 738
+    },
+    "333ccc": {
+      "curve": [
+        0,
+        109,
+        148,
+        420,
+        829
+      ],
+      "q0_to_q1_degradation": 148,
+      "q1_to_q2_degradation": 681,
+      "total_degradation": 829,
+      "avg_degradation_rate": 207.25,
+      "sensitivity": "HIGH",
+      "q2_edit_distance": 829
+    },
+    "555CCC": {
+      "curve": [
+        0,
+        58,
+        34,
+        676,
+        1662
+      ],
+      "q0_to_q1_degradation": 34,
+      "q1_to_q2_degradation": 1628,
+      "total_degradation": 1662,
+      "avg_degradation_rate": 415.5,
+      "sensitivity": "HIGH",
+      "q2_edit_distance": 1662
+    }
+  },
+  "quality_levels": [
+    "Q0_Pristine",
+    "Q05_VeryGood",
+    "Q1_Poor",
+    "Q15_Medium",
+    "Q2_MediumPoor"
+  ]
+}
