@@ -115,14 +115,26 @@ def apply_filters(image: np.ndarray, genome: FilterGenome) -> np.ndarray:
 
 def run_tesseract_ocr(image_path: Path, lang: str = "spa", psm: int = 6) -> str:
     """Run Tesseract OCR on an image."""
-    cmd = [
-        "C:/Program Files/Tesseract-OCR/tesseract.exe",
-        "--tessdata-dir", "C:/Program Files/Tesseract-OCR/tessdata",
-        str(image_path),
-        "stdout",
-        "-l", lang,
-        "--psm", str(psm)
-    ]
+    import platform
+
+    if platform.system() == "Windows":
+        cmd = [
+            "C:/Program Files/Tesseract-OCR/tesseract.exe",
+            "--tessdata-dir", "C:/Program Files/Tesseract-OCR/tessdata",
+            str(image_path),
+            "stdout",
+            "-l", lang,
+            "--psm", str(psm)
+        ]
+    else:
+        # Linux/macOS - use system tesseract
+        cmd = [
+            "tesseract",
+            str(image_path),
+            "stdout",
+            "-l", lang,
+            "--psm", str(psm)
+        ]
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
