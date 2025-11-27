@@ -221,7 +221,8 @@ public class AnalyticalFilterE2ETests : IDisposable
 
         // Get paths
         var degradedPath = Path.Combine(
-            _fixture.FixturesPath,
+            AppContext.BaseDirectory,
+            "Fixtures",
             "PRP1_Degraded",
             qualityLevel,
             filename);
@@ -232,7 +233,7 @@ public class AnalyticalFilterE2ETests : IDisposable
 
         // Load image
         var degradedImageData = new ImageData(
-            await File.ReadAllBytesAsync(degradedPath),
+            await File.ReadAllBytesAsync(degradedPath, TestContext.Current.CancellationToken),
             degradedPath);
 
         _logger.LogInformation("✓ Image loaded: {Size:N0} bytes", degradedImageData.Data.Length);
@@ -288,11 +289,10 @@ public class AnalyticalFilterE2ETests : IDisposable
         _logger.LogInformation("✓ Quality analysis completed");
         _logger.LogInformation("  Quality Level: {Level}", assessment.QualityLevel);
         _logger.LogInformation("  Metrics:");
-        _logger.LogInformation("    Blur Score:     {Score:F2}", assessment.QualityMetrics.BlurScore);
-        _logger.LogInformation("    Noise Level:    {Level:F2}", assessment.QualityMetrics.NoiseLevel);
-        _logger.LogInformation("    Contrast Level: {Level:F2}", assessment.QualityMetrics.ContrastLevel);
-        _logger.LogInformation("    Brightness:     {Brightness:F2}", assessment.QualityMetrics.Brightness);
-        _logger.LogInformation("    Entropy:        {Entropy:F2}", assessment.QualityMetrics.Entropy);
+        _logger.LogInformation("    Blur Score:     {Score:F2}", assessment.BlurScore);
+        _logger.LogInformation("    Noise Level:    {Level:F2}", assessment.NoiseLevel);
+        _logger.LogInformation("    Contrast Level: {Level:F2}", assessment.ContrastLevel);
+        _logger.LogInformation("    Sharpness:      {Sharpness:F2}", assessment.SharpnessLevel);
         _logger.LogInformation("");
 
         // ═══════════════════════════════════════════════════════════════════

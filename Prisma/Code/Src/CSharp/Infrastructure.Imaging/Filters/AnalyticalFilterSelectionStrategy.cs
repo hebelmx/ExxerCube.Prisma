@@ -19,6 +19,7 @@ public class AnalyticalFilterSelectionStrategy : IFilterSelectionStrategy
 {
     // Thresholds derived from baseline testing correlation analysis
     private const float PristineNoiseThreshold = 0.6f;      // Below this → pristine quality
+
     private const float LightNoiseThreshold = 4.5f;         // Below this → light degradation
     private const float ModerateNoiseThreshold = 8.0f;      // Above this → heavy degradation
 
@@ -74,7 +75,7 @@ public class AnalyticalFilterSelectionStrategy : IFilterSelectionStrategy
     /// </summary>
     private ImageQualityLevel ClassifyQualityLevel(ImageQualityAssessment assessment)
     {
-        var metrics = assessment.QualityMetrics;
+        var metrics = assessment;
 
         // Pristine detection (baseline testing: NO FILTER wins with 0-30 edits)
         // Characteristics: ultra-high blur (sharpness), very low noise
@@ -143,8 +144,8 @@ public class AnalyticalFilterSelectionStrategy : IFilterSelectionStrategy
                 DenoiseH = 5,
                 ClaheClip = 1.05f,
                 BilateralD = 5,
-                BilateralSigmaColor = 50,
-                BilateralSigmaSpace = 50,
+                SigmaColor = 50,
+                SigmaSpace = 50,
                 UnsharpAmount = 1.0f,
                 UnsharpRadius = 1.0f
             }
@@ -221,7 +222,7 @@ public class AnalyticalFilterSelectionStrategy : IFilterSelectionStrategy
     /// </summary>
     private ImageFilterConfig RefineConfig(ImageFilterConfig config, ImageQualityAssessment assessment)
     {
-        var metrics = assessment.QualityMetrics;
+        var metrics = assessment;
 
         // If using PIL, adjust contrast factor based on measured contrast
         if (config.FilterType == ImageFilterType.PilSimple && config.EnableEnhancement)
