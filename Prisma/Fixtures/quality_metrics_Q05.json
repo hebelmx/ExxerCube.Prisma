@@ -1,0 +1,98 @@
+[
+  {
+    "image_path": "..\\Fixtures\\PRP1_Spectrum\\Q05_VeryGood\\222AAA-44444444442025_page-0001.jpg",
+    "metrics": {
+      "blur": 1163.2387123973926,
+      "noise": 0.9736553407624358,
+      "contrast_rms": 33.32262622030633,
+      "contrast_michelson": 0.9029850746268657,
+      "brightness_mean": 237.357888057041,
+      "brightness_median": 249.0,
+      "brightness_std": 33.32262622030633,
+      "histogram": {
+        "entropy": 3.9920434951782227,
+        "dynamic_range": 60.0,
+        "bins_used": 61
+      },
+      "image_size": [
+        1650,
+        1275
+      ]
+    },
+    "quality_score": 71.66131311015317,
+    "quality_category": "GOOD",
+    "filter_recommendation": "NO_FILTER_OR_LIGHT"
+  },
+  {
+    "image_path": "..\\Fixtures\\PRP1_Spectrum\\Q05_VeryGood\\333BBB-44444444442025_page1.png",
+    "metrics": {
+      "blur": 1570.8572893202677,
+      "noise": 1.1216575868153438,
+      "contrast_rms": 33.26304316065959,
+      "contrast_michelson": 0.8613138686131386,
+      "brightness_mean": 236.41314171122994,
+      "brightness_median": 248.0,
+      "brightness_std": 33.26304316065959,
+      "histogram": {
+        "entropy": 4.256838321685791,
+        "dynamic_range": 61.0,
+        "bins_used": 62
+      },
+      "image_size": [
+        1320,
+        1020
+      ]
+    },
+    "quality_score": 77.27361738454428,
+    "quality_category": "GOOD",
+    "filter_recommendation": "NO_FILTER_OR_LIGHT"
+  },
+  {
+    "image_path": "..\\Fixtures\\PRP1_Spectrum\\Q05_VeryGood\\333ccc-6666666662025_page1.png",
+    "metrics": {
+      "blur": 1036.2744353211053,
+      "noise": 1.146185693975689,
+      "contrast_rms": 29.2717184247858,
+      "contrast_michelson": 0.9172932330827067,
+      "brightness_mean": 239.13690953654188,
+      "brightness_median": 249.0,
+      "brightness_std": 29.2717184247858,
+      "histogram": {
+        "entropy": 3.9113290309906006,
+        "dynamic_range": 57.0,
+        "bins_used": 58
+      },
+      "image_size": [
+        1320,
+        1020
+      ]
+    },
+    "quality_score": 69.2717184247858,
+    "quality_category": "GOOD",
+    "filter_recommendation": "NO_FILTER_OR_LIGHT"
+  },
+  {
+    "image_path": "..\\Fixtures\\PRP1_Spectrum\\Q05_VeryGood\\555CCC-66666662025_page1.png",
+    "metrics": {
+      "blur": 5223.2722348565085,
+      "noise": 0.9454733949698526,
+      "contrast_rms": 50.04797109686627,
+      "contrast_michelson": 1.0,
+      "brightness_mean": 232.37205882352941,
+      "brightness_median": 249.0,
+      "brightness_std": 50.04797109686627,
+      "histogram": {
+        "entropy": 3.906616449356079,
+        "dynamic_range": 255.0,
+        "bins_used": 25
+      },
+      "image_size": [
+        1320,
+        1020
+      ]
+    },
+    "quality_score": 90.0,
+    "quality_category": "PRISTINE",
+    "filter_recommendation": "NO_FILTER"
+  }
+]

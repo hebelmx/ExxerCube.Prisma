@@ -1,0 +1,20 @@
+{
+  "noise_based": {
+    "pristine_threshold": 0.6,
+    "degraded_threshold": 4.45
+  },
+  "contrast_based": {
+    "pristine_threshold": 37.5,
+    "degraded_threshold": 29.95
+  },
+  "filters": {
+    "pristine": "NO_FILTER",
+    "good": "OpenCV (h=6, CLAHE=1.10)",
+    "degraded": "PIL (contrast=1.16, median=3)"
+  },
+  "performance_targets": {
+    "pristine": "< 100 edits",
+    "good": "300-400 edits (vs 400-600 baseline)",
+    "degraded": "900-1500 edits (vs 4000-6000 baseline)"
+  }
+}

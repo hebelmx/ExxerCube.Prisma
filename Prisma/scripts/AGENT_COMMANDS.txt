@@ -1,0 +1,59 @@
+================================================================================
+SERVER AGENT EXECUTION COMMANDS
+Copy and paste these commands in order
+================================================================================
+
+# 1. SETUP (UPDATE PATH!)
+cd /path/to/ExxerCube.Prisma
+git pull origin Kt2
+cd Prisma/scripts
+
+# 2. LAUNCH 6 GAs IN PARALLEL
+bash launch_cluster_gas.sh
+
+# 3. VERIFY LAUNCH
+tmux ls
+ps aux | grep optimize_cluster | grep -v grep
+
+# 4. MONITOR (OPTIONAL - Detach with Ctrl+B then D)
+tail -f cluster*_progress.log
+
+# 5. CHECK COMPLETION (Run periodically until all 6 complete - ~10 hours)
+ls -lh cluster*_pareto_front.json | wc -l
+# Should show 6 files when complete
+
+# 6. WAIT FOR ALL 6 TO COMPLETE
+# When all 6 Pareto front JSONs exist (>1KB each), proceed to step 7
+
+# 7. COMMIT AND PUSH (UPDATE PATH!)
+cd /path/to/ExxerCube.Prisma
+git add .
+git commit -m "feat(ocr): Cluster-specific NSGA-II optimization results
+
+- Completed 6 parallel cluster-specific GA optimizations
+- Cluster 0 (ultra-sharp): 2 Pareto fronts (PIL + OpenCV)
+- Cluster 1 (normal quality): 2 Pareto fronts (PIL + OpenCV)
+- Cluster 2 (degraded): 2 Pareto fronts (PIL + OpenCV)
+
+Total runtime: ~10 hours parallel execution
+
+Files added:
+- 6 GA optimization scripts (optimize_cluster*.py)
+- 6 Pareto front JSON catalogs
+- 6 run logs + 6 progress logs
+- Launcher script + documentation
+
+Next steps: Analyze Pareto fronts, update correlation matrix
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+git push origin Kt2
+
+# 8. VERIFY
+git status
+echo "✓ COMPLETE"
+
+================================================================================
+DONE - Total time: ~10-12 hours
+================================================================================

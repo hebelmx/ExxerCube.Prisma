@@ -1,0 +1,98 @@
+[
+  {
+    "image_path": "..\\Fixtures\\PRP1_Spectrum\\Q1_Poor\\222AAA-44444444442025_page-0001.jpg",
+    "metrics": {
+      "blur": 666.7263210233318,
+      "noise": 1.4336793708872686,
+      "contrast_rms": 30.48615539907739,
+      "contrast_michelson": 0.8478260869565217,
+      "brightness_mean": 234.36517219251337,
+      "brightness_median": 245.0,
+      "brightness_std": 30.48615539907739,
+      "histogram": {
+        "entropy": 4.349361419677734,
+        "dynamic_range": 65.0,
+        "bins_used": 66
+      },
+      "image_size": [
+        1650,
+        1275
+      ]
+    },
+    "quality_score": 76.11648124873304,
+    "quality_category": "GOOD",
+    "filter_recommendation": "NO_FILTER_OR_LIGHT"
+  },
+  {
+    "image_path": "..\\Fixtures\\PRP1_Spectrum\\Q1_Poor\\333BBB-44444444442025_page1.png",
+    "metrics": {
+      "blur": 891.4572910429633,
+      "noise": 1.5796644665903188,
+      "contrast_rms": 30.145740250687464,
+      "contrast_michelson": 0.8345323741007195,
+      "brightness_mean": 233.5560360962567,
+      "brightness_median": 245.0,
+      "brightness_std": 30.145740250687464,
+      "histogram": {
+        "entropy": 4.569438934326172,
+        "dynamic_range": 66.0,
+        "bins_used": 66
+      },
+      "image_size": [
+        1320,
+        1020
+      ]
+    },
+    "quality_score": 76.49646746115916,
+    "quality_category": "GOOD",
+    "filter_recommendation": "NO_FILTER_OR_LIGHT"
+  },
+  {
+    "image_path": "..\\Fixtures\\PRP1_Spectrum\\Q1_Poor\\333ccc-6666666662025_page1.png",
+    "metrics": {
+      "blur": 578.8487794495207,
+      "noise": 1.571376576783373,
+      "contrast_rms": 26.78083025771683,
+      "contrast_michelson": 0.895910780669145,
+      "brightness_mean": 236.15115121806298,
+      "brightness_median": 245.0,
+      "brightness_std": 26.78083025771683,
+      "histogram": {
+        "entropy": 4.2232279777526855,
+        "dynamic_range": 61.0,
+        "bins_used": 61
+      },
+      "image_size": [
+        1320,
+        1020
+      ]
+    },
+    "quality_score": 72.33890020209854,
+    "quality_category": "GOOD",
+    "filter_recommendation": "NO_FILTER_OR_LIGHT"
+  },
+  {
+    "image_path": "..\\Fixtures\\PRP1_Spectrum\\Q1_Poor\\555CCC-66666662025_page1.png",
+    "metrics": {
+      "blur": 2999.0856977790645,
+      "noise": 1.4188186158379927,
+      "contrast_rms": 44.684937144365435,
+      "contrast_michelson": 1.0,
+      "brightness_mean": 229.79061720142602,
+      "brightness_median": 245.0,
+      "brightness_std": 44.684937144365435,
+      "histogram": {
+        "entropy": 4.424195289611816,
+        "dynamic_range": 42.0,
+        "bins_used": 43
+      },
+      "image_size": [
+        1320,
+        1020
+      ]
+    },
+    "quality_score": 83.40295679621227,
+    "quality_category": "PRISTINE",
+    "filter_recommendation": "NO_FILTER"
+  }
+]

@@ -90,7 +90,9 @@ public class PilSimpleEnhancementFilterTests
         result.Value.ShouldBeSameAs(imageData);
     }
 
-    [Fact(Skip = "Requires native EmguCV libraries - run manually when OpenCV is installed")]
+    [Fact
+    //    (Skip = "Requires native EmguCV libraries - run manually when OpenCV is installed")
+    ]
     public async Task EnhanceAsync_WithInvalidImageData_ShouldReturnFailure()
     {
         // Arrange
@@ -105,7 +107,9 @@ public class PilSimpleEnhancementFilterTests
         // Note: Error message depends on whether native EmguCV libraries are installed
     }
 
-    [Fact(Skip = "Requires native EmguCV libraries - run manually when OpenCV is installed")]
+    [Fact
+        //(Skip = "Requires native EmguCV libraries - run manually when OpenCV is installed")
+        ]
     public async Task EnhanceAsync_WithValidImage_ShouldReturnEnhancedImage()
     {
         // Arrange

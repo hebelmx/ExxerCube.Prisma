@@ -116,7 +116,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.Extrac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2", "Tests.Infrastructure.Extraction.GotOcr2\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.csproj", "{0D50F351-25CE-4B5C-9021-95975F10610E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.BrowserAutomation.E2E", "Tests.Infrastructure.BrowserAutomation.E2E", "{E63152DE-B8D2-E8B1-CC57-FAC97894F2B9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.BrowserAutomation", "Tests.Infrastructure.BrowserAutomation", "{E63152DE-B8D2-E8B1-CC57-FAC97894F2B9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E", "Tests.Infrastructure.BrowserAutomation.E2E\ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.csproj", "{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}"
 EndProject
@@ -128,11 +128,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Abstractions", "Abstraction
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{413A4159-495B-44A2-B7ED-4E3474BA98AE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure.Imaging", "Infrastructure.Imaging", "{A6224620-7A57-A893-0600-80B08394EBCF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{A6224620-7A57-A893-0600-80B08394EBCF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Infrastructure.Imaging", "Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj", "{41C3FBBE-BED4-4BFE-917E-6AD3B0F32886}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.Imaging", "Tests.Infrastructure.Imaging", "{F2DDE5BE-3808-CE9A-E641-2A4F3F6833BF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure", "Tests.Infrastructure", "{F2DDE5BE-3808-CE9A-E641-2A4F3F6833BF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.Imaging", "Tests.Infrastructure.Imaging\ExxerCube.Prisma.Tests.Infrastructure.Imaging.csproj", "{7FC33D4A-C719-4F10-A037-D5DDF32DF008}"
 EndProject
@@ -628,8 +628,8 @@ Global
 		{0D50F351-25CE-4B5C-9021-95975F10610E} = {A4638C92-261B-45C3-9443-AACCC792015D}
 		{E63152DE-B8D2-E8B1-CC57-FAC97894F2B9} = {A1B2C3D4-E5F6-7890-ABCD-EF1234567891}
 		{92D51F68-CF50-4B8E-A3D0-0C93652FBD97} = {A4638C92-261B-45C3-9443-AACCC792015D}
-		{41C3FBBE-BED4-4BFE-917E-6AD3B0F32886} = {A6224620-7A57-A893-0600-80B08394EBCF}
-		{7FC33D4A-C719-4F10-A037-D5DDF32DF008} = {F2DDE5BE-3808-CE9A-E641-2A4F3F6833BF}
+		{41C3FBBE-BED4-4BFE-917E-6AD3B0F32886} = {3166389F-1D09-47D5-A74A-5F2F2DDB9120}
+		{7FC33D4A-C719-4F10-A037-D5DDF32DF008} = {56E66B46-BE15-4AD1-B371-252E84EDB669}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F4D9C48-36D8-465A-9065-D491D435A0F6}
