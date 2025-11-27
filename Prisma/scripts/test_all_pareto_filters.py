@@ -43,7 +43,7 @@ PRISTINE_DIR = FIXTURES_DIR / "PRP1"
 
 # Pareto front files
 PIL_PARETO = FIXTURES_DIR / "nsga2_q2_pil_pareto_front.json"
-OPENCV_PARETO = FIXTURES_DIR / "nsga2_medium_pareto_front.json"
+OPENCV_PARETO = FIXTURES_DIR / "nsga2_opencv_top20.json"  # Top 20 from 100 server solutions
 
 # Output files
 OUTPUT_MATRIX = FIXTURES_DIR / "comprehensive_filter_performance_matrix.json"
