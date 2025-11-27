@@ -2,108 +2,8 @@
   {
     "id": 0,
     "genome": {
-      "denoise_h": 16,
-      "clahe_clip": 1.6817161653543307,
-      "bilateral_d": 11,
-      "bilateral_sigma_color": 53,
-      "bilateral_sigma_space": 91,
-      "unsharp_amount": 1.3738294785075102,
-      "unsharp_radius": 3.9113948303841823
-    },
-    "objectives": {
-      "Q1_222AAA": 207,
-      "Q1_333BBB": 198,
-      "Q1_333ccc": 175,
-      "Q1_555CCC": 18,
-      "Q2_222AAA": 942,
-      "Q2_333BBB": 1288,
-      "Q2_333ccc": 895,
-      "Q2_555CCC": 571
-    },
-    "total_edits_Q1": 598,
-    "total_edits_Q2": 3696,
-    "total_edits_all": 4294
-  },
-  {
-    "id": 1,
-    "genome": {
       "denoise_h": 8,
-      "clahe_clip": 3.049146859727364,
-      "bilateral_d": 13,
-      "bilateral_sigma_color": 98,
-      "bilateral_sigma_space": 66,
-      "unsharp_amount": 0.9297815002592771,
-      "unsharp_radius": 2.6130011507411357
-    },
-    "objectives": {
-      "Q1_222AAA": 316,
-      "Q1_333BBB": 294,
-      "Q1_333ccc": 235,
-      "Q1_555CCC": 6,
-      "Q2_222AAA": 1073,
-      "Q2_333BBB": 1236,
-      "Q2_333ccc": 958,
-      "Q2_555CCC": 801
-    },
-    "total_edits_Q1": 851,
-    "total_edits_Q2": 4068,
-    "total_edits_all": 4919
-  },
-  {
-    "id": 2,
-    "genome": {
-      "denoise_h": 16,
-      "clahe_clip": 3.7621882322800984,
-      "bilateral_d": 13,
-      "bilateral_sigma_color": 53,
-      "bilateral_sigma_space": 60,
-      "unsharp_amount": 1.3738294785075102,
-      "unsharp_radius": 3.9113948303841823
-    },
-    "objectives": {
-      "Q1_222AAA": 270,
-      "Q1_333BBB": 249,
-      "Q1_333ccc": 211,
-      "Q1_555CCC": 32,
-      "Q2_222AAA": 907,
-      "Q2_333BBB": 1218,
-      "Q2_333ccc": 942,
-      "Q2_555CCC": 606
-    },
-    "total_edits_Q1": 762,
-    "total_edits_Q2": 3673,
-    "total_edits_all": 4435
-  },
-  {
-    "id": 3,
-    "genome": {
-      "denoise_h": 8,
-      "clahe_clip": 3.049146859727364,
-      "bilateral_d": 13,
-      "bilateral_sigma_color": 98,
-      "bilateral_sigma_space": 91,
-      "unsharp_amount": 0.9178305309648225,
-      "unsharp_radius": 3.927764030876393
-    },
-    "objectives": {
-      "Q1_222AAA": 324,
-      "Q1_333BBB": 314,
-      "Q1_333ccc": 232,
-      "Q1_555CCC": 6,
-      "Q2_222AAA": 1086,
-      "Q2_333BBB": 1281,
-      "Q2_333ccc": 1066,
-      "Q2_555CCC": 716
-    },
-    "total_edits_Q1": 876,
-    "total_edits_Q2": 4149,
-    "total_edits_all": 5025
-  },
-  {
-    "id": 4,
-    "genome": {
-      "denoise_h": 8,
-      "clahe_clip": 3.115487966738545,
+      "clahe_clip": 1.318374041612186,
       "bilateral_d": 9,
       "bilateral_sigma_color": 68,
       "bilateral_sigma_space": 96,
@@ -111,17 +11,67 @@
       "unsharp_radius": 2.6498459913385983
     },
     "objectives": {
-      "Q1_222AAA": 219,
-      "Q1_333BBB": 191,
-      "Q1_333ccc": 212,
-      "Q1_555CCC": 16,
-      "Q2_222AAA": 813,
-      "Q2_333BBB": 993,
-      "Q2_333ccc": 815,
-      "Q2_555CCC": 539
+      "Q1_222AAA": 144,
+      "Q1_333BBB": 174,
+      "Q1_333ccc": 167,
+      "Q1_555CCC": 6,
+      "Q2_222AAA": 688,
+      "Q2_333BBB": 924,
+      "Q2_333ccc": 888,
+      "Q2_555CCC": 667
     },
-    "total_edits_Q1": 638,
-    "total_edits_Q2": 3160,
-    "total_edits_all": 3798
+    "total_edits_Q1": 491,
+    "total_edits_Q2": 3167,
+    "total_edits_all": 3658
+  },
+  {
+    "id": 1,
+    "genome": {
+      "denoise_h": 16,
+      "clahe_clip": 1.4030281026454188,
+      "bilateral_d": 11,
+      "bilateral_sigma_color": 53,
+      "bilateral_sigma_space": 91,
+      "unsharp_amount": 1.3738294785075102,
+      "unsharp_radius": 3.9113948303841823
+    },
+    "objectives": {
+      "Q1_222AAA": 169,
+      "Q1_333BBB": 164,
+      "Q1_333ccc": 186,
+      "Q1_555CCC": 18,
+      "Q2_222AAA": 918,
+      "Q2_333BBB": 1291,
+      "Q2_333ccc": 893,
+      "Q2_555CCC": 782
+    },
+    "total_edits_Q1": 537,
+    "total_edits_Q2": 3884,
+    "total_edits_all": 4421
+  },
+  {
+    "id": 2,
+    "genome": {
+      "denoise_h": 13,
+      "clahe_clip": 1.6056244840068012,
+      "bilateral_d": 15,
+      "bilateral_sigma_color": 54,
+      "bilateral_sigma_space": 59,
+      "unsharp_amount": 1.0924199336549498,
+      "unsharp_radius": 0.8508695527634018
+    },
+    "objectives": {
+      "Q1_222AAA": 223,
+      "Q1_333BBB": 212,
+      "Q1_333ccc": 191,
+      "Q1_555CCC": 26,
+      "Q2_222AAA": 1105,
+      "Q2_333BBB": 1213,
+      "Q2_333ccc": 934,
+      "Q2_555CCC": 663
+    },
+    "total_edits_Q1": 652,
+    "total_edits_Q2": 3915,
+    "total_edits_all": 4567
   }
 ]
