@@ -644,3 +644,4 @@ bulk_generated_documents_all_formats/
 # NSGA-II optimization artifacts
 *_checkpoint.pkl
 temp_ocr_*.png
+nsga2_medium_checkpoint.pkl
