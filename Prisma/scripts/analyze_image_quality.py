@@ -45,6 +45,74 @@ def estimate_noise_level(image: np.ndarray) -> float:
     return float(sigma)
 
 
+def analyze_fft_spectrum(image: np.ndarray) -> Dict[str, float]:
+    """
+    Analyze image frequency spectrum using FFT.
+
+    Returns frequency domain characteristics:
+    - high_freq_energy: Energy in high frequencies (edges, text, noise)
+    - low_freq_energy: Energy in low frequencies (smooth areas, backgrounds)
+    - freq_ratio: High/Low ratio (texture vs smooth)
+    - peak_frequency: Dominant periodic frequency (scan artifacts)
+    - spectral_entropy: Frequency distribution entropy (complexity measure)
+    """
+    # Compute 2D FFT
+    f_transform = np.fft.fft2(image)
+    f_shift = np.fft.fftshift(f_transform)
+
+    # Magnitude spectrum (power)
+    magnitude_spectrum = np.abs(f_shift)
+    power_spectrum = magnitude_spectrum ** 2
+
+    # Get image dimensions
+    rows, cols = image.shape
+    crow, ccol = rows // 2, cols // 2
+
+    # Create frequency masks
+    # High-pass mask (edges, text, noise)
+    radius_low = min(rows, cols) // 10
+    high_pass_mask = np.ones((rows, cols), dtype=np.uint8)
+    cv2.circle(high_pass_mask, (ccol, crow), radius_low, 0, -1)
+
+    # Low-pass mask (smooth areas, backgrounds)
+    low_pass_mask = 1 - high_pass_mask
+
+    # Compute energy in different frequency bands
+    high_freq_energy = float(np.sum(power_spectrum * high_pass_mask))
+    low_freq_energy = float(np.sum(power_spectrum * low_pass_mask))
+    total_energy = float(np.sum(power_spectrum))
+
+    # Frequency ratio (texture indicator)
+    freq_ratio = high_freq_energy / low_freq_energy if low_freq_energy > 0 else 0.0
+
+    # Find peak frequency (periodic patterns)
+    # Exclude DC component (center)
+    center_mask = np.ones((rows, cols), dtype=np.uint8)
+    cv2.circle(center_mask, (ccol, crow), 5, 0, -1)
+    masked_spectrum = magnitude_spectrum * center_mask
+
+    # Find peak location
+    peak_y, peak_x = np.unravel_index(np.argmax(masked_spectrum), masked_spectrum.shape)
+    peak_dist = np.sqrt((peak_y - crow)**2 + (peak_x - ccol)**2)
+    peak_frequency = float(peak_dist / max(rows, cols))  # Normalized [0, 1]
+
+    # Spectral entropy (frequency distribution complexity)
+    # Normalize spectrum to probability distribution
+    spectrum_normalized = power_spectrum / total_energy if total_energy > 0 else power_spectrum
+    spectrum_normalized = spectrum_normalized[spectrum_normalized > 0]  # Remove zeros
+    spectral_entropy = float(-np.sum(spectrum_normalized * np.log2(spectrum_normalized + 1e-10)))
+
+    return {
+        'high_freq_energy': high_freq_energy,
+        'low_freq_energy': low_freq_energy,
+        'freq_ratio': freq_ratio,
+        'peak_frequency': peak_frequency,
+        'spectral_entropy': spectral_entropy,
+        'high_freq_pct': 100.0 * high_freq_energy / total_energy if total_energy > 0 else 0.0,
+        'low_freq_pct': 100.0 * low_freq_energy / total_energy if total_energy > 0 else 0.0
+    }
+
+
 def analyze_image_quality(image_path: Path) -> Dict[str, float]:
     """
     Analyze image to determine optimal filter parameters.
@@ -55,6 +123,7 @@ def analyze_image_quality(image_path: Path) -> Dict[str, float]:
         - noise_score: Estimated noise sigma (high = noisy)
         - contrast: Standard deviation (low = poor contrast)
         - brightness: Mean intensity (0-255)
+        - fft_*: Frequency domain characteristics (FFT spectrum analysis)
     """
     # Load image
     image = cv2.imread(str(image_path))
@@ -78,12 +147,22 @@ def analyze_image_quality(image_path: Path) -> Dict[str, float]:
     # 4. Brightness measurement
     brightness = gray.mean()
 
-    return {
+    # 5. FFT spectrum analysis
+    fft_metrics = analyze_fft_spectrum(gray)
+
+    # Combine all metrics
+    metrics = {
         'blur_score': float(blur_score),
         'noise_score': float(noise_score),
         'contrast': float(contrast),
         'brightness': float(brightness)
     }
+
+    # Add FFT metrics with prefix
+    for key, value in fft_metrics.items():
+        metrics[f'fft_{key}'] = value
+
+    return metrics
 
 
 def select_denoising_strength(noise_score: float) -> int:
@@ -208,6 +287,7 @@ def analyze_all_images():
                 quality_class = classify_image_quality(metrics)
 
                 # Print metrics
+                print(f"  SPATIAL DOMAIN METRICS:")
                 print(f"  Blur Score (Laplacian variance):  {metrics['blur_score']:8.2f}  "
                       f"{'(SHARP)' if metrics['blur_score'] > 200 else '(BLURRY)' if metrics['blur_score'] < 100 else '(MODERATE)'}")
                 print(f"  Noise Score (sigma estimate):     {metrics['noise_score']:8.2f}  "
@@ -216,6 +296,19 @@ def analyze_all_images():
                       f"{'(GOOD)' if metrics['contrast'] > 50 else '(POOR)' if metrics['contrast'] < 30 else '(MODERATE)'}")
                 print(f"  Brightness (mean intensity):      {metrics['brightness']:8.2f}  "
                       f"{'(GOOD)' if 50 < metrics['brightness'] < 200 else '(TOO DARK/BRIGHT)'}")
+
+                print(f"\n  FREQUENCY DOMAIN METRICS (FFT):")
+                print(f"  High Freq Energy %:               {metrics['fft_high_freq_pct']:8.2f}%  "
+                      f"{'(HIGH DETAIL/TEXT)' if metrics['fft_high_freq_pct'] > 30 else '(LOW DETAIL/SMOOTH)'}")
+                print(f"  Low Freq Energy %:                {metrics['fft_low_freq_pct']:8.2f}%  "
+                      f"{'(SMOOTH AREAS)' if metrics['fft_low_freq_pct'] > 70 else '(TEXTURED)'}")
+                print(f"  Freq Ratio (High/Low):            {metrics['fft_freq_ratio']:8.4f}  "
+                      f"{'(TEXTURE-RICH)' if metrics['fft_freq_ratio'] > 0.5 else '(SMOOTH-DOMINANT)'}")
+                print(f"  Peak Frequency (normalized):      {metrics['fft_peak_frequency']:8.4f}  "
+                      f"{'(PERIODIC ARTIFACTS)' if metrics['fft_peak_frequency'] > 0.1 else '(CLEAN)'}")
+                print(f"  Spectral Entropy:                 {metrics['fft_spectral_entropy']:8.2f}  "
+                      f"{'(COMPLEX)' if metrics['fft_spectral_entropy'] > 15 else '(SIMPLE)'}")
+
                 print(f"\n  Quality Classification: {quality_class.upper()}")
                 print(f"\n  RECOMMENDED FILTER PARAMETERS:")
                 print(f"    Denoising strength (h):     {denoise_h}")
