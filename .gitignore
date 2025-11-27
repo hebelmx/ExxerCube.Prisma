@@ -650,3 +650,17 @@ nsga2_medium_checkpoint.pkl
 nsga2_checkpoint.pkl
 **/nsga2_checkpoint.pkl
 *.pkl.zip
+
+# Test fixtures (too large for git - store separately)
+Prisma/Docs/test-fixtures/
+**/test-fixtures/
+
+# Temporary/random files
+Prisma/Fixtures/ziPqw84h
+**/ziPqw84h
+
+# PID files
+*.pid
+
+# Demo artifacts (large images)
+Prisma/Fixtures/Demo/

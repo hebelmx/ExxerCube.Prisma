@@ -97,6 +97,11 @@
     <PackageVersion Include="StrykerMutator.Core" Version="0.9.0" />
     <!-- Coverlet for code coverage -->
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <!-- EmguCV for image processing -->
+    <PackageVersion Include="Emgu.CV" Version="4.9.0.5494" />
+    <PackageVersion Include="Emgu.CV.Contrib" Version="4.9.0.5494" />
+    <PackageVersion Include="Emgu.CV.runtime.windows" Version="4.9.0.5494" />
+    <PackageVersion Include="Emgu.CV.runtime.ubuntu-x64" Version="4.9.0.5494" />
     <!-- xUnit testing framework packages -->
     <PackageVersion Include="xunit.v3" Version="3.0.1" />
     <PackageVersion Include="xunit.v3.core" Version="3.0.1" />
