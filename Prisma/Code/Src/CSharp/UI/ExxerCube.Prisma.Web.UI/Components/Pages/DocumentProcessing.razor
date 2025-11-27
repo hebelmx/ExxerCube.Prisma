@@ -731,32 +731,110 @@
                     @if (batchSummary != null)
                     {
                         <MudDivider Class="my-4" />
-                        <MudGrid>
-                            <MudItem xs="12" sm="3">
-                                <MudPaper Class="pa-3" Elevation="2">
-                                    <MudText Typo="Typo.h4" Align="Align.Center">@batchSummary.SuccessCount</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center">Successful</MudText>
+                        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true">
+                            <MudTabPanel Text="Summary" Icon="@Icons.Material.Filled.Dashboard">
+                                <MudGrid Class="mt-3">
+                                    <MudItem xs="12" sm="6" md="3">
+                                        <MudPaper Class="pa-3" Elevation="2">
+                                            <MudText Typo="Typo.h4" Align="Align.Center">@batchSummary.SuccessCount / @batchSummary.TotalCount</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center">Successful</MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6" md="3">
+                                        <MudPaper Class="pa-3" Elevation="2">
+                                            <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.AvgOcrConfidence:F1}%")</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center">Avg OCR Confidence</MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6" md="3">
+                                        <MudPaper Class="pa-3" Elevation="2">
+                                            <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.AvgMatchRate:F0}%")</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center">Avg Match Rate</MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="12" sm="6" md="3">
+                                        <MudPaper Class="pa-3" Elevation="2">
+                                            <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.TotalTimeMs / 1000.0:F1}s")</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center">Total Time</MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                </MudGrid>
+                            </MudTabPanel>
+
+                            <MudTabPanel Text="Detailed Report" Icon="@Icons.Material.Filled.Description">
+                                <MudPaper Class="pa-3 mt-3" Elevation="0">
+                                    @foreach (var doc in bulkDocuments.Where(d => d.Result != null))
+                                    {
+                                        <MudPaper Class="pa-3 mb-3" Elevation="1">
+                                            <MudText Typo="Typo.h6" Color="Color.Primary">@doc.Id</MudText>
+                                            <MudDivider Class="my-2" />
+                                            <MudGrid>
+                                                <MudItem xs="12" sm="6">
+                                                    <MudText Typo="Typo.body2"><strong>Status:</strong>
+                                                        @if (doc.Status == BulkProcessingStatus.Complete)
+                                                        {
+                                                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">Completed</MudChip>
+                                                        }
+                                                        else if (doc.Status == BulkProcessingStatus.Error)
+                                                        {
+                                                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Error">Error</MudChip>
+                                                        }
+                                                    </MudText>
+                                                </MudItem>
+                                                <MudItem xs="12" sm="6">
+                                                    <MudText Typo="Typo.body2"><strong>OCR Confidence:</strong> @($"{doc.Result!.OcrConfidence:F1}%")</MudText>
+                                                </MudItem>
+                                                <MudItem xs="12" sm="6">
+                                                    <MudText Typo="Typo.body2"><strong>Match Rate:</strong>
+                                                        <MudText Inline Color="@(doc.Result!.Comparison?.MatchPercentage >= 80 ? Color.Success : Color.Warning)">
+                                                            @($"{doc.Result!.Comparison?.MatchPercentage:F0}%")
+                                                        </MudText>
+                                                    </MudText>
+                                                </MudItem>
+                                                <MudItem xs="12" sm="6">
+                                                    <MudText Typo="Typo.body2"><strong>Processing Time:</strong> @($"{doc.Result!.ProcessingTimeMs}ms")</MudText>
+                                                </MudItem>
+                                                @if (doc.Result!.Comparison != null)
+                                                {
+                                                    <MudItem xs="12">
+                                                        <MudText Typo="Typo.body2"><strong>Matched Fields:</strong> @doc.Result.Comparison.MatchCount / @doc.Result.Comparison.TotalFields</MudText>
+                                                    </MudItem>
+                                                }
+                                                @if (!string.IsNullOrEmpty(doc.ErrorMessage))
+                                                {
+                                                    <MudItem xs="12">
+                                                        <MudAlert Severity="Severity.Error" Dense="true">@doc.ErrorMessage</MudAlert>
+                                                    </MudItem>
+                                                }
+                                            </MudGrid>
+                                        </MudPaper>
+                                    }
                                 </MudPaper>
-                            </MudItem>
-                            <MudItem xs="12" sm="3">
-                                <MudPaper Class="pa-3" Elevation="2">
-                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.AvgOcrConfidence:F1}%")</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center">Avg OCR Confidence</MudText>
+                            </MudTabPanel>
+
+                            <MudTabPanel Text="Raw Data" Icon="@Icons.Material.Filled.DataObject">
+                                <MudPaper Class="pa-3 mt-3" Elevation="0">
+                                    <pre style="overflow-x: auto; white-space: pre-wrap;">@System.Text.Json.JsonSerializer.Serialize(new
+                                    {
+                                        Summary = batchSummary,
+                                        Documents = bulkDocuments.Select(d => new {
+                                            d.Id,
+                                            Status = d.Status.ToString(),
+                                            d.ErrorMessage,
+                                            Result = d.Result != null ? new {
+                                                d.Result.OcrConfidence,
+                                                d.Result.ProcessingTimeMs,
+                                                Comparison = d.Result.Comparison != null ? new {
+                                                    d.Result.Comparison.MatchPercentage,
+                                                    d.Result.Comparison.TotalFields,
+                                                    d.Result.Comparison.MatchCount
+                                                } : null
+                                            } : null
+                                        })
+                                    }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
                                 </MudPaper>
-                            </MudItem>
-                            <MudItem xs="12" sm="3">
-                                <MudPaper Class="pa-3" Elevation="2">
-                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.AvgMatchRate:F0}%")</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center">Avg Match Rate</MudText>
-                                </MudPaper>
-                            </MudItem>
-                            <MudItem xs="12" sm="3">
-                                <MudPaper Class="pa-3" Elevation="2">
-                                    <MudText Typo="Typo.h4" Align="Align.Center">@($"{batchSummary.TotalTimeMs / 1000.0:F1}s")</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center">Total Time</MudText>
-                                </MudPaper>
-                            </MudItem>
-                        </MudGrid>
+                            </MudTabPanel>
+                        </MudTabs>
                     }
                 }
             </MudCardContent>
@@ -1794,4 +1872,16 @@
             await hubConnection.DisposeAsync();
         }
     }
+}
+
+/// <summary>
+/// Summary statistics for batch processing results.
+/// </summary>
+public class BatchSummary
+{
+    public int SuccessCount { get; set; }
+    public int TotalCount { get; set; }
+    public float AvgOcrConfidence { get; set; }
+    public float AvgMatchRate { get; set; }
+    public long TotalTimeMs { get; set; }
 }
