@@ -1,8 +1,7 @@
 namespace ExxerCube.Prisma.Infrastructure.Imaging.Strategies;
 
 /// <summary>
-/// Normalizes image quality features to [0, 1] range for polynomial model input.
-/// Uses min-max normalization based on empirically observed feature ranges.
+/// Normalizes image quality features to a 0..1 range for polynomial model input using min-max scaling.
 /// </summary>
 public class FeatureNormalizer
 {
@@ -36,7 +35,7 @@ public class FeatureNormalizer
     private const double SharpnessLevelMax = 50.0;
 
     /// <summary>
-    /// Normalizes image quality assessment to feature vector [0, 1]^4.
+    /// Normalizes image quality assessment to a 4-element feature vector in the 0..1 range.
     /// </summary>
     /// <param name="assessment">Image quality assessment from analyzer.</param>
     /// <returns>Normalized feature vector [blur, noise, contrast, sharpness].</returns>
@@ -129,3 +128,4 @@ public class FeatureNormalizer
         return new FeatureNormalizer();
     }
 }
+using ExxerCube.Prisma.Domain.Interfaces;
