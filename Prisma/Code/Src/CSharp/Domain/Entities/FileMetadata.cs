@@ -43,7 +43,7 @@ public class FileMetadata
     /// <summary>
     /// Gets or sets the file format (PDF, XML, DOCX, ZIP).
     /// </summary>
-    public FileFormat Format { get; set; }
+    public FileFormat Format { get; set; } = FileFormat.Unknown;
 
     /// <summary>
     /// Gets or sets the submission channel (SIARA, Fisico).

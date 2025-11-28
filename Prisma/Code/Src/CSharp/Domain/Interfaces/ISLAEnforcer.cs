@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Domain.Interfaces;
 
+using ExxerCube.Prisma.Domain.Enum;
+
 /// <summary>
 /// Defines the SLA enforcer service for tracking SLA deadlines and managing escalations.
 /// </summary>

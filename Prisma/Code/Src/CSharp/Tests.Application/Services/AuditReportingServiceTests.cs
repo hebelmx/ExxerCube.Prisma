@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Domain.Enums;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -347,4 +345,3 @@ public class AuditReportingServiceTests
         result.IsCancelled().ShouldBeTrue();
     }
 }
-

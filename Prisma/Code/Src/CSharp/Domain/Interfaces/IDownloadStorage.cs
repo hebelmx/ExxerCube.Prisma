@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Domain.Interfaces;
 
+using ExxerCube.Prisma.Domain.Enum;
+
 /// <summary>
 /// Defines the download storage service for persisting files to storage with deterministic paths.
 /// </summary>

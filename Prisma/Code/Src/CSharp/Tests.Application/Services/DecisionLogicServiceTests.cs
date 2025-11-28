@@ -1,6 +1,3 @@
-using ExxerCube.Prisma.Domain.Enums;
-using ExxerCube.Prisma.Domain.Enum;
-
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>

@@ -18,7 +18,7 @@ public class ReviewCase
     /// <summary>
     /// Gets or sets the reason why this case requires manual review.
     /// </summary>
-    public ReviewReason RequiresReviewReason { get; set; }
+    public ReviewReason RequiresReviewReason { get; set; } = ReviewReason.Unknown;
 
     /// <summary>
     /// Gets or sets the overall confidence level for the classification or extraction (0-100).
@@ -33,7 +33,7 @@ public class ReviewCase
     /// <summary>
     /// Gets or sets the current status of the review case.
     /// </summary>
-    public ReviewStatus Status { get; set; }
+    public ReviewStatus Status { get; set; } = ReviewStatus.Pending;
 
     /// <summary>
     /// Gets or sets the user ID of the reviewer assigned to this case (nullable if unassigned).

@@ -18,7 +18,7 @@ public class ReviewDecision
     /// <summary>
     /// Gets or sets the type of decision made.
     /// </summary>
-    public DecisionType DecisionType { get; set; }
+    public DecisionType DecisionType { get; set; } = DecisionType.Unknown;
 
     /// <summary>
     /// Gets or sets the user ID of the reviewer who made this decision.
@@ -53,7 +53,7 @@ public class ReviewDecision
     /// <summary>
     /// Gets or sets the reason for the review decision.
     /// </summary>
-    public ReviewReason ReviewReason { get; set; }
+    public ReviewReason ReviewReason { get; set; } = ReviewReason.Unknown;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ReviewDecision"/> class.

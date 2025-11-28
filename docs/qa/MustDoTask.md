@@ -246,3 +246,37 @@ public sealed class AuthorityKind : EnumModel
   - Classifier tests (`FileClassifierServiceTests`) updated to new types; ensure Unknown/Other fallback.
   - SLAStatus tests verifying EF converter roundtrip if we persist EscalationLevel as SmartEnum.
   - UI models (e.g., `SLACaseViewModel`) switch helpers updated to Value/Name switch; add helper unit tests similar to ComplianceActionKind.
+
+### Static analysis loop — remaining enums (plan before execution)
+- EF helper to add (once): `HasEnumModelConversion<TEnum>` for EnumModel ⇄ int, applied only in EF configurations of persisted entities. No change to enums themselves.
+- Conversion targets and primary consumers (grep map):
+  - ClassificationLevel1/ClassificationLevel2: used in `Domain/ValueObjects/ClassificationResult.cs`, `Infrastructure.Classification/FileClassifierService.cs`, file naming/export tests (`Tests.Infrastructure.FileStorage/*`, `Tests.Application/MetadataExtraction*`, `Tests.EndToEnd/MetadataExtractionIntegrationTests.cs`), manual review flows. UI impact minimal.
+  - EscalationLevel: persisted in `Domain/Entities/SLAStatus.cs`, configured in `Infrastructure.Database/EntityFramework/Configurations/SLAStatusConfiguration.cs`, used in SLA services (`Infrastructure.Database/SLAEnforcerService.cs`, `Resilience/ResilientSLAEnforcerService.cs`), UI view models (`UI/.../SLACaseViewModel.cs`), hub notifications, metrics. Migrations already store int—preserve values to avoid schema changes.
+  - ReviewStatus/ReviewReason/DecisionType/ProcessingStage/AuditActionType: workflow enums used in Review services/tests; not currently persisted beyond logs/tests.
+  - ImageQualityLevel/ImageFilterType, BulkProcessingStatus, FileFormat: technical enums used in imaging/batch; low risk; keep last.
+- Proposed refactor shape (per SmartEnum):
+  ```csharp
+  public sealed class ClassificationLevel1 : EnumModel
+  {
+      public static readonly ClassificationLevel1 Unknown = new(-1, "Unknown", "Desconocido");
+      public static readonly ClassificationLevel1 Aseguramiento = new(0, "Aseguramiento", "Aseguramiento");
+      public static readonly ClassificationLevel1 Desembargo = new(1, "Desembargo", "Desembargo");
+      public static readonly ClassificationLevel1 Documentacion = new(2, "Documentacion", "Documentación");
+      public static readonly ClassificationLevel1 Informacion = new(3, "Informacion", "Información");
+      public static readonly ClassificationLevel1 Transferencia = new(4, "Transferencia", "Transferencia");
+      public static readonly ClassificationLevel1 OperacionesIlicitas = new(5, "OperacionesIlicitas", "Operaciones ilícitas");
+      public static readonly ClassificationLevel1 Other = new(999, "Other", "Otro");
+      public ClassificationLevel1() {}
+      private ClassificationLevel1(int value, string name, string displayName) : base(value, name, displayName) {}
+      public static ClassificationLevel1 FromValue(int value) => FromValue<ClassificationLevel1>(value);
+      public static ClassificationLevel1 FromName(string name) => FromName<ClassificationLevel1>(name);
+      public static implicit operator int(ClassificationLevel1 value) => value.Value;
+      public static implicit operator ClassificationLevel1(int value) => FromValue(value);
+  }
+  ```
+  (Repeat pattern for Level2, EscalationLevel, etc.; keep existing numeric order to avoid data churn.)
+- Switch expression adjustments: replace `enum` switches with Value/Name switches to satisfy Blazor/CS0150 where applicable (e.g., `SLACaseViewModel`).
+- EF: apply `HasEnumModelConversion` only to persisted entities (e.g., `SLAStatusConfiguration` for EscalationLevel). No DB schema change if values are preserved.
+- JSON/cache: add a JsonConverter for EnumModel only if these types are serialized via FusionCache/JSON; otherwise defer.
+- Static compile simulation: ensure all `using ExxerCube.Prisma.Domain.Enums;` are replaced with `...Domain.Enum;` where conversions occur; adjust equality assertions to SmartEnum (`ShouldBe(ClassificationLevel1.Aseguramiento)`; if comparing ints, use `.Value`).
+- Exit condition before execution: plan covers all usages with refactor snippets; Value/Name switches identified; EF touchpoints isolated to persisted entities; no migrations required when numeric order is kept.

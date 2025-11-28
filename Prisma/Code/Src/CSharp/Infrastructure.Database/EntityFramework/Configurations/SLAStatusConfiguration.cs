@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
 
+using ExxerCube.Prisma.Domain.Enum;
+
 /// <summary>
 /// Entity Framework Core configuration for SLAStatus entity.
 /// </summary>
@@ -39,7 +41,7 @@ public class SLAStatusConfiguration : IEntityTypeConfiguration<SLAStatus>
 
         builder.Property(s => s.EscalationLevel)
             .IsRequired()
-            .HasConversion<int>();
+            .HasEnumModelConversion();
 
         builder.Property(s => s.EscalatedAt);
 

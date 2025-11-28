@@ -1,4 +1,4 @@
-using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Web.UI.Models;
 
@@ -52,33 +52,33 @@ public class SLACaseViewModel
     /// <summary>
     /// Gets the color for the time remaining based on escalation level.
     /// </summary>
-    public MudBlazor.Color TimeRemainingColor => SLAStatus.EscalationLevel switch
+    public MudBlazor.Color TimeRemainingColor => SLAStatus.EscalationLevel.Value switch
     {
-        EscalationLevel.Breached => MudBlazor.Color.Dark,
-        EscalationLevel.Critical => MudBlazor.Color.Error,
-        EscalationLevel.Warning => MudBlazor.Color.Warning,
+        3 => MudBlazor.Color.Dark,   // Breached
+        2 => MudBlazor.Color.Error,  // Critical
+        1 => MudBlazor.Color.Warning, // Warning
         _ => MudBlazor.Color.Success
     };
 
     /// <summary>
     /// Gets the color for the escalation level chip.
     /// </summary>
-    public MudBlazor.Color EscalationColor => SLAStatus.EscalationLevel switch
+    public MudBlazor.Color EscalationColor => SLAStatus.EscalationLevel.Value switch
     {
-        EscalationLevel.Breached => MudBlazor.Color.Dark,
-        EscalationLevel.Critical => MudBlazor.Color.Error,
-        EscalationLevel.Warning => MudBlazor.Color.Warning,
+        3 => MudBlazor.Color.Dark,
+        2 => MudBlazor.Color.Error,
+        1 => MudBlazor.Color.Warning,
         _ => MudBlazor.Color.Success
     };
 
     /// <summary>
     /// Gets the text for the escalation level chip.
     /// </summary>
-    public string EscalationText => SLAStatus.EscalationLevel switch
+    public string EscalationText => SLAStatus.EscalationLevel.Name switch
     {
-        EscalationLevel.Breached => "Breached",
-        EscalationLevel.Critical => "Critical",
-        EscalationLevel.Warning => "Warning",
+        nameof(EscalationLevel.Breached) => "Breached",
+        nameof(EscalationLevel.Critical) => "Critical",
+        nameof(EscalationLevel.Warning) => "Warning",
         _ => "None"
     };
 

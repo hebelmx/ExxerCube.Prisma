@@ -42,7 +42,7 @@ global using DocumentFormat.OpenXml.Wordprocessing;
 global using System.Diagnostics;
 global using System.Net.Http;
 global using DocumentFormat.OpenXml;
-global using ExxerCube.Prisma.Domain.Enums;
+global using ExxerCube.Prisma.Domain.Enum;
 global using ExxerCube.Prisma.Domain.Interfaces;
 global using ExxerCube.Prisma.Domain.Models;
 global using ExxerCube.Prisma.Domain.Sources;

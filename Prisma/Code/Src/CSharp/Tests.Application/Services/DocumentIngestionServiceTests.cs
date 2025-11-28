@@ -332,7 +332,7 @@ public class DocumentIngestionServiceTests
             .Returns(Result.Success());
         _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<List<DownloadableFile>>.Success(new List<DownloadableFile> { downloadableFile1, downloadableFile2 }));
-        
+
         _browserAutomationAgent.DownloadFileAsync(downloadableFile1.Url, Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<DownloadedFile>.Success(new DownloadedFile
             {
@@ -349,20 +349,20 @@ public class DocumentIngestionServiceTests
                 Format = FileFormat.Pdf,
                 Content = fileContent2
             }));
-        
+
         _browserAutomationAgent.CloseBrowserAsync(Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result.Success());
-        
+
         _downloadTracker.IsDuplicateAsync(checksum1, Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<bool>.Success(false));
         _downloadTracker.IsDuplicateAsync(checksum2, Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<bool>.Success(false));
-        
+
         _downloadStorage.SaveFileAsync(fileContent1, downloadableFile1.FileName, FileFormat.Pdf, Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<string>.Success(storagePath1));
         _downloadStorage.SaveFileAsync(fileContent2, downloadableFile2.FileName, FileFormat.Pdf, Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<string>.Success(storagePath2));
-        
+
         _fileMetadataLogger.LogFileMetadataAsync(Arg.Any<FileMetadata>(), Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result.Success());
 

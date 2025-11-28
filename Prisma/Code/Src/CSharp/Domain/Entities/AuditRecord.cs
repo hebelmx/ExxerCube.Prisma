@@ -23,7 +23,7 @@ public class AuditRecord
     /// <summary>
     /// Gets or sets the type of action being audited.
     /// </summary>
-    public AuditActionType ActionType { get; set; }
+    public AuditActionType ActionType { get; set; } = AuditActionType.Unknown;
 
     /// <summary>
     /// Gets or sets the JSON serialized action details (nullable).
@@ -43,7 +43,7 @@ public class AuditRecord
     /// <summary>
     /// Gets or sets the processing stage where the action occurred.
     /// </summary>
-    public ProcessingStage Stage { get; set; }
+    public ProcessingStage Stage { get; set; } = ProcessingStage.Unknown;
 
     /// <summary>
     /// Gets or sets a value indicating whether the action succeeded.

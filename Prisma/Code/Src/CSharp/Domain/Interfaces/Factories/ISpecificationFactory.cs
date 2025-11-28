@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Domain.Interfaces.Factories;
 
+using ExxerCube.Prisma.Domain.Enum;
+
 /// <summary>
 /// Factory for creating query specifications.
 /// This abstraction allows Application layer to request specifications without depending on concrete implementations.

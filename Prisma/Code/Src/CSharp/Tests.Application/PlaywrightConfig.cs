@@ -1,5 +1,3 @@
-using Microsoft.Playwright;
-
 namespace ExxerCube.Prisma.Tests.Application;
 
 /// <summary>

@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.Services;
 

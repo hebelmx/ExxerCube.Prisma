@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Domain.Interfaces;
 
+using ExxerCube.Prisma.Domain.Enum;
+
 /// <summary>
 /// Represents a downloaded file with its content.
 /// </summary>
@@ -18,7 +20,7 @@ public class DownloadedFile
     /// <summary>
     /// Gets or sets the file format (PDF, XML, DOCX, ZIP).
     /// </summary>
-    public FileFormat Format { get; set; }
+    public FileFormat Format { get; set; } = FileFormat.Unknown;
 
     /// <summary>
     /// Gets or sets the file content as a byte array.

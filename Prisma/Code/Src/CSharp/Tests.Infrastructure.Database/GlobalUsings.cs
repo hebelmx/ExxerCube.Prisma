@@ -27,7 +27,7 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using System.Diagnostics;
 global using System.Linq.Expressions;
-global using ExxerCube.Prisma.Domain.Enums;
+global using ExxerCube.Prisma.Domain.Enum;
 global using ExxerCube.Prisma.Domain.Models;
 global using ExxerCube.Prisma.Domain.ValueObjects;
 global using NSubstitute;

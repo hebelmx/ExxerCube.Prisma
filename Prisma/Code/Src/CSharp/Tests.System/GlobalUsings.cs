@@ -29,6 +29,7 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using NSubstitute;
 global using System.Security.Cryptography;
+global using ExxerCube.Prisma.Domain.Enum;
 global using ExxerCube.Prisma.Domain.Interfaces;
 global using Shouldly;
 global using Xunit;

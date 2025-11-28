@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Domain.Entities;
 
+using ExxerCube.Prisma.Domain.Enum;
+
 /// <summary>
 /// Represents SLA deadline tracking and escalation status for regulatory response cases.
 /// </summary>

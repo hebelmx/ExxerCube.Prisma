@@ -10,7 +10,7 @@ global using System.Text;
 global using System.Threading;
 global using System.Threading.Tasks;
 global using ExxerCube.Prisma.Domain.Entities;
-global using ExxerCube.Prisma.Domain.Enums;
+global using ExxerCube.Prisma.Domain.Enum;
 global using ExxerCube.Prisma.Domain.Interfaces;
 global using ExxerCube.Prisma.Domain.Models;
 global using ExxerCube.Prisma.Domain.Sources;
