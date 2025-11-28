@@ -78,6 +78,13 @@ internal static class NavigationRegistry
                     "Visualize throughput, confidence trends, and processing health.",
                     Match: NavLinkMatch.All,
                     Tags: new[] { "analytics", "metrics", "observability" }),
+                new NavigationLink(
+                    "OCR Filter Tester",
+                    "/ocr-filter-tester",
+                    Icons.Material.Filled.ImageSearch,
+                    "Test OCR improvement with analytical filter selection. Upload degraded images and see real-time enhancement results with Levenshtein distance metrics.",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "ocr", "filter", "testing", "analytical", "nsga-ii", "enhancement", "quality" }),
             }),
         new NavigationSection(
             "Review & Compliance",

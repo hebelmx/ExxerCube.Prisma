@@ -77,7 +77,7 @@
     <PackageVersion Include="Microsoft.Testing.Platform" Version="1.8.4" />
     <!-- Serilog logging packages -->
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
-    <PackageVersion Include="Serilog.Settings.Configuration" Version="9.0.1-dev-02319" />
+    <PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Serilog.Sinks.File" Version="7.0.1-dev-02315" />
     <PackageVersion Include="Serilog" Version="4.3.0" />
@@ -98,9 +98,9 @@
     <!-- Coverlet for code coverage -->
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <!-- EmguCV for image processing -->
-    <PackageVersion Include="Emgu.CV" Version="4.9.0.5494" />
+    <PackageVersion Include="Emgu.CV" Version="4.12.0.5764" />
     <PackageVersion Include="Emgu.CV.Contrib" Version="4.9.0.5494" />
-    <PackageVersion Include="Emgu.CV.runtime.windows" Version="4.9.0.5494" />
+    <PackageVersion Include="Emgu.CV.runtime.windows" Version="4.12.0.5764" />
     <PackageVersion Include="Emgu.CV.runtime.ubuntu-x64" Version="4.9.0.5494" />
     <!-- xUnit testing framework packages -->
     <PackageVersion Include="xunit.v3" Version="3.0.1" />

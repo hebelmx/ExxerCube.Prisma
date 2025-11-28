@@ -65,6 +65,7 @@
     <ProjectReference Include="..\..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
     <ProjectReference Include="..\..\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
     <ProjectReference Include="..\..\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
+    <ProjectReference Include="..\..\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\..\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
   </ItemGroup>
 

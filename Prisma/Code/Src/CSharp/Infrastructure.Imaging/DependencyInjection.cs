@@ -50,6 +50,15 @@ public static class DependencyInjection
             services.AddSingleton<IFilterSelectionStrategy, DefaultFilterSelectionStrategy>();
         }
 
+        // Register default IImageEnhancementFilter (uses adaptive filter)
+        services.AddSingleton<IImageEnhancementFilter, AdaptiveEnhancementFilter>();
+
+        // Register IImageQualityAnalyzer (Emgu.CV-based implementation using OpenCV)
+        services.AddSingleton<IImageQualityAnalyzer, EmguCvImageQualityAnalyzer>();
+
+        // Register ITextComparer (Levenshtein distance-based text comparison)
+        services.AddSingleton<ITextComparer, LevenshteinTextComparer>();
+
         return services;
     }
 }

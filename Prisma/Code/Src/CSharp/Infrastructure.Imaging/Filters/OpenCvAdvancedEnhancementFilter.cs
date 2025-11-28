@@ -59,7 +59,7 @@ public class OpenCvAdvancedEnhancementFilter : IImageEnhancementFilter
                 cvParams.UnsharpAmount, cvParams.UnsharpRadius);
 
             using var inputMat = new Mat();
-            CvInvoke.Imdecode(imageData.Data, ImreadModes.Color, inputMat);
+            CvInvoke.Imdecode(imageData.Data, ImreadModes.ColorRgb, inputMat);
 
             if (inputMat.IsEmpty)
             {

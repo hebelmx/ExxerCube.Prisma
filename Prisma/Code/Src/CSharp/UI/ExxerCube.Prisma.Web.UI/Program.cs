@@ -9,6 +9,7 @@ using OpenTelemetry.Logs;
 using System.Diagnostics;
 using ExxerCube.Prisma.Infrastructure.Python;
 using ExxerCube.Prisma.Infrastructure.Metrics;
+using ExxerCube.Prisma.Infrastructure.Imaging;
 
 namespace ExxerCube.Prisma.Web.UI;
 
@@ -198,6 +199,9 @@ public class Program
         services.AddExtractionServices();
         services.AddClassificationServices(configuration);
         services.AddScoped<MetadataExtractionService>();
+
+        // Add Imaging services (filters, quality analysis)
+        services.AddImagingInfrastructure(useAnalyticalStrategy: true);
 
         // Add Story 1.3 services: Field Matching and Unified Metadata Generation
         services.AddScoped<FieldMatchingService>();

@@ -10,6 +10,8 @@
   <ItemGroup>
     <!-- EmguCV for OpenCV operations -->
     <PackageReference Include="Emgu.CV" />
+    <!-- FuzzySharp for fuzzy string matching -->
+    <PackageReference Include="FuzzySharp" />
     <!-- Core dependencies -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />

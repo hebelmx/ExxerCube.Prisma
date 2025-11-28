@@ -77,4 +77,9 @@ public class ImageQualityAssessment
     /// Gets or sets additional diagnostic information.
     /// </summary>
     public Dictionary<string, object> Diagnostics { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the blur score of the image (0.0 - 1.0).
+    /// </summary>
+    public float BlurScore { get; set; }
 }
