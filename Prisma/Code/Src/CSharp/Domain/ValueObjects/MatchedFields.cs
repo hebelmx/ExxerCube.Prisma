@@ -26,6 +26,16 @@ public class MatchedFields
     public List<string> MissingFields { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets merged additional fields (beyond core fields) and their values.
+    /// </summary>
+    public Dictionary<string, string?> AdditionalMerged { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the list of additional field names with conflicts across sources.
+    /// </summary>
+    public List<string> AdditionalConflicts { get; set; } = new();
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="MatchedFields"/> class.
     /// </summary>
     public MatchedFields()

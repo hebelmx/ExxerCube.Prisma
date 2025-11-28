@@ -62,6 +62,7 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
 
             var matchedFields = new MatchedFields();
             var allFieldValues = new Dictionary<string, List<FieldValue>>();
+            var additionalFromSources = new List<ExtractedFields>();
 
             // Extract fields from each source
             foreach (var source in sources)
@@ -78,6 +79,7 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
                 {
                     continue;
                 }
+                additionalFromSources.Add(extractedFields);
 
                 // Collect field values from this source
                 foreach (var fieldDef in fieldDefinitions)
@@ -123,6 +125,16 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
             {
                 var agreementLevels = matchedFields.FieldMatches.Values.Select(m => m.AgreementLevel).ToList();
                 matchedFields.OverallAgreement = agreementLevels.Average();
+            }
+
+            // Merge additional fields (non-core) across sources
+            if (additionalFromSources.Count > 0)
+            {
+                var xmlFields = MergeAdditional(additionalFromSources, FieldOrigin.Xml);
+                var ocrFields = MergeAdditional(additionalFromSources, FieldOrigin.PdfOcr);
+                var reconciled = AdditionalFieldsReconciler.Merge(xmlFields, ocrFields);
+                matchedFields.AdditionalMerged = reconciled.Merged;
+                matchedFields.AdditionalConflicts = reconciled.Conflicts;
             }
 
             _logger.LogDebug("Field matching completed. Matched: {MatchedCount}, Conflicts: {ConflictCount}, Missing: {MissingCount}, Overall Agreement: {Agreement}",
@@ -274,6 +286,31 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
                 fields.AccionSolicitada = value;
                 break;
         }
+    }
+
+    private static Dictionary<string, string?> MergeAdditional(List<ExtractedFields> sources, FieldOrigin origin)
+    {
+        var dict = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var fields in sources)
+        {
+            if (fields == null || fields.AdditionalFields == null) continue;
+            foreach (var kvp in fields.AdditionalFields)
+            {
+                // Skip empty values
+                if (string.IsNullOrWhiteSpace(kvp.Value)) continue;
+
+                // Only take those from matching origin if known
+                if (origin == FieldOrigin.Xml && !kvp.Key.Equals("Origin", StringComparison.OrdinalIgnoreCase))
+                {
+                    dict[kvp.Key] = kvp.Value;
+                }
+                else if (origin == FieldOrigin.PdfOcr && !kvp.Key.Equals("Origin", StringComparison.OrdinalIgnoreCase))
+                {
+                    dict[kvp.Key] = kvp.Value;
+                }
+            }
+        }
+        return dict;
     }
 }
 
