@@ -1,4 +1,4 @@
-using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Domain.Entities;
 
@@ -45,7 +45,7 @@ public class Oficio
     /// <summary>
     /// Gets or sets the subdivision (controlled code).
     /// </summary>
-    public LegalSubdivision Subdivision { get; set; } = LegalSubdivision.Unknown;
+    public LegalSubdivisionKind Subdivision { get; set; } = LegalSubdivisionKind.Unknown;
 
     /// <summary>
     /// Gets or sets the full description.
