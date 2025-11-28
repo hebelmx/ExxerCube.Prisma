@@ -58,4 +58,23 @@ public class TextSanitizerTests
         result.Cleaned.ShouldBe("a b c d");
         result.Warnings.ShouldContain("GenericNormalized");
     }
+
+    [Fact]
+    public void CleanAccount_and_Swift_from_fixture_are_normalized()
+    {
+        var fixturePath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "OcrSamples", "noisy_account.txt");
+        var text = File.ReadAllText(fixturePath);
+
+        var accountLine = text.Split(Environment.NewLine)[0];
+        var swiftLine = text.Split(Environment.NewLine)[1];
+
+        var accountResult = _sut.CleanAccount(accountLine);
+        var swiftResult = _sut.CleanSwift(swiftLine);
+
+        accountResult.Cleaned.ShouldBe("123456789");
+        accountResult.Warnings.ShouldContain("AccountNormalized");
+
+        swiftResult.Cleaned.ShouldBe("BNMXMXMMX");
+        swiftResult.Warnings.ShouldContain("SwiftNormalized");
+    }
 }

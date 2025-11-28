@@ -1,0 +1,4 @@
+CUENTA: 1 2 3 4 5 6 7 8 9
+SWIFT: b n m x m x m m x
+BANK: BANCO INTERNACIONAL S.A.
+NOTA: Texto con espacios extra y saltos, como suele salir del OCR.
