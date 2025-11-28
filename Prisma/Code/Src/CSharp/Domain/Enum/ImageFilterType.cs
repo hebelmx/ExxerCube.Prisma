@@ -11,6 +11,7 @@ public sealed class ImageFilterType : EnumModel
     public static readonly ImageFilterType PilSimple = new(1, "PilSimple", "PIL Simple");
     public static readonly ImageFilterType OpenCvAdvanced = new(2, "OpenCvAdvanced", "OpenCV Advanced");
     public static readonly ImageFilterType Adaptive = new(3, "Adaptive", "Adaptive");
+    public static readonly ImageFilterType Polynomial = new(4, "Polynomial", "Polynomial Enhancement");
     public static readonly ImageFilterType Unknown = new(-1, "Unknown", "Unknown");
     public static readonly ImageFilterType Other = new(999, "Other", "Other");
 

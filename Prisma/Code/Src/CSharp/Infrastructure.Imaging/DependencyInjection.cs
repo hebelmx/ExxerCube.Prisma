@@ -49,6 +49,7 @@ public static class DependencyInjection
         services.AddSingleton<PilSimpleEnhancementFilter>();
         services.AddSingleton<OpenCvAdvancedEnhancementFilter>();
         services.AddSingleton<NoOpEnhancementFilter>();
+        services.AddSingleton<PolynomialEnhancementFilter>();
 
         // Register keyed services for filter selection
         services.AddKeyedSingleton<IImageEnhancementFilter, PilSimpleEnhancementFilter>(
@@ -57,6 +58,8 @@ public static class DependencyInjection
             ImageFilterType.OpenCvAdvanced);
         services.AddKeyedSingleton<IImageEnhancementFilter, NoOpEnhancementFilter>(
             ImageFilterType.None);
+        services.AddKeyedSingleton<IImageEnhancementFilter, PolynomialEnhancementFilter>(
+            ImageFilterType.Polynomial);
 
         // Register adaptive filter (requires IImageQualityAnalyzer)
         services.AddSingleton<AdaptiveEnhancementFilter>();
@@ -80,6 +83,9 @@ public static class DependencyInjection
         // Register IImageQualityAnalyzer (Emgu.CV-based implementation using OpenCV)
         services.AddSingleton<IImageQualityAnalyzer, EmguCvImageQualityAnalyzer>();
 
+        // Register polynomial analyzer (for polynomial enhancement filter)
+        services.AddSingleton<PolynomialImageQualityAnalyzer>();
+
         // Register ITextComparer (Levenshtein distance-based text comparison)
         services.AddSingleton<ITextComparer, LevenshteinTextComparer>();
 
@@ -100,6 +106,7 @@ public static class DependencyInjection
         services.AddSingleton<PilSimpleEnhancementFilter>();
         services.AddSingleton<OpenCvAdvancedEnhancementFilter>();
         services.AddSingleton<NoOpEnhancementFilter>();
+        services.AddSingleton<PolynomialEnhancementFilter>();
 
         // Register keyed services for filter selection
         services.AddKeyedSingleton<IImageEnhancementFilter, PilSimpleEnhancementFilter>(
@@ -108,6 +115,8 @@ public static class DependencyInjection
             ImageFilterType.OpenCvAdvanced);
         services.AddKeyedSingleton<IImageEnhancementFilter, NoOpEnhancementFilter>(
             ImageFilterType.None);
+        services.AddKeyedSingleton<IImageEnhancementFilter, PolynomialEnhancementFilter>(
+            ImageFilterType.Polynomial);
 
         // Register adaptive filter (requires IImageQualityAnalyzer)
         services.AddSingleton<AdaptiveEnhancementFilter>();
@@ -136,6 +145,9 @@ public static class DependencyInjection
 
         // Register IImageQualityAnalyzer (Emgu.CV-based implementation using OpenCV)
         services.AddSingleton<IImageQualityAnalyzer, EmguCvImageQualityAnalyzer>();
+
+        // Register polynomial analyzer (for polynomial enhancement filter)
+        services.AddSingleton<PolynomialImageQualityAnalyzer>();
 
         // Register ITextComparer (Levenshtein distance-based text comparison)
         services.AddSingleton<ITextComparer, LevenshteinTextComparer>();
