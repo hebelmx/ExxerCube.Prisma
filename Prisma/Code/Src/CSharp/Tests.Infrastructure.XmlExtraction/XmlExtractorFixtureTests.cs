@@ -2,6 +2,7 @@ using System.Text;
 using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+using ExxerCube.Prisma.Infrastructure.Extraction;
 
 namespace ExxerCube.Prisma.Tests.System.XmlExtraction;
 
@@ -156,5 +157,30 @@ public class XmlExtractorFixtureTests(ITestOutputHelper output)
             sb.AppendLine($"  {kvp.Key}: {kvp.Value}");
         }
         _logger.LogInformation("{Details}", sb.ToString());
+    }
+
+    [Fact]
+    public void Merge_Xml_Prioritizes_Against_Ocr_And_Flags_Conflicts()
+    {
+        var xml = new Dictionary<string, string?>
+        {
+            ["Subdivision"] = "Aseguramiento",
+            ["CuentasRaw"] = "1234",
+            ["RfcList"] = "AAA111"
+        };
+        var ocr = new Dictionary<string, string?>
+        {
+            ["Subdivision"] = "Judicial",
+            ["CuentasRaw"] = "1234",
+            ["Curp"] = "CURP123",
+            ["RfcList"] = "BBB222"
+        };
+
+        var merge = ExxerCube.Prisma.Infrastructure.Extraction.AdditionalFieldsReconciler.Merge(xml, ocr);
+
+        merge.Merged["Subdivision"].ShouldBe("Aseguramiento"); // XML wins
+        merge.Merged["CuentasRaw"].ShouldBe("1234"); // Same value, no conflict
+        merge.Merged["Curp"].ShouldBe("CURP123"); // Added from OCR
+        merge.Conflicts.ShouldContain("RfcList"); // Different RFC values
     }
 }
