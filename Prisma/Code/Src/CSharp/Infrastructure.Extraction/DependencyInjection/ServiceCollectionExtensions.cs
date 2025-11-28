@@ -47,6 +47,7 @@ public static class ServiceCollectionExtensions
 
         // OCR text cleaning (raw + normalized forms retained)
         services.AddSingleton<ITextSanitizer, TextSanitizer>();
+        services.AddSingleton<OcrSanitizationService>();
 
         return services;
     }

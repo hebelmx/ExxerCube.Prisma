@@ -1,0 +1,42 @@
+using System;
+using System.Linq;
+using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Models;
+
+namespace ExxerCube.Prisma.Infrastructure.Extraction;
+
+/// <summary>
+/// Helper to sanitize common OCR-extracted financial identifiers (account/SWIFT) while preserving raw text.
+/// </summary>
+public sealed class OcrSanitizationService
+{
+    private readonly ITextSanitizer _sanitizer;
+
+    /// <summary>
+    /// Initializes the service with a text sanitizer for normalization.
+    /// </summary>
+    /// <param name="sanitizer">Injected text sanitizer.</param>
+    public OcrSanitizationService(ITextSanitizer sanitizer)
+    {
+        _sanitizer = sanitizer;
+    }
+
+    /// <summary>
+    /// Attempts to sanitize account and SWIFT-like lines from OCR text; best effort and non-blocking.
+    /// </summary>
+    public SanitizedOcrValues SanitizeAccountAndSwift(string text)
+    {
+        var lines = (text ?? string.Empty)
+            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(l => l.Trim())
+            .ToArray();
+
+        var accountLine = lines.FirstOrDefault(l => l.Contains("CUENTA", StringComparison.OrdinalIgnoreCase));
+        var swiftLine = lines.FirstOrDefault(l => l.Contains("SWIFT", StringComparison.OrdinalIgnoreCase));
+
+        var account = _sanitizer.CleanAccount(accountLine);
+        var swift = _sanitizer.CleanSwift(swiftLine);
+
+        return new SanitizedOcrValues(text ?? string.Empty, account, swift);
+    }
+}

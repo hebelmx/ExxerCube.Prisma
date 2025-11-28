@@ -354,3 +354,8 @@ public sealed class AuthorityKind : EnumModel
 - JSON/cache: add a JsonConverter for EnumModel only if these types are serialized via FusionCache/JSON; otherwise defer.
 - Static compile simulation: ensure all `using ExxerCube.Prisma.Domain.Enums;` are replaced with `...Domain.Enum;` where conversions occur; adjust equality assertions to SmartEnum (`ShouldBe(ClassificationLevel1.Aseguramiento)`; if comparing ints, use `.Value`).
 - Exit condition before execution: plan covers all usages with refactor snippets; Value/Name switches identified; EF touchpoints isolated to persisted entities; no migrations required when numeric order is kept.
+
+## Hard directives (user-specified, one-time)
+- Do not run git commands (add/commit/reset/revert/etc.) without explicit user approval.
+- Do not add/remove projects or edit solution files (`*.sln`) without explicit user approval.
+- Do not delete projects or packages; stay strictly within the assigned scope unless explicitly instructed.

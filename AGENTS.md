@@ -33,3 +33,8 @@
 - Do not commit secrets; use environment variables or local user secrets for cloud keys and OCR credentials. Check `docs/` and `deployment/` notes before enabling external services.
 - Large fixture and model files live under `Fixtures/` and `bulk_generated_documents_*`; avoid duplicating them—reference existing assets where possible.
 - Persist proposals: save all review findings and code/refactor proposals as Markdown in `docs/` (clear filenames) so they survive sessions and can be reviewed asynchronously.
+
+## Hard Directives (user-specified, do not repeat without approval)
+- No git commands (commit, add, reset, revert, etc.) without explicit user approval.
+- Do not add/remove projects or touch solution files (`.sln`) without explicit user approval.
+- Do not delete projects or packages; stay strictly within the assigned scope unless the user explicitly instructs otherwise.

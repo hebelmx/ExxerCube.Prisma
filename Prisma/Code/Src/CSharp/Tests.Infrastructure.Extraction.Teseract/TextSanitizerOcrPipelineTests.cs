@@ -22,6 +22,7 @@ public class TextSanitizerOcrPipelineTests : IDisposable
     private readonly IServiceScope _scope;
     private readonly IOcrExecutor _ocr;
     private readonly TextSanitizer _sanitizer;
+    private readonly OcrSanitizationService _sanitizationService;
     private readonly ILogger<TextSanitizerOcrPipelineTests> _logger;
 
     public TextSanitizerOcrPipelineTests(TesseractFixture fixture)
@@ -29,6 +30,7 @@ public class TextSanitizerOcrPipelineTests : IDisposable
         _scope = fixture.Host.Services.CreateScope();
         _ocr = _scope.ServiceProvider.GetRequiredService<IOcrExecutor>();
         _sanitizer = new TextSanitizer();
+        _sanitizationService = new OcrSanitizationService(_sanitizer);
         _logger = _scope.ServiceProvider.GetRequiredService<ILogger<TextSanitizerOcrPipelineTests>>();
     }
 
@@ -39,7 +41,8 @@ public class TextSanitizerOcrPipelineTests : IDisposable
         var fixturePath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "OcrSamples", "ocr_account_noisy.png");
         File.Exists(fixturePath).ShouldBeTrue($"Fixture not found at {fixturePath}");
 
-        var imageBytes = await File.ReadAllBytesAsync(fixturePath);
+        var ct = TestContext.Current.CancellationToken;
+        var imageBytes = await File.ReadAllBytesAsync(fixturePath, ct);
         var imageData = new ImageData(imageBytes, fixturePath);
         var config = new OCRConfig { Language = "spa", FallbackLanguage = "eng", PSM = 6, OEM = 1 };
 
@@ -48,19 +51,12 @@ public class TextSanitizerOcrPipelineTests : IDisposable
         var text = ocrResult.Value!.Text;
         _logger.LogInformation("OCR text: {Text}", text);
 
-        var accountLine = text.Split('\n').FirstOrDefault(l => l.Contains("CUENTA", StringComparison.OrdinalIgnoreCase));
-        var swiftLine = text.Split('\n').FirstOrDefault(l => l.Contains("SWIFT", StringComparison.OrdinalIgnoreCase));
+        var sanitized = _sanitizationService.SanitizeAccountAndSwift(text);
 
-        accountLine.ShouldNotBeNull("Account line should be present in OCR output");
-        swiftLine.ShouldNotBeNull("SWIFT line should be present in OCR output");
-
-        var accountResult = _sanitizer.CleanAccount(accountLine);
-        var swiftResult = _sanitizer.CleanSwift(swiftLine);
-
-        accountResult.Cleaned.ShouldBe("1234567890123456");
-        accountResult.Warnings.ShouldContain("AccountNormalized");
-        swiftResult.Cleaned.ShouldBe("BNMXMXMMX");
-        swiftResult.Warnings.ShouldContain("SwiftNormalized");
+        sanitized.Account.Cleaned.ShouldBe("1234567890123456");
+        sanitized.Account.Warnings.ShouldContain("AccountNormalized");
+        sanitized.Swift.Cleaned.ShouldBe("BNMXMXMMX");
+        sanitized.Swift.Warnings.ShouldContain("SwiftNormalized");
     }
 
     public void Dispose()
