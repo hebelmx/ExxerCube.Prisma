@@ -1,0 +1,61 @@
+using ExxerCube.Prisma.Infrastructure.Extraction;
+using Shouldly;
+using Xunit;
+
+namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2;
+
+public class TextSanitizerTests
+{
+    private readonly TextSanitizer _sut = new();
+
+    [Fact]
+    public void CleanAccount_removes_noise_and_flags_normalization()
+    {
+        var result = _sut.CleanAccount("a c o u n t 1 2-34 56");
+
+        result.Raw.ShouldBe("a c o u n t 1 2-34 56");
+        result.Cleaned.ShouldBe("123456");
+        result.Warnings.ShouldContain("AccountNormalized");
+        result.Warnings.ShouldNotContain("AccountLengthSuspect");
+    }
+
+    [Fact]
+    public void CleanAccount_flags_missing_when_empty()
+    {
+        var result = _sut.CleanAccount("   ");
+
+        result.Cleaned.ShouldBeEmpty();
+        result.Warnings.ShouldContain("AccountMissing");
+    }
+
+    [Fact]
+    public void CleanSwift_normalizes_and_checks_length()
+    {
+        var result = _sut.CleanSwift(" abcd efgh ij ");
+
+        result.Raw.ShouldBe(" abcd efgh ij ");
+        result.Cleaned.ShouldBe("ABCDEFGHIJ");
+        result.Warnings.ShouldContain("SwiftNormalized");
+        result.Warnings.ShouldContain("SwiftLengthSuspect");
+    }
+
+    [Fact]
+    public void CleanSwift_accepts_valid_length()
+    {
+        var result = _sut.CleanSwift("abcDefGh");
+
+        result.Cleaned.ShouldBe("ABCDEFGH");
+        result.Warnings.ShouldContain("SwiftNormalized");
+        result.Warnings.ShouldNotContain("SwiftLengthSuspect");
+    }
+
+    [Fact]
+    public void CleanGeneric_collapses_whitespace()
+    {
+        var result = _sut.CleanGeneric(" a   b\tc  d ");
+
+        result.Raw.ShouldBe(" a   b\tc  d ");
+        result.Cleaned.ShouldBe("a b c d");
+        result.Warnings.ShouldContain("GenericNormalized");
+    }
+}

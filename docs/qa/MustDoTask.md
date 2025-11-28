@@ -79,6 +79,7 @@ Implementation sketch:
   - Identity resolver tests: variants and CURP captured; missing fields flagged in ValidationState.
   - Origin tagging: fields contain origin and are surfaced in snapshots/validation.
 - OCR text cleaning (accounts): add a domain-level cleaner interface (e.g., `ITextCleaner/IOcrTextSanitizer`). Implement in Extraction to produce a cleaned copy and keep the raw OCR text (persistable, e.g., JSON) for audit. Cleaning rules: strip artifacts/whitespace/non-alphanumerics; for account numbers prefer digits-only; for SWIFT keep alphanumerics and length-check (8/11). If still invalid, warn/flag (manual review) but do not block. Add tests in `Tests.Infrastructure.Extraction.Teseract` using real OCR-like samples.
+  - Status: implemented `ITextSanitizer` + `TextSanitizer` with raw/cleaned/warnings and unit tests (`TextSanitizerTests`); pending wiring into parsers to persist raw+cleaned account/SWIFT text.
 
 Implementation sketch (code snippets):
 - Subdivision mapping:
