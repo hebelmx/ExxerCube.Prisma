@@ -66,19 +66,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Arch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.UI", "Tests.UI\ExxerCube.Prisma.Tests.UI.csproj", "{B4C5D6E7-F8A9-0123-7890-123456789024}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Abstractions", "Abstractions", "{FDC478F0-4B7C-C457-9E18-8E0295ADAF71}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01Abstractions", "01Abstractions", "{FDC478F0-4B7C-C457-9E18-8E0295ADAF71}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Testing.Abstractions", "Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj", "{C77B08D9-991B-4D09-B6D8-80444B7F7935}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{11DBDC77-71FD-4961-616D-E4DF1B1B0C75}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 Infrastructure", "03 Infrastructure", "{11DBDC77-71FD-4961-616D-E4DF1B1B0C75}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Testing.Infrastructure", "Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj", "{3D4F8EDE-72B0-4808-8095-93E2155F50D0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Contracts", "Contracts", "{8E103E32-CB62-FCF3-C054-F0BE7982B1AF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 Contracts", "02 Contracts", "{8E103E32-CB62-FCF3-C054-F0BE7982B1AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Testing.Contracts", "Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj", "{40CD8AE1-2350-4286-AAC6-06913EADA2EA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Python", "Python", "{29717C03-BAFB-1B2C-6138-345435E8583B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04", "04", "{29717C03-BAFB-1B2C-6138-345435E8583B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Testing.Python", "Testing\Python\ExxerCube.Prisma.Testing.Python.csproj", "{323347EC-0FD5-4989-817D-8E1EBCA9CCE8}"
 EndProject
@@ -100,19 +100,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 System", "03 System", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "06 Architecture", "06 Architecture", "{CAF426F5-0A57-474A-8B22-AD3D1BFED2CE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure.Python.GotOcr2", "Infrastructure.Python.GotOcr2", "{5A554863-D444-30DB-B412-D615BD46CE2D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Infrastructure.Python.GotOcr2", "Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj", "{429E8B33-0C9F-444D-85A0-ED88F8DB23AD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{996CEBED-A05B-5D42-3FF0-982E087A2599}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConsoleApp.GotOcr2Demo", "ConsoleApp.GotOcr2Demo", "{8110EF5A-ABEA-BA9D-641B-08C80D3EB151}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "05 ConsoleApp.GotOcr2Demo", "05 ConsoleApp.GotOcr2Demo", "{8110EF5A-ABEA-BA9D-641B-08C80D3EB151}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.ConsoleApp.GotOcr2Demo", "ConsoleApp.GotOcr2Demo\ExxerCube.Prisma.ConsoleApp.GotOcr2Demo.csproj", "{D2D3DB95-8A8D-4066-8E3A-A53C2A480CF5}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure.Extraction", "Infrastructure.Extraction", "{3CA688C0-DBBF-E649-1F8F-779342F9DC01}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.Extraction.GotOcr2", "Tests.Infrastructure.Extraction.GotOcr2", "{1011B510-54E7-0E97-1084-AC0C0DBFE64F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2", "Tests.Infrastructure.Extraction.GotOcr2\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.csproj", "{0D50F351-25CE-4B5C-9021-95975F10610E}"
 EndProject
@@ -120,19 +112,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure.Browse
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E", "Tests.Infrastructure.BrowserAutomation.E2E\ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.csproj", "{92D51F68-CF50-4B8E-A3D0-0C93652FBD97}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure.BrowserAutomation", "Infrastructure.BrowserAutomation", "{3BA97A2F-2012-1B33-C533-05703E4C5813}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{F4C71ADF-BBAF-4884-8F99-EE2C765D6226}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Abstractions", "Abstractions", "{1F025881-3970-4522-8F47-445B10390C3F}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{413A4159-495B-44A2-B7ED-4E3474BA98AE}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{A6224620-7A57-A893-0600-80B08394EBCF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Infrastructure.Imaging", "Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj", "{41C3FBBE-BED4-4BFE-917E-6AD3B0F32886}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests.Infrastructure", "Tests.Infrastructure", "{F2DDE5BE-3808-CE9A-E641-2A4F3F6833BF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Infrastructure.Imaging", "Tests.Infrastructure.Imaging\ExxerCube.Prisma.Tests.Infrastructure.Imaging.csproj", "{7FC33D4A-C719-4F10-A037-D5DDF32DF008}"
 EndProject

@@ -44,5 +44,30 @@ public class FileMetadata
     /// Gets or sets the file format (PDF, XML, DOCX, ZIP).
     /// </summary>
     public FileFormat Format { get; set; }
+
+    /// <summary>
+    /// Gets or sets the submission channel (SIARA, Fisico).
+    /// </summary>
+    public string Channel { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the signature type (e.g., FELAVA, N/A).
+    /// </summary>
+    public string SignatureType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets a hash or ticket proving submission.
+    /// </summary>
+    public string EvidenceHash { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the expediente linked to this evidence (if any).
+    /// </summary>
+    public string LinkedExpediente { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the oficio linked to this evidence (if any).
+    /// </summary>
+    public string LinkedOficio { get; set; } = string.Empty;
 }
 

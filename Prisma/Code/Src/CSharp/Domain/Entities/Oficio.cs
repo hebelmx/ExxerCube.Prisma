@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enums;
+
 namespace ExxerCube.Prisma.Domain.Entities;
 
 /// <summary>
@@ -41,9 +43,9 @@ public class Oficio
     public string TipoAsunto { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the subdivision (e.g., "A/AS Especial Aseguramiento").
+    /// Gets or sets the subdivision (controlled code).
     /// </summary>
-    public string Subdivision { get; set; } = string.Empty;
+    public LegalSubdivision Subdivision { get; set; } = LegalSubdivision.Unknown;
 
     /// <summary>
     /// Gets or sets the full description.

@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Domain.Entities;
 
 /// <summary>
@@ -14,6 +16,11 @@ public class ComplianceAction
     /// Gets or sets the account number if applicable.
     /// </summary>
     public string? AccountNumber { get; set; }
+
+    /// <summary>
+    /// Gets or sets the structured account reference if applicable.
+    /// </summary>
+    public Cuenta? Cuenta { get; set; }
 
     /// <summary>
     /// Gets or sets the product type if applicable.
@@ -59,6 +66,11 @@ public class ComplianceAction
     /// DueDate to enforce the action
     /// </summary>
     public DateTime DueDate { get; set; }
+
+    /// <summary>
+    /// Validation state for required fields.
+    /// </summary>
+    public ValidationState Validation { get; } = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ComplianceAction"/> class.

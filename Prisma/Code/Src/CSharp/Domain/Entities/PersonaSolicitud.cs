@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Domain.Entities;
 
 /// <summary>
@@ -50,6 +52,21 @@ public class PersonaSolicitud
     public string? Rfc { get; set; }
 
     /// <summary>
+    /// Gets the RFC variants captured from multiple sources (XML/OCR/Manual).
+    /// </summary>
+    public List<RfcVariant> RfcVariantes { get; } = new();
+
+    /// <summary>
+    /// Gets or sets the CURP if available.
+    /// </summary>
+    public string Curp { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the birth date if available.
+    /// </summary>
+    public DateOnly? FechaNacimiento { get; set; }
+
+    /// <summary>
     /// Gets or sets the relationship to the case.
     /// </summary>
     public string? Relacion { get; set; }
@@ -63,6 +80,11 @@ public class PersonaSolicitud
     /// Gets or sets additional information (CURP, identifiers, etc.).
     /// </summary>
     public string? Complementarios { get; set; }
+
+    /// <summary>
+    /// Validation state for required fields.
+    /// </summary>
+    public ValidationState Validation { get; } = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PersonaSolicitud"/> class.

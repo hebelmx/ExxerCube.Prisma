@@ -1,3 +1,6 @@
+using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Domain.Entities;
 
 /// <summary>
@@ -19,6 +22,11 @@ public class SolicitudEspecifica
     public int SolicitudEspecificaId { get; set; }
 
     /// <summary>
+    /// Gets or sets the intent of the measure.
+    /// </summary>
+    public MeasureType Measure { get; set; } = MeasureType.Unknown;
+
+    /// <summary>
     /// Gets or sets the instructions for unknown accounts (inmovilización instructions).
     /// </summary>
     /// <remarks>
@@ -36,6 +44,21 @@ public class SolicitudEspecifica
     /// Each person has similar structure to SolicitudParte but in this specific context.
     /// </remarks>
     public List<PersonaSolicitud> PersonasSolicitud { get; set; } = new();
+
+    /// <summary>
+    /// Gets the list of accounts/products referenced in the measure.
+    /// </summary>
+    public List<Cuenta> Cuentas { get; } = new();
+
+    /// <summary>
+    /// Gets the list of document items requested.
+    /// </summary>
+    public List<DocumentItem> Documentos { get; } = new();
+
+    /// <summary>
+    /// Validation state for required fields.
+    /// </summary>
+    public ValidationState Validation { get; } = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SolicitudEspecifica"/> class.

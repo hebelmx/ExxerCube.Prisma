@@ -1,3 +1,6 @@
+using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Domain.Entities;
 
 /// <summary>
@@ -41,6 +44,11 @@ public class Expediente
     public string AreaDescripcion { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the controlled subdivision code.
+    /// </summary>
+    public LegalSubdivision Subdivision { get; set; } = LegalSubdivision.Unknown;
+
+    /// <summary>
     /// Gets or sets the publication date.
     /// </summary>
     public DateTime FechaPublicacion { get; set; }
@@ -64,6 +72,31 @@ public class Expediente
     /// Gets or sets the requester name (nullable).
     /// </summary>
     public string? NombreSolicitante { get; set; }
+
+    /// <summary>
+    /// Gets or sets the legal basis.
+    /// </summary>
+    public string FundamentoLegal { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the delivery channel (SIARA/Fisico).
+    /// </summary>
+    public string MedioEnvio { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets evidence of signature or submission (hash/ticket).
+    /// </summary>
+    public string EvidenciaFirma { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the originating oficio identifier (if referenced).
+    /// </summary>
+    public string OficioOrigen { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the referenced legal agreement (e.g., 105/2021).
+    /// </summary>
+    public string AcuerdoReferencia { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the reference field.
@@ -99,6 +132,21 @@ public class Expediente
     /// Fecha de recepcion del documento
     /// </summary>
     public DateTime FechaRecepcion { get; set; }
+
+    /// <summary>
+    /// Fecha de registro del documento.
+    /// </summary>
+    public DateTime FechaRegistro { get; set; }
+
+    /// <summary>
+    /// Fecha estimada de conclusión (recepción + días hábiles).
+    /// </summary>
+    public DateTime FechaEstimadaConclusion { get; set; }
+
+    /// <summary>
+    /// Validation state for required fields.
+    /// </summary>
+    public ValidationState Validation { get; } = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Expediente"/> class.
