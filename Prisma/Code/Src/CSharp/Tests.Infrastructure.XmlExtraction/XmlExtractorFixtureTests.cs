@@ -9,10 +9,11 @@ namespace ExxerCube.Prisma.Tests.System.XmlExtraction;
 /// System-level checks for XML extraction against real PRP1 fixtures.
 /// Ensures subdivision, measure hints, accounts, RFC variants, and CURP are parsed.
 /// </summary>
-public class XmlExtractorFixtureTests
+public class XmlExtractorFixtureTests(ITestOutputHelper output)
 {
     private readonly XmlFieldExtractor _extractor = new();
     private readonly string _fixtureRoot = Path.Combine("Fixtures", "PRP1");
+    private readonly ILogger<XmlExtractorFixtureTests> _logger = XUnitLogger.CreateLogger<XmlExtractorFixtureTests>(output);
 
     [Fact]
     public async Task Extract_Should_Parse_Aseguramiento_Fixture()
@@ -26,6 +27,8 @@ public class XmlExtractorFixtureTests
         fields.AdditionalFields["Subdivision"].ShouldBe("Aseguramiento");
         fields.AdditionalFields["MeasureHint"].ShouldBe("Aseguramiento");
         fields.AdditionalFields["DiasPlazo"].ShouldBe("7");
+
+        LogFields("Aseguramiento fixture", fields);
     }
 
     [Fact]
@@ -39,6 +42,8 @@ public class XmlExtractorFixtureTests
         fields.AdditionalFields["Subdivision"].ShouldBe("Hacendario");
         fields.AdditionalFields["MeasureHint"].ShouldBe("Documentacion");
         fields.AdditionalFields["RfcList"]?.ShouldContain("DOPJ111111222");
+
+        LogFields("Hacendario fixture", fields);
     }
 
     [Fact]
@@ -56,6 +61,8 @@ public class XmlExtractorFixtureTests
         {
             curp!.ShouldBe("ZUCM444444ABCDEF");
         }
+
+        LogFields("Judicial fixture", fields);
     }
 
     [Fact]
@@ -72,5 +79,18 @@ public class XmlExtractorFixtureTests
         fields.AdditionalFields["RfcList"]?.ShouldContain("LUMH222222222");
         fields.AdditionalFields["CuentasRaw"]?.ShouldContain("00466773850");
         fields.AdditionalFields["CuentasRaw"]?.ShouldContain("00195019117");
+
+        LogFields("Operaciones Ilícitas fixture", fields);
+    }
+
+    private void LogFields(string label, ExtractedFields fields)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"[{label}] Expediente: {fields.Expediente}");
+        foreach (var kvp in fields.AdditionalFields.OrderBy(k => k.Key))
+        {
+            sb.AppendLine($"  {kvp.Key}: {kvp.Value}");
+        }
+        _logger.LogInformation("{Details}", sb.ToString());
     }
 }
