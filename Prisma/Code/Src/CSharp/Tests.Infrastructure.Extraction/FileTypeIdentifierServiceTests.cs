@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enum;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>

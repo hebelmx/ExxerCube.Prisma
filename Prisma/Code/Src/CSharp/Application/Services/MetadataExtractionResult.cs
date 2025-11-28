@@ -28,5 +28,5 @@ public class MetadataExtractionResult
     /// <summary>
     /// Gets or sets the identified file format.
     /// </summary>
-    public FileFormat FileFormat { get; set; }
+    public FileFormat FileFormat { get; set; } = FileFormat.Unknown;
 }

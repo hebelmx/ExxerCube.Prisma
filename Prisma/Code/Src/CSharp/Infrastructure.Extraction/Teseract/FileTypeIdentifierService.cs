@@ -1,3 +1,12 @@
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using IndQuestResults;
+using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
+
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 
 /// <summary>

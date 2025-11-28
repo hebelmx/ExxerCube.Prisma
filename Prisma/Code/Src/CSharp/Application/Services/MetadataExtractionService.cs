@@ -139,7 +139,7 @@ public class MetadataExtractionService
                 null,
                 cancellationToken).ConfigureAwait(false);
 
-            var fileFormat = fileTypeResult.Value;
+            FileFormat fileFormat = fileTypeResult.Value ?? FileFormat.Unknown;
             _logger.LogDebug("Identified file type as: {FileFormat}", fileFormat);
 
             // Step 2: Extract metadata based on file type
@@ -314,11 +314,12 @@ public class MetadataExtractionService
         FileFormat fileFormat,
         CancellationToken cancellationToken)
     {
-        return fileFormat switch
+        fileFormat ??= FileFormat.Unknown;
+        return fileFormat.Name switch
         {
-            FileFormat.Xml => await _metadataExtractor.ExtractFromXmlAsync(fileContent, cancellationToken).ConfigureAwait(false),
-            FileFormat.Docx => await _metadataExtractor.ExtractFromDocxAsync(fileContent, cancellationToken).ConfigureAwait(false),
-            FileFormat.Pdf => await _metadataExtractor.ExtractFromPdfAsync(fileContent, cancellationToken).ConfigureAwait(false),
+            nameof(FileFormat.Xml) => await _metadataExtractor.ExtractFromXmlAsync(fileContent, cancellationToken).ConfigureAwait(false),
+            nameof(FileFormat.Docx) => await _metadataExtractor.ExtractFromDocxAsync(fileContent, cancellationToken).ConfigureAwait(false),
+            nameof(FileFormat.Pdf) => await _metadataExtractor.ExtractFromPdfAsync(fileContent, cancellationToken).ConfigureAwait(false),
             _ => Result<ExtractedMetadata>.WithFailure($"Unsupported file format: {fileFormat}")
         };
     }

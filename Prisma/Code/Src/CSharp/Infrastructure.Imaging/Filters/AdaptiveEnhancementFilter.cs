@@ -91,14 +91,11 @@ public class AdaptiveEnhancementFilter : IImageEnhancementFilter
     /// <summary>
     /// Selects the appropriate filter based on the recommended type.
     /// </summary>
-    private IImageEnhancementFilter SelectFilter(ImageFilterType recommended, ImageFilterConfig config)
+    private IImageEnhancementFilter SelectFilter(ImageFilterType recommended, ImageFilterConfig config) => recommended.Value switch
     {
-        return recommended switch
-        {
-            ImageFilterType.OpenCvAdvanced => _openCvFilter,
-            ImageFilterType.PilSimple => _pilFilter,
-            ImageFilterType.None => new NoOpEnhancementFilter(),
-            _ => _pilFilter  // Default to PIL for Q2 optimization
-        };
-    }
+        2 => _openCvFilter,
+        1 => _pilFilter,
+        0 => new NoOpEnhancementFilter(),
+        _ => _pilFilter  // Default to PIL for Q2 optimization
+    };
 }

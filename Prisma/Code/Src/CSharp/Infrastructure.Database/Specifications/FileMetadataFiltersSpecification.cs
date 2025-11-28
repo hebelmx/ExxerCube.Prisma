@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.Specifications;
@@ -32,12 +33,13 @@ public sealed class FileMetadataFiltersSpecification : ISpecification<FileMetada
         Skip = skip;
         Take = take;
 
-        if (startDate.HasValue || endDate.HasValue || format.HasValue)
+        var hasFilter = startDate.HasValue || endDate.HasValue || format != null;
+        if (hasFilter)
         {
             Criteria = file =>
                 (!startDate.HasValue || file.DownloadTimestamp >= startDate.Value) &&
                 (!endDate.HasValue || file.DownloadTimestamp <= endDate.Value) &&
-                (!format.HasValue || file.Format == format.Value);
+                (format == null || file.Format == format);
         }
     }
 

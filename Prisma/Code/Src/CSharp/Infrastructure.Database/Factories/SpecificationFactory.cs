@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces.Contracts;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces.Factories;
 using ExxerCube.Prisma.Infrastructure.Database.Specifications;
 

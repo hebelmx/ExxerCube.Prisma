@@ -2,7 +2,7 @@
 
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
-@using ExxerCube.Prisma.Domain.Enums
+@using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Web.UI.Models
 @using MudBlazor
 @using Microsoft.AspNetCore.SignalR.Client
@@ -535,9 +535,9 @@
 
         var filtered = allCases.AsEnumerable();
 
-        if (filterEscalationLevel.HasValue)
+        if (filterEscalationLevel is not null)
         {
-            filtered = filtered.Where(c => c.SLAStatus.EscalationLevel == filterEscalationLevel.Value);
+            filtered = filtered.Where(c => c.SLAStatus.EscalationLevel == filterEscalationLevel);
         }
 
         if (!string.IsNullOrWhiteSpace(filterSLAStatus))
@@ -602,10 +602,10 @@
     private async Task EscalateCase(SLACaseViewModel caseViewModel)
     {
         var currentLevel = caseViewModel.SLAStatus.EscalationLevel;
-        var nextLevel = currentLevel switch
+        var nextLevel = currentLevel.Value switch
         {
-            EscalationLevel.None => EscalationLevel.Warning,
-            EscalationLevel.Warning => EscalationLevel.Critical,
+            0 => EscalationLevel.Warning,
+            1 => EscalationLevel.Critical,
             _ => EscalationLevel.Critical
         };
 

@@ -1,7 +1,7 @@
 @page "/manual-review"
+@using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Domain.Interfaces
 @using ExxerCube.Prisma.Domain.Entities
-@using ExxerCube.Prisma.Domain.Enums
 @using ExxerCube.Prisma.Domain.Models
 @using MudBlazor
 @using Microsoft.AspNetCore.Authorization
@@ -134,8 +134,7 @@
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
-                        <MudSelect T="ReviewStatus?" Label="Status" Variant="Variant.Outlined" @bind-Value="filters.Status">
-                            <MudSelectItem Value="@((ReviewStatus?)null)">All</MudSelectItem>
+                        <MudSelect T="ReviewStatus" Label="Status" Variant="Variant.Outlined" @bind-Value="filters.Status">
                             <MudSelectItem Value="ReviewStatus.Pending">Pending</MudSelectItem>
                             <MudSelectItem Value="ReviewStatus.InProgress">In Progress</MudSelectItem>
                             <MudSelectItem Value="ReviewStatus.Completed">Completed</MudSelectItem>
@@ -153,8 +152,7 @@
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
-                        <MudSelect T="ReviewReason?" Label="Review Reason" Variant="Variant.Outlined" @bind-Value="filters.ReviewReason">
-                            <MudSelectItem Value="@((ReviewReason?)null)">All</MudSelectItem>
+                        <MudSelect T="ReviewReason" Label="Review Reason" Variant="Variant.Outlined" @bind-Value="filters.ReviewReason">
                             <MudSelectItem Value="ReviewReason.LowConfidence">Low Confidence</MudSelectItem>
                             <MudSelectItem Value="ReviewReason.AmbiguousClassification">Ambiguous Classification</MudSelectItem>
                             <MudSelectItem Value="ReviewReason.ExtractionError">Extraction Error</MudSelectItem>
@@ -527,20 +525,20 @@
         return "Normal";
     }
 
-    private Color GetReasonColor(ReviewReason reason) => reason switch
+    private Color GetReasonColor(string reason) => reason switch
     {
-        ReviewReason.LowConfidence => Color.Warning,
-        ReviewReason.AmbiguousClassification => Color.Info,
-        ReviewReason.ExtractionError => Color.Error,
+        nameof(ReviewReason.LowConfidence) => Color.Warning,
+        nameof(ReviewReason.AmbiguousClassification) => Color.Info,
+        nameof(ReviewReason.ExtractionError) => Color.Error,
         _ => Color.Default
     };
 
-    private Color GetStatusColor(ReviewStatus status) => status switch
+    private Color GetStatusColor(string status) => status switch
     {
-        ReviewStatus.Pending => Color.Warning,
-        ReviewStatus.InProgress => Color.Info,
-        ReviewStatus.Completed => Color.Success,
-        ReviewStatus.Rejected => Color.Error,
+        nameof(ReviewStatus.Pending) => Color.Warning,
+        nameof(ReviewStatus.InProgress) => Color.Info,
+        nameof(ReviewStatus.Completed) => Color.Success,
+        nameof(ReviewStatus.Rejected) => Color.Error,
         _ => Color.Default
     };
 

@@ -43,31 +43,25 @@ public class AnalyticalFilterSelectionStrategy : IFilterSelectionStrategy
     }
 
     /// <inheritdoc />
-    public ImageFilterConfig SelectFilterByQuality(ImageQualityLevel qualityLevel)
+    public ImageFilterConfig SelectFilterByQuality(ImageQualityLevel qualityLevel) => qualityLevel.Value switch
     {
-        return qualityLevel switch
-        {
-            ImageQualityLevel.Pristine => CreatePristineConfig(),
-            ImageQualityLevel.Q1_Poor => CreateQ1Config(),
-            ImageQualityLevel.Q2_MediumPoor => CreateQ2Config(),
-            ImageQualityLevel.Q3_Low => CreateQ3Config(),
-            ImageQualityLevel.Q4_VeryLow => CreateQ4Config(),
-            _ => CreateQ2Config() // Default to moderate enhancement
-        };
-    }
+        5 => CreatePristineConfig(),
+        1 => CreateQ1Config(),
+        2 => CreateQ2Config(),
+        3 => CreateQ3Config(),
+        4 => CreateQ4Config(),
+        _ => CreateQ2Config() // Default to moderate enhancement
+    };
 
     /// <inheritdoc />
-    public ImageFilterConfig GetFilterConfig(ImageFilterType filterType)
+    public ImageFilterConfig GetFilterConfig(ImageFilterType filterType) => filterType.Value switch
     {
-        return filterType switch
-        {
-            ImageFilterType.None => CreatePristineConfig(),
-            ImageFilterType.PilSimple => CreateQ2Config(),
-            ImageFilterType.OpenCvAdvanced => CreateQ1Config(),
-            ImageFilterType.Adaptive => CreateAdaptiveConfig(),
-            _ => CreateQ2Config()
-        };
-    }
+        0 => CreatePristineConfig(),
+        1 => CreateQ2Config(),
+        2 => CreateQ1Config(),
+        3 => CreateAdaptiveConfig(),
+        _ => CreateQ2Config()
+    };
 
     /// <summary>
     /// Classifies quality level based on measured image metrics.

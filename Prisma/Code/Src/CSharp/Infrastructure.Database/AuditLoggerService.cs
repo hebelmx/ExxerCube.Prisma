@@ -194,9 +194,9 @@ public class AuditLoggerService : IAuditLogger
             var query = _dbContext.AuditRecords
                 .Where(r => r.Timestamp >= startDate && r.Timestamp <= endDate);
 
-            if (actionType.HasValue)
+            if (actionType is not null)
             {
-                query = query.Where(r => r.ActionType == actionType.Value);
+                query = query.Where(r => r.ActionType == actionType);
             }
 
             if (!string.IsNullOrWhiteSpace(userId))

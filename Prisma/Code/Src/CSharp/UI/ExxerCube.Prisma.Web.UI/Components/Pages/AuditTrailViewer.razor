@@ -1,7 +1,7 @@
 @page "/audit-trail"
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
-@using ExxerCube.Prisma.Domain.Enums
+@using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Domain.Interfaces
 @using MudBlazor
 @using Microsoft.AspNetCore.Authorization
@@ -121,7 +121,7 @@
                                  Dense="true"
                                  Clearable="true">
                             <MudSelectItem Value="@((AuditActionType?)null)">All Actions</MudSelectItem>
-                            @foreach (var actionType in Enum.GetValues<AuditActionType>())
+                            @foreach (var actionType in EnumModel.GetAll<AuditActionType>())
                             {
                                 <MudSelectItem Value="@actionType">@actionType</MudSelectItem>
                             }
@@ -135,7 +135,7 @@
                                  Dense="true"
                                  Clearable="true">
                             <MudSelectItem Value="@((ProcessingStage?)null)">All Stages</MudSelectItem>
-                            @foreach (var stage in Enum.GetValues<ProcessingStage>())
+                            @foreach (var stage in EnumModel.GetAll<ProcessingStage>())
                             {
                                 <MudSelectItem Value="@stage">@stage</MudSelectItem>
                             }
@@ -526,10 +526,10 @@
         if (filterToDate.HasValue && record.Timestamp > filterToDate.Value)
             return false;
             
-        if (selectedActionType.HasValue && record.ActionType != selectedActionType.Value)
+        if (selectedActionType is not null && record.ActionType != selectedActionType)
             return false;
             
-        if (selectedStage.HasValue && record.Stage != selectedStage.Value)
+        if (selectedStage is not null && record.Stage != selectedStage)
             return false;
             
         if (!string.IsNullOrEmpty(filterUserId) && 
@@ -677,14 +677,15 @@
         }
     }
 
-    private Color GetActionTypeColor(AuditActionType actionType) => actionType switch
+    private Color GetActionTypeColor(AuditActionType actionType) => actionType.Value switch
     {
-        AuditActionType.Download => Color.Info,
-        AuditActionType.Classification => Color.Primary,
-        AuditActionType.Extraction => Color.Secondary,
-        AuditActionType.Review => Color.Warning,
-        AuditActionType.Export => Color.Success,
-        AuditActionType.Escalation => Color.Error,
+        0 => Color.Info,
+        1 => Color.Primary,
+        2 => Color.Secondary,
+        3 => Color.Secondary,
+        4 => Color.Warning,
+        5 => Color.Success,
+        6 => Color.Error,
         _ => Color.Default
     };
 

@@ -246,22 +246,22 @@ public class EmguCvImageQualityAnalyzer : IImageQualityAnalyzer
         // - Q2 (Medium-Poor): PIL Simple for balanced enhancement
         // - Q3+ (Low/Very Low): None (good enough quality)
 
-        return qualityLevel switch
+        return qualityLevel.Value switch
         {
-            ImageQualityLevel.Q1_Poor => noiseLevel > NoiseThresholdHigh
+            1 => noiseLevel > NoiseThresholdHigh
                 ? ImageFilterType.OpenCvAdvanced  // Heavy denoising needed
                 : ImageFilterType.PilSimple,       // Moderate enhancement
 
-            ImageQualityLevel.Q2_MediumPoor => blurScore < 150
+            2 => blurScore < 150
                 ? ImageFilterType.OpenCvAdvanced  // Significant blur
                 : ImageFilterType.PilSimple,       // Moderate issues
 
-            ImageQualityLevel.Q3_Low => contrastLevel < 0.4f
+            3 => contrastLevel < 0.4f
                 ? ImageFilterType.PilSimple        // Low contrast boost
                 : ImageFilterType.None,            // Acceptable quality
 
-            ImageQualityLevel.Q4_VeryLow => ImageFilterType.None,  // Good quality
-            ImageQualityLevel.Pristine => ImageFilterType.None,    // Excellent quality
+            4 => ImageFilterType.None,  // Good quality
+            5 => ImageFilterType.None,    // Excellent quality
 
             _ => ImageFilterType.PilSimple  // Default fallback
         };

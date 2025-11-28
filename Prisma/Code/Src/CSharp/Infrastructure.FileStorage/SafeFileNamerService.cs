@@ -47,9 +47,9 @@ public class SafeFileNamerService : ISafeFileNamer
 
             // Add classification prefix
             components.Add(classification.Level1.ToString().ToUpperInvariant());
-            if (classification.Level2.HasValue)
+            if (classification.Level2 is not null)
             {
-                components.Add(classification.Level2.Value.ToString().ToUpperInvariant());
+                components.Add(classification.Level2.ToString().ToUpperInvariant());
             }
 
             // Add expediente number if available

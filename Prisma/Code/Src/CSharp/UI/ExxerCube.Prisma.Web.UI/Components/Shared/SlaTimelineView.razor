@@ -1,5 +1,5 @@
 @using ExxerCube.Prisma.Domain.Entities
-@using ExxerCube.Prisma.Domain.Enums
+@using ExxerCube.Prisma.Domain.Enum
 @using MudBlazor
 
 <MudGrid>
@@ -107,19 +107,19 @@
         return Color.Success;
     }
     
-    private Color GetEscalationColor(EscalationLevel level) => level switch
+    private Color GetEscalationColor(EscalationLevel level) => level.Value switch
     {
-        EscalationLevel.Critical => Color.Error,
-        EscalationLevel.Warning => Color.Warning,
-        EscalationLevel.Breached => Color.Dark,
+        2 => Color.Error,
+        1 => Color.Warning,
+        3 => Color.Dark,
         _ => Color.Default
     };
     
-    private string GetEscalationIcon(EscalationLevel level) => level switch
+    private string GetEscalationIcon(EscalationLevel level) => level.Value switch
     {
-        EscalationLevel.Critical => Icons.Material.Filled.Warning,
-        EscalationLevel.Warning => Icons.Material.Filled.Info,
-        EscalationLevel.Breached => Icons.Material.Filled.Error,
+        2 => Icons.Material.Filled.Warning,
+        1 => Icons.Material.Filled.Info,
+        3 => Icons.Material.Filled.Error,
         _ => Icons.Material.Filled.CheckCircle
     };
     

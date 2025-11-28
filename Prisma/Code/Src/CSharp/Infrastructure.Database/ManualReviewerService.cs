@@ -76,14 +76,14 @@ public class ManualReviewerService : IManualReviewerPanel
                     query = query.Where(c => c.ClassificationAmbiguity == filters.ClassificationAmbiguity.Value);
                 }
 
-                if (filters.ReviewReason.HasValue)
+                if (filters.ReviewReason is not null)
                 {
-                    query = query.Where(c => c.RequiresReviewReason == filters.ReviewReason.Value);
+                    query = query.Where(c => c.RequiresReviewReason == filters.ReviewReason);
                 }
 
-                if (filters.Status.HasValue)
+                if (filters.Status is not null)
                 {
-                    query = query.Where(c => c.Status == filters.Status.Value);
+                    query = query.Where(c => c.Status == filters.Status);
                 }
 
                 if (!string.IsNullOrWhiteSpace(filters.AssignedTo))
@@ -223,12 +223,12 @@ public class ManualReviewerService : IManualReviewerPanel
                 await _dbContext.ReviewDecisions.AddAsync(decision, cancellationToken).ConfigureAwait(false);
 
                 // Update case status
-                reviewCase.Status = decision.DecisionType switch
+                reviewCase.Status = decision.DecisionType.Value switch
                 {
-                    DecisionType.Approve => ReviewStatus.Completed,
-                    DecisionType.Reject => ReviewStatus.Rejected,
-                    DecisionType.RequestMoreInfo => ReviewStatus.Pending,
-                    _ => reviewCase.Status
+                    0 => ReviewStatus.Completed,
+                    1 => ReviewStatus.Rejected,
+                    2 => ReviewStatus.Pending,
+                    _ => reviewCase.Status,
                 };
 
                 await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

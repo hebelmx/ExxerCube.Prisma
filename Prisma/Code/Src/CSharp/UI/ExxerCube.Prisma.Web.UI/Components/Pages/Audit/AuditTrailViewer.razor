@@ -1,7 +1,7 @@
 @page "/audit/viewer"
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
-@using ExxerCube.Prisma.Domain.Enums
+@using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Domain.Interfaces
 @using MudBlazor
 @using Microsoft.AspNetCore.Authorization
@@ -373,30 +373,25 @@
         return true;
     }
 
-    private Color GetActionTypeColor(AuditActionType actionType)
+    private Color GetActionTypeColor(AuditActionType actionType) => actionType.Value switch
     {
-        return actionType switch
-        {
-            AuditActionType.Download => Color.Primary,
-            AuditActionType.Classification => Color.Info,
-            AuditActionType.Extraction => Color.Secondary,
-            AuditActionType.Review => Color.Warning,
-            AuditActionType.Export => Color.Success,
-            AuditActionType.Escalation => Color.Error,
-            _ => Color.Default
-        };
-    }
+        0 => Color.Primary,
+        1 => Color.Info,
+        2 => Color.Secondary,
+        3 => Color.Secondary,
+        4 => Color.Warning,
+        5 => Color.Success,
+        6 => Color.Error,
+        _ => Color.Default
+    };
 
-    private Color GetStageColor(ProcessingStage stage)
+    private Color GetStageColor(ProcessingStage stage) => stage.Value switch
     {
-        return stage switch
-        {
-            ProcessingStage.Ingestion => Color.Primary,
-            ProcessingStage.Extraction => Color.Info,
-            ProcessingStage.DecisionLogic => Color.Warning,
-            ProcessingStage.Export => Color.Success,
-            _ => Color.Default
-        };
-    }
+        0 => Color.Primary,
+        1 => Color.Info,
+        2 => Color.Warning,
+        3 => Color.Success,
+        _ => Color.Default
+    };
 }
 

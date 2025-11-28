@@ -2,6 +2,7 @@
 
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Domain.Interfaces
 @using ExxerCube.Prisma.Web.UI.Components.Dialogs
 @using MudBlazor
@@ -427,12 +428,12 @@
         return url.Substring(0, 47) + "...";
     }
 
-    private Color GetFormatColor(FileFormat format) => format switch
+    private Color GetFormatColor(FileFormat format) => format.Value switch
     {
-        FileFormat.Pdf => Color.Error,
-        FileFormat.Xml => Color.Warning,
-        FileFormat.Docx => Color.Info,
-        FileFormat.Zip => Color.Secondary,
+        0 => Color.Error,
+        1 => Color.Warning,
+        2 => Color.Info,
+        3 => Color.Secondary,
         _ => Color.Default
     };
 

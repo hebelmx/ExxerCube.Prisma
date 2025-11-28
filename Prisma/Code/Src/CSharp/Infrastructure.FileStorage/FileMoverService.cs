@@ -86,9 +86,9 @@ public class FileMoverService : IFileMover
         pathComponents.Add(classification.Level1.ToString());
 
         // Level 2 subcategory (if available)
-        if (classification.Level2.HasValue)
+        if (classification.Level2 is not null)
         {
-            pathComponents.Add(classification.Level2.Value.ToString());
+            pathComponents.Add(classification.Level2.ToString());
         }
 
         // Year subdirectory

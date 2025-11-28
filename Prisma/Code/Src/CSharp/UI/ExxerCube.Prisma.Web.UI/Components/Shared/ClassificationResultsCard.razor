@@ -1,5 +1,5 @@
 @using ExxerCube.Prisma.Domain.ValueObjects
-@using ExxerCube.Prisma.Domain.Enums
+@using ExxerCube.Prisma.Domain.Enum
 @using MudBlazor
 @using System.Linq
 
@@ -35,7 +35,7 @@
             </MudItem>
             
             <!-- Level 2/3 Subcategory -->
-            @if (Classification.Level2.HasValue)
+            @if (Classification.Level2 is not null)
             {
                 <MudItem xs="12">
                     <MudText Typo="Typo.subtitle1" Class="mb-2">Level 2/3 Subcategory</MudText>
@@ -147,25 +147,25 @@
         currentStageIndex = CurrentStage;
     }
 
-    private Color GetCategoryColor(ClassificationLevel1 category) => category switch
+    private Color GetCategoryColor(ClassificationLevel1 category) => category.Value switch
     {
-        ClassificationLevel1.Aseguramiento => Color.Error,
-        ClassificationLevel1.Desembargo => Color.Warning,
-        ClassificationLevel1.Documentacion => Color.Info,
-        ClassificationLevel1.Informacion => Color.Primary,
-        ClassificationLevel1.Transferencia => Color.Secondary,
-        ClassificationLevel1.OperacionesIlicitas => Color.Dark,
+        0 => Color.Error,
+        1 => Color.Warning,
+        2 => Color.Info,
+        3 => Color.Primary,
+        4 => Color.Secondary,
+        5 => Color.Dark,
         _ => Color.Default
     };
 
-    private string GetCategoryIcon(ClassificationLevel1 category) => category switch
+    private string GetCategoryIcon(ClassificationLevel1 category) => category.Value switch
     {
-        ClassificationLevel1.Aseguramiento => Icons.Material.Filled.Lock,
-        ClassificationLevel1.Desembargo => Icons.Material.Filled.LockOpen,
-        ClassificationLevel1.Documentacion => Icons.Material.Filled.Description,
-        ClassificationLevel1.Informacion => Icons.Material.Filled.Info,
-        ClassificationLevel1.Transferencia => Icons.Material.Filled.SwapHoriz,
-        ClassificationLevel1.OperacionesIlicitas => Icons.Material.Filled.Warning,
+        0 => Icons.Material.Filled.Lock,
+        1 => Icons.Material.Filled.LockOpen,
+        2 => Icons.Material.Filled.Description,
+        3 => Icons.Material.Filled.Info,
+        4 => Icons.Material.Filled.SwapHoriz,
+        5 => Icons.Material.Filled.Warning,
         _ => Icons.Material.Filled.Help
     };
 

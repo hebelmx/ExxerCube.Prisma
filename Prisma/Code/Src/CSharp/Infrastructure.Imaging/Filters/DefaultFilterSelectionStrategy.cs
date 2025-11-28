@@ -35,40 +35,34 @@ public class DefaultFilterSelectionStrategy : IFilterSelectionStrategy
     }
 
     /// <inheritdoc />
-    public ImageFilterConfig SelectFilterByQuality(ImageQualityLevel qualityLevel)
+    public ImageFilterConfig SelectFilterByQuality(ImageQualityLevel qualityLevel) => qualityLevel.Value switch
     {
-        return qualityLevel switch
-        {
-            ImageQualityLevel.Q1_Poor => CreateQ1Config(),
-            ImageQualityLevel.Q2_MediumPoor => ImageFilterConfig.CreateQ2Optimized(),
-            ImageQualityLevel.Q3_Low => CreateQ3Config(),
-            ImageQualityLevel.Q4_VeryLow => CreateQ4Config(),
-            ImageQualityLevel.Pristine => CreatePristineConfig(),
-            _ => ImageFilterConfig.CreateQ2Optimized()
-        };
-    }
+        1 => CreateQ1Config(),
+        2 => ImageFilterConfig.CreateQ2Optimized(),
+        3 => CreateQ3Config(),
+        4 => CreateQ4Config(),
+        5 => CreatePristineConfig(),
+        _ => ImageFilterConfig.CreateQ2Optimized()
+    };
 
     /// <inheritdoc />
-    public ImageFilterConfig GetFilterConfig(ImageFilterType filterType)
+    public ImageFilterConfig GetFilterConfig(ImageFilterType filterType) => filterType.Value switch
     {
-        return filterType switch
+        0 => new ImageFilterConfig
         {
-            ImageFilterType.None => new ImageFilterConfig
-            {
-                FilterType = ImageFilterType.None,
-                EnableEnhancement = false
-            },
-            ImageFilterType.PilSimple => ImageFilterConfig.CreateQ2Optimized(),
-            ImageFilterType.OpenCvAdvanced => new ImageFilterConfig
-            {
-                FilterType = ImageFilterType.OpenCvAdvanced,
-                EnableEnhancement = true,
-                OpenCvParams = OpenCvFilterParams.CreateDefault()
-            },
-            ImageFilterType.Adaptive => ImageFilterConfig.CreateAdaptive(),
-            _ => ImageFilterConfig.CreateQ2Optimized()
-        };
-    }
+            FilterType = ImageFilterType.None,
+            EnableEnhancement = false
+        },
+        1 => ImageFilterConfig.CreateQ2Optimized(),
+        2 => new ImageFilterConfig
+        {
+            FilterType = ImageFilterType.OpenCvAdvanced,
+            EnableEnhancement = true,
+            OpenCvParams = OpenCvFilterParams.CreateDefault()
+        },
+        3 => ImageFilterConfig.CreateAdaptive(),
+        _ => ImageFilterConfig.CreateQ2Optimized()
+    };
 
     /// <summary>
     /// Creates configuration for Q1 (Poor quality) documents.

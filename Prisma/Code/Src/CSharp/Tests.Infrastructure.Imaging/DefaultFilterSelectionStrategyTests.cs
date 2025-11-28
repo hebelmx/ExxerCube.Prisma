@@ -3,6 +3,9 @@ using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Infrastructure.Imaging.Filters;
 
+using Shouldly;
+using Xunit;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.Imaging;
 
 /// <summary>
@@ -21,16 +24,18 @@ public class DefaultFilterSelectionStrategyTests
     }
 
     [Theory]
-    [InlineData(ImageQualityLevel.Q1_Poor, ImageFilterType.OpenCvAdvanced)]
-    [InlineData(ImageQualityLevel.Q2_MediumPoor, ImageFilterType.PilSimple)]
-    [InlineData(ImageQualityLevel.Q3_Low, ImageFilterType.PilSimple)]
-    [InlineData(ImageQualityLevel.Q4_VeryLow, ImageFilterType.PilSimple)]
-    [InlineData(ImageQualityLevel.Pristine, ImageFilterType.None)]
+    [InlineData(1, 2)]
+    [InlineData(2, 1)]
+    [InlineData(3, 1)]
+    [InlineData(4, 1)]
+    [InlineData(5, 0)]
     public void SelectFilterByQuality_ShouldReturnCorrectFilterType(
-        ImageQualityLevel qualityLevel,
-        ImageFilterType expectedFilterType)
+        int qualityLevelValue,
+        int expectedFilterTypeValue)
     {
         // Act
+        var qualityLevel = ImageQualityLevel.FromValue(qualityLevelValue);
+        var expectedFilterType = ImageFilterType.FromValue(expectedFilterTypeValue);
         var config = _strategy.SelectFilterByQuality(qualityLevel);
 
         // Assert
@@ -75,13 +80,14 @@ public class DefaultFilterSelectionStrategyTests
     }
 
     [Theory]
-    [InlineData(ImageFilterType.None)]
-    [InlineData(ImageFilterType.PilSimple)]
-    [InlineData(ImageFilterType.OpenCvAdvanced)]
-    [InlineData(ImageFilterType.Adaptive)]
-    public void GetFilterConfig_ShouldReturnValidConfig(ImageFilterType filterType)
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void GetFilterConfig_ShouldReturnValidConfig(int filterTypeValue)
     {
         // Act
+        var filterType = ImageFilterType.FromValue(filterTypeValue);
         var config = _strategy.GetFilterConfig(filterType);
 
         // Assert
