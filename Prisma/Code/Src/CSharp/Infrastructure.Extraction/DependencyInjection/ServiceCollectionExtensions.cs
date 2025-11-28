@@ -45,6 +45,9 @@ public static class ServiceCollectionExtensions
         // Register bulk processing service
         services.AddScoped<IBulkProcessingService, BulkProcessingService>();
 
+        // OCR text cleaning (raw + normalized forms retained)
+        services.AddSingleton<ITextSanitizer, TextSanitizer>();
+
         return services;
     }
 }
