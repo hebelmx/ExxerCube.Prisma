@@ -16,6 +16,7 @@ public class BulkProcessingService : IBulkProcessingService
     private readonly IXmlNullableParser<Expediente> _xmlParser;
     private readonly IOcrProcessingService _ocrService;
     private readonly IDocumentComparisonService _comparisonService;
+    private readonly OcrSanitizationService _sanitization;
     private readonly ILogger<BulkProcessingService> _logger;
 
     private const int MaxBatchSize = 4; // Stakeholder demo limit
@@ -28,16 +29,19 @@ public class BulkProcessingService : IBulkProcessingService
     /// <param name="ocrService">The OCR processing service.</param>
     /// <param name="comparisonService">The document comparison service.</param>
     /// <param name="logger">The logger instance.</param>
+    /// <param name="sanitization">Helper for best-effort OCR sanitization.</param>
     public BulkProcessingService(
         IXmlNullableParser<Expediente> xmlParser,
         IOcrProcessingService ocrService,
         IDocumentComparisonService comparisonService,
-        ILogger<BulkProcessingService> logger)
+        ILogger<BulkProcessingService> logger,
+        OcrSanitizationService sanitization)
     {
         _xmlParser = xmlParser;
         _ocrService = ocrService;
         _comparisonService = comparisonService;
         _logger = logger;
+        _sanitization = sanitization;
     }
 
     /// <inheritdoc/>
@@ -174,6 +178,10 @@ public class BulkProcessingService : IBulkProcessingService
             }
 
             result.OcrConfidence = ocrResult.Value.OCRResult.ConfidenceAvg;
+            var sanitized = _sanitization.SanitizeAccountAndSwift(ocrResult.Value.OCRResult.Text);
+            result.RawOcrText = sanitized.RawText;
+            result.AccountSanitization = sanitized.Account;
+            result.SwiftSanitization = sanitized.Swift;
 
             // Parse OCR to Expediente (simplified for demo)
             result.OcrExpediente = ParseOcrToExpediente(ocrResult.Value);

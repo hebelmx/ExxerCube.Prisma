@@ -43,6 +43,21 @@ public class BulkProcessingResult
     public float? OcrConfidence { get; set; }
 
     /// <summary>
+    /// Gets or sets the raw OCR text captured during processing.
+    /// </summary>
+    public string? RawOcrText { get; set; }
+
+    /// <summary>
+    /// Gets or sets the sanitized account value (raw + cleaned + warnings).
+    /// </summary>
+    public TextCleaningResult? AccountSanitization { get; set; }
+
+    /// <summary>
+    /// Gets or sets the sanitized SWIFT/BIC value (raw + cleaned + warnings).
+    /// </summary>
+    public TextCleaningResult? SwiftSanitization { get; set; }
+
+    /// <summary>
     /// Gets or sets the processing duration in milliseconds.
     /// </summary>
     public long ProcessingTimeMs { get; set; }
