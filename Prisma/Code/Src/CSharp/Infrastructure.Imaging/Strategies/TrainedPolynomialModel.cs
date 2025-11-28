@@ -55,7 +55,7 @@ public class TrainedPolynomialModel
     public TrainedPolynomialModel()
     {
         // Create default options
-        _options = Microsoft.Extensions.Options.Options.Create(new PolynomialModelOptions());
+        _options = new StaticOptionsMonitor<PolynomialModelOptions>(new PolynomialModelOptions());
     }
 
     /// <summary>
@@ -160,5 +160,29 @@ public class TrainedPolynomialModel
     private static double Clamp(double value, double min, double max)
     {
         return Math.Max(min, Math.Min(max, value));
+    }
+
+    private sealed class StaticOptionsMonitor<T> : IOptionsMonitor<T> where T : class, new()
+    {
+        private readonly T _value;
+
+        public StaticOptionsMonitor(T value)
+        {
+            _value = value;
+        }
+
+        public T CurrentValue => _value;
+
+        public T Get(string? name) => _value;
+
+        public IDisposable OnChange(Action<T, string> listener) => NullDisposable.Instance;
+
+        private sealed class NullDisposable : IDisposable
+        {
+            public static readonly NullDisposable Instance = new();
+            public void Dispose()
+            {
+            }
+        }
     }
 }

@@ -20,6 +20,7 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
 {
     private readonly IFieldExtractor<T> _fieldExtractor;
     private readonly IMatchingPolicy _matchingPolicy;
+    private readonly NameMatchingPolicy _nameMatchingPolicy;
     private readonly ILogger<FieldMatcherService<T>> _logger;
 
     /// <summary>
@@ -27,14 +28,17 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
     /// </summary>
     /// <param name="fieldExtractor">The field extractor for extracting fields from sources.</param>
     /// <param name="matchingPolicy">The matching policy for determining best values.</param>
+    /// <param name="nameMatchingPolicy">Specialized matching policy for person/legal names.</param>
     /// <param name="logger">The logger instance.</param>
     public FieldMatcherService(
         IFieldExtractor<T> fieldExtractor,
         IMatchingPolicy matchingPolicy,
+        NameMatchingPolicy nameMatchingPolicy,
         ILogger<FieldMatcherService<T>> logger)
     {
         _fieldExtractor = fieldExtractor;
         _matchingPolicy = matchingPolicy;
+        _nameMatchingPolicy = nameMatchingPolicy;
         _logger = logger;
     }
 
@@ -94,7 +98,7 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
             {
                 if (allFieldValues.TryGetValue(fieldDef.FieldName, out var values) && values.Count > 0)
                 {
-                    var matchResult = await _matchingPolicy.SelectBestValueAsync(fieldDef.FieldName, values);
+                    var matchResult = await SelectBestWithPolicyAsync(fieldDef.FieldName, values);
                     if (matchResult.IsSuccess && matchResult.Value != null)
                     {
                         matchedFields.FieldMatches[fieldDef.FieldName] = matchResult.Value;
@@ -220,6 +224,19 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
 
         return null;
     }
+
+    private Task<Result<FieldMatchResult>> SelectBestWithPolicyAsync(string fieldName, List<FieldValue> values)
+    {
+        if (IsNameField(fieldName))
+        {
+            return _nameMatchingPolicy.SelectBestValueAsync(fieldName, values);
+        }
+
+        return _matchingPolicy.SelectBestValueAsync(fieldName, values);
+    }
+
+    private static bool IsNameField(string fieldName) =>
+        fieldName.Contains("NOMBRE", StringComparison.OrdinalIgnoreCase);
 
     private static string GetSourceType(T source)
     {

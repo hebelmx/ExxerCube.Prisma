@@ -359,3 +359,26 @@ public sealed class AuthorityKind : EnumModel
 - Do not run git commands (add/commit/reset/revert/etc.) without explicit user approval.
 - Do not add/remove projects or edit solution files (`*.sln`) without explicit user approval.
 - Do not delete projects or packages; stay strictly within the assigned scope unless explicitly instructed.
+
+## Name/Identity Matching Policy (to implement)
+- Normalize names before comparison: uppercase, remove accents, collapse whitespace; keep raw for audit.
+- Use multi-signal fuzzy comparison (TokenSortRatio + Jaro-Winkler). Thresholds (tunable via `IOptionsMonitor<NameMatchingOptions>`):
+  - Auto-accept: score >= 0.95.
+  - Review-needed: 0.80–0.95.
+  - Conflict: < 0.80.
+- Maintain a small alias/variant list for common Spanish variants (e.g., PEREZ/PERES, GONZALEZ/GONZALES, CHRISTIAN/CRISTIAN), but only auto-accept if scores exceed the accept threshold; otherwise mark review.
+- Never overwrite a valid value with a “more popular” variant; on disagreement store both in `MatchedFields.AllValues`, set `HasConflict`, and surface validation/warnings for manual review.
+- Make thresholds and alias list tuneable at runtime via `IOptionsMonitor<NameMatchingOptions>` to adjust in production without rebuilds.
+## OCR/Extraction Fixture Plan (for system tests)
+- Add structured dummy fixtures under `Prisma/Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/Fixtures/` with subfolders per scenario:
+  - `Accounts/Clean` – clear account + SWIFT, happy path (PDF/PNG).
+  - `Accounts/Noisy` – spaced digits, noisy SWIFT (PDF/PNG); OCR + sanitizer should normalize and warn.
+  - `Identity/Match` – XML/PDF with matching RFC/CURP to assert winner selection.
+  - `Identity/Conflict` – XML/PDF with differing RFC/CURP to trigger conflict/manual review.
+  - `Accounts/MissingInOne` – account present only in one source; best-effort merge.
+  - `Names/DuplicateSame` – duplicate but same/similar names; no false conflict.
+  - `Names/DuplicateDifferent` – two valid but different names; must flag manual review.
+  - `Edge/NoXml` – PDF-only (simulate 5% missing XML); pipeline continues with warnings.
+  - `Edge/GibberishAccount` – OCR gibberish for account/SWIFT to assert warnings/no stop.
+- Generation approach: use `Prisma/Code/Src/CSharp/Python/generate_corpus.py` (or targeted scripts) to emit PDF/PNG with controlled text and matching XML per scenario; add noise where applicable.
+- Tests to add: system-level checks that run OCR + sanitizer and matching, asserting winner vs conflict/manual-review flags in `MatchedFields`/validation state without short-circuiting the pipeline.

@@ -1,40 +1,38 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
-- Core C# solution lives in `Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln` with Domain, Application, and Infrastructure projects; tests sit under the adjacent `Tests.*` projects plus Playwright E2E suites.
-- Python tooling and extractors reside in `Prisma/Code/Src/Python` (see `prisma-ai-extractors`, `prisma-ocr-pipeline`, and `Prisma-dumy-generator-AAA`); each app has its own `src/` and `tests/`.
-- Root-level automation and docs: `docs/`, `deployment/`, `Fixtures/`, and helper scripts such as `commit-all-changes.ps1` and `migrate-tests.ps1`.
-- Front-end style Playwright examples live in `tests/` at the repo root and use `playwright.config.ts`.
+## Project Structure & Modules
+- Core domain models and contracts: `Prisma/Code/Src/CSharp/Domain` (entities, value objects, interfaces).
+- Application layer: `Prisma/Code/Src/CSharp/Application` orchestrates use cases and pipelines.
+- Infrastructure: `Prisma/Code/Src/CSharp/Infrastructure.*` (Classification, Extraction, Imaging, Database, Export, FileStorage, Metrics, Python adapters).
+- UI: `Prisma/Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI`.
+- Tests: `Prisma/Code/Src/CSharp/Tests.*` (unit, integration, system). OCR fixtures live under `Tests.Infrastructure.Extraction.Teseract/Fixtures`.
+- Docs and due‑diligence notes: `docs/qa` (e.g., `MustDoTask.md`, `Domain_Legal_CodeReview.md`).
 
 ## Build, Test, and Development Commands
-- `cd Prisma/Code/Src/CSharp && dotnet restore` – restore NuGet packages.
-- `cd Prisma/Code/Src/CSharp && dotnet build ExxerCube.Prisma.sln` – compile all projects (warnings are treated seriously).
-- `cd Prisma/Code/Src/CSharp && dotnet test ExxerCube.Prisma.sln` – run unit, integration, architecture, and Playwright-backed E2E tests.
-- `npx playwright test` from repo root – executes the sample browser tests in `tests/` using `@playwright/test`.
-- Python extractors: `cd Prisma/Code/Src/Python/prisma-ai-extractors && pytest -q tests` for model and utility coverage; adapt the path per app.
+- Restore/build solution: `dotnet restore` then `dotnet build Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln`.
+- Build a single project: `dotnet build <project>.csproj` (useful for fast inner loops).
+- Run focused tests: `dotnet test <project>.csproj --filter "<Trait|FullyQualifiedName>"` to avoid long E2E suites; system tests can take ~1 hour.
+- Frontend dev server: `dotnet run --project Prisma/Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI`.
 
-## Coding Style & Naming Conventions
-- C#: keep hexagonal boundaries (Domain contracts, Application orchestration, Infrastructure adapters); prefer dependency injection and adapter pattern used for Python integration. Use PascalCase for types/namespaces, camelCase for locals/parameters, and 4-space indentation.
-- Python: snake_case for functions/modules, PascalCase for classes, and include type hints where possible; keep CLIs thin and delegate to services.
-- Front-end/E2E: place new Playwright specs beside similar flows, favor descriptive test names (`<component>_<behavior>_<expectation>`).
+## Coding Style & Naming
+- C# 10, `Nullable` enabled, `TreatWarningsAsErrors=true`. Prefer explicit null checks over nullable annotations when in doubt.
+- Use SmartEnum/typed identifiers for domain enums; avoid magic numbers/strings.
+- Method/prop names in PascalCase, locals/params in camelCase; async methods suffixed with `Async`.
+- Keep XML documentation on public APIs and meaningful inline comments only where intent is non‑obvious.
 
 ## Testing Guidelines
-- Target ≥80% coverage on critical C# units (see architecture and adapter tests in `Tests.*` projects); add focused unit tests before integration/E2E.
-- Prefer fast `dotnet test --filter "<TraitExpression>"` during development; keep Playwright tests deterministic with explicit waits and encoded data URLs.
-- Python apps: add pytest cases alongside modules; include fixtures for OCR samples where applicable.
-- Commit only when the full suite (or scoped filters) is green; note commands run in the PR description.
+- Unit tests live beside feature area projects; system fixtures under `Tests.System` and OCR fixtures under `Tests.Infrastructure.Extraction.*`.
+- Follow Arrange/Act/Assert; name tests `<Method>_<Scenario>_<Outcome>`.
+- Add positive, negative, and edge cases for validation rules (e.g., RFC/CURP, account formats, name conflicts).
+- Prefer deterministic data; when using OCR fixtures, keep originals + sanitized outputs for traceability.
 
 ## Commit & Pull Request Guidelines
-- Follow conventional prefixes seen in history (`feat:`, `fix:`, `chore:`, `docs:`) with a concise, outcome-focused subject.
-- In bodies, summarize key architectural impacts (e.g., adapter moves, boundary enforcement) and list major test commands executed.
-- PRs should link issues/ADR references, describe scope and risk, and attach evidence (test output, architecture screenshots if relevant). Call out changes to pipelines, secrets, or data contracts explicitly.
+- Commit messages: short imperative summary (e.g., `Add name matching policy`, `Fix OCR sanitization logging`).
+- Pull requests should include: scope/intent, key changes, testing performed (`dotnet test ...`), and any schema/config migrations.
+- Link to related docs in `docs/qa` and cite legal/spec sources when changes are driven by regulation.
+- Screenshots/GIFs for UI changes; sample payloads for API/ingestion changes.
 
 ## Security & Configuration Tips
-- Do not commit secrets; use environment variables or local user secrets for cloud keys and OCR credentials. Check `docs/` and `deployment/` notes before enabling external services.
-- Large fixture and model files live under `Fixtures/` and `bulk_generated_documents_*`; avoid duplicating them—reference existing assets where possible.
-- Persist proposals: save all review findings and code/refactor proposals as Markdown in `docs/` (clear filenames) so they survive sessions and can be reviewed asynchronously.
-
-## Hard Directives (user-specified, do not repeat without approval)
-- No git commands (commit, add, reset, revert, etc.) without explicit user approval.
-- Do not add/remove projects or touch solution files (`.sln`) without explicit user approval.
-- Do not delete projects or packages; stay strictly within the assigned scope unless the user explicitly instructs otherwise.
+- Keep secrets out of repo; use user secrets or environment variables.
+- Validate untrusted OCR/XML inputs; flag conflicts rather than dropping data.
+- Configuration: `appsettings.*.json` for options (e.g., `MatchingPolicy`, `NameMatching`, polynomial model); default-safe values should allow local runs without external services.

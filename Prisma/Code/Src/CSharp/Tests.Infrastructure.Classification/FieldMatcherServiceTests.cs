@@ -1,5 +1,7 @@
 using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using ExxerCube.Prisma.Infrastructure.Classification;
+using Microsoft.Extensions.Options;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
@@ -10,6 +12,7 @@ public class FieldMatcherServiceTests
 {
     private readonly IFieldExtractor<DocxSource> _fieldExtractor;
     private readonly IMatchingPolicy _matchingPolicy;
+    private readonly NameMatchingPolicy _nameMatchingPolicy;
     private readonly ILogger<FieldMatcherService<DocxSource>> _logger;
     private readonly FieldMatcherService<DocxSource> _service;
 
@@ -20,8 +23,10 @@ public class FieldMatcherServiceTests
         
         var options = Options.Create(new MatchingPolicyOptions());
         _matchingPolicy = new MatchingPolicyService(options, Substitute.For<ILogger<MatchingPolicyService>>());
-        
-        _service = new FieldMatcherService<DocxSource>(_fieldExtractor, _matchingPolicy, _logger);
+        var nameOptions = new NameMatchingOptions();
+        _nameMatchingPolicy = new NameMatchingPolicy(new StaticOptionsMonitor<NameMatchingOptions>(nameOptions), Substitute.For<ILogger<NameMatchingPolicy>>());
+
+        _service = new FieldMatcherService<DocxSource>(_fieldExtractor, _matchingPolicy, _nameMatchingPolicy, _logger);
     }
 
     [Fact]
@@ -241,6 +246,30 @@ public class FieldMatcherServiceTests
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
+    }
+}
+
+internal sealed class StaticOptionsMonitor<T> : IOptionsMonitor<T> where T : class, new()
+{
+    private readonly T _value;
+
+    public StaticOptionsMonitor(T value)
+    {
+        _value = value;
+    }
+
+    public T CurrentValue => _value;
+
+    public T Get(string? name) => _value;
+
+    public IDisposable OnChange(Action<T, string?> listener) => NullDisposable.Instance;
+
+    private sealed class NullDisposable : IDisposable
+    {
+        public static readonly NullDisposable Instance = new();
+        public void Dispose()
+        {
+        }
     }
 }
 

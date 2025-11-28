@@ -18,10 +18,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddClassificationServices(this IServiceCollection services, IConfiguration? configuration = null)
     {
         services.AddScoped<IFileClassifier, FileClassifierService>();
-        
-        // Register matching policy service
+
+        // Register matching policy service (general) and name-specific policy
         services.AddScoped<IMatchingPolicy, MatchingPolicyService>();
-        
+        services.AddScoped<NameMatchingPolicy>();
+
         // Register identity resolution service
         services.AddScoped<IPersonIdentityResolver, PersonIdentityResolverService>();
         
@@ -40,11 +41,21 @@ public static class ServiceCollectionExtensions
             {
                 services.Configure<MatchingPolicyOptions>(_ => { });
             }
+            var nameSection = configuration.GetSection("NameMatching");
+            if (nameSection.Exists())
+            {
+                services.Configure<NameMatchingOptions>(nameSection);
+            }
+            else
+            {
+                services.Configure<NameMatchingOptions>(_ => { });
+            }
         }
         else
         {
             // Use default options if no configuration provided
             services.Configure<MatchingPolicyOptions>(_ => { });
+            services.Configure<NameMatchingOptions>(_ => { });
         }
 
         return services;

@@ -121,6 +121,15 @@
   <ItemGroup>
     <None Include="Fixtures\OcrSamples\noisy_account.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\OcrSamples\ocr_account_noisy.png" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Accounts\Clean\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Accounts\Noisy\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Identity\Match\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Identity\Conflict\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Accounts\MissingInOne\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Names\DuplicateSame\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Names\DuplicateDifferent\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Edge\NoXml\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Edge\GibberishAccount\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Copy requirements.txt for Python dependencies -->
