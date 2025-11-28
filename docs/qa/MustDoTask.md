@@ -126,3 +126,7 @@ public sealed class AuthorityKind : EnumModel
 - Entity wiring: ensure SmartEnum properties serialize/deserialize to int (if persisted) and stay backward compatible.
 - Parser mapping: text samples from XML/PDF/OCR map to expected SmartEnum; Unknown on ambiguous input.
 - Exporter: outputs display name/value correctly; blocks or flags Unknown/Other when required.
+- ComplianceActionType (high risk/high value): conversion would touch Domain (ComplianceAction), Infrastructure.Classification (LegalDirectiveClassifierService), UI (LegalDirectiveClassificationView.razor), and tests across Infra/App/UI. Plan a dedicated pass with:
+  - SmartEnum class (ComplianceActionKind) maintaining existing values/names for backward compatibility.
+  - EF/JSON converters and UI mapper updates (color/icon switches).
+  - Regression tests in Domain/App/Infra.Classification/UI to verify mappings and display behavior.
