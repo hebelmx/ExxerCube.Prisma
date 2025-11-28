@@ -1,38 +1,37 @@
 # Repository Guidelines
 
-## Project Structure & Modules
-- Core domain models and contracts: `Prisma/Code/Src/CSharp/Domain` (entities, value objects, interfaces).
-- Application layer: `Prisma/Code/Src/CSharp/Application` orchestrates use cases and pipelines.
-- Infrastructure: `Prisma/Code/Src/CSharp/Infrastructure.*` (Classification, Extraction, Imaging, Database, Export, FileStorage, Metrics, Python adapters).
-- UI: `Prisma/Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI`.
-- Tests: `Prisma/Code/Src/CSharp/Tests.*` (unit, integration, system). OCR fixtures live under `Tests.Infrastructure.Extraction.Teseract/Fixtures`.
-- Docs and due‑diligence notes: `docs/qa` (e.g., `MustDoTask.md`, `Domain_Legal_CodeReview.md`).
+## Project Structure & Module Organization
+- Solution: `Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln` groups Domain, Application, Infrastructure (Database, Extraction, Classification, BrowserAutomation, FileStorage), UI (Blazor), and Testing projects.  
+- Core domain models, SmartEnums, and value objects live under `Prisma/Code/Src/CSharp/Domain`.  
+- Application services (ingestion, extraction, decision, export) are in `Prisma/Code/Src/CSharp/Application`.  
+- Infrastructure implementations sit in `Prisma/Code/Src/CSharp/Infrastructure.*`; EF configs are under `Infrastructure.Database/EntityFramework`.  
+- Tests: unit/integration under `Tests.*` folders; system/E2E under `Tests.System.*` and `Tests.EndToEnd`. Fixtures for XML/PDF live in `Prisma/Fixtures`.
 
 ## Build, Test, and Development Commands
-- Restore/build solution: `dotnet restore` then `dotnet build Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln`.
-- Build a single project: `dotnet build <project>.csproj` (useful for fast inner loops).
-- Run focused tests: `dotnet test <project>.csproj --filter "<Trait|FullyQualifiedName>"` to avoid long E2E suites; system tests can take ~1 hour.
-- Frontend dev server: `dotnet run --project Prisma/Code/Src/CSharp/UI/ExxerCube.Prisma.Web.UI`.
+- Build all projects: `dotnet build Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln -warnaserror`.  
+- Run fast app-layer tests: `dotnet test Prisma/Code/Src/CSharp/Tests.Application/ExxerCube.Prisma.Tests.Application.csproj`.  
+- Run system XML extraction tests: `dotnet test Prisma/Code/Src/CSharp/Tests.Infrastructure.XmlExtraction/ExxerCube.Prisma.Tests.System.XmlExtraction.csproj`.  
+- For slow E2E/Playwright runs, use filters: `dotnet test ... --filter "Category=E2E"`.
 
-## Coding Style & Naming
-- C# 10, `Nullable` enabled, `TreatWarningsAsErrors=true`. Prefer explicit null checks over nullable annotations when in doubt.
-- Use SmartEnum/typed identifiers for domain enums; avoid magic numbers/strings.
-- Method/prop names in PascalCase, locals/params in camelCase; async methods suffixed with `Async`.
-- Keep XML documentation on public APIs and meaningful inline comments only where intent is non‑obvious.
+## Coding Style & Naming Conventions
+- C# 10/NET 10; warnings-as-errors enforced. Prefer explicit null checks instead of nullable annotations for safety.  
+- SmartEnums derive from `EnumModel`; always add EF value converters and value comparers in entity configurations.  
+- Use PascalCase for types and properties, camelCase for locals/params, and clear display names in SmartEnums.  
+- Keep methods small and side-effect aware; favor pure functions and observable patterns over eventing.
 
 ## Testing Guidelines
-- Unit tests live beside feature area projects; system fixtures under `Tests.System` and OCR fixtures under `Tests.Infrastructure.Extraction.*`.
-- Follow Arrange/Act/Assert; name tests `<Method>_<Scenario>_<Outcome>`.
-- Add positive, negative, and edge cases for validation rules (e.g., RFC/CURP, account formats, name conflicts).
-- Prefer deterministic data; when using OCR fixtures, keep originals + sanitized outputs for traceability.
+- Follow ITTDD/TDD: add/extend tests alongside changes.  
+- Use real fixtures from `Prisma/Fixtures` when possible; add negative mirrors (missing/blank fields) for reconciliation scenarios.  
+- System tests should exercise the full pipeline (XML/PDF → extraction → reconciliation); unit tests should isolate services with substitutes.  
+- Name tests as `Method_Scenario_Expectation`; keep logs via the provided XUnit logger helpers for diagnosability.
 
 ## Commit & Pull Request Guidelines
-- Commit messages: short imperative summary (e.g., `Add name matching policy`, `Fix OCR sanitization logging`).
-- Pull requests should include: scope/intent, key changes, testing performed (`dotnet test ...`), and any schema/config migrations.
-- Link to related docs in `docs/qa` and cite legal/spec sources when changes are driven by regulation.
-- Screenshots/GIFs for UI changes; sample payloads for API/ingestion changes.
+- Commit messages: present tense, scoped (e.g., `Add EF converters for ReviewReason`).  
+- PRs need: summary of behavior change, linked requirement/ticket, screenshots for UI updates, and test evidence (`dotnet test ...`).  
+- Keep changes small and reversible; avoid solution churn (no adding/removing projects without approval).  
+- For breaking migrations or SmartEnum changes, call out downstream impacts (DB mappings, JSON serializers, cache entries) and propose rollout steps.
 
-## Security & Configuration Tips
-- Keep secrets out of repo; use user secrets or environment variables.
-- Validate untrusted OCR/XML inputs; flag conflicts rather than dropping data.
-- Configuration: `appsettings.*.json` for options (e.g., `MatchingPolicy`, `NameMatching`, polynomial model); default-safe values should allow local runs without external services.
+## Security & Configuration Notes
+- No secrets in code; use environment variables/appsettings for credentials.  
+- EF InMemory requires explicit converters for SmartEnums; ensure production configurations stay in sync.  
+- Keep reconciliation logic tolerant: missing XML/PDF fields should raise warnings/flags, not stop the pipeline.

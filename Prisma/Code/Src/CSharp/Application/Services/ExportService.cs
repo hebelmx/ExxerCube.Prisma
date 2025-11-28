@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enum;
+
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>
@@ -441,19 +443,27 @@ public class ExportService
             return Result.WithFailure("Expediente is required for export");
         }
 
-        if (string.IsNullOrWhiteSpace(metadata.Expediente.NumeroExpediente))
-        {
-            return Result.WithFailure("Expediente number is required for export");
-        }
-
-        if (string.IsNullOrWhiteSpace(metadata.Expediente.NumeroOficio))
-        {
-            return Result.WithFailure("Oficio number is required for export");
-        }
-
         var validation = metadata.Validation ?? new ValidationState();
         validation.Require(!string.IsNullOrWhiteSpace(metadata.Expediente.NumeroExpediente), "Expediente");
         validation.Require(!string.IsNullOrWhiteSpace(metadata.Expediente.NumeroOficio), "NumeroOficio");
+        validation.Require(!string.IsNullOrWhiteSpace(metadata.Expediente.FundamentoLegal), "FundamentoLegal");
+        validation.Require(!string.IsNullOrWhiteSpace(metadata.Expediente.MedioEnvio), "MedioEnvio");
+        validation.Require(metadata.Expediente.Subdivision != LegalSubdivisionKind.Unknown, "Subdivision");
+        validation.Require(metadata.Expediente.FechaRecepcion != default, "FechaRecepcion");
+        validation.Require(metadata.Expediente.FechaEstimadaConclusion != default, "FechaEstimadaConclusion");
+
+        foreach (var action in metadata.ComplianceActions)
+        {
+            validation.Require(action.ActionType != ComplianceActionKind.Unknown, "ComplianceAction.ActionType");
+            if (action.ActionType == ComplianceActionKind.Block ||
+                action.ActionType == ComplianceActionKind.Unblock ||
+                action.ActionType == ComplianceActionKind.Transfer)
+            {
+                var hasAccount = !string.IsNullOrWhiteSpace(action.AccountNumber) ||
+                                 !string.IsNullOrWhiteSpace(action.Cuenta?.Numero);
+                validation.Require(hasAccount, "ComplianceAction.Account");
+            }
+        }
 
         // Additional merged fields: warn on conflicts and unknowns
         foreach (var conflict in metadata.AdditionalFieldConflicts)

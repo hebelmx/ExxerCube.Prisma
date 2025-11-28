@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enum;
+
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
 /// <summary>
@@ -46,7 +48,12 @@ public class ExportServiceTests
             Expediente = new Expediente
             {
                 NumeroExpediente = "TEST-001",
-                NumeroOficio = "OF-2024-001"
+                NumeroOficio = "OF-2024-001",
+                FundamentoLegal = "Art 115",
+                MedioEnvio = "SIARA",
+                Subdivision = LegalSubdivisionKind.A_AS,
+                FechaRecepcion = DateTime.UtcNow.Date,
+                FechaEstimadaConclusion = DateTime.UtcNow.Date.AddDays(5)
             }
         };
         var pdfContent = new byte[] { 0x25, 0x50, 0x44, 0x46 };
@@ -109,7 +116,12 @@ public class ExportServiceTests
             Expediente = new Expediente
             {
                 NumeroExpediente = "TEST-001",
-                NumeroOficio = "OF-2024-001"
+                NumeroOficio = "OF-2024-001",
+                FundamentoLegal = "Art 115",
+                MedioEnvio = "SIARA",
+                Subdivision = LegalSubdivisionKind.A_AS,
+                FechaRecepcion = DateTime.UtcNow.Date,
+                FechaEstimadaConclusion = DateTime.UtcNow.Date.AddDays(5)
             }
         };
         var pdfContent = new byte[] { 0x25, 0x50, 0x44, 0x46 };
@@ -160,7 +172,12 @@ public class ExportServiceTests
             Expediente = new Expediente
             {
                 NumeroExpediente = "TEST-001",
-                NumeroOficio = "OF-2024-001"
+                NumeroOficio = "OF-2024-001",
+                FundamentoLegal = "Art 115",
+                MedioEnvio = "SIARA",
+                Subdivision = LegalSubdivisionKind.A_AS,
+                FechaRecepcion = DateTime.UtcNow.Date,
+                FechaEstimadaConclusion = DateTime.UtcNow.Date.AddDays(5)
             },
             RequirementSummary = requirementSummary
         };
@@ -275,7 +292,12 @@ public class ExportServiceTests
             Expediente = new Expediente
             {
                 NumeroExpediente = "TEST-001",
-                NumeroOficio = "OF-2024-001"
+                NumeroOficio = "OF-2024-001",
+                FundamentoLegal = "Art 115",
+                MedioEnvio = "SIARA",
+                Subdivision = LegalSubdivisionKind.A_AS,
+                FechaRecepcion = DateTime.UtcNow.Date,
+                FechaEstimadaConclusion = DateTime.UtcNow.Date.AddDays(5)
             }
         };
         var pdfContent = new byte[] { 0x25, 0x50, 0x44, 0x46 };
@@ -308,6 +330,9 @@ public class ExportServiceTests
         var result = await _exportService.ExportSiroXmlAsync(metadata, stream, cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
+        var error = result.Error;
+        error.ShouldNotBeNull();
+        error!.ShouldContain("Validation failed");
     }
 
     [Fact]
@@ -315,7 +340,16 @@ public class ExportServiceTests
     {
         var metadata = new UnifiedMetadataRecord
         {
-            Expediente = new Expediente { NumeroExpediente = "EXP-1", NumeroOficio = "OF-1" },
+            Expediente = new Expediente
+            {
+                NumeroExpediente = "EXP-1",
+                NumeroOficio = "OF-1",
+                FundamentoLegal = "Art 115",
+                MedioEnvio = "SIARA",
+                Subdivision = LegalSubdivisionKind.A_AS,
+                FechaRecepcion = DateTime.UtcNow.Date,
+                FechaEstimadaConclusion = DateTime.UtcNow.Date.AddDays(3)
+            },
             AdditionalFieldConflicts = new List<string> { "RfcList", "Curp" }
         };
         using var stream = new MemoryStream();
@@ -327,6 +361,35 @@ public class ExportServiceTests
         {
             result.Error?.ShouldNotContain("Validation failed");
         }
+    }
+
+    [Fact]
+    public async Task ExportSiroXmlAsync_ComplianceActionMissingAccount_ReturnsFailure()
+    {
+        var metadata = new UnifiedMetadataRecord
+        {
+            Expediente = new Expediente
+            {
+                NumeroExpediente = "EXP-1",
+                NumeroOficio = "OF-1",
+                FundamentoLegal = "Art 115",
+                MedioEnvio = "SIARA",
+                Subdivision = LegalSubdivisionKind.A_AS,
+                FechaRecepcion = DateTime.UtcNow.Date,
+                FechaEstimadaConclusion = DateTime.UtcNow.Date.AddDays(3)
+            },
+            ComplianceActions = new List<ComplianceAction>
+            {
+                new() { ActionType = ComplianceActionKind.Transfer, AccountNumber = "" }
+            }
+        };
+        using var stream = new MemoryStream();
+
+        var result = await _exportService.ExportSiroXmlAsync(metadata, stream, cancellationToken: TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        var err = result.Error ?? string.Empty;
+        err.ShouldContain("ComplianceAction.Account");
     }
 }
 

@@ -37,7 +37,7 @@ public class DocumentIngestionServiceTests
     /// Tests that <see cref="DocumentIngestionService.IngestDocumentsAsync"/> successfully ingests documents when all steps succeed.
     /// </summary>
     /// <returns>A task that completes after verifying successful ingestion.</returns>
-    [Fact(Skip = "Known failure: ingestion flow under investigation")]
+    [Fact]
     public async Task IngestDocumentsAsync_AllStepsSucceed_ReturnsIngestedFiles()
     {
         // Arrange
@@ -46,7 +46,8 @@ public class DocumentIngestionServiceTests
         var downloadableFile = new DownloadableFile
         {
             FileName = "test.pdf",
-            Url = "https://example.com/test.pdf"
+            Url = "https://example.com/test.pdf",
+            Format = FileFormat.Pdf
         };
         var fileContent = new byte[] { 1, 2, 3, 4, 5 };
         var storagePath = "/storage/test.pdf";
@@ -82,7 +83,7 @@ public class DocumentIngestionServiceTests
             .Returns(Result.Success());
         _downloadTracker.IsDuplicateAsync(checksum, Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<bool>.Success(false));
-        _downloadStorage.SaveFileAsync(fileContent, downloadableFile.FileName, FileFormat.Pdf, Arg.Any<System.Threading.CancellationToken>())
+        _downloadStorage.SaveFileAsync(fileContent, downloadableFile.FileName, Arg.Any<FileFormat>(), Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<string>.Success(storagePath));
         _fileMetadataLogger.LogFileMetadataAsync(Arg.Any<FileMetadata>(), Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result.Success());

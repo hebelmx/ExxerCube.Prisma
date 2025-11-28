@@ -1,0 +1,227 @@
+@page "/system-flow/processing"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages.SystemFlowPages
+
+<PageTitle>Intelligent Processing - ExxerCube Prisma</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4"></MudBreadcrumbs>
+
+    @* Header *@
+    <MudPaper Elevation="0" Class="pa-6 mb-6" Style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 12px;">
+        <MudText Typo="Typo.h4" Style="color: #2e7d32; font-weight: 600;" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Psychology" Class="mr-2" Size="Size.Large" />
+            Intelligent Processing Pipeline
+        </MudText>
+        <MudText Typo="Typo.body1" Style="color: #2e7d32;">
+            Multi-strategy adaptive extraction using defensive intelligence (not traditional ML).
+        </MudText>
+    </MudPaper>
+
+    @* Pipeline Overview *@
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader Style="background-color: rgba(56, 142, 60, 0.1);">
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6" Color="Color.Success">
+                    <MudIcon Icon="@Icons.Material.Filled.AccountTree" Class="mr-2" />
+                    Processing Stages
+                </MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTimeline TimelineOrientation="TimelineOrientation.Vertical">
+                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">1. Image Quality Analysis</MudText>
+                    <MudText Typo="Typo.body2">EmguCV analyzes blur, noise, contrast, sharpness</MudText>
+                </MudTimelineItem>
+                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">2. Adaptive Filter Selection</MudText>
+                    <MudText Typo="Typo.body2">ML-driven selection: Polynomial (18.4%) vs Analytical NSGA-II (12.3%)</MudText>
+                </MudTimelineItem>
+                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">3. Image Enhancement</MudText>
+                    <MudText Typo="Typo.body2">Polynomial regression with 15 features, R² > 0.89</MudText>
+                </MudTimelineItem>
+                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">4. OCR Processing</MudText>
+                    <MudText Typo="Typo.body2">Tesseract (Spanish + English) with confidence tracking</MudText>
+                </MudTimelineItem>
+                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">5. Text Sanitization</MudText>
+                    <MudText Typo="Typo.body2">Account number cleaning, SWIFT/BIC normalization</MudText>
+                </MudTimelineItem>
+            </MudTimeline>
+        </MudCardContent>
+    </MudCard>
+
+    @* OCR Enhancement Details *@
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader Style="background-color: rgba(56, 142, 60, 0.1);">
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6" Color="Color.Success">
+                    <MudIcon Icon="@Icons.Material.Filled.ImageSearch" Class="mr-2" />
+                    OCR Enhancement: Defensive Intelligence
+                </MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body1" Class="mb-3">
+                Our OCR enhancement system demonstrates defensive intelligence - not traditional ML, but intelligently designed adaptive algorithms:
+            </MudText>
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1" Style="height: 100%;">
+                        <MudText Typo="Typo.h6" Style="color: #388e3c;" Class="mb-2">
+                            📊 Polynomial Strategy
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            Uses polynomial regression with 15 image quality features (blur, noise, contrast, sharpness, etc.).
+                        </MudText>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success">18.4% avg improvement</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info">R² > 0.89</MudChip>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1" Style="height: 100%;">
+                        <MudText Typo="Typo.h6" Style="color: #388e3c;" Class="mb-2">
+                            🧬 Analytical NSGA-II Strategy
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mb-2">
+                            Multi-objective genetic algorithm optimization for complex degradation patterns.
+                        </MudText>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success">12.3% avg improvement</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info">Better for severe cases</MudChip>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudAlert Severity="Severity.Success" Class="mt-4">
+                <strong>Golden Test Result:</strong> Polynomial strategy achieved <strong>89.7% improvement</strong> on medium-poor quality test fixture.
+            </MudAlert>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Href="/ocr-filter-tester" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Science">
+                Try OCR Filter Tester
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+
+    @* XML & DOCX Processing *@
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3" Style="height: 100%;">
+                <MudCardHeader Style="background-color: rgba(56, 142, 60, 0.1);">
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6" Color="Color.Success">
+                            <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-2" />
+                            XML Parsing
+                        </MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Tolerant parser handles malformed XML gracefully:
+                    </MudText>
+                    <MudList T="string" Dense="true">
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check">Nullable field parsing</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check">Schema-flexible auto-detection</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check">Missing tag recovery</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check">Encoding error handling</MudListItem>
+                    </MudList>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudCard Elevation="3" Style="height: 100%;">
+                <MudCardHeader Style="background-color: rgba(56, 142, 60, 0.1);">
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6" Color="Color.Success">
+                            <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                            DOCX Extraction
+                        </MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Multi-strategy adaptive extraction:
+                    </MudText>
+                    <MudList T="string" Dense="true">
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check">Structured regex patterns</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check">Contextual label-value extraction</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check">Fuzzy matching (typo tolerance)</MudListItem>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check">Table-based extraction</MudListItem>
+                    </MudList>
+                    <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
+                        <strong>In Development:</strong> Target 85% success rate
+                    </MudAlert>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    @* Technology Stack *@
+    <MudCard Elevation="3" Class="mt-4 mb-4">
+        <MudCardHeader Style="background-color: rgba(56, 142, 60, 0.1);">
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6" Color="Color.Success">
+                    <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-2" />
+                    Technology Stack
+                </MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;" Class="mb-1">Image Processing</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mb-1">EmguCV</MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;" Class="mb-1">OCR Engine</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mb-1">Tesseract (ES + EN)</MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;" Class="mb-1">Document Parsing</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mb-1">DocumentFormat.OpenXML</MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;" Class="mb-1">ML Algorithms</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mb-1">Polynomial Regression</MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;" Class="mb-1">Optimization</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mb-1">NSGA-II</MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;" Class="mb-1">String Matching</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mb-1">Levenshtein Distance</MudChip>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    @* Next Steps *@
+    <MudPaper Elevation="2" Class="pa-4 mt-6" Style="background-color: #f5f5f5;">
+        <MudText Typo="Typo.h6" Class="mb-2">What Happens Next?</MudText>
+        <MudText Typo="Typo.body2" Class="mb-3">
+            After processing, extracted data enters the Reconciliation & Intelligence stage for cross-validation and conflict detection.
+        </MudText>
+        <MudButton Href="/system-flow/reconciliation" Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.ArrowForward">
+            View Reconciliation
+        </MudButton>
+        <MudButton Href="/system-flow" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Home" Class="ml-2">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+
+</MudContainer>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("System Flow", href: "/system-flow"),
+        new BreadcrumbItem("Intelligent Processing", href: null, disabled: true)
+    };
+}

@@ -1,0 +1,120 @@
+@page "/system-flow/final-processing"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages.SystemFlowPages
+
+<PageTitle>Final Processing - ExxerCube Prisma</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4"></MudBreadcrumbs>
+
+    <MudPaper Elevation="0" Class="pa-6 mb-6" Style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px;">
+        <MudText Typo="Typo.h4" Color="Color.Primary" Style="font-weight: 600;" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" Size="Size.Large" />
+            Final Processing & Delivery
+        </MudText>
+        <MudText Typo="Typo.body1" Color="Color.Primary">
+            Generates unified requirements with manual review queue and auto-adaptive bank template delivery.
+        </MudText>
+    </MudPaper>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Final Requirement Generation</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Creates unified data model preserving all sources with complete traceability:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Merge">
+                    <strong>Unified Data Model:</strong> Single source of truth combining best values from all sources
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Storage">
+                    <strong>Source Preservation:</strong> Original XML, PDF, DOCX data preserved for audit
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Timeline">
+                    <strong>Traceability:</strong> Complete audit trail of extraction, reconciliation, decisions
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">
+                    <strong>80%+ Auto-Processing:</strong> High-confidence cases processed without human intervention
+                </MudListItem>
+            </MudList>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Manual Review Queue</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Only flagged cases require manual review - intelligent triage minimizes human effort:
+            </MudText>
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #1976d2;">
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Style="font-weight: 600;">Flagging Criteria</MudText>
+                        <MudText Typo="Typo.body2">Missing required data, low confidence scores, cross-source conflicts</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #1976d2;">
+                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Style="font-weight: 600;">Reviewer Interface</MudText>
+                        <MudText Typo="Typo.body2">Side-by-side source comparison, confidence indicators, quick corrections</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+            <MudButton Href="/manual-review" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Assignment" Class="mt-3">
+                View Manual Review Queue
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Bank Template Adapter (Auto-Detecting)</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Automatically adapts to bank template changes without code modifications:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Schema">
+                    <strong>Template Schema Detection:</strong> Automatically detects bank template structure changes
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Transform">
+                    <strong>Dynamic Mapping:</strong> Maps extracted fields to bank template fields on-the-fly
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Autorenew">
+                    <strong>Zero Code Changes:</strong> Template changes handled automatically through configuration
+                </MudListItem>
+            </MudList>
+            <MudAlert Severity="Severity.Success" Class="mt-3">
+                <strong>Adaptive Intelligence:</strong> System detects and adapts to template changes without developer intervention
+            </MudAlert>
+        </MudCardContent>
+    </MudCard>
+
+    <MudPaper Elevation="2" Class="pa-4 mt-6" Style="background-color: #f5f5f5;">
+        <MudButton Href="/system-flow/storage" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.ArrowForward">
+            View Storage & Intelligence
+        </MudButton>
+        <MudButton Href="/system-flow" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Home" Class="ml-2">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("System Flow", href: "/system-flow"),
+        new BreadcrumbItem("Final Processing", href: null, disabled: true)
+    };
+}

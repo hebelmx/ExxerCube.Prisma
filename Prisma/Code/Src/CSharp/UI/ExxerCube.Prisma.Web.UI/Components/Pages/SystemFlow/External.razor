@@ -1,0 +1,83 @@
+@page "/system-flow/external"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages.SystemFlowPages
+
+<PageTitle>External Systems - ExxerCube Prisma</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4"></MudBreadcrumbs>
+
+    <MudPaper Elevation="0" Class="pa-6 mb-6" Style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px;">
+        <MudText Typo="Typo.h4" Color="Color.Primary" Style="font-weight: 600;" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Gavel" Class="mr-2" Size="Size.Large" />
+            External Systems & Authorities
+        </MudText>
+        <MudText Typo="Typo.body1" Color="Color.Primary">
+            Mexican government authorities and CNBV requirement creation process.
+        </MudText>
+    </MudPaper>
+
+    <MudAlert Severity="Severity.Info" Class="mb-4">
+        This section documents external systems outside ExxerCube Prisma control.
+    </MudAlert>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Mexican Authorities</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Various Mexican government entities create legal requirements for banks:
+            </MudText>
+            <MudSimpleTable Dense="true">
+                <thead>
+                    <tr>
+                        <th>Authority</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>IMSS</strong></td><td>Instituto Mexicano del Seguro Social (Social Security)</td></tr>
+                    <tr><td><strong>SAT</strong></td><td>Servicio de Administración Tributaria (Tax Authority)</td></tr>
+                    <tr><td><strong>UIF</strong></td><td>Unidad de Inteligencia Financiera (Financial Intelligence)</td></tr>
+                    <tr><td><strong>FGR</strong></td><td>Fiscalía General de la República (Attorney General)</td></tr>
+                    <tr><td><strong>PJF</strong></td><td>Poder Judicial Federal (Federal Judiciary)</td></tr>
+                    <tr><td><strong>SHCP</strong></td><td>Secretaría de Hacienda (Finance Ministry)</td></tr>
+                    <tr><td><strong>CONDUSEF</strong></td><td>Comisión Nacional para la Protección (Consumer Protection)</td></tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">CNBV (National Banking Commission)</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2">
+                CNBV vets requirements from authorities and generates standardized documents for distribution to banks via SIARA.
+            </MudText>
+        </MudCardContent>
+    </MudCard>
+
+    <MudPaper Elevation="2" Class="pa-4 mt-6" Style="background-color: #f5f5f5;">
+        <MudButton Href="/system-flow/siara" Variant="Variant.Filled" Color="Color.Warning" StartIcon="@Icons.Material.Filled.ArrowForward">
+            View SIARA Distribution
+        </MudButton>
+        <MudButton Href="/system-flow" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Home" Class="ml-2">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("System Flow", href: "/system-flow"),
+        new BreadcrumbItem("External Systems", href: null, disabled: true)
+    };
+}

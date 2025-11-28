@@ -1,0 +1,110 @@
+@page "/system-flow/siara"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages.SystemFlowPages
+
+<PageTitle>SIARA System - ExxerCube Prisma</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4"></MudBreadcrumbs>
+
+    <MudPaper Elevation="0" Class="pa-6 mb-6" Style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 12px;">
+        <MudText Typo="Typo.h4" Style="color: #e65100; font-weight: 600;" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.CloudQueue" Class="mr-2" Size="Size.Large" />
+            SIARA Distribution System
+        </MudText>
+        <MudText Typo="Typo.body1" Style="color: #e65100;">
+            Sistema de Atención de Requerimientos de Autoridad - CNBV's official requirement distribution portal.
+        </MudText>
+    </MudPaper>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">SIARA Portal</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                SIARA is CNBV's web portal for distributing legal requirements to Mexican banks. It provides:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Language">
+                    Web interface at <code>https://siara.cnbv.gob.mx</code> (production)
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Description">
+                    Document distribution: XML (metadata) + PDF (official document) + DOCX (editable)
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Notifications">
+                    Requirement notifications and tracking
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.History">
+                    Historical requirement archive
+                </MudListItem>
+            </MudList>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Document Formats</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1">
+                        <MudText Typo="Typo.h6" Style="color: #f57c00;">📋 XML</MudText>
+                        <MudText Typo="Typo.body2">Structured metadata (expediente, causa, parties, dates)</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1">
+                        <MudText Typo="Typo.h6" Style="color: #f57c00;">📄 PDF</MudText>
+                        <MudText Typo="Typo.body2">Official scanned document (often degraded quality)</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1">
+                        <MudText Typo="Typo.h6" Style="color: #f57c00;">📝 DOCX</MudText>
+                        <MudText Typo="Typo.body2">Editable document (free-style format, no standard)</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">SIARA Simulator (Demo)</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                For demonstration purposes, we've built a SIARA simulator that serves our own repository of 500 generated requirements.
+                This allows us to showcase browser automation capabilities without accessing the real CNBV portal.
+            </MudText>
+            <MudButton Href="/browser-automation" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Language">
+                View Browser Automation Demo
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+
+    <MudPaper Elevation="2" Class="pa-4 mt-6" Style="background-color: #f5f5f5;">
+        <MudButton Href="/system-flow/monitoring" Variant="Variant.Filled" Style="background-color: #7b1fa2; color: white;" StartIcon="@Icons.Material.Filled.ArrowForward">
+            View Monitoring & Download
+        </MudButton>
+        <MudButton Href="/system-flow" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Home" Class="ml-2">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("System Flow", href: "/system-flow"),
+        new BreadcrumbItem("SIARA Distribution", href: null, disabled: true)
+    };
+}

@@ -1,0 +1,174 @@
+@page "/system-flow/intake"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages.SystemFlowPages
+
+<PageTitle>Document Intake - ExxerCube Prisma</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4"></MudBreadcrumbs>
+
+    @* Header *@
+    <MudPaper Elevation="0" Class="pa-6 mb-6" Style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius: 12px;">
+        <MudText Typo="Typo.h4" Style="color: #c62828; font-weight: 600;" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Class="mr-2" Size="Size.Large" />
+            Document Intake: Facing Reality
+        </MudText>
+        <MudText Typo="Typo.body1" Style="color: #c62828;">
+            How ExxerCube Prisma handles degraded documents in their natural state from SIARA.
+        </MudText>
+    </MudPaper>
+
+    @* Reality Check *@
+    <MudAlert Severity="Severity.Warning" Class="mb-4" Elevation="2">
+        <strong>Reality:</strong> Documents arrive in bad state - it's not a bug, it's the environment. Our system is designed to handle chaos.
+    </MudAlert>
+
+    @* Bad PDF State *@
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader Style="background-color: rgba(211, 47, 47, 0.1);">
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6" Style="color: #d32f2f;">
+                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                    PDF Documents: Degraded State
+                </MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body1" Class="mb-3">
+                PDF documents from CNBV are typically scanned copies of physical documents, resulting in significant quality issues:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.BlurOn">
+                    <MudText><strong>Blur & Low Resolution:</strong> Scanned at insufficient DPI, motion blur, out-of-focus captures</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Grain">
+                    <MudText><strong>Noise & Artifacts:</strong> Scanner noise, compression artifacts, JPEG degradation</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Contrast">
+                    <MudText><strong>Poor Contrast:</strong> Faded text, low ink, aged documents, inconsistent lighting</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.RotateRight">
+                    <MudText><strong>Geometric Issues:</strong> Skewed pages, rotated text, perspective distortion</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Image">
+                    <MudText><strong>Watermarks & Stamps:</strong> Overlapping official stamps, watermarks obscuring text</MudText>
+                </MudListItem>
+            </MudList>
+            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.subtitle2" Style="color: #d32f2f; font-weight: 600;">Our Solution:</MudText>
+            <MudText Typo="Typo.body2">
+                Adaptive image enhancement pipeline analyzes quality metrics (blur, noise, contrast) and selects optimal preprocessing strategy:
+                <strong>Polynomial regression (18.4% avg improvement)</strong> or <strong>Analytical NSGA-II (12.3% avg improvement)</strong>.
+            </MudText>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Href="/ocr-filter-tester" Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Science">
+                Try OCR Enhancement
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+
+    @* Bad XML State *@
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader Style="background-color: rgba(211, 47, 47, 0.1);">
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6" Style="color: #d32f2f;">
+                    <MudIcon Icon="@Icons.Material.Filled.Code" Class="mr-2" />
+                    XML Documents: Malformed Structure
+                </MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body1" Class="mb-3">
+                XML documents from CNBV often have structural and data quality issues:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.BrokenImage">
+                    <MudText><strong>Malformed Structure:</strong> Missing closing tags, incorrect nesting, invalid characters</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.HelpOutline">
+                    <MudText><strong>Missing Fields:</strong> Required fields absent, empty elements, null values</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.SwapHoriz">
+                    <MudText><strong>Inconsistent Data:</strong> Date format variations, encoding issues, schema drift</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Rule">
+                    <MudText><strong>Schema Evolution:</strong> CNBV changes schema without notice, new fields appear</MudText>
+                </MudListItem>
+            </MudList>
+            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.subtitle2" Style="color: #d32f2f; font-weight: 600;">Our Solution:</MudText>
+            <MudText Typo="Typo.body2">
+                Tolerant XML parser with nullable fields, schema-flexible auto-detection, and defensive parsing.
+                System <strong>automatically detects schema changes</strong> and adapts without code modifications.
+            </MudText>
+        </MudCardContent>
+    </MudCard>
+
+    @* Bad DOCX State *@
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader Style="background-color: rgba(211, 47, 47, 0.1);">
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6" Style="color: #d32f2f;">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                    DOCX Documents: Free-Style Chaos
+                </MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body1" Class="mb-3">
+                DOCX documents are the most challenging - created by rushed lawyers with no standard format:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.FormatAlignLeft">
+                    <MudText><strong>Free-Style Format:</strong> No standard structure, each authority has different templates</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Spellcheck">
+                    <MudText><strong>Guaranteed Errors:</strong> Typos, misspellings, inconsistent terminology</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.QuestionMark">
+                    <MudText><strong>Non-Structured Content:</strong> Paragraphs, tables, lists - no consistent pattern</MudText>
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Speed">
+                    <MudText><strong>Rushed Creation:</strong> First/second year lawyers under time pressure</MudText>
+                </MudListItem>
+            </MudList>
+            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.subtitle2" Style="color: #d32f2f; font-weight: 600;">Our Solution:</MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">
+                Multi-strategy adaptive extraction system (currently in development):
+            </MudText>
+            <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mr-1 mb-1">Structured regex patterns</MudChip>
+            <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mr-1 mb-1">Contextual label-value extraction</MudChip>
+            <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mr-1 mb-1">Fuzzy matching (typo tolerance)</MudChip>
+            <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="mr-1 mb-1">Table-based extraction</MudChip>
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-3">
+                <strong>Target:</strong> 85% extraction success rate (up from current 60%)
+            </MudAlert>
+        </MudCardContent>
+    </MudCard>
+
+    @* Next Steps *@
+    <MudPaper Elevation="2" Class="pa-4 mt-6" Style="background-color: #f5f5f5;">
+        <MudText Typo="Typo.h6" Class="mb-2">What Happens Next?</MudText>
+        <MudText Typo="Typo.body2" Class="mb-3">
+            After intake, documents enter the Intelligent Processing Pipeline for enhancement, extraction, and reconciliation.
+        </MudText>
+        <MudButton Href="/system-flow/processing" Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.ArrowForward">
+            View Processing Pipeline
+        </MudButton>
+        <MudButton Href="/system-flow" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Home" Class="ml-2">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+
+</MudContainer>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("System Flow", href: "/system-flow"),
+        new BreadcrumbItem("Document Intake", href: null, disabled: true)
+    };
+}

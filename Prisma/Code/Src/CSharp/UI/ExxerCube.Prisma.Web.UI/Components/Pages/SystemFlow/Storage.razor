@@ -1,0 +1,195 @@
+@page "/system-flow/storage"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages.SystemFlowPages
+
+<PageTitle>Storage & Intelligence - ExxerCube Prisma</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4"></MudBreadcrumbs>
+
+    <MudPaper Elevation="0" Class="pa-6 mb-6" Style="background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); border-radius: 12px;">
+        <MudText Typo="Typo.h4" Color="Color.Secondary" Style="font-weight: 600;" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Storage" Class="mr-2" Size="Size.Large" />
+            Storage & Adaptive Intelligence
+        </MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">
+            Structured storage with full traceability, observability, and continuous adaptive learning.
+        </MudText>
+    </MudPaper>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Structured Storage</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                SQL Server database optimized for bank's workflow with efficient querying and compliance reporting:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.TableChart">
+                    <strong>Expediente Data:</strong> Structured requirement information (parties, dates, amounts, accounts)
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Insights">
+                    <strong>Processing Metadata:</strong> Extraction timestamps, confidence scores, source information
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Speed">
+                    <strong>Quality Metrics:</strong> Image quality scores, OCR accuracy, reconciliation agreement levels
+                </MudListItem>
+            </MudList>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Full Traceability & Audit Trail</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Complete audit trail for compliance and regulatory review:
+            </MudText>
+            <MudGrid>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #c2185b;">
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Style="font-weight: 600;">Source Preservation</MudText>
+                        <MudText Typo="Typo.body2">Original files (XML, PDF, DOCX) preserved indefinitely</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #c2185b;">
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Style="font-weight: 600;">Change History</MudText>
+                        <MudText Typo="Typo.body2">Every manual edit tracked with user, timestamp, reason</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #c2185b;">
+                        <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Style="font-weight: 600;">Decision Trail</MudText>
+                        <MudText Typo="Typo.body2">Extraction, reconciliation, classification decisions logged</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+            <MudButton Href="/audit-trail" Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.History" Class="mt-3">
+                View Audit Trail
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Logging & Observability</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Comprehensive observability using Serilog with structured logging:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Speed">
+                    <strong>Performance Metrics:</strong> Processing times, throughput, bottleneck detection
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Error">
+                    <strong>Error Tracking:</strong> Exception logging, error rates, failure patterns
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.TrendingUp">
+                    <strong>Quality Monitoring:</strong> Confidence score trends, extraction success rates
+                </MudListItem>
+            </MudList>
+            <MudButton Href="/dashboard" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.Analytics" Class="mt-3">
+                View Analytics Dashboard
+            </MudButton>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader Style="background-color: rgba(0, 150, 136, 0.1);">
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6" Style="color: #00897b;">
+                    <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Class="mr-2" />
+                    Adaptive Learning (Defensive Intelligence - Not ML)
+                </MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                System continuously learns and adapts without traditional machine learning or code changes:
+            </MudText>
+
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #00897b;">
+                        <MudText Typo="Typo.subtitle2" Style="color: #00695c; font-weight: 600;" Class="mb-2">Quality Patterns Tracking</MudText>
+                        <MudText Typo="Typo.body2">Monitors PDF quality degradation trends over time, identifies common issues</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #00897b;">
+                        <MudText Typo="Typo.subtitle2" Style="color: #00695c; font-weight: 600;" Class="mb-2">Filter Effectiveness</MudText>
+                        <MudText Typo="Typo.body2">Tracks which enhancement filters work best for different quality levels</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #00897b;">
+                        <MudText Typo="Typo.subtitle2" Style="color: #00695c; font-weight: 600;" Class="mb-2">Schema Evolution Detection</MudText>
+                        <MudText Typo="Typo.body2">Automatically detects when CNBV changes XML schema, adapts parsing</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #00897b;">
+                        <MudText Typo="Typo.subtitle2" Style="color: #00695c; font-weight: 600;" Class="mb-2">Template Change Auto-Detection</MudText>
+                        <MudText Typo="Typo.body2">Detects bank template schema changes, adjusts mapping automatically</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudAlert Severity="Severity.Info" Class="mt-4">
+                <strong>Defensive Intelligence Philosophy:</strong> Not ChatGPT-style ML, but intelligently programmed adaptive systems that evolve through configuration and pattern recognition.
+            </MudAlert>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Technology Stack</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudChip T="string" Color="Color.Default">SQL Server</MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudChip T="string" Color="Color.Default">Serilog</MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudChip T="string" Color="Color.Default">Entity Framework Core</MudChip>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="3">
+                    <MudChip T="string" Color="Color.Default">OpenTelemetry</MudChip>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <MudPaper Elevation="2" Class="pa-4 mt-6" Style="background-color: #f5f5f5;">
+        <MudText Typo="Typo.h6" Class="mb-2">System Flow Complete</MudText>
+        <MudText Typo="Typo.body2" Class="mb-3">
+            You've reached the end of the system flow. Data is now stored, traceable, and ready for bank processing.
+        </MudText>
+        <MudButton Href="/system-flow" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Home">
+            Back to System Flow Overview
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("System Flow", href: "/system-flow"),
+        new BreadcrumbItem("Storage & Intelligence", href: null, disabled: true)
+    };
+}

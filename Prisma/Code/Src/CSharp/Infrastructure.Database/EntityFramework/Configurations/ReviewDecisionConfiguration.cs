@@ -1,4 +1,6 @@
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
 
@@ -10,6 +12,16 @@ public class ReviewDecisionConfiguration : IEntityTypeConfiguration<ReviewDecisi
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<ReviewDecision> builder)
     {
+        var reviewReasonComparer = new ValueComparer<ReviewReason>(
+            (l, r) => (l ?? ReviewReason.Unknown).Value == (r ?? ReviewReason.Unknown).Value,
+            v => (v ?? ReviewReason.Unknown).Value.GetHashCode(),
+            v => ReviewReason.FromValue((v ?? ReviewReason.Unknown).Value));
+
+        var decisionTypeComparer = new ValueComparer<DecisionType>(
+            (l, r) => (l ?? DecisionType.Unknown).Value == (r ?? DecisionType.Unknown).Value,
+            v => (v ?? DecisionType.Unknown).Value.GetHashCode(),
+            v => DecisionType.FromValue((v ?? DecisionType.Unknown).Value));
+
         builder.ToTable("ReviewDecisions");
 
         builder.HasKey(d => d.DecisionId);
@@ -24,7 +36,10 @@ public class ReviewDecisionConfiguration : IEntityTypeConfiguration<ReviewDecisi
 
         builder.Property(d => d.DecisionType)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion(
+                v => v.Value,
+                v => DecisionType.FromValue(v))
+            .Metadata.SetValueComparer(decisionTypeComparer);
 
         builder.Property(d => d.ReviewerId)
             .HasMaxLength(100)
@@ -36,6 +51,13 @@ public class ReviewDecisionConfiguration : IEntityTypeConfiguration<ReviewDecisi
         builder.Property(d => d.Notes)
             .HasMaxLength(2000)
             .IsRequired();
+
+        builder.Property(d => d.ReviewReason)
+            .IsRequired()
+            .HasConversion(
+                v => v.Value,
+                v => ReviewReason.FromValue(v))
+            .Metadata.SetValueComparer(reviewReasonComparer);
 
         // Store OverriddenFields as JSON
         builder.Property(d => d.OverriddenFields)

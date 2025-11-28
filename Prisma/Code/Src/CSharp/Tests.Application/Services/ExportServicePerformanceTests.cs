@@ -63,7 +63,11 @@ public class ExportServicePerformanceTests
             {
                 NumeroExpediente = "EXP-2024-001",
                 NumeroOficio = "OF-2024-001",
-                FechaRecepcion = DateTime.UtcNow.AddDays(-5)
+                FundamentoLegal = "Art 115",
+                MedioEnvio = "SIARA",
+                Subdivision = LegalSubdivisionKind.A_AS,
+                FechaRecepcion = DateTime.UtcNow.AddDays(-5),
+                FechaEstimadaConclusion = DateTime.UtcNow.AddDays(5)
             },
             Persona = new Persona
             {
@@ -77,6 +81,7 @@ public class ExportServicePerformanceTests
                 new ComplianceAction
                 {
                     ActionType = ComplianceActionKind.Block,
+                    AccountNumber = "1234567890",
                     RequerimientoOrigen = "Bloquear cuenta bancaria",
                     LegalBasis = "Artículo 123 de la Ley",
                     DueDate = DateTime.UtcNow.AddDays(10)

@@ -1,0 +1,122 @@
+@page "/system-flow/reconciliation"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages.SystemFlowPages
+
+<PageTitle>Reconciliation - ExxerCube Prisma</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4"></MudBreadcrumbs>
+
+    <MudPaper Elevation="0" Class="pa-6 mb-6" Style="background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%); border-radius: 12px;">
+        <MudText Typo="Typo.h4" Style="color: #f57f17; font-weight: 600;" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" Size="Size.Large" />
+            Reconciliation & Intelligence
+        </MudText>
+        <MudText Typo="Typo.body1" Style="color: #f57f17;">
+            Cross-validates XML, PDF OCR, and DOCX extractions to generate unified high-confidence data.
+        </MudText>
+    </MudPaper>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Document Comparison (XML vs OCR vs DOCX)</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Field-by-field matching across all three sources with intelligent conflict resolution:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Compare">
+                    <strong>Levenshtein Distance:</strong> Fuzzy matching for typo detection
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.TrendingUp">
+                    <strong>Confidence Scoring:</strong> Each field receives a confidence score (0-100%)
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.FilterAlt">
+                    <strong>Source Priority:</strong> XML > OCR > DOCX by default, adaptive based on quality
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.MergeType">
+                    <strong>Best Value Selection:</strong> Chooses highest-confidence value per field
+                </MudListItem>
+            </MudList>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Conflict Detection & Flagging</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Automatically flags cases requiring manual review:
+            </MudText>
+            <MudGrid>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #f9a825;">
+                        <MudText Typo="Typo.subtitle2" Style="color: #f57f17; font-weight: 600;">Missing Data</MudText>
+                        <MudText Typo="Typo.body2">Required fields not found in any source</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #f9a825;">
+                        <MudText Typo="Typo.subtitle2" Style="color: #f57f17; font-weight: 600;">Low Confidence</MudText>
+                        <MudText Typo="Typo.body2">Extracted values below quality threshold</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-3" Elevation="1" Style="border-left: 3px solid #f9a825;">
+                        <MudText Typo="Typo.subtitle2" Style="color: #f57f17; font-weight: 600;">Conflicts</MudText>
+                        <MudText Typo="Typo.body2">Disagreement between sources exceeds tolerance</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Requirement Classification</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Automatically classifies requirements for proper routing:
+            </MudText>
+            <MudSimpleTable Dense="true">
+                <thead>
+                    <tr>
+                        <th>Classification Type</th>
+                        <th>Examples</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Area</strong></td><td>Hacendario, Aseguramiento, Información</td></tr>
+                    <tr><td><strong>Type</strong></td><td>Información, Bloqueo, Desbloqueo, Informe</td></tr>
+                    <tr><td><strong>Priority</strong></td><td>Alta, Media, Baja (based on authority and deadlines)</td></tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudCardContent>
+    </MudCard>
+
+    <MudPaper Elevation="2" Class="pa-4 mt-6" Style="background-color: #f5f5f5;">
+        <MudButton Href="/system-flow/final-processing" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward">
+            View Final Processing
+        </MudButton>
+        <MudButton Href="/system-flow" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Home" Class="ml-2">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("System Flow", href: "/system-flow"),
+        new BreadcrumbItem("Reconciliation", href: null, disabled: true)
+    };
+}

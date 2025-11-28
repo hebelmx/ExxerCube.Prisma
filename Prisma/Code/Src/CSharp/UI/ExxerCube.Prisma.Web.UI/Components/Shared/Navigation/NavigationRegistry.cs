@@ -51,6 +51,13 @@ internal static class NavigationRegistry
             new[]
             {
                 new NavigationLink(
+                    "System Flow",
+                    "/system-flow",
+                    Icons.Material.Filled.AccountTree,
+                    "Interactive overview of the complete system flow from CNBV requirement creation to bank delivery. Perfect for stakeholders and system understanding.",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "system", "flow", "overview", "stakeholder", "architecture", "cnbv", "siara", "automation" }),
+                new NavigationLink(
                     "Document Processing",
                     "/document-processing",
                     Icons.Material.Filled.Description,

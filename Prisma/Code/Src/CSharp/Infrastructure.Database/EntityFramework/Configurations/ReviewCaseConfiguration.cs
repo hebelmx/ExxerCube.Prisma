@@ -1,3 +1,6 @@
+using ExxerCube.Prisma.Domain.Enum;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
 
 /// <summary>
@@ -8,6 +11,16 @@ public class ReviewCaseConfiguration : IEntityTypeConfiguration<ReviewCase>
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<ReviewCase> builder)
     {
+        var reviewReasonComparer = new ValueComparer<ReviewReason>(
+            (l, r) => (l ?? ReviewReason.Unknown).Value == (r ?? ReviewReason.Unknown).Value,
+            v => (v ?? ReviewReason.Unknown).Value.GetHashCode(),
+            v => ReviewReason.FromValue((v ?? ReviewReason.Unknown).Value));
+
+        var reviewStatusComparer = new ValueComparer<ReviewStatus>(
+            (l, r) => (l ?? ReviewStatus.Unknown).Value == (r ?? ReviewStatus.Unknown).Value,
+            v => (v ?? ReviewStatus.Unknown).Value.GetHashCode(),
+            v => ReviewStatus.FromValue((v ?? ReviewStatus.Unknown).Value));
+
         builder.ToTable("ReviewCases");
 
         builder.HasKey(c => c.CaseId);
@@ -22,7 +35,10 @@ public class ReviewCaseConfiguration : IEntityTypeConfiguration<ReviewCase>
 
         builder.Property(c => c.RequiresReviewReason)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion(
+                v => v.Value,
+                v => ReviewReason.FromValue(v))
+            .Metadata.SetValueComparer(reviewReasonComparer);
 
         builder.Property(c => c.ConfidenceLevel)
             .IsRequired();
@@ -32,7 +48,10 @@ public class ReviewCaseConfiguration : IEntityTypeConfiguration<ReviewCase>
 
         builder.Property(c => c.Status)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion(
+                v => v.Value,
+                v => ReviewStatus.FromValue(v))
+            .Metadata.SetValueComparer(reviewStatusComparer);
 
         builder.Property(c => c.AssignedTo)
             .HasMaxLength(100);

@@ -1,0 +1,98 @@
+@page "/system-flow/monitoring"
+@namespace ExxerCube.Prisma.Web.UI.Components.Pages.SystemFlowPages
+
+<PageTitle>Monitoring & Download - ExxerCube Prisma</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-8">
+    <MudBreadcrumbs Items="_breadcrumbs" Class="mb-4"></MudBreadcrumbs>
+
+    <MudPaper Elevation="0" Class="pa-6 mb-6" Style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border-radius: 12px;">
+        <MudText Typo="Typo.h4" Style="color: #6a1b9a; font-weight: 600;" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Visibility" Class="mr-2" Size="Size.Large" />
+            Monitoring & Download
+        </MudText>
+        <MudText Typo="Typo.body1" Style="color: #6a1b9a;">
+            24/7 browser automation watches SIARA portal and downloads new requirements in real-time.
+        </MudText>
+    </MudPaper>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">SIARA Page Watcher</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Browser automation using Playwright continuously monitors the SIARA portal for new requirements.
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Schedule">
+                    <strong>24/7 Monitoring:</strong> Continuous polling for new cases
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Speed">
+                    <strong>Real-Time Detection:</strong> Immediate notification when requirements arrive
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Refresh">
+                    <strong>Auto-Retry:</strong> Handles connection failures gracefully
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.Security">
+                    <strong>Secure Authentication:</strong> Manages CNBV portal credentials safely
+                </MudListItem>
+            </MudList>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="3" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Document Downloader</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Dual-mode downloader uses Playwright for authenticated downloads and HttpClient for direct file retrieval.
+            </MudText>
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1">
+                        <MudText Typo="Typo.subtitle2" Style="font-weight: 600;" Class="mb-2">Playwright Downloads</MudText>
+                        <MudText Typo="Typo.body2">For authenticated SIARA portal navigation and complex interactions</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudPaper Class="pa-3" Elevation="1">
+                        <MudText Typo="Typo.subtitle2" Style="font-weight: 600;" Class="mb-2">HttpClient Downloads</MudText>
+                        <MudText Typo="Typo.body2">For direct file downloads when URLs are known</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+            <MudAlert Severity="Severity.Info" Class="mt-3">
+                Downloads all three formats: <strong>XML + PDF + DOCX</strong> for comprehensive requirement processing
+            </MudAlert>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Href="/browser-automation" Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Launch">
+                Try Browser Automation
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+
+    <MudPaper Elevation="2" Class="pa-4 mt-6" Style="background-color: #f5f5f5;">
+        <MudButton Href="/system-flow/intake" Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.ArrowForward">
+            View Document Intake
+        </MudButton>
+        <MudButton Href="/system-flow" Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.Home" Class="ml-2">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private List<BreadcrumbItem> _breadcrumbs = new()
+    {
+        new BreadcrumbItem("Home", href: "/"),
+        new BreadcrumbItem("System Flow", href: "/system-flow"),
+        new BreadcrumbItem("Monitoring & Download", href: null, disabled: true)
+    };
+}
