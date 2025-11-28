@@ -232,7 +232,9 @@ public class FieldMatchingService
                 Expediente = expediente,
                 ExtractedFields = CreateExtractedFieldsFromMatchedFields(matchedFields),
                 Classification = classification,
-                MatchedFields = matchedFields
+                MatchedFields = matchedFields,
+                AdditionalFields = matchedFields.AdditionalMerged,
+                AdditionalFieldConflicts = matchedFields.AdditionalConflicts
             };
 
             _logger.LogDebug("Successfully completed field matching workflow. Matched: {MatchedCount}, Conflicts: {ConflictCount}, Missing: {MissingCount}, Overall Agreement: {Agreement}",

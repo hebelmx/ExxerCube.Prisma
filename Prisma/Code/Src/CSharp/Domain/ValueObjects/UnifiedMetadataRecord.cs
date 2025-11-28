@@ -36,6 +36,16 @@ public class UnifiedMetadataRecord
     public MatchedFields? MatchedFields { get; set; }
 
     /// <summary>
+    /// Gets or sets the merged additional fields (from XML/OCR) and conflicts.
+    /// </summary>
+    public Dictionary<string, string?> AdditionalFields { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the list of additional field names with conflicts.
+    /// </summary>
+    public List<string> AdditionalFieldConflicts { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the PDF requirement summary.
     /// </summary>
     public RequirementSummary? RequirementSummary { get; set; }
