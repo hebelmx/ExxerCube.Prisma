@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enums;
+
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 
 /// <summary>
@@ -189,7 +191,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
 
         if (value != null)
         {
-            return Result<FieldValue>.Success(new FieldValue(fieldName, value, confidence, "PDF"));
+            return Result<FieldValue>.Success(new FieldValue(fieldName, value, confidence, "PDF", FieldOrigin.PdfOcr));
         }
 
         return Result<FieldValue>.WithFailure($"Field '{fieldName}' not found");

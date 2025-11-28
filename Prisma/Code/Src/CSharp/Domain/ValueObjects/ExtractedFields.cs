@@ -31,6 +31,11 @@ public class ExtractedFields
     public List<AmountData> Montos { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets additional extracted fields (keyed by field name) beyond the core properties.
+    /// </summary>
+    public Dictionary<string, string?> AdditionalFields { get; set; } = new();
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ExtractedFields"/> class.
     /// </summary>
     public ExtractedFields()
@@ -45,12 +50,14 @@ public class ExtractedFields
     /// <param name="accionSolicitada">The accion solicitada value.</param>
     /// <param name="fechas">The list of dates.</param>
     /// <param name="montos">The list of monetary amounts.</param>
-    public ExtractedFields(string? expediente, string? causa, string? accionSolicitada, List<string> fechas, List<AmountData> montos)
+    /// <param name="additionalFields">Additional extracted fields keyed by name.</param>
+    public ExtractedFields(string? expediente, string? causa, string? accionSolicitada, List<string> fechas, List<AmountData> montos, Dictionary<string, string?>? additionalFields = null)
     {
         Expediente = expediente;
         Causa = causa;
         AccionSolicitada = accionSolicitada;
         Fechas = fechas;
         Montos = montos;
+        AdditionalFields = additionalFields ?? new Dictionary<string, string?>();
     }
 }

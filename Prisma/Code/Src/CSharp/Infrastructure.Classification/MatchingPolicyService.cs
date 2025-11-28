@@ -88,7 +88,10 @@ public class MatchingPolicyService : IMatchingPolicy
             // Check for conflicts (if there are multiple different values)
             var hasConflict = valueGroups.Count > 1 && valueGroups[0].Count() < validValues.Count;
 
-            var matchResult = new FieldMatchResult(fieldName, bestValue, finalConfidence, bestSourceType)
+            var bestOrigin = bestGroup.First().Origin;
+            var bestRaw = bestGroup.First().RawValue;
+
+            var matchResult = new FieldMatchResult(fieldName, bestValue, finalConfidence, bestSourceType, bestOrigin, bestRaw)
             {
                 AllValues = values,
                 HasConflict = hasConflict,

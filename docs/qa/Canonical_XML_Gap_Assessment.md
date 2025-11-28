@@ -10,7 +10,7 @@ This memo aligns the SIARA/SIRO regulatory data requirements with our current XM
 - Evidencia de envío y medio: canal SIARA, firma/folio, formato PDF/TIFF según guía de gestión.
 - SLA: fecha estimada de conclusión = fecha recepción + días hábiles (Disposiciones SIARA, 2018).
 
-## Canonical XML (proposed)
+## Canonical XML 
 ```xml
 <Expediente xmlns="http://www.cnbv.gob.mx">
   <Encabezado>

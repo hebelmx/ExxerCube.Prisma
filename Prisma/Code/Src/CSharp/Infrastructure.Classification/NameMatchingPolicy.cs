@@ -48,7 +48,7 @@ public sealed class NameMatchingPolicy : IMatchingPolicy
 
         var normalized = values
             .Where(v => v?.Value != null)
-            .Select(v => (Original: v!, Normalized: Normalize(v!.Value!)))
+            .Select(v => (Original: v!, Normalized: Normalize(v!.Value!), Raw: v!.RawValue))
             .ToList();
 
         if (normalized.Count == 0)
@@ -66,7 +66,7 @@ public sealed class NameMatchingPolicy : IMatchingPolicy
         var conflict = bestScore < _options.ConflictThreshold;
         var review = !conflict && bestScore < _options.AcceptThreshold;
 
-        var result = new FieldMatchResult(fieldName, winner.Original.Value, (float)bestScore, winner.Original.SourceType)
+        var result = new FieldMatchResult(fieldName, winner.Original.Value, (float)bestScore, winner.Original.SourceType, winner.Original.Origin, winner.Raw)
         {
             AllValues = values,
             HasConflict = conflict,

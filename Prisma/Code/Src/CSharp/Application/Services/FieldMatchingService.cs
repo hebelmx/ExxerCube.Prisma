@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enums;
+
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>
@@ -264,6 +266,17 @@ public class FieldMatchingService
         {
             AddFieldValue(allFieldValues, "AccionSolicitada", fields.AccionSolicitada, sourceType);
         }
+
+        if (fields.AdditionalFields != null && fields.AdditionalFields.Count > 0)
+        {
+            foreach (var kvp in fields.AdditionalFields)
+            {
+                if (!string.IsNullOrWhiteSpace(kvp.Value))
+                {
+                    AddFieldValue(allFieldValues, kvp.Key, kvp.Value, sourceType);
+                }
+            }
+        }
     }
 
     private static void AddFieldValue(Dictionary<string, List<FieldValue>> allFieldValues, string fieldName, string? value, string sourceType)
@@ -278,7 +291,7 @@ public class FieldMatchingService
             allFieldValues[fieldName] = new List<FieldValue>();
         }
 
-        allFieldValues[fieldName].Add(new FieldValue(fieldName, value, 1.0f, sourceType));
+        allFieldValues[fieldName].Add(new FieldValue(fieldName, value, 1.0f, sourceType, ToOrigin(sourceType)));
     }
 
     private static ExtractedFields CreateExtractedFieldsFromMatchedFields(MatchedFields matchedFields)
@@ -304,5 +317,13 @@ public class FieldMatchingService
 
         return extractedFields;
     }
-}
 
+    private static FieldOrigin ToOrigin(string sourceType) =>
+        sourceType.ToUpperInvariant() switch
+        {
+            "XML" => FieldOrigin.Xml,
+            "PDF" => FieldOrigin.PdfOcr,
+            "DOCX" => FieldOrigin.Docx,
+            _ => FieldOrigin.Unknown
+        };
+}

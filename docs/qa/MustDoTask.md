@@ -62,24 +62,24 @@ Implementation sketch:
 
 ## 6) Parsing/Derivation Layer — TODO
 - Files/Services: `IFieldExtractor`, `IPdfRequirementSummarizer`, `IPersonIdentityResolver`, `ISLAEnforcer`, `LegalDirectiveClassifierService`.
-- Actions:
-  - Parse subdivision/LegalSubdivision (XML: AreaClave/AreaDescripcion; PDF/OCR: keywords) → map to `LegalSubdivision` (or SmartEnum if converted).
-  - Parse measures/assets: infer `MeasureKind`, `Cuenta` (numero/banco/sucursal/producto/moneda/monto) from XML nodes and PDF/OCR text; set `ValidationState` and origin.
-  - Identity: extract RFC variants/CURP from XML + OCR (regex/heuristics), store in `PersonaSolicitud.RfcVariantes` and `Curp`; annotate missing fields.
-  - SLA: compute `FechaEstimadaConclusion = FechaRecepcion + DiasPlazo` (business days) via `ISLAEnforcer`; tag origin = derived.
-  - Origin tagging: add `FieldOrigin`/`OriginTrace` per field (XML, PDF/OCR, Derived, Manual).
-  - IMPORTANT: PDF and XML may diverge (missing XML, misplaced fields, value drift). Never short-circuit the pipeline; best-effort reconcile/merge both sources, complement/validate where possible, and raise manual-review flags (warnings/validation issues) when alignment is uncertain. No hard failures unless a field is truly unusable and must block downstream export.
+- Done (in code): `NameMatchingPolicy` + DI; `FieldMatcherService` routes name fields; OCR sanitizer (`TextSanitizer/ITextSanitizer`) with fixtures and pipeline tests (clean/noisy/missing/no-XML/gibberish) proving best-effort behavior.
+- Missing (to implement now):
+  - Field origin tagging: add `FieldOrigin/OriginTrace` (XML, PDF/OCR, Derived, Manual) on parsed fields and propagate into `MatchedFields/UnifiedMetadataRecord`.
+  - Subdivision mapping: map `AreaClave/AreaDescripcion` → `LegalSubdivision`; flag Unknown in `ValidationState`.
+  - Measure/account parsing: infer `MeasureKind` and `Cuenta` (numero/banco/sucursal/producto/moneda/monto) from XML + OCR text; apply sanitizer output; set origins + validation flags.
+  - Identity enrichment: extract RFC variants/CURP from XML + OCR, store in `PersonaSolicitud`, flag missing/ambiguous in `ValidationState`.
+  - SLA derivation: compute `FechaEstimadaConclusion = FechaRecepcion + DiasPlazo` via `ISLAEnforcer`; mark origin Derived.
+  - Best-effort reconciliation: never short-circuit on divergence (missing XML, value drift); raise manual-review flags when uncertain.
 - Affected downstream:
-  - Domain entities: `Expediente`, `ComplianceAction`, `PersonaSolicitud`, `SLAStatus` (populate derived dates).
-  - Application: services consuming parsers (e.g., `MetadataExtractionService`, `LegalDirectiveClassifierService`).
-  - UI: surface origins/validation flags; drive review flows when Origin = OCR/Manual or ValidationState = Failed/Unknown.
+  - Domain: `Expediente`, `ComplianceAction`, `PersonaSolicitud`, `SLAStatus` populated with origin + validation.
+  - Application: parsers (`MetadataExtractionService`, `LegalDirectiveClassifierService`) need to fill origins/validation; exporters consume them.
+  - UI: show origins/validation to drive review when Origin = OCR/Manual or ValidationState = Failed/Unknown.
 - Tests to add:
-  - Fixture-based extraction: given XML/PDF/OCR samples, parsed `Expediente` includes subdivision, measure, cuenta, RFC variants/CURP, SLA dates with proper origins.
-  - SLA calc tests (business-day addition) via `ISLAEnforcer`.
-  - Identity resolver tests: variants and CURP captured; missing fields flagged in ValidationState.
-  - Origin tagging: fields contain origin and are surfaced in snapshots/validation.
-- OCR text cleaning (accounts): add a domain-level cleaner interface (e.g., `ITextCleaner/IOcrTextSanitizer`). Implement in Extraction to produce a cleaned copy and keep the raw OCR text (persistable, e.g., JSON) for audit. Cleaning rules: strip artifacts/whitespace/non-alphanumerics; for account numbers prefer digits-only; for SWIFT keep alphanumerics and length-check (8/11). If still invalid, warn/flag (manual review) but do not block. Add tests in `Tests.Infrastructure.Extraction.Teseract` using real OCR-like samples.
-  - Status: implemented `ITextSanitizer` + `TextSanitizer` with raw/cleaned/warnings and unit tests (`TextSanitizerTests`); pending wiring into parsers to persist raw+cleaned account/SWIFT text.
+  - Fixture-based extraction covering subdivision, measure, cuenta, RFC variants/CURP, SLA with correct origins/validation (including divergence cases).
+  - SLA calc (business days) via `ISLAEnforcer`.
+  - Identity resolver: variants + CURP captured; missing fields flagged.
+  - Origin tagging surfaces in snapshots/validation.
+  - Wire sanitizer: parsed accounts/SWIFT keep raw + cleaned + warnings; manual-review flag when still invalid.
 
 Implementation sketch (code snippets):
 - Subdivision mapping:
@@ -360,6 +360,10 @@ public sealed class AuthorityKind : EnumModel
 - Do not add/remove projects or edit solution files (`*.sln`) without explicit user approval.
 - Do not delete projects or packages; stay strictly within the assigned scope unless explicitly instructed.
 
+## Journal / Progress Tracker
+- 2025-02-14: Read real XML fixtures under `Prisma/Fixtures/PRP1/*2025.xml`; confirmed shape: `Cnbv_*` metadata (AreaClave/AreaDescripcion, FechaPublicacion, DiasPlazo), parties in `SolicitudPartes`, detailed persons in `SolicitudEspecifica/PersonasSolicitud`, instructions text carrying account numbers/bank names, RFC variants, CURP/date hints in `Complementarios`. SLA inputs present (`Cnbv_FechaPublicacion`, `Cnbv_DiasPlazo`); no explicit FechaRecepcion. ~5% XML may be missing; PDF/OCR often diverge.
+- Current state: solution builds clean; origin tracking is wired (FieldOrigin on FieldValue/FieldMatchResult) and OCR sanitizer + pipeline fixtures exist. XML extractor remains stub; subdivision/measure/account/identity/SLA parsing not yet wired.
+- Next steps (respecting DRY/SOLID, fill gaps vs. rebuild): extend existing extractors (no new pipelines) to parse subdivision, measure, account (with sanitizer), RFC variants/CURP, SLA derivation; propagate into MatchedFields/UnifiedMetadataRecord with origins/validation; add focused integration/system tests using existing fixtures to prove reconciliation (XML vs. OCR vs. PDF) without short-circuiting. Update this journal as milestones close.
 ## Name/Identity Matching Policy (to implement)
 - Normalize names before comparison: uppercase, remove accents, collapse whitespace; keep raw for audit.
 - Use multi-signal fuzzy comparison (TokenSortRatio + Jaro-Winkler). Thresholds (tunable via `IOptionsMonitor<NameMatchingOptions>`):

@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enums;
+
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 
 /// <summary>
@@ -160,7 +162,7 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
 
         if (value != null)
         {
-            return Result<FieldValue>.Success(new FieldValue(fieldName, value, confidence, "DOCX"));
+            return Result<FieldValue>.Success(new FieldValue(fieldName, value, confidence, "DOCX", FieldOrigin.Docx));
         }
 
         return Result<FieldValue>.WithFailure($"Field '{fieldName}' not found");

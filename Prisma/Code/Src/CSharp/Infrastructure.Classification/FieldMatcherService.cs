@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Domain.ValueObjects;
@@ -219,7 +220,7 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
 
         if (value != null)
         {
-            return new FieldValue(fieldName, value, 1.0f, sourceType);
+            return new FieldValue(fieldName, value, 1.0f, sourceType, ToOrigin(sourceType));
         }
 
         return null;
@@ -248,6 +249,15 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
             _ => "UNKNOWN"
         };
     }
+
+    private static FieldOrigin ToOrigin(string sourceType) =>
+        sourceType.ToUpperInvariant() switch
+        {
+            "XML" => FieldOrigin.Xml,
+            "PDF" => FieldOrigin.PdfOcr,
+            "DOCX" => FieldOrigin.Docx,
+            _ => FieldOrigin.Unknown
+        };
 
     private static void ApplyMatchedFieldToExtractedFields(ExtractedFields fields, string fieldName, string? value)
     {

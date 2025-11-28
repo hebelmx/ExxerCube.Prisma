@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enums;
+
 namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
@@ -26,6 +28,16 @@ public class FieldValue
     public string SourceType { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the origin of this value (XML, PDF/OCR, DOCX, Derived, Manual).
+    /// </summary>
+    public FieldOrigin Origin { get; set; } = FieldOrigin.Unknown;
+
+    /// <summary>
+    /// Gets or sets the raw value before sanitization (useful for OCR audit).
+    /// </summary>
+    public string? RawValue { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="FieldValue"/> class.
     /// </summary>
     public FieldValue()
@@ -39,12 +51,15 @@ public class FieldValue
     /// <param name="value">The extracted value.</param>
     /// <param name="confidence">The confidence score.</param>
     /// <param name="sourceType">The source type.</param>
-    public FieldValue(string fieldName, string? value, float confidence, string sourceType)
+    /// <param name="origin">The origin of the value.</param>
+    /// <param name="rawValue">The raw (unsanitized) value, if available.</param>
+    public FieldValue(string fieldName, string? value, float confidence, string sourceType, FieldOrigin origin = FieldOrigin.Unknown, string? rawValue = null)
     {
         FieldName = fieldName;
         Value = value;
         Confidence = confidence;
         SourceType = sourceType;
+        Origin = origin;
+        RawValue = rawValue;
     }
 }
-

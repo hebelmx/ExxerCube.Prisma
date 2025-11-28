@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enums;
+
 namespace ExxerCube.Prisma.Domain.ValueObjects;
 
 /// <summary>
@@ -24,6 +26,16 @@ public class FieldMatchResult
     /// Gets or sets the source type from which the matched value was selected.
     /// </summary>
     public string SourceType { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the origin for the matched value (XML, PDF/OCR, DOCX, Derived, Manual).
+    /// </summary>
+    public FieldOrigin Origin { get; set; } = FieldOrigin.Unknown;
+
+    /// <summary>
+    /// Gets or sets the raw value before sanitization (useful for audit when OCR was cleaned).
+    /// </summary>
+    public string? RawValue { get; set; }
 
     /// <summary>
     /// Gets or sets the list of all values found across sources (for conflict detection).
@@ -54,12 +66,15 @@ public class FieldMatchResult
     /// <param name="matchedValue">The matched value.</param>
     /// <param name="confidence">The confidence score.</param>
     /// <param name="sourceType">The source type.</param>
-    public FieldMatchResult(string fieldName, string? matchedValue, float confidence, string sourceType)
+    /// <param name="origin">The origin.</param>
+    /// <param name="rawValue">The raw value (unsanitized), if available.</param>
+    public FieldMatchResult(string fieldName, string? matchedValue, float confidence, string sourceType, FieldOrigin origin = FieldOrigin.Unknown, string? rawValue = null)
     {
         FieldName = fieldName;
         MatchedValue = matchedValue;
         Confidence = confidence;
         SourceType = sourceType;
+        Origin = origin;
+        RawValue = rawValue;
     }
 }
-
