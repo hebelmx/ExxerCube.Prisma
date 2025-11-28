@@ -1,0 +1,111 @@
+{
+  "summary": {
+    "total_clusters": 7,
+    "optimized": 6,
+    "skipped": 1
+  },
+  "cluster_filters": {
+    "5": {
+      "n_images": 9,
+      "edit_distance": 90.67,
+      "params": {
+        "contrast": 1.502,
+        "brightness": 1.017,
+        "sharpness": 2.02,
+        "median_size": 0,
+        "unsharp_radius": 1.145,
+        "unsharp_percent": 13,
+        "unsharp_threshold": 3,
+        "scan_removal": 0,
+        "morph_kernel_w": 12,
+        "morph_kernel_h": 2,
+        "bilateral": 1
+      }
+    },
+    "4": {
+      "n_images": 14,
+      "edit_distance": 205.21,
+      "params": {
+        "contrast": 1.398,
+        "brightness": 1.057,
+        "sharpness": 2.006,
+        "median_size": 0,
+        "unsharp_radius": 2.307,
+        "unsharp_percent": 131,
+        "unsharp_threshold": 1,
+        "scan_removal": 0,
+        "morph_kernel_w": 2,
+        "morph_kernel_h": 0,
+        "bilateral": -1
+      }
+    },
+    "3": {
+      "n_images": 4,
+      "edit_distance": 39.25,
+      "params": {
+        "contrast": 1.486,
+        "brightness": 0.903,
+        "sharpness": 1.141,
+        "median_size": 0,
+        "unsharp_radius": 0.329,
+        "unsharp_percent": 193,
+        "unsharp_threshold": 2,
+        "scan_removal": 0,
+        "morph_kernel_w": 10,
+        "morph_kernel_h": 3,
+        "bilateral": -1
+      }
+    },
+    "0": {
+      "n_images": 18,
+      "edit_distance": 388.39,
+      "params": {
+        "contrast": 1.379,
+        "brightness": 1.073,
+        "sharpness": 1.378,
+        "median_size": 0,
+        "unsharp_radius": 3.837,
+        "unsharp_percent": 204,
+        "unsharp_threshold": 2,
+        "scan_removal": 0,
+        "morph_kernel_w": -16,
+        "morph_kernel_h": 2,
+        "bilateral": 0
+      }
+    },
+    "2+3": {
+      "n_images": 6,
+      "edit_distance": 83.83,
+      "params": {
+        "contrast": 1.516,
+        "brightness": 0.927,
+        "sharpness": 0.86,
+        "median_size": 1,
+        "unsharp_radius": 0.466,
+        "unsharp_percent": 18,
+        "unsharp_threshold": 2,
+        "scan_removal": 0,
+        "morph_kernel_w": 8,
+        "morph_kernel_h": 3,
+        "bilateral": 2
+      }
+    },
+    "1": {
+      "n_images": 17,
+      "edit_distance": 233.0,
+      "params": {
+        "contrast": 0.707,
+        "brightness": 1.08,
+        "sharpness": 2.569,
+        "median_size": 0,
+        "unsharp_radius": 2.215,
+        "unsharp_percent": 200,
+        "unsharp_threshold": 1,
+        "scan_removal": 0,
+        "morph_kernel_w": 13,
+        "morph_kernel_h": 3,
+        "bilateral": 0
+      }
+    }
+  }
+}

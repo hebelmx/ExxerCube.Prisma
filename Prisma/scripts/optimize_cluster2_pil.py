@@ -2,8 +2,8 @@
 """
 NSGA-II Cluster 2 PIL Pipeline Optimization
 
-Cluster 2: Degraded Images (All 4 docs at Q15, Q2)
-- 8 objectives
+Cluster 2: Degraded Images (Q2_MediumPoor + Q3_Low + Q4_VeryLow)
+- 12 objectives (4 docs × 3 levels)
 - Characteristics: blur=1238.2, noise=6.83, contrast=25.1
 
 PIL PIPELINE (2 parameters):
@@ -93,9 +93,9 @@ class Cluster2PILOptimizationProblem(Problem):
         self.base_path = base_path
         self.ground_truth = ground_truth
 
-        # Cluster 2: All 4 docs at Q15 and Q2 (8 images total)
+        # Cluster 2: All 4 docs at Q2_MediumPoor + Q3_Low + Q4_VeryLow (12 images total)
         docs = ["222AAA-44444444442025_page-0001.jpg", "333BBB-44444444442025_page1.png", "333ccc-6666666662025_page1.png", "555CCC-66666662025_page1.png"]
-        levels = ["Q15_Medium", "Q2_MediumPoor"]
+        levels = ["Q2_MediumPoor", "Q3_Low", "Q4_VeryLow"]
 
         self.test_cases = []
         for doc in docs:
@@ -147,7 +147,7 @@ def main():
     print()
     print("Cluster 2: Degraded (blur=1238.2, noise=6.83, contrast=25.1)")
     print("Configuration: Pop=30, Gen=40, ~3 hours")
-    print("8 Objectives: All 4 docs × Q15_Medium, Q2_MediumPoor")
+    print("12 Objectives: All 4 docs × Q2_MediumPoor + Q3_Low + Q4_VeryLow")
     print("="*80)
     print()
 

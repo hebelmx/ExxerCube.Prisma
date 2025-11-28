@@ -1,0 +1,1455 @@
+[
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b0.10_clean_t85.png",
+    "blur": 0.1,
+    "artifacts": [],
+    "target_conf": 85,
+    "actual_conf": 87.3,
+    "ocr": {
+      "text": "A) ¿MN KM AR >\nAdministración General de Auditoría Fiscal Federal |\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” 5\nNo. De Identificación del Res ¡erimiehto\nAGAFADAFSON2/2025/000084\nJuan Juan Melón Sandía gan\nVicepresidente de Supervisión de Procesos Preventivos »\nComisión Nacional Bancaria y de valores Me Ma\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México - |\nPresente e 9\nA Datos generales del solicitante —\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCALFEDERAL Requerimiento Hacendario\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA EISCAL.DE\nSONORA “2” IN » Y MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN £ 5) ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2* > “F AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 ” 0 Correo: lupita.pepita.pepitaOsat.gob.mx\n“5. Facultades de la Autoridad\nesta oficina para cobros 8 san Ángel órgano integrante de la subdelegación 8 san Ángel del instituto\nmexicano de seguridad social órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónemo con fundamento en los artículos 251 fracciónVI!| XXV y XXXXV!I| 251 a de la ley del\nseguro social en vigor uno y 2 fracción V incisos VYC 142 fracción II! 149, 150, 154 fracciones - i, ii ¡ii, y\n155 primer párrafo secciónXXXV!I párrafos primero y segundo inciso c párrafos primero y segundo 159\nsegundo párrafo del reglamento interior de institución mexicana del seguro social en vigor\n| Fundamento del Requerimiento\nartículo 16 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norgánica de la administración pública federal 5, 9, 250 fracciones VII , XX y XXVI 251-a 270, 287 y 291\n",
+      "mean_confidence": 87.32,
+      "word_count": 288,
+      "char_count": 1848
+    },
+    "image_properties": {
+      "blur_score": 448.88,
+      "noise_estimate": 21.19,
+      "contrast": 35.17,
+      "brightness": 241.32,
+      "edge_density": 5.3557
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b0.10_texture_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 85,
+    "actual_conf": 87.1,
+    "ocr": {
+      "text": "A A >. Y HÓ / mA Al >\nAdministración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” >\nNo. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000084\nJuan Juan Melón Sandía qn\nVicepresidente de Supervisión de Procesos Preventivos e\nComisión Nacional Bancaria y de valores a |\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente AN a\nq? A\nA Datos generales del solicitante —\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCALFEDERAL Requerimiento Hacendario\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL.DE\nSONORA “2” WS Y MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN £ \"5, ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2? > a AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 0 e Correo: lupita.pepita.pepitaOsat.gob.mx\n».. Facultades de la Autoridad\nesta oficina para cobros 8 san Ángel Órgano integrante de la subdelegación 8 san Ángel del instituto\nmexicano de seguridad social órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónemo con fundamento en los artículos 251 fracciónVII XXV y XXXXV!I!| 251 a de la ley del\nseguro social en vigor uno y 2 fracción V incisos VYC 142 fracción l!l 149, 150, 154 fracciones - i, ¡li iii, y\n155 primer párrafo secciónXXXV!I párrafos primero y segundo inciso c párrafos primero y segundo 159\nsegundo párrafo del reglamento interior de institución mexicana del seguro social en vigor\n| Fundamento del Requerimiento\nartículo 16 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norgánica de la administración pública federal 5, 9, 250 fracciones VII, XX y XXVI 251-a 270, 287 y 291\n",
+      "mean_confidence": 87.13,
+      "word_count": 287,
+      "char_count": 1849
+    },
+    "image_properties": {
+      "blur_score": 449.55,
+      "noise_estimate": 21.2,
+      "contrast": 35.05,
+      "brightness": 240.5,
+      "edge_density": 5.3498
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b0.10_scan_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 85,
+    "actual_conf": 84.8,
+    "ocr": {
+      "text": "A EA PEA yA PE ds A\nAdministración General de Auditoría Fiscal Federal |\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” ts\nNo. De Identificación del Requ ¡erimiento\n| AGAFADAFSON2/2025/000084 0\nJuan Juan Melón Sandía q\nComisión Nacional Bancaria y de valores Y Mi\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. (Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México -\nPresente ; e, .\no Datos generales del solicitante —\n| ADMINISTRACIÓN GENERAL DE AUDITORIA FISCAL FEDERAL Requerimiento Hacendario\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAR-DE | |\n| SONORA “2” LL Ue | MTRO. GUADALUPE PEPITA PEPITA |\nMesa, Turno y/o Unidad, Secretaría6tc: ADMINSTRAIÓN £ 5) ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2* > 4 AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 0 e Correo: lupita.pepita.pepitaOsat.gob.mx\n“5. Facultades de la Autoridad\nmexicano de seguridad social órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónemo con fundamento en los artículos 251 fracciónVI!| XXV y XXXXVI| 251 a de la ley del\nseguro social en vigor uno y 2 fracción V incisos VYC 142 fracción II! 149, 150, 154 fracciones - i, ¡¡¡ii, y\n155 primer párrafo secciónXXXVI párrafos primero y segundo inciso c párrafos primero y segundo 159\nsegundo párrafo del reglamento interior de institución mexicana del seguro social en vigor\n| Fundamento del Requerimiento\nartículo 16 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norgánica de la administración pública federal 5, 9, 250 fracciones VII, XX y XXVI 251-a 270, 287 y 291\n",
+      "mean_confidence": 84.83,
+      "word_count": 273,
+      "char_count": 1709
+    },
+    "image_properties": {
+      "blur_score": 515.21,
+      "noise_estimate": 22.7,
+      "contrast": 35.02,
+      "brightness": 241.32,
+      "edge_density": 5.5201
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b0.10_vignette_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 85,
+    "actual_conf": 85.5,
+    "ocr": {
+      "text": "; + > db J ; > Y i ) a e $ , e OS : J A y Y ' |\nA EA PU PA E\nAdministración General de Auditoría Fiscal Federal e\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” “o\nNo. De Identificación del Réquerimiehto -\nAGAFADAFSON2/2025/000084 0.\nJuan Juan Melón Sandía 2\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores h |\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente ; e A\noo Datosgeneralesdelsolicitante” 2\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL:DE\nSONORA “2” MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN , ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2? > AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaOsat.gob.mx\nFacultades de la Autoridad\nesta oficina para cobros 8 san Ángel órgano integrante de la subdelegación 8 san Ángel del instituto\nmexicano de seguridad social órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónemo con fundamento en los artículos 251 fracciónVI| XXV y XXXXV!I| 251 a de la ley del\nseguro social en vigor uno y 2 fracción V incisos VYC 142 fracción I!| 149, 150, 154 fracciones -i, ii 1ii, y\n155 primer párrafo secciónXXXV!I párrafos primero y segundo inciso c párrafos primero y segundo 159\nsegundo párrafo del reglamento interior de institución mexicana del seguro social en vigor\nFundamento del Requerimiento\nartículo 16 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norgánica de la administración pública federal 5, 9, 250 fracciones VII, XX y XXVI 251-a 270, 287 y 291\n",
+      "mean_confidence": 85.49,
+      "word_count": 293,
+      "char_count": 1865
+    },
+    "image_properties": {
+      "blur_score": 417.93,
+      "noise_estimate": 20.44,
+      "contrast": 33.86,
+      "brightness": 230.84,
+      "edge_density": 5.3026
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b2.90_vignette_t75.png",
+    "blur": 2.9,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 75,
+    "actual_conf": 77.2,
+    "ocr": {
+      "text": "4 Y. r, 7) 8\nsf 5 4 af 4 A\nAdministración General de Auditoría Fiscal Federal a\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” et,\nh h nn\nNo. De de a Y\nod\n\nJuan Juan Melón Sandía peo\n\nVicepresidente de Supervisión de Procesos Preventivos “», a h\n\nComisión Nacional Bancaria y de valores “a |\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de Méxi6o *\n\nPresente EN ;\n\nDatos generales Feigoici he\n\nADMINISTRACIÓN GENERAL DE AUDITORÍA Fl RAL 5%. Ribquerimiento Hacendario\n\nADMINSTRA/ÓN DESCONCENTRADA DE AUTORÍA\n\nSONORA *2* , e MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad. Secretaria lt” ADMINSTRANÓN $7 yy ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA YH Y AUTORÍA FISCAL DE SONORA -2”\n\nAVE. RODOLFO ELEIAS CALLESBE, No Y) 1081 contrái Tel. (55) 1111-2222\n\nMunicipio Centro CP 00001 Correo: tupita pepita. pepitafsat.gob.ma\n\nml h JN Ah ' itades de la Autoridad\n\nesta oficina para cobros 8 san Ange no integrante de la subdelegación 8 san Angel del instituto\nmexicana de seffuridad social Órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónomo GOn fundamento en los artículos 251 tracción VI! XXV y J000(VII 251 a de la ley del\nseguro social enVgor uno y 2 fracción V incisos VYC 142 fracción 1Il 149, 150, 154 fracciones —i, ii lll, y\n155 primer párrafo sección OWN! párrafos primero y segundo inciso c párratos primero y segundo 159\nsegundo párrato del teglamento interior de institución mexicana del seguro social en vigor\nr ho y . Fundamento del Requerimiento o\nartículo 16 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norgííhica de la administración pública federal 5, 9, 250 fracciones VII, XX y JO(VI 251-a 270, 287 y 291\n\n”\n",
+      "mean_confidence": 77.16,
+      "word_count": 292,
+      "char_count": 1816
+    },
+    "image_properties": {
+      "blur_score": 5.05,
+      "noise_estimate": 2.25,
+      "contrast": 25.37,
+      "brightness": 230.79,
+      "edge_density": 0.932
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b2.90_texture+vignette_t75.png",
+    "blur": 2.9,
+    "artifacts": [
+      "texture",
+      "vignette"
+    ],
+    "target_conf": 75,
+    "actual_conf": 79.1,
+    "ocr": {
+      "text": "$6 á 4 al 4 ie\nNe :\nAdministración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” a\nLY >\nSe e.\nNo. De Identificación o\nAGAFADAFSON\nJuan Juan Melón Sandía pg\nVicepresidente de Supervisión de Procesos Preventivos \"+ e\nComisión Nacional Bancaria y de valores >\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Qugdalupe inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de MéxiGo |\nPresente e E\nDatos generales Focal he\nADMINISTRACIÓN GENERAL DE AUDITORIA Fl RAL mu Wquerimiento Hacendario\nADMINSTRAJÓN DESCONCENTRADA DE AUTORÍA\nSONORA \"2\" ' e, MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaria ib” ADMINSTRANÓN eS “p, ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “Be 1 AUTORÍA FISCAL DE SONORA -2”\nAVE. RODOLFO ELEIAS CALLESIE, No Y) 14081 contrál Tel. (55) 1111-2222\nMunicipio Centro CP 00001 ' Correo: tupita pepita. pepitaMsat.gob.mx\n— — — —\nal “O 1 >\" itades de la Autoridad\nesta oficina paro cobros 8 san Angel Órgano integrante de la subdelegación 8 san Angel del instituto\nmexicano de seffuridad social Órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónomo Gon fundamento en los artículos 251 tracción VI! XXV y J000(VII 251 a de la ley del\nseguro social enVgor uno y 2 fracción V incisos VYC 142 fracción ll 149, 150, 154 fracciones -i, li lll, y\n155 primer párrlo sección 0O(V! párrafos primero y segundo inciso c párrafos primero y segundo 159\nsegundo párrato del teglamento interior de institución mexicana del seguro social en vigor\nO : Fundamento del Requerimiento E A\nartículo 16 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norgííhica de la administración pública federal 5, 9, 250 fracciones VII, XX y JO(VI 251-a 270, 287 y 291\nst +\n",
+      "mean_confidence": 79.08,
+      "word_count": 291,
+      "char_count": 1813
+    },
+    "image_properties": {
+      "blur_score": 5.27,
+      "noise_estimate": 2.3,
+      "contrast": 25.3,
+      "brightness": 230.17,
+      "edge_density": 0.9582
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b3.30_vignette_t75.png",
+    "blur": 3.3,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 75,
+    "actual_conf": 79.0,
+    "ocr": {
+      "text": "€, ” | : |\n*\nAdministración General de Auditoria Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” A\n_No. De Identificación Y\nAGAFADAFSON\n\nJuan Juan Melón Sandía gq,\n\nVicepresidente de Supervisión de Procesos Preventivos + / «\n\nComisión Nacional Bancaria y de valores h *\n\nInsurgentes Sur 1971, Conjunto Plaza inn, col. 4 alupe inn, !\n\nDel Alvaro obregón, C.P. 01020, Ciudad de Méx , at?\n\nPresente 6 E\n\nDatos generales Iori\n\nADMINISTRACIÓN GENERAL DE AUDITORÍA Ft RAL \"LL  houerimiento Hecendario\n\nADMINSTRAJÓN DESCONCENTRADA DE AUT\n\nSONORA \"2\" h MTRO. GUADALUPE PEPITA PEPITA\n\nMesa. Turno y/o Undad. Secretaria il” ADMINST \"Bb. ADMINISTRADOR DESCONCENTRADA DE\n\nAVE. RODOLFO ELFIAS CALLESÍE, No 1 108 contr Tel. (55) 1111-2222\n\nMurwc:ip:o Centro CP 00001 k ' € Correo. tupata peprta pepralbsa! gob ma\n\n— — —\n— e de la Autoridad\n\nesta otaina PALO cobros 8 san integrante de la subdelegación 8 san Ángel del instituto\nmexicano de seffurndad social Órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónomo Gbn fundamento en los artículos 251 tracción VI! OM y JO00O(VII 251 a de la ley del\nseguro social eV gor uno y Fracción V incisos VYC 142 tracción lll 149, 150, 154 fracciones - i, li ill, y\n158 primer párr sección)OO(N! párratos primero y segundo inciso c párratos primero y segundo 159\nsegundo párrato delteglamento interior de institución mexicana del seguro social en vigor\ní —_ mi Fundamento del Requerimiento ]\naflgulo 16 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norgííhica de la administración pública federal 5, 9, 250 fracciones VI! , XX y J00V1 251-4 270, 287 y 291\ny\n",
+      "mean_confidence": 79.01,
+      "word_count": 267,
+      "char_count": 1686
+    },
+    "image_properties": {
+      "blur_score": 4.17,
+      "noise_estimate": 2.04,
+      "contrast": 24.62,
+      "brightness": 230.74,
+      "edge_density": 0.193
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b3.30_texture+vignette_t75.png",
+    "blur": 3.3,
+    "artifacts": [
+      "texture",
+      "vignette"
+    ],
+    "target_conf": 75,
+    "actual_conf": 77.6,
+    "ocr": {
+      "text": ">\nAdrrunmistración General de Auditoria Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nAGAFADAS\nJuan Juan Melón Sandía \"4 Ma\nVicepresidente de Supervisión de Procesos Preventivos »\nComisión Nacional Bancaria y de valores eo '\ninsurgentes Sur 1971, Conjunto Plaza inn, col. alupe inn, ¿a\nDel Alvaro obregón, C.P. 01020, Ciudad de Méxi8o = Wa?\nPresente A y\nDatos generales delisouica le\nADMINISTRACIÓN GENERAL DE AUDITORÍA Ft PAL e Wiuerimiento Hacendario\nADMINSTRAJÓN DESCONCENTRADA DE AUT\nSONORA \"2\" e MTRO. GUADALUPE PEPITA PEPITA\nMesa. Turno y/o Urudad. Secretaria 8)\" ADMINST y” ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE OS % AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLESÓE. No) 1408 contrál, Tel. (55) 1111-2222\nMurnecipio Centro CP 00001 * 2 Correo. lupita pepita peprtalbsat gob ma\npa mn -— A _—ñ\n— a. — |\n— ¡places de la Autoridad\nesta otiGina paro cobros 8 san integrante de la subdelegación 8 san Ángel del instituto\nmexicano de seffundad social Órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónomo Gdn fundamento en los artículos 251 fracción VI! JOY y J000(VII 251 a de la ley del\nseguro social aniVgor uno y Fracción V incisos VYC 142 tracción lll 149, 150, 154 fracciones - i, li lll, y\n158 primer párr) secciónO0OW! párratos primero y segundo inciso c párrafos primero y segundo 159\nsegundo párrato aetreglamento imernor de institución mexicana del seguro social en vigor\n' %. “A Fundamento del Requerimiento\n10 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norglíhica de la administración pública federal 5, 9, 250 fracciones Vil, XX y J00V1 251-4 270, 287 y 291\nse\n",
+      "mean_confidence": 77.6,
+      "word_count": 267,
+      "char_count": 1706
+    },
+    "image_properties": {
+      "blur_score": 4.32,
+      "noise_estimate": 2.08,
+      "contrast": 24.64,
+      "brightness": 230.29,
+      "edge_density": 0.1935
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b4.10_clean_t65.png",
+    "blur": 4.1,
+    "artifacts": [],
+    "target_conf": 65,
+    "actual_conf": 69.8,
+    "ocr": {
+      "text": "AO tran Genera: de Ayónona Fecal Federa\n\nASrerestración Desconcentrada de Aydtona Fical de Sonora \"27\n\nVicepresidente de Supervisión de Procesos Preventivos yr\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn; /\n\nDel Alvaro obregón, C.P. 01020, Ciudad de\n\nPresento\n\nDatos generales\n\nADMIESTRACIÓN GENERAL DE ALJOFTORLA Pas h, Macendano\nAOMISTRALON DESCONCENTRADA DÉ 3\n\nSONORA “77 ». MIRO GUADALUPE PEPA PEPA\n\nMesa turno yo Undead. Sec ADMIBASTRADOR DESCONCENTRADA DÉ\nDESCONCENTRADA DE MITORBÍA E , De MSTORIA FISCAL DE SONORA - 77\n\nA RODOLFO ELIAS CALLE o Del. 56) 1111-2222\n\nh UD de la Autondad |\n\nesta mtegrante de la suboelegación 8 san Ángel del mstituto\nmerca de seta operativo de la delegación sur del d:strito federal organ:smo\nhscal autámmo Bbn tunálmento en los articulos 251 tracción VI! JOY y JODOCV! 251 a de la ley del\nseguro uno y Ptracción Y incisos VYC 142 tracción lll 149, 150, 154 fracciones - 1, li íl, y\n19 prrmer párratos primero y segundo mcrso € párrafos primero y segundo 159\nseguido parrato sg Lamento mtenor de institución mencana del seguro social en ngor\nUK a Fundamento del Requernmmuento\n\nañlguto YO de la constitución política de los Estados Unidos Mexicanos 3 tracción uno y 45 de la ley\norgliica de la administración pública federal 5, 9, 250 tracciones Vil, XUL y 10041 251.4 270, 287 y 291\n",
+      "mean_confidence": 69.81,
+      "word_count": 207,
+      "char_count": 1328
+    },
+    "image_properties": {
+      "blur_score": 3.52,
+      "noise_estimate": 1.88,
+      "contrast": 24.44,
+      "brightness": 241.07,
+      "edge_density": 0.0403
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b4.10_scan_t65.png",
+    "blur": 4.1,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 65,
+    "actual_conf": 69.9,
+    "ocr": {
+      "text": "Arma tracion Genera: de Ayornona Frcal Federa\nASrrerestración Desconcentrada de Aydrtona Fical de Sonora * 2”\nAAS\n\nVicepresidente de Supervisión de Procesos Preventivos Y\n\nComisión Nacional Bancaria y de valores »\n\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn;\n\nDei Alvaro obregón, C.P. 01020, Ciudad de\n\nPresente\n\nDatos generales\n\nADMIESTRACIÓN GENERAL DE ALJDITORIA ua . Maecendano\n\nADMRSTRALON DESCONCENTRADA DE A\n\nSONORA \"7\" Y MIRO OLUADALUPE PEPA PEPA\n\nMera wn yo Undead ADMBESTRADOR DESCONCENTRADA DÉ\n\nDESCONCANTRADA DE MITORIA Y a MAUSTORÍA FISCAL DE SONORA = 77\n\nME RODOLFO ELIAS CALLE e Tal. 50) 1111-2272\n\nA de la Autondad\n\nesta integrante de la subdelegación 8 san Angel del instituto\nmexc am de se operativo de la delegac:ón sur del distrito federal organ-smo\nhacal autáfimo Bn tundmento en los articulos 251 tracción vi! JOY y JODONVI! 251 a de la ley del\nseguro uno y Ptracción V incisos VYC 142 tracción lll 149, 150, 154 tracciones - i, li íl, y\n19 prmer párrafos primero y segundo inciso c párrafos primero y segundo 159\nLY Si Fundamento del Requernmmuento\n\nañlguto VO de La constitución política de los Estados Unidos Mexicanos 3 tracción uno y 45 de la ley\norglibica de la administración pública tederal 5, 9, 250 tracciones Vil, XX y 100V1 251.4 270, 287 y 291\n",
+      "mean_confidence": 69.86,
+      "word_count": 203,
+      "char_count": 1287
+    },
+    "image_properties": {
+      "blur_score": 14.06,
+      "noise_estimate": 3.75,
+      "contrast": 24.4,
+      "brightness": 241.0,
+      "edge_density": 0.1429
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b4.10_vignette_t65.png",
+    "blur": 4.1,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 65,
+    "actual_conf": 63.9,
+    "ocr": {
+      "text": "Agrrerestración Desconcentrada de Aydtorna Fecal de Sonora “77\nAGAS ADS\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores Yu y\n\ninsurgentes Sur 1971, Conjunto Plaza inn, col nm M\n\nDel Alvaro obregón, C.P. 01020, Ciudad de e st\n\nPresente '\n\nh pa\n\nADMIPESTRACIÓN OE IERAL DE AUDITORIA $ mas \"Y yA\nADMINSTRAON DESCONCENTRADA DE MUS\n\nSONORA “FT MIRO CUADAL UPT PEPITA PEPITA\n\nMesa Ino yo Urndal sec eta al ADMI? ADMIESTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE ASTORIA FSA, DE SONORA MITORÍA FISCAL DE SONORA “7”\n\nME. RODOLFO ELIAS CALLES. o) OA \" Del. (80) 1111-2222\n\nMine peo Centro CP 0000 t A % Lores pta peta pego abra gon Te\n\nY\nCAM\nh RA\n\nesta rana Da 00108 8 sa, mtegrante de la subdelegación 8 san Ángel del mstituto\nmexcamg de segy cad poc:al Begano operatrro de la delegación sur del dstrito federal organ: mo\nhiscal autóligmo Bn tunámento en los articuios 251 tracciónv!! JO(V y JODO(VN 251 a de la ley del\n0 cerdos derbi\n19 prrmer parrafos primero y segundo mcrso c párratos primero y segundo 159\nseguro parrato ceegiamento interior de mstitución Mencara del seguro social en mgor\nh h o Fundamento del Requenrmmuento\n\n, W6 de la constitución política de los Estados Unidos Memcanos 3 fracción uno y 45 de la ley\norglíbica de la administración pública federal 5, 9, 250 tracciones Vil, XI y 100V1 251-4270, 287 y 291\n",
+      "mean_confidence": 63.91,
+      "word_count": 218,
+      "char_count": 1369
+    },
+    "image_properties": {
+      "blur_score": 3.35,
+      "noise_estimate": 1.83,
+      "contrast": 23.47,
+      "brightness": 230.75,
+      "edge_density": 0.0287
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b4.10_skew_t65.png",
+    "blur": 4.1,
+    "artifacts": [
+      "skew"
+    ],
+    "target_conf": 65,
+    "actual_conf": 69.2,
+    "ocr": {
+      "text": "AOrmrerestración Genera de Ayarnona Frcal Federa\nAOrrerestración Desconcentrada de Aydrtona Fucai de Sonora “27\nAGAS ADAS\nDer. »\n> ES ls an e\nE Me. n\nVicepresidente de Supervisión de Procesos Preventivos Y ]\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn;\nDel Alvaro obregón, C.P. 01020, Ciudad de\nPresente\nDatos generales\nADMIESTRACIÓN GE NERAL DE AMJONTORA PA ( Macendano\nADMINSTRAJON DESCONCENTRADA DÉ A a\nSONOBA “7 3 MIRO OUADALUPE PEPA PEPA\nMera turno yo Undead dec ADMIESTRADOR DESCONCENTRADA DE\nDESCONCINTRADA DE MITORÍA $ De MITORÍA FICAL DE SONORA *7*\nat a Mol. (0) 1111-2272\nMuse po Centro CP 0000 * * Correo pta pepta pay abra quo e\nAh de la Autondad |\nesta ota mtegrante de la subdelegación 8 san Angel del mstituto\nren cam de . operatrro de la delegación sur del distrito federal organ-s mo\nhacal autáfgmo Gn tundmento en los articulos 251 tracciónvi! JOY y JODO(VI! 251 a de la ley del\no rd reine 149, 150, 154 fracciones — i, li ll, y\n1% prmer párratos primero y segundo mcrso c párratos primero y segundo 159\nsegundo parrato celregiamento mtenor de mstitución mencana del seguro social en mgor\n. m Fundamento del Requermmuento\naAlguio VO de la constitución política de los Estados Unidos Mexicanos 3 tracción uno y 45 de la ley\norglibica de la adrrirestración publica federal 5. 9, 250 tracciones VI, XA y 100V1 251-4 270, 287 y 291\n",
+      "mean_confidence": 69.23,
+      "word_count": 227,
+      "char_count": 1393
+    },
+    "image_properties": {
+      "blur_score": 3.56,
+      "noise_estimate": 1.89,
+      "contrast": 24.38,
+      "brightness": 240.4,
+      "edge_density": 0.042
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b4.50_clean_t55.png",
+    "blur": 4.5,
+    "artifacts": [],
+    "target_conf": 55,
+    "actual_conf": 58.9,
+    "ocr": {
+      "text": "dra ón Decora entrada Se Ajyátora Frac a de honora \"77\n\n¿o De gent acom\n\nAGAS\n\nY Y\njun on Meson San nu Y\nVicepresidente de Supervisión de Procesos Preventivos EN .\nComisión Nacional Bancaria y de valores y\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn,\nDei Alvaro obregón, C.P 01020, Ciudad de\nPresento\nDatos pere mes\nAMARE TRA IÓ CA AS, O AJO TOBA , . Hacendano\n== a\nHOMORA “y MA MTRO OUADAL UIT PEPA PEPA\nMera in o Und de ADMIBESTRADOSR DESCONCENTRADA DÉ\nCOCA MN TRADA OE ASTORIA me MIVORA FÑCAL O SONORA Y\na ADOCASO ELIAS CALA lol 000 1111-2279\nA , 4 Ce ts As a A os\nh UD de la Autoridad ]\n\nesta megrarte de la mbdelegac:ón $ san Angel del msttuto\nes am de | Operativo de la Delegación mr del dstrto tederal organ mo\ntacal ati armo Bl tundilinento en los aricutos 251 tracción JOY y IODOLVN 251 a de la ley del\nseguro uno y Ptracción Y mcisos VYC 142 tracción ll 149, 150, 194 tracciones - i, 4 6, y\n1% prormer , parratos prenero y segundo momo c páratos prrrnero y segundo 159\nPOgURDO pa ato II IMEnto meros de MEttUCION ME ara del reguro roca en gor\nUK Eundamernto del Requerrmmiento\nlao W de la constitución política de los Estados Unidos Mexicanos ) tracción uno y 45 de la ley\nongliica de la administración publica tederai $, Y, 250 tracciones Vi, XX y 10041 2914 270, 287 y 291\n",
+      "mean_confidence": 58.95,
+      "word_count": 216,
+      "char_count": 1292
+    },
+    "image_properties": {
+      "blur_score": 3.1,
+      "noise_estimate": 1.76,
+      "contrast": 23.94,
+      "brightness": 241.07,
+      "edge_density": 0.0226
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b4.50_texture_t55.png",
+    "blur": 4.5,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 55,
+    "actual_conf": 56.4,
+    "ocr": {
+      "text": "« e ”\nAt on Cn de Atos e a Feder |\ndra On Descona entrada de Ajytora Paca de honrosa “77\nAM MY\n\nJuan Juan Melón Sandia Lo > Y\n\nVicepresidente de Supernsión de Procesos Preventiros ur :\n\nCorussón Nacional Bancaria y de valores e\n\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn;\n\nDei Alvaro obregón, C.P. 01020, Ciudad de\n\nPresento\n\nDatos gerorsios\n\nAAAIGEIRAC IÓ CADA RAS, O MSOFTORA Mac endar ro\n\nAMAIA DESCONCENTRADA O A\n\nHOMORA “Y d MIMO COLADA YATE PEPA PEPA\n\nMens hi y Un da her ADMIRADO DESCONCENTRADA 0\n\nCOCA A TRADA 04 MITOBA De MITRA FICAL 06 SHOMNORA = 7\"\n\nMA MODO FO ELIAS CALLE pe e. 100 1111-3777\n\nA TU de la Atondad\n\nesta megane de la wodelegación E san Angel del msttuto\nmes: am de OPER O De La Jeegac On mr del Gstrto federal organ amo\ntacal sutiiymo Bn tunáilinento en los articulos 251 tracción! XV y JIODIVN 251 a de la ley del\nseguro | uno y Fracción Y incisos VYC 142 iracción MM 149, 150, 154 hracciones - 4%, y\n1% prrmer parratos primero y segundo momo € parrafos primero y segundo 159\nOGADO pa 210 CLA MEnto tenor de MELON Merc ara del seguro socia en nor\n. fundamento del Requerrmmuento\nAlo WO de la constitución política de los Estados Urudos Mexicanos ) tracción uno y 45 de la ley\norglibbica de la adrrirastración publica tederal 5. 9. 250 tracciones Vi XA y 1001 291.4 270. 287 y 291\n",
+      "mean_confidence": 56.42,
+      "word_count": 232,
+      "char_count": 1316
+    },
+    "image_properties": {
+      "blur_score": 3.12,
+      "noise_estimate": 1.77,
+      "contrast": 23.89,
+      "brightness": 240.45,
+      "edge_density": 0.0235
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b4.50_scan_t55.png",
+    "blur": 4.5,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 55,
+    "actual_conf": 59.4,
+    "ocr": {
+      "text": "hSrmereto econ Dec orncentrada de Ajorona Frac a Se Sonora \"77\n\n¿No De dente e0 :\n\nAGS\n\nTe. * — A\nJuan Juan Melón Sandia pa o \"h X\nVicepresidente de Supervmsión de Procesos Preventivos a\nComisión Nacional Bancana y de valores y\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn;\nDel Alvaro obregón, C.P 01020, Ciudad de\nPrenente\nDatos generos\n\nAIABEETRACIÓS CAPA BRA OE MIO TORA : MHacerndaro\n== A\nLONOBA - 7 dl MTRO. GUADA UIT PEPA PEPA\nMera in o Urna ADMRESIRADOS DESCONCENTRADA Dé\nPIDA AU PA CA MITRA PEICAL DE BONORA “77\nesta í | megane de la subdelegación 8 ran Angel del msttuto\nmer a de | Operatrro de la Delegación mur del dstrito federal organ mo\nhacal mallrro Br tunállimento en los aricutos 251 tracción IV y IDDDOVN 251 a de la ley del\nsoguro uno y Ptracción Y mcisos VYC 142 tracción Ml 149, 150, 154 hacciones -i, 4 él, y\n1% prrmer paratos prrmero y segundo mano « parratos primero y segundo 159\nMOGURDO par rato CI MEnto tenor de MettucIOn Merc ara del Veguro roca en mgor\nKo a Endarmenrto del Requerrmiento\nlao WO de la constitución política de los Estados Urudos Mexicanos ) tracción uno y 45 de la ley\norglibica de la adrriristración publica tederai $, 9, 250 tracciones Vi, XX y 10001 2914 270, 287 y 291\n",
+      "mean_confidence": 59.41,
+      "word_count": 207,
+      "char_count": 1225
+    },
+    "image_properties": {
+      "blur_score": 132.63,
+      "noise_estimate": 11.52,
+      "contrast": 23.51,
+      "brightness": 241.2,
+      "edge_density": 0.4845
+    }
+  },
+  {
+    "doc_id": "222AAA",
+    "filename": "222AAA_b4.50_vignette_t55.png",
+    "blur": 4.5,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 55,
+    "actual_conf": 54.5,
+    "ocr": {
+      "text": "E 9 Asirora Pca Federa AA\narmar ión Desconcerntrada de Ayora Fax a de honora * 77 :\n¿o De identico '\nMAS ADS :\nVicepresidente de Supernsión de Procesos Preventrros\nComisión Nacional Bancana y de valores , y\ninsurgentes Sur 1971, Conjunto Plaza inn, col nn. pa\nDel Alvaro obregón, C.P 01020, Ciudad de .. Na?\nPresento a\nDatos perermos\nACARESTRAC IÓ CA MAA OE AJOS A $ na \"Y yA\nADAARSTRA CA 06 COR ENTRADA 04 Ms\nHOMORA “7 MERO DADAS UIT PEPA PEPA\nMera Uso yo un dad se eta a ADA AMB TRADOR O6 CONCENTRADA 06\nDESCOMNCANTRADA 04 MJPORA FA, DE SORORA MITOBA FOCAL O SONORA - 77\na os. * A h Dal. 0 1111-3779\nMr qn Cara CP O * > Y Cn ts ts e A po\nY yO\nesta Anos ha megane de la wodelegación $ san Angel del mettuto\nmes a de MO operatrro de la delegación ms del destrto tederal organ mo\ntacal atillyrro Bl tundllarento en vos artcuios 291 tracción UV y IUDOVN 251 a de la ley del\nseguro uno y Fracción Y mcmos VYC 142 tracción M 149, 1590, 194 racciones - i, 4, y\n1% promos parratos prmero y segundo mcrro — parratos primero y segundo 159\nMOGUIDO pa rato CE IMENtO tenor de MELON Mer ara el ero oca en gor\nY is Fundamento del Requerrmrierto\nWee la constitución potitica de los Estados Urudos Memcanos ) tracción uno y 45 de la ley\ndn la asdrmurastración pubiica tedersi 5. 9. 750 tracciones Vi KA y 001 751-4270, 287 y 291\n",
+      "mean_confidence": 54.47,
+      "word_count": 244,
+      "char_count": 1315
+    },
+    "image_properties": {
+      "blur_score": 2.93,
+      "noise_estimate": 1.71,
+      "contrast": 23.01,
+      "brightness": 230.78,
+      "edge_density": 0.0137
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b0.10_clean_t85.png",
+    "blur": 0.1,
+    "artifacts": [],
+    "target_conf": 85,
+    "actual_conf": 87.5,
+    "ocr": {
+      "text": "l 0el el yal yl\nAdministración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\n\n| No. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000083 2,\n\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente\nSRA Datos generales del solicitante E 2]\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, | Requerimiento Hacendario |]\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCALDE\nSONORA “2” Ñ MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría.etc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2” AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaUsat.gob.mx |\nOEA Facultades de la Autoridad COS El\n-requerimiento de información. operaciones mixtas\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA ”2” CON SEDE EN\nSONORA DE LA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DE LOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVII Y XVIII Y 8, FRACCIONES lll\nDELLA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 15/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 87.45,
+      "word_count": 257,
+      "char_count": 1801
+    },
+    "image_properties": {
+      "blur_score": 2223.07,
+      "noise_estimate": 47.15,
+      "contrast": 34.61,
+      "brightness": 239.98,
+      "edge_density": 8.3675
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b0.10_texture_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 85,
+    "actual_conf": 87.7,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\n[No. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000083\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente Ñ o ls\nA _____ Datosgenerales del solicitante \"________ | |\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario |\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCALDE\nSONORA “2” Ñ MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría:etc: ADMINSTRAIÓN. ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2” AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001; Correo: lupita.pepita.pepitaGsat.gob.mx\nO SNA Facultades de la Autoridad SEN El\n-requerimiento de información. operaciones mixtas\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA ”2” CON SEDE EN\nSONORA DE LA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DE LOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVII Y XVIII Y 8, FRACCIONES lll\nDELLA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 15/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 87.7,
+      "word_count": 252,
+      "char_count": 1796
+    },
+    "image_properties": {
+      "blur_score": 2228.59,
+      "noise_estimate": 47.21,
+      "contrast": 34.56,
+      "brightness": 239.34,
+      "edge_density": 8.3985
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b0.10_scan_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 85,
+    "actual_conf": 89.0,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\n[No. De Identificación del Requerimiento -\nAGAFADAFSON2/2025/000083\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadatupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente Ñ o lo\no __ Datos generales del solicitante Ñ Ñ El\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL — Requerimiento Hacendario !\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCALDE\nSONORA “2” a MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría.etc: ADMINSTRAJÓN ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2”. AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaUsat.gob.mx\nPE Facultades dela Autoridad El\n-requerimiento de información. operaciones mixtas\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA ”2” CON SEDE EN\nSONORA DE LA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DE LOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVII Y XVIII Y 8, FRACCIONES lll\nDELLA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 15/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 89.02,
+      "word_count": 253,
+      "char_count": 1782
+    },
+    "image_properties": {
+      "blur_score": 2273.77,
+      "noise_estimate": 47.68,
+      "contrast": 34.45,
+      "brightness": 239.99,
+      "edge_density": 8.6771
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b0.10_vignette_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 85,
+    "actual_conf": 89.2,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nLAGAFADAFSON2/2025/000083\n\nJuan Juan Melón Sandía\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresente A MÍ Y\n\no Ñ Datos generales del solicitante A y]\n\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL — Requerimiento Hacendario |\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCALDE\n| SONORA “2” ' | MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad, Secretaríaetc: ADMINSTRAJON ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2% AUTORÍA FISCAL DE SONORA “2”\n\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\n\nMunicipio Centro CP 00007; Correo: lupita.pepita.pepitaQsat.gob.mx\nE NN Facultades de la Autoridad dl El\n-requerimiento de información. operaciones mixtas\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA ”2” CON SEDE EN\nSONORA DE LA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DE LOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVII Y XVIII Y 8, FRACCIONES lll\nDELLA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 15/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 89.24,
+      "word_count": 247,
+      "char_count": 1758
+    },
+    "image_properties": {
+      "blur_score": 2123.4,
+      "noise_estimate": 46.08,
+      "contrast": 33.48,
+      "brightness": 229.92,
+      "edge_density": 8.3627
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b1.30_texture_t75.png",
+    "blur": 1.3,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 75,
+    "actual_conf": 79.2,
+    "ocr": {
+      "text": "Administración General de Auditoria Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” Se\nAGAR 2, 2)\no. %\n\nJuan Juan Melón Sandía Y\n\nVicepresidente de Supervisión de Procesos Preventivos gn\n\nComisión Nacional Bancaria y de valores . Y\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe in. xs\n\nDel Alvaro obregón, C.P. 01020, Ciudad de LY\n\nPresente É a\n\nLa del\n\nOPRUSTOCIÓN GENERAL DEMJOMONA RICA FEA Mi Y lo Hacendanio\nADMINSTRAJÓN DESCONCENTRADA DE $,\n\nSONORA \"2\" QW $ MTRO. GUADALUPE PEPITA PEPA\n\nMesa, Turno y/o Unidad. Secreta n pora y ADMINISTRADOR DESCONCENTRADA DE\nRA oe + AUTORÍA FISCAL DE SONORA *2*\n\nAVE. RODOLFO ELEIAS CALLES' No 1111, 0 ll Tel. (55) 1111-2222\n\nMuncipo Centro CP 0000, Correo tupta pep:ta peptafbsal gob ma\n\n_- a - —\nY\n\nrequerimiento de mixtas\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA \"2\" CON SEDE EN\nSONORA DE UA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DELOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVI! Y XVIII Y 8, FRACCIONES lll\nDELA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 15/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 79.24,
+      "word_count": 244,
+      "char_count": 1561
+    },
+    "image_properties": {
+      "blur_score": 53.57,
+      "noise_estimate": 7.32,
+      "contrast": 26.44,
+      "brightness": 239.9,
+      "edge_density": 7.2203
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b1.30_scan_t75.png",
+    "blur": 1.3,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 75,
+    "actual_conf": 79.6,
+    "ocr": {
+      "text": "e A, e) á e\nA y lb\nAdministración General de Auditoria Fiscal Federal SS\nAdministración Desconcentrada de Auditoria Fiscal de Sonora “2” A\nAGAFADAFSON2/ ha)\nEn\nJuan Juan Melón Sandía Se\nVicepresidente de Supervisión de Procesos Preventivos AI,\nComisión Nacional Bancaria y de valores , Y\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe nn. AY,\n== =\nPresente A KZ\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FE! E GÑ\nADMINSTRAJÓN DESCONCENTRADA DE Pro,\nSONORA \"2\" haga e MTRO. GUADALUPE PEPITA PEPITA\nMesa. Turno y/o Unidad. Secretar DMA)\" RA ADMINISTRADOR DESCONCENTRADA DE\nPRI ao DL | AUTORÍA FISCAL DE SONORA \"2\"\nAVE. RODOLFO ELEJAS CALLESE, No 1111, Ó % e (55) 1111-2222\nMunicipro Centro CP 0000 Y, Correo. lupta pepa peptafisat gob ma\nha\na\ne ed\n>»\nli N e\nSA ig ocuitacos de a Autoridad\n- Pr —b—\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA “2” CON SEDE EN\nSONORA DE UA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DELOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVII Y XVIII Y 8, FRACCIONES ill\nDELA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 18/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 79.61,
+      "word_count": 248,
+      "char_count": 1560
+    },
+    "image_properties": {
+      "blur_score": 83.74,
+      "noise_estimate": 9.15,
+      "contrast": 26.3,
+      "brightness": 240.26,
+      "edge_density": 7.2807
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b1.30_fold_h_t75.png",
+    "blur": 1.3,
+    "artifacts": [
+      "fold_h"
+    ],
+    "target_conf": 75,
+    "actual_conf": 79.0,
+    "ocr": {
+      "text": "$ ¿ í % p\nA p e! Os\nAdministración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” hb\nAGAFADAFSON2/ A\nE. s\n\nJuan Juan Melón Sandía a\n\nVicepresidente de Supervisión de Procesos Preventivos AMI\n\nComisión Nacional Bancaria y de valores % %\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe nn. xs\n\nDel Alvaro obregón, C.P. 01020, Ciudad de a\n\nPresente E >\n\nDanos prgios del\n» Mo\n\nADMINISTRACIÓN GENERAL DE AUDITORÍA FEl a a] 'o Hacendano\n\nADMINSTRAJÓN DESCONCENTRADA DE $e,\n\nSONORA “2” A a MTRO. GUADALUPE PEPITA PEPA\n\nMesa, Turno y/o Undad. Secretar ADMINISTRADOR DESCONCENTRADA DE\n\nRA oe E AUTORÍA FISCAL DE SONORA 2”\n\nAVE. RODOLFO ELEJAS CALLES BIE, No 1111, Y | vel (55) 1111-2222\n\nMunc:p0 Centro CP .—. Correo lupta pep:ta peptafbsat gob ma\n1 E es l\n\ne y “dd\n»\nIT Pa pcultades de la Autoridad\n\nrequerimiento de mias\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA \"2\" CON SEDE EN\nSONORA DE UA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DELOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVI! Y XVIII Y 8, FRACCIONES lll\nDELA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 15/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN 10(V INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 79.03,
+      "word_count": 260,
+      "char_count": 1632
+    },
+    "image_properties": {
+      "blur_score": 53.91,
+      "noise_estimate": 7.34,
+      "contrast": 26.38,
+      "brightness": 240.22,
+      "edge_density": 7.1792
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b1.45_vignette_t75.png",
+    "blur": 1.45,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 75,
+    "actual_conf": 78.6,
+    "ocr": {
+      "text": "e) $\n€\n»\nAormurustración General de Audrtona Frscal Fodera\nAcrmunestración Desconcentrada de Audrtona Fiscal de Sonora \"27\nh .\nNo. De\nAGAFADAS SON2/\nE a\n“h a h\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos o pu\nComisión Nacional Bancaria y de valores :\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn, \"y ae\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente N d\n— >\nDatos gengrales del sor 4\nADMINISTRACIÓN GENERAL DE AUDITORÍA £ HA ABhuerimiento Hacendano\nADMINSTRAJÓN Deconcintnaca ce ln CAL h\nSONORA “77 e p MIRO GUADALUPE PEPA PEPA\nMesa. Turno y/o Unidad. Secretarael sn ADMINISTRADOR DESCONCENTRADA DÉ\nDESCONCENTRADA DE AUTORIAMBCAL DE == ALSTORÍA FISCAL DE SONORA “2*\nAVE. RODOLFO ELEJAS CALLES ML, No 1111 ro. % Tel. (55) 1111-2222\nMun< 90 Centro CP 0000 Y: d Correo lupta pepa peptafsa! gob me\n— - e\nz > 'acultades de la Autoridad\nrequenmiente de mitas\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA \"2\" CON SEDE EN\nSONORA DE UA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DELOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVI! Y XVIII Y 8, FRACCIONES ll\nDELA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 18/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\nee\n",
+      "mean_confidence": 78.63,
+      "word_count": 264,
+      "char_count": 1668
+    },
+    "image_properties": {
+      "blur_score": 32.41,
+      "noise_estimate": 5.69,
+      "contrast": 24.81,
+      "brightness": 230.07,
+      "edge_density": 6.5017
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b1.75_texture+vignette_t65.png",
+    "blur": 1.75,
+    "artifacts": [
+      "texture",
+      "vignette"
+    ],
+    "target_conf": 65,
+    "actual_conf": 68.9,
+    "ocr": {
+      "text": "AGmerestración Genera: 0e Ajortona Fco: Federa :\nAgmenatración Desconcentrada de Audtona Fecal de Sonora “77\nA\nNo. De la\nAGAS ADAS SON,\nE bh\nJuan Juan Melón Sandia s 3\nVicepresidente de Supernsión de Procesos Preventivos AI\nComisión Nacional Bancaria y de valores h ]\ninsurgentes Sur 1971, Conjunto Ptaza inn, col. Guailuge inn, — “4\nDel Alvaro obregón, C.P. 01020, Ciudad de Mígico\nPresente E >\nDato green om so Meg\nADMIRACIÓN, 04 del RA OE AJO TOA Mp Dimas Hacendaro\nO cn ma o li 4\nDHONOBA “7 \" MIRO GUADALUPE PEPA PEPA\nMesa Ire yo Undead deceo ae ADMARESTRADOR DESCONCENTRADA 06\nA q AUSTOBÍA FISCAL DÉ HONORA *7*\nMA RODOLFO LAS CALLES mo m1 ol 0 1111-2777\nMun< pm Centro CP 0000 . Correo nota pepta peptabrs gue me\n,\ne ly\n— - . -\n£ ¡acuitades de a Autondad\nmA\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA \"2\" CON SEDE EN\nSONORA DE YA ADMINISTRACIÓN GENERAL DE AUDITORIA FISCAL FEDERAL. DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DÉ LA CONSTITUCIÓN\nPOLÍTICA DELOS ESTADOS UNIDOS MEJICANOS, 1, 7 FRACCIONESVN Y XVI Y 8, FRACCIONES IM\nDELA LEY DEL MAVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 18/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDÉ LA FEDERACIÓN El 12/07/2003. 1, 2, PARRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PARRAFO\nTERCERO, E. PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN Vi , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 68.91,
+      "word_count": 251,
+      "char_count": 1511
+    },
+    "image_properties": {
+      "blur_score": 17.09,
+      "noise_estimate": 4.13,
+      "contrast": 23.89,
+      "brightness": 229.52,
+      "edge_density": 4.9429
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b1.90_clean_t65.png",
+    "blur": 1.9,
+    "artifacts": [],
+    "target_conf": 65,
+    "actual_conf": 68.5,
+    "ocr": {
+      "text": "á\nAmon Ceres de Arona Pra Poder :\nAmr Desc oncertrada de Ajitona Frec as de Somora “77\na\nMo De\nVicepresidente de Supernsión de Procesos Preventivos ha\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn,\nDel Alvaro obregón, C.P 01020, Ciudad de\nPresente e\nDatos del\n\nADMIRACIÓN: Cd Pl RA. DE AJO TOA Macendaro\nADAGIO DESCONCENTRADA DE\nSONORA “y” > O GUADALLAE PENA P A\nMens hr po Un. ADMIESIRADOR DESCONCENTRADA DE\nA MIVCIA FABCAL, DE HOMORA +77\nMA MODO FO MAS CALLES! e m9 de 0 111-2770\nMsc ae Corre CP Mm ee Correo pta pepta peprabas gue m\n\n- - -\n\n.. e\nPa de la Autondad\n\nrequer mente de motas\nE DE AUDITORÍA FISCAL DE SONORA \"2\" CON SEDE EN\nSOMO DE GENERAL DE AUDITORIA FISCAL FEDERAL. DEL SERVICIO DE\n\nTROBÚMARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA ESTADOS UNIDOS MEXICANOS. 1, 7 FRACCIONES VE Y XVI YB, FRACCIONES 1\nDÉELA LEY DEL MAVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 18/12/1985. REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDÉ LA FEDERACIÓN EL 12/07/2003. 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO. 5. PARRAFO\nTERCERO. E PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN 100/ INCISO E. 14 FRACCIÓN 1. EM\nIELACIÓN COM El ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN Vi , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 68.51,
+      "word_count": 214,
+      "char_count": 1310
+    },
+    "image_properties": {
+      "blur_score": 12.98,
+      "noise_estimate": 3.6,
+      "contrast": 24.32,
+      "brightness": 239.99,
+      "edge_density": 3.8353
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b1.90_texture_t65.png",
+    "blur": 1.9,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 65,
+    "actual_conf": 67.5,
+    "ocr": {
+      "text": "«\ny y\nAmon Crea de Arona Pra: Poder\nArmrntrcón Desc orcertrada de Asitona Paca de Sonora “7”\nhs\nyn\nMo De\nJuan Juan Melón Sandía : ,\nVicepresidente de Supernsión de Procesos Preventivos ha\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn,\nDel Alvaro obregón, C.P 01020, Ciudad de\nPresento\nDatos del\nACIARGTRAC IÓ 04 Ml BA DE AJO TOA Macendaro\nACARGTRMOA DESCORCENTRADA DE\nHONOR “7 MTRO GUADALUPE PA\nMera o y e ACABESIBADOR DESCONCAENTRADA O\na a e A MIVOILA FICA. DE HORORA “77\nA OOOO LAS CAES! mm. de 0 111-3770\nMn pu Corra CO h \"ld Correo npta papa pepa que\n= y\na\nPP. Z\n£ de la Autondad\nrequermernte de matar\n£ DE AUDITORÍA FISCAL DE SONORA \"7\" CON SEDE EN\nDE GENERAL DE AUDITORIA FISCAL FEDERAL. DEL SERWICIO DE\nTROBÚARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOUTICA DELOS ESTADOS UNIDOS MEXICANOS. 1. 7 FRACCIONESVI Y XVI Y 8, FRACCIONES 1\nDELA LEY DEL DE ADMINISTRACIÓN TRIBUTARIA. PUBLICADA EN EL DIARIO OFICIAL DÉ LA\nFEDERACIÓN El 18/12/1995. REFORMADA POR DECRETO PUBLICADO EN El PROPIO DIARIO OFICIAL\nDÉ LA FEDERACIÓN EL 12/07/2002: 1. 2. PÁRRAFO PRIMERO APARTADO C Y SEGUNDO. 5. PÁRRAFO\nTERCERO. E. PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN 100/ INCISO E. 14 FRACCIÓN 1, EN\nILACIÓN COM El ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN Vi , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 67.49,
+      "word_count": 216,
+      "char_count": 1315
+    },
+    "image_properties": {
+      "blur_score": 13.16,
+      "noise_estimate": 3.63,
+      "contrast": 24.39,
+      "brightness": 239.63,
+      "edge_density": 3.7897
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b1.90_scan_t65.png",
+    "blur": 1.9,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 65,
+    "actual_conf": 66.4,
+    "ocr": {
+      "text": "*\nA — ADE DE 4\nArmenta Desc oncertrada de Asirona Paca de Samora “77 .\nMo De\n\nJuan Juan Meión Sandia\nVicepresidente de Supernsión de Procesos Preventivos ha\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza in, col. inn,\nDel Alvaro obregón, C.P 01020, Ciudad de Mgico *,\nPissanis 1 Y\nAOMREBIRACIÓN: CANABAL DE ALONDRA, aa andado\nACARGTRAÓA DESCONCEN TIRADA 04\nHOMORA “y MO GUADALLAE PEPA PEA\nMera di Ue ACHRESTRADOR DEBCOPACA NTRADA 0\nA MODO FO UA CAES! mu mt de 0 111-2770\nMn po Corera CP an e\" d A\n\n- de\n\n£ de a honda\n\nroque merto de matas\nE . DE AJOMORÍA FISCAL DÉ SONORA \"7\" CON SEDE EN\nSONORA DE GENERAL DE AUDITORÍA FISCAL FEDERAL. DEL SERVICIO DE\n\nTROBÚARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVE Y XVI YB, FRACCIONES im\nDÉLA LEY DEL MAVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN El DIARIO OFICIAL DÉ LA\nFEDERACIÓN EL 18/12/1985, REFORMADA POR DECRETO PUBLICADO EM El PROPIO DIARIO OFICIAL\nDÉ LA FEDERACIÓN El 12/07/2001. 1, 2, PARRAFO PRIMERO APARTADO C Y SEGUNDO. 5. PARRAFO\nTa GOA COM El ARIRARÓ 11 Pannarús Prraro Pano Y. 14, Panmaro Pomar\n",
+      "mean_confidence": 66.44,
+      "word_count": 184,
+      "char_count": 1151
+    },
+    "image_properties": {
+      "blur_score": 48.31,
+      "noise_estimate": 6.95,
+      "contrast": 24.25,
+      "brightness": 240.05,
+      "edge_density": 4.0253
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b2.05_texture_t55.png",
+    "blur": 2.05,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 55,
+    "actual_conf": 58.5,
+    "ocr": {
+      "text": "A e ra e A e ee í\nMm Dir or errada de Ars a e homes\no De h\nJuan Juan Melón Sandia >\nVicepresidente de Supernmon de Procesos Preventrros MY\nCorussón Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza im. col. inn,\nDei Alvaro obregón, C.P 01020, Ciudad de\nPresento\nDatos na\nAAA A AO OA Macedo\nAAA ME O IIA O\nMOROAA “y > O ADAN PUNA A\nMe e e ACREEDOR DECORA ENTRADA O\nA MICA PA DE OA 7\nMA OOOO IA a de e 1119970\nMn e ns CO Ar PS Ca ta ts e e\nOS\ne ET A\npS de sr dnd\n\ncone meta de mars\nESA ADA DE AJOMORÍA FISCAL DE SONORA “77 CON SEDE EN\n\nDe GENERAL DE AUJOMORIA FISCAL FEDERAL. DEL SERICIO DE\n\nTROBÚRARIA COM FUNDAMENTO EN LOS ARTICULOS 16 DE LA CONSTITUCIÓN\n\nPOLÍTICA ESTADOS UNIDOS MEXICANOS. 1, 7 FRACCIONES VS Y 1 YE, FRACCIONES lu\nDELA LEY DEL DE ADMINISTRACIÓN TRIBUTARIA. PUBLICADA EN EL DIARIO OFICIAL DÉ LA\nFEDERACIÓN EL 19/12/1905. REFORMADA POR DECRETO PUBLICADO EM El PROPIO DIARIO OFICIAL\nOÍ LA FEDERACIÓN EL 12/07/2002. 1. 2. PARBASO PRIMERO APARTADO C Y SEQUNDO. $. PARRAFO\nTERCERO. E PARRAFO PRIMERO, APARTADO A, FRACCIÓN 1004 INCISO E. 14 FRACCIÓN 1, Ed\nLACIÓN COM El ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN Vi , 24, PARRAFO PRIMERO.\n",
+      "mean_confidence": 58.48,
+      "word_count": 218,
+      "char_count": 1163
+    },
+    "image_properties": {
+      "blur_score": 10.09,
+      "noise_estimate": 3.18,
+      "contrast": 24.01,
+      "brightness": 239.63,
+      "edge_density": 2.1985
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b2.05_scan_t55.png",
+    "blur": 2.05,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 55,
+    "actual_conf": 56.4,
+    "ocr": {
+      "text": "e e\ná\nAa e aa De AN ta y 4\nMm Der cn arta de Atos ra de hor\nA\ndo De\ne yn -\nAA\n2. a A » -\nJuan Juan Melón Sandia ,\nVicepresdente de Supernson de Procesos Preventivos ha\nCorissón Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conpunto Plaza inn, col. inn,\nDei Alvaro obregón, C.P 01020, Ciudad de\nPresente\nDer se\nACHACA AAA AO TOA Macendaro\nAAA DE OA IRALA 04\na > O ADAN NA A\nMe e de ACAARETADOA DECORAR O\nA MINCINA PACA. DE MORIR Y\nMA MODOIO MAS CAL mm... Mo 8 11119732\nun a ns Y y E\n- kb Ed\n— De\nde sha\n\n€\nsra Bd AAGIÓN BRECONCENTRADA DE ALONOMÍA FISCAL DE SONORA 7\" COM SEDE EN\nA O e IO SEE DE LOTO CAL FEDERAL DEL E AIO DE\nA 7 PACCIONA O Y TE, FRACASO\nDELA LEY DEL DÉ ADMINISTRACIÓN TRIBUTARIA. PUBLICADA EM EL DIAIVO OFICIAL DÉ LA\nFEDERACIÓN EL 18/12/1988. REFORMADA POR DECRETO PUBLICADO EM EL PROPIO DIAJIO OFICIAL\nDÉ LA PUDERACIÓN EL 12/07/2001. 1. 2. PARRAFO PRIMERO APARTADO C Y SEGUNDO. $. PARRAFO\nTERCERO. E. PÁRRAFO PRIMERO. APARTADO A, FRACCIÓN 104 INCISO B. 14 FRACCIÓN 1, EM\nLACIÓN COM El ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN Vi , 24, PÁRRAFO PRIMERO.\n",
+      "mean_confidence": 56.39,
+      "word_count": 203,
+      "char_count": 1073
+    },
+    "image_properties": {
+      "blur_score": 33.74,
+      "noise_estimate": 5.81,
+      "contrast": 23.88,
+      "brightness": 240.03,
+      "edge_density": 2.5875
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b2.05_vignette_t55.png",
+    "blur": 2.05,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 55,
+    "actual_conf": 58.7,
+    "ocr": {
+      "text": "— EX\nAmt Dear or entrada de Ar a de do\nmo De A\naca 2\npu o\nJuan Juan Melón Sandia a\nViceprendente de Supernaon de Procesos Preventivos AI\nCormissón Nacional Bancaria y de valores me ha 4\ninsurgentes Sur 1971, Congunto Praza inn. col. Guátllllage inn.\nDei Alvaro obregón. C.P 01020. Ciudad de\nPresento e »\nDetos gergrmes del e\nA PO Di aa\nACM DE O IRALA O sacas\nMOREIRA 7 PETRO. ADAN PANA A\nMera e y in del de e ACABADOS CORR ANTBADA O\nCOCA IRALA DA d D MITA PACA O ORORA Y\na. A mm m1. de e 11119770\nns o e O a\n- % - -\nlt ——Rz y\n== e sr dnd\nmae >=\nESTA ADMIRACIÓN BOBCONCENTRADA DE AJOMTORÍA FISCAL DE SONORA “7” CON SEDE Ed\nSONORA Dt lA ADIASTRALION GENERAL DE AUJOFTORIA FISCAL FEDERAL. DEL SERICIO DE\nTROBURARIA COM FUNDAMENTO EM LOS ARTICULOS 16 DÉ LA CONSTITUCIÓN\nPOLITICA ESTADOS UNIDOS MEXICANOS. 1. 7 FRACCIONES VE Y 10M YA, FRACCIONES\nDELA LEY DEL MWVICIO DE ADMINISTRACIÓN TRIBUTARIA. PUBLICADA EN LL DIARIO OFICIAL DE LA\nFUDEBACIÓN EL. 18/12/1998. REFORMADA POR DECRETO PUBLICADO EN El. PROPIO DIARIO OFICIAL.\nOÍ LA PUDERACIÓN EL 12/07/2001. 1. 2. PARRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PARRAFO\nTERCERO. E PARRAFO PRIMERO. APARTADO A, FRACCIÓN 1004 NCISO E. 14 FRACCIÓN 1, EN\nLACIÓN COM EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN Vi , 24, PARRAFO PRIMERO\n",
+      "mean_confidence": 58.71,
+      "word_count": 224,
+      "char_count": 1263
+    },
+    "image_properties": {
+      "blur_score": 9.52,
+      "noise_estimate": 3.09,
+      "contrast": 23.16,
+      "brightness": 230.04,
+      "edge_density": 1.979
+    }
+  },
+  {
+    "doc_id": "333BBB",
+    "filename": "333BBB_b2.05_skew_t55.png",
+    "blur": 2.05,
+    "artifacts": [
+      "skew"
+    ],
+    "target_conf": 55,
+    "actual_conf": 59.6,
+    "ocr": {
+      "text": "e) e\nÑ\nA a rs de ns a a :\nmon Desc ar errada de Astor Pacs e hora 7\nmo De\nVicepresidente de Supernsón de Procesos Preventvos le\nComisson Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn,\nDel Alvaro obregón, C.P 01020, Ciudad de\nPrerente\nDatos se\nACP A ANA A SO TOA Meda\nAJARAIAAA DECORA IRALA 04\nMONA o MO. DADA AE PA PA\nes e e ACHARESIDADOS COCA TRAD 08\na a Y MICRA FOCAL. DE HORDA 77\nA MODO NAS CALLES mo 1... Ma e 1113379\nMaga Coro OP: Le Le ta ts a e\naces de ¡a Aurcrdad\n\nroquermeria de mota\ne \" DÉ AUOMORÍA FISCAL DE SONORA \"2\" CON SEDE EN\nSOMO, DE OENERAL DE AJOSTORÍA FISCAL FEDERAL. DEL SERVICIO DÉ\n\nTROBÚMARIA CON FUNDAMENTO EM LOS AMTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLITICA ESTADOS UNIDOS MEXICANOS, 1. 7 FRACCIONES VE Y 1 YA, FRACCIONES im\nDILA LEY DEL MAVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIAJUO OFICIAL DE LA\nFEDERACIÓN EL 18/12/1995. REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nOÍ LA PODERACIÓN EL 12/07/2001. 1. 2. PARRASO PRIMERO APARTADO C Y SEGUNDO. 5. PAARAFO\nTERCERO. E PÁRRAFO PRIMERO. APARTADO A, FRACCIÓN 100Y INCISO B. 14 FRACCIÓN 1, EN\nLACIÓN COM ÉL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI. 24, PARRAFO PRIMERO\n",
+      "mean_confidence": 59.56,
+      "word_count": 210,
+      "char_count": 1201
+    },
+    "image_properties": {
+      "blur_score": 10.29,
+      "noise_estimate": 3.21,
+      "contrast": 24.08,
+      "brightness": 239.65,
+      "edge_density": 2.414
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b0.10_clean_t85.png",
+    "blur": 0.1,
+    "artifacts": [],
+    "target_conf": 85,
+    "actual_conf": 83.5,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nNo. De Identificación: del Requerimiento\nAGAFADAFSON2/2025/000085 |\n\nJuan Juan Melón Sandía\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresente E\n[ o Datos generales del solicitante\n| ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario |\n\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA “2” Ñ MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad, Secretaríaetc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍAFISCAL DE SONORA “2” AUTORÍA FISCAL DE SONORA “2”\n\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Coligentro, Tel. (55) 1111-2222 |\n| Municipio Centro CP 00001 | Correo: lupita.pepita.pepitaUsat.gob.mx\n|\nl E, EA A ID E O A\n\nAN Motivación del requerimiento ]\n\nMERCANTIL EJECUTIVO ] o q . .\n[Origen del requerimiento Ml o y EA — o DN i ]\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\ndesaldo? | sí\n",
+      "mean_confidence": 83.55,
+      "word_count": 166,
+      "char_count": 1189
+    },
+    "image_properties": {
+      "blur_score": 1513.85,
+      "noise_estimate": 38.91,
+      "contrast": 30.47,
+      "brightness": 242.83,
+      "edge_density": 6.4222
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b0.10_texture_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 85,
+    "actual_conf": 83.2,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nNo. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000085 2\n\nJuan Juan Melón Sandía\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresente o ml\n[ A Datos generales del solicitante y\n| ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario |\n\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA \"2” MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad, Secretaríaétc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA \"2% AUTORÍA FISCAL DE SONORA “2”\n\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Coligentro, Tel. (55) 1111-2222 |\n| Municipio Centro CP 00001 Correo: lupita.pepita.pepitaUsat.gob.mx\n|\n\nAN Motivación del requerimiento Ñ ]\n\nMERCANTIL EJECUTIVO . Ñ E j .\n[Origen del requerimiento 5 AO y o dy Hr o SN ]\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\ndesaldo? | sí\n",
+      "mean_confidence": 83.23,
+      "word_count": 163,
+      "char_count": 1174
+    },
+    "image_properties": {
+      "blur_score": 1518.69,
+      "noise_estimate": 38.97,
+      "contrast": 30.42,
+      "brightness": 242.16,
+      "edge_density": 6.4363
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b0.10_scan_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 85,
+    "actual_conf": 80.5,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\n_— >\nNo. De Identificación: del Requerimiento\nAGAFADAFSON2/2025/000085\n\nJuan Juan Melón Sandía\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresente e O\n[ CA Datos generales del solicitante,\n| ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL — Requerimiento Hacendario |\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA *2” MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad, Secretaríaétc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2”: AUTORÍA FISCAL DE SONORA “2”\n\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Coligentro, Tel. (55) 1111-2222 |\n| Municipio Centro CP 00001 Correo: lupita.pepita.pepitaQsat.gob.mx\n|\nl A, A, A TAE E AA\n\nMotivación del requerimiento l\n\nMERCANTIL EJECUTIVO ] o a j\n[Origen del requerimiento a E A o SO E o AOS - ]\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\nde saldo? | sí |\n",
+      "mean_confidence": 80.55,
+      "word_count": 165,
+      "char_count": 1197
+    },
+    "image_properties": {
+      "blur_score": 1520.52,
+      "noise_estimate": 38.99,
+      "contrast": 30.42,
+      "brightness": 242.75,
+      "edge_density": 6.7682
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b0.10_vignette_t75.png",
+    "blur": 0.1,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 75,
+    "actual_conf": 78.2,
+    "ocr": {
+      "text": "E E E 1] ME\nAdministración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nNo. De Identificación del Requerimiento\nOra! REMAGIM\nAGAFADAFSON2/2025/000085\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente\n[ __  Datosgenerales del solicitante, __\n| ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\nSONORA \"2” MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaríaetc: ADMINSTRAJÓN ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍAFISCAL DE SONORA “2% AUTORÍA FISCAL DE SONORA\"2\"\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Coligentro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaOsat.gob.mx\n|\nL A A, A >> nn A EN\nYa Motivación del requerimiento. |\nMERCANTIL EJECUTIVO\n[Origen del requerimiento dl a y A pr A ]\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\ndesaldo? | sí\n",
+      "mean_confidence": 78.23,
+      "word_count": 163,
+      "char_count": 1179
+    },
+    "image_properties": {
+      "blur_score": 1450.68,
+      "noise_estimate": 38.09,
+      "contrast": 29.62,
+      "brightness": 232.65,
+      "edge_density": 6.403
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b0.10_skew_t85.png",
+    "blur": 0.1,
+    "artifacts": [
+      "skew"
+    ],
+    "target_conf": 85,
+    "actual_conf": 81.0,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal o\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\n['No. De Identificación del Requerimiento |\n| AGAFADAFSON2/2025/000085 ol\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente o mm A\n[ - Datos generales del solicitante\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCALDE\nSONORA “2” MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaríaetc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2” | AUTORÍA FISCAL DE SONORA \"2” |\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Colgentro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaGsat.gob.mx\n|\nL A. A As E A AA J\nMotivación del requerimiento Ñ E\nMERCANTIL EJECUTIVO - i o Ñ i\n[ Origen del requerimiento AS o ]\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\nde saldo? | sí\n",
+      "mean_confidence": 81.02,
+      "word_count": 162,
+      "char_count": 1167
+    },
+    "image_properties": {
+      "blur_score": 1273.39,
+      "noise_estimate": 35.68,
+      "contrast": 30.58,
+      "brightness": 242.02,
+      "edge_density": 6.4212
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b0.22_vignette_t75.png",
+    "blur": 0.22,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 75,
+    "actual_conf": 78.3,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nA o O -\nNo. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000085 1\n\nJuan Juan Melón Sandía\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresente\n[ Datos generales del solicitante\n| ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA “2” ' MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍAFISCAL DE SONORA “2* AUTORÍA FISCAL DE SONORA\"2\"\n\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Colgentro, | Tel. (55) 1111-2222\n\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaMsat.gob.mx\n|\nl o a, A E A A\n\nAh Motivación del requerimiento |\n\nMERCANTIL EJECUTIVO o :\n[Origen del requerimiento 2 dll A ]\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\ndesaldo? | sí\n",
+      "mean_confidence": 78.31,
+      "word_count": 162,
+      "char_count": 1166
+    },
+    "image_properties": {
+      "blur_score": 1248.54,
+      "noise_estimate": 35.33,
+      "contrast": 29.23,
+      "brightness": 232.66,
+      "edge_density": 6.4294
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b0.22_skew_t75.png",
+    "blur": 0.22,
+    "artifacts": [
+      "skew"
+    ],
+    "target_conf": 75,
+    "actual_conf": 79.0,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\n>\n| No. De Identificación del Requerimiento\nLAGAFADAFSON2/2025/000085 2,\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente - o o\n[ Ñ MA Datos generales del solicitante - Ñ mel\n| ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCALDE\nSONORA “2” | MTRO. GUADALUPE PEPITA PEPITA. |\nMesa, Turno y/o Unidad, Secretaríaeto: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE |\nDESCONCENTRADA DE AUTORÍAFISCAL DE SONORA “2” AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 | Correo: lupita.pepita.pepitaUsat.gob.mx\n|\n|\nl - a A A O O -\n\nAS Motivación del requerimiento DS o a\nMERCANTIL EJECUTIVO OS OS\n[Origen detrequerimiento ]\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\nde saldo? [sí]\n",
+      "mean_confidence": 79.01,
+      "word_count": 164,
+      "char_count": 1176
+    },
+    "image_properties": {
+      "blur_score": 1118.59,
+      "noise_estimate": 33.45,
+      "contrast": 30.22,
+      "brightness": 242.08,
+      "edge_density": 6.4716
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b0.34_texture_t75.png",
+    "blur": 0.34,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 75,
+    "actual_conf": 79.9,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\na Vo\nNo. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000085\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente A Ñ -\n[ Ñ o Datos generales del solicitante,\n| ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario.\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCALDE\nSONORA “2” Ñ MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaríaetc: ADMINSTRAIÓN. ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2% AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Coligentro, Tel. (55) 1111-2222 |\nMunicipio Centro CP 00001 | Correo: lupita.pepita.pepitaOsat.gob.mx\n|\nl O, EA EA E O\nA Motivación del requerimiento o ]\nMERCANTIL EJECUTIVO y o y ]\n[Origen delrequerimiento ]\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\nde saldo? | sí\n",
+      "mean_confidence": 79.9,
+      "word_count": 160,
+      "char_count": 1159
+    },
+    "image_properties": {
+      "blur_score": 1011.13,
+      "noise_estimate": 31.8,
+      "contrast": 29.42,
+      "brightness": 242.19,
+      "edge_density": 6.4036
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b1.30_scan_t65.png",
+    "blur": 1.3,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 65,
+    "actual_conf": 69.5,
+    "ocr": {
+      "text": "r: Y A Y, €\nAdministración General de Auditoria Fiscal Federal Y\nAcministración Desconcentrada de Auditoria Fiscal de Sonora “2” YY\n(No. De identificaci 3.\nAGAFADAFSONZ/ -!\na ha\nR,\ne o\n\nJuan Juan Melón Sandía y A\n\nVicepresidente de Supervisión de Procesos Preventivos Aa\n\nComisión Nacional Bancaria y de valores á % »\n\ny\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe inn, Y\n\nDel Alvaro obregón, C.P. 01020, Ciudad de ji ,\"\n\nPresente - ” “\n\nDatos gengrales del solici e\n\nADMINISTRACIÓN GENERAL DE AUDITORÍA FEBRRAD 5, 1 o Hacendario\n\nADMINSTRAJON DESCONCENTRADA DE G pos .\n\nSONORA -2\" hi MTRO. GUADALUPE PEPITA PEPITA\n\nMesa. Turno y/o Urudad. Secretarigarc A ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORIARESCAL DE SEMERNA PU SUSTODÍA ERNAL PE ENANA 2\n\nAVE. RODOLFO ELEIAS CALLES, No 1111, Óaiueontro. El Tal (683 1111.232)\n\nMco Centro CP OOOO A $ Correo: tupita pepta peptarisat gob ma\n\nte\npa dy L\nE 5\n\"y\nLe\nMotivación del requerimiento\n\nMERCANTIL EÍFCUTIVO\nOrigen del requerimiento\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\nde saldo? sl\n",
+      "mean_confidence": 69.53,
+      "word_count": 158,
+      "char_count": 1116
+    },
+    "image_properties": {
+      "blur_score": 55.03,
+      "noise_estimate": 7.42,
+      "contrast": 24.55,
+      "brightness": 243.04,
+      "edge_density": 5.1429
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b1.42_clean_t65.png",
+    "blur": 1.42,
+    "artifacts": [],
+    "target_conf": 65,
+    "actual_conf": 69.3,
+    "ocr": {
+      "text": "na r e, e\nAdrrunistración General de Audrtoría Fiscal Federal e\nAgrmuristración Desconcentrada de Auartoria Fiscal de Sonora “27 AY\nY\nNo. De\nAGAFADAFSON2/ .\n> *%\ne Y\n+.\nJuan Juan Melón Sandía h a\nVicepresidente de Supervisión de Procesos Preventivos hh Y\nComisión Nacional Bancaria y de valores a an +\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Cudlage in.\nDel Alvaro obregón, C.P. 01020, Ciudad de a\nPresente eE m\nADMINISTRACIÓN GENERAL DE AUDITORÍA ñ a | Hacendario\nADMINSTRAJON DESCONCENTRADA DE . >\nSONORA 2\" eE 1% MTRO. GUADALUPE PEPTIA PEPITA\nMesa, Turno y/o Unidad, Sec + ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE OCA DE A AUTORÍA FISCAL DE SONORA 2\"\nAVE. RODOLFO ELEJAS CALLES, Mo 1111 Vol. (58) 1111-2222\nMunc:p:0 Centro CP 0000 Correo lupita pepta peptafbsat gob ma\n— ah -=. - .\npon ) «$\nLS\n— o - —\n: Motivación del requerimiento\nMERCANIR EÍCUTIVO\nOrigen, del requerirmento\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transterencias\nde saldo? sl\n",
+      "mean_confidence": 69.3,
+      "word_count": 157,
+      "char_count": 1005
+    },
+    "image_properties": {
+      "blur_score": 22.52,
+      "noise_estimate": 4.75,
+      "contrast": 24.28,
+      "brightness": 243.11,
+      "edge_density": 4.4624
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b1.42_scan_t65.png",
+    "blur": 1.42,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 65,
+    "actual_conf": 69.6,
+    "ocr": {
+      "text": "Admenistración General de Audrtoria Fiscal Federal EN\nAcrrunistración Desconcentrada de Auditoria Fiscal de Sonora “2” Y\n+\nNo. De identificas\n: Rh kh\nld\ne h\nJuan Juan Melón Sandía .,\nVicepresidente de Supervisión de Procesos Preventivos »\nComisión Nacional Bancaria y de valores S y\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guapo Inn.\nDel Alvaro obregón, C.P. 01020, Ciudad de Ah Y\nPresente E\nA %\nADMINISTRACIÓN GENERAL DE AUDITORÍA ml e Hacendano\nADMINSTRAJÓN DESCONCENTRADA DE al Pr\npomo A hab MTRO. GUADALUPE PEPA PEPA\nMesa. Turno y/o Und. Secretanaaac ABRNsTálLdA AMUMME A NO EEaU ea ra pe\nAPODO ELIAS CALLES PL, NO 1111 Tel. (569 1111-2222\nMunicipio Centro CP 00004 Ñ ; Correo lupa pepta peptabaat gob me\nqn a «$\nLL\nMotivación del requerimiento\nMERCANILÍCUTIVO\n¿Esta sobctud contiene requermientos de aseguramiento desbloqueo de cuentas o transterencias\nde saldo? sl\n",
+      "mean_confidence": 69.56,
+      "word_count": 130,
+      "char_count": 878
+    },
+    "image_properties": {
+      "blur_score": 45.46,
+      "noise_estimate": 6.74,
+      "contrast": 24.2,
+      "brightness": 243.1,
+      "edge_density": 4.5118
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b1.42_fold_h_t65.png",
+    "blur": 1.42,
+    "artifacts": [
+      "fold_h"
+    ],
+    "target_conf": 65,
+    "actual_conf": 68.7,
+    "ocr": {
+      "text": "e ” , el, | /\nAdrrunistración General de Auarona Fiscal Federal N\nAcrrunistración Desconcentrada de Auditoria Fiscal de Sonora “2” A,\nY\nNo. De\nAGAFADAFSON2/ h\nTD TN\nad\nJuan Juan Melón Sandía a\nVicepresidente de Supervisión de Procesos Preventivos > Y\nComisión Nacional Bancaria y de valores E 9\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Gulage inn.\nDel Alvaro obregón, C.P. 01020, Ciudad de L Y\nPresente rd\nA %\nADMINISTRACIÓN GENERAL DE AUDITORÍA dEl T Hacendano\nADMINSTRAJON DESCONCENTRADA DÉ q y\nSONORA =7\" e MTRO. GUADALUPE PEPTTA PEPITA\nMesa. Turno y/o Undad. re 4 ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DÉ AL! De Y. | AUTORÍA FISCAL DE SONORA *2\"\nEA AT AA dls ecc\nMun :90 Centro CP 00009 Ss Correo lupa pepta peptafsat gob ma\n- = - —- 4\na «>\nh\nY\nLL\n> Motivación del requerimiento\nMERCANIRENÍCUTIVO*\nOrigen, del requerimiento\nEsta sobctud contiene requenmientos de aseguramiento desbloqueo de cuentas o transterencias\nde saldo? sl\n",
+      "mean_confidence": 68.75,
+      "word_count": 151,
+      "char_count": 948
+    },
+    "image_properties": {
+      "blur_score": 24.79,
+      "noise_estimate": 4.98,
+      "contrast": 24.26,
+      "brightness": 243.09,
+      "edge_density": 4.3715
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b1.66_scan_t55.png",
+    "blur": 1.66,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 55,
+    "actual_conf": 55.4,
+    "ocr": {
+      "text": "E 7 dá á dá\nE A E E\nAomenestrac ión Desconcentrada de Auotona Fuscal de Sonora \"2\" Y\nNo. De\nAGAFADAF SON '\nMo\nh o\no\nJuan Juan Melón Sandía A \"E\nVicepresidente de Supervisión de Procesos Preventivos ha\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de . :\nPresento o\nDatos del\nADMINISTRACIÓN GENERAL DE AUOMORIA 5 Macendano\nO\nSONORA =7* MIRO OUADAL UIT PEPA PEPA\nMs o e a Larra AM ri = AA A A\nSA A A ADARRSTRADOS DESCOPCE AN TRADA DE\nE A AE e a A e a\no . A\na OOOO ELIAS CALLES No 1111 w Mel. A 111-2370\nMuscipso Contro CP 0000, y KK ) Correo pta pepta peptabrs got me\nNN) á |\n4 Motivación del requerimiento\nmeca ici”\n¡Origen el requerimento\n4 Esta eobctud contene requenrmmentos de asegurarmento desbloqueo de cuentas o transterencias\ndesaido? sl\n",
+      "mean_confidence": 55.45,
+      "word_count": 149,
+      "char_count": 830
+    },
+    "image_properties": {
+      "blur_score": 105.58,
+      "noise_estimate": 10.28,
+      "contrast": 23.27,
+      "brightness": 242.9,
+      "edge_density": 3.8295
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b1.66_fold_h_t55.png",
+    "blur": 1.66,
+    "artifacts": [
+      "fold_h"
+    ],
+    "target_conf": 55,
+    "actual_conf": 58.9,
+    "ocr": {
+      "text": "Aomenetración Genera de Ayarona Frscal Federa : ha\nAcmeretración Desconcentrada de Auditoria Fiscal de Sonora “2” e\nY\n(No. De\nAGAFADAS SONZ/ .\no.\no\nJuan Juan Melón Sandia Y \"a\nVicepresidente de Supervisión de Procesos Preventivos %\ninsurgentes Sur 1971, Conjunto Plaza Inn, col. a py y\nDel Alvaro obregón, C.P. 01020, Ciudad de . ,\nPresente e\nDatos del\nADMINISTRACIÓN GENERAL DE ALJOMTOMIA . ] Macendano\nADMINSTRALON DESCONCENTRADA DE\nSONORA =77 Do MTRO. GUADALUPE PEPA PEPA\nMesa. heno yo Undead. Sec ES ADMINISTRADOR DESCONCENTRADA DÉ\na os AUTORIA FISCAL DE SONORA -77\nMk. RODOLFO ELIAS CALLES, Mo 1111 mel 0 1111.2322\nMisrec pu Cort-o CP 0000 Y Correo pta peta pep taba got me\n- A - > A\nNy -\nmerca afcurvO”\nOigan e! requerimiento\n4 Esta aouctud contiene requenrmentos de asegurarmento desbloqueo de cuentas o transterencias\nde saldo? sl\n",
+      "mean_confidence": 58.94,
+      "word_count": 128,
+      "char_count": 839
+    },
+    "image_properties": {
+      "blur_score": 16.82,
+      "noise_estimate": 4.1,
+      "contrast": 23.52,
+      "brightness": 242.76,
+      "edge_density": 3.4566
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b1.78_clean_t55.png",
+    "blur": 1.78,
+    "artifacts": [],
+    "target_conf": 55,
+    "actual_conf": 55.2,
+    "ocr": {
+      "text": "Amón Gener de Ayora Porc al Federa hn\nAomritración Desconcentrada de Ayora Paca de Sonora 77 AS\nYY\nNo. De\nAGASADAS\nMa a\nJuan Juan Meión Sandia e e\nVicepresidente de Superusión de Procesos Preventivos A\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de ,\nPresente o\nDatos de\nADMIRACIÓN GENERAL DE AJOMTORÍA e ] Macendano\nADMASTRALON DESCONCENTRADA DE\nVONORA +7 MTRO GUADA, UIT PEPA PEPA\nMera Dro y dad. dec: ES ADMIESTRADOR DESCONCENTRADA OL\na a os ALSTORÍA FISCAL DE SONORA =7*\nat. RODOLFO ELGAS CALLES meo 1111 | MI 1111-2372\nMunic oo Cemtro CP OOOO, ¡ Correo uta peta peta qt re\ne 4\n* a * *_ Motivación del requernmmento\nA\nOrgar de: requerimiento\n4 vta eobo tud contiene requermmuentos de aseguramiento desbioqueo de cuentas 0 transferencias\nGo saido? sl\n",
+      "mean_confidence": 55.19,
+      "word_count": 133,
+      "char_count": 841
+    },
+    "image_properties": {
+      "blur_score": 10.66,
+      "noise_estimate": 3.26,
+      "contrast": 23.3,
+      "brightness": 242.74,
+      "edge_density": 2.757
+    }
+  },
+  {
+    "doc_id": "333ccc",
+    "filename": "333ccc_b1.78_texture_t55.png",
+    "blur": 1.78,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 55,
+    "actual_conf": 57.6,
+    "ocr": {
+      "text": "Amr ón General AAA\nAomerestración Desconcertrada de Aydona Fica de Sonora “27 e\nNo De\nAGASADAS\ne,\no\no\nJuan Juan Meión Sandia \"Y\nVicepresidente de Supervisión de Procesos Preventivos A\nComisión Nacsonal Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. inn,\nDel Alvaro obregón, C.P 01020, Ciudad de :\nPresente o\nDatos del\nADMRESIRACIÓN: GENERAL DE ALJOMIOMA, “ T Macendano\nADMNSTRALÓN: DESCONCENTRADA DE\nSONORA -3- MTRO. OUADAL UIT PEPA PEPA\nMena Turno po Und. he ES ADMIESTRADOS DESCONCENTRADA OL\na a os ASTORIA FISCAL DE SONORA -77\nA. RODOLFO ELMAS CALLES 160 1191 la UI 1111-2327\nMeneagso Contra CP A 4 Ce ta cert pet got re\n4, É\nyy |\n<< e. - — ==\npS A\n¡Oigan 901 requerimento\n4 Esta eo tud contiene requerrmentos de aseguramiento desbloqueo de cuentas o transterencias\nde sado? sl\n",
+      "mean_confidence": 57.61,
+      "word_count": 128,
+      "char_count": 803
+    },
+    "image_properties": {
+      "blur_score": 10.72,
+      "noise_estimate": 3.27,
+      "contrast": 23.35,
+      "brightness": 242.37,
+      "edge_density": 2.8044
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b0.25_scan_t85.png",
+    "blur": 0.25,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 85,
+    "actual_conf": 88.5,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nNo. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000087\n\nJuan juan Meión Sandía\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresente\n\nDatos generales del solicitante\n\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\n\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA “2” Ñ MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2” AUTORÍA FISCAL DE SONORA “2”\n\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\n\nMunicipio Centro CP-00001 Correo: lupita.pepita.pepitaMsat.gob.mx\n\nFacultades de la Autoridad\n\nLista de personas bloqueadas\nArtículo 115 de la ley de instituciones de crédito 91 de la ley de fondos de inversión 46 bis y 124 de la\nArtículo 115 ds le ley de instituciones de crédito 97. de la ley detondos de inversión 45 bis y 122 05 le\nley de ahorro y crédito popular 87 de 95 de la ley federal de organizaciones y actividades auxiliares de\ncrédito 129 de la ley de unión de crédito 212 de la ley de mercado de valores 7172 de la ley de regular\nSrsgito 199 US (SIS aS Unión Us Srsgio 01208 15 SUE MSTEsaS dE VEISIES 170015 E OS regu:\nlas actividades de sociedades cooperativas de ahorro y préstemo 58 de la ley para regular las\nlas -aotividades-de-socledades-cooperafivas-de-shomoy préstemo-58-de-le-ley-para-reguler-las\ninstituciones de tecnología financiera 2, 5, 6 fracciones 11, 13 y 14 de la ley federal para la prevención\ne identificación de operaciones con recursos de procedencia ilícita 6 fracciones 7 y 8 y 10 fracción 34\ndel reglamento interior de la secretaría de hacienda y crédito público así como el 70 y 71 de las\ndisposiciones de carácter general a qué se refiere el artículo 115 de la ley de instituciones de crédito\n",
+      "mean_confidence": 88.52,
+      "word_count": 313,
+      "char_count": 2100
+    },
+    "image_properties": {
+      "blur_score": 7245.31,
+      "noise_estimate": 85.12,
+      "contrast": 51.63,
+      "brightness": 236.54,
+      "edge_density": 7.3264
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b0.40_scan_t85.png",
+    "blur": 0.4,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 85,
+    "actual_conf": 86.7,
+    "ocr": {
+      "text": "PA AN PA —_ PA A\n\"Y ZA ZAS AO ZAS\nHE A A ALA A\nLA Md Cd Md MA\nA | O | AS AS A |\nAdministración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nNo. De Identificación del Requerimiento\n¡No De centíficación ce! Hequerimiento |\n| AGAFADAFSON2/2025/000087 |\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente\nDatos generales del solicitante\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\nSONORA*2” Ñ MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2” AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaGsat.gob.mx\nl l 1\nl 1 l\nl l l\n¡í-—á— —_A—A————— _—_————————: ([ _ _—_—_—————— |\nFacultades de la Autoridad\nLista de personas bloqueadas\nArtículo 115 de la ley de instituciones de crédito 91 de la ley de fondos de inversión 46 bis y 124 de la\nley de ahorro y crédito popular 87 de 95 de la ley federal de organizaciones y actividades auxiliares de\ncrédito 129 de la ley de unión de crédito 212 de la ley de mercado de valores 7172 de la ley de regular\nlas actividades de sociedades cooperativas de ahorro y préstamo 58 de la ley para regular las\ninstituciones de tecnología financiera 2, 5, 6 fracciones 11, 13 y 14 de la ley federal para la prevención\ne identificación de operaciones con recursos de procedencia ilícita 6 fracciones 7 y 8 y 10 fracción 34\ndel reglamento interior de la secretaría de hacienda y crédito público así como el 70 y 71 de las\ndisposiciones de carácter general a qué se refiere el artículo 115 de la ley de instituciones de crédito\n",
+      "mean_confidence": 86.7,
+      "word_count": 332,
+      "char_count": 1988
+    },
+    "image_properties": {
+      "blur_score": 5324.96,
+      "noise_estimate": 72.97,
+      "contrast": 48.86,
+      "brightness": 236.85,
+      "edge_density": 7.6886
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b1.00_scan_t85.png",
+    "blur": 1.0,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 85,
+    "actual_conf": 88.6,
+    "ocr": {
+      "text": "LE A TEA EA EA SEA\nSO SD + ASS + AS +\nA O A O A O A A A\nAdministración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nAGAFADAFSON2/2025/000087\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\nSONORA \"2\" MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA \"2\" AUTORÍA FISCAL DE SONORA \"2\"\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP. 00001 Correo: lupita.pepita.pepitaGsat.gob.mx\nFacultades de la Autoridad\nLista de personas bloqueadas\nArtículo 115 de la ley de instituciones de crédito 91 de la ley de fondos de inversión 46 bis y 124 de la\nley de ahorro y crédito popular 87 de 95 de la ley federal de organizaciones y actividades auxiliares de\ncrédito 129 de la ley de unión de crédito 212 de la ley de mercado de valores 7172 de la ley de regular\nlas actividades de sociedades cooperativas de ahorro y préstamo 58 de la ley para regular las\ninstituciones de iecnología financiera 2, 5, 6 fracciones 11, 13 y 14 de la lev federal para ia prevención\ne identificación de operaciones con recursos de procedencia ilícita 5 fracciones 7 y £ y 10 fracción 3á\ndel reglamento interior de la secretaría de hacienda y crédito público así como el 70 y 71 de las\ndisposiciones de carácter general a qué se refiere el artículo 115 de la ley de instituciones de crédito\n",
+      "mean_confidence": 88.63,
+      "word_count": 292,
+      "char_count": 1779
+    },
+    "image_properties": {
+      "blur_score": 803.45,
+      "noise_estimate": 28.35,
+      "contrast": 38.68,
+      "brightness": 236.59,
+      "edge_density": 7.7031
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b1.45_scan_t85.png",
+    "blur": 1.45,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 85,
+    "actual_conf": 87.6,
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoria Fiscal de Sonora “2”\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Hacendano\n\npu 2 Requerimiento\n1 SONORA 7 ; MTRO. GUADALUPE PEDIA PEPITA 1\n| Fiona, Turno wo Unas. Secretaria etc. ADPRNSTRAJÓN Í ADMBESIRADOR DESCONCENTRADA DE |\nDESCONCENTRADA DE AUTORA FISCAL DE SONORA 77 AUTORÍA FISCAL DE SONORA “27\nAVE. RODOLFO ELEJAS CALLES PTE, No 1111, Col centro, Tol. (55) 1111-2222\nMunro Centro CP 00001 Correo lupta pepta peprtafisat gob me\nArtículo 115 de la ley de instituciones de crédito 91 de la ley de fondos de inversión 46 bis y 124 de la\nley de ahorro y crédito popular 87 de 95 de la ley federal de organizaciones y actividades auxiliares de\ncrédito 129 de la ley de unión de crédito 212 de la ley de mercado de valores 7172 de la ley de regular\nlas actividades de sociedades cooperativas de ahorro y préstamo 58 de la ley para regular las\ninstituciones de tecnología financiera 2, 5, 6 fracciones 11, 13 y 14 de la ley federal para la prevención\ne identificación de operaciones con recursos de procedencia ilícita 6 fracciones 7 y 8 y 10 tracción 34\ndel reglamento interior de la secretaría de hacienda y crédito público así como el 70 y 71 de las\ndisposiciones de carácter general a qué se refiere el artículo 115 de la ley de instituciones de crédito\n",
+      "mean_confidence": 87.62,
+      "word_count": 263,
+      "char_count": 1572
+    },
+    "image_properties": {
+      "blur_score": 121.77,
+      "noise_estimate": 11.03,
+      "contrast": 35.49,
+      "brightness": 236.37,
+      "edge_density": 6.8036
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b1.90_clean_t75.png",
+    "blur": 1.9,
+    "artifacts": [],
+    "target_conf": 75,
+    "actual_conf": 77.0,
+    "ocr": {
+      "text": "_ del\n\nAgrrerestración Desconcertrada de Astoria Frac al de Sonora “77\n\nJuan Juan Melón Sandia\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\ninsurgentes Sur 1971, Conjunto Plaza inn, col. Guadalupe inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresento\n\nADMIESTRALÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA =37 MTRO. CUADALUPE PURA PURA\n\nMena no po rad de tara et ATRAS ADMDESTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AJTORÍA FISCAL DE SONORA “77 ALSTORÍA FISCAL DE SONORA “77\n\nA. RODOLFO ELIJAS CALLES PTE Mo 1111, Cot contro. Mol. (589 1911-2232\n\nMusa ue Carro CP OO Qs as nas As\nLista de personas bioquesdas\nArticulo 115 de la ley de mstituciones de crédito 91 de la ley de tondos de mernón 46 bes y 124 de la\nley de ahorro y credito popular B7 de 95 de la ley tedersi de orgarsaciones y actimdades sumbares de\ncrédito 129 de la ley de unión de crédito 212 de la ley de mercado de valores 7172 de la ley de reguiar\nlas actradades de sociedades cooperativas de ahorro y prestamo 58 de la ley para reguiar las\nmstituciones de tecnología inanciera 2, 5. 6 tracciones 11, 13 y 14 de la ley federal para la prevención\ne dentificación de operaciones con recursos de procedencia licita 6 tracciones 7 y 8 y 10 tracción 34\nGel reglamento mtenor de la secretaria de hacienda y crédito publico aw como el 70 y 71 de las\nIporciones de carscter general a qué se refiere el articulo 115 de la ley de metituciones de credito\n",
+      "mean_confidence": 77.0,
+      "word_count": 252,
+      "char_count": 1481
+    },
+    "image_properties": {
+      "blur_score": 22.87,
+      "noise_estimate": 4.78,
+      "contrast": 33.64,
+      "brightness": 236.42,
+      "edge_density": 5.5244
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b1.90_texture_t75.png",
+    "blur": 1.9,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 75,
+    "actual_conf": 75.1,
+    "ocr": {
+      "text": "_ el\n\nAgrmerastración Desconcertrade de Auditoria Frec al de honora “77\n\nJuan Juan Melón Sandia\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. Guadalupe inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresento\n\no CIÓN GENERAL, DÉ AUDITORÍA PICAS FEDERAL. Requenmiento Macendano\nADMIESTRAJÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA =37 MTRO GUADALUPE PLATA PURA\nMens Turno po rada hecretara et ADOS TRAÓA ADMDESTRADOR DESCONCENTRADA DE\nDESCONCINTRADA DE ALJTORÍA FISCAL DE SONORA “77 AUTORA FISCAL DE BOMORA 77\nA A Mel 00 1111-2320\n\nPra quo Ceraro CP 0001 Correo ta pata para que me\nLista de personas bioquesdas\n\nArticulo 115 de la ley de mstituciones de crédito 91 de la ley de tondos de mernón 46 bas y 124 de la\nley de ahorro y credito popular 87 de 95 de la ley tederal de orgaraaciones y actividades aumbares de\ncrédito 129 de la ley de unión de crédito 212 de la ley de mercado de valores 7172 de la ley de regular\nlas actmidades de sociedades cooperstivas de ahorro y prestamo 58 de la ley para regular las\ninstituciones de tecnología imanciera 2, 5. 6 tracciones 11, 1) y 14 de la ley federal para la prevención\ne dentificación de operaciones con recursos de procedencia tica 6 tracciones 7 y 8 y 10 tracción 34\nGel reglamento mtenor de la secretaria de hacienda y crédito publico as como el 70 y 71 de las\nGporciones de cartcter general a qué se refiere el articulo 115 de la ley de mstituciones de credito\n",
+      "mean_confidence": 75.14,
+      "word_count": 252,
+      "char_count": 1523
+    },
+    "image_properties": {
+      "blur_score": 23.21,
+      "noise_estimate": 4.82,
+      "contrast": 33.61,
+      "brightness": 235.85,
+      "edge_density": 5.5081
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b1.90_scan_t75.png",
+    "blur": 1.9,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 75,
+    "actual_conf": 72.5,
+    "ocr": {
+      "text": "z > > > >\n\n73 3 3 >> ==\n_EXE\nAgrmerastración Desconcertrada de Astoria Fac al de Sonora “77\nVicapresidania de Superdaión de Procesos Preventivas\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col. Guadalupe inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente\nD CIÓN GENERAL, OE ALJOSOSÍA PUICAL FEDERAL. Requentmento Macendano\nADMIESTRALÓN DESCONCENTRADA DÉ AUTORÍA FISCAL DE\nBONORA “77 MTRO OUADALUPE PEPA PEPA\nMena Lino yo Urdad hecretara et ACI TRAÓA ADMDESTRADOR DESC ONCENTRADA DE\nOESCONCINTRADA DE AJTORÍA FISCAL DE SONORA “77 AUTORÍA FISCAL DE BOMORA “77\nM0. RODOLFO ELIJAS CALLES PUE Mo 1111, Cot contra. ol. (804 1111-2222\nMura quo Cortro CP 00001 Core ta peta pa put me\nLsta de personas bioquesdas\nArticulo 115 de la ley de mstituciones de crédito 91 de La ley de tondos de mwernuón 46 bus y 124 de la\nley de ahorro y credito popuiar 87 de Y de la ley tederal de organizaciones y actmáades susiares de\ncrédito 179 de la ley de unión de crédito 712 de la lev de mercado de valores 7177 de la lev de remar\nlas acimaades de sociedades Ccooperstrwss de añoro y prestamo 55 de la ley para regar Las\ninstituciones de tecnología inanciera 2, 5, 6 tracciones 11, 1] y 14 de la ley tederal para la prevención\ne dentificación de operaciones con recursos de procedencia ica 6 tracciones 7 y 8 y 10 tracción 34\nGel reglamento mtenor de la secretana de hacienda y credito publico am como el 70 y 71 de las\nGaporciones de carácter general a qué se rehere el articulo 115 de la ley de mstituciones de crédito\n",
+      "mean_confidence": 72.51,
+      "word_count": 261,
+      "char_count": 1550
+    },
+    "image_properties": {
+      "blur_score": 76.67,
+      "noise_estimate": 8.76,
+      "contrast": 33.55,
+      "brightness": 236.5,
+      "edge_density": 5.8706
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b1.90_vignette_t75.png",
+    "blur": 1.9,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 75,
+    "actual_conf": 74.8,
+    "ocr": {
+      "text": "_ del\n\nAdrmerastración Desconcerntrade de Asitoria Fecal de honora “77\n\nJuan Juan Melón Sandia\n\nVicepresidente de Supermsión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\ninsurgentes Sur 1971, Conjunto Plaza inn, col. Guadalupe inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresento\n\nE Datos genersies del souctante A\nADMRESTRACIÓN GENERAL OE ALJOSTOMÍA FISCAL FEDERAL. T Requenrmuento Mecendano\nADMIESTRAJÓN DESCONCENTRADA DE AJTORIA FISCAL DE\n\nBOMORA 77 MTRO. GUADALUPE PEPA PEPA.\n\nMena o po rd et e ARA ADABESTBADOR DESCOMCENTRADA OE\nDESCONCINTRADA DE AUTORÍA FISCAL DE SONORA “77 ALSTORÍA FISCAL DE BOMORA “77\n\nAU. RODOLFO ELIDAS CALLES PTE. Mo 1111, Cot conto, Tol. 054 1111-2222\n\nMura ue Cenar CP 00001 A e\nA Pecsttados dela taseridad ZN\nLista de personas bloqueadas\n\nArticulo 115 de la ley de instituciones de crédito 91 de la ley de tondos de inversión 46 bes y 124 de la\nley de ahorro y credito popuiar 87 de Y5 de la ¡ey tederal de organizaciones y actradades suwbares de\ncrédito 129 de la ley de unión de crédito 712 de la ley de mercado de valores 7172 de la ley de reguiar\nlas actadades de sociedades cooperstrras de ahorro y prestamo 58 de la ley para reguiar las\ninstituciones de tecnología inanciera 2, 5, 6 tracciones 11, 1) y 14 de la ley federal para la prevención\ne identificación de operaciones con recursos de procedencia licita 6 tracciones 7 y 8 y 10 tracción 34\ndel reglamento mtenor de la secretaria de hacienda y crédito publico am como el 70 y 71 de las\nGaporciones de carácter general a qué se reñere el articulo 115 de la ley de mstituciones de crédito\n",
+      "mean_confidence": 74.83,
+      "word_count": 267,
+      "char_count": 1613
+    },
+    "image_properties": {
+      "blur_score": 21.94,
+      "noise_estimate": 4.68,
+      "contrast": 32.49,
+      "brightness": 226.5,
+      "edge_density": 5.4482
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b2.05_clean_t65.png",
+    "blur": 2.05,
+    "artifacts": [],
+    "target_conf": 65,
+    "actual_conf": 65.3,
+    "ocr": {
+      "text": "_ del\nArt ó Dercorcertrade de Asdtora Paca de horora “77\na\nAGAS ADAS LON 70700008\n\nJuan Juan Melón Sandia\n\nVicepresidente de Supernsón de Procesos Preventivos\n\nCormisón Nacsonal Bancana y de valores\n\ninsurgentes Sur 1971, Conjunto Plaza inn, col. Guadalupe inn,\n\nDel Alvaro obregón, CP 01020, Ciudad de México\n\nPresente\n\nDeo parres de soi tarta\n\nAPARECIÓ: CAMARA, DE ASOCIA PA EDEMA Requerimiento Macendero\n\nACPARES RAI DESCOMCENTRADA O ALSTORA POB O\n\nMONORA 7\" PRO. DADA PEPA PEA\n\nMens Ds po rd hrs e AIR ADAIESTMADOR DEBCONCENTRADA DE\n\nDEBCONCINRADA OE MSTOIA FOCAL DE BOMORA “77 ASTORIA PSCAS. DE BOMORA “77\n\nA Mel e 1111 2330\n\nMr ue Contra CP 0000 ts ts e pe\nLista de personas boguesdes\nArticulo 115 de la ley de mattuciones de crédito Y! de la ley de tondos de meernuón 46 bes y 124 de la\nley de ahorro y credito poprís 87 de Y de La 1ey todas de orgaraciones y actvdades auutares de\ncrádo 179 de la ley de unión de crédito 712 de la ley de mercado de estores 7172 de la ley de regutar\nlas actiudades de sociedades cooperstvas de ahorro y prestamo 58 de la ley para regis: las\nmarucOnas de tecrotoga trenciers 7. 5, 6 reacciones 11. 1) y 14 de la ley tedersí para la prevención\ne dentificación de opersciones con recursos de procedencia cta 6 tracciones 7 y 8 y 10 tracción 34\n0 regiamento menor de la secretaria de hacienda y crédito publico em como el 70 y 71 de las\nGaporwciornes de cartcter general a qué se refere el articido 11% de la ley de metituciones de credito\n",
+      "mean_confidence": 65.34,
+      "word_count": 246,
+      "char_count": 1477
+    },
+    "image_properties": {
+      "blur_score": 16.46,
+      "noise_estimate": 4.06,
+      "contrast": 33.12,
+      "brightness": 236.45,
+      "edge_density": 4.8049
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b2.05_texture_t65.png",
+    "blur": 2.05,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 65,
+    "actual_conf": 65.6,
+    "ocr": {
+      "text": "_ del\nArratrón Desconcertrade de hadrora Paca de horora “77\na\nAGAJADAS VONI/I034/000087\n\nJuan Juan Melón Sandia\nVicepresidente de Superaaión de Procesos Preventivos\nCorrusión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col Guadalupe inn,\nDel Alvaro obregón, C.P 01020, Ciudad de México\nPresente\n\nDatos perersies del sole tante\nACPARERTRACIÓN CANABAL DE AJOSONA FOCAL PECERA Na |\nACPAESTRAA DESCOMCENTRADA OE ALICIA FOCA DE\nMOMORA Y PRO UADALIAE PRPNA PRA |\nMo e po rd dear e ARA AADEETRADOR 04 OPA TRADA DE\nDESCONCINIRADA OE ASIOILA FIBCAL DE BOMORA “77 AUTORÍA FOCAL. DE DOMORA +77\nA Mel e 1119 2320\nMura ue Corrs CO O ta ts a ps |\nLata de personas oquesdes\nArticitn 115 de la ley de matituciones de credito Y! de la ley de tondos de muernón 46 bes y 124 de la\nley de moro y credito populer E) de Y de la ley tetera de orgaraciones y actredades autares de\ncrédito 129 de la ley de unión de crédito 712 de la ley de mercado de valores 7172 de la ley de regutar\nlas actividades de sociedades cooperstivss de ahorro y primtamo 54 de la ley para regar las\nmatronas de tecrotoga trancers 7. 5. 6 tracciones 11. 1) y 14 de la ley tederal para la prevención\ne dentficación de operaciones con recursos de procedencia tcta 6 hracciones 7 y 8 y 10 tracción 34\ndel regiamento menor de la secretaria de hacienda y crédito publico em como el 70 y 71 de las\nGaporcones de cartcter general a qué se refera el articiio 115 de la ley de metituciones de credito\n",
+      "mean_confidence": 65.64,
+      "word_count": 247,
+      "char_count": 1474
+    },
+    "image_properties": {
+      "blur_score": 16.79,
+      "noise_estimate": 4.1,
+      "contrast": 33.05,
+      "brightness": 235.82,
+      "edge_density": 4.725
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b2.05_scan_t65.png",
+    "blur": 2.05,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 65,
+    "actual_conf": 62.1,
+    "ocr": {
+      "text": "y > MET > y MET >\nEE A a]\nis\nArme só Decor entrada de Astrora Pc a de hormona 77\nPA\nJuan Juan Melón Sandia\nVicepresidente de Supernsón de Procesos Preventivos\nCorrumón Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col Guadalupe inn,\nDel Alvaro obregón, C.P 01020, Ciudad de México\nPresente\nDatos qerermes del soi tante\nCÓns CAIARAS OE ALONIORÍA FOCAL PEE eur merto Mac entero\nALAARETRAIÓN DEBCOMCENTRADA OE ASTORIA PUBS O\nBOMORA 77 MIO. CUADALLUIE PEPA PRA\nMe e ps rad ea e AAA AADBESTADOR OCC NTRADA 06\nOEBCONCENIRADA DE ASTORIA FIBCAL DE BOMORA “77 ASTORIA POCAS OE DOROMA 77\nA Ma A 1119 2833\nMura ue Corro CP IO Care eta pata pas qu me\nLata de persones oquesdes\nArticito 115 de la ley de mettuciones de crédito 1 de la ley de tondos de meernón 46 bus y 174 de la\nley de ahorro y credito pops 87 de Y de la ley tedera de orgaraciones y actredades auetares de\ncredo 179 de la ley de unión de crédito 712 de la ley de mercado de valores 7172 de la ley de regutar\nlas actadades de sociedades cooperstras de ahorro y prestamo 58 de la ley para regis Los\natrUCIOnas de tecrotoga trenciers 2.5. 6 hracciones 11.1) y 14 00 la ley tedersi para la prevención\ne dentiicación de operaciones con recursos de procedencia tucta 6 hraccones 7 y 8 y 10 tracción 34\n",
+      "mean_confidence": 62.11,
+      "word_count": 218,
+      "char_count": 1278
+    },
+    "image_properties": {
+      "blur_score": 226.43,
+      "noise_estimate": 15.05,
+      "contrast": 32.66,
+      "brightness": 236.7,
+      "edge_density": 5.2208
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b2.05_vignette_t65.png",
+    "blur": 2.05,
+    "artifacts": [
+      "vignette"
+    ],
+    "target_conf": 65,
+    "actual_conf": 64.6,
+    "ocr": {
+      "text": "_ del\nAdri Descorcartrade de hsttora Paca de honor \"77\n(a a]\n\nJuan Juan Melón Sandia\nVicepreudente de Superaaón de Procesos Preventrros\nComisión Nacional Bancaria y de valores\ninsurgentes Sur 1971, Conjunto Plaza inn, col Guadalupe inn,\nDel Alvaro obregón, C.P 01020, Ciudad de México\nPresento\nE Detos gonerstos del sotcaante ]\nAARÓN: AMARAL, O IICA FOCA PETRA. T Mer mento Mac endo. ]\nALPES TRATA DESCOMCENIRADA OE ALTO POCA 0\ne MTRO. AAA PAPA PEPA\nMe Dn po rd ha e ARA ACARESIRADOR OE YC ORICENTRADA 04\n| DEBCONCENIRADA DE AJTORA FERCA. DE SONORA -77 ATORÍA POCAS DE SONORA \"Y\nA A A Mel e 1119 20\nMsrmgue Cantvo CP 00001 A ns a ps\n\npi Pacades de la Ao de pr\nLista de persones bioquesdes\nArtico 115 de la ley de matituciones de credito Y! de la ley de tondos de ruernin 46 bes y 124 de la\nley de ahorro y credito popriw $) de Y) de a ey federal de orgarajacones y actvdades añares de\ncrádno 179 de la ley de unión de credito 712 de la ley de mercado de vatores 7172 de la ley de reguiar\nlas acuudades de sociedades cooperstas de ahorro y prestamo 58 de la ley pera regis las\nmarUCcIOnas de tecrotoga trarnciers 7.5 6 hracciones 11.1) y 14 00 la ley tederai para la prevención\ne dentificación de operaciones con recursos de procedencia tte 6 hracciones 7 y 8 y 10 tracción 34\nGel regiamento menor de la vecretaria de hacienda y credito publico sm como el 70 y 71 de las\nGaporcores de cartcter general a que se retere el articito 115 de la ley de matituciónes de credito.\n",
+      "mean_confidence": 64.62,
+      "word_count": 255,
+      "char_count": 1471
+    },
+    "image_properties": {
+      "blur_score": 15.9,
+      "noise_estimate": 3.99,
+      "contrast": 31.96,
+      "brightness": 226.51,
+      "edge_density": 4.3006
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b2.20_clean_t55.png",
+    "blur": 2.2,
+    "artifacts": [],
+    "target_conf": 55,
+    "actual_conf": 53.1,
+    "ocr": {
+      "text": "_ del\n\nA e De or arts de As a e dr\n\nJuan Juan Metón Sandia\n\nVicepreudente de Supermmón de Procesos Preventreos\n\nCorrumón Nacional Bancaria y de vsiores\n\ninsurgentes Sur 1971, Compunto Plaza inn. col Guedatupe inn.\n\nDel Alvaro obregón. C P 01020, Caudad de Méxco\n\nPresento\n\nA ddñ T - - ,\nAPA CEBCOMCINIRADA DE ASIA POCA, O |\n\nMORA | O A A a\nMn e ra dr a AA AAA AI RA\nOERCONCANORADA DE STC FOCA DE MORA 77 SOCIA POCA. O BORO 77\n\nMA OCASO VA CAL EA PTE e 1101 Ca ce. NS\n\na a e O e ps ts a pu\n\nL 4 J\nata de perras terres\n\nArtic 11% de la dy de atras de credito Y) de la ey de tordos de ruernaio 46 tes y 174 de e\nA di\ncredo 17% de la ley de ursón de credito 717 de la ley de mercado de estores 7177 de la ley de mpiar\nlas actdades de rocedadeos cooperstas de ahora y premtamo 148 de la ley para cepa ias\neanrcrOnas de ecratoga trarcar 2. 5. 6 acciones 11, 1) y 14 de la ley tedersl para la prevención\ne dentición de operas cOn recurs de procedencas tt 6 braco 7 y 8 y 10 tracción DA\n00 garmerto mer de la secretaria de hacienda y crédito puto em como el 70 y 71 00 lan\nDr es de ta pera a e e te to 1 a y e re de reo\n",
+      "mean_confidence": 53.05,
+      "word_count": 232,
+      "char_count": 1112
+    },
+    "image_properties": {
+      "blur_score": 12.42,
+      "noise_estimate": 3.52,
+      "contrast": 32.59,
+      "brightness": 236.48,
+      "edge_density": 3.6117
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b2.20_texture_t55.png",
+    "blur": 2.2,
+    "artifacts": [
+      "texture"
+    ],
+    "target_conf": 55,
+    "actual_conf": 50.4,
+    "ocr": {
+      "text": "_ del\nArta io De or art ada de As a e dr TO\n\nCASADAS A IIS 3\nJuan Juan Meión Sandia\nVecepreudente de Supernuón de Procesos Preventros\nCorusón Nacional Bancaria y de valores\ninsurgentes Sur 1971, Congunto Plaza inn. col Guedatupe inn.\nDel Alvaro obregón, CP 01020. Cuudad de Méxco\nPresento\nr na $ > an 7 > —\nAREA HBO ANRACA DE A IA PA |\nAA RO AAA AA a.\nMa e ad de a e AA AGA 4 RADA\nDERCOMCANORADA DE SICA POCA DE RRA 77 CIA PTA O DIGNA\nA o a 1119 2020\nata e perras da\nArtic 11% de la y de tcs de creo Y) e la ie de tordos de mera 66 des y 174 00 a\nA\ncredo 179 de la ley de urcón de credo 717 de la ley de mercado de estores 7177 de la ley de mpuñar\n1 des de des es de y ptas De e pers a\nvarones de recrea trancas 15 6 hracciones 11 1) y 14 de 14 ley tederal para la prevención\ne dentición de operaciones con recurs de procedencas ita y becomes ? y 8 y 10 treccaón da\nde gamarto cero de la secretaria de hacienda y credito puto em como el 70 y 71 de len\nDaporcuras de cartier parara y qe se rear el rc 11% de la dy de core de creo\n",
+      "mean_confidence": 50.36,
+      "word_count": 216,
+      "char_count": 1029
+    },
+    "image_properties": {
+      "blur_score": 12.68,
+      "noise_estimate": 3.56,
+      "contrast": 32.51,
+      "brightness": 235.8,
+      "edge_density": 3.6345
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b2.20_scan_t55.png",
+    "blur": 2.2,
+    "artifacts": [
+      "scan"
+    ],
+    "target_conf": 55,
+    "actual_conf": 52.5,
+    "ocr": {
+      "text": "_ de\nAr e De or arras de As a e dor\n\nUSAS OS FO IIRIOS j\nJuan Juan Melón Sandia\nWVecepreudente de Supernmnón de Procesos Preventreos\nCorressón Nacional Bancarna y de valores\ninsurgentes Sur 1971, Congurto Praza inn, col Guadalupe inn.\nDel Alvaro obregón, C.P 01020, Ciudad de México\nPresento\n (Á___ - XA >\nAREA ICA ANTRACIA 06 IO OA, |\nOA O A A a\nMn o rad dr a AA AAAETADOS 06 CI ERA\nOEBCOMCANORADA DE MICA FOCA, DE ORIO 7 ASPIRA POCA DE ORIO 77\nMA OCASO ELA CALLAR PT to 1918 Cot co. lo a 1000 2233\nPu ua Cs O e ts ps pr pu\nAA\nArtica 11% de la dy de ratura de crédito Y! de la day de tordos de mueran 66 des y 174 00\nin\ncredo 17% de la ley de uri de credito 717 de la ley de mercado de estores 7177 de la ley de mps\nds ca\nGe egarmarto cero de la secretara de hacienda y credito putico e como e 70 y 71 00 lan\nDagoruras de Cartctas parace a qué se rebeca el artcido 11% de la dy de ratones de credito\n",
+      "mean_confidence": 52.49,
+      "word_count": 180,
+      "char_count": 901
+    },
+    "image_properties": {
+      "blur_score": 63.38,
+      "noise_estimate": 7.96,
+      "contrast": 32.49,
+      "brightness": 236.53,
+      "edge_density": 4.2248
+    }
+  },
+  {
+    "doc_id": "555CCC",
+    "filename": "555CCC_b2.20_skew_t55.png",
+    "blur": 2.2,
+    "artifacts": [
+      "skew"
+    ],
+    "target_conf": 55,
+    "actual_conf": 58.5,
+    "ocr": {
+      "text": "_ del\n\nAr Decorar ada de Ar Pas e hrs\n\nJuan Juan Melón Sandia\n\nViceprewdente de Supermión de Procesos Preventivos\n\nCormemón Nacional Bancaria y de valores\n\ninsurgentes Sur 1971, Congunto Plaza inn. col Guadalupe inn.\n\nDel Alvaro obregón, C P 01020, Cruudad de México\n\nPresento y - '\n\nE a |\nALARESRALA DEMORAR DE ALICIA POL : 5\n\nMOMORA Y IS\n\na e ra o AM ALAMOS OR ANRADA 06 !\nOEBCONCANCOBADA 04 SICA PICA, DE MORIA 77 TADA O AR\nA SN | A |\nMurgu Caree CP OUED? a es e |\nNE A\n\nArtciño 114 de la ley de mettuciones de crédito Y! de la ley de tondos de mernón 46 bes y 124 de la\ndoy 09 ahorro y credo poguís: 67 de Yi de la day tetera de orgericaciones y sctdades auñares de\ncredo 179 de la ley de unión de crédito 717 de la ley de mercado de estores 717] de la ley de gar\nlas acuadades de sociedades coopersteas de shoro y prestamo 18 de la ley para regis los\nesruconas de tecrotoga trancer 7. 5. 6 trecciones 11. 1) y 14 00 la ley tederal pers la prevención\ne derttcación de opens cor recurnos de procedencia ta 6 hrecciones ? y By 10 tracción 14\nsm egamerto renos de la secretaria de hacienda y credito pubico eu como el 70 y 71 00 las\nBrporcores de caretas geraral e qué se refiere el ertición 119 de a ley de msttuciónes de crédito.\n",
+      "mean_confidence": 58.5,
+      "word_count": 220,
+      "char_count": 1233
+    },
+    "image_properties": {
+      "blur_score": 13.02,
+      "noise_estimate": 3.61,
+      "contrast": 32.59,
+      "brightness": 235.82,
+      "edge_density": 3.6852
+    }
+  }
+]

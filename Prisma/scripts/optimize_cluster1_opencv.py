@@ -2,8 +2,8 @@
 """
 NSGA-II Cluster 1 OpenCV Pipeline Optimization
 
-Cluster 1: Normal Quality Images (All 4 docs at Q0, Q05, Q1)
-- 10 objectives
+Cluster 1: Normal Quality Images (Q1_Poor + Q2_MediumPoor)
+- 8 objectives (4 docs × 2 levels)
 - Characteristics: blur=1436.7, noise=1.01, contrast=32.8
 
 Configuration: Pop=50, Gen=50, ~10 hours
@@ -94,15 +94,14 @@ class Cluster1OpenCVOptimizationProblem(Problem):
         self.base_path = base_path
         self.ground_truth = ground_truth
 
+        # Cluster 1: Q1_Poor + Q2_MediumPoor for all 4 docs
         docs = ["222AAA-44444444442025_page-0001.jpg", "333BBB-44444444442025_page1.png", "333ccc-6666666662025_page1.png", "555CCC-66666662025_page1.png"]
-        levels = ["Q0_Pristine", "Q05_VeryGood", "Q1_Poor"]
+        levels = ["Q1_Poor", "Q2_MediumPoor"]
 
         self.test_cases = []
         self.degraded_images = {}
         for doc in docs:
             for level in levels:
-                if doc == "555CCC-66666662025_page1.png" and level in ["Q0_Pristine", "Q05_VeryGood"]:
-                    continue
                 path = base_path / "PRP1_Degraded" / level / doc
                 if path.exists():
                     img = cv2.imread(str(path))
@@ -152,7 +151,7 @@ def main():
     print()
     print("Cluster 1: Normal quality (blur=1436.7, noise=1.01)")
     print("Configuration: Pop=50, Gen=50, ~10 hours")
-    print("10 Objectives: 222AAA, 333BBB, 333ccc × Q0/Q05/Q1 + 555CCC Q1")
+    print("8 Objectives: All 4 docs × Q1_Poor + Q2_MediumPoor")
     print("="*80)
     print()
 

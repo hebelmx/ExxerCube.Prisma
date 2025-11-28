@@ -2,8 +2,8 @@
 """
 NSGA-II Cluster 0 OpenCV Pipeline Optimization
 
-Cluster 0: Ultra-Sharp Images (555CCC Q0 + Q05)
-- 2 objectives (2 images)
+Cluster 0: Ultra-Sharp Images (PRP1 pristine + Q1_Poor)
+- 8 objectives (4 pristine + 4 Q1_Poor images)
 - Characteristics: blur=6905.9, noise=0.47, contrast=51.9
 
 OpenCV PIPELINE (7 parameters):
@@ -14,9 +14,9 @@ OpenCV PIPELINE (7 parameters):
 
 Configuration:
     Population: 50
-    Generations: 30
-    Total Evaluations: 1,500
-    Estimated Runtime: ~3 hours
+    Generations: 50
+    Total Evaluations: 2,500
+    Estimated Runtime: ~10 hours
 
 Usage:
     python optimize_cluster0_opencv.py
@@ -103,11 +103,17 @@ def run_tesseract_ocr(image_path: Path, lang: str = "spa", psm: int = 6) -> str:
 def load_ground_truth(base_path: Path) -> Dict[str, str]:
     ground_truth = {}
     pristine_base = base_path / "PRP1"
-    doc = "555CCC-66666662025_page1.png"
-    doc_path = pristine_base / doc
-    if doc_path.exists():
-        text = run_tesseract_ocr(doc_path)
-        ground_truth[doc] = text
+    docs = [
+        "222AAA-44444444442025_page-0001.jpg",
+        "333BBB-44444444442025_page1.png",
+        "333ccc-6666666662025_page1.png",
+        "555CCC-66666662025_page1.png"
+    ]
+    for doc in docs:
+        doc_path = pristine_base / doc
+        if doc_path.exists():
+            text = run_tesseract_ocr(doc_path)
+            ground_truth[doc] = text
     return ground_truth
 
 
@@ -116,22 +122,39 @@ class Cluster0OpenCVOptimizationProblem(Problem):
         self.base_path = base_path
         self.ground_truth = ground_truth
 
-        self.test_cases = [
-            {'doc': "555CCC-66666662025_page1.png", 'level': "Q0_Pristine", 'path': base_path / "PRP1_Degraded" / "Q0_Pristine" / "555CCC-66666662025_page1.png"},
-            {'doc': "555CCC-66666662025_page1.png", 'level': "Q05_VeryGood", 'path': base_path / "PRP1_Degraded" / "Q05_VeryGood" / "555CCC-66666662025_page1.png"}
+        # Cluster 0: PRP1 pristine + Q1_Poor for all 4 docs
+        docs = [
+            "222AAA-44444444442025_page-0001.jpg",
+            "333BBB-44444444442025_page1.png",
+            "333ccc-6666666662025_page1.png",
+            "555CCC-66666662025_page1.png"
         ]
 
+        self.test_cases = []
         self.degraded_images = {}
-        for tc in self.test_cases:
-            if tc['path'].exists():
-                self.degraded_images[tc['level']] = cv2.imread(str(tc['path']))
+
+        # Add pristine images from PRP1
+        for doc in docs:
+            path = base_path / "PRP1" / doc
+            if path.exists():
+                key = f"{doc}_PRP1_Pristine"
+                self.test_cases.append({'doc': doc, 'level': "PRP1_Pristine", 'key': key})
+                self.degraded_images[key] = cv2.imread(str(path))
+
+        # Add Q1_Poor degraded images
+        for doc in docs:
+            path = base_path / "PRP1_Degraded" / "Q1_Poor" / doc
+            if path.exists():
+                key = f"{doc}_Q1_Poor"
+                self.test_cases.append({'doc': doc, 'level': "Q1_Poor", 'key': key})
+                self.degraded_images[key] = cv2.imread(str(path))
 
         self.eval_count = 0
         self.log_file = base_path / "cluster0_opencv_progress.log"
 
         super().__init__(
             n_var=7,
-            n_obj=2,
+            n_obj=len(self.test_cases),
             xl=np.array([5, 1.0, 5, 50, 50, 0.3, 0.5]),
             xu=np.array([30, 4.0, 15, 100, 100, 2.0, 5.0])
         )
@@ -156,11 +179,11 @@ class Cluster0OpenCVOptimizationProblem(Problem):
 
             doc_objectives = []
             for tc in self.test_cases:
-                if tc['level'] not in self.degraded_images:
+                if tc['key'] not in self.degraded_images:
                     doc_objectives.append(9999)
                     continue
 
-                enhanced = apply_filters(self.degraded_images[tc['level']], genome)
+                enhanced = apply_filters(self.degraded_images[tc['key']], genome)
                 temp_path = self.base_path / f"temp_ocr_c0opencv_{self.eval_count}.png"
                 cv2.imwrite(str(temp_path), enhanced)
                 ocr_text = run_tesseract_ocr(temp_path)
@@ -172,9 +195,8 @@ class Cluster0OpenCVOptimizationProblem(Problem):
                 self.eval_count += 1
 
             objectives.append(doc_objectives)
-            if len(doc_objectives) == 2:
-                with open(self.log_file, 'a') as f:
-                    f.write(f"Eval {self.eval_count}: {doc_objectives}\n")
+            with open(self.log_file, 'a') as f:
+                f.write(f"Eval {self.eval_count}: {doc_objectives}\n")
 
         out["F"] = np.array(objectives)
 
@@ -187,8 +209,8 @@ def main():
     print("="*80)
     print()
     print("Cluster 0: Ultra-sharp (blur=6905.9, noise=0.47)")
-    print("Configuration: Pop=50, Gen=30, ~3 hours")
-    print("2 Objectives: 555CCC Q0_Pristine, Q05_VeryGood")
+    print("Configuration: Pop=50, Gen=50, ~10 hours")
+    print("8 Objectives: 4 pristine (PRP1) + 4 Q1_Poor images")
     print("="*80)
     print()
 
@@ -197,7 +219,7 @@ def main():
     algorithm = NSGA2(pop_size=50, sampling=FloatRandomSampling(), crossover=SBX(prob=0.9, eta=15), mutation=PM(eta=20), eliminate_duplicates=True)
 
     start_time = time.time()
-    res = minimize(problem, algorithm, termination=get_termination("n_gen", 30), seed=1, verbose=True, save_history=True)
+    res = minimize(problem, algorithm, termination=get_termination("n_gen", 50), seed=1, verbose=True, save_history=True)
     elapsed_time = time.time() - start_time
 
     print(f"\n✓ COMPLETE ({elapsed_time/60:.1f} minutes)\n")
@@ -220,7 +242,7 @@ def main():
                 "unsharp_amount": genome.unsharp_amount,
                 "unsharp_radius": genome.unsharp_radius
             },
-            "objectives": {"Q0_555CCC": int(f[0]), "Q05_555CCC": int(f[1])},
+            "objectives": {f"{problem.test_cases[j]['level']}_{problem.test_cases[j]['doc'].split('-')[0]}": int(f[j]) for j in range(len(f))},
             "total_edits": int(f.sum())
         }
         pareto_solutions.append(solution)

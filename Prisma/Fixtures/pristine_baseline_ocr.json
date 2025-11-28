@@ -1,0 +1,86 @@
+{
+  "222AAA": {
+    "filename": "222AAA-44444444442025_page-1.png",
+    "path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Fixtures/PRP1/222AAA-44444444442025_page-1.png",
+    "ocr": {
+      "text": "AM 3) AG) AN >\nAdministración General de Auditoría Fiscal Federal e\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2” Lar\nNo. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000084 2.\nJuan Juan Melón Sandía qe\nVicepresidente de Supervisión de Procesos Preventivos |\nComisión Nacional Bancaria y de valores e”\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. (Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México -\nPresente A\n—_—_ —————— o —  —— e A\nMN o Datos generales del solicitante —\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAUFEDERAL : Requerimiento Hacendario\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL:«DE\nSONORA “2” Wi. \"Y MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN £ \"5, ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2? > “+ AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PFE, No 1111, Col centro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 e o Correo: lupita.pepita.pepitaOsat.gob.mx\nFacultades de la Autoridad\nesta oficina para cobros 8 san Ángel Órgano integrante de la subdelegación 8 san Ángel del instituto\nmexicano de seguridad social órgano operativo de la delegación sur del distrito federal organismo\nfiscal autónemo con fundamento en los artículos 251 fracciónVI| XXV y XXXXVI| 251 a de la ley del\nseguro social en vigor uno y 2 fracción V incisos VYC 142 fracción II! 149, 150, 154 fracciones - i, ¡i¡ii, y\n155 primer párrafo secciónXXXVI párrafos primero y segundo inciso c párrafos primero y segundo 159\nsegundo párrafo del reglamento interior de institución mexicana del seguro social en vigor\nFundamento del Requerimiento\nartículo 16 de la constitución política de los Estados Unidos Mexicanos 3 fracción uno y 45 de la ley\norgánica de la administración pública federal 5, 9, 250 fracciones VII , XX y XXVI 251-a 270, 287 y 291\n",
+      "mean_confidence": 85.02,
+      "word_count": 291,
+      "min_confidence": 3.12748,
+      "max_confidence": 97.021263,
+      "char_count": 1866
+    },
+    "image_properties": {
+      "blur_score": 428.02,
+      "noise_estimate": 20.69,
+      "contrast": 35.33,
+      "brightness": 242.34,
+      "edge_density": 5.39,
+      "high_freq_pct": 58.37,
+      "dimensions": "2550x3300"
+    }
+  },
+  "333BBB": {
+    "filename": "333BBB-44444444442025_page1.png",
+    "path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Fixtures/PRP1/333BBB-44444444442025_page1.png",
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\n[No. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000083\nJuan Juan Melón Sandía\nVicepresidente de Supervisión de Procesos Preventivos\nComisión Nacional Bancaria y de valores\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\nDel Alvaro obregón, C.P. 01020, Ciudad de México\nPresente o A > Y o\nII _________ Datos generales del solicitante *\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario |\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCALDE\n| SONORA “2” Ñ MTRO. GUADALUPE PEPITA PEPITA\nMesa, Turno y/o Unidad, Secretaría:etc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2”. AUTORÍA FISCAL DE SONORA “2”\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Colcentro, Tel. (55) 1111-2222\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaOsat.gob.mx\nLE Facultades dela Autoridad)\n-requerimiento de información. operaciones mixtas\nESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA ”2” CON SEDE EN\nSONORA DE LA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL, DEL SERVICIO DE\nADMINISTRACIÓN TRIBUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCIÓN\nPOLÍTICA DE LOS ESTADOS UNIDOS MEXICANOS, 1, 7 FRACCIONESVII Y XVIII Y 8, FRACCIONES lll\nDELLA LEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DE LA\nFEDERACIÓN EL 15/12/1995, REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL\nDE LA FEDERACIÓN EL 12/07/2003; 1, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO\nTERCERO, 6, PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN XXV INCISO B, 14 FRACCIÓN 1, EN\nRELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN VI , 24, PÁRRAFO PRIMERO\n",
+      "mean_confidence": 89.81,
+      "word_count": 248,
+      "min_confidence": 14.955254,
+      "max_confidence": 97.018661,
+      "char_count": 1783
+    },
+    "image_properties": {
+      "blur_score": 2171.2,
+      "noise_estimate": 46.6,
+      "contrast": 34.87,
+      "brightness": 241.35,
+      "edge_density": 8.41,
+      "high_freq_pct": 81.61,
+      "dimensions": "1020x1320"
+    }
+  },
+  "333ccc": {
+    "filename": "333ccc-6666666662025_page1.png",
+    "path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Fixtures/PRP1/333ccc-6666666662025_page1.png",
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nNo. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000085 2\n\nJuan Juan Melón Sandía\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresente 1% _........\n[ _.. __ Datos generales del solicitante a]\n| \"ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario.\n| ADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA “2” ñ MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA \"2*: AUTORÍA FISCAL DE SONORA “2”\n\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Coligentro, Tel. (55) 1111-2222 |\n| Municipio Centro CP 00001 Correo: lupita.pepita.pepitaUsat.gob.mx\n|\n| A A A\n\nAN Motivación del requerimiento ' ]\n\nMERCANTIL EJECUTIVO uN nn y\ne EA A\n¿Esta solicitud contiene requerimientos de aseguramiento desbloqueo de cuentas o transferencias\ndesaldo? | sí\n",
+      "mean_confidence": 84.02,
+      "word_count": 156,
+      "min_confidence": 3.162018,
+      "max_confidence": 97.013474,
+      "char_count": 1158
+    },
+    "image_properties": {
+      "blur_score": 1473.66,
+      "noise_estimate": 38.39,
+      "contrast": 30.7,
+      "brightness": 244.17,
+      "edge_density": 6.45,
+      "high_freq_pct": 80.14,
+      "dimensions": "1020x1320"
+    }
+  },
+  "555CCC": {
+    "filename": "555CCC-66666662025_page-0001.png",
+    "path": "/home/abel/projects/Prisma/ExxerCube.Prisma/Prisma/Fixtures/PRP1/555CCC-66666662025_page-0001.png",
+    "ocr": {
+      "text": "Administración General de Auditoría Fiscal Federal\nAdministración Desconcentrada de Auditoría Fiscal de Sonora “2”\nNo. De Identificación del Requerimiento\nAGAFADAFSON2/2025/000087\n\nJuan Juan Melón Sandía\n\nVicepresidente de Supervisión de Procesos Preventivos\n\nComisión Nacional Bancaria y de valores\n\nInsurgentes Sur 1971, Conjunto Plaza Inn, col. Guadalupe Inn,\n\nDel Alvaro obregón, C.P. 01020, Ciudad de México\n\nPresente\n\nDatos generales del solicitante\n\nADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL Requerimiento Hacendario\n\nADMINSTRAIÓN DESCONCENTRADA DE AUTORÍA FISCAL DE\n\nSONORA “2” Ñ MTRO. GUADALUPE PEPITA PEPITA\n\nMesa, Turno y/o Unidad, Secretaría etc: ADMINSTRAIÓN ADMINISTRADOR DESCONCENTRADA DE\n\nDESCONCENTRADA DE AUTORÍA FISCAL DE SONORA “2” AUTORÍA FISCAL DE SONORA “2”\n\nAVE. RODOLFO ELEIAS CALLES PTE, No 1111, Col centro, Tel. (55) 1111-2222\n\nMunicipio Centro CP 00001 Correo: lupita.pepita.pepitaGsat.gob.mx\n\nFacultades de la Autoridad\n\nLista de personas bloqueadas\nArtículo 115 de la ley de instituciones de crédito 91 de la ley de fondos de inversión 46 bis y 124 de la\nley de ahorro y crédito popular 87 de 95 de la ley federal de organizaciones y actividades auxiliares de\ncrédito 129 de la ley de unión de crédito 212 de la ley de mercado de valores 7172 de la ley de regular\nlas actividades de sociedades cooperativas de ahorro y préstamo 58 de la ley para regular las\ninstituciones de tecnología financiera 2, 5, 6 fracciones 11, 13 y 14 de la ley federal para la prevención\ne identificación de operaciones con recursos de procedencia ilícita 6 fracciones 7 y 8 y 10 fracción 34\ndel reglamento interior de la secretaría de hacienda y crédito público así como el 70 y 71 de las\ndisposiciones de carácter general a qué se refiere el artículo 115 de la ley de instituciones de crédito\n",
+      "mean_confidence": 95.02,
+      "word_count": 279,
+      "min_confidence": 0.546356,
+      "max_confidence": 97.023125,
+      "char_count": 1812
+    },
+    "image_properties": {
+      "blur_score": 8588.51,
+      "noise_estimate": 92.67,
+      "contrast": 53.76,
+      "brightness": 237.74,
+      "edge_density": 7.31,
+      "high_freq_pct": 85.85,
+      "dimensions": "1020x1320"
+    }
+  }
+}

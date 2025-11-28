@@ -1,0 +1,591 @@
+{
+  "clustering": {
+    "method": "kmeans",
+    "features": [
+      "blur_score",
+      "contrast",
+      "noise_estimate",
+      "edge_density"
+    ],
+    "n_clusters": 2,
+    "silhouette_score": 0.5816936816016821
+  },
+  "cluster_assignments": [
+    {
+      "filename": "222AAA_blur0.3_t85.png",
+      "cluster": 1,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 86.3,
+      "image_properties": {
+        "blur_score": 379.9,
+        "noise_estimate": 19.49,
+        "contrast": 34.66,
+        "brightness": 240.8,
+        "edge_density": 5.1536
+      }
+    },
+    {
+      "filename": "222AAA_blur0.3_scan_t85.png",
+      "cluster": 1,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 85.6,
+      "image_properties": {
+        "blur_score": 456.0,
+        "noise_estimate": 21.35,
+        "contrast": 34.49,
+        "brightness": 240.84,
+        "edge_density": 5.3848
+      }
+    },
+    {
+      "filename": "222AAA_blur0.6_t85.png",
+      "cluster": 1,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 88.4,
+      "image_properties": {
+        "blur_score": 176.5,
+        "noise_estimate": 13.29,
+        "contrast": 33.59,
+        "brightness": 240.83,
+        "edge_density": 4.2371
+      }
+    },
+    {
+      "filename": "222AAA_blur0.6_scan_t85.png",
+      "cluster": 1,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 85.8,
+      "image_properties": {
+        "blur_score": 292.49,
+        "noise_estimate": 17.1,
+        "contrast": 33.33,
+        "brightness": 240.92,
+        "edge_density": 4.3465
+      }
+    },
+    {
+      "filename": "222AAA_blur0.9_t85.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 87.4,
+      "image_properties": {
+        "blur_score": 74.56,
+        "noise_estimate": 8.63,
+        "contrast": 32.4,
+        "brightness": 240.9,
+        "edge_density": 3.4738
+      }
+    },
+    {
+      "filename": "222AAA_blur0.9_scan_t85.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 88.9,
+      "image_properties": {
+        "blur_score": 119.06,
+        "noise_estimate": 10.91,
+        "contrast": 32.29,
+        "brightness": 240.87,
+        "edge_density": 3.5591
+      }
+    },
+    {
+      "filename": "222AAA_blur1.2_t85.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 86.6,
+      "image_properties": {
+        "blur_score": 41.43,
+        "noise_estimate": 6.44,
+        "contrast": 31.16,
+        "brightness": 240.89,
+        "edge_density": 3.2174
+      }
+    },
+    {
+      "filename": "222AAA_blur1.2_scan_t85.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 85.3,
+      "image_properties": {
+        "blur_score": 121.65,
+        "noise_estimate": 11.03,
+        "contrast": 30.96,
+        "brightness": 240.91,
+        "edge_density": 3.3848
+      }
+    },
+    {
+      "filename": "222AAA_blur1.5_t85.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 85.2,
+      "image_properties": {
+        "blur_score": 25.65,
+        "noise_estimate": 5.06,
+        "contrast": 30.0,
+        "brightness": 240.93,
+        "edge_density": 3.1409
+      }
+    },
+    {
+      "filename": "222AAA_blur1.5_scan_t85.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 86.3,
+      "image_properties": {
+        "blur_score": 72.01,
+        "noise_estimate": 8.49,
+        "contrast": 29.89,
+        "brightness": 240.94,
+        "edge_density": 3.2728
+      }
+    },
+    {
+      "filename": "222AAA_blur1.8_t85.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 85.4,
+      "image_properties": {
+        "blur_score": 17.08,
+        "noise_estimate": 4.13,
+        "contrast": 28.95,
+        "brightness": 240.99,
+        "edge_density": 3.0506
+      }
+    },
+    {
+      "filename": "222AAA_blur1.8_scan_t85.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 85,
+      "actual_conf": 84.9,
+      "image_properties": {
+        "blur_score": 71.09,
+        "noise_estimate": 8.43,
+        "contrast": 28.81,
+        "brightness": 241.05,
+        "edge_density": 3.2143
+      }
+    },
+    {
+      "filename": "222AAA_blur2.1_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 79.8,
+      "image_properties": {
+        "blur_score": 11.61,
+        "noise_estimate": 3.41,
+        "contrast": 28.01,
+        "brightness": 241.05,
+        "edge_density": 2.6884
+      }
+    },
+    {
+      "filename": "222AAA_blur2.7_scan_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 77.5,
+      "image_properties": {
+        "blur_score": 41.26,
+        "noise_estimate": 6.42,
+        "contrast": 26.38,
+        "brightness": 241.16,
+        "edge_density": 2.1611
+      }
+    },
+    {
+      "filename": "222AAA_blur3.0_scan_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 78.2,
+      "image_properties": {
+        "blur_score": 31.15,
+        "noise_estimate": 5.58,
+        "contrast": 25.76,
+        "brightness": 241.17,
+        "edge_density": 1.0457
+      }
+    },
+    {
+      "filename": "222AAA_blur3.3_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 79.4,
+      "image_properties": {
+        "blur_score": 4.48,
+        "noise_estimate": 2.12,
+        "contrast": 25.27,
+        "brightness": 241.24,
+        "edge_density": 0.2272
+      }
+    },
+    {
+      "filename": "222AAA_blur3.3_scan_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 79.4,
+      "image_properties": {
+        "blur_score": 35.11,
+        "noise_estimate": 5.93,
+        "contrast": 25.18,
+        "brightness": 241.25,
+        "edge_density": 0.715
+      }
+    },
+    {
+      "filename": "222AAA_blur3.6_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 74.8,
+      "image_properties": {
+        "blur_score": 3.96,
+        "noise_estimate": 1.99,
+        "contrast": 24.76,
+        "brightness": 241.25,
+        "edge_density": 0.085
+      }
+    },
+    {
+      "filename": "222AAA_blur3.6_scan_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 76.6,
+      "image_properties": {
+        "blur_score": 72.86,
+        "noise_estimate": 8.54,
+        "contrast": 24.54,
+        "brightness": 241.35,
+        "edge_density": 0.7384
+      }
+    },
+    {
+      "filename": "222AAA_blur3.9_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 73.9,
+      "image_properties": {
+        "blur_score": 3.79,
+        "noise_estimate": 1.95,
+        "contrast": 24.26,
+        "brightness": 241.16,
+        "edge_density": 0.0547
+      }
+    },
+    {
+      "filename": "222AAA_blur3.9_scan_t75.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 75,
+      "actual_conf": 71.0,
+      "image_properties": {
+        "blur_score": 75.6,
+        "noise_estimate": 8.69,
+        "contrast": 24.03,
+        "brightness": 241.21,
+        "edge_density": 0.5057
+      }
+    },
+    {
+      "filename": "222AAA_blur4.2_t65.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 65,
+      "actual_conf": 65.8,
+      "image_properties": {
+        "blur_score": 3.3,
+        "noise_estimate": 1.82,
+        "contrast": 23.61,
+        "brightness": 240.74,
+        "edge_density": 0.0365
+      }
+    },
+    {
+      "filename": "222AAA_blur4.2_scan_t65.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 65,
+      "actual_conf": 66.7,
+      "image_properties": {
+        "blur_score": 40.37,
+        "noise_estimate": 6.35,
+        "contrast": 23.49,
+        "brightness": 240.78,
+        "edge_density": 0.3866
+      }
+    },
+    {
+      "filename": "222AAA_blur4.5_t65.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 65,
+      "actual_conf": 60.9,
+      "image_properties": {
+        "blur_score": 3.13,
+        "noise_estimate": 1.77,
+        "contrast": 23.24,
+        "brightness": 240.78,
+        "edge_density": 0.0229
+      }
+    },
+    {
+      "filename": "222AAA_blur4.5_scan_t55.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 55,
+      "actual_conf": 57.5,
+      "image_properties": {
+        "blur_score": 28.22,
+        "noise_estimate": 5.31,
+        "contrast": 23.17,
+        "brightness": 240.81,
+        "edge_density": 0.3605
+      }
+    },
+    {
+      "filename": "222AAA_blur4.8_scan_t55.png",
+      "cluster": 0,
+      "doc_id": "222AAA",
+      "target_conf": 55,
+      "actual_conf": 52.6,
+      "image_properties": {
+        "blur_score": 18.13,
+        "noise_estimate": 4.26,
+        "contrast": 22.83,
+        "brightness": 240.8,
+        "edge_density": 0.1608
+      }
+    },
+    {
+      "filename": "333BBB_blur1.5_t75.png",
+      "cluster": 0,
+      "doc_id": "333BBB",
+      "target_conf": 75,
+      "actual_conf": 76.5,
+      "image_properties": {
+        "blur_score": 31.58,
+        "noise_estimate": 5.62,
+        "contrast": 25.49,
+        "brightness": 240.39,
+        "edge_density": 6.4259
+      }
+    },
+    {
+      "filename": "333BBB_blur1.5_scan_t75.png",
+      "cluster": 0,
+      "doc_id": "333BBB",
+      "target_conf": 75,
+      "actual_conf": 77.0,
+      "image_properties": {
+        "blur_score": 53.62,
+        "noise_estimate": 7.32,
+        "contrast": 25.43,
+        "brightness": 240.35,
+        "edge_density": 6.4577
+      }
+    },
+    {
+      "filename": "333BBB_blur1.8_t75.png",
+      "cluster": 0,
+      "doc_id": "333BBB",
+      "target_conf": 75,
+      "actual_conf": 73.0,
+      "image_properties": {
+        "blur_score": 16.62,
+        "noise_estimate": 4.08,
+        "contrast": 24.58,
+        "brightness": 240.44,
+        "edge_density": 4.6275
+      }
+    },
+    {
+      "filename": "333BBB_blur1.8_scan_t65.png",
+      "cluster": 0,
+      "doc_id": "333BBB",
+      "target_conf": 65,
+      "actual_conf": 68.6,
+      "image_properties": {
+        "blur_score": 38.16,
+        "noise_estimate": 6.18,
+        "contrast": 24.52,
+        "brightness": 240.36,
+        "edge_density": 4.8335
+      }
+    },
+    {
+      "filename": "333BBB_blur2.1_t55.png",
+      "cluster": 0,
+      "doc_id": "333BBB",
+      "target_conf": 55,
+      "actual_conf": 58.1,
+      "image_properties": {
+        "blur_score": 9.86,
+        "noise_estimate": 3.14,
+        "contrast": 23.8,
+        "brightness": 240.45,
+        "edge_density": 1.7681
+      }
+    },
+    {
+      "filename": "333BBB_blur2.1_scan_t55.png",
+      "cluster": 0,
+      "doc_id": "333BBB",
+      "target_conf": 55,
+      "actual_conf": 58.6,
+      "image_properties": {
+        "blur_score": 27.8,
+        "noise_estimate": 5.27,
+        "contrast": 23.76,
+        "brightness": 240.47,
+        "edge_density": 2.0446
+      }
+    },
+    {
+      "filename": "333BBB_blur3.9_t55.png",
+      "cluster": 0,
+      "doc_id": "333BBB",
+      "target_conf": 55,
+      "actual_conf": 54.6,
+      "image_properties": {
+        "blur_score": 4.27,
+        "noise_estimate": 2.07,
+        "contrast": 20.14,
+        "brightness": 239.9,
+        "edge_density": 0.0999
+      }
+    },
+    {
+      "filename": "333ccc_blur1.5_t65.png",
+      "cluster": 0,
+      "doc_id": "333ccc",
+      "target_conf": 65,
+      "actual_conf": 65.4,
+      "image_properties": {
+        "blur_score": 19.68,
+        "noise_estimate": 4.44,
+        "contrast": 23.94,
+        "brightness": 243.17,
+        "edge_density": 4.0605
+      }
+    },
+    {
+      "filename": "333ccc_blur1.5_scan_t55.png",
+      "cluster": 0,
+      "doc_id": "333ccc",
+      "target_conf": 55,
+      "actual_conf": 57.5,
+      "image_properties": {
+        "blur_score": 58.52,
+        "noise_estimate": 7.65,
+        "contrast": 23.82,
+        "brightness": 243.2,
+        "edge_density": 4.2541
+      }
+    },
+    {
+      "filename": "333ccc_blur1.8_t55.png",
+      "cluster": 0,
+      "doc_id": "333ccc",
+      "target_conf": 55,
+      "actual_conf": 55.3,
+      "image_properties": {
+        "blur_score": 10.72,
+        "noise_estimate": 3.27,
+        "contrast": 23.24,
+        "brightness": 243.23,
+        "edge_density": 2.6708
+      }
+    },
+    {
+      "filename": "333ccc_blur1.8_scan_t55.png",
+      "cluster": 0,
+      "doc_id": "333ccc",
+      "target_conf": 55,
+      "actual_conf": 52.5,
+      "image_properties": {
+        "blur_score": 25.23,
+        "noise_estimate": 5.02,
+        "contrast": 23.18,
+        "brightness": 243.22,
+        "edge_density": 2.8775
+      }
+    },
+    {
+      "filename": "555CCC_blur2.1_t55.png",
+      "cluster": 0,
+      "doc_id": "555CCC",
+      "target_conf": 55,
+      "actual_conf": 57.1,
+      "image_properties": {
+        "blur_score": 15.76,
+        "noise_estimate": 3.97,
+        "contrast": 32.64,
+        "brightness": 236.57,
+        "edge_density": 4.265
+      }
+    },
+    {
+      "filename": "555CCC_blur2.1_scan_t55.png",
+      "cluster": 0,
+      "doc_id": "555CCC",
+      "target_conf": 55,
+      "actual_conf": 57.6,
+      "image_properties": {
+        "blur_score": 70.17,
+        "noise_estimate": 8.38,
+        "contrast": 32.52,
+        "brightness": 236.61,
+        "edge_density": 4.8442
+      }
+    }
+  ],
+  "cluster_summaries": {
+    "0": {
+      "count": 35,
+      "feature_means": {
+        "blur_score": 37.07,
+        "contrast": 26.17,
+        "noise_estimate": 5.53,
+        "edge_density": 2.42
+      },
+      "confidence_range": [
+        52.5,
+        88.9
+      ],
+      "confidence_mean": 71.3
+    },
+    "1": {
+      "count": 4,
+      "feature_means": {
+        "blur_score": 326.22,
+        "contrast": 34.02,
+        "noise_estimate": 17.81,
+        "edge_density": 4.78
+      },
+      "confidence_range": [
+        85.6,
+        88.4
+      ],
+      "confidence_mean": 86.5
+    }
+  }
+}

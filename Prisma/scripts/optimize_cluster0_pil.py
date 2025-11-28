@@ -2,8 +2,8 @@
 """
 NSGA-II Cluster 0 PIL Pipeline Optimization
 
-Cluster 0: Ultra-Sharp Images (555CCC Q0 + Q05)
-- 2 objectives (2 images)
+Cluster 0: Ultra-Sharp Images (PRP1 pristine + Q1_Poor)
+- 8 objectives (4 pristine + 4 Q1_Poor images)
 - Characteristics: blur=6905.9, noise=0.47, contrast=51.9
 
 SIMPLE PIL PIPELINE:
@@ -11,10 +11,10 @@ SIMPLE PIL PIPELINE:
 - Median filter (size 3-7)
 
 Configuration:
-    Population: 20
-    Generations: 20
-    Total Evaluations: 400
-    Estimated Runtime: ~40 minutes
+    Population: 30
+    Generations: 40
+    Total Evaluations: 1,200
+    Estimated Runtime: ~3 hours
 
 Outputs:
 - Pareto front catalog (cluster0_pil_pareto_front.json)
@@ -126,11 +126,17 @@ def load_ground_truth(base_path: Path) -> Dict[str, str]:
     ground_truth = {}
     pristine_base = base_path / "PRP1"
 
-    doc = "555CCC-66666662025_page1.png"
-    doc_path = pristine_base / doc
-    if doc_path.exists():
-        text = run_tesseract_ocr(doc_path)
-        ground_truth[doc] = text
+    docs = [
+        "222AAA-44444444442025_page-0001.jpg",
+        "333BBB-44444444442025_page1.png",
+        "333ccc-6666666662025_page1.png",
+        "555CCC-66666662025_page1.png"
+    ]
+    for doc in docs:
+        doc_path = pristine_base / doc
+        if doc_path.exists():
+            text = run_tesseract_ocr(doc_path)
+            ground_truth[doc] = text
 
     return ground_truth
 
@@ -139,9 +145,9 @@ class Cluster0PILOptimizationProblem(Problem):
     """
     Cluster 0 PIL pipeline optimization.
 
-    2 Objectives (Ultra-Sharp 555CCC):
-    - Q0_Pristine (minimize edit distance)
-    - Q05_VeryGood (minimize edit distance)
+    8 Objectives (Ultra-Sharp: PRP1 pristine + Q1_Poor):
+    - 4 pristine images from PRP1 (minimize edit distance)
+    - 4 Q1_Poor images (minimize edit distance)
 
     Cluster Characteristics:
     - Ultra-sharp (blur=6905.9)
@@ -153,19 +159,35 @@ class Cluster0PILOptimizationProblem(Problem):
         self.base_path = base_path
         self.ground_truth = ground_truth
 
-        # Cluster 0: 555CCC at Q0 and Q05
-        self.test_cases = [
-            {
-                'doc': "555CCC-66666662025_page1.png",
-                'level': "Q0_Pristine",
-                'path': base_path / "PRP1_Degraded" / "Q0_Pristine" / "555CCC-66666662025_page1.png"
-            },
-            {
-                'doc': "555CCC-66666662025_page1.png",
-                'level': "Q05_VeryGood",
-                'path': base_path / "PRP1_Degraded" / "Q05_VeryGood" / "555CCC-66666662025_page1.png"
-            }
+        # Cluster 0: PRP1 pristine + Q1_Poor for all 4 docs
+        docs = [
+            "222AAA-44444444442025_page-0001.jpg",
+            "333BBB-44444444442025_page1.png",
+            "333ccc-6666666662025_page1.png",
+            "555CCC-66666662025_page1.png"
         ]
+
+        self.test_cases = []
+
+        # Add pristine images from PRP1
+        for doc in docs:
+            path = base_path / "PRP1" / doc
+            if path.exists():
+                self.test_cases.append({
+                    'doc': doc,
+                    'level': "PRP1_Pristine",
+                    'path': path
+                })
+
+        # Add Q1_Poor degraded images
+        for doc in docs:
+            path = base_path / "PRP1_Degraded" / "Q1_Poor" / doc
+            if path.exists():
+                self.test_cases.append({
+                    'doc': doc,
+                    'level': "Q1_Poor",
+                    'path': path
+                })
 
         self.eval_count = 0
         self.log_file = base_path / "cluster0_pil_progress.log"
@@ -173,7 +195,7 @@ class Cluster0PILOptimizationProblem(Problem):
         # 2 parameters: contrast_factor, median_size
         super().__init__(
             n_var=2,
-            n_obj=2,  # 2 objectives (Q0 + Q05 for 555CCC)
+            n_obj=len(self.test_cases),  # 8 objectives (4 pristine + 4 Q1_Poor)
             xl=np.array([1.0, 3]),
             xu=np.array([2.5, 7])
         )
@@ -221,9 +243,8 @@ class Cluster0PILOptimizationProblem(Problem):
 
             objectives.append(doc_objectives)
 
-            if len(doc_objectives) == 2:
-                with open(self.log_file, 'a') as f:
-                    f.write(f"Eval {self.eval_count}: {doc_objectives}\n")
+            with open(self.log_file, 'a') as f:
+                f.write(f"Eval {self.eval_count}: {doc_objectives}\n")
 
         out["F"] = np.array(objectives)
 
@@ -245,14 +266,14 @@ def main():
     print("Configuration:")
     print("  Pipeline: PIL (Contrast + Median Filter)")
     print("  Parameters: 2")
-    print("  Population: 20")
-    print("  Generations: 20")
-    print("  Total evaluations: 400")
-    print("  Estimated time: ~40 minutes")
+    print("  Population: 30")
+    print("  Generations: 40")
+    print("  Total evaluations: 1,200")
+    print("  Estimated time: ~3 hours")
     print()
-    print("2 Objectives:")
-    print("  - 555CCC Q0_Pristine")
-    print("  - 555CCC Q05_VeryGood")
+    print("8 Objectives:")
+    print("  - 4 pristine images from PRP1 (222AAA, 333BBB, 333ccc, 555CCC)")
+    print("  - 4 Q1_Poor degraded images")
     print("="*80)
     print()
 
@@ -270,7 +291,7 @@ def main():
     # Configure NSGA-II algorithm
     print("Configuring NSGA-II algorithm...")
     algorithm = NSGA2(
-        pop_size=20,
+        pop_size=30,
         sampling=FloatRandomSampling(),
         crossover=SBX(prob=0.9, eta=15),
         mutation=PM(eta=20),
@@ -289,7 +310,7 @@ def main():
     res = minimize(
         problem,
         algorithm,
-        termination=get_termination("n_gen", 20),
+        termination=get_termination("n_gen", 40),
         seed=1,
         verbose=True,
         save_history=True
@@ -326,10 +347,7 @@ def main():
                 "contrast_factor": genome.contrast_factor,
                 "median_size": genome.median_size
             },
-            "objectives": {
-                "Q0_555CCC": int(f[0]),
-                "Q05_555CCC": int(f[1])
-            },
+            "objectives": {f"{problem.test_cases[j]['level']}_{problem.test_cases[j]['doc'].split('-')[0]}": int(f[j]) for j in range(len(f))},
             "total_edits": int(f.sum())
         }
 
