@@ -173,6 +173,19 @@
     .improvement-text {
         color: white !important;
     }
+
+    /* Golden test alert styling */
+    .golden-test-alert {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%) !important;
+        color: #333 !important;
+        border-left: 4px solid #ffa000 !important;
+    }
+
+    .mud-theme-dark .golden-test-alert {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 237, 78, 0.15) 100%) !important;
+        color: #ffd700 !important;
+        border-left: 4px solid #ffd700 !important;
+    }
 </style>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
@@ -203,22 +216,53 @@
                 <MudIcon Icon="@Icons.Material.Filled.Upload" Class="mr-2" />
                 Step 1: Upload Degraded Document Image
             </MudText>
-            <MudFileUpload T="IBrowserFile" FilesChanged="HandleFileUpload" Accept=".png,.jpg,.jpeg">
-                <ActivatorContent>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.CloudUpload"
-                               Disabled="@_isProcessing"
-                               Size="Size.Large">
-                        Select Image
-                    </MudButton>
-                </ActivatorContent>
-            </MudFileUpload>
+
+            <MudStack Row="true" Spacing="2">
+                <MudFileUpload T="IBrowserFile" FilesChanged="HandleFileUpload" Accept=".png,.jpg,.jpeg">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload"
+                                   Disabled="@_isProcessing"
+                                   Size="Size.Large">
+                            Select Image
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Secondary"
+                           StartIcon="@Icons.Material.Filled.Stars"
+                           OnClick="LoadGoldenTest"
+                           Disabled="@_isProcessing"
+                           Size="Size.Large">
+                    Load Golden Test (89.7% Demo)
+                </MudButton>
+            </MudStack>
+
             @if (_uploadedFileName != null)
             {
                 <MudAlert Severity="Severity.Success" Variant="Variant.Filled">
                     <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Class="mr-2" />
                     @_uploadedFileName (@(_uploadedImageBytes?.Length / 1024 ?? 0) KB)
+                </MudAlert>
+            }
+
+            @if (_isGoldenTest)
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="golden-test-alert">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1">
+                            <MudIcon Icon="@Icons.Material.Filled.Science" Class="mr-2" />
+                            <strong>Golden Test: Document 555CCC-66666662025</strong>
+                        </MudText>
+                        <MudText Typo="Typo.body2">
+                            Quality Level: Q2_MediumPoor | Expected Improvement: <strong>89.7%</strong> (1518 → 157 errors)
+                        </MudText>
+                        <MudText Typo="Typo.caption">
+                            💡 Counterintuitive: Minimal enhancement (1.05x contrast, median=3) outperforms aggressive filtering
+                        </MudText>
+                    </MudStack>
                 </MudAlert>
             }
         </MudStack>
@@ -511,6 +555,7 @@
     private string? _uploadedFileName;
     private bool _isProcessing;
     private string? _modelVersion;
+    private bool _isGoldenTest;
 
     // Filter selection
     private FilterSelectionMode _filterSelectionMode = FilterSelectionMode.Polynomial;
@@ -581,6 +626,7 @@
             _enhancedOcrText = null;
             _enhancedImageBytes = null;
             _processingLog.Clear();
+            _isGoldenTest = false;
 
             Snackbar.Add($"Image uploaded: {file.Name} ({file.Size / 1024} KB)", Severity.Success);
         }
@@ -588,6 +634,46 @@
         {
             Logger.LogError(ex, "Error uploading file");
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task LoadGoldenTest()
+    {
+        try
+        {
+            // Path to golden test document (Q2_MediumPoor quality, 89.7% improvement expected)
+            var goldenTestPath = Path.Combine(
+                AppContext.BaseDirectory,
+                "Fixtures",
+                "PRP1_Degraded",
+                "Q2_MediumPoor",
+                "555CCC-66666662025_page1.png"
+            );
+
+            if (!File.Exists(goldenTestPath))
+            {
+                Snackbar.Add("Golden test fixture not found. Please ensure test fixtures are deployed.", Severity.Warning);
+                Logger.LogWarning("Golden test file not found at: {Path}", goldenTestPath);
+                return;
+            }
+
+            _uploadedImageBytes = await File.ReadAllBytesAsync(goldenTestPath);
+            _uploadedFileName = "555CCC-66666662025_page1.png (Golden Test)";
+            _isGoldenTest = true;
+
+            // Reset results
+            _baselineOcrText = null;
+            _enhancedOcrText = null;
+            _enhancedImageBytes = null;
+            _processingLog.Clear();
+
+            Snackbar.Add("Golden test loaded! Expected: 89.7% improvement (1518 → 157 errors)", Severity.Info);
+            Logger.LogInformation("Loaded golden test document from: {Path}", goldenTestPath);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading golden test");
+            Snackbar.Add($"Error loading golden test: {ex.Message}", Severity.Error);
         }
     }
 
