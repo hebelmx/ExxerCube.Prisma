@@ -1,5 +1,9 @@
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
 
+using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Enums;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 /// <summary>
 /// Entity Framework Core configuration for AuditRecord entity.
 /// </summary>
@@ -25,7 +29,13 @@ public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
 
         builder.Property(a => a.ActionType)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion(
+                v => v.Value,
+                v => AuditActionType.FromValue(v))
+            .Metadata.SetValueComparer(new ValueComparer<AuditActionType>(
+                (l, r) => l!.Value == r!.Value,
+                v => v!.Value.GetHashCode(),
+                v => AuditActionType.FromValue(v!.Value)));
 
         builder.Property(a => a.ActionDetails)
             .HasMaxLength(4000);
@@ -38,7 +48,13 @@ public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
 
         builder.Property(a => a.Stage)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion(
+                v => v.Value,
+                v => ProcessingStage.FromValue(v))
+            .Metadata.SetValueComparer(new ValueComparer<ProcessingStage>(
+                (l, r) => l!.Value == r!.Value,
+                v => v!.Value.GetHashCode(),
+                v => ProcessingStage.FromValue(v!.Value)));
 
         builder.Property(a => a.Success)
             .IsRequired();
