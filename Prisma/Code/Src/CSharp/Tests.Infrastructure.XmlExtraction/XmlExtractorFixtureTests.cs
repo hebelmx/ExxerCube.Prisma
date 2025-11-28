@@ -83,6 +83,38 @@ public class XmlExtractorFixtureTests(ITestOutputHelper output)
         LogFields("Operaciones Ilícitas fixture", fields);
     }
 
+    [Fact]
+    public async Task Extract_With_Missing_Expediente_Allows_Nulls()
+    {
+        var path = Path.Combine(_fixtureRoot, "missing_expediente.xml");
+        var result = await _extractor.ExtractFieldsAsync(new XmlSource(path), Array.Empty<FieldDefinition>());
+
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        var fields = result.Value!;
+        fields.Expediente.ShouldBeNull();
+        fields.AdditionalFields["Subdivision"].ShouldBe("Hacendario");
+        fields.AdditionalFields["MeasureHint"].ShouldBe("Informacion");
+        fields.AdditionalFields["DiasPlazo"].ShouldBe("5");
+
+        LogFields("Missing expediente fixture", fields);
+    }
+
+    [Fact]
+    public async Task Extract_With_Missing_Subdivision_Falls_Back_To_Unknown()
+    {
+        var path = Path.Combine(_fixtureRoot, "missing_subdivision.xml");
+        var result = await _extractor.ExtractFieldsAsync(new XmlSource(path), Array.Empty<FieldDefinition>());
+
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        var fields = result.Value!;
+        fields.Expediente.ShouldBe("X/XX1-0000-000000-XXX");
+        fields.AdditionalFields["Subdivision"].ShouldBe("Unknown");
+        fields.AdditionalFields["MeasureHint"].ShouldBe("Aseguramiento");
+        fields.AdditionalFields["DiasPlazo"].ShouldBe("3");
+
+        LogFields("Missing subdivision fixture", fields);
+    }
+
     private void LogFields(string label, ExtractedFields fields)
     {
         var sb = new StringBuilder();

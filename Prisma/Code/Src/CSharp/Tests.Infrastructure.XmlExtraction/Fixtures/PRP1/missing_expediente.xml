@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Expediente xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_NumeroOficio>999/AAA/-0000000000/2025</Cnbv_NumeroOficio>
+  <Cnbv_SolicitudSiara>TEST/2025/000000</Cnbv_SolicitudSiara>
+  <Cnbv_Folio>0000</Cnbv_Folio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <!-- Missing Cnbv_NumeroExpediente on purpose -->
+  <Cnbv_AreaClave>1</Cnbv_AreaClave>
+  <Cnbv_AreaDescripcion>HACENDARIO</Cnbv_AreaDescripcion>
+  <Cnbv_FechaPublicacion>2025-06-10</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>5</Cnbv_DiasPlazo>
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <ParteId>1</ParteId>
+    <Caracter>Contribuyente Auditado</Caracter>
+    <Persona>Moral</Persona>
+    <Nombre>EMPRESA SIN EXPEDIENTE</Nombre>
+    <Rfc>AAA010101AAA</Rfc>
+  </SolicitudPartes>
+</Expediente>

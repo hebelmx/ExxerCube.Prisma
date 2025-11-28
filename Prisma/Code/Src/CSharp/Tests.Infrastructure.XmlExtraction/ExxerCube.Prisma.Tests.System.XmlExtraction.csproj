@@ -104,6 +104,7 @@
   <ItemGroup Label="Test Fixtures">
     <None Include="..\..\..\..\Samples\GotOcr2Sample\PythonOcrLib\PRP1\*.pdf" Link="Fixtures\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\..\..\Fixtures\PRP1\*.xml" Link="Fixtures\PRP1\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\PRP1\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Copy degraded image fixtures for robustness testing -->
