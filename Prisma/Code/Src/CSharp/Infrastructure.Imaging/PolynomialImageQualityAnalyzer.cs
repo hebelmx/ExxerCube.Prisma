@@ -102,7 +102,7 @@ public class PolynomialImageQualityAnalyzer : IImageQualityAnalyzer
         try
         {
             using var inputMat = new Mat();
-            CvInvoke.Imdecode(imageData.Data, ImreadModes.Color, inputMat);
+            CvInvoke.Imdecode(imageData.Data, ImreadModes.ColorRgb, inputMat);
 
             if (inputMat.IsEmpty)
             {
@@ -159,9 +159,9 @@ public class PolynomialImageQualityAnalyzer : IImageQualityAnalyzer
     {
         var assessmentResult = await AnalyzeAsync(imageData);
 
-        if (!assessmentResult.IsSuccess)
+        if (!assessmentResult.IsSuccess || assessmentResult.Value == null)
         {
-            return Result<ImageQualityLevel>.Failure(assessmentResult.Error);
+            return Result<ImageQualityLevel>.Failure(assessmentResult.Error ?? "Assessment failed");
         }
 
         return Result<ImageQualityLevel>.Success(assessmentResult.Value.QualityLevel);

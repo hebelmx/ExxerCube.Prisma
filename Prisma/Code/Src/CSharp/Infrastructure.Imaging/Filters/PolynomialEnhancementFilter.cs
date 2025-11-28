@@ -55,7 +55,7 @@ public class PolynomialEnhancementFilter : IImageEnhancementFilter
             }
 
             using var inputMat = new Mat();
-            CvInvoke.Imdecode(imageData.Data, ImreadModes.Color, inputMat);
+            CvInvoke.Imdecode(imageData.Data, ImreadModes.ColorRgb, inputMat);
 
             if (inputMat.IsEmpty)
             {
