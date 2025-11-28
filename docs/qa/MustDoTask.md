@@ -60,11 +60,11 @@ Priority tasks to close critical gaps (ready for developer assignment). Based on
 - LegalSubdivision: keep as plain enum unless dynamic extensions are required (fixed CNBV codes).
 
 ### Affected entities (with current file/lines)
-- Expediente (`Prisma/Code/Src/CSharp/Domain/Entities/Expediente.cs`:6-109) — Subdivision uses `LegalSubdivision`; would switch to SmartEnum if we convert; keep validation.
-- SolicitudEspecifica (`.../Entities/SolicitudEspecifica.cs`:11-46) — Measure uses `MeasureType`; would switch to SmartEnum; accounts/docs unchanged.
-- ComplianceAction (`.../Entities/ComplianceAction.cs`:1-69) — Action type is `ComplianceActionType` (stays enum), but Measure/Account consumers may use SmartEnum.
-- DocumentItem (`.../ValueObjects/DocumentItem.cs`:1-22) — Tipo uses `DocumentItemType`; would switch to SmartEnum.
-- PersonaSolicitud/SolicitudParte (`.../Entities/PersonaSolicitud.cs`:1-72, `.../Entities/SolicitudParte.cs`:1-63) — could store AuthorityKind if added; currently unaffected.
+- Expediente (`Prisma/Code/Src/CSharp/Domain/Entities/Expediente.cs`:49 Subdivision, 79 FundamentoLegal, 149 Validation) — Subdivision uses `LegalSubdivision`; would switch to SmartEnum if converted.
+- SolicitudEspecifica (`.../Entities/SolicitudEspecifica.cs`:27 Measure, 51 Cuentas, 56 Documentos, 61 Validation) — Measure now uses `MeasureKind` (SmartEnum) instead of `MeasureType` enum.
+- ComplianceAction (`.../Entities/ComplianceAction.cs`:23 Cuenta, 63 LegalBasis, 73 Validation) — Account ties to measure intent; action type stays as-is but may consume SmartEnum outputs.
+- DocumentItem (`.../ValueObjects/DocumentItem.cs`: Tipo) — Tipo uses `DocumentItemType`; would switch to SmartEnum.
+- PersonaSolicitud (`.../Entities/PersonaSolicitud.cs`:57 RfcVariantes, 87 Validation) / SolicitudParte (`.../Entities/SolicitudParte.cs`:48 RfcVariantes, 78 Validation) — could store AuthorityKind if added; currently unaffected.
 
 ### Affected interfaces
 - Parsers/extractors: `IFieldExtractor`, `IPdfRequirementSummarizer`, `IPersonIdentityResolver` — need mapping from text → SmartEnum with alias/keyword metadata.
@@ -102,6 +102,24 @@ public sealed class AuthorityKind : EnumModel
 - Parsers: use `FromText`/aliases to map PDF/OCR strings; fall back to Unknown/Other.
 - Exporters: emit `Value` and `DisplayName`; if Unknown/Other, flag validation.
 - Validation: treat Unknown/Other as review-needed; use `ValidationState` to surface.
+- Interfaces: update contracts to return SmartEnum types where applicable, e.g.:
+  ```csharp
+  public interface IFieldExtractor
+  {
+      AuthorityKind ResolveAuthority(string raw);
+      MeasureKind ResolveMeasure(string raw);
+      DocumentItemKind ResolveDocumentItem(string raw);
+  }
+   ```
+  Ensure `IResponseExporter`/`ILayoutGenerator` accept SmartEnum fields and block/flag Unknown/Other on required outputs.
+- Persistence (EF Core): add ValueConverters for SmartEnums (int ↔ SmartEnum) in DbContext configuration to keep storage invariant and avoid runtime reflection cost in EF. Example:
+  ```csharp
+  builder.Property(e => e.Subdivision)
+         .HasConversion(
+             v => v.Value,
+             v => LegalSubdivision.FromValue(v));
+  ```
+- Caching/serialization (FusionCache/JSON): add custom JSON converters for SmartEnums so cached payloads serialize as int/name and deserialize via FromValue/FromName without reflection surprises. Ensure read-only repositories using FusionCache register these converters in the serializer options.
 
 ### Tests to add
 - SmartEnum resolution: FromValue/FromName/FromDisplayName/FromText with aliases; Unknown/Other fallbacks.

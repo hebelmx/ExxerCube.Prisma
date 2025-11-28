@@ -1,5 +1,5 @@
-using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Domain.Entities;
 
@@ -24,7 +24,7 @@ public class SolicitudEspecifica
     /// <summary>
     /// Gets or sets the intent of the measure.
     /// </summary>
-    public MeasureType Measure { get; set; } = MeasureType.Unknown;
+    public MeasureKind Measure { get; set; } = MeasureKind.Unknown;
 
     /// <summary>
     /// Gets or sets the instructions for unknown accounts (inmovilización instructions).

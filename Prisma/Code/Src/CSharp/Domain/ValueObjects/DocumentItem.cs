@@ -1,4 +1,4 @@
-using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Domain.ValueObjects;
 
@@ -10,7 +10,7 @@ public sealed class DocumentItem
     /// <summary>
     /// Gets or sets the requested document type.
     /// </summary>
-    public DocumentItemType Tipo { get; set; } = DocumentItemType.Unknown;
+    public DocumentItemKind Tipo { get; set; } = DocumentItemKind.Unknown;
 
     /// <summary>
     /// Gets or sets the start date of the requested period, if any.
