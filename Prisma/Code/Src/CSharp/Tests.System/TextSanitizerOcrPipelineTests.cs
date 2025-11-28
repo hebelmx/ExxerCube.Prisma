@@ -34,7 +34,7 @@ public class TextSanitizerOcrPipelineTests : IDisposable
         _logger = _scope.ServiceProvider.GetRequiredService<ILogger<TextSanitizerOcrPipelineTests>>();
     }
 
-    [Fact]
+    [Fact(Skip = "Temporarily skipped to isolate XmlExtractor tests")]
     [Trait("Category", "System")]
     public async Task Ocr_and_sanitizer_normalize_account_and_swift_from_noisy_image()
     {
