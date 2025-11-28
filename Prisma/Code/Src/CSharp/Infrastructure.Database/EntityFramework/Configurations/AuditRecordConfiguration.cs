@@ -33,9 +33,9 @@ public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
                 v => v.Value,
                 v => AuditActionType.FromValue(v))
             .Metadata.SetValueComparer(new ValueComparer<AuditActionType>(
-                (l, r) => l!.Value == r!.Value,
-                v => v!.Value.GetHashCode(),
-                v => AuditActionType.FromValue(v!.Value)));
+                (l, r) => (l ?? AuditActionType.Unknown).Value == (r ?? AuditActionType.Unknown).Value,
+                v => (v ?? AuditActionType.Unknown).Value.GetHashCode(),
+                v => AuditActionType.FromValue((v ?? AuditActionType.Unknown).Value)));
 
         builder.Property(a => a.ActionDetails)
             .HasMaxLength(4000);
@@ -52,9 +52,9 @@ public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
                 v => v.Value,
                 v => ProcessingStage.FromValue(v))
             .Metadata.SetValueComparer(new ValueComparer<ProcessingStage>(
-                (l, r) => l!.Value == r!.Value,
-                v => v!.Value.GetHashCode(),
-                v => ProcessingStage.FromValue(v!.Value)));
+                (l, r) => (l ?? ProcessingStage.Unknown).Value == (r ?? ProcessingStage.Unknown).Value,
+                v => (v ?? ProcessingStage.Unknown).Value.GetHashCode(),
+                v => ProcessingStage.FromValue((v ?? ProcessingStage.Unknown).Value)));
 
         builder.Property(a => a.Success)
             .IsRequired();

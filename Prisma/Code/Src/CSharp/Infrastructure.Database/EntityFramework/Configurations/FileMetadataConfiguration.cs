@@ -1,5 +1,8 @@
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
 
+using ExxerCube.Prisma.Domain.Enum;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 /// <summary>
 /// Entity Framework Core configuration for FileMetadata entity.
 /// </summary>
@@ -39,7 +42,13 @@ public class FileMetadataConfiguration : IEntityTypeConfiguration<FileMetadata>
 
         builder.Property(f => f.Format)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion(
+                v => v.Value,
+                v => FileFormat.FromValue(v))
+            .Metadata.SetValueComparer(new ValueComparer<FileFormat>(
+                (l, r) => (l ?? FileFormat.Unknown).Value == (r ?? FileFormat.Unknown).Value,
+                v => (v ?? FileFormat.Unknown).Value.GetHashCode(),
+                v => FileFormat.FromValue((v ?? FileFormat.Unknown).Value)));
 
         // Indexes for performance
         builder.HasIndex(f => f.Checksum)
