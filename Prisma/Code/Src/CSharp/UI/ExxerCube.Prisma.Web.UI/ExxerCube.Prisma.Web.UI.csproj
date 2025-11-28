@@ -78,4 +78,12 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+  <!-- Copy Fixtures folder to output directory for golden test demo -->
+  <ItemGroup>
+    <Content Include="..\..\..\..\..\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png</Link>
+    </Content>
+  </ItemGroup>
+
 </Project>
