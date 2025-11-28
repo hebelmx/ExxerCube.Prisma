@@ -8,6 +8,7 @@ using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using ExxerCube.Prisma.Infrastructure.Extraction;
 using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification;

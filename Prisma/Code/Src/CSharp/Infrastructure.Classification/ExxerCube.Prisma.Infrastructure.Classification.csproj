@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
   </ItemGroup>
 
 </Project>

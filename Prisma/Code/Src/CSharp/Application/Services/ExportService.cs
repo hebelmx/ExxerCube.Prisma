@@ -451,7 +451,29 @@ public class ExportService
             return Result.WithFailure("Oficio number is required for export");
         }
 
-        return Result.Success();
+        var validation = metadata.Validation ?? new ValidationState();
+        validation.Require(!string.IsNullOrWhiteSpace(metadata.Expediente.NumeroExpediente), "Expediente");
+        validation.Require(!string.IsNullOrWhiteSpace(metadata.Expediente.NumeroOficio), "NumeroOficio");
+
+        // Additional merged fields: warn on conflicts and unknowns
+        foreach (var conflict in metadata.AdditionalFieldConflicts)
+        {
+            validation.Warn($"Conflict:{conflict}");
+        }
+
+        // Example required additional fields: Subdivision, MeasureHint
+        validation.WarnIf(metadata.AdditionalFields.TryGetValue("Subdivision", out var subdivision) &&
+                          !string.Equals(subdivision, "Unknown", StringComparison.OrdinalIgnoreCase),
+            "Subdivision");
+        validation.WarnIf(metadata.AdditionalFields.TryGetValue("MeasureHint", out var measure) &&
+                          !string.Equals(measure, "Informacion", StringComparison.OrdinalIgnoreCase),
+            "MeasureHint");
+
+        metadata.Validation = validation;
+
+        return validation.IsValid
+            ? Result.Success()
+            : Result.WithFailure($"Validation failed: {string.Join(", ", validation.Missing)}");
     }
 }
 

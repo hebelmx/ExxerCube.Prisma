@@ -295,5 +295,38 @@ public class ExportServiceTests
         result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("PDF export");
     }
+
+    [Fact]
+    public async Task ExportSiroXmlAsync_WithMissingRequiredFields_ReturnsFailure()
+    {
+        var metadata = new UnifiedMetadataRecord
+        {
+            Expediente = new Expediente { NumeroExpediente = "", NumeroOficio = "" }
+        };
+        using var stream = new MemoryStream();
+
+        var result = await _exportService.ExportSiroXmlAsync(metadata, stream, cancellationToken: TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ExportSiroXmlAsync_WithConflicts_LogsWarnings_ButValidationPasses()
+    {
+        var metadata = new UnifiedMetadataRecord
+        {
+            Expediente = new Expediente { NumeroExpediente = "EXP-1", NumeroOficio = "OF-1" },
+            AdditionalFieldConflicts = new List<string> { "RfcList", "Curp" }
+        };
+        using var stream = new MemoryStream();
+
+        var result = await _exportService.ExportSiroXmlAsync(metadata, stream, cancellationToken: TestContext.Current.CancellationToken);
+
+        // Even if exporter fails for other reasons, validation should not fail due to warnings
+        if (result.IsFailure)
+        {
+            result.Error?.ShouldNotContain("Validation failed");
+        }
+    }
 }
 
