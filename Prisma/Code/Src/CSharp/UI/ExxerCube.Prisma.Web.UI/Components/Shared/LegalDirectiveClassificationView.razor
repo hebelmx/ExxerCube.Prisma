@@ -1,5 +1,5 @@
 @using ExxerCube.Prisma.Domain.Entities
-@using ExxerCube.Prisma.Domain.Enums
+@using ExxerCube.Prisma.Domain.Enum
 @using MudBlazor
 @using System.Linq
 
@@ -148,25 +148,25 @@
     [Parameter] public List<LegalInstrument>? LegalInstruments { get; set; }
     [Parameter] public List<ComplianceAction>? ComplianceActions { get; set; }
     
-    private Color GetActionColor(ComplianceActionType actionType) => actionType switch
+    private Color GetActionColor(ComplianceActionKind actionType) => actionType.Value switch
     {
-        ComplianceActionType.Block => Color.Error,
-        ComplianceActionType.Unblock => Color.Success,
-        ComplianceActionType.Document => Color.Info,
-        ComplianceActionType.Transfer => Color.Warning,
-        ComplianceActionType.Information => Color.Primary,
-        ComplianceActionType.Ignore => Color.Default,
+        0 => Color.Error,      // Block
+        1 => Color.Success,    // Unblock
+        2 => Color.Info,       // Document
+        3 => Color.Warning,    // Transfer
+        4 => Color.Primary,    // Information
+        5 => Color.Default,    // Ignore
         _ => Color.Default
     };
-    
-    private string GetActionIcon(ComplianceActionType actionType) => actionType switch
+
+    private string GetActionIcon(ComplianceActionKind actionType) => actionType.Name switch
     {
-        ComplianceActionType.Block => Icons.Material.Filled.Block,
-        ComplianceActionType.Unblock => Icons.Material.Filled.LockOpen,
-        ComplianceActionType.Document => Icons.Material.Filled.Description,
-        ComplianceActionType.Transfer => Icons.Material.Filled.SwapHoriz,
-        ComplianceActionType.Information => Icons.Material.Filled.Info,
-        ComplianceActionType.Ignore => Icons.Material.Filled.SkipNext,
+        "Block" => Icons.Material.Filled.Block,
+        "Unblock" => Icons.Material.Filled.LockOpen,
+        "Document" => Icons.Material.Filled.Description,
+        "Transfer" => Icons.Material.Filled.SwapHoriz,
+        "Information" => Icons.Material.Filled.Info,
+        "Ignore" => Icons.Material.Filled.SkipNext,
         _ => Icons.Material.Filled.Help
     };
     

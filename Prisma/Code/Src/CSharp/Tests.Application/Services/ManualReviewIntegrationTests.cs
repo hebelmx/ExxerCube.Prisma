@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Tests.Application.Services;
@@ -48,7 +49,7 @@ public class ManualReviewIntegrationTests
         var resolvedList = new List<Persona> { resolvedPerson };
         var actions = new List<ComplianceAction>
         {
-            new ComplianceAction { ActionType = ComplianceActionType.Block, Confidence = 80 }
+            new ComplianceAction { ActionType = ComplianceActionKind.Block, Confidence = 80 }
         };
 
         _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
@@ -185,3 +186,4 @@ public class ManualReviewIntegrationTests
         processResult.IsSuccess.ShouldBeTrue();
     }
 }
+

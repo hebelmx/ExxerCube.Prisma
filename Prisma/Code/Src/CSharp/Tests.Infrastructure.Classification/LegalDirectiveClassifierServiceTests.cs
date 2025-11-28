@@ -1,4 +1,4 @@
-using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
@@ -34,8 +34,8 @@ public class LegalDirectiveClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.ShouldContain(a => a.ActionType == ComplianceActionType.Block);
-        var blockAction = result.Value.First(a => a.ActionType == ComplianceActionType.Block);
+        result.Value.ShouldContain(a => a.ActionType == ComplianceActionKind.Block);
+        var blockAction = result.Value.First(a => a.ActionType == ComplianceActionKind.Block);
         blockAction.Confidence.ShouldBeGreaterThan(60);
     }
 
@@ -54,7 +54,7 @@ public class LegalDirectiveClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.ShouldContain(a => a.ActionType == ComplianceActionType.Unblock);
+        result.Value.ShouldContain(a => a.ActionType == ComplianceActionKind.Unblock);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public class LegalDirectiveClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.ShouldContain(a => a.ActionType == ComplianceActionType.Document);
+        result.Value.ShouldContain(a => a.ActionType == ComplianceActionKind.Document);
     }
 
     /// <summary>
@@ -90,8 +90,8 @@ public class LegalDirectiveClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.ShouldContain(a => a.ActionType == ComplianceActionType.Transfer);
-        var transferAction = result.Value.First(a => a.ActionType == ComplianceActionType.Transfer);
+        result.Value.ShouldContain(a => a.ActionType == ComplianceActionKind.Transfer);
+        var transferAction = result.Value.First(a => a.ActionType == ComplianceActionKind.Transfer);
         transferAction.Amount.ShouldBe(500000.00m);
     }
 
@@ -110,7 +110,7 @@ public class LegalDirectiveClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.ShouldContain(a => a.ActionType == ComplianceActionType.Information);
+        result.Value.ShouldContain(a => a.ActionType == ComplianceActionKind.Information);
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public class LegalDirectiveClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.ShouldContain(a => a.ActionType == ComplianceActionType.Ignore);
+        result.Value.ShouldContain(a => a.ActionType == ComplianceActionKind.Ignore);
     }
 
     /// <summary>
@@ -185,7 +185,7 @@ public class LegalDirectiveClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.ActionType.ShouldBe(ComplianceActionType.Block);
+        result.Value.ActionType.ShouldBe(ComplianceActionKind.Block);
         result.Value.ExpedienteOrigen.ShouldBe("EXP-001");
         result.Value.OficioOrigen.ShouldBe("OF-001");
         result.Value.AccountNumber.ShouldBe("1234567890");

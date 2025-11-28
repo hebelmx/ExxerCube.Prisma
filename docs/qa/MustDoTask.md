@@ -130,3 +130,119 @@ public sealed class AuthorityKind : EnumModel
   - SmartEnum class (ComplianceActionKind) maintaining existing values/names for backward compatibility.
   - EF/JSON converters and UI mapper updates (color/icon switches).
   - Regression tests in Domain/App/Infra.Classification/UI to verify mappings and display behavior.
+
+### Static analysis loop — ComplianceActionType → SmartEnum (no code run yet)
+- Direct usages (tracked via `rg "ComplianceActionType"`): Domain entity `Domain/Entities/ComplianceAction.cs`; Infra classifier service `Infrastructure.Classification/LegalDirectiveClassifierService.cs` (action builders + string mapping); UI component `UI/ExxerCube.Prisma.Web.UI/Components/Shared/LegalDirectiveClassificationView.razor` (color/icon switch expressions); App tests (`Tests.Application/Services/DecisionLogic*`, `ManualReviewIntegrationTests`, `ExportServicePerformanceTests`); Infra tests (`Tests.Infrastructure.Classification/LegalDirectiveClassifierServiceTests.cs`); UI story docs; PRP scripts.
+- Compile-risk hot spots:
+  - Blazor switch expressions require constants; SmartEnum values are not constants. Rewrite to switch statements or helper methods that compare by value/name to avoid CS0150.
+  - EF/JSON serialization: add ValueConverters/JsonConverter to keep int storage and cache payloads stable.
+  - Tests asserting enum equality must switch to `ComplianceActionKind.Block` etc.; where comparing ints, add `.Value`.
+- Migration plan (ready for implementation):
+  - **New enum model:** Add `Domain/Enum/ComplianceActionKind.cs` deriving `EnumModel`, mirror existing numeric values, add `Unknown/Other`, include alias list (`Bloqueo`, `Desbloqueo`, `Transferencia`, `Documentacion`, `Información`, `Ignorar`).
+  - **Entity wiring:** In `Domain/Entities/ComplianceAction.cs` change `ComplianceActionType` → `ComplianceActionKind`; ensure DTOs/handlers map to `.Value` when crossing boundaries that still expect ints.
+  - **Infra classifier:** `Infrastructure.Classification/LegalDirectiveClassifierService.cs` map strings to `ComplianceActionKind` via `.FromName/.FromDisplayName/aliases`; default Unknown triggers `ValidationState` review flag. Builders emit `ComplianceActionKind.Block` etc.
+  - **UI (Blazor):** Replace switch expressions with Value/Name-based switch helpers (compile-safe):
+    ```csharp
+    private Color GetActionColor(ComplianceActionKind actionType) => actionType.Value switch
+    {
+        1 => Color.Error,      // Block
+        2 => Color.Success,    // Unblock
+        3 => Color.Info,       // Document
+        4 => Color.Warning,    // Transfer
+        5 => Color.Primary,    // Information
+        6 => Color.Default,    // Ignore
+        _ => Color.Default
+    };
+
+    private string GetActionIcon(ComplianceActionKind actionType) => actionType.Name switch
+    {
+        "Block" => Icons.Material.Filled.Block,
+        "Unblock" => Icons.Material.Filled.LockOpen,
+        "Document" => Icons.Material.Filled.Description,
+        "Transfer" => Icons.Material.Filled.SwapHoriz,
+        "Information" => Icons.Material.Filled.Info,
+        "Ignore" => Icons.Material.Filled.SkipNext,
+        _ => Icons.Material.Filled.Help
+    };
+    ```
+  - **EF/JSON converters:** Add SmartEnum int converters for ComplianceActionKind in DbContext and register JSON converter in FusionCache serializer to keep storage/caching stable.
+  - **Tests to add (must before merge):**
+    - Domain: SmartEnum resolution (FromValue/FromName/aliases) with Unknown/Other fallbacks.
+    - Infra.Classification: classifier returns expected kinds for each fixture; Unknown path covered.
+    - Application: DecisionLogic/ManualReview/Export tests updated to new kind; add assertions on `.Value` where needed.
+    - UI: helper tests for color/icon mapping (Value/Name switch) and Unknown fallback (see switch-expression safety tests).
+  - **Docs:** Update story/ADR references mentioning `ComplianceActionType` to `ComplianceActionKind`; note alias coverage.
+- Proposed edits (sketches):
+  - New `Domain/Enums/ComplianceActionKind.cs` (SmartEnum) with Unknown/Other, matching existing numeric values for backward compatibility; `ComplianceAction.ActionType` → `ComplianceActionKind ActionType`.
+  - Infra classifier mapping: return `ComplianceActionKind.Block` etc.; string mapper uses `.FromName`/`.FromDisplayName`/aliases; default to Unknown, flag via ValidationState.
+  - UI component: replace switch expressions with methods:
+    ```csharp
+    private Color GetActionColor(ComplianceActionKind actionType)
+    {
+        if (actionType == ComplianceActionKind.Block) return Color.Error;
+        if (actionType == ComplianceActionKind.Unblock) return Color.Success;
+        if (actionType == ComplianceActionKind.Document) return Color.Info;
+        if (actionType == ComplianceActionKind.Transfer) return Color.Warning;
+        if (actionType == ComplianceActionKind.Information) return Color.Primary;
+        if (actionType == ComplianceActionKind.Ignore) return Color.Default;
+        return Color.Default;
+    }
+    ```
+  - Tests: update fixture builders to use new kind; add SmartEnum resolution tests for classifier; keep existing expected values.
+- Exit condition for the loop: `dotnet build Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln` clean + targeted suites green (`Tests.Domain`, `Tests.Application --filter ComplianceAction`, `Tests.Infrastructure.Classification`, `Tests.UI` component test). Iterate plan if any compilation gaps surface.
+
+### Switch-expression safety tests to add (Value/Name pattern)
+- Goal: ensure the modern switch expressions compile and behave with SmartEnum by switching on `Value` (int) or `Name` (string), keeping case labels as literals.
+- Suggested test targets:
+  - `Tests.UI` (or a small helper test project) add a unit test for classification view mapping helpers (extract them into an internal static helper if needed). Example:
+    ```csharp
+    [Fact]
+    public void Color_mapping_uses_expected_palette()
+    {
+        GetActionColor(ComplianceActionKind.Block).ShouldBe(Color.Error);
+        GetActionColor(ComplianceActionKind.Information).ShouldBe(Color.Primary);
+        GetActionColor(ComplianceActionKind.Unknown).ShouldBe(Color.Default);
+    }
+    ```
+  - Companion test for icons with `Name` switch expression:
+    ```csharp
+    [Fact]
+    public void Icon_mapping_handles_unknown()
+    {
+        GetActionIcon(ComplianceActionKind.Ignore).ShouldBe(Icons.Material.Filled.SkipNext);
+        GetActionIcon(ComplianceActionKind.Unknown).ShouldBe(Icons.Material.Filled.Help);
+    }
+    ```
+  - Classifier mapping test: in `Tests.Infrastructure.Classification/LegalDirectiveClassifierServiceTests.cs`, assert `ActionType.Value` and `ActionType.Name` switch expressions map to the same outputs (Block → 1/\"Block\", etc.).
+- Add these in the same branch that introduces `ComplianceActionKind` to get compile-time coverage of the new switch style.
+
+### Lessons learned from ComplianceActionKind migration (reuse for remaining enums)
+- Blazor switch expressions require literal case labels; SmartEnum instances aren’t const. Switch on `Value` or `Name` to keep switch expressions terse and compiler-safe.
+- Keep SmartEnums persistence-agnostic. Apply conversions in EF configs only for persisted entities (DbSets). A reusable helper keeps it DRY:
+  ```csharp
+  public static PropertyBuilder<TEnum> HasEnumModelConversion<TEnum>(this PropertyBuilder<TEnum> builder)
+      where TEnum : EnumModel, new() =>
+      builder.HasConversion(v => v.Value, v => EnumModel.FromValue<TEnum>(v));
+  ```
+- Caching/JSON: if a SmartEnum flows through FusionCache/JSON, register a JsonConverter that roundtrips via `.Value`/`.Name` to avoid reflection surprises.
+- Preserve numeric values and add Unknown/Other to protect flows when inputs diverge (PDF/OCR vs XML).
+- Tests first: add SmartEnum resolution tests (FromValue/Name/aliases), update existing asserts to the new kind (`.Value` when comparing ints), and add UI helper tests for mapping + Unknown fallback.
+- Scoped suites are enough to stay green (Domain + targeted Application/Infra UI) without running long system tests.
+
+### Batch SmartEnum plan for remaining domain enums (workflow-oriented)
+- Scope: workflow/ops enums still plain: `ClassificationLevel1`, `ClassificationLevel2`, `EscalationLevel`, `ReviewStatus`, `ReviewReason`, `DecisionType`, `ProcessingStage`, `AuditActionType`, `ImageQualityLevel`, `ImageFilterType`, `BulkProcessingStatus`, `FileFormat`.
+- Classification rationale: Level1 is the primary legal bucket (Aseguramiento, Desembargo, Documentacion, Informacion, Transferencia, OperacionesIlicitas); Level2 refines by authority flavor (Especial, Judicial, Hacendario). Both are used by classifiers (`FileClassifierService`) and naming/export flows.
+- Conversion approach:
+  - For Level1/Level2 and SLA escalations, add SmartEnums with Unknown/Other; keep numeric values aligned to current ordering to avoid breaking persisted SLAStatus data. Add aliases (e.g., “Especial/Judicial/Hacendario”).
+  - For ReviewStatus/Reason/DecisionType/ProcessingStage/AuditActionType, consider staying as plain enums unless we need aliases/Unknown; if converted, preserve values and add Unknown for safety.
+  - Imaging enums (ImageQualityLevel/ImageFilterType) are technical; keep as-is unless we need runtime aliasing; if converted, do it last with minimal blast radius.
+  - BulkProcessingStatus/FileFormat likely remain plain; convert only if we need extensibility.
+- Persistence/caching touchpoints:
+  - SLAStatus already persists `EscalationLevel`; if converted, add EF ValueConverter to `SLAStatusConfiguration` using the `HasEnumModelConversion` helper; migrate DB only if values change (avoid changing value order).
+  - Classification results travel through Infra.Classification/FileStorage tests and exports; if persisted later, add converters when adding DbSets.
+  - No caching impacts unless we serialize these enums; if so, register a JsonConverter.
+- Tests to plan:
+  - SmartEnum resolution for Level1/Level2/Escalation if converted.
+  - Classifier tests (`FileClassifierServiceTests`) updated to new types; ensure Unknown/Other fallback.
+  - SLAStatus tests verifying EF converter roundtrip if we persist EscalationLevel as SmartEnum.
+  - UI models (e.g., `SLACaseViewModel`) switch helpers updated to Value/Name switch; add helper unit tests similar to ComplianceActionKind.

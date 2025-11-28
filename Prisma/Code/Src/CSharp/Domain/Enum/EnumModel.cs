@@ -89,6 +89,13 @@ public class EnumModel : IComparable, IEnumModel, ILookupEntity
     public static implicit operator int(EnumModel d) => d.Value;
 
     /// <summary>
+    /// Implicitly converts an enumeration to its display name (fallback to name).
+    /// Helps in logging/UI bindings without forcing callers to access properties explicitly.
+    /// </summary>
+    /// <param name="d">The enumeration to convert.</param>
+    public static implicit operator string(EnumModel d) => d.DisplayName ?? d.Name ?? string.Empty;
+
+    /// <summary>
     /// Checks if a given integer value corresponds to any of the defined enumerations.
     /// </summary>
     /// <typeparam name="TEnum">The derived EnumModel type.</typeparam>

@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Domain.Entities;
@@ -10,7 +11,7 @@ public class ComplianceAction
     /// <summary>
     /// Gets or sets the action type (Block, Unblock, Document, Transfer, Information, Ignore).
     /// </summary>
-    public ComplianceActionType ActionType { get; set; }
+    public ComplianceActionKind ActionType { get; set; } = ComplianceActionKind.Unknown;
 
     /// <summary>
     /// Gets or sets the account number if applicable.

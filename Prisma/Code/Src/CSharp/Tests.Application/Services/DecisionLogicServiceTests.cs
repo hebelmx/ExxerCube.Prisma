@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
@@ -71,7 +72,7 @@ public class DecisionLogicServiceTests
         var documentText = "Se ordena el BLOQUEO de la cuenta 1234567890";
         var actions = new List<ComplianceAction>
         {
-            new ComplianceAction { ActionType = ComplianceActionType.Block, AccountNumber = "1234567890", Confidence = 80 }
+            new ComplianceAction { ActionType = ComplianceActionKind.Block, AccountNumber = "1234567890", Confidence = 80 }
         };
 
         _legalDirectiveClassifier.DetectLegalInstrumentsAsync(Arg.Any<string>(), Arg.Any<System.Threading.CancellationToken>())
@@ -87,7 +88,7 @@ public class DecisionLogicServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value.Count.ShouldBe(1);
-        result.Value[0].ActionType.ShouldBe(ComplianceActionType.Block);
+        result.Value[0].ActionType.ShouldBe(ComplianceActionKind.Block);
     }
 
     /// <summary>
@@ -110,7 +111,7 @@ public class DecisionLogicServiceTests
         var resolvedList = new List<Persona> { resolvedPerson };
         var actions = new List<ComplianceAction>
         {
-            new ComplianceAction { ActionType = ComplianceActionType.Block, Confidence = 80 }
+            new ComplianceAction { ActionType = ComplianceActionKind.Block, Confidence = 80 }
         };
 
         _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
@@ -133,7 +134,7 @@ public class DecisionLogicServiceTests
         result.Value.ShouldNotBeNull();
         result.Value.ResolvedPersons.Count.ShouldBe(1);
         result.Value.ComplianceActions.Count.ShouldBe(1);
-        result.Value.ComplianceActions[0].ActionType.ShouldBe(ComplianceActionType.Block);
+        result.Value.ComplianceActions[0].ActionType.ShouldBe(ComplianceActionKind.Block);
     }
 
     /// <summary>
@@ -228,3 +229,4 @@ public class DecisionLogicServiceTests
         result.Error.ShouldContain("Classification failed");
     }
 }
+

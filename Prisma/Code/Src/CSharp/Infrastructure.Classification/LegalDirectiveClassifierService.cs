@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
 using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -58,7 +58,7 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             {
                 var blockAction = new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Block,
+                    ActionType = ComplianceActionKind.Block,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
                     Confidence = CalculateConfidence(upperText, BlockKeywords)
@@ -72,7 +72,7 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             {
                 var unblockAction = new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Unblock,
+                    ActionType = ComplianceActionKind.Unblock,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
                     Confidence = CalculateConfidence(upperText, UnblockKeywords)
@@ -86,7 +86,7 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             {
                 var documentAction = new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Document,
+                    ActionType = ComplianceActionKind.Document,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
                     Confidence = CalculateConfidence(upperText, DocumentKeywords)
@@ -99,7 +99,7 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             {
                 var transferAction = new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Transfer,
+                    ActionType = ComplianceActionKind.Transfer,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
                     Confidence = CalculateConfidence(upperText, TransferKeywords)
@@ -113,7 +113,7 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             {
                 var informationAction = new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Information,
+                    ActionType = ComplianceActionKind.Information,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
                     Confidence = CalculateConfidence(upperText, InformationKeywords)
@@ -126,7 +126,7 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             {
                 actions.Add(new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Ignore,
+                    ActionType = ComplianceActionKind.Ignore,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
                     Confidence = 50
@@ -221,37 +221,37 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             _logger.LogDebug("Mapping directive to compliance action: {Directive}", directiveText.Substring(0, Math.Min(100, directiveText.Length)));
 
             var upperText = directiveText.ToUpperInvariant();
-            ComplianceActionType actionType;
+            ComplianceActionKind actionType;
             int confidence;
 
             if (ContainsBlockDirective(upperText))
             {
-                actionType = ComplianceActionType.Block;
+                actionType = ComplianceActionKind.Block;
                 confidence = CalculateConfidence(upperText, BlockKeywords);
             }
             else if (ContainsUnblockDirective(upperText))
             {
-                actionType = ComplianceActionType.Unblock;
+                actionType = ComplianceActionKind.Unblock;
                 confidence = CalculateConfidence(upperText, UnblockKeywords);
             }
             else if (ContainsDocumentDirective(upperText))
             {
-                actionType = ComplianceActionType.Document;
+                actionType = ComplianceActionKind.Document;
                 confidence = CalculateConfidence(upperText, DocumentKeywords);
             }
             else if (ContainsTransferDirective(upperText))
             {
-                actionType = ComplianceActionType.Transfer;
+                actionType = ComplianceActionKind.Transfer;
                 confidence = CalculateConfidence(upperText, TransferKeywords);
             }
             else if (ContainsInformationDirective(upperText))
             {
-                actionType = ComplianceActionType.Information;
+                actionType = ComplianceActionKind.Information;
                 confidence = CalculateConfidence(upperText, InformationKeywords);
             }
             else
             {
-                actionType = ComplianceActionType.Ignore;
+                actionType = ComplianceActionKind.Ignore;
                 confidence = 50;
             }
 

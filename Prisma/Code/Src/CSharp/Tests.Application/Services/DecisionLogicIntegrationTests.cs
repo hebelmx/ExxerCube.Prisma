@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Tests.Application.Services;
 
@@ -138,7 +139,7 @@ public class DecisionLogicIntegrationTests
             {
                 new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Block,
+                    ActionType = ComplianceActionKind.Block,
                     Confidence = 95,
                     AccountNumber = "1234567890",
                     Amount = 1000000.00m,
@@ -147,7 +148,7 @@ public class DecisionLogicIntegrationTests
                 },
                 new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Document,
+                    ActionType = ComplianceActionKind.Document,
                     Confidence = 90,
                     ExpedienteOrigen = expediente.NumeroExpediente,
                     OficioOrigen = expediente.NumeroOficio
@@ -165,8 +166,8 @@ public class DecisionLogicIntegrationTests
         result.Value.ResolvedPersons.ShouldAllBe(p => p.RfcVariants.Count > 0 || string.IsNullOrWhiteSpace(p.Rfc));
 
         result.Value.ComplianceActions.Count.ShouldBeGreaterThan(0);
-        result.Value.ComplianceActions.ShouldContain(a => a.ActionType == ComplianceActionType.Block);
-        result.Value.ComplianceActions.ShouldContain(a => a.ActionType == ComplianceActionType.Document);
+        result.Value.ComplianceActions.ShouldContain(a => a.ActionType == ComplianceActionKind.Block);
+        result.Value.ComplianceActions.ShouldContain(a => a.ActionType == ComplianceActionKind.Document);
     }
 
     /// <summary>
@@ -259,7 +260,7 @@ public class DecisionLogicIntegrationTests
             {
                 new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Block,
+                    ActionType = ComplianceActionKind.Block,
                     Confidence = 95,
                     ExpedienteOrigen = expediente.NumeroExpediente,
                     OficioOrigen = expediente.NumeroOficio
@@ -305,10 +306,10 @@ public class DecisionLogicIntegrationTests
         _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
             {
-                new ComplianceAction { ActionType = ComplianceActionType.Block, Confidence = 95 },
-                new ComplianceAction { ActionType = ComplianceActionType.Document, Confidence = 90 },
-                new ComplianceAction { ActionType = ComplianceActionType.Transfer, Confidence = 85 },
-                new ComplianceAction { ActionType = ComplianceActionType.Information, Confidence = 80 }
+                new ComplianceAction { ActionType = ComplianceActionKind.Block, Confidence = 95 },
+                new ComplianceAction { ActionType = ComplianceActionKind.Document, Confidence = 90 },
+                new ComplianceAction { ActionType = ComplianceActionKind.Transfer, Confidence = 85 },
+                new ComplianceAction { ActionType = ComplianceActionKind.Information, Confidence = 80 }
             })));
 
         // Act
@@ -393,7 +394,7 @@ public class DecisionLogicIntegrationTests
         _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
             {
-                new ComplianceAction { ActionType = ComplianceActionType.Block, Confidence = 95 }
+                new ComplianceAction { ActionType = ComplianceActionKind.Block, Confidence = 95 }
             })));
 
         // Act
@@ -428,7 +429,7 @@ public class DecisionLogicIntegrationTests
             {
                 new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Block,
+                    ActionType = ComplianceActionKind.Block,
                     Confidence = 95,
                     AccountNumber = "1234567890",
                     Amount = 1000000.00m
@@ -443,7 +444,7 @@ public class DecisionLogicIntegrationTests
         result.Value.ShouldNotBeNull();
         result.Value.Count.ShouldBeGreaterThan(0);
 
-        var blockAction = result.Value.FirstOrDefault(a => a.ActionType == ComplianceActionType.Block);
+        var blockAction = result.Value.FirstOrDefault(a => a.ActionType == ComplianceActionKind.Block);
         blockAction.ShouldNotBeNull();
         blockAction.Confidence.ShouldBeGreaterThan(0);
         blockAction.Confidence.ShouldBeLessThanOrEqualTo(100);
@@ -486,7 +487,7 @@ public class DecisionLogicIntegrationTests
         _classifier.ClassifyDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<List<ComplianceAction>>.Success(new List<ComplianceAction>
             {
-                new ComplianceAction { ActionType = ComplianceActionType.Block, Confidence = 95 }
+                new ComplianceAction { ActionType = ComplianceActionKind.Block, Confidence = 95 }
             })));
 
         // Act
@@ -498,3 +499,4 @@ public class DecisionLogicIntegrationTests
         // In a real scenario, we would verify log entries were written
     }
 }
+

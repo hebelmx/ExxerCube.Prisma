@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Tests.Application.Services;
@@ -79,7 +80,7 @@ public class ExportServicePerformanceTests
             {
                 new ComplianceAction
                 {
-                    ActionType = ComplianceActionType.Block,
+                    ActionType = ComplianceActionKind.Block,
                     RequerimientoOrigen = "Bloquear cuenta bancaria",
                     LegalBasis = "Artículo 123 de la Ley",
                     DueDate = DateTime.UtcNow.AddDays(10)
@@ -227,4 +228,5 @@ public class ExportServicePerformanceTests
         _output.WriteLine($"Bulk export ({exportCount} exports) completed in {stopwatch.ElapsedMilliseconds}ms (avg: {avgTimePerExport:F2}ms per export)");
     }
 }
+
 
