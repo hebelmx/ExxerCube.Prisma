@@ -120,6 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Fixtures\OcrSamples\noisy_account.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\OcrSamples\ocr_account_noisy.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Copy requirements.txt for Python dependencies -->

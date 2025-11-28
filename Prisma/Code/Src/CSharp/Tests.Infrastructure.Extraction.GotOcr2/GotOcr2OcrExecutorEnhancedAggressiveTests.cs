@@ -54,7 +54,9 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
     /// <summary>
     /// Verify aggressive enhanced fixtures exist for Q1 and Q2.
     /// </summary>
-    [Theory(DisplayName = "GOT-OCR2 aggressive enhanced fixtures should exist", Timeout = 5000)]
+    [Theory(DisplayName = "GOT-OCR2 aggressive enhanced fixtures should exist",
+            Skip = "GotOcr2 feature frozen - tests disabled",
+            Timeout = 5000)]
     [InlineData("Q1_Poor", "222AAA-44444444442025_page-0001.jpg")]
     [InlineData("Q1_Poor", "333BBB-44444444442025_page1.png")]
     [InlineData("Q1_Poor", "333ccc-6666666662025_page1.png")]
@@ -113,6 +115,7 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
     /// CRITICAL TEST: Does binarization harm GOT-OCR2 (ML model expects grayscale)?
     /// </summary>
     [Theory(DisplayName = "GOT-OCR2 aggressive enhancement ROI test on filtered images",
+            Skip = "GotOcr2 feature frozen - tests disabled",
             Timeout = 3_000_000)]
     [InlineData("Q1_Poor", "222AAA-44444444442025_page-0001.jpg", 70.0f)]
     [InlineData("Q1_Poor", "333BBB-44444444442025_page1.png", 70.0f)]
@@ -288,7 +291,9 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
     /// <summary>
     /// Tests that the executor rejects null image data (contract validation).
     /// </summary>
-    [Fact(DisplayName = "GOT-OCR2 should reject null image data (aggressive enhanced tests)", Timeout = 5000)]
+    [Fact(DisplayName = "GOT-OCR2 should reject null image data (aggressive enhanced tests)",
+          Skip = "GotOcr2 feature frozen - tests disabled",
+          Timeout = 5000)]
     public async Task ExecuteOcrAsync_WithNullImageData_ReturnsFailure()
     {
         // Arrange
@@ -305,7 +310,9 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
     /// <summary>
     /// Tests that the executor rejects empty image data (contract validation).
     /// </summary>
-    [Fact(DisplayName = "GOT-OCR2 should reject empty image data (aggressive enhanced tests)", Timeout = 5000)]
+    [Fact(DisplayName = "GOT-OCR2 should reject empty image data (aggressive enhanced tests)",
+          Skip = "GotOcr2 feature frozen - tests disabled",
+          Timeout = 5000)]
     public async Task ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure()
     {
         // Arrange

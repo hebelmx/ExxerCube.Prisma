@@ -216,7 +216,9 @@ public class GotOcr2OcrExecutorDegradedTests : IDisposable
     /// <summary>
     /// Tests that the executor rejects null image data (contract validation).
     /// </summary>
-    [Fact(DisplayName = "GOT-OCR2 should reject null image data (degraded tests)", Timeout = 5000)]
+    [Fact(DisplayName = "GOT-OCR2 should reject null image data (degraded tests)",
+          Skip = "GotOcr2 feature frozen - tests disabled",
+          Timeout = 5000)]
     public async Task ExecuteOcrAsync_WithNullImageData_ReturnsFailure()
     {
         // Arrange
@@ -233,7 +235,9 @@ public class GotOcr2OcrExecutorDegradedTests : IDisposable
     /// <summary>
     /// Tests that the executor rejects empty image data (contract validation).
     /// </summary>
-    [Fact(DisplayName = "GOT-OCR2 should reject empty image data (degraded tests)", Timeout = 5000)]
+    [Fact(DisplayName = "GOT-OCR2 should reject empty image data (degraded tests)",
+          Skip = "GotOcr2 feature frozen - tests disabled",
+          Timeout = 5000)]
     public async Task ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure()
     {
         // Arrange

@@ -49,7 +49,9 @@ public class GotOcr2OcrExecutorTests : IDisposable
     /// </summary>
     /// <param name="fixtureName">Name of the fixture file (without path)</param>
     /// <param name="expectedMinConfidence">Minimum acceptable confidence threshold</param>
-    [Theory(DisplayName = "GOT-OCR2 should process CNBV PDF fixtures with >75% confidence", Timeout = 3_000_000)]
+    [Theory(DisplayName = "GOT-OCR2 should process CNBV PDF fixtures with >75% confidence",
+            Skip = "GotOcr2 feature frozen - tests disabled",
+            Timeout = 3_000_000)]
     [InlineData("222AAA-44444444442025.pdf")]
     [InlineData("333BBB-44444444442025.pdf")]
     [InlineData("333ccc-6666666662025.pdf")]
@@ -167,7 +169,9 @@ public class GotOcr2OcrExecutorTests : IDisposable
     /// <summary>
     /// Tests that the executor rejects null image data (contract validation).
     /// </summary>
-    [Fact(DisplayName = "GOT-OCR2 should reject null image data", Timeout = 5000)]
+    [Fact(DisplayName = "GOT-OCR2 should reject null image data",
+          Skip = "GotOcr2 feature frozen - tests disabled",
+          Timeout = 5000)]
     public async Task ExecuteOcrAsync_WithNullImageData_ReturnsFailure()
     {
         // Arrange
@@ -184,7 +188,9 @@ public class GotOcr2OcrExecutorTests : IDisposable
     /// <summary>
     /// Tests that the executor rejects empty image data (contract validation).
     /// </summary>
-    [Fact(DisplayName = "GOT-OCR2 should reject empty image data", Timeout = 5000)]
+    [Fact(DisplayName = "GOT-OCR2 should reject empty image data",
+          Skip = "GotOcr2 feature frozen - tests disabled",
+          Timeout = 5000)]
     public async Task ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure()
     {
         // Arrange

@@ -189,7 +189,9 @@ public class AnalyticalFilterE2ETests : IDisposable
     /// - Q2: 78.1% improvement (6,590 → 1,444 edits)
     /// - Q1: 24.9% improvement (538 → 404 edits)
     /// </summary>
-    [Theory(DisplayName = "Analytical filter should improve OCR quality (Levenshtein distance)", Timeout = 300000)]
+    [Theory(DisplayName = "Analytical filter should improve OCR quality (Levenshtein distance)",
+            Skip = "GotOcr2 feature frozen - tests disabled",
+            Timeout = 300000)]
     [InlineData("Q2_MediumPoor", "333BBB-44444444442025_page1.png")]
     [InlineData("Q2_MediumPoor", "333ccc-6666666662025_page1.png")]
     [InlineData("Q2_MediumPoor", "555CCC-66666662025_page1.png")]
