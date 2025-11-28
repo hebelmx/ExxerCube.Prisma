@@ -11,14 +11,14 @@ public class UnifiedMetadataRecord
     public Expediente? Expediente { get; set; }
 
     /// <summary>
-    /// Gets or sets the list of persons involved (nullable - may be created in later stories).
+    /// Gets or sets the list of persons involved (canonical personas from XML/PDF/OCR).
     /// </summary>
-    public List<object>? Personas { get; set; }
+    public List<PersonaSolicitud> Personas { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the regulatory directive information (oficio) (nullable - may be created in later stories).
+    /// Gets or sets the regulatory directive information (oficio).
     /// </summary>
-    public object? Oficio { get; set; }
+    public Oficio? Oficio { get; set; }
 
     /// <summary>
     /// Gets or sets the field extraction results (extends existing entity).
@@ -41,12 +41,12 @@ public class UnifiedMetadataRecord
     public RequirementSummary? RequirementSummary { get; set; }
 
     /// <summary>
-    /// Gets or sets the SLA tracking information (nullable - may be created in later stories).
+    /// Gets or sets the SLA tracking information.
     /// </summary>
-    public object? SlaStatus { get; set; }
+    public SLAStatus? SlaStatus { get; set; }
 
     /// <summary>
-    /// Gets or sets the persona information.
+    /// Gets or sets the persona information (legacy single persona entry, if needed).
     /// </summary>
     public Persona? Persona { get; set; }
 
@@ -54,6 +54,11 @@ public class UnifiedMetadataRecord
     /// Gets or sets the list of compliance actions.
     /// </summary>
     public List<ComplianceAction> ComplianceActions { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the validation state (warnings/missing fields) for the consolidated record.
+    /// </summary>
+    public ValidationState Validation { get; set; } = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UnifiedMetadataRecord"/> class.

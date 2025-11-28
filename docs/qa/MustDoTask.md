@@ -28,14 +28,87 @@ Priority tasks to close critical gaps (ready for developer assignment). Based on
 - Tests: evidence linkage present/absent; validation flags missing evidence.
 
 ## 5) Export & Layout Compliance — TODO
-- Interfaces: `IResponseExporter`, `ILayoutGenerator`
-- Update contracts to require canonical fields (fundamento, medio/envío, measures, accounts, RFC variants, SLA) and block export when required fields are missing (`ValidationState`).
-- Tests: export snapshot fails on missing required fields; passes when populated.
+- Interfaces/Services to update: `IResponseExporter`, `ILayoutGenerator`, `ExportService`, any UI trigger (e.g., `DocumentProcessing.razor`, export buttons).
+- Contract changes (sample):
+  ```csharp
+  public interface IResponseExporter
+  {
+      Task<Result<ExportSnapshot>> GenerateAsync(
+          Expediente expediente,
+          ComplianceAction action,
+          ValidationState validation,
+          CancellationToken ct);
+  }
+  ```
+  - Require: `FundamentoLegal`, `MedioEnvio`, `MeasureKind`, `Cuenta/Monto` (if applicable), `RFC variants/CURP`, `SLA dates`, `ValidationState` not Failed/Unknown.
+  - Block/flag export when any required field is missing or `ValidationState` is Failed/Unknown; surface reasons in `ValidationIssues`.
+- Affected downstream:
+  - Domain: `Expediente` (canonical fields), `ComplianceAction` (MeasureKind/Cuenta/Monto), `PersonaSolicitud` (RFC variants/CURP), `SLAStatus` (dates).
+  - Application: `ExportService`, `ILayoutGenerator` implementations.
+  - UI: export buttons should show validation failures instead of silent no-ops.
+- Tests to add:
+  - Export snapshot fails when required fields are missing; includes `ValidationIssues`.
+  - Export succeeds when all required fields present; snapshot contains canonical fields (fundamento, medio/envío, measure, cuenta/monto, RFC variants/CURP, SLA).
+  - Unknown/Other in enums triggers review/failed export unless explicitly allowed.
+
+Implementation sketch:
+- Add `ValidationIssues` DTO to `ExportSnapshot`; require `ValidationState.IsValid` (or similar).
+- In `ExportService`, gate execution:
+  ```csharp
+  if (!validation.IsValid) return Result<ExportSnapshot>.WithFailure("Missing required fields", snapshot);
+  ```
+- In layout generator, include canonical fields and format them per regulator template; return failure if mandatory segments are empty.
+
 
 ## 6) Parsing/Derivation Layer — TODO
-- Files/Services: `IFieldExtractor`, `IPdfRequirementSummarizer`, `IPersonIdentityResolver`, `ISLAEnforcer`
-- Action: implement parsers to populate subdivision, measure, RFC variants/CURP, accounts/montos from XML + PDF/Word/OCR; compute SLA dates; annotate field origins.
-- Tests: fixture-based extraction/inference; SLA calc; origin tagging.
+- Files/Services: `IFieldExtractor`, `IPdfRequirementSummarizer`, `IPersonIdentityResolver`, `ISLAEnforcer`, `LegalDirectiveClassifierService`.
+- Actions:
+  - Parse subdivision/LegalSubdivision (XML: AreaClave/AreaDescripcion; PDF/OCR: keywords) → map to `LegalSubdivision` (or SmartEnum if converted).
+  - Parse measures/assets: infer `MeasureKind`, `Cuenta` (numero/banco/sucursal/producto/moneda/monto) from XML nodes and PDF/OCR text; set `ValidationState` and origin.
+  - Identity: extract RFC variants/CURP from XML + OCR (regex/heuristics), store in `PersonaSolicitud.RfcVariantes` and `Curp`; annotate missing fields.
+  - SLA: compute `FechaEstimadaConclusion = FechaRecepcion + DiasPlazo` (business days) via `ISLAEnforcer`; tag origin = derived.
+  - Origin tagging: add `FieldOrigin`/`OriginTrace` per field (XML, PDF/OCR, Derived, Manual).
+  - IMPORTANT: PDF and XML may diverge (missing XML, misplaced fields, value drift). Never short-circuit the pipeline; best-effort reconcile/merge both sources, complement/validate where possible, and raise manual-review flags (warnings/validation issues) when alignment is uncertain. No hard failures unless a field is truly unusable and must block downstream export.
+- Affected downstream:
+  - Domain entities: `Expediente`, `ComplianceAction`, `PersonaSolicitud`, `SLAStatus` (populate derived dates).
+  - Application: services consuming parsers (e.g., `MetadataExtractionService`, `LegalDirectiveClassifierService`).
+  - UI: surface origins/validation flags; drive review flows when Origin = OCR/Manual or ValidationState = Failed/Unknown.
+- Tests to add:
+  - Fixture-based extraction: given XML/PDF/OCR samples, parsed `Expediente` includes subdivision, measure, cuenta, RFC variants/CURP, SLA dates with proper origins.
+  - SLA calc tests (business-day addition) via `ISLAEnforcer`.
+  - Identity resolver tests: variants and CURP captured; missing fields flagged in ValidationState.
+  - Origin tagging: fields contain origin and are surfaced in snapshots/validation.
+- OCR text cleaning (accounts): add a domain-level cleaner interface (e.g., `ITextCleaner/IOcrTextSanitizer`). Implement in Extraction to produce a cleaned copy and keep the raw OCR text (persistable, e.g., JSON) for audit. Cleaning rules: strip artifacts/whitespace/non-alphanumerics; for account numbers prefer digits-only; for SWIFT keep alphanumerics and length-check (8/11). If still invalid, warn/flag (manual review) but do not block. Add tests in `Tests.Infrastructure.Extraction.Teseract` using real OCR-like samples.
+
+Implementation sketch (code snippets):
+- Subdivision mapping:
+  ```csharp
+  expediente.Subdivision = LegalSubdivisionMapper.FromArea(expediente.AreaClave, expediente.AreaDescripcion);
+  expediente.ValidationState.AddIfMissing(expediente.Subdivision != LegalSubdivision.Unknown, "Subdivision");
+  ```
+- Measure/account parsing:
+  ```csharp
+  var measure = MeasureKindResolver.FromText(rawMeasure);
+  var cuenta = AccountParser.Parse(xmlNode, ocrText);
+  action.Measure = measure;
+  action.Cuenta = cuenta;
+  action.ValidationState.AddIfMissing(measure != MeasureKind.Unknown, "Measure");
+  action.ValidationState.AddIfMissing(cuenta?.IsComplete == true, "Cuenta/Monto");
+  ```
+- RFC/CURP:
+  ```csharp
+  persona.RfcVariantes = RfcParser.ParseAll(xmlText, ocrText);
+  persona.Curp = CurpParser.Parse(xmlText, ocrText);
+  persona.ValidationState.AddIfMissing(!string.IsNullOrEmpty(persona.Curp), "CURP");
+  ```
+- SLA:
+  ```csharp
+  expediente.FechaEstimadaConclusion = slaEnforcer.CalculateDeadline(expediente.FechaRecepcion, expediente.DiasPlazo);
+  ```
+
+Parallelizing 5 and 6:
+- 5 (Export contracts/validation) can proceed independently while 6 implements the parsers; both converge when export consumes the populated canonical fields + ValidationState.
+- Coordinate DTO shape (`ExportSnapshot`, `ValidationIssues`) so parsers feed export validation cleanly.
 
 ## 7) UI/Workflow Gaps (stakeholder confidence) — TODO
 - Build/extend pages: download reconciliation (expected vs downloaded), canonical case view (legal backbone, SLA, subdivision), measures/assets, identity with variants, evidence chain, 5-part summary (bloqueo, desbloqueo, documentación, transferencia, información).
