@@ -21,7 +21,7 @@ public class TesseractFixture : IAsyncLifetime
         builder.Services.AddScoped<IOcrExecutor, TesseractOcrExecutor>();
 
         // Register imaging infrastructure (quality analyzer, filters)
-        builder.Services.AddImagingInfrastructure(useAnalyticalStrategy: true);
+        builder.Services.AddImagingInfrastructure(FilterSelectionStrategyType.Analytical);
 
         _host = builder.Build();
 

@@ -4,6 +4,7 @@ using Emgu.CV.Structure;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Infrastructure.Imaging.Strategies;
 using Microsoft.Extensions.Logging;
 
@@ -94,7 +95,7 @@ public class PolynomialImageQualityAnalyzer : IImageQualityAnalyzer
     }
 
     /// <inheritdoc />
-    public async Task<Result<ImageQualityAssessment>> AnalyzeAsync(ImageData imageData, CancellationToken cancellationToken = default)
+    public Task<Result<ImageQualityAssessment>> AnalyzeAsync(ImageData imageData)
     {
         ArgumentNullException.ThrowIfNull(imageData);
 
@@ -105,7 +106,7 @@ public class PolynomialImageQualityAnalyzer : IImageQualityAnalyzer
 
             if (inputMat.IsEmpty)
             {
-                return Result<ImageQualityAssessment>.Failure("Failed to decode image");
+                return Task.FromResult(Result<ImageQualityAssessment>.Failure("Failed to decode image"));
             }
 
             // Extract features
@@ -144,19 +145,19 @@ public class PolynomialImageQualityAnalyzer : IImageQualityAnalyzer
                 }
             };
 
-            return Result<ImageQualityAssessment>.Success(assessment);
+            return Task.FromResult(Result<ImageQualityAssessment>.Success(assessment));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing image with polynomial analyzer");
-            return Result<ImageQualityAssessment>.Failure($"Analysis failed: {ex.Message}");
+            return Task.FromResult(Result<ImageQualityAssessment>.Failure($"Analysis failed: {ex.Message}"));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<ImageQualityLevel>> GetQualityLevelAsync(ImageData imageData, CancellationToken cancellationToken = default)
+    public async Task<Result<ImageQualityLevel>> GetQualityLevelAsync(ImageData imageData)
     {
-        var assessmentResult = await AnalyzeAsync(imageData, cancellationToken);
+        var assessmentResult = await AnalyzeAsync(imageData);
 
         if (!assessmentResult.IsSuccess)
         {
