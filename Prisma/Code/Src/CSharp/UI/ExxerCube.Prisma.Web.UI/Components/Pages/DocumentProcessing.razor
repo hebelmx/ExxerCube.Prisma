@@ -800,6 +800,51 @@
                                                         <MudText Typo="Typo.body2"><strong>Matched Fields:</strong> @doc.Result.Comparison.MatchCount / @doc.Result.Comparison.TotalFields</MudText>
                                                     </MudItem>
                                                 }
+
+                                                @* Sanitization Results *@
+                                                @if (doc.Result!.AccountSanitization != null || doc.Result.SwiftSanitization != null)
+                                                {
+                                                    <MudItem xs="12">
+                                                        <MudDivider Class="my-2" />
+                                                        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Class="mb-2">
+                                                            <MudIcon Icon="@Icons.Material.Filled.CleaningServices" Size="Size.Small" Class="mr-1" />
+                                                            OCR Sanitization Results
+                                                        </MudText>
+                                                    </MudItem>
+
+                                                    @if (doc.Result.AccountSanitization != null)
+                                                    {
+                                                        <MudItem xs="12" sm="6">
+                                                            <MudPaper Class="pa-2" Elevation="0" Style="background-color: rgba(103, 58, 183, 0.05); border-left: 3px solid #673ab7;">
+                                                                <MudText Typo="Typo.caption" Color="Color.Secondary"><strong>Account Number:</strong></MudText>
+                                                                <MudText Typo="Typo.body2" Class="mt-1">@doc.Result.AccountSanitization.Cleaned</MudText>
+                                                                @if (doc.Result.AccountSanitization.Warnings.Any())
+                                                                {
+                                                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="mt-1">
+                                                                        @string.Join(", ", doc.Result.AccountSanitization.Warnings)
+                                                                    </MudChip>
+                                                                }
+                                                            </MudPaper>
+                                                        </MudItem>
+                                                    }
+
+                                                    @if (doc.Result.SwiftSanitization != null)
+                                                    {
+                                                        <MudItem xs="12" sm="6">
+                                                            <MudPaper Class="pa-2" Elevation="0" Style="background-color: rgba(233, 30, 99, 0.05); border-left: 3px solid #e91e63;">
+                                                                <MudText Typo="Typo.caption" Color="Color.Secondary"><strong>SWIFT/BIC:</strong></MudText>
+                                                                <MudText Typo="Typo.body2" Class="mt-1">@doc.Result.SwiftSanitization.Cleaned</MudText>
+                                                                @if (doc.Result.SwiftSanitization.Warnings.Any())
+                                                                {
+                                                                    <MudChip T="string" Size="Size.Small" Color="Color.Warning" Class="mt-1">
+                                                                        @string.Join(", ", doc.Result.SwiftSanitization.Warnings)
+                                                                    </MudChip>
+                                                                }
+                                                            </MudPaper>
+                                                        </MudItem>
+                                                    }
+                                                }
+
                                                 @if (!string.IsNullOrEmpty(doc.ErrorMessage))
                                                 {
                                                     <MudItem xs="12">
