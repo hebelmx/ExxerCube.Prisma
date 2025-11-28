@@ -1,3 +1,4 @@
+
 @page "/ocr-filter-tester"
 @using ExxerCube.Prisma.Domain.Interfaces
 @using ExxerCube.Prisma.Domain.Enum
@@ -89,10 +90,10 @@
                     <MudDivider Class="my-3" />
 
                     <MudSelect T="ImageFilterType" @bind-Value="_manualFilterType" Label="Filter Type" Variant="Variant.Outlined" Class="mb-3">
-                        <MudSelectItem T="ImageFilterType" Value="ImageFilterType.None">None (No Filter)</MudSelectItem>
-                        <MudSelectItem T="ImageFilterType" Value="ImageFilterType.PilSimple">PIL Simple Enhancement</MudSelectItem>
-                        <MudSelectItem T="ImageFilterType" Value="ImageFilterType.OpenCvAdvanced">OpenCV Advanced Enhancement</MudSelectItem>
-                        <MudSelectItem T="ImageFilterType" Value="ImageFilterType.Adaptive">Adaptive (Auto-selects based on quality)</MudSelectItem>
+                        <MudSelectItem T="ImageFilterType" Value="@ImageFilterType.None">None (No Filter)</MudSelectItem>
+                        <MudSelectItem T="ImageFilterType" Value="@ImageFilterType.PilSimple">PIL Simple Enhancement</MudSelectItem>
+                        <MudSelectItem T="ImageFilterType" Value="@ImageFilterType.OpenCvAdvanced">OpenCV Advanced Enhancement</MudSelectItem>
+                        <MudSelectItem T="ImageFilterType" Value="@ImageFilterType.Adaptive">Adaptive (Auto-selects based on quality)</MudSelectItem>
                     </MudSelect>
 
                     @if (_manualFilterType == ImageFilterType.PilSimple)
@@ -170,7 +171,7 @@
                 </MudText>
                 <MudGrid>
                     <MudItem xs="12" md="6">
-                        <MudText><strong>Quality Level:</strong> @_qualityAssessment?.QualityLevel</MudText>
+                        <MudText><strong>Quality Level:</strong> @(_qualityAssessment?.QualityLevel?.DisplayName ?? "N/A")</MudText>
                     </MudItem>
                     <MudItem xs="12" md="6">
                         <MudText><strong>Confidence:</strong> @_qualityAssessment?.Confidence.ToString("P1")</MudText>
@@ -200,7 +201,7 @@
                     <strong>Selection Mode:</strong> @(_filterSelectionMode == FilterSelectionMode.Analytical ? "Analytical (Auto)" : "Manual")
                 </MudText>
                 <MudText Class="mb-2">
-                    <strong>Filter Type:</strong> @_selectedFilterConfig?.FilterType
+                    <strong>Filter Type:</strong> @(_selectedFilterConfig?.FilterType?.DisplayName ?? "N/A")
                 </MudText>
                 @if (_selectedFilterConfig?.FilterType == ImageFilterType.PilSimple)
                 {
@@ -555,13 +556,13 @@
 
     private ImageFilterConfig CreateManualFilterConfig()
     {
-        return _manualFilterType switch
+        return _manualFilterType.Value switch
         {
-            ImageFilterType.None => new ImageFilterConfig
+            0 => new ImageFilterConfig
             {
                 FilterType = ImageFilterType.None
             },
-            ImageFilterType.PilSimple => new ImageFilterConfig
+            1 => new ImageFilterConfig
             {
                 FilterType = ImageFilterType.PilSimple,
                 PilParams = new PilFilterParams
@@ -570,7 +571,7 @@
                     MedianSize = _pilMedianSize
                 }
             },
-            ImageFilterType.OpenCvAdvanced => new ImageFilterConfig
+            2 => new ImageFilterConfig
             {
                 FilterType = ImageFilterType.OpenCvAdvanced,
                 OpenCvParams = new OpenCvFilterParams
@@ -580,7 +581,7 @@
                     BilateralD = _opencvBilateralD
                 }
             },
-            ImageFilterType.Adaptive => new ImageFilterConfig
+            3 => new ImageFilterConfig
             {
                 FilterType = ImageFilterType.Adaptive
             },

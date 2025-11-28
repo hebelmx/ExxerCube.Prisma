@@ -134,11 +134,12 @@
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
-                        <MudSelect T="ReviewStatus" Label="Status" Variant="Variant.Outlined" @bind-Value="filters.Status">
-                            <MudSelectItem Value="ReviewStatus.Pending">Pending</MudSelectItem>
-                            <MudSelectItem Value="ReviewStatus.InProgress">In Progress</MudSelectItem>
-                            <MudSelectItem Value="ReviewStatus.Completed">Completed</MudSelectItem>
-                            <MudSelectItem Value="ReviewStatus.Rejected">Rejected</MudSelectItem>
+                        <MudSelect T="ReviewStatus" Label="Status" Variant="Variant.Outlined" @bind-Value="reviewStatusFilter">
+                            <MudSelectItem Value="@ReviewStatus.Unknown">All</MudSelectItem>
+                            <MudSelectItem Value="@ReviewStatus.Pending">Pending</MudSelectItem>
+                            <MudSelectItem Value="@ReviewStatus.InProgress">In Progress</MudSelectItem>
+                            <MudSelectItem Value="@ReviewStatus.Completed">Completed</MudSelectItem>
+                            <MudSelectItem Value="@ReviewStatus.Rejected">Rejected</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
@@ -152,10 +153,11 @@
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
-                        <MudSelect T="ReviewReason" Label="Review Reason" Variant="Variant.Outlined" @bind-Value="filters.ReviewReason">
-                            <MudSelectItem Value="ReviewReason.LowConfidence">Low Confidence</MudSelectItem>
-                            <MudSelectItem Value="ReviewReason.AmbiguousClassification">Ambiguous Classification</MudSelectItem>
-                            <MudSelectItem Value="ReviewReason.ExtractionError">Extraction Error</MudSelectItem>
+                        <MudSelect T="ReviewReason" Label="Review Reason" Variant="Variant.Outlined" @bind-Value="reviewReasonFilter">
+                            <MudSelectItem Value="@ReviewReason.Unknown">All</MudSelectItem>
+                            <MudSelectItem Value="@ReviewReason.LowConfidence">Low Confidence</MudSelectItem>
+                            <MudSelectItem Value="@ReviewReason.AmbiguousClassification">Ambiguous Classification</MudSelectItem>
+                            <MudSelectItem Value="@ReviewReason.ExtractionError">Extraction Error</MudSelectItem>
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
@@ -275,6 +277,8 @@
     private List<ReviewCaseViewModel> reviewCasesViewModels = new();
     private List<ReviewCaseViewModel> filteredReviewCases = new();
     private ReviewFilters filters = new();
+    private ReviewStatus reviewStatusFilter = ReviewStatus.Unknown;
+    private ReviewReason reviewReasonFilter = ReviewReason.Unknown;
     private bool isLoading = false;
     private int totalPending = 0;
     private int lowConfidenceCount = 0;
@@ -300,6 +304,8 @@
 
     private async Task LoadReviewCases()
     {
+        filters.Status = reviewStatusFilter == ReviewStatus.Unknown ? null : reviewStatusFilter;
+        filters.ReviewReason = reviewReasonFilter == ReviewReason.Unknown ? null : reviewReasonFilter;
         isLoading = true;
         try
         {
@@ -376,6 +382,8 @@
 
     private void ApplyFilters()
     {
+        filters.Status = reviewStatusFilter == ReviewStatus.Unknown ? null : reviewStatusFilter;
+        filters.ReviewReason = reviewReasonFilter == ReviewReason.Unknown ? null : reviewReasonFilter;
         var filtered = reviewCasesViewModels.AsEnumerable();
 
         // SLA Priority filter
@@ -421,6 +429,8 @@
     private async Task ClearFilters()
     {
         filters = new ReviewFilters();
+        reviewStatusFilter = ReviewStatus.Unknown;
+        reviewReasonFilter = ReviewReason.Unknown;
         filterSLAPriority = null;
         filterStartDate = null;
         filterEndDate = null;
@@ -429,6 +439,7 @@
 
     private void FilterByStatus(ReviewStatus status)
     {
+        reviewStatusFilter = status;
         filters.Status = status;
         ApplyFilters();
     }

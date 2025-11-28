@@ -1,3 +1,4 @@
+
 @page "/sla-dashboard"
 
 @using ExxerCube.Prisma.Application.Services
@@ -99,10 +100,10 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <MudGrid>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudSelect T="EscalationLevel?" Label="Escalation Level" Variant="Variant.Outlined" 
-                                      @bind-Value="filterEscalationLevel" Clearable="true">
-                                <MudSelectItem Value="@((EscalationLevel?)null)">All Levels</MudSelectItem>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudSelect T="EscalationLevel" Label="Escalation Level" Variant="Variant.Outlined" 
+                                      @bind-Value="filterEscalationLevel">
+                                <MudSelectItem Value="@EscalationLevel.Unknown">All Levels</MudSelectItem>
                                 <MudSelectItem Value="@EscalationLevel.None">None</MudSelectItem>
                                 <MudSelectItem Value="@EscalationLevel.Warning">Warning</MudSelectItem>
                                 <MudSelectItem Value="@EscalationLevel.Critical">Critical</MudSelectItem>
@@ -333,7 +334,7 @@
     private int totalActiveCount = 0;
 
     // Filters
-    private EscalationLevel? filterEscalationLevel;
+    private EscalationLevel filterEscalationLevel = EscalationLevel.Unknown;
     private string? filterSLAStatus;
     private DateTime? filterStartDate;
     private DateTime? filterEndDate;
@@ -535,7 +536,7 @@
 
         var filtered = allCases.AsEnumerable();
 
-        if (filterEscalationLevel is not null)
+        if (filterEscalationLevel != EscalationLevel.Unknown)
         {
             filtered = filtered.Where(c => c.SLAStatus.EscalationLevel == filterEscalationLevel);
         }
@@ -573,7 +574,7 @@
 
     private async Task ClearFilters()
     {
-        filterEscalationLevel = null;
+        filterEscalationLevel = EscalationLevel.Unknown;
         filterSLAStatus = null;
         filterStartDate = null;
         filterEndDate = null;

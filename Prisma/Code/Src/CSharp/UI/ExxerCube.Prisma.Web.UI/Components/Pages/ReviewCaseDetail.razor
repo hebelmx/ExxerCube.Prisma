@@ -2,7 +2,6 @@
 @using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Domain.Interfaces
 @using ExxerCube.Prisma.Domain.Entities
-@using ExxerCube.Prisma.Domain.Enum
 @using ExxerCube.Prisma.Domain.Models
 @using ExxerCube.Prisma.Domain.ValueObjects
 @using MudBlazor
@@ -21,452 +20,452 @@
 <PageTitle>Review Case @CaseId</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
-    @if (isLoading)
-    {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-    }
-    else if (reviewCase == null)
-    {
-        <MudText Typo="Typo.h5" Color="Color.Error">Case not found</MudText>
-    }
-    else
-    {
-        <MudPaper Class="pa-6" Elevation="3">
-            <!-- Case Header -->
-            <MudCard Class="mb-4">
-                <MudCardHeader>
-                    <h1 class="mud-typography mud-typography-h5 d-flex align-center">
-                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
-                        Case @reviewCase.CaseId
-                    </h1>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudGrid>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudText Typo="Typo.body2"><strong>File ID:</strong> @reviewCase.FileId</MudText>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudText Typo="Typo.body2">
-                                <strong>Reason:</strong>
-                                <MudChip T="string" Size="Size.Small" Color="@GetReasonColor(reviewCase.RequiresReviewReason)">
-                                    @reviewCase.RequiresReviewReason.ToString()
-                                </MudChip>
-                            </MudText>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudText Typo="Typo.body2">
-                                <strong>Confidence:</strong>
-                                <MudProgressLinear Value="@reviewCase.ConfidenceLevel" Color="@GetConfidenceColor(reviewCase.ConfidenceLevel)" Class="mt-1" />
-                                @reviewCase.ConfidenceLevel%
-                            </MudText>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudText Typo="Typo.body2">
-                                <strong>Status:</strong>
-                                <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(reviewCase.Status)">
-                                    @reviewCase.Status.ToString()
-                                </MudChip>
-                            </MudText>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudText Typo="Typo.body2"><strong>Created:</strong> @reviewCase.CreatedAt.ToString("MM/dd/yyyy HH:mm")</MudText>
-                        </MudItem>
-                        <MudItem xs="12" sm="6" md="3">
-                            <MudText Typo="Typo.body2"><strong>Assigned To:</strong> @(reviewCase.AssignedTo ?? "Unassigned")</MudText>
-                        </MudItem>
-                    </MudGrid>
-                </MudCardContent>
-            </MudCard>
+	@if (isLoading)
+	{
+		<MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+	}
+	else if (reviewCase == null)
+	{
+		<MudText Typo="Typo.h5" Color="Color.Error">Case not found</MudText>
+	}
+	else
+	{
+		<MudPaper Class="pa-6" Elevation="3">
+			<!-- Case Header -->
+			<MudCard Class="mb-4">
+				<MudCardHeader>
+					<h1 class="mud-typography mud-typography-h5 d-flex align-center">
+						<MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+						Case @reviewCase.CaseId
+					</h1>
+				</MudCardHeader>
+				<MudCardContent>
+					<MudGrid>
+						<MudItem xs="12" sm="6" md="3">
+							<MudText Typo="Typo.body2"><strong>File ID:</strong> @reviewCase.FileId</MudText>
+						</MudItem>
+						<MudItem xs="12" sm="6" md="3">
+							<MudText Typo="Typo.body2">
+								<strong>Reason:</strong>
+								<MudChip T="string" Size="Size.Small" Color="@GetReasonColor(reviewCase.RequiresReviewReason)">
+									@reviewCase.RequiresReviewReason.ToString()
+								</MudChip>
+							</MudText>
+						</MudItem>
+						<MudItem xs="12" sm="6" md="3">
+							<MudText Typo="Typo.body2">
+								<strong>Confidence:</strong>
+								<MudProgressLinear Value="@reviewCase.ConfidenceLevel" Color="@GetConfidenceColor(reviewCase.ConfidenceLevel)" Class="mt-1" />
+								@reviewCase.ConfidenceLevel%
+							</MudText>
+						</MudItem>
+						<MudItem xs="12" sm="6" md="3">
+							<MudText Typo="Typo.body2">
+								<strong>Status:</strong>
+								<MudChip T="string" Size="Size.Small" Color="@GetStatusColor(reviewCase.Status)">
+									@reviewCase.Status.ToString()
+								</MudChip>
+							</MudText>
+						</MudItem>
+						<MudItem xs="12" sm="6" md="3">
+							<MudText Typo="Typo.body2"><strong>Created:</strong> @reviewCase.CreatedAt.ToString("MM/dd/yyyy HH:mm")</MudText>
+						</MudItem>
+						<MudItem xs="12" sm="6" md="3">
+							<MudText Typo="Typo.body2"><strong>Assigned To:</strong> @(reviewCase.AssignedTo ?? "Unassigned")</MudText>
+						</MudItem>
+					</MudGrid>
+				</MudCardContent>
+			</MudCard>
 
-            <!-- SLA Timeline -->
-            @if (slaStatus != null)
-            {
-                <MudCard Class="mb-4">
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">SLA Timeline</MudText>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <SlaTimelineView SLAStatus="@slaStatus" />
-                    </MudCardContent>
-                </MudCard>
-            }
+			<!-- SLA Timeline -->
+			@if (slaStatus != null)
+			{
+				<MudCard Class="mb-4">
+					<MudCardHeader>
+						<MudText Typo="Typo.h6">SLA Timeline</MudText>
+					</MudCardHeader>
+					<MudCardContent>
+						<SlaTimelineView SLAStatus="@slaStatus" />
+					</MudCardContent>
+				</MudCard>
+			}
 
-            <!-- Field Annotations -->
-            @if (fieldAnnotations != null)
-            {
-                <MudCard Class="mb-4">
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">
-                            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
-                            Field Annotations
-                        </MudText>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        @if (fieldAnnotations.FieldAnnotationsDict != null && fieldAnnotations.FieldAnnotationsDict.Count > 0)
-                        {
-                            <MudTable Items="@fieldAnnotations.FieldAnnotationsDict.Values" Hover="true" Dense="true">
-                                <HeaderContent>
-                                    <MudTh>Field Name</MudTh>
-                                    <MudTh>Value</MudTh>
-                                    <MudTh>Sources</MudTh>
-                                    <MudTh>Confidence</MudTh>
-                                    <MudTh>Agreement</MudTh>
-                                    <MudTh>Status</MudTh>
-                                </HeaderContent>
-                                <RowTemplate>
-                                    <MudTd DataLabel="Field Name">@context.FieldName</MudTd>
-                                    <MudTd DataLabel="Value">
-                                        <div class="d-flex align-center">
-                                            @foreach (var source in GetFieldSources(context))
-                                            {
-                                                <MudChip T="string" Size="Size.Small" 
-                                                        Color="@GetSourceColor(source)"
-                                                        Class="mr-1">
-                                                    @source
-                                                </MudChip>
-                                            }
-                                            <MudText Typo="Typo.body2" Class="mr-2">
-                                                @(context.Value?.ToString() ?? "N/A")
-                                            </MudText>
-                                            <MudProgressCircular Value="@context.Confidence" 
-                                                               Size="Size.Small"
-                                                               Color="@GetConfidenceColor(context.Confidence)" />
-                                            <MudText Typo="Typo.caption" Class="ml-1">
-                                                @context.Confidence%
-                                            </MudText>
-                                        </div>
-                                        @if (context.HasConflict)
-                                        {
-                                            <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-1">
-                                                <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" />
-                                                Conflicting values detected across sources
-                                            </MudAlert>
-                                        }
-                                    </MudTd>
-                                    <MudTd DataLabel="Sources">
-                                        <MudChipSet T="string">
-                                            @foreach (var source in GetFieldSources(context))
-                                            {
-                                                <MudChip T="string" Size="Size.Small" Color="@GetSourceColor(source)">
-                                                    @source
-                                                </MudChip>
-                                            }
-                                        </MudChipSet>
-                                    </MudTd>
-                                    <MudTd DataLabel="Confidence">
-                                        <MudProgressCircular Value="@context.Confidence" 
-                                                           Size="Size.Small"
-                                                           Color="@GetConfidenceColor(context.Confidence)" />
-                                        <MudText Typo="Typo.caption">@context.Confidence%</MudText>
-                                    </MudTd>
-                                    <MudTd DataLabel="Agreement">
-                                        <MudProgressLinear Value="@((int)(context.AgreementLevel * 100))" Color="@GetAgreementColor(context.AgreementLevel)" Class="mt-1" />
-                                        @((int)(context.AgreementLevel * 100))%
-                                    </MudTd>
-                                    <MudTd DataLabel="Status">
-                                        @if (context.HasConflict)
-                                        {
-                                            <MudChip T="string" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Warning">Conflict</MudChip>
-                                        }
-                                        else
-                                        {
-                                            <MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">Agreed</MudChip>
-                                        }
-                                    </MudTd>
-                                </RowTemplate>
-                            </MudTable>
-                        }
-                        else
-                        {
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">No field annotations available.</MudText>
-                        }
-                    </MudCardContent>
-                </MudCard>
+			<!-- Field Annotations -->
+			@if (fieldAnnotations != null)
+			{
+				<MudCard Class="mb-4">
+					<MudCardHeader>
+						<MudText Typo="Typo.h6">
+							<MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />
+							Field Annotations
+						</MudText>
+					</MudCardHeader>
+					<MudCardContent>
+						@if (fieldAnnotations.FieldAnnotationsDict != null && fieldAnnotations.FieldAnnotationsDict.Count > 0)
+						{
+							<MudTable Items="@fieldAnnotations.FieldAnnotationsDict.Values" Hover="true" Dense="true">
+								<HeaderContent>
+									<MudTh>Field Name</MudTh>
+									<MudTh>Value</MudTh>
+									<MudTh>Sources</MudTh>
+									<MudTh>Confidence</MudTh>
+									<MudTh>Agreement</MudTh>
+									<MudTh>Status</MudTh>
+								</HeaderContent>
+								<RowTemplate>
+									<MudTd DataLabel="Field Name">@context.FieldName</MudTd>
+									<MudTd DataLabel="Value">
+										<div class="d-flex align-center">
+											@foreach (var source in GetFieldSources(context))
+											{
+												<MudChip T="string" Size="Size.Small" 
+														Color="@GetSourceColor(source)"
+														Class="mr-1">
+													@source
+												</MudChip>
+											}
+											<MudText Typo="Typo.body2" Class="mr-2">
+												@(context.Value?.ToString() ?? "N/A")
+											</MudText>
+											<MudProgressCircular Value="@context.Confidence" 
+															   Size="Size.Small"
+															   Color="@GetConfidenceColor(context.Confidence)" />
+											<MudText Typo="Typo.caption" Class="ml-1">
+												@context.Confidence%
+											</MudText>
+										</div>
+										@if (context.HasConflict)
+										{
+											<MudAlert Severity="Severity.Warning" Dense="true" Class="mt-1">
+												<MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" />
+												Conflicting values detected across sources
+											</MudAlert>
+										}
+									</MudTd>
+									<MudTd DataLabel="Sources">
+										<MudChipSet T="string">
+											@foreach (var source in GetFieldSources(context))
+											{
+												<MudChip T="string" Size="Size.Small" Color="@GetSourceColor(source)">
+													@source
+												</MudChip>
+											}
+										</MudChipSet>
+									</MudTd>
+									<MudTd DataLabel="Confidence">
+										<MudProgressCircular Value="@context.Confidence" 
+														   Size="Size.Small"
+														   Color="@GetConfidenceColor(context.Confidence)" />
+										<MudText Typo="Typo.caption">@context.Confidence%</MudText>
+									</MudTd>
+									<MudTd DataLabel="Agreement">
+										<MudProgressLinear Value="@((int)(context.AgreementLevel * 100))" Color="@GetAgreementColor(context.AgreementLevel)" Class="mt-1" />
+										@((int)(context.AgreementLevel * 100))%
+									</MudTd>
+									<MudTd DataLabel="Status">
+										@if (context.HasConflict)
+										{
+											<MudChip T="string" Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Warning">Conflict</MudChip>
+										}
+										else
+										{
+											<MudChip T="string" Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.CheckCircle">Agreed</MudChip>
+										}
+									</MudTd>
+								</RowTemplate>
+							</MudTable>
+						}
+						else
+						{
+							<MudText Typo="Typo.body2" Color="Color.Secondary">No field annotations available.</MudText>
+						}
+					</MudCardContent>
+				</MudCard>
 
-                <!-- Source Comparison Panel -->
-                @if (HasConflictedFields())
-                {
-                    <MudCard Class="mb-4">
-                        <MudCardHeader>
-                            <MudText Typo="Typo.h6">
-                                <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
-                                Source Comparison
-                            </MudText>
-                        </MudCardHeader>
-                        <MudCardContent>
-                            <MudExpansionPanels>
-                                <MudExpansionPanel Text="View Source Comparison" Icon="@Icons.Material.Filled.CompareArrows">
-                                    <MudTable Items="@GetConflictedFields()" Dense="true" Hover="true">
-                                        <HeaderContent>
-                                            <MudTh>Field Name</MudTh>
-                                            <MudTh>XML</MudTh>
-                                            <MudTh>DOCX</MudTh>
-                                            <MudTh>PDF</MudTh>
-                                            <MudTh>OCR</MudTh>
-                                            <MudTh>Unified</MudTh>
-                                        </HeaderContent>
-                                        <RowTemplate>
-                                            <MudTd>@context.FieldName</MudTd>
-                                            <MudTd>
-                                                <MudText Typo="Typo.body2" 
-                                                        Color="@(context.XmlValue == context.UnifiedValue ? Color.Success : Color.Default)">
-                                                    @(context.XmlValue ?? "-")
-                                                </MudText>
-                                            </MudTd>
-                                            <MudTd>
-                                                <MudText Typo="Typo.body2" 
-                                                        Color="@(context.DocxValue == context.UnifiedValue ? Color.Success : Color.Default)">
-                                                    @(context.DocxValue ?? "-")
-                                                </MudText>
-                                            </MudTd>
-                                            <MudTd>
-                                                <MudText Typo="Typo.body2" 
-                                                        Color="@(context.PdfValue == context.UnifiedValue ? Color.Success : Color.Default)">
-                                                    @(context.PdfValue ?? "-")
-                                                </MudText>
-                                            </MudTd>
-                                            <MudTd>
-                                                <MudText Typo="Typo.body2" 
-                                                        Color="@(context.OcrValue == context.UnifiedValue ? Color.Success : Color.Default)">
-                                                    @(context.OcrValue ?? "-")
-                                                </MudText>
-                                            </MudTd>
-                                            <MudTd>
-                                                <MudText Typo="Typo.body2" Class="font-weight-bold">
-                                                    @context.UnifiedValue
-                                                </MudText>
-                                            </MudTd>
-                                        </RowTemplate>
-                                    </MudTable>
-                                </MudExpansionPanel>
-                            </MudExpansionPanels>
-                        </MudCardContent>
-                    </MudCard>
-                }
-            }
+				<!-- Source Comparison Panel -->
+				@if (HasConflictedFields())
+				{
+					<MudCard Class="mb-4">
+						<MudCardHeader>
+							<MudText Typo="Typo.h6">
+								<MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+								Source Comparison
+							</MudText>
+						</MudCardHeader>
+						<MudCardContent>
+							<MudExpansionPanels>
+								<MudExpansionPanel Text="View Source Comparison" Icon="@Icons.Material.Filled.CompareArrows">
+									<MudTable Items="@GetConflictedFields()" Dense="true" Hover="true">
+										<HeaderContent>
+											<MudTh>Field Name</MudTh>
+											<MudTh>XML</MudTh>
+											<MudTh>DOCX</MudTh>
+											<MudTh>PDF</MudTh>
+											<MudTh>OCR</MudTh>
+											<MudTh>Unified</MudTh>
+										</HeaderContent>
+										<RowTemplate>
+											<MudTd>@context.FieldName</MudTd>
+											<MudTd>
+												<MudText Typo="Typo.body2" 
+														Color="@(context.XmlValue == context.UnifiedValue ? Color.Success : Color.Default)">
+													@(context.XmlValue ?? "-")
+												</MudText>
+											</MudTd>
+											<MudTd>
+												<MudText Typo="Typo.body2" 
+														Color="@(context.DocxValue == context.UnifiedValue ? Color.Success : Color.Default)">
+													@(context.DocxValue ?? "-")
+												</MudText>
+											</MudTd>
+											<MudTd>
+												<MudText Typo="Typo.body2" 
+														Color="@(context.PdfValue == context.UnifiedValue ? Color.Success : Color.Default)">
+													@(context.PdfValue ?? "-")
+												</MudText>
+											</MudTd>
+											<MudTd>
+												<MudText Typo="Typo.body2" 
+														Color="@(context.OcrValue == context.UnifiedValue ? Color.Success : Color.Default)">
+													@(context.OcrValue ?? "-")
+												</MudText>
+											</MudTd>
+											<MudTd>
+												<MudText Typo="Typo.body2" Class="font-weight-bold">
+													@context.UnifiedValue
+												</MudText>
+											</MudTd>
+										</RowTemplate>
+									</MudTable>
+								</MudExpansionPanel>
+							</MudExpansionPanels>
+						</MudCardContent>
+					</MudCard>
+				}
+			}
 
-            <!-- Review Decision Form -->
-            <MudCard>
-                <MudCardHeader>
-                    <MudText Typo="Typo.h6">
-                        <MudIcon Icon="@Icons.Material.Filled.RateReview" Class="mr-2" />
-                        Review Decision
-                    </MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <EditForm Model="@decision" OnValidSubmit="SubmitDecision">
-                        <DataAnnotationsValidator />
-                        <MudGrid>
-                            <MudItem xs="12" md="6">
-                                <MudSelect T="DecisionType" Label="Decision Type" Variant="Variant.Outlined" @bind-Value="decision.DecisionType" Required="true">
-                                    <MudSelectItem Value="DecisionType.Approve">Approve</MudSelectItem>
-                                    <MudSelectItem Value="DecisionType.Reject">Reject</MudSelectItem>
-                                    <MudSelectItem Value="DecisionType.RequestMoreInfo">Request More Info</MudSelectItem>
-                                </MudSelect>
-                            </MudItem>
-                            <MudItem xs="12">
-                                <MudTextField Label="Review Notes" Variant="Variant.Outlined" @bind-Value="decision.Notes" 
-                                             Lines="5" Required="true" RequiredError="Review notes are required" />
-                            </MudItem>
-                        </MudGrid>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Class="mt-3" Disabled="isSubmitting">
-                            <MudIcon Icon="@Icons.Material.Filled.Save" Class="mr-2" />
-                            Submit Decision
-                        </MudButton>
-                        <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="mt-3 ml-2" OnClick="Cancel">
-                            Cancel
-                        </MudButton>
-                    </EditForm>
-                </MudCardContent>
-            </MudCard>
-        </MudPaper>
-    }
+			<!-- Review Decision Form -->
+			<MudCard>
+				<MudCardHeader>
+					<MudText Typo="Typo.h6">
+						<MudIcon Icon="@Icons.Material.Filled.RateReview" Class="mr-2" />
+						Review Decision
+					</MudText>
+				</MudCardHeader>
+				<MudCardContent>
+					<EditForm Model="@decision" OnValidSubmit="SubmitDecision">
+						<DataAnnotationsValidator />
+						<MudGrid>
+							<MudItem xs="12" md="6">
+								<MudSelect T="DecisionType" Label="Decision Type" Variant="Variant.Outlined" @bind-Value="decision.DecisionType" Required="true">
+									<MudSelectItem Value="DecisionType.Approve">Approve</MudSelectItem>
+									<MudSelectItem Value="DecisionType.Reject">Reject</MudSelectItem>
+									<MudSelectItem Value="DecisionType.RequestMoreInfo">Request More Info</MudSelectItem>
+								</MudSelect>
+							</MudItem>
+							<MudItem xs="12">
+								<MudTextField Label="Review Notes" Variant="Variant.Outlined" @bind-Value="decision.Notes" 
+											 Lines="5" Required="true" RequiredError="Review notes are required" />
+							</MudItem>
+						</MudGrid>
+						<MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Class="mt-3" Disabled="isSubmitting">
+							<MudIcon Icon="@Icons.Material.Filled.Save" Class="mr-2" />
+							Submit Decision
+						</MudButton>
+						<MudButton Variant="Variant.Text" Color="Color.Secondary" Class="mt-3 ml-2" OnClick="Cancel">
+							Cancel
+						</MudButton>
+					</EditForm>
+				</MudCardContent>
+			</MudCard>
+		</MudPaper>
+	}
 </MudContainer>
 
 @code {
-    [Parameter]
-    public string CaseId { get; set; } = string.Empty;
+	[Parameter]
+	public string CaseId { get; set; } = string.Empty;
 
-    private ReviewCase? reviewCase;
-    private FieldAnnotations? fieldAnnotations;
-    private SLAStatus? slaStatus;
-    private ReviewDecision decision = new();
-    private bool isLoading = false;
-    private bool isSubmitting = false;
+	private ReviewCase? reviewCase;
+	private FieldAnnotations? fieldAnnotations;
+	private SLAStatus? slaStatus;
+	private ReviewDecision decision = new();
+	private bool isLoading = false;
+	private bool isSubmitting = false;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadCaseData();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadCaseData();
+	}
 
-    private async Task LoadCaseData()
-    {
-        isLoading = true;
-        try
-        {
-            // Load review case
-            var casesResult = await ManualReviewerPanel.GetReviewCasesAsync(new ReviewFilters { Status = null }, 1, 1000);
-            if (casesResult.IsSuccess && casesResult.Value != null)
-            {
-                reviewCase = casesResult.Value.FirstOrDefault(c => c.CaseId == CaseId);
-            }
+	private async Task LoadCaseData()
+	{
+		isLoading = true;
+		try
+		{
+			// Load review case
+			var casesResult = await ManualReviewerPanel.GetReviewCasesAsync(new ReviewFilters { Status = null }, 1, 1000);
+			if (casesResult.IsSuccess && casesResult.Value != null)
+			{
+				reviewCase = casesResult.Value.FirstOrDefault(c => c.CaseId == CaseId);
+			}
 
-            if (reviewCase == null)
-            {
-                Snackbar.Add("Case not found", Severity.Error);
-                return;
-            }
+			if (reviewCase == null)
+			{
+				Snackbar.Add("Case not found", Severity.Error);
+				return;
+			}
 
-            // Load SLA status
-            var slaResult = await SLAEnforcer.GetSLAStatusAsync(reviewCase.FileId);
-            if (slaResult.IsSuccess && slaResult.Value != null)
-            {
-                slaStatus = slaResult.Value;
-            }
+			// Load SLA status
+			var slaResult = await SLAEnforcer.GetSLAStatusAsync(reviewCase.FileId);
+			if (slaResult.IsSuccess && slaResult.Value != null)
+			{
+				slaStatus = slaResult.Value;
+			}
 
-            // Load field annotations
-            var annotationsResult = await ManualReviewerPanel.GetFieldAnnotationsAsync(CaseId);
-            if (annotationsResult.IsSuccess && annotationsResult.Value != null)
-            {
-                fieldAnnotations = annotationsResult.Value;
-            }
+			// Load field annotations
+			var annotationsResult = await ManualReviewerPanel.GetFieldAnnotationsAsync(CaseId);
+			if (annotationsResult.IsSuccess && annotationsResult.Value != null)
+			{
+				fieldAnnotations = annotationsResult.Value;
+			}
 
-            // Initialize decision
-            decision.CaseId = CaseId;
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            decision.ReviewerId = authState.User?.Identity?.Name ?? "SYSTEM";
-            decision.ReviewedAt = DateTime.UtcNow;
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error loading case data: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
+			// Initialize decision
+			decision.CaseId = CaseId;
+			var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+			decision.ReviewerId = authState.User?.Identity?.Name ?? "SYSTEM";
+			decision.ReviewedAt = DateTime.UtcNow;
+		}
+		catch (Exception ex)
+		{
+			Snackbar.Add($"Error loading case data: {ex.Message}", Severity.Error);
+		}
+		finally
+		{
+			isLoading = false;
+		}
+	}
 
-    private async Task SubmitDecision()
-    {
-        isSubmitting = true;
-        try
-        {
-            decision.DecisionId = $"DEC-{Guid.NewGuid():N}";
-            decision.ReviewedAt = DateTime.UtcNow;
+	private async Task SubmitDecision()
+	{
+		isSubmitting = true;
+		try
+		{
+			decision.DecisionId = $"DEC-{Guid.NewGuid():N}";
+			decision.ReviewedAt = DateTime.UtcNow;
 
-            var result = await ManualReviewerPanel.SubmitReviewDecisionAsync(CaseId, decision);
-            if (result.IsSuccess)
-            {
-                Snackbar.Add("Review decision submitted successfully", Severity.Success);
-                Navigation.NavigateTo("/manual-review");
-            }
-            else
-            {
-                Snackbar.Add($"Error submitting decision: {result.Error}", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            isSubmitting = false;
-        }
-    }
+			var result = await ManualReviewerPanel.SubmitReviewDecisionAsync(CaseId, decision);
+			if (result.IsSuccess)
+			{
+				Snackbar.Add("Review decision submitted successfully", Severity.Success);
+				Navigation.NavigateTo("/manual-review");
+			}
+			else
+			{
+				Snackbar.Add($"Error submitting decision: {result.Error}", Severity.Error);
+			}
+		}
+		catch (Exception ex)
+		{
+			Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+		}
+		finally
+		{
+			isSubmitting = false;
+		}
+	}
 
-    private void Cancel()
-    {
-        Navigation.NavigateTo("/manual-review");
-    }
+	private void Cancel()
+	{
+		Navigation.NavigateTo("/manual-review");
+	}
 
-    private Color GetReasonColor(string reason) => reason switch
-    {
-      nameof(  ReviewReason.LowConfidence) => Color.Warning,
-      nameof( ReviewReason.AmbiguousClassification) => Color.Info,
-      nameof(   ReviewReason.ExtractionError) => Color.Error,
-        _ => Color.Default
-    };
+	private Color GetReasonColor(string reason) => reason switch
+	{
+	  nameof(ReviewReason.LowConfidence) => Color.Warning,
+	  nameof(ReviewReason.AmbiguousClassification) => Color.Info,
+	  nameof(ReviewReason.ExtractionError) => Color.Error,
+		_ => Color.Default
+	};
 
-    private Color GetStatusColor(string status) => status switch
-    {
-	    nameof(   ReviewStatus.Pending )=> Color.Warning,
-        nameof(ReviewStatus.InProgress) => Color.Info,
-	    nameof( ReviewStatus.Completed) => Color.Success,
-	    nameof(  ReviewStatus.Rejected) => Color.Error,
-        _ => Color.Default
-    };
+	private Color GetStatusColor(string status) => status switch
+	{
+		nameof(ReviewStatus.Pending )=> Color.Warning,
+		nameof(ReviewStatus.InProgress) => Color.Info,
+		nameof(ReviewStatus.Completed) => Color.Success,
+		nameof(ReviewStatus.Rejected) => Color.Error,
+		_ => Color.Default
+	};
 
-    private Color GetConfidenceColor(int confidence)
-    {
-        if (confidence < 70) return Color.Error;
-        if (confidence < 80) return Color.Warning;
-        return Color.Success;
-    }
+	private Color GetConfidenceColor(int confidence)
+	{
+		if (confidence < 70) return Color.Error;
+		if (confidence < 80) return Color.Warning;
+		return Color.Success;
+	}
 
-    private Color GetAgreementColor(float agreement)
-    {
-        if (agreement < 0.5f) return Color.Error;
-        if (agreement < 0.8f) return Color.Warning;
-        return Color.Success;
-    }
+	private Color GetAgreementColor(float agreement)
+	{
+		if (agreement < 0.5f) return Color.Error;
+		if (agreement < 0.8f) return Color.Warning;
+		return Color.Success;
+	}
 
-    private Color GetSourceColor(string source) => source switch
-    {
-        "XML" => Color.Info,
-        "DOCX" => Color.Primary,
-        "PDF" => Color.Error,
-        "OCR" => Color.Warning,
-        _ => Color.Default
-    };
+	private Color GetSourceColor(string source) => source switch
+	{
+		"XML" => Color.Info,
+		"DOCX" => Color.Primary,
+		"PDF" => Color.Error,
+		"OCR" => Color.Warning,
+		_ => Color.Default
+	};
 
-    private List<string> GetFieldSources(FieldAnnotation annotation)
-    {
-        var sources = new List<string>();
-        if (!string.IsNullOrEmpty(annotation.Source))
-        {
-            sources.Add(annotation.Source);
-        }
-        // Add additional sources if available from annotation metadata
-        return sources;
-    }
+	private List<string> GetFieldSources(FieldAnnotation annotation)
+	{
+		var sources = new List<string>();
+		if (!string.IsNullOrEmpty(annotation.Source))
+		{
+			sources.Add(annotation.Source);
+		}
+		// Add additional sources if available from annotation metadata
+		return sources;
+	}
 
 
-    private bool HasConflictedFields()
-    {
-        if (fieldAnnotations?.FieldAnnotationsDict == null) return false;
-        return fieldAnnotations.FieldAnnotationsDict.Values.Any(f => f.HasConflict);
-    }
+	private bool HasConflictedFields()
+	{
+		if (fieldAnnotations?.FieldAnnotationsDict == null) return false;
+		return fieldAnnotations.FieldAnnotationsDict.Values.Any(f => f.HasConflict);
+	}
 
-    private List<FieldComparison> GetConflictedFields()
-    {
-        if (fieldAnnotations?.FieldAnnotationsDict == null)
-            return new List<FieldComparison>();
+	private List<FieldComparison> GetConflictedFields()
+	{
+		if (fieldAnnotations?.FieldAnnotationsDict == null)
+			return new List<FieldComparison>();
 
-        var conflicted = fieldAnnotations.FieldAnnotationsDict.Values
-            .Where(f => f.HasConflict)
-            .Select(f => new FieldComparison
-            {
-                FieldName = f.FieldName,
-                UnifiedValue = f.Value?.ToString() ?? "-",
-                XmlValue = f.Source == "XML" ? f.Value?.ToString() : null,
-                DocxValue = f.Source == "DOCX" ? f.Value?.ToString() : null,
-                PdfValue = f.Source == "PDF" ? f.Value?.ToString() : null,
-                OcrValue = f.Source == "OCR" ? f.Value?.ToString() : null
-            })
-            .ToList();
+		var conflicted = fieldAnnotations.FieldAnnotationsDict.Values
+			.Where(f => f.HasConflict)
+			.Select(f => new FieldComparison
+			{
+				FieldName = f.FieldName,
+				UnifiedValue = f.Value?.ToString() ?? "-",
+				XmlValue = f.Source == "XML" ? f.Value?.ToString() : null,
+				DocxValue = f.Source == "DOCX" ? f.Value?.ToString() : null,
+				PdfValue = f.Source == "PDF" ? f.Value?.ToString() : null,
+				OcrValue = f.Source == "OCR" ? f.Value?.ToString() : null
+			})
+			.ToList();
 
-        return conflicted;
-    }
+		return conflicted;
+	}
 
-    private class FieldComparison
-    {
-        public string FieldName { get; set; } = string.Empty;
-        public string? XmlValue { get; set; }
-        public string? DocxValue { get; set; }
-        public string? PdfValue { get; set; }
-        public string? OcrValue { get; set; }
-        public string UnifiedValue { get; set; } = string.Empty;
-    }
+	private class FieldComparison
+	{
+		public string FieldName { get; set; } = string.Empty;
+		public string? XmlValue { get; set; }
+		public string? DocxValue { get; set; }
+		public string? PdfValue { get; set; }
+		public string? OcrValue { get; set; }
+		public string UnifiedValue { get; set; } = string.Empty;
+	}
 }

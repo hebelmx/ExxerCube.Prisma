@@ -1,3 +1,4 @@
+
 @page "/audit-trail"
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Entities
@@ -114,13 +115,12 @@
                                      Dense="true" />
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
-                        <MudSelect T="AuditActionType?" Label="Action Type" 
+                        <MudSelect T="AuditActionType" Label="Action Type" 
                                  Value="@selectedActionType"
                                  ValueChanged="@OnSelectedActionTypeChanged"
                                  Variant="Variant.Outlined"
-                                 Dense="true"
-                                 Clearable="true">
-                            <MudSelectItem Value="@((AuditActionType?)null)">All Actions</MudSelectItem>
+                                 Dense="true">
+                            <MudSelectItem Value="@AuditActionType.Unknown">All Actions</MudSelectItem>
                             @foreach (var actionType in EnumModel.GetAll<AuditActionType>())
                             {
                                 <MudSelectItem Value="@actionType">@actionType</MudSelectItem>
@@ -128,13 +128,12 @@
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
-                        <MudSelect T="ProcessingStage?" Label="Stage" 
+                        <MudSelect T="ProcessingStage" Label="Stage" 
                                  Value="@selectedStage"
                                  ValueChanged="@OnSelectedStageChanged"
                                  Variant="Variant.Outlined"
-                                 Dense="true"
-                                 Clearable="true">
-                            <MudSelectItem Value="@((ProcessingStage?)null)">All Stages</MudSelectItem>
+                                 Dense="true">
+                            <MudSelectItem Value="@ProcessingStage.Unknown">All Stages</MudSelectItem>
                             @foreach (var stage in EnumModel.GetAll<ProcessingStage>())
                             {
                                 <MudSelectItem Value="@stage">@stage</MudSelectItem>
@@ -307,7 +306,7 @@
 <!-- Action Details Dialog -->
 <MudDialog @bind-IsVisible="@showActionDetailsDialog" MaxWidth="MaxWidth.Medium">
     <TitleContent>
-        <MudText Typo="Typo.h6">Action Details: @selectedRecord?.ActionType</MudText>
+        <MudText Typo="Typo.h6">Action Details: @(selectedRecord?.ActionType ?? AuditActionType.Unknown)</MudText>
     </TitleContent>
     <DialogContent>
         @if (selectedRecord != null)
@@ -426,8 +425,8 @@
     private string? filterCorrelationId;
     private DateTime? filterFromDate;
     private DateTime? filterToDate;
-    private AuditActionType? selectedActionType;
-    private ProcessingStage? selectedStage;
+    private AuditActionType selectedActionType = AuditActionType.Unknown;
+    private ProcessingStage selectedStage = ProcessingStage.Unknown;
     private string? filterUserId;
     private bool? filterSuccessStatus;
     private bool showActionDetailsDialog = false;
@@ -526,10 +525,10 @@
         if (filterToDate.HasValue && record.Timestamp > filterToDate.Value)
             return false;
             
-        if (selectedActionType is not null && record.ActionType != selectedActionType)
+        if (selectedActionType != AuditActionType.Unknown && record.ActionType != selectedActionType)
             return false;
             
-        if (selectedStage is not null && record.Stage != selectedStage)
+        if (selectedStage != ProcessingStage.Unknown && record.Stage != selectedStage)
             return false;
             
         if (!string.IsNullOrEmpty(filterUserId) && 
@@ -566,13 +565,13 @@
         await LoadAuditRecords();
     }
 
-    private void OnSelectedActionTypeChanged(AuditActionType? value)
+    private void OnSelectedActionTypeChanged(AuditActionType value)
     {
         selectedActionType = value;
         ApplyFilters();
     }
 
-    private void OnSelectedStageChanged(ProcessingStage? value)
+    private void OnSelectedStageChanged(ProcessingStage value)
     {
         selectedStage = value;
         ApplyFilters();
@@ -596,8 +595,8 @@
         filterCorrelationId = null;
         filterFromDate = DateTime.Today.AddDays(-30);
         filterToDate = DateTime.Today.AddDays(1);
-        selectedActionType = null;
-        selectedStage = null;
+        selectedActionType = AuditActionType.Unknown;
+        selectedStage = ProcessingStage.Unknown;
         filterUserId = null;
         filterSuccessStatus = null;
         ApplyFilters();

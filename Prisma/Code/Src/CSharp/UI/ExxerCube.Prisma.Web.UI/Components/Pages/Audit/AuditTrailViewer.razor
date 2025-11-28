@@ -58,8 +58,8 @@
                         <MudSelect @bind-Value="filterActionType" 
                                    Label="Action Type" 
                                    Variant="Variant.Outlined"
-                                   T="AuditActionType?">
-                            <MudSelectItem Value="@((AuditActionType?)null)">All</MudSelectItem>
+                                   T="AuditActionType">
+                            <MudSelectItem Value="@AuditActionType.Unknown">All Actions</MudSelectItem>
                             <MudSelectItem Value="@AuditActionType.Download">Download</MudSelectItem>
                             <MudSelectItem Value="@AuditActionType.Classification">Classification</MudSelectItem>
                             <MudSelectItem Value="@AuditActionType.Move">Move</MudSelectItem>
@@ -199,7 +199,7 @@
     private string? filterCorrelationId;
     private DateTime? filterStartDate = DateTime.UtcNow.AddDays(-7);
     private DateTime? filterEndDate = DateTime.UtcNow;
-    private AuditActionType? filterActionType;
+    private AuditActionType filterActionType = AuditActionType.Unknown;
     private string? filterUserId;
 
     protected override async Task OnInitializedAsync()
@@ -247,7 +247,7 @@
                 var result = await AuditLogger.GetAuditRecordsAsync(
                     startDate,
                     endDate,
-                    filterActionType,
+                    filterActionType == AuditActionType.Unknown ? null : filterActionType,
                     filterUserId,
                     CancellationToken.None);
                 
@@ -284,7 +284,7 @@
         filterCorrelationId = null;
         filterStartDate = DateTime.UtcNow.AddDays(-7);
         filterEndDate = DateTime.UtcNow;
-        filterActionType = null;
+        filterActionType = AuditActionType.Unknown;
         filterUserId = null;
         await LoadAuditRecordsAsync();
     }
@@ -302,7 +302,7 @@
             var result = await AuditReportingService.ExportAuditLogCsvAsync(
                 startDate,
                 endDate,
-                filterActionType,
+                    filterActionType == AuditActionType.Unknown ? null : filterActionType,
                 filterUserId,
                 CancellationToken.None);
 
@@ -341,7 +341,7 @@
             var result = await AuditReportingService.ExportAuditLogJsonAsync(
                 startDate,
                 endDate,
-                filterActionType,
+                filterActionType == AuditActionType.Unknown ? null : filterActionType,
                 filterUserId,
                 CancellationToken.None);
 
