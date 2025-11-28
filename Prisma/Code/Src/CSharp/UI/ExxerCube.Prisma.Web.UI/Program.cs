@@ -201,7 +201,7 @@ public class Program
         services.AddScoped<MetadataExtractionService>();
 
         // Add Imaging services (filters, quality analysis)
-        services.AddImagingInfrastructure(useAnalyticalStrategy: true);
+        services.AddImagingInfrastructure(FilterSelectionStrategyType.Analytical);
 
         // Add Story 1.3 services: Field Matching and Unified Metadata Generation
         services.AddScoped<FieldMatchingService>();
