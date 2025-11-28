@@ -115,6 +115,38 @@ public class XmlExtractorFixtureTests(ITestOutputHelper output)
         LogFields("Missing subdivision fixture", fields);
     }
 
+    [Fact]
+    public async Task Extract_With_Missing_Identity_Allows_Empty_Rfc_And_Curp()
+    {
+        var path = Path.Combine(_fixtureRoot, "missing_identity.xml");
+        var result = await _extractor.ExtractFieldsAsync(new XmlSource(path), Array.Empty<FieldDefinition>());
+
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        var fields = result.Value!;
+        fields.Expediente.ShouldBe("J/JJ1-0000-000000-JJJ");
+        fields.AdditionalFields["Subdivision"].ShouldBe("Judicial");
+        fields.AdditionalFields["MeasureHint"].ShouldBe("Aseguramiento");
+        fields.AdditionalFields.ContainsKey("RfcList").ShouldBeFalse();
+        fields.AdditionalFields.ContainsKey("Curp").ShouldBeFalse();
+
+        LogFields("Missing identity fixture", fields);
+    }
+
+    [Fact]
+    public async Task Extract_With_Missing_Accounts_Leaves_CuentasRaw_Empty()
+    {
+        var path = Path.Combine(_fixtureRoot, "missing_accounts.xml");
+        var result = await _extractor.ExtractFieldsAsync(new XmlSource(path), Array.Empty<FieldDefinition>());
+
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        var fields = result.Value!;
+        fields.AdditionalFields["Subdivision"].ShouldBe("OperacionesIlicitas");
+        fields.AdditionalFields["MeasureHint"].ShouldBe("Desbloqueo");
+        fields.AdditionalFields.ContainsKey("CuentasRaw").ShouldBeFalse();
+
+        LogFields("Missing accounts fixture", fields);
+    }
+
     private void LogFields(string label, ExtractedFields fields)
     {
         var sb = new StringBuilder();
