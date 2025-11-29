@@ -40,9 +40,13 @@ public class TextSanitizerOcrPipelineTests : IDisposable
 
         var sanitized = _sanitizationService.SanitizeAccountAndSwift(text);
 
+        _logger.LogInformation("Sanitized Result: {@Sanitized}", sanitized);
         sanitized.Account.Cleaned.ShouldBe("1234567890123456");
+        _logger.LogInformation("Sanitized Account: {Account}", sanitized.Account.Cleaned);
         sanitized.Account.Warnings.ShouldContain("AccountNormalized");
+        _logger.LogInformation("Sanitized Account: {Account}", sanitized.Account.Cleaned);
         sanitized.Swift.Cleaned.ShouldBe("BNMXMXMMX");
+        _logger.LogInformation("Sanitized SWIFT: {Swift}", sanitized.Swift.Cleaned);
         sanitized.Swift.Warnings.ShouldContain("SwiftNormalized");
     }
 

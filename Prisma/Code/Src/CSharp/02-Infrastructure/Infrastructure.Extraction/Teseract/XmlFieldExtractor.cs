@@ -148,58 +148,24 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
 
     private static string MapSubdivision(string? areaClave, string? areaDescripcion)
     {
-        var claveInt = int.TryParse(areaClave, out var i) ? i : 0;
-        var mapped = LegalSubdivisionKind.Unknown;
-
-        // direct code mapping first
-        mapped = claveInt switch
+        // Use the AreaDescripcion directly - it's the human-readable subdivision name
+        // Normalize to PascalCase without spaces for consistency
+        if (string.IsNullOrWhiteSpace(areaDescripcion))
         {
-            1 => LegalSubdivisionKind.A_AS,
-            2 => LegalSubdivisionKind.A_DE,
-            3 => LegalSubdivisionKind.A_TF,
-            4 => LegalSubdivisionKind.A_IN,
-            5 => LegalSubdivisionKind.J_AS,
-            6 => LegalSubdivisionKind.J_DE,
-            7 => LegalSubdivisionKind.J_IN,
-            8 => LegalSubdivisionKind.H_IN,
-            9 => LegalSubdivisionKind.E_AS,
-            10 => LegalSubdivisionKind.E_DE,
-            11 => LegalSubdivisionKind.E_IN,
-            _ => LegalSubdivisionKind.Unknown
-        };
-
-        if (mapped != LegalSubdivisionKind.Unknown)
-        {
-            return mapped.Name;
+            return LegalSubdivisionKind.Unknown.Name;
         }
 
-        var desc = (areaDescripcion ?? string.Empty).ToUpperInvariant();
-        if (desc.Contains("ASEGURAMIENTO"))
-        {
-            return LegalSubdivisionKind.A_AS.Name;
-        }
-        if (desc.Contains("DESEMBARGO"))
-        {
-            return LegalSubdivisionKind.A_DE.Name;
-        }
-        if (desc.Contains("TRANSFER"))
-        {
-            return LegalSubdivisionKind.A_TF.Name;
-        }
-        if (desc.Contains("JUD"))
-        {
-            return LegalSubdivisionKind.J_AS.Name;
-        }
-        if (desc.Contains("HAC"))
-        {
-            return LegalSubdivisionKind.H_IN.Name;
-        }
-        if (desc.Contains("ILICIT"))
-        {
-            return LegalSubdivisionKind.E_IN.Name;
-        }
+        // Convert to title case and remove spaces/special characters
+        var normalized = System.Globalization.CultureInfo.CurrentCulture.TextInfo
+            .ToTitleCase(areaDescripcion.ToLowerInvariant())
+            .Replace(" ", "")           // Remove spaces: "Operaciones Ilícitas" → "OperacionesIlícitas"
+            .Replace("í", "i")          // Normalize accents: "Ilícitas" → "Ilicitas"
+            .Replace("á", "a")
+            .Replace("é", "e")
+            .Replace("ó", "o")
+            .Replace("ú", "u");
 
-        return LegalSubdivisionKind.Unknown.Name;
+        return normalized;
     }
 
     private static string InferMeasure(string? tieneAseguramiento, string? instrucciones)
