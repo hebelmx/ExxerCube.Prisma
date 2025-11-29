@@ -49,7 +49,7 @@ esto efecto de garantizar el adeudo que tiene con la parte actora en el presente
       <Rfc>ZUCM444444555</Rfc>
       <Relacion />
       <Domicilio />
-      <Complementarios>CURP: ZUCM444444ABCDEF, Fecha de nacimiento  01/01/1991</Complementarios>
+      <Complementarios>CURP: ZUCM444444ABCDEF01, Fecha de nacimiento  01/01/1991</Complementarios>
     </PersonasSolicitud>
   </SolicitudEspecifica>
 </Expediente>
