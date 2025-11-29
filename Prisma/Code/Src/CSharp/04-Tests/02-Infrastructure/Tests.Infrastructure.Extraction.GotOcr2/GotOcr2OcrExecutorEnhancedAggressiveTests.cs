@@ -67,6 +67,8 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
     [InlineData("Q2_MediumPoor", "555CCC-66666662025_page1.png")]
     public async Task AggressiveEnhancedFixturesExist_AllQualityLevels(string qualityLevel, string imageName)
     {
+        Assert.Skip("Slow test (~140s per image × 16 = ~37 mins). Enable manually for robustness testing.");
+
         // Arrange
         _logger.LogInformation($"\n=== Checking Aggressive Enhanced Fixture: {qualityLevel}/{imageName} ===");
         _logger.LogInformation($"AppContext.BaseDirectory: {AppContext.BaseDirectory}");

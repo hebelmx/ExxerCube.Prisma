@@ -89,19 +89,19 @@
   </ItemGroup>
   <!-- Copy fixture files to output directory -->
   <ItemGroup Label="Test Fixtures">
-    <None Include="..\..\..\..\Samples\GotOcr2Sample\PythonOcrLib\PRP1\*.pdf" Link="Fixtures\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\\Samples\GotOcr2Sample\PythonOcrLib\PRP1\*.pdf" Link="Fixtures\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <!-- Copy degraded image fixtures for robustness testing -->
   <ItemGroup Label="Degraded Image Fixtures">
-    <None Include="..\..\..\..\Fixtures\PRP1_Degraded\Q1_Poor\*.*" Link="Fixtures\PRP1_Degraded\Q1_Poor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\..\..\Fixtures\PRP1_Degraded\Q2_MediumPoor\*.*" Link="Fixtures\PRP1_Degraded\Q2_MediumPoor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\..\..\Fixtures\PRP1_Degraded\Q3_Low\*.*" Link="Fixtures\PRP1_Degraded\Q3_Low\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\..\..\Fixtures\PRP1_Degraded\Q4_VeryLow\*.*" Link="Fixtures\PRP1_Degraded\Q4_VeryLow\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\\Fixtures\PRP1_Degraded\Q1_Poor\*.*" Link="Fixtures\PRP1_Degraded\Q1_Poor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\\Fixtures\PRP1_Degraded\Q2_MediumPoor\*.*" Link="Fixtures\PRP1_Degraded\Q2_MediumPoor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\\Fixtures\PRP1_Degraded\Q3_Low\*.*" Link="Fixtures\PRP1_Degraded\Q3_Low\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\\Fixtures\PRP1_Degraded\Q4_VeryLow\*.*" Link="Fixtures\PRP1_Degraded\Q4_VeryLow\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <!-- Copy enhanced image fixtures for Phase 2 ROI testing -->
   <ItemGroup Label="Enhanced Image Fixtures (Phase 2)">
-    <None Include="..\..\..\..\Fixtures\PRP1_Enhanced\Q1_Poor\*.*" Link="Fixtures\PRP1_Enhanced\Q1_Poor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\..\..\Fixtures\PRP1_Enhanced\Q2_MediumPoor\*.*" Link="Fixtures\PRP1_Enhanced\Q2_MediumPoor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\\Fixtures\PRP1_Enhanced\Q1_Poor\*.*" Link="Fixtures\PRP1_Enhanced\Q1_Poor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\\Fixtures\PRP1_Enhanced\Q2_MediumPoor\*.*" Link="Fixtures\PRP1_Enhanced\Q2_MediumPoor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Fixtures\OcrSamples\noisy_account.txt" CopyToOutputDirectory="PreserveNewest" />
@@ -118,6 +118,6 @@
   </ItemGroup>
   <!-- Copy requirements.txt for Python dependencies -->
   <ItemGroup Label="Python Dependencies">
-    <None Include="..\..\..\..\Samples\GotOcr2Sample\PythonOcrLib\requirements.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\\Samples\GotOcr2Sample\PythonOcrLib\requirements.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

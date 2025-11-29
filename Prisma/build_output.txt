@@ -1,0 +1,86 @@
+  Determining projects to restore...
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj (in 550 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj (in 539 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj (in 540 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj (in 550 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj (in 532 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.GotOcr2\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.csproj (in 586 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj (in 546 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj (in 531 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-ConsoleApp\ConsoleApp.GotOcr2Demo\ExxerCube.Prisma.ConsoleApp.GotOcr2Demo.csproj (in 549 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj (in 549 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\01-Core\Application\ExxerCube.Prisma.Application.csproj (in 548 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj (in 550 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.csproj (in 569 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj (in 532 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Database\ExxerCube.Prisma.Tests.Infrastructure.Database.csproj (in 643 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\06-Architecture\Tests.Architecture\ExxerCube.Prisma.Tests.Architecture.csproj (in 647 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\ExxerCube.Prisma.Tests.System.Ocr.Pipeline.csproj (in 634 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\ExxerCube.Prisma.Tests.EndToEnd.csproj (in 648 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\04-UI\Tests.UI\ExxerCube.Prisma.Tests.UI.csproj (in 642 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\03-UI\UI\ExxerCube.Prisma.Web.UI\ExxerCube.Prisma.Web.UI.csproj (in 647 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\01-Core\Domain\ExxerCube.Prisma.Domain.csproj (in 54 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Python\ExxerCube.Prisma.Testing.Python.csproj (in 69 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\01-Core\Tests.Domain.Interfaces\ExxerCube.Prisma.Tests.Domain.Interfaces.csproj (in 85 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.FileSystem\ExxerCube.Prisma.Tests.Infrastructure.FileSystem.csproj (in 94 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Metrics\ExxerCube.Prisma.Tests.Infrastructure.Metrics.csproj (in 220 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj (in 230 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj (in 206 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.csproj (in 221 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Classification\ExxerCube.Prisma.Tests.Infrastructure.Classification.csproj (in 265 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Python\ExxerCube.Prisma.Tests.Infrastructure.Python.csproj (in 268 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Export\ExxerCube.Prisma.Tests.Infrastructure.Export.csproj (in 233 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Imaging\ExxerCube.Prisma.Tests.Infrastructure.Imaging.csproj (in 302 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj (in 323 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.XmlExtraction\ExxerCube.Prisma.Tests.System.XmlExtraction.csproj (in 341 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\01-Core\Tests.Domain\ExxerCube.Prisma.Tests.Domain.csproj (in 362 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.FileStorage\ExxerCube.Prisma.Tests.Infrastructure.FileStorage.csproj (in 351 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction\ExxerCube.Prisma.Tests.Infrastructure.Extraction.csproj (in 338 ms).
+  Restored F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\01-Core\Tests.Application\ExxerCube.Prisma.Tests.Application.csproj (in 375 ms).
+  ExxerCube.Prisma.Testing.Abstractions -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Testing.Abstractions\net10.0\ExxerCube.Prisma.Testing.Abstractions.dll
+  ExxerCube.Prisma.Domain -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Domain\net10.0\ExxerCube.Prisma.Domain.dll
+  ExxerCube.Prisma.Infrastructure.Metrics -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.Metrics\net10.0\ExxerCube.Prisma.Infrastructure.Metrics.dll
+  ExxerCube.Prisma.Infrastructure.Database -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.Database\net10.0\ExxerCube.Prisma.Infrastructure.Database.dll
+  ExxerCube.Prisma.Infrastructure.FileStorage -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.FileStorage\net10.0\ExxerCube.Prisma.Infrastructure.FileStorage.dll
+  ExxerCube.Prisma.Infrastructure.Export -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.Export\net10.0\ExxerCube.Prisma.Infrastructure.Export.dll
+  ExxerCube.Prisma.Infrastructure.Imaging -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.Imaging\net10.0\ExxerCube.Prisma.Infrastructure.Imaging.dll
+  ExxerCube.Prisma.Application -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Application\net10.0\ExxerCube.Prisma.Application.dll
+  ExxerCube.Prisma.Infrastructure.BrowserAutomation -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.BrowserAutomation\net10.0\ExxerCube.Prisma.Infrastructure.BrowserAutomation.dll
+  ExxerCube.Prisma.Infrastructure.Python.GotOcr2 -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.Python.GotOcr2\net10.0\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.dll
+  ExxerCube.Prisma.Testing.Infrastructure -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Testing.Infrastructure\net10.0\ExxerCube.Prisma.Testing.Infrastructure.dll
+  ExxerCube.Prisma.Testing.Contracts -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Testing.Contracts\net10.0\ExxerCube.Prisma.Testing.Contracts.dll
+  ExxerCube.Prisma.Infrastructure.Extraction -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.Extraction\net10.0\ExxerCube.Prisma.Infrastructure.Extraction.dll
+F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj(53,5): warning : ocr_modules path not found at: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Python\prisma-ocr-pipeline\src. CSnakes code generation may fail. Use build-infrastructure.ps1 script or set PYTHONPATH manually.
+  ExxerCube.Prisma.Infrastructure.Classification -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure.Classification\net10.0\ExxerCube.Prisma.Infrastructure.Classification.dll
+  ExxerCube.Prisma.ConsoleApp.GotOcr2Demo -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.ConsoleApp.GotOcr2Demo\net10.0\ExxerCube.Prisma.ConsoleApp.GotOcr2Demo.dll
+  ExxerCube.Prisma.Infrastructure -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Infrastructure\net10.0\ExxerCube.Prisma.Infrastructure.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.dll
+  ExxerCube.Prisma.Tests.Domain -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Domain\net10.0\ExxerCube.Prisma.Tests.Domain.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Metrics -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Metrics\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Metrics.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2 -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Imaging -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Imaging\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Imaging.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Extraction -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Extraction\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Extraction.dll
+  ExxerCube.Prisma.Tests.Domain.Interfaces -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Domain.Interfaces\net10.0\ExxerCube.Prisma.Tests.Domain.Interfaces.dll
+  ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\net10.0\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Classification -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Classification\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Classification.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Database -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Database\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Database.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Export -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Export\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Export.dll
+  ExxerCube.Prisma.Tests.System.XmlExtraction -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.System.XmlExtraction\net10.0\ExxerCube.Prisma.Tests.System.XmlExtraction.dll
+  ExxerCube.Prisma.Tests.Infrastructure.FileStorage -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.FileStorage\net10.0\ExxerCube.Prisma.Tests.Infrastructure.FileStorage.dll
+  ExxerCube.Prisma.Tests.Application -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Application\net10.0\ExxerCube.Prisma.Tests.Application.dll
+  ExxerCube.Prisma.Tests.Infrastructure.FileSystem -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.FileSystem\net10.0\ExxerCube.Prisma.Tests.Infrastructure.FileSystem.dll
+  ExxerCube.Prisma.Tests.System.Ocr.Pipeline -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\net10.0\ExxerCube.Prisma.Tests.System.Ocr.Pipeline.dll
+  ExxerCube.Prisma.Testing.Python -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Testing.Python\net10.0\ExxerCube.Prisma.Testing.Python.dll
+  ExxerCube.Prisma.Tests.Architecture -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Architecture\net10.0\ExxerCube.Prisma.Tests.Architecture.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Python -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.Infrastructure.Python\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Python.dll
+  ExxerCube.Prisma.Web.UI -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Web.UI\net10.0\ExxerCube.Prisma.Web.UI.dll
+  ExxerCube.Prisma.Tests.UI -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.UI\net10.0\ExxerCube.Prisma.Tests.UI.dll
+  ExxerCube.Prisma.Tests.EndToEnd -> F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\bin\Debug\ExxerCube.Prisma.Tests.EndToEnd\net10.0\ExxerCube.Prisma.Tests.EndToEnd.dll
+
+Build succeeded.
+
+F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj(53,5): warning : ocr_modules path not found at: F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\Python\prisma-ocr-pipeline\src. CSnakes code generation may fail. Use build-infrastructure.ps1 script or set PYTHONPATH manually.
+    1 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:45.06

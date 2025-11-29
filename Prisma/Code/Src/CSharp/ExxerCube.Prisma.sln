@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.3.11206.111
@@ -78,7 +78,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 Contracts", "02 Contract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Testing.Contracts", "05-Testing\01-Abstractions\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj", "{40CD8AE1-2350-4286-AAC6-06913EADA2EA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04", "04", "{29717C03-BAFB-1B2C-6138-345435E8583B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04 Pythin Testing", "04 Pythin Testing", "{29717C03-BAFB-1B2C-6138-345435E8583B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Testing.Python", "05-Testing\01-Abstractions\Testing\Python\ExxerCube.Prisma.Testing.Python.csproj", "{323347EC-0FD5-4989-817D-8E1EBCA9CCE8}"
 EndProject
@@ -102,7 +102,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "06 Architecture", "06 Archi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Infrastructure.Python.GotOcr2", "02-Infrastructure\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj", "{429E8B33-0C9F-444D-85A0-ED88F8DB23AD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "05 ConsoleApp.GotOcr2Demo", "05 ConsoleApp.GotOcr2Demo", "{8110EF5A-ABEA-BA9D-641B-08C80D3EB151}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "06 ConsoleApp.GotOcr2Demo", "06 ConsoleApp.GotOcr2Demo", "{8110EF5A-ABEA-BA9D-641B-08C80D3EB151}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.ConsoleApp.GotOcr2Demo", "05-ConsoleApp\ConsoleApp.GotOcr2Demo\ExxerCube.Prisma.ConsoleApp.GotOcr2Demo.csproj", "{D2D3DB95-8A8D-4066-8E3A-A53C2A480CF5}"
 EndProject

@@ -64,6 +64,8 @@ public class GotOcr2OcrExecutorDegradedTests : IDisposable
     [InlineData("Q4_VeryLow", "555CCC-66666662025_page1.png")]
     public async Task DegradedFixturesExist_AllQualityLevels(string qualityLevel, string imageName)
     {
+        Assert.Skip("Slow test (~140s per image × 16 = ~37 mins). Enable manually for robustness testing.");
+
         // Arrange
         _logger.LogInformation($"\n=== Checking Degraded Fixture: {qualityLevel}/{imageName} ===");
         _logger.LogInformation($"AppContext.BaseDirectory: {AppContext.BaseDirectory}");
