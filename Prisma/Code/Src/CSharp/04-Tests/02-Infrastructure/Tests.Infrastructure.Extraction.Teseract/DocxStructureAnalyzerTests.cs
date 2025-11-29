@@ -117,7 +117,7 @@ public sealed class DocxStructureAnalyzerTests
 
         // Assert
         act.Should().Throw<ArgumentException>()
-            .WithMessage("*cannot be empty*");
+            .WithMessage("*cannot be null or empty*"); // Actual: "DOCX bytes cannot be null or empty. (Parameter 'docxBytes')"
     }
 
     // Helper methods to create test DOCX documents

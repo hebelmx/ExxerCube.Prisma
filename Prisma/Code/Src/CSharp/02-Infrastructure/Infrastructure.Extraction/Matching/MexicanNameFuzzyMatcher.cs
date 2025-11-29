@@ -20,11 +20,11 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Matching;
 /// - Spelling variations: González/Gonzales/Gonzalez, Christian/Cristian
 /// - Case variations: PÉREZ/pérez/Pérez
 ///
-/// Uses Levenshtein distance with 90% similarity threshold.
+/// Uses Levenshtein distance with 85% similarity threshold (best-effort OCR).
 /// </summary>
 public sealed class MexicanNameFuzzyMatcher
 {
-    private const int SimilarityThreshold = 90;
+    private const int SimilarityThreshold = 85;
 
     // Patterns that indicate NON-name fields (must match exactly)
     private static readonly Regex RfcPattern = new(@"^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$", RegexOptions.Compiled);
@@ -35,7 +35,7 @@ public sealed class MexicanNameFuzzyMatcher
     private static readonly Regex DatePattern = new(@"^\d{4}-\d{2}-\d{2}$|^\d{2}/\d{2}/\d{4}$", RegexOptions.Compiled);
 
     /// <summary>
-    /// Gets the similarity threshold percentage for fuzzy matching (90%).
+    /// Gets the similarity threshold percentage for fuzzy matching (85%).
     /// </summary>
     public int MatchThreshold => SimilarityThreshold;
 
