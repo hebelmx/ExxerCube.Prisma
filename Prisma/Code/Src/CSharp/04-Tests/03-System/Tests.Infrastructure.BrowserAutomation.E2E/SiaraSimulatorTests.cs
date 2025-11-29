@@ -32,13 +32,18 @@ public class SiaraSimulatorTests : IAsyncLifetime
         // Start from current directory (test assembly location)
         var currentDir = Directory.GetCurrentDirectory();
 
-        // Find solution root by looking for .git or Deployments folder
+        // Find Prisma root by looking for Prisma folder with Deployments
         var searchDir = new DirectoryInfo(currentDir);
         while (searchDir != null)
         {
-            // Check if we found the solution root (has Deployments folder)
+            // Look for Prisma folder (more specific marker than just Deployments)
+            // This ensures we find F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Deployments
+            // not F:\Dynamic\Deployments
             var deploymentsPath = Path.Combine(searchDir.FullName, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
-            if (File.Exists(deploymentsPath))
+            var codeFolder = Path.Combine(searchDir.FullName, "Code", "Src", "CSharp");
+
+            // Verify this is the Prisma root by checking for Code/Src/CSharp structure
+            if (File.Exists(deploymentsPath) && Directory.Exists(codeFolder))
             {
                 return deploymentsPath;
             }
@@ -48,6 +53,7 @@ public class SiaraSimulatorTests : IAsyncLifetime
         }
 
         // Fallback: construct from typical structure
+        // From test output dir, go up to Prisma root: bin -> Tests.System.BrowserAutomation.E2E -> 04-Tests -> CSharp -> Src -> Code -> Prisma
         return Path.GetFullPath(
             Path.Combine(
                 currentDir,

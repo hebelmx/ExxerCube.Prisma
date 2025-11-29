@@ -39,7 +39,7 @@ public class NavigationSmokeTests : IAsyncLifetime
         _factory?.Dispose();
     }
 
-    [Fact(Skip = "Requires WebApplicationFactory to start properly. ERR_CONNECTION_REFUSED - Playwright can't connect to test server.")]
+    [Fact]
     public async Task DrawerLinkNavigatesToDocumentProcessing()
     {
         await using var context = await NewContextAsync();
@@ -55,7 +55,7 @@ public class NavigationSmokeTests : IAsyncLifetime
         await Expect(activeLink).ToHaveAttributeAsync("aria-current", "page");
     }
 
-    [Fact(Skip = "Requires WebApplicationFactory to start properly. ERR_CONNECTION_REFUSED - Playwright can't connect to test server.")]
+    [Fact]
     public async Task UnknownRouteShowsHelpfulNotFoundPanel()
     {
         await using var context = await NewContextAsync();
