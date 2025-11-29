@@ -25,9 +25,9 @@ public class OcrFixturePipelineTests : IDisposable
     {
         var sanitized = await RunOcrAndSanitizeAsync("Accounts/Clean/account_clean.png");
         sanitized.Account.Cleaned.ShouldBe("1234567890123456");
-        sanitized.Swift.Cleaned.ShouldBe("SWIFTBNMXMXMMX"); // Best-effort OCR includes "SWIFT" label
+        sanitized.Swift.Cleaned.ShouldBe("BNMXMXMMX"); // TextSanitizer strips "SWIFT" label prefix
         sanitized.Account.Warnings.ShouldNotContain("AccountNormalized");
-        sanitized.Swift.Warnings.ShouldNotContain("SwiftNormalized");
+        sanitized.Swift.Warnings.ShouldContain("SwiftNormalized"); // Label stripping counts as normalization
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class OcrFixturePipelineTests : IDisposable
     {
         var sanitized = await RunOcrAndSanitizeAsync("Accounts/Noisy/account_noisy.png");
         sanitized.Account.Cleaned.ShouldBe("1234567890123456");
-        sanitized.Swift.Cleaned.ShouldBe("SWIFTBNMXMXMMX"); // Best-effort OCR includes "SWIFT" label
+        sanitized.Swift.Cleaned.ShouldBe("BNMXMXMMX"); // TextSanitizer strips "SWIFT" label prefix
         sanitized.Account.Warnings.ShouldContain("AccountNormalized");
         sanitized.Swift.Warnings.ShouldContain("SwiftNormalized");
     }
@@ -56,7 +56,7 @@ public class OcrFixturePipelineTests : IDisposable
     {
         var sanitized = await RunOcrAndSanitizeAsync("Edge/NoXml/no_xml.png");
         sanitized.Account.Cleaned.ShouldBe("9988776655443322");
-        sanitized.Swift.Cleaned.ShouldBe("SWIFTABCDUS33XXX"); // Best-effort OCR includes "SWIFT" label
+        sanitized.Swift.Cleaned.ShouldBe("ABCDUS33XXX"); // TextSanitizer strips "SWIFT" label prefix (11 chars)
     }
 
     [Fact]
@@ -85,8 +85,8 @@ public class OcrFixturePipelineTests : IDisposable
         var sanitized = await RunOcrAndSanitizeAsync("Edge/GibberishAccount/gibberish.png");
         sanitized.Account.Cleaned.ShouldNotBeEmpty();
         sanitized.Account.Warnings.ShouldContain("AccountNormalized");
-        sanitized.Swift.Cleaned.ShouldBe("SWIFTO0ORAS"); // Best-effort OCR: extracts gibberish with SWIFT prefix
-        sanitized.Swift.Warnings.ShouldContain("SwiftNormalized"); // Changed from SwiftMissing since it extracted something
+        sanitized.Swift.Cleaned.ShouldBe("O0ORAS"); // TextSanitizer strips "SWIFT" label prefix (gibberish remains)
+        sanitized.Swift.Warnings.ShouldContain("SwiftNormalized");
     }
 
     private async Task<SanitizedOcrValues> RunOcrAndSanitizeAsync(string relativeFixturePath)

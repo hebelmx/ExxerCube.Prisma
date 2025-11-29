@@ -12,6 +12,11 @@ public sealed class TextSanitizer : ITextSanitizer
 {
     private static readonly Regex NonDigitRegex = new(@"[^\d]", RegexOptions.Compiled);
     private static readonly Regex NonAlphaNumericRegex = new(@"[^A-Za-z0-9]", RegexOptions.Compiled);
+
+    // Common OCR label prefixes to strip before cleaning
+    private static readonly Regex SwiftLabelPrefixRegex = new(@"^\s*(SWIFT|BIC|CODIGO|CODE|SWIFT\s*CODE|BIC\s*CODE)\s*[:.\-]?\s*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex AccountLabelPrefixRegex = new(@"^\s*(CUENTA|ACCOUNT|CTA|NO\s*DE\s*CUENTA|NUM|NUMERO|NUMBER)\s*[:.\-]?\s*", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     private const int MinAccountLength = 6;
     private const int MaxAccountLength = 20;
 
@@ -23,7 +28,9 @@ public sealed class TextSanitizer : ITextSanitizer
     public TextCleaningResult CleanAccount(string? raw)
     {
         var source = raw ?? string.Empty;
-        var cleaned = NonDigitRegex.Replace(source, string.Empty);
+        // Strip common OCR label prefixes first (CUENTA:, ACCOUNT:, etc.)
+        var withoutLabel = AccountLabelPrefixRegex.Replace(source, string.Empty);
+        var cleaned = NonDigitRegex.Replace(withoutLabel, string.Empty);
 
         var warnings = new List<string>();
         if (string.IsNullOrWhiteSpace(cleaned))
@@ -53,7 +60,9 @@ public sealed class TextSanitizer : ITextSanitizer
     public TextCleaningResult CleanSwift(string? raw)
     {
         var source = raw ?? string.Empty;
-        var cleaned = NonAlphaNumericRegex.Replace(source, string.Empty).ToUpperInvariant();
+        // Strip common OCR label prefixes first (SWIFT:, BIC:, etc.)
+        var withoutLabel = SwiftLabelPrefixRegex.Replace(source, string.Empty);
+        var cleaned = NonAlphaNumericRegex.Replace(withoutLabel, string.Empty).ToUpperInvariant();
 
         var warnings = new List<string>();
         if (string.IsNullOrWhiteSpace(cleaned))
