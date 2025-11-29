@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\PRP1\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <!-- Copy degraded image fixtures for E2E filter tests -->
   <ItemGroup Label="Degraded Image Fixtures">
