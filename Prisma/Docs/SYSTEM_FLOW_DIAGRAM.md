@@ -210,3 +210,18 @@ flowchart TD
 - **Storage**: SQL Server (structured storage)
 - **Logging**: Serilog (observability)
 - **UI**: Blazor Server + MudBlazor
+
+## Service Wiring (Production DI)
+
+This maps the flow stages to the concrete services and DbContexts currently wired in `Program.ConfigureServices` / `AddDatabaseServices`:
+
+- **Identity & Auth**: `ApplicationDbContext` via `IDbContextFactory<ApplicationDbContext>`, Identity cookies, `IdentityUserAccessor`, `IdentityRedirectManager`, `AuthenticationStateProvider`.
+- **Application Data**: `PrismaDbContext` + `IPrismaDbContext`, repositories (`IRepository<,>`), `DownloadTrackerService`, `FileMetadataLoggerService`, `IAuditLogger` (queued), `QueuedAuditProcessorService`, `SLAMetricsCollector`, `SLAEnforcerService` / `ISLAEnforcer`, `EventPublisher`.
+- **Monitoring & Download**: `AddBrowserAutomationServices` (Playwright agent & job objects), `FileDownloadService`, `DocumentIngestionService`, `FileMetadataQueryService`.
+- **OCR & Imaging**: `AddOcrProcessingServices` (Tesseract adapters), `AddPrismaPythonEnvironment`, `AddImagingInfrastructure` (quality analysis, filters).
+- **Extraction & Classification**: `AddExtractionServices`, `AddClassificationServices`, `MetadataExtractionService`, `FieldMatchingService`, `IFieldMatcher<DocxSource>`, `IFieldMatcher<PdfSource>`.
+- **Decision & SLA**: `DecisionLogicService`, `SLATrackingService`, health checks (`SLAEnforcerHealthCheck`, `SLABackgroundJobHealthCheck`).
+- **Export & Delivery**: `AddExportServices`, `ExportService`, `AuditReportingService`.
+- **Real-time UI**: `ProcessingHub` (SignalR), `AddMetricsServices`, Serilog logging/OTel exporters.
+
+If additional flow capabilities are introduced, they should be represented here and wired through DI so the WebApplicationFactory DI tests can assert their presence.

@@ -1,14 +1,16 @@
+using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-
 
 namespace ExxerCube.Prisma.Web.UI.Hubs;
 
 /// <summary>
-/// SignalR hub for real-time OCR processing updates.
+/// SignalR hub for real-time OCR processing updates and domain event broadcasting.
+/// Inherits from ExxerHub to leverage Ember's transport-agnostic abstraction.
 /// </summary>
-public class ProcessingHub : Hub
+public class ProcessingHub : ExxerHub<DomainEvent>
 {
     private readonly ILogger<ProcessingHub> _logger;
 
@@ -17,6 +19,7 @@ public class ProcessingHub : Hub
     /// </summary>
     /// <param name="logger">The logger.</param>
     public ProcessingHub(ILogger<ProcessingHub> logger)
+        : base(logger)
     {
         _logger = logger;
     }
@@ -30,9 +33,9 @@ public class ProcessingHub : Hub
     /// <param name="message">The status message.</param>
     public async Task UpdateProcessingStatus(string jobId, string status, int progress, string message)
     {
-        _logger.LogInformation("Sending processing status update: JobId={JobId}, Status={Status}, Progress={Progress}%", 
+        _logger.LogInformation("Sending processing status update: JobId={JobId}, Status={Status}, Progress={Progress}%",
             jobId, status, progress);
-        
+
         await Clients.All.SendAsync("ProcessingStatusUpdated", jobId, status, progress, message);
     }
 
@@ -44,7 +47,7 @@ public class ProcessingHub : Hub
     public async Task ProcessingComplete(string jobId, ProcessingResult result)
     {
         _logger.LogInformation("Sending processing completion: JobId={JobId}", jobId);
-        
+
         await Clients.All.SendAsync("ProcessingComplete", jobId, result);
     }
 
@@ -56,7 +59,7 @@ public class ProcessingHub : Hub
     public async Task ProcessingError(string jobId, string error)
     {
         _logger.LogError("Sending processing error: JobId={JobId}, Error={Error}", jobId, error);
-        
+
         await Clients.All.SendAsync("ProcessingError", jobId, error);
     }
 
@@ -91,23 +94,18 @@ public class ProcessingHub : Hub
     }
 
     /// <summary>
-    /// Called when a client connects to the hub.
+    /// Broadcasts a domain event to all connected clients for real-time event streaming.
+    /// Uses the inherited SendToAllAsync method from ExxerHub for transport-agnostic broadcasting.
     /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public override async Task OnConnectedAsync()
+    /// <param name="eventType">The type of domain event.</param>
+    /// <param name="eventData">The serialized event data.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task BroadcastDomainEvent(string eventType, object eventData, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Client connected: {ConnectionId}", Context.ConnectionId);
-        await base.OnConnectedAsync();
+        _logger.LogDebug("Broadcasting domain event: {EventType}", eventType);
+        await Clients.All.SendAsync("DomainEventOccurred", eventType, eventData, cancellationToken);
     }
 
-    /// <summary>
-    /// Called when a client disconnects from the hub.
-    /// </summary>
-    /// <param name="exception">The exception that occurred during disconnection, if any.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        _logger.LogInformation("Client disconnected: {ConnectionId}", Context.ConnectionId);
-        await base.OnDisconnectedAsync(exception);
-    }
+    // Note: OnConnectedAsync and OnDisconnectedAsync are inherited from ExxerHub<T>
+    // which provides connection tracking and logging
 }

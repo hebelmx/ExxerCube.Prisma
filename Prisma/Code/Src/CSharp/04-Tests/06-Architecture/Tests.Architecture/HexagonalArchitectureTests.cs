@@ -14,8 +14,11 @@ namespace ExxerCube.Prisma.Tests.Architecture;
 /// 5. No cross-Infrastructure dependencies
 /// 6. No class type duplication across layers
 /// </summary>
-public sealed class HexagonalArchitectureTests
+public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 {
+    private readonly ILogger logger = XUnitLogger.CreateLogger<HexagonalArchitectureTests>(output);
+
+
     private static readonly Assembly DomainAssembly = typeof(ExxerCube.Prisma.Domain.Entities.FileMetadata).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(ExxerCube.Prisma.Application.Services.DocumentIngestionService).Assembly;
 
@@ -46,6 +49,11 @@ public sealed class HexagonalArchitectureTests
             .ResideInNamespace("ExxerCube.Prisma.Domain.Interfaces")
             .GetResult();
 
+        if (!result.IsSuccessful)
+        {
+            logger.LogWarning("Rule: Interfaces in Domain only. Violations: {Violations}", string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>()));
+        }
+
         result.IsSuccessful.ShouldBeTrue(
             $"All interfaces must be in Domain.Interfaces namespace. Violations: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
@@ -61,6 +69,11 @@ public sealed class HexagonalArchitectureTests
             .AreInterfaces()
             .GetTypes()
             .ToList();
+
+        if (interfaces.Any())
+        {
+            logger.LogWarning("Rule: Application should not declare interfaces. Found: {Interfaces}", string.Join(", ", interfaces.Select(t => t.FullName)));
+        }
 
         interfaces.ShouldBeEmpty(
             $"Application layer must not contain interfaces. Found: {string.Join(", ", interfaces.Select(t => t.FullName))}");
@@ -98,6 +111,11 @@ public sealed class HexagonalArchitectureTests
                 var failingTypes = string.Join(", ", interfaces.Select(t => t.FullName));
                 violations.Add($"{assemblyName}: {failingTypes}");
             }
+        }
+
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: Infrastructure should not expose ports. Violations: {Violations}", string.Join("; ", violations));
         }
 
         violations.ShouldBeEmpty(
@@ -140,6 +158,11 @@ public sealed class HexagonalArchitectureTests
             }
         }
 
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: Domain interfaces implemented only in Infra. Violations: {Violations}", string.Join("; ", violations));
+        }
+
         violations.ShouldBeEmpty(
             $"Domain interfaces must only be implemented in Infrastructure layer. Violations: {string.Join("; ", violations)}");
     }
@@ -179,6 +202,11 @@ public sealed class HexagonalArchitectureTests
             }
         }
 
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: Application services should not implement Domain interfaces. Violations: {Violations}", string.Join("; ", violations));
+        }
+
         violations.ShouldBeEmpty(
             $"Application services must not implement Domain interfaces. Violations: {string.Join("; ", violations)}");
     }
@@ -197,6 +225,11 @@ public sealed class HexagonalArchitectureTests
             .ShouldNot()
             .HaveDependencyOn("ExxerCube.Prisma.Application")
             .GetResult();
+
+        if (!result.IsSuccessful)
+        {
+            logger.LogWarning("Rule: Domain must not depend on Application. Violations: {Violations}", string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>()));
+        }
 
         result.IsSuccessful.ShouldBeTrue(
             $"Domain must not depend on Application. Violations: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
@@ -234,6 +267,11 @@ public sealed class HexagonalArchitectureTests
                 var failingTypes = string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>());
                 violations.Add($"{infrastructureNamespace}: {failingTypes}");
             }
+        }
+
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: Domain must not depend on Infrastructure. Violations: {Violations}", string.Join("; ", violations));
         }
 
         violations.ShouldBeEmpty(
@@ -274,6 +312,11 @@ public sealed class HexagonalArchitectureTests
             }
         }
 
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: Application must not depend on Infrastructure. Violations: {Violations}", string.Join("; ", violations));
+        }
+
         violations.ShouldBeEmpty(
             $"Application must not depend on Infrastructure. Violations: {string.Join("; ", violations)}");
     }
@@ -288,29 +331,29 @@ public sealed class HexagonalArchitectureTests
         // Since Application has a project reference to Domain, we verify by checking if Application
         // types actually use Domain types (which they should).
         var applicationTypes = Types.InAssembly(ApplicationAssembly).GetTypes().ToList();
-        
+
         // Check if any Application type uses Domain types through interfaces, base types, or method signatures
         var hasDomainDependency = applicationTypes.Any(type =>
         {
             // Check if type implements Domain interfaces
             if (type.GetInterfaces().Any(i => i.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true))
                 return true;
-            
+
             // Check if type inherits from Domain types
             if (type.BaseType?.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true)
                 return true;
-            
+
             // Check if type has methods/properties that use Domain types
             var methods = type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static);
-            if (methods.Any(m => 
+            if (methods.Any(m =>
                 m.ReturnType.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true ||
                 m.GetParameters().Any(p => p.ParameterType.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true)))
                 return true;
-            
+
             var properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static);
             if (properties.Any(p => p.PropertyType.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true))
                 return true;
-            
+
             return false;
         });
 
@@ -322,6 +365,8 @@ public sealed class HexagonalArchitectureTests
 
         // Pass if either check succeeds (NetArchTest might be too strict)
         var isSuccessful = hasDomainDependency || netArchResult.IsSuccessful;
+
+        logger.LogInformation("Rule: Application depends on Domain. Direct={Direct}, NetArch={NetArch}", hasDomainDependency, netArchResult.IsSuccessful);
 
         isSuccessful.ShouldBeTrue(
             $"Application must depend on Domain. " +
@@ -344,28 +389,28 @@ public sealed class HexagonalArchitectureTests
             // Since Infrastructure projects have project references to Domain, we verify by checking
             // if Infrastructure types actually use Domain types (which they should).
             var infrastructureTypes = Types.InAssembly(infrastructureAssembly).GetTypes().ToList();
-            
+
             var hasDomainDependency = infrastructureTypes.Any(type =>
             {
                 // Check if type implements Domain interfaces
                 if (type.GetInterfaces().Any(i => i.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true))
                     return true;
-                
+
                 // Check if type inherits from Domain types
                 if (type.BaseType?.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true)
                     return true;
-                
+
                 // Check if type has methods/properties that use Domain types
                 var methods = type.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static);
-                if (methods.Any(m => 
+                if (methods.Any(m =>
                     m.ReturnType.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true ||
                     m.GetParameters().Any(p => p.ParameterType.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true)))
                     return true;
-                
+
                 var properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static);
                 if (properties.Any(p => p.PropertyType.Namespace?.StartsWith("ExxerCube.Prisma.Domain") == true))
                     return true;
-                
+
                 return false;
             });
 
@@ -383,6 +428,11 @@ public sealed class HexagonalArchitectureTests
                 var assemblyName = infrastructureAssembly.GetName().Name;
                 violations.Add($"{assemblyName} does not depend on Domain (NetArchTest: {(netArchResult.IsSuccessful ? "Pass" : "Fail")}, Direct check: {(hasDomainDependency ? "Found" : "Not found")})");
             }
+        }
+
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: Infrastructure depends on Domain. Violations: {Violations}", string.Join("; ", violations));
         }
 
         violations.ShouldBeEmpty(
@@ -435,6 +485,11 @@ public sealed class HexagonalArchitectureTests
                     violations.Add($"{sourceName} → {targetNamespace}: {failingTypes}");
                 }
             }
+        }
+
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: Infrastructure projects should be isolated. Violations: {Violations}", string.Join("; ", violations));
         }
 
         violations.ShouldBeEmpty(
@@ -504,7 +559,7 @@ public sealed class HexagonalArchitectureTests
         // - ServiceCollectionExtensions: Standard .NET DI pattern, each Infrastructure project has its own extension
         // - <PrivateImplementationDetails>: Compiler-generated types, not actual duplicates
         var excludedNames = new HashSet<string> { "ServiceCollectionExtensions", "<PrivateImplementationDetails>" };
-        
+
         var duplicates = allTypes
             .Where(kvp => kvp.Value.Count > 1)
             .Where(kvp => !excludedNames.Contains(kvp.Key)) // Exclude acceptable duplicates
@@ -514,6 +569,11 @@ public sealed class HexagonalArchitectureTests
                 return layers.Count > 1; // Duplicate across different layers
             })
             .ToList();
+
+        if (duplicates.Any())
+        {
+            logger.LogWarning("Rule: No duplicate class names across layers. Duplicates: {Duplicates}", string.Join("; ", duplicates.Select(d => $"{d.Key} in {string.Join(", ", d.Value)}")));
+        }
 
         duplicates.ShouldBeEmpty(
             $"No class types should be duplicated across layers. Duplicates found: {string.Join("; ", duplicates.Select(d => $"{d.Key} in {string.Join(", ", d.Value)}"))}");
@@ -583,6 +643,11 @@ public sealed class HexagonalArchitectureTests
             })
             .ToList();
 
+        if (duplicates.Any())
+        {
+            logger.LogWarning("Rule: No duplicate interface names across layers. Duplicates: {Duplicates}", string.Join("; ", duplicates.Select(d => $"{d.Key} in {string.Join(", ", d.Value)}")));
+        }
+
         duplicates.ShouldBeEmpty(
             $"No interface types should be duplicated across layers. Duplicates found: {string.Join("; ", duplicates.Select(d => $"{d.Key} in {string.Join(", ", d.Value)}"))}");
     }
@@ -601,6 +666,11 @@ public sealed class HexagonalArchitectureTests
             .ShouldNot()
             .HaveDependencyOn("Microsoft.EntityFrameworkCore")
             .GetResult();
+
+        if (!result.IsSuccessful)
+        {
+            logger.LogWarning("Rule: Application should not reference EFCore. Violations: {Violations}", string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>()));
+        }
 
         result.IsSuccessful.ShouldBeTrue(
             $"Application must not reference EntityFrameworkCore. Violations: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
@@ -639,6 +709,11 @@ public sealed class HexagonalArchitectureTests
                 var failingTypes = string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>());
                 violations.Add($"{attributeName}: {failingTypes}");
             }
+        }
+
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: Domain entities should be persistence-agnostic. Violations: {Violations}", string.Join("; ", violations));
         }
 
         violations.ShouldBeEmpty(
@@ -694,6 +769,11 @@ public sealed class HexagonalArchitectureTests
             {
                 unimplementedInterfaces.Add(domainInterface.FullName ?? domainInterface.Name);
             }
+        }
+
+        if (unimplementedInterfaces.Any())
+        {
+            logger.LogWarning("Rule: Domain interfaces must have implementations. Missing: {Missing}", string.Join(", ", unimplementedInterfaces));
         }
 
         unimplementedInterfaces.ShouldBeEmpty(
@@ -781,6 +861,11 @@ public sealed class HexagonalArchitectureTests
                     }
                 }
             }
+        }
+
+        if (violations.Any())
+        {
+            logger.LogWarning("Rule: No stub implementations. Suspicious methods: {Suspicious}", string.Join("; ", violations.Take(10)) + (violations.Count > 10 ? $" ... and {violations.Count - 10} more." : string.Empty));
         }
 
         violations.ShouldBeEmpty(

@@ -19,6 +19,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\..\01-Core\Application\ExxerCube.Prisma.Application.csproj" />
   </ItemGroup>
 </Project>

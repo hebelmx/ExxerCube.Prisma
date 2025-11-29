@@ -119,6 +119,134 @@
         </MudItem>
     </MudGrid>
 
+    @* Live Demo Entry Points *@
+    <MudText Typo="Typo.h4" Class="mb-4 mt-8" Style="font-weight: 600;">
+        <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Class="mr-2" Color="Color.Primary" />
+        Live Demo Entry Points
+    </MudText>
+
+    <MudGrid Spacing="3" Class="mb-6">
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Elevation="2" Class="hover-lift" Style="height: 100%; border-top: 4px solid #7b1fa2;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Style="color: #7b1fa2;" Class="mb-1">
+                        <MudIcon Icon="@Icons.Material.Filled.Visibility" Class="mr-1" />
+                        Monitoring & Download
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Watch SIARA, trigger a download, inspect captured XML/PDF metadata.
+                    </MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary">Playwright</MudChip>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="/browser-automation" Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Language">
+                        Open Demo
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Elevation="2" Class="hover-lift" Style="height: 100%; border-top: 4px solid #388e3c;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Color="Color.Success" Class="mb-1">
+                        <MudIcon Icon="@Icons.Material.Filled.AutoFixHigh" Class="mr-1" />
+                        OCR & Imaging
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Try adaptive filters, run OCR, review sanitized outputs.
+                    </MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Success">Tesseract + Filters</MudChip>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="/ocr-filter-tester" Variant="Variant.Outlined" Color="Color.Success" StartIcon="@Icons.Material.Filled.Science">
+                        Open Demo
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Elevation="2" Class="hover-lift" Style="height: 100%; border-top: 4px solid #f57f17;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Style="color: #f57f17;" Class="mb-1">
+                        <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-1" />
+                        Reconciliation & Matching
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Walkthrough of field matching and reconciliation views (static demo).
+                    </MudText>
+                    <MudChip T="string" Size="Size.Small" Style="background-color: #fff59d; color: #f57f17;">Reconciliation</MudChip>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="/system-flow/reconciliation" Variant="Variant.Outlined" Color="Color.Warning" StartIcon="@Icons.Material.Filled.ReadMore">
+                        Open Demo
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Elevation="2" Class="hover-lift" Style="height: 100%; border-top: 4px solid #1976d2;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-1">
+                        <MudIcon Icon="@Icons.Material.Filled.AssignmentTurnedIn" Class="mr-1" />
+                        Export & Delivery
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Review export jobs, payload shapes, and delivery readiness (static demo).
+                    </MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary">Exports</MudChip>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="/export-management" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ReadMore">
+                        Open Demo
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Elevation="2" Class="hover-lift" Style="height: 100%; border-top: 4px solid #c2185b;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Style="color: #c2185b;" Class="mb-1">
+                        <MudIcon Icon="@Icons.Material.Filled.History" Class="mr-1" />
+                        Audit & Observability
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Explore audit trail and SLA telemetry; see queued audit processing.
+                    </MudText>
+                    <MudChip T="string" Size="Size.Small" Style="background-color: #fce4ec; color: #c2185b;">Audit + SLA</MudChip>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="/audit-trail" Variant="Variant.Outlined" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.History">
+                        Open Audit Trail
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Elevation="2" Class="hover-lift" Style="height: 100%; border-top: 4px solid #00897b;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Style="color: #00897b;" Class="mb-1">
+                        <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Class="mr-1" />
+                        Real-time UI & Signals
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        SignalR status stream and notifications (static demo view).
+                    </MudText>
+                    <MudChip T="string" Size="Size.Small" Style="background-color: #e0f2f1; color: #00695c;">SignalR</MudChip>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Href="/system-flow/realtime" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.ReadMore">
+                        Open Demo
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
     @* Detailed System Components *@
     <MudText Typo="Typo.h4" Class="mb-4 mt-8" Style="font-weight: 600;">
         <MudIcon Icon="@Icons.Material.Filled.Schema" Class="mr-2" Color="Color.Primary" />

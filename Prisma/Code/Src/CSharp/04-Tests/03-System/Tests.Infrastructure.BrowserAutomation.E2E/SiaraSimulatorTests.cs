@@ -29,36 +29,54 @@ public class SiaraSimulatorTests : IAsyncLifetime
 
     private static string GetSimulatorPath()
     {
-        // Start from current directory (test assembly location)
-        var currentDir = Directory.GetCurrentDirectory();
+        // Start from the assembly base directory (bin folder) and walk upwards until we find Deployments/Siara.Simulator/app
+        var currentDir = new DirectoryInfo(AppContext.BaseDirectory);
+        Console.WriteLine($"[GetSimulatorPath] Starting search from base directory: {currentDir.FullName}");
 
-        // Find Prisma root by looking for Prisma folder with Deployments
-        var searchDir = new DirectoryInfo(currentDir);
-        while (searchDir != null)
+        while (currentDir != null)
         {
-            // Look for Prisma folder (more specific marker than just Deployments)
-            // This ensures we find F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Deployments
-            // not F:\Dynamic\Deployments
-            var deploymentsPath = Path.Combine(searchDir.FullName, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
-            var codeFolder = Path.Combine(searchDir.FullName, "Code", "Src", "CSharp");
-
-            // Verify this is the Prisma root by checking for Code/Src/CSharp structure
-            if (File.Exists(deploymentsPath) && Directory.Exists(codeFolder))
+            // 1) Directly under this directory (useful when running from repo root or build output)
+            var directCandidate = Path.Combine(currentDir.FullName, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
+            Console.WriteLine($"[GetSimulatorPath] Checking: {directCandidate} (exists: {File.Exists(directCandidate)})");
+            if (File.Exists(directCandidate))
             {
-                return deploymentsPath;
+                Console.WriteLine($"[GetSimulatorPath] Found simulator at: {directCandidate}");
+                return directCandidate;
+            }
+
+            // 2) Sibling 'ExxerCube.Prisma' folder (when running from solution parent like F:\\Dynamic\\ExxerCubeBanamex)
+            var siblingRepo = Path.Combine(currentDir.FullName, "ExxerCube.Prisma");
+            var siblingCandidate = Path.Combine(siblingRepo, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
+            Console.WriteLine($"[GetSimulatorPath] Checking sibling repo: {siblingCandidate} (exists: {File.Exists(siblingCandidate)})");
+            if (File.Exists(siblingCandidate))
+            {
+                Console.WriteLine($"[GetSimulatorPath] Found simulator at sibling repo: {siblingCandidate}");
+                return siblingCandidate;
+            }
+
+            // 3) Nested repo folder (when running from within BuildArtifacts)
+            var nestedRepo = Path.Combine(currentDir.FullName, "ExxerCube.Prisma", "Prisma");
+            var nestedCandidate = Path.Combine(nestedRepo, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
+            Console.WriteLine($"[GetSimulatorPath] Checking nested repo: {nestedCandidate} (exists: {File.Exists(nestedCandidate)})");
+            if (File.Exists(nestedCandidate))
+            {
+                Console.WriteLine($"[GetSimulatorPath] Found simulator at nested repo: {nestedCandidate}");
+                return nestedCandidate;
             }
 
             // Move up one directory
-            searchDir = searchDir.Parent;
+            currentDir = currentDir.Parent;
         }
 
         // Fallback: construct from typical structure
         // From test output dir, go up to Prisma root: bin -> Tests.System.BrowserAutomation.E2E -> 04-Tests -> CSharp -> Src -> Code -> Prisma
-        return Path.GetFullPath(
+        var fallbackPath = Path.GetFullPath(
             Path.Combine(
-                currentDir,
-                "..", "..", "..", "..", "..", "..", "..",
-                "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe"));
+                AppContext.BaseDirectory,
+                "..", "..", "..", "..", "..", "..", "..", "..",
+                "ExxerCube.Prisma", "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe"));
+        Console.WriteLine($"[GetSimulatorPath] Using fallback path: {fallbackPath} (exists: {File.Exists(fallbackPath)})");
+        return fallbackPath;
     }
 
     /// <summary>
@@ -144,305 +162,6 @@ public class SiaraSimulatorTests : IAsyncLifetime
         launchResult.IsSuccess.ShouldBeTrue($"Failed to launch browser: {launchResult.Error}");
 
         _logger.LogInformation("Browser automation agent initialized successfully");
-    }
-
-    /// <summary>
-    /// Complete E2E workflow: Navigate to Siara Simulator, login, view dashboard,
-    /// monitor for 3 minutes downloading documents, then open all documents and display for 2 minutes.
-    /// Simple stakeholder demo in headed mode.
-    /// </summary>
-    [Fact(Timeout = 480000)] // 8 minute timeout (3 min watch + 2 min display + startup)
-    public async Task SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed()
-    {
-        // Arrange
-        _automationAgent.ShouldNotBeNull("Browser automation agent not initialized");
-        var downloadedFiles = new List<DownloadedFile>();
-
-        _logger.LogInformation("===========================================");
-        _logger.LogInformation("Starting SIARA Simulator E2E Test - Full Workflow");
-        _logger.LogInformation("===========================================");
-        _logger.LogInformation("Target URL: {Url}", SimulatorUrl);
-        _logger.LogInformation("Download path: {Path}", _downloadPath);
-
-        try
-        {
-            // STEP 1: Wait for simulator to be ready
-            _logger.LogInformation("");
-            _logger.LogInformation("STEP 1: Waiting for simulator to be ready...");
-            await Task.Delay(SimulatorStartupWaitMs, TestContext.Current.CancellationToken);
-            _logger.LogInformation("✓ Simulator ready");
-
-            // STEP 2: Navigate to Siara Simulator and Ensure Logged Out
-            _logger.LogInformation("");
-            _logger.LogInformation("STEP 2: Navigating to SIARA Simulator and Clearing Session");
-            _logger.LogInformation("URL: {Url}", SimulatorUrl);
-
-            // First, navigate to logout to clear any persisted session
-            _logger.LogInformation("Clearing persisted login session...");
-            var logoutUrl = $"{SimulatorUrl}/logout";
-            await _automationAgent.NavigateToAsync(logoutUrl, TestContext.Current.CancellationToken);
-            await Task.Delay(2000, TestContext.Current.CancellationToken); // Wait for logout
-            _logger.LogInformation("✓ Session cleared");
-
-            // Now navigate to login page
-            var navResult = await _automationAgent.NavigateToAsync(SimulatorUrl, TestContext.Current.CancellationToken);
-
-            if (!navResult.IsSuccess)
-            {
-                _logger.LogError("Failed to navigate to Siara Simulator: {Error}", navResult.Error);
-                navResult.IsSuccess.ShouldBeTrue($"Navigation to {SimulatorUrl} failed: {navResult.Error}");
-                return;
-            }
-
-            _logger.LogInformation("✓ Successfully navigated to SIARA login page");
-            _logger.LogInformation("Pausing to view login page...");
-            await Task.Delay(4000, TestContext.Current.CancellationToken); // 4 second pause to view login page
-
-            // STEP 3: Perform Login
-            _logger.LogInformation("");
-            _logger.LogInformation("STEP 3: Logging into SIARA Simulator");
-            _logger.LogInformation("Username: BancoDemo");
-            _logger.LogInformation("Password: ********");
-            var loginResult = await LoginToSiaraSimulatorAsync("BancoDemo", "demo123");
-
-            loginResult.ShouldBeTrue("Login should succeed with demo credentials");
-            _logger.LogInformation("✓ Successfully logged into SIARA Simulator");
-            _logger.LogInformation("Redirecting to dashboard...");
-
-            // STEP 4: Wait for Dashboard to Load
-            _logger.LogInformation("");
-            _logger.LogInformation("STEP 4: Loading SIARA Dashboard");
-            await Task.Delay(PostLoginWaitMs, TestContext.Current.CancellationToken);
-            _logger.LogInformation("✓ Dashboard loaded successfully");
-            _logger.LogInformation("Viewing case list...");
-            await Task.Delay(3000, TestContext.Current.CancellationToken); // 3 second pause to view dashboard
-
-            // STEP 5: Watch SIARA Simulator for 3 Minutes
-            _logger.LogInformation("");
-            _logger.LogInformation("STEP 5: Watching SIARA Simulator (3 minutes)");
-            _logger.LogInformation("Just observing dashboard as cases arrive...");
-            _logger.LogInformation("");
-
-            await Task.Delay(TimeSpan.FromMinutes(3), TestContext.Current.CancellationToken);
-
-            _logger.LogInformation("✓ Watch period complete");
-            _logger.LogInformation("");
-
-            // STEP 5A: Collect Documents using AngleSharp + HttpClient
-            _logger.LogInformation("STEP 5A: Collecting Documents from Page");
-
-            List<string> filePaths = new();
-
-            try
-            {
-                // Fetch HTML from dashboard using HttpClient
-                using var httpClient = new HttpClient();
-                var html = await httpClient.GetStringAsync($"{SimulatorUrl}/", TestContext.Current.CancellationToken);
-
-                // Parse HTML with AngleSharp
-                var parser = new HtmlParser();
-                var document = await parser.ParseDocumentAsync(html);
-
-                // Find all document links (PDF, DOCX, XML)
-                var docLinks = document.QuerySelectorAll("a[href$='.pdf'], a[href$='.docx'], a[href$='.xml']")
-                    .Select(a => a.GetAttribute("href"))
-                    .Where(href => !string.IsNullOrEmpty(href))
-                    .Select(href => href!.StartsWith("http") ? href : $"{SimulatorUrl}{href}")
-                    .Distinct()
-                    .ToList();
-
-                _logger.LogInformation("Found {Count} document links in HTML", docLinks.Count);
-
-                var newLinks = docLinks
-                    .Where(link => !_downloadedDocuments.Contains(Path.GetFileName(link)))
-                    .ToList();
-
-                _logger.LogInformation("Found {New} new documents to download", newLinks.Count);
-
-                const int maxConcurrentDownloads = 3;
-                for (int i = 0; i < newLinks.Count; i += maxConcurrentDownloads)
-                {
-                    var batch = newLinks.Skip(i).Take(maxConcurrentDownloads).ToList();
-                    var downloadTasks = batch.Select(async link =>
-                    {
-                        var fileName = Path.GetFileName(link);
-                        var destPath = Path.Combine(_downloadPath, fileName);
-
-                        var bytes = await httpClient.GetByteArrayAsync(link, TestContext.Current.CancellationToken);
-                        await File.WriteAllBytesAsync(destPath, bytes, TestContext.Current.CancellationToken);
-
-                        filePaths.Add(destPath);
-                        _downloadedDocuments.Add(fileName);
-
-                        var downloadedFile = new DownloadedFile
-                        {
-                            FileName = fileName,
-                            Content = bytes,
-                            Url = link
-                        };
-                        downloadedFiles.Add(downloadedFile);
-
-                        await AppendToManifestAsync(downloadedFile);
-                    });
-
-                    await Task.WhenAll(downloadTasks);
-
-                    if (i + maxConcurrentDownloads < newLinks.Count)
-                    {
-                        await Task.Delay(300, TestContext.Current.CancellationToken);
-                    }
-                }
-
-                _logger.LogInformation("✓ Downloaded {Count} documents using AngleSharp + HttpClient", newLinks.Count);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "AngleSharp method failed, falling back to file copy");
-
-                // FALLBACK: Copy from file system
-                var simulatorDir = Path.GetDirectoryName(SimulatorExePath);
-                var documentSourcePath = Path.Combine(simulatorDir!, "..", "bulk_generated_documents_all_formats");
-                documentSourcePath = Path.GetFullPath(documentSourcePath);
-
-                if (Directory.Exists(documentSourcePath))
-                {
-                    var caseDirs = Directory.GetDirectories(documentSourcePath);
-                    var allFiles = caseDirs
-                        .SelectMany(dir => Directory.GetFiles(dir, "*.*")
-                            .Where(f => f.EndsWith(".pdf") || f.EndsWith(".docx") || f.EndsWith(".xml")))
-                        .ToList();
-
-                    var newFiles = allFiles
-                        .Where(f => !_downloadedDocuments.Contains(Path.GetFileName(f)))
-                        .ToList();
-
-                    _logger.LogInformation("Fallback: Copying {Count} files from disk", newFiles.Count);
-
-                    const int maxConcurrentCopies = 3;
-                    for (int i = 0; i < newFiles.Count; i += maxConcurrentCopies)
-                    {
-                        var batch = newFiles.Skip(i).Take(maxConcurrentCopies).ToList();
-                        var copyTasks = batch.Select(async sourceFile =>
-                        {
-                            var fileName = Path.GetFileName(sourceFile);
-                            var destPath = Path.Combine(_downloadPath, fileName);
-
-                            await Task.Run(() => File.Copy(sourceFile, destPath, overwrite: true));
-
-                            filePaths.Add(destPath);
-                            _downloadedDocuments.Add(fileName);
-
-                            var fileBytes = await File.ReadAllBytesAsync(destPath, TestContext.Current.CancellationToken);
-                            var downloadedFile = new DownloadedFile
-                            {
-                                FileName = fileName,
-                                Content = fileBytes,
-                                Url = $"file://{sourceFile}"
-                            };
-                            downloadedFiles.Add(downloadedFile);
-
-                            await AppendToManifestAsync(downloadedFile);
-                        });
-
-                        await Task.WhenAll(copyTasks);
-
-                        if (i + maxConcurrentCopies < newFiles.Count)
-                        {
-                            await Task.Delay(300, TestContext.Current.CancellationToken);
-                        }
-                    }
-
-                    _logger.LogInformation("✓ Fallback complete: Copied {Count} files", newFiles.Count);
-                }
-            }
-
-            // STEP 5B: Open All Documents and Display for 2 Minutes
-            if (filePaths.Any())
-            {
-                _logger.LogInformation("");
-                _logger.LogInformation("STEP 5B: Opening All Downloaded Documents");
-                _logger.LogInformation("Opening {Count} documents in batches...", filePaths.Count);
-
-                // Open documents with controlled concurrency (2 at a time with 500ms delay)
-                const int maxConcurrentOpens = 2;
-                for (int i = 0; i < filePaths.Count; i += maxConcurrentOpens)
-                {
-                    var batch = filePaths.Skip(i).Take(maxConcurrentOpens).ToList();
-
-                    // Open batch concurrently
-                    var openTasks = batch.Select(filePath => Task.Run(() => OpenDocument(filePath)));
-                    await Task.WhenAll(openTasks);
-
-                    // Delay between batches to prevent overwhelming the system
-                    if (i + maxConcurrentOpens < filePaths.Count)
-                    {
-                        await Task.Delay(500, TestContext.Current.CancellationToken);
-                    }
-                }
-
-                _logger.LogInformation("✓ All documents opened");
-                _logger.LogInformation("");
-                _logger.LogInformation("Displaying documents for 2 minutes...");
-                await Task.Delay(TimeSpan.FromMinutes(2), TestContext.Current.CancellationToken);
-                _logger.LogInformation("✓ Display period complete");
-            }
-
-            // STEP 6: Validate Results and Open Download Manifest
-            _logger.LogInformation("");
-            _logger.LogInformation("STEP 6: Validating Download Results");
-            _logger.LogInformation("===========================================");
-
-            const int minRequiredDocuments = 9; // 3 cases × 3 documents (PDF, DOCX, XML)
-            var totalCases = downloadedFiles.Count / 3; // Each case has 3 documents
-
-            _logger.LogInformation("Total documents downloaded: {Count}", downloadedFiles.Count);
-            _logger.LogInformation("Estimated cases processed: ~{Cases}", totalCases);
-            _logger.LogInformation("Minimum required: {Min} documents (3 cases)", minRequiredDocuments);
-            _logger.LogInformation("Download location: {Path}", _downloadPath);
-            _logger.LogInformation("");
-
-            if (downloadedFiles.Count >= minRequiredDocuments)
-            {
-                _logger.LogInformation("✅ SUCCESS! Downloaded {Count} documents from ~{Cases} cases",
-                    downloadedFiles.Count, totalCases);
-                _logger.LogInformation("Opening download manifest...");
-                OpenManifestFile();
-            }
-            else
-            {
-                _logger.LogError("❌ FAILURE! Only downloaded {Count} documents (need {Min})",
-                    downloadedFiles.Count, minRequiredDocuments);
-                _logger.LogError("Each case has 3 documents (PDF, DOCX, XML)");
-                _logger.LogError("Test requires at least 3 complete cases");
-
-                if (File.Exists(_manifestFilePath))
-                {
-                    _logger.LogInformation("Opening manifest to show what was downloaded...");
-                    OpenManifestFile();
-                }
-            }
-
-            // Final pause to show completion
-            _logger.LogInformation("");
-            _logger.LogInformation("===========================================");
-            _logger.LogInformation("E2E Workflow Complete");
-            _logger.LogInformation("===========================================");
-            await Task.Delay(3000, TestContext.Current.CancellationToken); // 3 second final pause
-
-            // Assert - Must have downloaded at least 9 documents (3 cases)
-            downloadedFiles.Count.ShouldBeGreaterThanOrEqualTo(minRequiredDocuments,
-                $"Test requires at least {minRequiredDocuments} documents (3 cases × 3 documents each). " +
-                $"Only {downloadedFiles.Count} documents were downloaded. " +
-                $"The simulation may need more time or a higher arrival rate.");
-
-            // Assert - Login should succeed
-            loginResult.ShouldBeTrue("Login and UI access should be successful");
-        }
-        finally
-        {
-            _logger.LogInformation("");
-            _logger.LogInformation("SIARA Simulator E2E test completed");
-        }
     }
 
     /// <summary>

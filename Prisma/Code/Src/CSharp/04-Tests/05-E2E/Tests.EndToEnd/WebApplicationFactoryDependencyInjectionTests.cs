@@ -1,3 +1,7 @@
+using IndFusion.Ember.Abstractions.Hubs;
+using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Infrastructure.Database.Metrics;
+
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>
@@ -48,6 +52,17 @@ public class WebApplicationFactoryDependencyInjectionTests : IClassFixture<TestW
 
         // Infrastructure Services
         scopedProvider.GetService<IDbContextFactory<ApplicationDbContext>>().ShouldNotBeNull();
+        scopedProvider.GetService<PrismaDbContext>().ShouldNotBeNull();
+        scopedProvider.GetService<IPrismaDbContext>().ShouldNotBeNull();
+        scopedProvider.GetService<IAuditLogger>().ShouldNotBeNull();
+        scopedProvider.GetService<IDownloadTracker>().ShouldNotBeNull();
+        scopedProvider.GetService<IFileMetadataLogger>().ShouldNotBeNull();
+        scopedProvider.GetService<IEventPublisher>().ShouldNotBeNull();
+        scopedProvider.GetService<QueuedAuditProcessorService>().ShouldNotBeNull();
+        scopedProvider.GetService<SLAMetricsCollector>().ShouldNotBeNull();
+        scopedProvider.GetService<SLAEnforcerService>().ShouldNotBeNull();
+        scopedProvider.GetService<ISLAEnforcer>().ShouldNotBeNull();
+        scopedProvider.GetService<IExxerHub<DomainEvent>>().ShouldNotBeNull();
 
         scopedProvider.GetService<ProcessingHub>().ShouldNotBeNull();
         scopedProvider.GetService<IdentityUserAccessor>().ShouldNotBeNull();

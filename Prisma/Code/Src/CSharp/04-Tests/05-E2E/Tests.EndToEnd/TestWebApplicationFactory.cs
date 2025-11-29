@@ -1,8 +1,10 @@
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
+using ExxerCube.Prisma.Web.UI.Services;
+
 /// <summary>
 /// Custom WebApplicationFactory for testing the ExxerCube.Prisma.Web.UI application.
-/// Configures the application for testing with in-memory database and test-specific settings.
+/// Configures the application for testing with test-specific settings and isolated localdb instances.
 /// </summary>
 public class TestWebApplicationFactory : WebApplicationFactory<ExxerCube.Prisma.Web.UI.Program>
 {
@@ -42,124 +44,52 @@ public class TestWebApplicationFactory : WebApplicationFactory<ExxerCube.Prisma.
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 { "ConnectionStrings:DefaultConnection", testConnectionString },
+                { "ConnectionStrings:ApplicationConnection", testConnectionString },
                 { "ApiBaseUrl", "https://localhost:7062/" }
             });
         });
 
         builder.ConfigureServices(services =>
         {
-            // Replace SQL Server DbContext registrations with in-memory database for tests
-            // This prevents sqlsrv.exe processes from being spawned and left orphaned
-            // Note: ConfigureServices runs AFTER Program.cs service registration, so we can remove existing registrations
-
-            // Remove ApplicationDbContext (IDbContextFactory) registrations
-            var appDbContextDescriptors = services
-                .Where(d => d.ServiceType == typeof(IDbContextFactory<ApplicationDbContext>))
-                .ToList();
-
-            foreach (var descriptor in appDbContextDescriptors)
-            {
-                services.Remove(descriptor);
-            }
-
-            // Remove PrismaDbContext registrations (both direct and DbContextOptions)
-            var prismaDbContextDescriptors = services
+            // Guard: remove any accidental InMemory EF provider registrations to avoid dual-provider errors.
+            // These tests must exercise the real SQL Server provider.
+            var inMemoryProviderDescriptors = services
                 .Where(d =>
-                    d.ServiceType == typeof(PrismaDbContext) ||
-                    (d.ServiceType.IsGenericType &&
-                     d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>) &&
-                     d.ServiceType.GetGenericArguments()[0] == typeof(PrismaDbContext)))
+                    d.ImplementationType?.Assembly?.GetName().Name?.Contains("Microsoft.EntityFrameworkCore.InMemory", StringComparison.OrdinalIgnoreCase) == true ||
+                    d.ServiceType.Assembly.GetName().Name?.Contains("Microsoft.EntityFrameworkCore.InMemory", StringComparison.OrdinalIgnoreCase) == true ||
+                    (d.ImplementationFactory?.Method?.DeclaringType?.Assembly?.GetName().Name?.Contains("Microsoft.EntityFrameworkCore.InMemory", StringComparison.OrdinalIgnoreCase) == true))
                 .ToList();
 
-            foreach (var descriptor in prismaDbContextDescriptors)
+            foreach (var descriptor in inMemoryProviderDescriptors)
             {
                 services.Remove(descriptor);
             }
 
-            // Also remove IPrismaDbContext if registered separately
-            var iprismaDbContextDescriptors = services
-                .Where(d => d.ServiceType == typeof(IPrismaDbContext))
-                .ToList();
-
-            foreach (var descriptor in iprismaDbContextDescriptors)
-            {
-                services.Remove(descriptor);
-            }
-
-            // Register in-memory databases instead of SQL Server
-            // Use unique database names to avoid conflicts between tests
-            var appDbName = "TestAppDb_" + Guid.NewGuid();
-            var prismaDbName = "TestPrismaDb_" + Guid.NewGuid();
-
-            services.AddDbContextFactory<ApplicationDbContext>(options =>
-            {
-                options.UseInMemoryDatabase(appDbName);
-                options.EnableSensitiveDataLogging();
-            });
-
-            services.AddDbContext<PrismaDbContext>(options =>
-            {
-                options.UseInMemoryDatabase(prismaDbName);
-                options.EnableSensitiveDataLogging();
-            });
-
-            // Register IPrismaDbContext to use PrismaDbContext
+            // Ensure IPrismaDbContext resolves to the concrete PrismaDbContext when requested
             services.AddScoped<IPrismaDbContext>(sp => sp.GetRequiredService<PrismaDbContext>());
 
-            // Ensure database schemas are created when services are built
-            // This is necessary for in-memory databases to work properly
-            var serviceProvider = services.BuildServiceProvider();
-            try
-            {
-                // Create ApplicationDbContext schema
-                using (var scope = serviceProvider.CreateScope())
-                {
-                    var appDbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
-                    using var appDbContext = appDbContextFactory.CreateDbContext();
-                    appDbContext.Database.EnsureCreated();
-                }
-
-                // Create PrismaDbContext schema
-                using (var scope = serviceProvider.CreateScope())
-                {
-                    var prismaDbContext = scope.ServiceProvider.GetRequiredService<PrismaDbContext>();
-                    prismaDbContext.Database.EnsureCreated();
-                }
-            }
-            finally
-            {
-                // Dispose the temporary service provider
-                if (serviceProvider is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-            }
-
-            // Disable hosted services that might create SQL connections
-            // Remove background services that process audit logs and SLA updates
-            // Remove QueuedAuditProcessorService singleton (it's also registered as IHostedService)
-            var queuedAuditProcessorDescriptors = services
-                .Where(d =>
-                    d.ServiceType == typeof(QueuedAuditProcessorService) ||
-                    (d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(QueuedAuditProcessorService)))
-                .ToList();
-
-            foreach (var descriptor in queuedAuditProcessorDescriptors)
-            {
-                services.Remove(descriptor);
-            }
-
+            // Disable selected hosted services that might create SQL connections
+            // while keeping core audit processor registrations intact for DI expectations.
             // Remove other hosted services that might create connections
             var hostedServiceDescriptors = services
                 .Where(d =>
                     d.ServiceType == typeof(IHostedService) &&
                     (d.ImplementationType == typeof(AuditRetentionBackgroundService) ||
-                     d.ImplementationType == typeof(SLAUpdateBackgroundService)))
+                     d.ImplementationType == typeof(SLAUpdateBackgroundService) ||
+                     d.ImplementationType == typeof(SignalREventBroadcaster)))
                 .ToList();
 
             foreach (var descriptor in hostedServiceDescriptors)
             {
                 services.Remove(descriptor);
+            }
+
+            // Remove SignalR event broadcaster if registered separately
+            var broadcasterDescriptor = services
+                .FirstOrDefault(d => d.ImplementationType == typeof(SignalREventBroadcaster));
+            if (broadcasterDescriptor is not null)
+            {
+                services.Remove(broadcasterDescriptor);
             }
 
             // Configure test-specific services if needed

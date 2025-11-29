@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using System.Net;
+
 namespace ExxerCube.Prisma.Tests.UI.Infrastructure;
 
 /// <summary>
@@ -6,6 +10,23 @@ namespace ExxerCube.Prisma.Tests.UI.Infrastructure;
 /// </summary>
 public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prisma.Web.UI.Program>
 {
+    private IHost? _host;
+    public Uri? HostedBaseAddress { get; private set; }
+
+    /// <summary>
+    /// Starts the Kestrel host if it is not already running.
+    /// </summary>
+    public void EnsureStarted()
+    {
+        if (_host is not null)
+        {
+            return;
+        }
+
+        var hostBuilder = CreateHostBuilder()!;
+        _ = CreateHost(hostBuilder);
+    }
+
     /// <summary>
     /// Configures the web host for testing.
     /// </summary>
@@ -33,6 +54,45 @@ public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prism
         });
 
         builder.UseEnvironment("Development");
+    }
+
+    /// <summary>
+    /// Override host creation to run Kestrel instead of the in-memory TestServer so Playwright can reach it.
+    /// </summary>
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        builder.ConfigureWebHost(webHost =>
+        {
+            webHost.UseKestrel(options =>
+            {
+                // Bind to dynamic ports to avoid collisions with a locally running instance
+                options.Listen(System.Net.IPAddress.Loopback, 0);
+            });
+        });
+
+        _host = builder.Build();
+        _host.Start();
+
+        // Capture the bound address so Playwright can navigate to the actual port
+        var addresses = _host.Services.GetRequiredService<IServer>()
+            .Features.Get<IServerAddressesFeature>()?.Addresses;
+        var firstAddress = addresses?.FirstOrDefault();
+        if (firstAddress is not null)
+        {
+            HostedBaseAddress = new Uri(firstAddress);
+        }
+
+        return _host;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _host?.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     /// <summary>

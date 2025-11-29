@@ -25,6 +25,7 @@
     <WarningsNotAsErrors>NU1903;NU1902</WarningsNotAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="IndFusion.Ember" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />

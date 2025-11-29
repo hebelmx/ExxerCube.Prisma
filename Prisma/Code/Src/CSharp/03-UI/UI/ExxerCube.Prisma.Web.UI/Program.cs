@@ -10,6 +10,9 @@ using System.Diagnostics;
 using ExxerCube.Prisma.Infrastructure.Python;
 using ExxerCube.Prisma.Infrastructure.Metrics;
 using ExxerCube.Prisma.Infrastructure.Imaging;
+using IndFusion.Ember.Abstractions.Hubs;
+using ExxerCube.Prisma.Domain.Events;
+using IndFusion.Ember.Extensions;
 
 namespace ExxerCube.Prisma.Web.UI;
 
@@ -107,11 +110,11 @@ public class Program
         // Add MudBlazor services
         services.AddMudServices();
 
-        // Add SignalR for real-time updates
+        // Add SignalR abstractions (Ember) for real-time updates
+        services.AddSignalRAbstractions();
         services.AddSignalR();
-
-        // Register SignalR hub as scoped (SignalR hubs are scoped by default)
         services.AddScoped<ProcessingHub>();
+        services.AddScoped<IExxerHub<DomainEvent>, ProcessingHub>();
 
         // Add OCR processing services
         var pythonModulesPath = Path.Combine(environment.ContentRootPath, "..", "..", "Python", "ocr_modules");
@@ -157,11 +160,14 @@ public class Program
             })
             .AddIdentityCookies();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-        //services.AddDbContext<ApplicationDbContext>(options =>
-        //    options.UseSqlServer(connectionString));
+        // Identity database connection (PrismaID - only for Identity tables)
+        var identityConnectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+        // Application database connection (Prisma - for all application tables)
+        var applicationConnectionString = configuration.GetConnectionString("ApplicationConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationConnection' not found.");
+
         services.AddDbContextFactory<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseSqlServer(identityConnectionString));
         services.AddDatabaseDeveloperPageExceptionFilter();
 
         services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -172,7 +178,7 @@ public class Program
         services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
         // Add Story 1.1 services: Browser Automation, File Storage, and Database services
-        services.AddDatabaseServices(connectionString, configuration);
+        services.AddDatabaseServices(applicationConnectionString, configuration);
         services.AddBrowserAutomationServices(options =>
         {
             configuration.GetSection("BrowserAutomation").Bind(options);
@@ -230,6 +236,9 @@ public class Program
             .AddCheck<SLABackgroundJobHealthCheck>(
                 "sla_background_job",
                 tags: new[] { "sla", "background", "ready" });
+
+        // Add SignalR event broadcaster for real-time event streaming to UI
+        services.AddHostedService<Services.SignalREventBroadcaster>();
     }
 
     /// <summary>

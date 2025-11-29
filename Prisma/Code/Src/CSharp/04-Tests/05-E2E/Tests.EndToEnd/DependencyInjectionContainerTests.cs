@@ -1,3 +1,7 @@
+using ExxerCube.Prisma.Infrastructure.Database.Metrics;
+using IndFusion.Ember.Abstractions.Hubs;
+using ExxerCube.Prisma.Domain.Events;
+
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>
@@ -6,6 +10,13 @@ namespace ExxerCube.Prisma.Tests.EndToEnd;
 /// </summary>
 public class DependencyInjectionContainerTests
 {
+    private readonly ILogger<DependencyInjectionContainerTests> _logger;
+
+    public DependencyInjectionContainerTests(ITestOutputHelper output)
+    {
+        _logger = XUnitLogger.CreateLogger<DependencyInjectionContainerTests>(output);
+    }
+
     /// <summary>
     /// Tests that all critical services can be resolved from the DI container.
     /// </summary>
@@ -23,6 +34,7 @@ public class DependencyInjectionContainerTests
         var scopedProvider = scope.ServiceProvider;
 
         // Application Services
+        _logger.LogInformation("Resolving application services");
         scopedProvider.GetService<DocumentIngestionService>().ShouldNotBeNull();
         scopedProvider.GetService<FileMetadataQueryService>().ShouldNotBeNull();
         scopedProvider.GetService<FileDownloadService>().ShouldNotBeNull();
@@ -34,7 +46,19 @@ public class DependencyInjectionContainerTests
         scopedProvider.GetService<AuditReportingService>().ShouldNotBeNull();
 
         // Infrastructure Services
+        _logger.LogInformation("Resolving infrastructure services");
         scopedProvider.GetService<IDbContextFactory<ApplicationDbContext>>().ShouldNotBeNull();
+        scopedProvider.GetService<PrismaDbContext>().ShouldNotBeNull();
+        scopedProvider.GetService<IPrismaDbContext>().ShouldNotBeNull();
+        scopedProvider.GetService<IAuditLogger>().ShouldNotBeNull();
+        scopedProvider.GetService<IDownloadTracker>().ShouldNotBeNull();
+        scopedProvider.GetService<IFileMetadataLogger>().ShouldNotBeNull();
+        scopedProvider.GetService<IEventPublisher>().ShouldNotBeNull();
+        scopedProvider.GetService<QueuedAuditProcessorService>().ShouldNotBeNull();
+        scopedProvider.GetService<SLAMetricsCollector>().ShouldNotBeNull();
+        scopedProvider.GetService<SLAEnforcerService>().ShouldNotBeNull();
+        scopedProvider.GetService<ISLAEnforcer>().ShouldNotBeNull();
+        scopedProvider.GetService<IExxerHub<DomainEvent>>().ShouldNotBeNull();
         scopedProvider.GetService<ProcessingHub>().ShouldNotBeNull();
         scopedProvider.GetService<IdentityUserAccessor>().ShouldNotBeNull();
         scopedProvider.GetService<IdentityRedirectManager>().ShouldNotBeNull();
@@ -229,6 +253,7 @@ public class DependencyInjectionContainerTests
             _ = scopedProvider.GetService<SLATrackingService>();
             _ = scopedProvider.GetService<ExportService>();
             _ = scopedProvider.GetService<AuditReportingService>();
+            _ = scopedProvider.GetService<IExxerHub<DomainEvent>>();
         });
 
         exception.ShouldBeNull();
