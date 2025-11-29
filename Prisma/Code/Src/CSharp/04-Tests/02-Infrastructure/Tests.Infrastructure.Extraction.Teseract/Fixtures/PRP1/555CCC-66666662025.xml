@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Expediente xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_NumeroOficio>555/CCC/-6666666/2025      </Cnbv_NumeroOficio>
+  <Cnbv_NumeroExpediente>E/DE-3333-4444444-AAA     </Cnbv_NumeroExpediente>
+  <Cnbv_SolicitudSiara>AGAFADAFSON2/2025/000087</Cnbv_SolicitudSiara>
+  <Cnbv_Folio>1213</Cnbv_Folio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaClave>4</Cnbv_AreaClave>
+  <Cnbv_AreaDescripcion>Operaciones Ilícitas</Cnbv_AreaDescripcion>
+  <Cnbv_FechaPublicacion>2025-06-05</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>1</Cnbv_DiasPlazo>
+  <AutoridadNombre>UNIDAD DE INTELIGENCIA FINANCIERA</AutoridadNombre>
+  <AutoridadEspecificaNombre>DIRECCION GENERAL DE LO CONTENCIOSO</AutoridadEspecificaNombre>
+  <NombreSolicitante xsi:nil="true" />
+  <Referencia>Lista de Personas Bloqueadas</Referencia>
+  <Referencia1>110/K/2992/2025</Referencia1>
+  <Referencia2 />
+  <TieneAseguramiento>false</TieneAseguramiento>
+  <SolicitudPartes>
+    <ParteId>1</ParteId>
+    <Caracter>Investigado</Caracter>
+    <Persona>Fisica</Persona>
+    <Paterno>LUIS</Paterno>
+    <Materno>MCDONALD</Materno>
+    <Nombre>HUGO PACO</Nombre>
+    <Rfc>             </Rfc>
+  </SolicitudPartes>
+  <SolicitudEspecifica>
+    <SolicitudEspecificaId>1</SolicitudEspecificaId>
+    <InstruccionesCuentasPorConocer>En cumplimiento al "ACUERDO 144/2025 DEL TITULAR DE LA UNIDAD DE INTELIGENCIA FINANCIERA POR EL QUE SE ELIMINA A HUGO PACO LUIS MCDONALD DE LA LISTA DE PERSONAS BLOQUEADAS DE LA SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO, EN CUMPLIMIENTO AL AMPARO EN REVISÓN 45/2024 DEL SEGUNDO TRIBUNAL COLEGIADO EN MATERIAS ADMINISTRATIVA Y DE TRABAJO DEL DÉCIMO PRIMER CIRCUITO, EN RELACIÓN CON EL JUICIO DE AMPARO 487/2023 DEL JUZGADO QUINTO DE DISTRITO EN EL ESTADO DE MICHOACÁN", se solicita requerir al oficial de cumplimiento de las Instituciones Financieras lo siguiente: 
+PRIMERO. Dejar sin efectos el Acuerdo 105/2021 del Titular de la Unidad de Inteligencia Financiera, así como el oficio 110/F/B/4469/2021, con Folio SIARA UIFB/2021/000104 ÚNICAMENTE por lo que respecta a HUGO PACO LUIS MCDONALD. 
+SEGUNDO. Se elimina de la Lista de Personas Bloqueadas a HUGO PACO LUIS MCDONALD.
+Por lo que se deben reanudar los actos, operaciones y/o servicios financieros que le fueron suspendidos a HUGO PACO LUIS MCDONALD, entre los que se encuentran de manera enunciativa, más no limitativa, las cuentas siguientes:
+1) 00466773850, 2) 00453965120, ambas aperturadas en Uruapan; y 3) 00195019117 en la sucursal ubicada en Nueva Italia, Michoacán de Ocampo, todas de la institución bancaria Banco BBVA Bancomer, Sociedad Anónima, Institución de Banca Múltiple, Grupo Financiero BBVA Bancomer.
+TERCERO. La presente determinación no representa la eliminación de la Lista de Personas Bloqueadas de otras personas físicas o morales designadas mediante el Acuerdo 105/2021 del Titular de la Unidad de Inteligencia Financiera. 
+CUARTO. Dicha eliminación surtirá efectos siempre y cuando los actos, operaciones y/o servicios se hayan visto afectados por la emisión del Acuerdo 105/2021; es decir, la presente eliminación NO SURTIRÁ EFECTOS si las cuentas bancarias o demás productos financieros contratados a nombre de HUGO PACO LUIS MCDONALD, fueron suspendidos de manera directa o indirecta por diverso Acuerdo de inclusión a la Lista de Personas Bloqueadas emitido por el Titular de la Unidad de Inteligencia Financiera o por diversa autoridad.</InstruccionesCuentasPorConocer>
+    <PersonasSolicitud>
+      <PersonaId>1</PersonaId>
+      <Caracter>Investigado</Caracter>
+      <Persona>Fisica</Persona>
+      <Paterno>LUIS</Paterno>
+      <Materno>MCDONALD</Materno>
+      <Nombre>HUGO PACO</Nombre>
+      <Rfc>LUMH111111111</Rfc>
+      <Relacion />
+      <Domicilio>NO SE CUENTA</Domicilio>
+      <Complementarios>Se trata de la misma persona con variante en el RFC</Complementarios>
+    </PersonasSolicitud>
+    <PersonasSolicitud>
+      <PersonaId>2</PersonaId>
+      <Caracter>Investigado</Caracter>
+      <Persona>Fisica</Persona>
+      <Paterno>LUIS</Paterno>
+      <Materno>MCDONALD</Materno>
+      <Nombre>HUGO PACO</Nombre>
+      <Rfc>LUMH222222222</Rfc>
+      <Relacion />
+      <Domicilio>NO SE CUENTA</Domicilio>
+      <Complementarios>Se trata de la misma persona con variante en el RFC</Complementarios>
+    </PersonasSolicitud>
+  </SolicitudEspecifica>
+</Expediente>
