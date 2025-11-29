@@ -1,18 +1,29 @@
+using Microsoft.CodeCoverage.Core.Reports.Coverage;
+
 namespace ExxerCube.Prisma.Tests.System;
 
 /// <summary>
 /// System-level checks for XML extraction against real PRP1 fixtures.
 /// Ensures subdivision, measure hints, accounts, RFC variants, and CURP are parsed.
 /// </summary>
-public class XmlExtractorFixtureTests
+public class XmlExtractorFixtureTests(ITestOutputHelper output)
 {
     private readonly XmlFieldExtractor _extractor = new();
-    private readonly string _fixtureRoot = Path.Combine("Prisma", "Fixtures", "PRP1");
+    private readonly string _fixtureRoot = Path.Combine("Fixtures", "PRP1");
 
-[Fact, Trait("Category", "XmlExtractor")]
+    private readonly ILogger<XmlExtractorFixtureTests> _logger = XUnitLogger.CreateLogger<XmlExtractorFixtureTests>(output);
+
+    [Fact, Trait("Category", "XmlExtractor")]
     public async Task Extract_Should_Parse_Aseguramiento_Fixture()
     {
         var path = Path.Combine(_fixtureRoot, "222AAA-44444444442025.xml");
+
+        _logger.LogInformation("Testing XML extraction for file: {Path}", path);
+        _logger.LogInformation("Current working directory: {Directory}", Directory.GetCurrentDirectory());
+        _logger.LogInformation("Fixture root directory: {FixtureRoot}", _fixtureRoot);
+        _logger.LogInformation("File exists: {Exists}", File.Exists(path));
+        Assert.True(File.Exists(path), $"File '{path}' does not exist.");
+
         var result = await _extractor.ExtractFieldsAsync(new XmlSource(path), Array.Empty<FieldDefinition>());
 
         result.IsSuccess.ShouldBeTrue(result.Error);
@@ -23,10 +34,16 @@ public class XmlExtractorFixtureTests
         fields.AdditionalFields["DiasPlazo"].ShouldBe("7");
     }
 
-[Fact, Trait("Category", "XmlExtractor")]
+    [Fact, Trait("Category", "XmlExtractor")]
     public async Task Extract_Should_Parse_Hacendario_Documentacion()
     {
         var path = Path.Combine(_fixtureRoot, "333BBB-44444444442025.xml");
+        _logger.LogInformation("Testing XML extraction for file: {Path}", path);
+        _logger.LogInformation("Current working directory: {Directory}", Directory.GetCurrentDirectory());
+        _logger.LogInformation("Fixture root directory: {FixtureRoot}", _fixtureRoot);
+        _logger.LogInformation("File exists: {Exists}", File.Exists(path));
+        Assert.True(File.Exists(path), $"File '{path}' does not exist.");
+
         var result = await _extractor.ExtractFieldsAsync(new XmlSource(path), Array.Empty<FieldDefinition>());
 
         result.IsSuccess.ShouldBeTrue(result.Error);
@@ -36,10 +53,18 @@ public class XmlExtractorFixtureTests
         fields.AdditionalFields["RfcList"]?.ShouldContain("DOPJ111111222");
     }
 
-[Fact, Trait("Category", "XmlExtractor")]
+    [Fact, Trait("Category", "XmlExtractor")]
     public async Task Extract_Should_Parse_Judicial_With_Curp_And_Rfc()
     {
         var path = Path.Combine(_fixtureRoot, "333ccc-6666666662025.xml");
+        _logger.LogInformation("Testing XML extraction for file: {Path}", path);
+        _logger.LogInformation("Current working directory: {Directory}", Directory.GetCurrentDirectory());
+        _logger.LogInformation("Fixture root directory: {FixtureRoot}", _fixtureRoot);
+        _logger.LogInformation("File exists: {Exists}", File.Exists(path));
+        Assert.True(File.Exists(path), $"File '{path}' does not exist.");
+
+        Assert.True(File.Exists(path), $"File '{path}' does not exist.");
+
         var result = await _extractor.ExtractFieldsAsync(new XmlSource(path), Array.Empty<FieldDefinition>());
 
         result.IsSuccess.ShouldBeTrue(result.Error);
@@ -50,10 +75,18 @@ public class XmlExtractorFixtureTests
         fields.AdditionalFields["Curp"]?.ShouldBe("ZUCM444444ABCDEF");
     }
 
-[Fact, Trait("Category", "XmlExtractor")]
+    [Fact, Trait("Category", "XmlExtractor")]
     public async Task Extract_Should_Parse_OperacionesIlicitas_With_Accounts_And_Rfc_Variants()
     {
         var path = Path.Combine(_fixtureRoot, "555CCC-66666662025.xml");
+        _logger.LogInformation("Testing XML extraction for file: {Path}", path);
+        _logger.LogInformation("Current working directory: {Directory}", Directory.GetCurrentDirectory());
+        _logger.LogInformation("Fixture root directory: {FixtureRoot}", _fixtureRoot);
+        _logger.LogInformation("File exists: {Exists}", File.Exists(path));
+        Assert.True(File.Exists(path), $"File '{path}' does not exist.");
+
+        Assert.True(File.Exists(path), $"File '{path}' does not exist.");
+
         var result = await _extractor.ExtractFieldsAsync(new XmlSource(path), Array.Empty<FieldDefinition>());
 
         result.IsSuccess.ShouldBeTrue(result.Error);
