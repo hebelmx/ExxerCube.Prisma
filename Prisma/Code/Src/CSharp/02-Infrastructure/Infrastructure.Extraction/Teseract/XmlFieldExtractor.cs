@@ -13,7 +13,8 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
 {
     private static readonly XNamespace Ns = "http://www.cnbv.gob.mx";
     private static readonly Regex AccountRegex = new(@"\b\d{6,}\b", RegexOptions.Compiled);
-    private static readonly Regex CurpRegex = new(@"\b[A-Z]{4}\d{6}[A-Z0-9]{8}\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex StrictCurpRegex = new(@"\b[A-Z][AEIOUX][A-Z]{2}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z0-9]\d\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex LooseCurpRegex = new(@"\b(?<curp>[A-Z]{4}\d{6}[A-Z0-9]{6})(?:\d{2})?\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     /// <inheritdoc />
     public Task<Result<ExtractedFields>> ExtractFieldsAsync(XmlSource source, FieldDefinition[] fieldDefinitions)
@@ -193,7 +194,9 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
         }
 
         var parsed = ParseActionKind(instrucciones);
-        return ToSpanishMeasureName(parsed);
+        return parsed == ComplianceActionKind.Unknown
+            ? ToSpanishMeasureName(ComplianceActionKind.Information)
+            : ToSpanishMeasureName(parsed);
     }
 
     private static string ToSpanishMeasureName(ComplianceActionKind kind)
@@ -272,10 +275,16 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
                 continue;
             }
 
-            var match = CurpRegex.Match(complementarios!);
-            if (match.Success)
+            var strict = StrictCurpRegex.Match(complementarios!);
+            if (strict.Success)
             {
-                return match.Value.ToUpperInvariant();
+                return strict.Value.ToUpperInvariant();
+            }
+
+            var loose = LooseCurpRegex.Match(complementarios!);
+            if (loose.Success)
+            {
+                return loose.Groups["curp"].Value.ToUpperInvariant();
             }
         }
 

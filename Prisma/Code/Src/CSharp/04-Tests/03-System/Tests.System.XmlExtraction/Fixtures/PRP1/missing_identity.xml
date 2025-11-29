@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Expediente xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cnbv.gob.mx">
+  <Cnbv_NumeroOficio>999/DDD/-0000000000/2025</Cnbv_NumeroOficio>
+  <Cnbv_NumeroExpediente>J/JJ1-0000-000000-JJJ</Cnbv_NumeroExpediente>
+  <Cnbv_SolicitudSiara>TEST/2025/000003</Cnbv_SolicitudSiara>
+  <Cnbv_Folio>0003</Cnbv_Folio>
+  <Cnbv_OficioYear>2025</Cnbv_OficioYear>
+  <Cnbv_AreaClave>2</Cnbv_AreaClave>
+  <Cnbv_AreaDescripcion>JUDICIAL</Cnbv_AreaDescripcion>
+  <Cnbv_FechaPublicacion>2025-06-13</Cnbv_FechaPublicacion>
+  <Cnbv_DiasPlazo>4</Cnbv_DiasPlazo>
+  <TieneAseguramiento>true</TieneAseguramiento>
+  <SolicitudPartes>
+    <ParteId>1</ParteId>
+    <Caracter>Demandado</Caracter>
+    <Persona>Fisica</Persona>
+    <Nombre>PERSONA SIN RFC</Nombre>
+    <Rfc />
+  </SolicitudPartes>
+  <SolicitudEspecifica>
+    <SolicitudEspecificaId>1</SolicitudEspecificaId>
+    <InstruccionesCuentasPorConocer>Retener hasta por $10,000.00 pesos</InstruccionesCuentasPorConocer>
+    <PersonasSolicitud>
+      <PersonaId>1</PersonaId>
+      <Caracter>Demandado</Caracter>
+      <Persona>Fisica</Persona>
+      <Nombre>PERSONA SIN CURP</Nombre>
+      <Rfc />
+      <Complementarios />
+    </PersonasSolicitud>
+  </SolicitudEspecifica>
+</Expediente>
