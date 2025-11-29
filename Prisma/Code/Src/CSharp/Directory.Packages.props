@@ -14,6 +14,7 @@
     <!-- Open XML SDK for working with Word, Excel, PowerPoint files -->
     <PackageVersion Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <!-- Fuzzy string matching library -->
+    <PackageVersion Include="FluentAssertions" Version="8.8.0" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
     <!-- IndQuest Results processing library -->
     <PackageVersion Include="IndQuestResults" Version="1.2.0" />

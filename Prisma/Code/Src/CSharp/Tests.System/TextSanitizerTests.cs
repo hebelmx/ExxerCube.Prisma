@@ -1,8 +1,4 @@
-using ExxerCube.Prisma.Infrastructure.Extraction;
-using Shouldly;
-using Xunit;
-
-namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2;
+namespace ExxerCube.Prisma.Tests.System;
 
 public class TextSanitizerTests
 {

@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2;
+namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
 /// <summary>
 /// Integration tests for Tesseract OCR using same fixtures as GOT-OCR2.

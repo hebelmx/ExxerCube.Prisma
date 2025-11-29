@@ -440,7 +440,10 @@ public class ExportService
     {
         if (metadata.Expediente == null)
         {
-            return Result.WithFailure("Expediente is required for export");
+            var missing = new ValidationState();
+            missing.Require(false, "Expediente");
+            metadata.Validation = missing;
+            return Result.WithFailure($"Validation failed: {string.Join(", ", missing.Missing)}");
         }
 
         var validation = metadata.Validation ?? new ValidationState();
@@ -486,4 +489,3 @@ public class ExportService
             : Result.WithFailure($"Validation failed: {string.Join(", ", validation.Missing)}");
     }
 }
-

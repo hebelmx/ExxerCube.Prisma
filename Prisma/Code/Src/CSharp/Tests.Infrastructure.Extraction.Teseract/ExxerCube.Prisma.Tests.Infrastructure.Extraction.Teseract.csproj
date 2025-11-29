@@ -25,6 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Testing Utilities">
+    <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />
   </ItemGroup>

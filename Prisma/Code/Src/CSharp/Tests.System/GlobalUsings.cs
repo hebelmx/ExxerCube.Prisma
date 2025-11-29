@@ -2,6 +2,7 @@
 
 global using System;
 global using System.Collections.Generic;
+global using System.Diagnostics;
 global using System.IO;
 global using System.Linq;
 global using System.Threading;
@@ -31,5 +32,15 @@ global using NSubstitute;
 global using System.Security.Cryptography;
 global using ExxerCube.Prisma.Domain.Enum;
 global using ExxerCube.Prisma.Domain.Interfaces;
+global using ExxerCube.Prisma.Domain.Models;
+global using ExxerCube.Prisma.Domain.Sources;
+global using ExxerCube.Prisma.Domain.ValueObjects;
+global using ExxerCube.Prisma.Infrastructure.Extraction.GotOcr2;
+global using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+global using ExxerCube.Prisma.Infrastructure.Imaging;
+global using ExxerCube.Prisma.Infrastructure.Imaging.Filters;
+global using ExxerCube.Prisma.Infrastructure.Imaging.Strategies;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
 global using Shouldly;
 global using Xunit;

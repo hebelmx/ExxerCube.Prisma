@@ -70,6 +70,26 @@ Implementation sketch:
   - Identity enrichment: extract RFC variants/CURP from XML + OCR, store in `PersonaSolicitud`, flag missing/ambiguous in `ValidationState`.
   - SLA derivation: compute `FechaEstimadaConclusion = FechaRecepcion + DiasPlazo` via `ISLAEnforcer`; mark origin Derived.
   - Best-effort reconciliation: never short-circuit on divergence (missing XML, value drift); raise manual-review flags when uncertain.
+- Implementation steps (concrete next edits):
+  1) Extend `XmlFieldExtractor`/`FieldMatcherService` to emit `OriginTrace` alongside `FieldValue` for subdivision, measure hint, account, identity fields.
+  2) Add `LegalSubdivisionMapper` helper (AreaClave/Descripcion → `LegalSubdivisionKind`), plug into extractor, set validation warn when Unknown.
+  3) Add `MeasureParser` and `AccountParser` (reuse sanitizer) to infer `MeasureKind` + `Cuenta`; populate `ComplianceActions` in `UnifiedMetadataRecord`; flag missing account for block/unblock/transfer.
+  4) Extend `IdentityValidator` to collect RFC variants/CURP from both XML/OCR, store in `PersonaSolicitud.RfcVariantes/Curp`, add validation warnings when absent or divergent.
+ 5) Implement `ISLAEnforcer.CalculateDeadline` use in extraction pipeline to set `Expediente.FechaEstimadaConclusion`; origin = Derived.
+ 6) Wire validation accumulation: after parsing, aggregate `ValidationState` onto `UnifiedMetadataRecord.Validation` (expediente, personas, actions).
+ 7) Tests: add fixture-driven system tests (XML + synthetic OCR text) covering subdivision mapping, measure/account parsing (happy/missing/conflict), identity capture, SLA derivation, validation flags (missing vs warning).
+ 8) Plug `ISLAEnforcer` into the extraction/matching flow (not just SLA tracking service) so `FechaEstimadaConclusion` uses the same business-day calculation already defined in infra. Reuse `SLAEnforcerService` via DI in extraction pipeline.
+
+### Task 6 Implementation Checklist (execution order)
+- [ ] Wire `LegalSubdivisionMapper` into XML extraction (set `Expediente.Subdivision`; warn if Unknown).
+- [ ] Add `MeasureParser`/`AccountParser` (reuse sanitizer) to fill `ComplianceActions` with `MeasureKind`/`Cuenta`; set origins/validation.
+- [ ] Extend `IdentityValidator` to merge RFC variants/CURP from XML + OCR; populate `PersonaSolicitud` fields; warn on missing/ambiguous.
+- [ ] Use `ISLAEnforcer` in extraction to compute `FechaEstimadaConclusion` from `FechaRecepcion + DiasPlazo`; mark origin Derived.
+- [ ] Aggregate per-entity `ValidationState` into `UnifiedMetadataRecord.Validation` (expediente, personas, actions, additional conflicts).
+- [ ] System tests: fixtures for subdivision, measure/account (happy/missing/conflict), identity (match/conflict/missing), SLA derivation; assert origins + validation flags; no pipeline short-circuit.
+- [ ] Delete / quarantine out-of-scope system OCR enhanced tests (cleanup done).
+- [ ] Wire aggregation in `FieldMatchingService` after parsers to include subdivision/measure/account/identity validations.
+- [ ] Resolve DOCX strategy stubs (DocxExtractionStrategy/IDocxExtractionStrategy/DocxStructure) and DI wiring to unblock system tests (XmlExtractorFixtureTests) without altering pipeline behavior.
 - Affected downstream:
   - Domain: `Expediente`, `ComplianceAction`, `PersonaSolicitud`, `SLAStatus` populated with origin + validation.
   - Application: parsers (`MetadataExtractionService`, `LegalDirectiveClassifierService`) need to fill origins/validation; exporters consume them.
@@ -365,6 +385,7 @@ public sealed class AuthorityKind : EnumModel
 - Current state: solution builds clean; origin tracking is wired (FieldOrigin on FieldValue/FieldMatchResult) and OCR sanitizer + pipeline fixtures exist. XML extractor remains stub; subdivision/measure/account/identity/SLA parsing not yet wired.
 - Next steps (respecting DRY/SOLID, fill gaps vs. rebuild): extend existing extractors (no new pipelines) to parse subdivision, measure, account (with sanitizer), RFC variants/CURP, SLA derivation; propagate into MatchedFields/UnifiedMetadataRecord with origins/validation; add focused integration/system tests using existing fixtures to prove reconciliation (XML vs. OCR vs. PDF) without short-circuiting. Update this journal as milestones close.
 - 2025-02-15: Added EF Core converters/comparers for SmartEnums used in review workflow (ReviewReason, ReviewStatus, DecisionType) to keep InMemory/relational providers aligned. Application test suite passes (165/165). Pending: export contract/validation expansion (Task 5) and parsing/derivation wiring (Task 6).
+- 2025-02-16: Hardened export validation (requires fundamento, medio de envío, subdivision, fechas, well-formed compliance actions with accounts for block/unblock/transfer). Updated export unit/perf tests to feed required fields and added negative coverage for missing account. Application tests (Export suites) now passing (166/166).
 ## Name/Identity Matching Policy (to implement)
 - Normalize names before comparison: uppercase, remove accents, collapse whitespace; keep raw for audit.
 - Use multi-signal fuzzy comparison (TokenSortRatio + Jaro-Winkler). Thresholds (tunable via `IOptionsMonitor<NameMatchingOptions>`):

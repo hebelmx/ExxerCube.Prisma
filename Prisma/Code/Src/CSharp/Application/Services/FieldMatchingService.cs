@@ -237,6 +237,10 @@ public class FieldMatchingService
                 AdditionalFieldConflicts = matchedFields.AdditionalConflicts
             };
 
+            PopulateComplianceActions(unifiedRecord);
+            DeriveSlaFromAdditional(unifiedRecord);
+            AggregateValidation(unifiedRecord);
+
             _logger.LogDebug("Successfully completed field matching workflow. Matched: {MatchedCount}, Conflicts: {ConflictCount}, Missing: {MissingCount}, Overall Agreement: {Agreement}",
                 matchedFields.FieldMatches.Count, matchedFields.ConflictingFields.Count, matchedFields.MissingFields.Count, matchedFields.OverallAgreement);
 
@@ -328,4 +332,73 @@ public class FieldMatchingService
             "DOCX" => FieldOrigin.Docx,
             _ => FieldOrigin.Unknown
         };
+
+    private static void DeriveSlaFromAdditional(UnifiedMetadataRecord record)
+    {
+        if (record.Expediente == null)
+        {
+            return;
+        }
+
+        if (record.Expediente.FechaRecepcion == default &&
+            record.AdditionalFields.TryGetValue("FechaPublicacion", out var fechaPubRaw) &&
+            DateTime.TryParse(fechaPubRaw, out var fechaPub))
+        {
+            record.Expediente.FechaRecepcion = fechaPub;
+        }
+
+        if (record.Expediente.FechaEstimadaConclusion == default &&
+            record.Expediente.FechaRecepcion != default &&
+            record.AdditionalFields.TryGetValue("DiasPlazo", out var diasRaw) &&
+            int.TryParse(diasRaw, out var dias))
+        {
+            record.Expediente.FechaEstimadaConclusion = record.Expediente.FechaRecepcion.AddDays(dias);
+        }
+    }
+
+    private static void AggregateValidation(UnifiedMetadataRecord record)
+    {
+        var validation = record.Validation ?? new ValidationState();
+
+        if (record.Expediente != null)
+        {
+            validation.Require(!string.IsNullOrWhiteSpace(record.Expediente.NumeroExpediente), "Expediente");
+            validation.Require(!string.IsNullOrWhiteSpace(record.Expediente.NumeroOficio), "NumeroOficio");
+            validation.Require(record.Expediente.Subdivision != LegalSubdivisionKind.Unknown, "Subdivision");
+            validation.Require(record.Expediente.FechaRecepcion != default, "FechaRecepcion");
+            validation.WarnIf(record.Expediente.FechaEstimadaConclusion == default, "FechaEstimadaConclusion");
+        }
+        else
+        {
+            validation.Require(false, "Expediente");
+        }
+
+        foreach (var persona in record.Personas)
+        {
+            if (!persona.Validation.IsValid)
+            {
+                validation.Warn("PersonaValidation");
+            }
+        }
+
+        foreach (var action in record.ComplianceActions)
+        {
+            validation.Require(action.ActionType != ComplianceActionKind.Unknown, "ComplianceAction.ActionType");
+            if (action.ActionType == ComplianceActionKind.Block ||
+                action.ActionType == ComplianceActionKind.Unblock ||
+                action.ActionType == ComplianceActionKind.Transfer)
+            {
+                var hasAccount = !string.IsNullOrWhiteSpace(action.AccountNumber) ||
+                                 !string.IsNullOrWhiteSpace(action.Cuenta?.Numero);
+                validation.Require(hasAccount, "ComplianceAction.Account");
+            }
+        }
+
+        foreach (var conflict in record.AdditionalFieldConflicts)
+        {
+            validation.Warn($"Conflict:{conflict}");
+        }
+
+        record.Validation = validation;
+    }
 }

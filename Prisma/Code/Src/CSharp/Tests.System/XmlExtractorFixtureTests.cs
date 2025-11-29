@@ -1,7 +1,4 @@
-using ExxerCube.Prisma.Domain.Sources;
-using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
-
-namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Tests.System;
 
 /// <summary>
 /// System-level checks for XML extraction against real PRP1 fixtures.

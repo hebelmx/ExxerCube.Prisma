@@ -33,17 +33,10 @@
 
 using System.Diagnostics;
 using ExxerCube.Prisma.Domain.Enum;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Infrastructure.Extraction.GotOcr2;
 using ExxerCube.Prisma.Infrastructure.Imaging;
 using ExxerCube.Prisma.Infrastructure.Imaging.Filters;
-using ExxerCube.Prisma.Infrastructure.Imaging.Strategies;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
-namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2;
+namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
 /// <summary>
 /// End-to-end tests validating OCR improvement with polynomial filter enhancement.

@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using ExxerCube.Prisma.Domain.Enums;
+using ExxerCube.Prisma.Domain.Enum;
 
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 
@@ -147,21 +148,65 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
 
     private static string MapSubdivision(string? areaClave, string? areaDescripcion)
     {
-        return (areaClave ?? string.Empty).Trim() switch
+        var claveInt = int.TryParse(areaClave, out var i) ? i : 0;
+        var mapped = LegalSubdivisionKind.Unknown;
+
+        // direct code mapping first
+        mapped = claveInt switch
         {
-            "1" => "Hacendario",
-            "2" => "Judicial",
-            "3" => "Aseguramiento",
-            "4" => "OperacionesIlicitas",
-            _ => string.IsNullOrWhiteSpace(areaDescripcion) ? "Unknown" : areaDescripcion!.Trim()
+            1 => LegalSubdivisionKind.A_AS,
+            2 => LegalSubdivisionKind.A_DE,
+            3 => LegalSubdivisionKind.A_TF,
+            4 => LegalSubdivisionKind.A_IN,
+            5 => LegalSubdivisionKind.J_AS,
+            6 => LegalSubdivisionKind.J_DE,
+            7 => LegalSubdivisionKind.J_IN,
+            8 => LegalSubdivisionKind.H_IN,
+            9 => LegalSubdivisionKind.E_AS,
+            10 => LegalSubdivisionKind.E_DE,
+            11 => LegalSubdivisionKind.E_IN,
+            _ => LegalSubdivisionKind.Unknown
         };
+
+        if (mapped != LegalSubdivisionKind.Unknown)
+        {
+            return mapped.Name;
+        }
+
+        var desc = (areaDescripcion ?? string.Empty).ToUpperInvariant();
+        if (desc.Contains("ASEGURAMIENTO"))
+        {
+            return LegalSubdivisionKind.A_AS.Name;
+        }
+        if (desc.Contains("DESEMBARGO"))
+        {
+            return LegalSubdivisionKind.A_DE.Name;
+        }
+        if (desc.Contains("TRANSFER"))
+        {
+            return LegalSubdivisionKind.A_TF.Name;
+        }
+        if (desc.Contains("JUD"))
+        {
+            return LegalSubdivisionKind.J_AS.Name;
+        }
+        if (desc.Contains("HAC"))
+        {
+            return LegalSubdivisionKind.H_IN.Name;
+        }
+        if (desc.Contains("ILICIT"))
+        {
+            return LegalSubdivisionKind.E_IN.Name;
+        }
+
+        return LegalSubdivisionKind.Unknown.Name;
     }
 
     private static string InferMeasure(string? tieneAseguramiento, string? instrucciones)
     {
         if (bool.TryParse(tieneAseguramiento, out var isAseguramiento) && isAseguramiento)
         {
-            return "Aseguramiento";
+            return ComplianceActionKind.Block.Name;
         }
 
         if (!string.IsNullOrWhiteSpace(instrucciones))
@@ -169,19 +214,37 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
             var text = instrucciones!.ToUpperInvariant();
             if (text.Contains("DEJAR SIN EFECTOS") || text.Contains("ELIMINA") || text.Contains("REANUD"))
             {
-                return "Desbloqueo";
+                return ComplianceActionKind.Unblock.Name;
             }
             if (text.Contains("COPIA CERTIFICADA") || text.Contains("DOCUMENT"))
             {
-                return "Documentacion";
+                return ComplianceActionKind.Document.Name;
             }
             if (text.Contains("TRANSFER"))
             {
-                return "Transferencia";
+                return ComplianceActionKind.Transfer.Name;
             }
         }
 
-        return "Informacion";
+        var parsed = ParseActionKind(instrucciones);
+        return parsed.Name;
+    }
+
+    private static ComplianceActionKind ParseActionKind(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return ComplianceActionKind.Unknown;
+        }
+
+        var text = raw.ToUpperInvariant();
+        if (text.Contains("BLOQ")) return ComplianceActionKind.Block;
+        if (text.Contains("DESBLO") || text.Contains("LIBER")) return ComplianceActionKind.Unblock;
+        if (text.Contains("TRANS") || text.Contains("TRASP")) return ComplianceActionKind.Transfer;
+        if (text.Contains("INFO")) return ComplianceActionKind.Information;
+        if (text.Contains("DOC")) return ComplianceActionKind.Document;
+        if (text.Contains("IGNOR")) return ComplianceActionKind.Ignore;
+        return ComplianceActionKind.Other;
     }
 
     private static List<string> CollectRfcVariants(XElement root)

@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2;
+namespace ExxerCube.Prisma.Tests.System;
 
 /// <summary>
 /// Collection fixture for analytical filter E2E tests.

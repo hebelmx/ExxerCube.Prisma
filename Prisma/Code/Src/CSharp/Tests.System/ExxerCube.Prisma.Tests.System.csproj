@@ -70,6 +70,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Application\ExxerCube.Prisma.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
     <ProjectReference Include="..\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
     <ProjectReference Include="..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />

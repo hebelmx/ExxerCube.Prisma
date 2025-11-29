@@ -1,17 +1,4 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Infrastructure.Extraction;
-using ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Shouldly;
-using Xunit;
-
-namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Tests.System;
 
 /// <summary>
 /// System-level check: run Tesseract on a noisy fixture and ensure sanitizer normalizes account/SWIFT without blocking.

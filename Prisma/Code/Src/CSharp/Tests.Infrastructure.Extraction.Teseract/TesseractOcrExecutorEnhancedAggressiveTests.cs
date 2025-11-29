@@ -38,7 +38,7 @@
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
-namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2;
+namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
 /// <summary>
 /// PHASE 2B: AGGRESSIVE Enhancement Filter Testing (EXPERIMENTAL)
