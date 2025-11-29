@@ -4,8 +4,10 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 /// TDD tests for DocxStructureAnalyzer.
 /// Tests document structure analysis for strategy selection.
 /// </summary>
-public sealed class DocxStructureAnalyzerTests
+public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
 {
+    private readonly ILogger<DocxStructureAnalyzerTests> logger = XUnitLogger.CreateLogger<DocxStructureAnalyzerTests>(output);
+
     [Fact]
     public async Task AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat()
     {
@@ -15,7 +17,7 @@ public sealed class DocxStructureAnalyzerTests
 
         // Act
         var result = analyzer.AnalyzeStructure(docxBytes);
-
+        logger.LogInformation("Analysis Result: {@Result}", result);
         // Assert
         result.Should().NotBeNull();
         result.HasStructuredFormat.Should().BeTrue("CNBV template should be detected");
