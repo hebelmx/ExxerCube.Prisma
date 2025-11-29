@@ -172,7 +172,7 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
     {
         if (bool.TryParse(tieneAseguramiento, out var isAseguramiento) && isAseguramiento)
         {
-            return ComplianceActionKind.Block.Name;
+            return ToSpanishMeasureName(ComplianceActionKind.Block);
         }
 
         if (!string.IsNullOrWhiteSpace(instrucciones))
@@ -180,20 +180,35 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
             var text = instrucciones!.ToUpperInvariant();
             if (text.Contains("DEJAR SIN EFECTOS") || text.Contains("ELIMINA") || text.Contains("REANUD"))
             {
-                return ComplianceActionKind.Unblock.Name;
+                return ToSpanishMeasureName(ComplianceActionKind.Unblock);
             }
             if (text.Contains("COPIA CERTIFICADA") || text.Contains("DOCUMENT"))
             {
-                return ComplianceActionKind.Document.Name;
+                return ToSpanishMeasureName(ComplianceActionKind.Document);
             }
             if (text.Contains("TRANSFER"))
             {
-                return ComplianceActionKind.Transfer.Name;
+                return ToSpanishMeasureName(ComplianceActionKind.Transfer);
             }
         }
 
         var parsed = ParseActionKind(instrucciones);
-        return parsed.Name;
+        return ToSpanishMeasureName(parsed);
+    }
+
+    private static string ToSpanishMeasureName(ComplianceActionKind kind)
+    {
+        return kind.Name switch
+        {
+            "Block" => "Aseguramiento",
+            "Unblock" => "Desbloqueo",
+            "Document" => "Documentacion",
+            "Transfer" => "Transferencia",
+            "Information" => "Informacion",
+            "Ignore" => "Ignorar",
+            "Other" => "Otro",
+            _ => "Desconocido"
+        };
     }
 
     private static ComplianceActionKind ParseActionKind(string? raw)
