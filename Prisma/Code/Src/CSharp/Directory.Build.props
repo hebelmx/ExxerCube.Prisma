@@ -8,7 +8,7 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<!-- 
+		<!--
 		  NU1902: OpenTelemetry.Api vulnerability (transitive dependency, documented in SECURITY_SUPPRESSIONS.md)
 		  - Package: OpenTelemetry.Api 1.10.0 (transitive dependency via OpenTelemetry.Instrumentation.Process)
 		  - Vulnerability: GHSA-8785-wc3w-h8q6 (moderate severity)
@@ -21,7 +21,13 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-		<!-- Set output path for all projects to a central bin directory outside the solution folder -->
-		<OutputPath>$(SolutionDir)../bin/$(Configuration)/$(MSBuildProjectName)/</OutputPath>
+
+		<!-- Build artifacts outside repository (keeps repo clean) -->
+		<!-- Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\ -->
+		<ArtifactsBaseDir>F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\</ArtifactsBaseDir>
+		<BaseOutputPath>$(ArtifactsBaseDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
+		<OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
+		<BaseIntermediateOutputPath>$(ArtifactsBaseDir)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+		<IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
 	</PropertyGroup>
 </Project>

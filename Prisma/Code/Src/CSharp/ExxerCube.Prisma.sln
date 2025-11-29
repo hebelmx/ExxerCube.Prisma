@@ -78,7 +78,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02 Contracts", "02 Contract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Testing.Contracts", "05-Testing\01-Abstractions\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj", "{40CD8AE1-2350-4286-AAC6-06913EADA2EA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04 Pythin Testing", "04 Pythin Testing", "{29717C03-BAFB-1B2C-6138-345435E8583B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04 Python Testing", "04 Python Testing", "{29717C03-BAFB-1B2C-6138-345435E8583B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Testing.Python", "05-Testing\01-Abstractions\Testing\Python\ExxerCube.Prisma.Testing.Python.csproj", "{323347EC-0FD5-4989-817D-8E1EBCA9CCE8}"
 EndProject
