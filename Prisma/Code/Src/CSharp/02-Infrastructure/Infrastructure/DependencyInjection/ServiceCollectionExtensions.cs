@@ -30,10 +30,11 @@ public static class ServiceCollectionExtensions
             var imagePreprocessor = provider.GetRequiredService<IImagePreprocessor>();
             var ocrExecutor = provider.GetRequiredService<IOcrExecutor>();
             var fieldExtractor = provider.GetRequiredService<IFieldExtractor>();
+            var eventPublisher = provider.GetRequiredService<IEventPublisher>();
             var logger = provider.GetRequiredService<ILogger<IOcrProcessingService>>();
             var metricsService = provider.GetRequiredService<IProcessingMetricsService>();
 
-            return new OcrProcessingService(imagePreprocessor, ocrExecutor, fieldExtractor, logger, metricsService);
+            return new OcrProcessingService(imagePreprocessor, ocrExecutor, fieldExtractor, eventPublisher, logger, metricsService);
         });
 
         // Register Infrastructure adapter that implements Domain interface

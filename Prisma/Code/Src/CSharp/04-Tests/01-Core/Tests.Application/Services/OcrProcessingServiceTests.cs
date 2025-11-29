@@ -9,6 +9,7 @@ public class OcrProcessingServiceTests
     private readonly IImagePreprocessor _imagePreprocessor;
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IFieldExtractor _fieldExtractor;
+    private readonly IEventPublisher _eventPublisher;
     private readonly ILogger<IOcrProcessingService> _logger;
 
     /// <summary>
@@ -19,9 +20,10 @@ public class OcrProcessingServiceTests
         _imagePreprocessor = Substitute.For<IImagePreprocessor>();
         _ocrExecutor = Substitute.For<IOcrExecutor>();
         _fieldExtractor = Substitute.For<IFieldExtractor>();
+        _eventPublisher = Substitute.For<IEventPublisher>();
         _logger = Substitute.For<ILogger<IOcrProcessingService>>();
         var metricsService = Substitute.For<IProcessingMetricsService>();
-        _service = new OcrProcessingService(_imagePreprocessor, _ocrExecutor, _fieldExtractor, _logger, metricsService);
+        _service = new OcrProcessingService(_imagePreprocessor, _ocrExecutor, _fieldExtractor, _eventPublisher, _logger, metricsService);
     }
 
     /// <summary>

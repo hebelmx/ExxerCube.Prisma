@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Events;
+
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>
@@ -10,6 +12,7 @@ public class DocumentIngestionService
     private readonly IDownloadStorage _downloadStorage;
     private readonly IFileMetadataLogger _fileMetadataLogger;
     private readonly IAuditLogger _auditLogger;
+    private readonly IEventPublisher _eventPublisher;
     private readonly ILogger<DocumentIngestionService> _logger;
 
     /// <summary>
@@ -20,6 +23,7 @@ public class DocumentIngestionService
     /// <param name="downloadStorage">The download storage adapter.</param>
     /// <param name="fileMetadataLogger">The file metadata logger.</param>
     /// <param name="auditLogger">The audit logger service.</param>
+    /// <param name="eventPublisher">The event publisher for domain events.</param>
     /// <param name="logger">The logger instance.</param>
     public DocumentIngestionService(
         IBrowserAutomationAgent browserAutomationAgent,
@@ -27,6 +31,7 @@ public class DocumentIngestionService
         IDownloadStorage downloadStorage,
         IFileMetadataLogger fileMetadataLogger,
         IAuditLogger auditLogger,
+        IEventPublisher eventPublisher,
         ILogger<DocumentIngestionService> logger)
     {
         _browserAutomationAgent = browserAutomationAgent;
@@ -34,6 +39,7 @@ public class DocumentIngestionService
         _downloadStorage = downloadStorage;
         _fileMetadataLogger = fileMetadataLogger;
         _auditLogger = auditLogger;
+        _eventPublisher = eventPublisher;
         _logger = logger;
     }
 
@@ -370,6 +376,19 @@ public class DocumentIngestionService
                             _logger.LogWarning("Failed to log file metadata for {FileName}: {Error}", downloadableFile.FileName, logResult.Error);
                             // Continue even if logging fails - file is saved
                         }
+
+                        // Publish DocumentDownloadedEvent for real-time monitoring
+                        var correlationGuid = Guid.TryParse(correlationId, out var corrId) ? corrId : (Guid?)null;
+                        _eventPublisher.Publish(new DocumentDownloadedEvent
+                        {
+                            FileId = Guid.Parse(fileMetadata.FileId),
+                            FileName = downloadedFile.FileName,
+                            Source = "SIARA", // TODO: Make this configurable based on source
+                            FileSizeBytes = downloadedFile.FileSize,
+                            Format = fileMetadata.Format,
+                            DownloadUrl = downloadableFile.Url,
+                            CorrelationId = correlationGuid
+                        });
 
                         _logger.LogInformation("Successfully processed file: {FileName} (FileId: {FileId})", downloadableFile.FileName, fileMetadata.FileId);
                         return Result<FileMetadata?>.Success(fileMetadata);

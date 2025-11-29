@@ -56,12 +56,14 @@ public class AuditLoggerIntegrationTests : IDisposable
         var criterionMapper = Substitute.For<ICriterionMapper>();
         var pdfRequirementSummarizer = Substitute.For<IPdfRequirementSummarizer>();
 
+        var eventPublisher = Substitute.For<IEventPublisher>();
         _documentIngestionService = new DocumentIngestionService(
             browserAgent,
             downloadTracker,
             downloadStorage,
             fileMetadataLogger,
             _auditLogger,
+            eventPublisher,
             ingestionLogger);
 
         _metadataExtractionService = new MetadataExtractionService(

@@ -51,6 +51,7 @@ public class DocumentIngestionIntegrationTests : IDisposable
         // Mock browser automation agent for system tests
         _browserAutomationAgent = Substitute.For<IBrowserAutomationAgent>();
         var auditLogger = Substitute.For<IAuditLogger>();
+        var eventPublisher = Substitute.For<IEventPublisher>();
 
         _service = new DocumentIngestionService(
             _browserAutomationAgent,
@@ -58,6 +59,7 @@ public class DocumentIngestionIntegrationTests : IDisposable
             downloadStorage,
             fileMetadataLogger,
             auditLogger,
+            eventPublisher,
             _serviceLogger);
     }
 

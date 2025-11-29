@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Events;
+
 namespace ExxerCube.Prisma.Application.Services;
 
 /// <summary>
@@ -12,6 +14,7 @@ public class OcrProcessingService
     private readonly IImagePreprocessor _imagePreprocessor;
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IFieldExtractor _fieldExtractor;
+    private readonly IEventPublisher _eventPublisher;
     private readonly ILogger<IOcrProcessingService> _logger;
     private readonly IProcessingMetricsService _metricsService;
 
@@ -21,18 +24,21 @@ public class OcrProcessingService
     /// <param name="imagePreprocessor">The image preprocessor service.</param>
     /// <param name="ocrExecutor">The OCR executor service.</param>
     /// <param name="fieldExtractor">The field extractor service.</param>
+    /// <param name="eventPublisher">The event publisher for domain events.</param>
     /// <param name="logger">The logger.</param>
     /// <param name="metricsService">The metrics service for performance monitoring.</param>
     public OcrProcessingService(
         IImagePreprocessor imagePreprocessor,
         IOcrExecutor ocrExecutor,
         IFieldExtractor fieldExtractor,
+        IEventPublisher eventPublisher,
         ILogger<IOcrProcessingService> logger,
         IProcessingMetricsService metricsService)
     {
         _imagePreprocessor = imagePreprocessor;
         _ocrExecutor = ocrExecutor;
         _fieldExtractor = fieldExtractor;
+        _eventPublisher = eventPublisher;
         _logger = logger;
         _metricsService = metricsService;
     }
@@ -157,6 +163,17 @@ public class OcrProcessingService
 
                         var processingResult = CreateProcessingResult(imageData, ocrResultValue, extractedFields);
                         await LogProcessingResult(processingResult);
+
+                        // Publish OcrCompletedEvent for real-time monitoring
+                        _eventPublisher.Publish(new OcrCompletedEvent
+                        {
+                            FileId = Guid.TryParse(documentId, out var fileGuid) ? fileGuid : Guid.NewGuid(),
+                            OcrEngine = "Tesseract/GOT-OCR2", // TODO: Track actual engine used
+                            Confidence = (decimal)ocrResultValue.ConfidenceAvg,
+                            ExtractedTextLength = ocrResultValue.Text?.Length ?? 0,
+                            ProcessingTime = TimeSpan.FromSeconds(1), // TODO: Calculate actual processing time
+                            FallbackTriggered = false // TODO: Track fallback status
+                        });
 
                         // Record successful completion
                         await _metricsService.CompleteProcessingAsync(processingContext, processingResult, true).ConfigureAwait(false);
