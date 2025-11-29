@@ -74,7 +74,7 @@ public class TextSanitizerTests
         accountResult.Cleaned.ShouldBe("123456789");
         accountResult.Warnings.ShouldContain("AccountNormalized");
 
-        swiftResult.Cleaned.ShouldBe("SWIFTBNMXMXMMX"); // Best-effort OCR includes "SWIFT" label
+        swiftResult.Cleaned.ShouldBe("BNMXMXMMXXX"); // TextSanitizer strips "SWIFT" label prefix
         swiftResult.Warnings.ShouldContain("SwiftNormalized");
     }
 }
