@@ -75,6 +75,13 @@
   <ItemGroup>
     <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <!-- Copy degraded image fixtures for E2E filter tests -->
+  <ItemGroup Label="Degraded Image Fixtures">
+    <None Include="..\..\..\..\..\..\..\Fixtures\PRP1_Degraded\Q1_Poor\*.*" Link="Fixtures\PRP1_Degraded\Q1_Poor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\..\Fixtures\PRP1_Degraded\Q2_MediumPoor\*.*" Link="Fixtures\PRP1_Degraded\Q2_MediumPoor\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\..\Fixtures\PRP1_Degraded\Q3_Low\*.*" Link="Fixtures\PRP1_Degraded\Q3_Low\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\..\..\..\..\..\Fixtures\PRP1_Degraded\Q4_VeryLow\*.*" Link="Fixtures\PRP1_Degraded\Q4_VeryLow\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />
     <ProjectCapability Include="TestingPlatformServer" />
