@@ -45,7 +45,7 @@ public class TextSanitizerOcrPipelineTests : IDisposable
         _logger.LogInformation("Sanitized Account: {Account}", sanitized.Account.Cleaned);
         sanitized.Account.Warnings.ShouldContain("AccountNormalized");
         _logger.LogInformation("Sanitized Account: {Account}", sanitized.Account.Cleaned);
-        sanitized.Swift.Cleaned.ShouldBe("BNMXMXMMXXX"); // TextSanitizer strips "SWIFT" label prefix
+        sanitized.Swift.Cleaned.ShouldBe("BNMXMXMMX"); // TextSanitizer strips "SWIFT" label prefix (PNG fixture has 9-char code)
         _logger.LogInformation("Sanitized SWIFT: {Swift}", sanitized.Swift.Cleaned);
         sanitized.Swift.Warnings.ShouldContain("SwiftNormalized");
     }

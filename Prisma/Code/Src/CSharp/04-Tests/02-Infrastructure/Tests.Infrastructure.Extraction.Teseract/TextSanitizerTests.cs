@@ -77,4 +77,18 @@ public class TextSanitizerTests
         swiftResult.Cleaned.ShouldBe("BNMXMXMMXXX"); // TextSanitizer strips "SWIFT" label prefix
         swiftResult.Warnings.ShouldContain("SwiftNormalized");
     }
+
+    [Fact]
+    public void CleanSwift_handles_OCR_noise_with_accents_and_special_characters()
+    {
+        // Real-world OCR example: Accents and special characters appear in place of letters
+        var noisySwift = "SWIFT: B N M X M X M M´X¨X";
+
+        var result = _sut.CleanSwift(noisySwift);
+
+        result.Raw.ShouldBe(noisySwift);
+        result.Cleaned.ShouldBe("BNMXMXMMXX"); // Strips "SWIFT" label, spaces, accents (´, ¨)
+        result.Warnings.ShouldContain("SwiftNormalized");
+        result.Warnings.ShouldContain("SwiftLengthSuspect"); // 10 chars instead of 8 or 11
+    }
 }
