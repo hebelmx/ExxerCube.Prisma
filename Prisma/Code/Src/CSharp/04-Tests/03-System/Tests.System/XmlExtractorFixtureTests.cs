@@ -72,7 +72,7 @@ public class XmlExtractorFixtureTests(ITestOutputHelper output)
         fields.AdditionalFields["Subdivision"].ShouldBe("Judicial");
         fields.AdditionalFields["MeasureHint"].ShouldBe("Aseguramiento");
         fields.AdditionalFields["RfcList"]?.ShouldContain("ZUCM444444555");
-        fields.AdditionalFields["Curp"]?.ShouldBe("ZUCM444444ABCDEF");
+        fields.AdditionalFields["Curp"]?.ShouldBe("ZUCM444444ABCDEF01"); // Valid 18-char CURP format
     }
 
     [Fact, Trait("Category", "XmlExtractor")]

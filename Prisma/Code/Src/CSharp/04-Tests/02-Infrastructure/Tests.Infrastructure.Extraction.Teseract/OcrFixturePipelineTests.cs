@@ -32,7 +32,7 @@ public class OcrFixturePipelineTests : IDisposable
         _logger.LogInformation("Account.Cleaned: '{AccountCleaned}' (expected: '1234567890123456')", sanitized.Account.Cleaned);
         _logger.LogInformation("Account.Warnings: [{AccountWarnings}] (expected: no 'AccountNormalized')", string.Join(", ", sanitized.Account.Warnings));
         _logger.LogInformation("Swift.Raw: '{SwiftRaw}'", sanitized.Swift.Raw);
-        _logger.LogInformation("Swift.Cleaned: '{SwiftCleaned}' (expected: 'BNMXMXMMX')", sanitized.Swift.Cleaned);
+        _logger.LogInformation("Swift.Cleaned: '{SwiftCleaned}' (expected: 'BNMXMXM')", sanitized.Swift.Cleaned);
         _logger.LogInformation("Swift.Warnings: [{SwiftWarnings}] (expected: no 'SwiftNormalized')", string.Join(", ", sanitized.Swift.Warnings));
 
         sanitized.Account.Cleaned.ShouldBe("1234567890123456");

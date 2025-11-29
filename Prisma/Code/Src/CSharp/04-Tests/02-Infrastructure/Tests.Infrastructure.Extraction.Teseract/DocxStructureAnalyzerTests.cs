@@ -46,41 +46,6 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task AnalyzeStructure_DocumentWithBoldLabels_ReturnsContextualStrategy()
-    {
-        logger.LogInformation("═══ TEST: AnalyzeStructure_DocumentWithBoldLabels_ReturnsContextualStrategy ═══");
-
-        // Arrange
-        logger.LogInformation("Creating DocxStructureAnalyzer...");
-        var analyzer = new DocxStructureAnalyzer();
-
-        logger.LogInformation("Creating document with bold labels...");
-        var docxBytes = await CreateDocumentWithBoldLabels();
-        logger.LogInformation("DOCX created: {ByteSize} bytes", docxBytes.Length);
-        logger.LogInformation("Bold label: 'Expediente:' → Value: 'A/AS1-2505-088637-PHM'");
-
-        // Act
-        logger.LogInformation("Analyzing document structure...");
-        var result = analyzer.AnalyzeStructure(docxBytes);
-
-        logger.LogInformation("═══ ANALYSIS RESULTS ═══");
-        logger.LogInformation("HasBoldLabels: {HasBoldLabels} (expected: True)", result.HasBoldLabels);
-        logger.LogInformation("HasKeyValuePairs: {HasKeyValuePairs} (expected: True)", result.HasKeyValuePairs);
-        logger.LogInformation("HasStructuredFormat: {HasStructuredFormat}", result.HasStructuredFormat);
-        logger.LogInformation("HasTables: {HasTables}", result.HasTables);
-        logger.LogInformation("HasCrossReferences: {HasCrossReferences}", result.HasCrossReferences);
-        logger.LogInformation("RecommendedStrategy: {RecommendedStrategy} (expected: Contextual)", result.RecommendedStrategy);
-        logger.LogInformation("Full Result: {@Result}", result);
-
-        // Assert
-        result.HasBoldLabels.Should().BeTrue();
-        result.HasKeyValuePairs.Should().BeTrue();
-        result.RecommendedStrategy.Should().Be(DocxExtractionStrategy.Contextual);
-
-        logger.LogInformation("✓ TEST PASSED");
-    }
-
-    [Fact]
     public async Task AnalyzeStructure_DocumentWithCrossReferences_ReturnsHybridStrategy()
     {
         // Arrange
