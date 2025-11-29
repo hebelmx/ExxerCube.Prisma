@@ -1,0 +1,82 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <!-- "Target framework centrally manged do not add another here  -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-ExxerCube.Prisma.Web.UI-889a571d-e37b-47ea-b986-9e8601044c7a</UserSecretsId>
+    <!-- Suppress BL0008 - MudBlazor analyzer bug: fixing causes BL0002, then fixing that causes BL0008 again -->
+    <NoWarn>$(NoWarn);BL0008</NoWarn>
+    <!-- Suppress MUD0002 - MudBlazor analyzer false positives for attribute casing (known bug in MudBlazor v7 analyzer) -->
+    <NoWarn>$(NoWarn);MUD0002</NoWarn>
+    <!-- 
+      Exclude NU1903 from being treated as error - DocumentFormat.OpenXml dependency vulnerability
+      Exclude NU1902 from being treated as error - OpenTelemetry.Api vulnerability (moderate severity)
+      
+      NU1902 Suppression Rationale:
+      - Package: OpenTelemetry.Api 1.10.0 (transitive dependency via OpenTelemetry.Instrumentation.Process)
+      - Vulnerability: GHSA-8785-wc3w-h8q6 (moderate severity)
+      - Reason: This is a transitive dependency from OpenTelemetry packages that we don't directly control.
+                The OpenTelemetry team is aware and will address in future versions.
+      - Risk Assessment: Moderate severity, not critical. The vulnerability is in a dependency we don't control.
+      - Monitoring: We will update OpenTelemetry packages when fixes are available.
+      - Reference: https://github.com/advisories/GHSA-8785-wc3w-h8q6
+    -->
+    <NoWarn>$(NoWarn);NU1902</NoWarn>
+    <WarningsNotAsErrors>NU1903;NU1902</WarningsNotAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
+    <PackageReference Include="MudBlazor" />
+    <PackageReference Include="Extensions.MudBlazor.StaticInput" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
+    <PackageReference Include="FuzzySharp" />
+    <PackageReference Include="AngleSharp" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <!-- OpenTelemetry for telemetry and distributed tracing -->
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" />
+    <!-- Note: SignalR instrumentation is included in ASP.NET Core instrumentation -->
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\01-Core\Application\ExxerCube.Prisma.Application.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
+    <ProjectReference Include="..\..\..\05-Testing\01-Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ExxerCube.Prisma.Tests.EndToEnd</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>ExxerCube.Prisma.Tests.UI</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <!-- Copy Fixtures folder to output directory for golden test demo -->
+  <ItemGroup>
+    <Content Include="..\..\..\..\..\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png</Link>
+    </Content>
+  </ItemGroup>
+</Project>

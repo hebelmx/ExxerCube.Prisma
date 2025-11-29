@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- "Target framework centrally manged do not add another here"  -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Suppress CS1591 for CSnakes generated code (missing XML comments) -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- CSnakes Configuration for Python code generation -->
+    <EmbedPythonSources>true</EmbedPythonSources>
+    <DefaultPythonItems>true</DefaultPythonItems>
+    <PythonRoot>Python/python</PythonRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Python/python/*.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Python/python/*.py" SourceItemType="Python">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AdditionalFiles>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CSnakes.Runtime" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="IndQuestResults" />
+    <PackageReference Include="Newtonsoft.Json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\..\01-Core\Application\ExxerCube.Prisma.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Python\Wrappers\" />
+    <Folder Include="Python\python\" />
+  </ItemGroup>
+  <!-- Set PYTHONPATH for CSnakes code generation - must run before source generators -->
+  <Target Name="SetPythonPathForCSnakes" BeforeTargets="BeforeCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <!-- Use MSBuildProjectDirectory to get project root, then go up to find Python modules -->
+      <_ProjectRoot>$(MSBuildProjectDirectory)</_ProjectRoot>
+      <_OcrModulesPath>$(_ProjectRoot)\..\..\Python\prisma-ocr-pipeline\src</_OcrModulesPath>
+      <_OcrModulesPathNormalized>$([System.IO.Path]::GetFullPath('$(_OcrModulesPath)'))</_OcrModulesPathNormalized>
+    </PropertyGroup>
+    <Message Text="Setting PYTHONPATH for CSnakes code generation..." Importance="normal" />
+    <Message Condition="Exists('$(_OcrModulesPathNormalized)')" Text="ocr_modules path found: $(_OcrModulesPathNormalized)" Importance="normal" />
+    <Warning Condition="!Exists('$(_OcrModulesPathNormalized)')" Text="ocr_modules path not found at: $(_OcrModulesPathNormalized). CSnakes code generation may fail. Use build-infrastructure.ps1 script or set PYTHONPATH manually." />
+    <!-- Set PYTHONPATH using Exec to ensure it's available to child processes -->
+    <Exec Condition="Exists('$(_OcrModulesPathNormalized)')" Command="powershell -NoProfile -Command &quot;$env:PYTHONPATH = '$(_OcrModulesPathNormalized)' + ';' + $env:PYTHONPATH&quot;" IgnoreExitCode="true" />
+    <!-- Also set as MSBuild property for potential use by analyzers -->
+    <PropertyGroup Condition="Exists('$(_OcrModulesPathNormalized)')">
+      <PYTHONPATH>$(_OcrModulesPathNormalized);$(PYTHONPATH)</PYTHONPATH>
+    </PropertyGroup>
+    <Message Condition="Exists('$(_OcrModulesPathNormalized)')" Text="PYTHONPATH configured: $(_OcrModulesPathNormalized)" Importance="normal" />
+  </Target>
+</Project>

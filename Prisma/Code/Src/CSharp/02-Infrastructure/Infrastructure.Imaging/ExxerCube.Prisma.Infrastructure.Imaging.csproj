@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Target framework centrally managed - do not add another here -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- EmguCV for OpenCV operations -->
+    <PackageReference Include="Emgu.CV" />
+    <!-- FuzzySharp for fuzzy string matching -->
+    <PackageReference Include="FuzzySharp" />
+    <!-- Core dependencies -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="IndQuestResults" />
+  </ItemGroup>
+  <!-- Platform-specific EmguCV runtime -->
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <PackageReference Include="Emgu.CV.runtime.windows" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <PackageReference Include="Emgu.CV.runtime.ubuntu-x64">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <!-- Note: NETSDK1206 warning is expected - EmguCV uses ubuntu-x64 RID which is distribution-specific -->
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+  </ItemGroup>
+</Project>

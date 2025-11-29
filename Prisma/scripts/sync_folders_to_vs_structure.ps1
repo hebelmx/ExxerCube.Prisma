@@ -61,7 +61,7 @@ $Structure = @{
         "Infrastructure.Python.GotOcr2"
     )
     "03-UI" = @(
-        "Web.UI"
+        "UI"
     )
     "04-Tests\01-Core" = @(
         "Tests.Application",

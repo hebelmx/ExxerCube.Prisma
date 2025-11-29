@@ -1,0 +1,188 @@
+{
+  "metadata": {
+    "generated_on": "2025-11-28T21:59:00.628321",
+    "base_path": "Code\\Src\\CSharp",
+    "analyzer_version": "1.0.0"
+  },
+  "projects": {
+    "Tests.Application": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Application\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [],
+      "has_relative_paths": false
+    },
+    "Tests.EndToEnd": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.EndToEnd\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [],
+      "has_relative_paths": false
+    },
+    "Tests.Infrastructure.Classification": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Infrastructure.Classification\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [
+        "\"FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue: Calling FindByRfcAsync...\""
+      ],
+      "has_relative_paths": true
+    },
+    "Tests.Infrastructure.Database": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Infrastructure.Database\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [
+        "\"GetSLAStatusAsync_NonExistentStatus_ReturnsSuccessWithNullValue: Calling GetSLAStatusAsync...\""
+      ],
+      "has_relative_paths": true
+    },
+    "Tests.Infrastructure.Export": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Infrastructure.Export\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [],
+      "has_relative_paths": false
+    },
+    "Tests.Infrastructure.Extraction": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Infrastructure.Extraction\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [],
+      "has_relative_paths": false
+    },
+    "Tests.Infrastructure.Extraction.Teseract": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Infrastructure.Extraction.Teseract\\Fixtures",
+        "file_count": 30,
+        "total_size_mb": 0.7936248779296875,
+        "file_types": {
+          ".log": 1,
+          ".txt": 1,
+          ".png": 10,
+          ".xml": 9,
+          ".md": 9
+        }
+      },
+      "relative_path_references": [
+        "\"Starting Tesseract execution on ENHANCED {qualityLevel} image...\"",
+        "\"Según el expediente previamente indicado se procede...\"",
+        "\"Starting Tesseract execution on {qualityLevel} quality...\"",
+        "\"Starting Tesseract OCR execution...\"",
+        "\"Starting Tesseract execution on AGGRESSIVE ENHANCED {qualityLevel} image...\""
+      ],
+      "has_relative_paths": true
+    },
+    "Tests.Infrastructure.FileSystem": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Infrastructure.FileSystem\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [],
+      "has_relative_paths": false
+    },
+    "Tests.Infrastructure.Python": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Infrastructure.Python\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [],
+      "has_relative_paths": false
+    },
+    "Tests.Infrastructure.XmlExtraction": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.Infrastructure.XmlExtraction\\Fixtures",
+        "file_count": 4,
+        "total_size_mb": 0.0040340423583984375,
+        "file_types": {
+          ".xml": 4
+        }
+      },
+      "relative_path_references": [],
+      "has_relative_paths": false
+    },
+    "Tests.System": {
+      "fixture_analysis": {
+        "path": "Code\\Src\\CSharp\\Tests.System\\TestData",
+        "file_count": 8,
+        "total_size_mb": 4.057241439819336,
+        "file_types": {
+          ".png": 4,
+          ".txt": 2,
+          ".jpg": 1,
+          ".pdf": 1
+        }
+      },
+      "relative_path_references": [],
+      "has_relative_paths": false
+    }
+  },
+  "summary": {
+    "total_projects": 11,
+    "total_files": 106,
+    "total_size_mb": 37.31283187866211,
+    "projects_with_relative_paths": 3
+  }
+}
