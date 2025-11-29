@@ -61,8 +61,12 @@ public class TextSanitizerTests
         var fixturePath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "OcrSamples", "noisy_account.txt");
         var text = File.ReadAllText(fixturePath);
 
-        var accountLine = text.Split(Environment.NewLine)[0];
-        var swiftLine = text.Split(Environment.NewLine)[1];
+        // Split by any line ending style (\r\n, \n, \r) and remove empty entries
+        var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        lines.Length.ShouldBeGreaterThanOrEqualTo(2, "Fixture should have at least 2 lines (account and swift)");
+
+        var accountLine = lines[0];
+        var swiftLine = lines[1];
 
         var accountResult = _sut.CleanAccount(accountLine);
         var swiftResult = _sut.CleanSwift(swiftLine);
