@@ -11,50 +11,107 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
     [Fact]
     public async Task AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat()
     {
+        logger.LogInformation("═══ TEST: AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat ═══");
+
         // Arrange
+        logger.LogInformation("Creating DocxStructureAnalyzer...");
         var analyzer = new DocxStructureAnalyzer();
+
+        logger.LogInformation("Creating CNBV structured document...");
         var docxBytes = await CreateStructuredCNBVDocument();
+        logger.LogInformation("DOCX created: {ByteSize} bytes", docxBytes.Length);
 
         // Act
+        logger.LogInformation("Analyzing document structure...");
         var result = analyzer.AnalyzeStructure(docxBytes);
-        logger.LogInformation("Analysis Result: {@Result}", result);
+
+        logger.LogInformation("═══ ANALYSIS RESULTS ═══");
+        logger.LogInformation("HasStructuredFormat: {HasStructuredFormat}", result.HasStructuredFormat);
+        logger.LogInformation("HasTables: {HasTables}", result.HasTables);
+        logger.LogInformation("HasBoldLabels: {HasBoldLabels}", result.HasBoldLabels);
+        logger.LogInformation("HasKeyValuePairs: {HasKeyValuePairs}", result.HasKeyValuePairs);
+        logger.LogInformation("HasCrossReferences: {HasCrossReferences}", result.HasCrossReferences);
+        logger.LogInformation("RecommendedStrategy: {RecommendedStrategy}", result.RecommendedStrategy);
+        logger.LogInformation("Full Result: {@Result}", result);
+
         // Assert
         result.Should().NotBeNull();
         result.HasStructuredFormat.Should().BeTrue("CNBV template should be detected");
         result.RecommendedStrategy.Should().Be(DocxExtractionStrategy.Structured);
+
+        logger.LogInformation("✓ TEST PASSED");
     }
 
     [Fact]
     public async Task AnalyzeStructure_DocumentWithTables_ReturnsTableBasedStrategy()
     {
+        logger.LogInformation("═══ TEST: AnalyzeStructure_DocumentWithTables_ReturnsTableBasedStrategy ═══");
+
         // Arrange
+        logger.LogInformation("Creating DocxStructureAnalyzer...");
         var analyzer = new DocxStructureAnalyzer();
+
+        logger.LogInformation("Creating document with tables...");
         var docxBytes = await CreateDocumentWithTables();
+        logger.LogInformation("DOCX created: {ByteSize} bytes", docxBytes.Length);
 
         // Act
+        logger.LogInformation("Analyzing document structure...");
         var result = analyzer.AnalyzeStructure(docxBytes);
+
+        logger.LogInformation("═══ ANALYSIS RESULTS ═══");
+        logger.LogInformation("HasTables: {HasTables} (expected: True)", result.HasTables);
+        logger.LogInformation("TableStructure: {@TableStructure}", result.TableStructure);
+        if (result.TableStructure != null)
+        {
+            logger.LogInformation("  RowCount: {RowCount}", result.TableStructure.RowCount);
+            logger.LogInformation("  HasHeaderRow: {HasHeaderRow}", result.TableStructure.HasHeaderRow);
+            logger.LogInformation("  ColumnHeaders: {ColumnHeaders}", string.Join(", ", result.TableStructure.ColumnHeaders ?? Array.Empty<string>()));
+        }
+        logger.LogInformation("RecommendedStrategy: {RecommendedStrategy} (expected: TableBased)", result.RecommendedStrategy);
 
         // Assert
         result.HasTables.Should().BeTrue();
         result.TableStructure.Should().NotBeNull();
         result.TableStructure!.RowCount.Should().BeGreaterThan(1);
         result.RecommendedStrategy.Should().Be(DocxExtractionStrategy.TableBased);
+
+        logger.LogInformation("✓ TEST PASSED");
     }
 
     [Fact]
     public async Task AnalyzeStructure_DocumentWithBoldLabels_ReturnsContextualStrategy()
     {
+        logger.LogInformation("═══ TEST: AnalyzeStructure_DocumentWithBoldLabels_ReturnsContextualStrategy ═══");
+
         // Arrange
+        logger.LogInformation("Creating DocxStructureAnalyzer...");
         var analyzer = new DocxStructureAnalyzer();
+
+        logger.LogInformation("Creating document with bold labels...");
         var docxBytes = await CreateDocumentWithBoldLabels();
+        logger.LogInformation("DOCX created: {ByteSize} bytes", docxBytes.Length);
+        logger.LogInformation("Bold label: 'Expediente:' → Value: 'A/AS1-2505-088637-PHM'");
 
         // Act
+        logger.LogInformation("Analyzing document structure...");
         var result = analyzer.AnalyzeStructure(docxBytes);
+
+        logger.LogInformation("═══ ANALYSIS RESULTS ═══");
+        logger.LogInformation("HasBoldLabels: {HasBoldLabels} (expected: True)", result.HasBoldLabels);
+        logger.LogInformation("HasKeyValuePairs: {HasKeyValuePairs} (expected: True)", result.HasKeyValuePairs);
+        logger.LogInformation("HasStructuredFormat: {HasStructuredFormat}", result.HasStructuredFormat);
+        logger.LogInformation("HasTables: {HasTables}", result.HasTables);
+        logger.LogInformation("HasCrossReferences: {HasCrossReferences}", result.HasCrossReferences);
+        logger.LogInformation("RecommendedStrategy: {RecommendedStrategy} (expected: Contextual)", result.RecommendedStrategy);
+        logger.LogInformation("Full Result: {@Result}", result);
 
         // Assert
         result.HasBoldLabels.Should().BeTrue();
         result.HasKeyValuePairs.Should().BeTrue();
         result.RecommendedStrategy.Should().Be(DocxExtractionStrategy.Contextual);
+
+        logger.LogInformation("✓ TEST PASSED");
     }
 
     [Fact]
@@ -162,6 +219,8 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
 
     private async Task<byte[]> CreateMinimalDocx(string text)
     {
+        logger.LogInformation("→ CreateMinimalDocx: Creating DOCX with text: '{Text}'", text);
+
         // Minimal DOCX creation using DocumentFormat.OpenXml
         using var memoryStream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(memoryStream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
@@ -173,11 +232,16 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
             var run = paragraph.AppendChild(new Run());
             run.AppendChild(new Text(text));
         }
-        return memoryStream.ToArray();
+
+        var bytes = memoryStream.ToArray();
+        logger.LogInformation("→ CreateMinimalDocx: Created {Size} bytes", bytes.Length);
+        return bytes;
     }
 
     private async Task<byte[]> CreateDocxWithTable()
     {
+        logger.LogInformation("→ CreateDocxWithTable: Creating DOCX with 2x2 table");
+
         using var memoryStream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(memoryStream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
@@ -192,20 +256,27 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
             headerRow.Append(CreateTableCell("Expediente", isBold: true));
             headerRow.Append(CreateTableCell("RFC", isBold: true));
             table.Append(headerRow);
+            logger.LogInformation("→   Header row: ['Expediente' (bold), 'RFC' (bold)]");
 
             // Data row
             var dataRow = new TableRow();
             dataRow.Append(CreateTableCell("A/AS1-2505-088637-PHM"));
             dataRow.Append(CreateTableCell("XAXX010101000"));
             table.Append(dataRow);
+            logger.LogInformation("→   Data row: ['A/AS1-2505-088637-PHM', 'XAXX010101000']");
 
             body.Append(table);
         }
-        return memoryStream.ToArray();
+
+        var bytes = memoryStream.ToArray();
+        logger.LogInformation("→ CreateDocxWithTable: Created {Size} bytes", bytes.Length);
+        return bytes;
     }
 
     private async Task<byte[]> CreateDocxWithBoldText(string label, string value)
     {
+        logger.LogInformation("→ CreateDocxWithBoldText: Creating DOCX with bold '{Label}' and value '{Value}'", label, value);
+
         using var memoryStream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(memoryStream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
@@ -217,14 +288,20 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
 
             // Bold label
             var boldRun = paragraph.AppendChild(new Run());
-            boldRun.AppendChild(new RunProperties(new Bold()));
+            var boldProps = new RunProperties(new Bold());
+            boldRun.AppendChild(boldProps);
             boldRun.AppendChild(new Text(label));
+            logger.LogInformation("→   Added BOLD run: '{Label}'", label);
 
             // Normal value
             var normalRun = paragraph.AppendChild(new Run());
             normalRun.AppendChild(new Text(" " + value));
+            logger.LogInformation("→   Added normal run: '{Value}'", " " + value);
         }
-        return memoryStream.ToArray();
+
+        var bytes = memoryStream.ToArray();
+        logger.LogInformation("→ CreateDocxWithBoldText: Created {Size} bytes", bytes.Length);
+        return bytes;
     }
 
     private TableCell CreateTableCell(string text, bool isBold = false)
