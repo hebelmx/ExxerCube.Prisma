@@ -76,6 +76,20 @@ if (!builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
+// ============================================================================
+// FORCE LOGOUT AT STARTUP - Ensure app always starts in logged-out state
+// ============================================================================
+// This allows tests to demonstrate the complete login flow from the beginning.
+// Without this, the AuthenticationService singleton might retain logged-in state
+// from previous runs (especially during development/hot reload scenarios).
+// ============================================================================
+using (var scope = app.Services.CreateScope())
+{
+    var authService = scope.ServiceProvider.GetRequiredService<AuthenticationService>();
+    authService.Logout();
+    Log.Information("Application startup: User logged out - ready for login demonstration");
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
