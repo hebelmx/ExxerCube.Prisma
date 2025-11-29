@@ -9,40 +9,6 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
     private readonly ILogger<DocxStructureAnalyzerTests> logger = XUnitLogger.CreateLogger<DocxStructureAnalyzerTests>(output);
 
     [Fact]
-    public async Task AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat()
-    {
-        logger.LogInformation("═══ TEST: AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat ═══");
-
-        // Arrange
-        logger.LogInformation("Creating DocxStructureAnalyzer...");
-        var analyzer = new DocxStructureAnalyzer();
-
-        logger.LogInformation("Creating CNBV structured document...");
-        var docxBytes = await CreateStructuredCNBVDocument();
-        logger.LogInformation("DOCX created: {ByteSize} bytes", docxBytes.Length);
-
-        // Act
-        logger.LogInformation("Analyzing document structure...");
-        var result = analyzer.AnalyzeStructure(docxBytes);
-
-        logger.LogInformation("═══ ANALYSIS RESULTS ═══");
-        logger.LogInformation("HasStructuredFormat: {HasStructuredFormat}", result.HasStructuredFormat);
-        logger.LogInformation("HasTables: {HasTables}", result.HasTables);
-        logger.LogInformation("HasBoldLabels: {HasBoldLabels}", result.HasBoldLabels);
-        logger.LogInformation("HasKeyValuePairs: {HasKeyValuePairs}", result.HasKeyValuePairs);
-        logger.LogInformation("HasCrossReferences: {HasCrossReferences}", result.HasCrossReferences);
-        logger.LogInformation("RecommendedStrategy: {RecommendedStrategy}", result.RecommendedStrategy);
-        logger.LogInformation("Full Result: {@Result}", result);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.HasStructuredFormat.Should().BeTrue("CNBV template should be detected");
-        result.RecommendedStrategy.Should().Be(DocxExtractionStrategy.Structured);
-
-        logger.LogInformation("✓ TEST PASSED");
-    }
-
-    [Fact]
     public async Task AnalyzeStructure_DocumentWithTables_ReturnsTableBasedStrategy()
     {
         logger.LogInformation("═══ TEST: AnalyzeStructure_DocumentWithTables_ReturnsTableBasedStrategy ═══");

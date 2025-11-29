@@ -43,7 +43,8 @@ public sealed class TextSanitizer : ITextSanitizer
             {
                 warnings.Add("AccountLengthSuspect");
             }
-            if (!string.Equals(cleaned, source, StringComparison.Ordinal))
+            // Only flag as normalized if the account digits themselves changed (not just label stripping)
+            if (!string.Equals(cleaned, withoutLabel, StringComparison.Ordinal))
             {
                 warnings.Add("AccountNormalized");
             }
@@ -75,7 +76,8 @@ public sealed class TextSanitizer : ITextSanitizer
             {
                 warnings.Add("SwiftLengthSuspect");
             }
-            if (!string.Equals(cleaned, source, StringComparison.Ordinal))
+            // Only flag as normalized if the SWIFT code itself changed (not just label stripping)
+            if (!string.Equals(cleaned, withoutLabel, StringComparison.Ordinal))
             {
                 warnings.Add("SwiftNormalized");
             }
