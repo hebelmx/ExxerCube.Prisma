@@ -664,3 +664,13 @@ Prisma/Fixtures/ziPqw84h
 
 # Demo artifacts (large images)
 Prisma/Fixtures/Demo/
+
+# Deployments folder - published build artifacts
+# Keep folder structure but ignore binaries
+Prisma/Deployments/**/*.dll
+Prisma/Deployments/**/*.exe
+Prisma/Deployments/**/*.pdb
+Prisma/Deployments/**/*.deps.json
+Prisma/Deployments/**/*.runtimeconfig.json
+Prisma/Deployments/**/*.staticwebassets.endpoints.json
+Prisma/Deployments/**/wwwroot/
