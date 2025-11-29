@@ -27,7 +27,13 @@ $ProcessNames = @(
     "CodeCoverage",
     "Microsoft.TestPlatform",
     "conhost",  # Sometimes test runners spawn conhost
-    "python"    # For Python-based tests
+    "python",   # For Python-based tests
+    # ReSharper test runners
+    "JetBrains.ReSharper.TaskRunner",
+    "JetBrains.ReSharper.TaskRunner.CLR45",
+    "ReSharperTestRunner",
+    "dotMemoryUnit",
+    "JetBrains.Platform.Satellite"
 )
 
 $KilledCount = 0
