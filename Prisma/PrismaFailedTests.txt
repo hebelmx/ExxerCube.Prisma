@@ -1,9 +1,9 @@
- 04 Tests (53 tests) [2:55.840] Failed: 53 tests failed
-  02 Infrastructure (31 tests) [1:31.346] Failed: 31 tests failed
-   ExxerCube.Prisma.Tests.Infrastructure.Extraction (1 test) [0:03.060] Failed: 1 test failed
-    ExxerCube.Prisma.Tests.Infrastructure.Extraction (1 test) [0:03.060] Failed: 1 test failed
-     DocumentComparisonServiceTests (1 test) [0:01.449] Failed: One or more child tests failed: 1 test failed
-      CompareExpedientes_HalfFieldsMatch_ReturnsApproximately50PercentSimilarity [0:01.378] Failed: Shouldly.ShouldAssertException: result.OverallSimilarity
+ 04 Tests (64 tests) [3:51.229] Failed: 64 tests failed
+  02 Infrastructure (31 tests) [1:22.199] Failed: 31 tests failed
+   ExxerCube.Prisma.Tests.Infrastructure.Extraction (1 test) [0:02.233] Failed: 1 test failed
+    ExxerCube.Prisma.Tests.Infrastructure.Extraction (1 test) [0:02.233] Failed: 1 test failed
+     DocumentComparisonServiceTests (1 test) [0:00.622] Failed: One or more child tests failed: 1 test failed
+      CompareExpedientes_HalfFieldsMatch_ReturnsApproximately50PercentSimilarity [0:00.543] Failed: Shouldly.ShouldAssertException: result.OverallSimilarity
 Shouldly.ShouldAssertException
 result.OverallSimilarity
     should be less than
@@ -27,10 +27,10 @@ Fuzzy match for 'NumeroOficio': '222/AAA/-4444444444/2025' vs '999/ZZZ/-99999999
 Fuzzy match for 'SolicitudSiara': 'AGAFADAFSON2/2025/000084' vs 'DIFFERENT123/2099/999999' = 33 % (Different)
 Comparison complete: 13/16 exact matches (86 % overall similarity)
 
-   ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (30 tests) [1:13.263] Failed: 30 tests failed
-    ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (30 tests) [1:13.263] Failed: 30 tests failed
-     DocxStructureAnalyzerTests (3 tests) [0:03.149] Failed: One or more child tests failed: 3 tests failed
-      AnalyzeStructure_DocumentWithBoldLabels_ReturnsContextualStrategy [0:00.023] Failed: Expected result.HasKeyValuePairs to be True, but found False.
+   ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (30 tests) [1:04.943] Failed: 30 tests failed
+    ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (30 tests) [1:04.943] Failed: 30 tests failed
+     DocxStructureAnalyzerTests (3 tests) [0:00.824] Failed: One or more child tests failed: 3 tests failed
+      AnalyzeStructure_DocumentWithBoldLabels_ReturnsContextualStrategy [0:00.058] Failed: Expected result.HasKeyValuePairs to be True, but found False.
 Xunit.Sdk.XunitException
 Expected result.HasKeyValuePairs to be True, but found False.
    at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
@@ -46,7 +46,7 @@ Expected result.HasKeyValuePairs to be True, but found False.
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-      AnalyzeStructure_EmptyDocument_ThrowsArgumentException [0:00.008] Failed: Expected the exception message to match the equivalent of "*cannot be empty*", but "DOCX bytes cannot be null or empty. (Parameter 'docxBytes')" does not.
+      AnalyzeStructure_EmptyDocument_ThrowsArgumentException [0:00.017] Failed: Expected the exception message to match the equivalent of "*cannot be empty*", but "DOCX bytes cannot be null or empty. (Parameter 'docxBytes')" does not.
 Xunit.Sdk.XunitException
 Expected the exception message to match the equivalent of "*cannot be empty*", but "DOCX bytes cannot be null or empty. (Parameter 'docxBytes')" does not.
    at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
@@ -62,7 +62,7 @@ Expected the exception message to match the equivalent of "*cannot be empty*", b
    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
 
 
-      AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat [0:03.060] Failed: Expected result.HasStructuredFormat to be True because CNBV template should be detected, but found False.
+      AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat [0:00.691] Failed: Expected result.HasStructuredFormat to be True because CNBV template should be detected, but found False.
 Xunit.Sdk.XunitException
 Expected result.HasStructuredFormat to be True because CNBV template should be detected, but found False.
    at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
@@ -78,9 +78,9 @@ Expected result.HasStructuredFormat to be True because CNBV template should be d
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-     MexicanNameFuzzyMatcherTests (3 tests) [0:03.096] Failed: One or more child tests failed: 3 tests failed
-      GetSimilarityScore_MexicanNames_ReturnsCorrectScore (2 tests) [0:03.062] Failed: One or more child tests failed: 2 tests failed
-       GetSimilarityScore_MexicanNames_ReturnsCorrectScore(name1: "González", name2: "Gonzales", minExpectedScore: 90, reason: "high similarity with spelling variation") [0:03.059] Failed: Expected score to be greater than or equal to 90 because high similarity with spelling variation, but found 88 (difference of -2).
+     MexicanNameFuzzyMatcherTests (3 tests) [0:00.549] Failed: One or more child tests failed: 3 tests failed
+      GetSimilarityScore_MexicanNames_ReturnsCorrectScore (2 tests) [0:00.504] Failed: One or more child tests failed: 2 tests failed
+       GetSimilarityScore_MexicanNames_ReturnsCorrectScore(name1: "González", name2: "Gonzales", minExpectedScore: 90, reason: "high similarity with spelling variation") [0:00.501] Failed: Expected score to be greater than or equal to 90 because high similarity with spelling variation, but found 88 (difference of -2).
 Xunit.Sdk.XunitException
 Expected score to be greater than or equal to 90 because high similarity with spelling variation, but found 88 (difference of -2).
    at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
@@ -95,7 +95,7 @@ Expected score to be greater than or equal to 90 because high similarity with sp
    at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
 
 
-       GetSimilarityScore_MexicanNames_ReturnsCorrectScore(name1: "Smith", name2: "Smyth", minExpectedScore: 85, reason: "high similarity but below threshold") [0:00.001] Failed: Expected score to be greater than or equal to 85 because high similarity but below threshold, but found 80 (difference of -5).
+       GetSimilarityScore_MexicanNames_ReturnsCorrectScore(name1: "Smith", name2: "Smyth", minExpectedScore: 85, reason: "high similarity but below threshold") [0:00.002] Failed: Expected score to be greater than or equal to 85 because high similarity but below threshold, but found 80 (difference of -5).
 Xunit.Sdk.XunitException
 Expected score to be greater than or equal to 85 because high similarity but below threshold, but found 80 (difference of -5).
    at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
@@ -110,8 +110,8 @@ Expected score to be greater than or equal to 85 because high similarity but bel
    at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
 
 
-      IsMatch_MexicanNameVariations_ReturnsTrue (1 test) [0:00.007] Failed: One or more child tests failed: 1 test failed
-       IsMatch_MexicanNameVariations_ReturnsTrue(name1: "González", name2: "Gonzales", expected: True, reason: "accent + spelling variation should match") [0:00.005] Failed: Expected result to be True because accent + spelling variation should match, but found False.
+      IsMatch_MexicanNameVariations_ReturnsTrue (1 test) [0:00.014] Failed: One or more child tests failed: 1 test failed
+       IsMatch_MexicanNameVariations_ReturnsTrue(name1: "González", name2: "Gonzales", expected: True, reason: "accent + spelling variation should match") [0:00.013] Failed: Expected result to be True because accent + spelling variation should match, but found False.
 Xunit.Sdk.XunitException
 Expected result to be True because accent + spelling variation should match, but found False.
    at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
@@ -126,8 +126,8 @@ Expected result to be True because accent + spelling variation should match, but
    at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
 
 
-     OcrFixturePipelineTests (4 tests) [0:03.036] Failed: One or more child tests failed: 4 tests failed
-      Accounts_clean_fixture_sanitizes_without_changes [0:00.234] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
+     OcrFixturePipelineTests (4 tests) [0:02.179] Failed: One or more child tests failed: 4 tests failed
+      Accounts_clean_fixture_sanitizes_without_changes [0:00.221] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
 Shouldly.ShouldAssertException
 sanitized.Swift.Cleaned
     should be
@@ -154,7 +154,7 @@ Actual Code    | 83   87   73   70   84   66   78   77   88   77   88   77   77 
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-      Accounts_noisy_fixture_normalizes_digits_and_swift [0:00.276] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
+      Accounts_noisy_fixture_normalizes_digits_and_swift [0:00.295] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
 Shouldly.ShouldAssertException
 sanitized.Swift.Cleaned
     should be
@@ -181,7 +181,7 @@ Actual Code    | 83   87   73   70   84   66   78   77   88   77   88   77   77 
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-      Edge_no_xml_fixture_sanitizes_account_and_swift [0:00.217] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
+      Edge_no_xml_fixture_sanitizes_account_and_swift [0:00.244] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
 Shouldly.ShouldAssertException
 sanitized.Swift.Cleaned
     should be
@@ -208,7 +208,7 @@ Actual Code    | 83   87   73   70   84   65   66   67   68   85   83   51   51 
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-      Gibberish_fixture_raises_warnings_but_keeps_flow [0:01.393] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
+      Gibberish_fixture_raises_warnings_but_keeps_flow [0:00.502] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
 Shouldly.ShouldAssertException
 sanitized.Swift.Cleaned
     should be
@@ -235,9 +235,9 @@ Actual Code    | 83   87   73   70   84   79   48   79   82   65   83
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-     TesseractOcrExecutorEnhancedAggressiveTests (16 tests) [0:00.873] Failed: One or more child tests failed: 16 tests failed
-      Tesseract aggressive enhanced fixtures should exist (8 tests) [0:00.007] Failed: One or more child tests failed: 8 tests failed
-       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+     TesseractOcrExecutorEnhancedAggressiveTests (16 tests) [0:00.115] Failed: One or more child tests failed: 16 tests failed
+      Tesseract aggressive enhanced fixtures should exist (8 tests) [0:00.009] Failed: One or more child tests failed: 8 tests failed
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
 Shouldly.ShouldAssertException
 File.Exists(fixturePath)
     should be
@@ -299,7 +299,7 @@ AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\
 Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333BBB-44444444442025_page1.png
 File.Exists check: False
 
-       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
 Shouldly.ShouldAssertException
 File.Exists(fixturePath)
     should be
@@ -330,7 +330,7 @@ AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\
 Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333ccc-6666666662025_page1.png
 File.Exists check: False
 
-       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "555CCC-66666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "555CCC-66666662025_page1.png") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
 Shouldly.ShouldAssertException
 File.Exists(fixturePath)
     should be
@@ -423,7 +423,7 @@ AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\
 Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333BBB-44444444442025_page1.png
 File.Exists check: False
 
-       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
 Shouldly.ShouldAssertException
 File.Exists(fixturePath)
     should be
@@ -485,8 +485,8 @@ AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\
 Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\555CCC-66666662025_page1.png
 File.Exists check: False
 
-      Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better? (8 tests) [0:00.838] Failed: One or more child tests failed: 8 tests failed
-       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 80) [0:00.000] Failed: Shouldly.ShouldAssertException: fixturePath
+      Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better? (8 tests) [0:00.077] Failed: One or more child tests failed: 8 tests failed
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 80) [0:00.001] Failed: Shouldly.ShouldAssertException: fixturePath
 Shouldly.ShouldAssertException
 fixturePath
     should satisfy all the conditions specified, but does not.
@@ -529,7 +529,7 @@ BASELINE (Phase 1): 78-92% confidence
 STANDARD ENHANCED (Phase 2): 80-93% confidence
 TARGET: 80%+ confidence (don't degrade from standard)
 
-       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 80) [0:00.000] Failed: Shouldly.ShouldAssertException: fixturePath
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 80) [0:00.001] Failed: Shouldly.ShouldAssertException: fixturePath
 Shouldly.ShouldAssertException
 fixturePath
     should satisfy all the conditions specified, but does not.
@@ -572,7 +572,7 @@ BASELINE (Phase 1): 78-92% confidence
 STANDARD ENHANCED (Phase 2): 80-93% confidence
 TARGET: 80%+ confidence (don't degrade from standard)
 
-       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 80) [0:00.001] Failed: Shouldly.ShouldAssertException: fixturePath
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 80) [0:00.002] Failed: Shouldly.ShouldAssertException: fixturePath
 Shouldly.ShouldAssertException
 fixturePath
     should satisfy all the conditions specified, but does not.
@@ -658,7 +658,7 @@ BASELINE (Phase 1): 78-92% confidence
 STANDARD ENHANCED (Phase 2): 80-93% confidence
 TARGET: 80%+ confidence (don't degrade from standard)
 
-       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q2_MediumPoor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 70) [0:00.828] Failed: Shouldly.ShouldAssertException: fixturePath
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q2_MediumPoor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 70) [0:00.062] Failed: Shouldly.ShouldAssertException: fixturePath
 Shouldly.ShouldAssertException
 fixturePath
     should satisfy all the conditions specified, but does not.
@@ -790,7 +790,7 @@ STANDARD ENHANCED (Phase 2): 60-75% (2/4 failed @ 70%)
 TARGET: 70%+ confidence (rescue 333BBB @ 69.62%, 333ccc @ 60.14%)
 CRITICAL: Can aggressive filters cross 70% threshold?
 
-       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q2_MediumPoor", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 70) [0:00.001] Failed: Shouldly.ShouldAssertException: fixturePath
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q2_MediumPoor", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 70) [0:00.002] Failed: Shouldly.ShouldAssertException: fixturePath
 Shouldly.ShouldAssertException
 fixturePath
     should satisfy all the conditions specified, but does not.
@@ -834,9 +834,9 @@ STANDARD ENHANCED (Phase 2): 60-75% (2/4 failed @ 70%)
 TARGET: 70%+ confidence (rescue 333BBB @ 69.62%, 333ccc @ 60.14%)
 CRITICAL: Can aggressive filters cross 70% threshold?
 
-     TesseractOcrExecutorEnhancedTests (2 tests) [0:13.026] Failed: One or more child tests failed: 2 tests failed
-      Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images (2 tests) [0:12.998] Failed: One or more child tests failed: 2 tests failed
-       Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 70) [0:01.427] Failed: Shouldly.ShouldAssertException: ocrResult
+     TesseractOcrExecutorEnhancedTests (2 tests) [0:12.334] Failed: One or more child tests failed: 2 tests failed
+      Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images (2 tests) [0:12.306] Failed: One or more child tests failed: 2 tests failed
+       Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 70) [0:01.422] Failed: Shouldly.ShouldAssertException: ocrResult
 Shouldly.ShouldAssertException
 ocrResult
     should satisfy all the conditions specified, but does not.
@@ -867,12 +867,12 @@ TARGET: 70-80% confidence (lift ~25-35%) ← CRITICAL THRESHOLD
 Image file size: 913,033 bytes
 Starting Tesseract execution on ENHANCED Q2_MediumPoor image...
 >>> TIMER START <<<
->>> TIMER END: 1.41s <<<
+>>> TIMER END: 1.42s <<<
 
 === TESSERACT ENHANCED RESULTS (Q2_MediumPoor) ===
   Quality Level: Q2_MediumPoor (ENHANCED)
   Document: 333BBB-44444444442025_page1.png
-  Execution time: 1.41s
+  Execution time: 1.42s
   Text length: 1663 characters
   Confidence avg: 69.62%
   Confidence median: 82.42%
@@ -925,7 +925,7 @@ RELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN Vi . 24, PARRAFO PRIME
   Improvement: +22.12%
   ⚠️ BELOW TARGET: Q2 enhanced did not reach 70% threshold
   💡 RECOMMENDATION: Try aggressive enhancement or reject Q2 documents
->>> TIMER END (FAILED): 1.41s <<<
+>>> TIMER END (FAILED): 1.42s <<<
 Tesseract FAILED on ENHANCED Q2_MediumPoor image
 Shouldly.ShouldAssertException: ocrResult
     should satisfy all the conditions specified, but does not.
@@ -944,7 +944,7 @@ The following errors were found ...
    at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedTests.ExecuteOcrAsync_EnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedTests.cs:line 235
 Inner exception
 
-       Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 70) [0:02.024] Failed: Shouldly.ShouldAssertException: ocrResult
+       Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 70) [0:01.338] Failed: Shouldly.ShouldAssertException: ocrResult
 Shouldly.ShouldAssertException
 ocrResult
     should satisfy all the conditions specified, but does not.
@@ -975,12 +975,12 @@ TARGET: 70-80% confidence (lift ~25-35%) ← CRITICAL THRESHOLD
 Image file size: 848,243 bytes
 Starting Tesseract execution on ENHANCED Q2_MediumPoor image...
 >>> TIMER START <<<
->>> TIMER END: 1.95s <<<
+>>> TIMER END: 1.30s <<<
 
 === TESSERACT ENHANCED RESULTS (Q2_MediumPoor) ===
   Quality Level: Q2_MediumPoor (ENHANCED)
   Document: 333ccc-6666666662025_page1.png
-  Execution time: 1.95s
+  Execution time: 1.30s
   Text length: 1082 characters
   Confidence avg: 60.14%
   Confidence median: 67.57%
@@ -1031,7 +1031,7 @@ desaido? sl
   Improvement: +12.64%
   ⚠️ BELOW TARGET: Q2 enhanced did not reach 70% threshold
   💡 RECOMMENDATION: Try aggressive enhancement or reject Q2 documents
->>> TIMER END (FAILED): 1.96s <<<
+>>> TIMER END (FAILED): 1.31s <<<
 Tesseract FAILED on ENHANCED Q2_MediumPoor image
 Shouldly.ShouldAssertException: ocrResult
     should satisfy all the conditions specified, but does not.
@@ -1050,8 +1050,8 @@ The following errors were found ...
    at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedTests.ExecuteOcrAsync_EnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedTests.cs:line 235
 Inner exception
 
-     TextSanitizerOcrPipelineTests (1 test) [0:00.232] Failed: One or more child tests failed: 1 test failed
-      Ocr_and_sanitizer_normalize_account_and_swift_from_noisy_image [0:00.232] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
+     TextSanitizerOcrPipelineTests (1 test) [0:00.206] Failed: One or more child tests failed: 1 test failed
+      Ocr_and_sanitizer_normalize_account_and_swift_from_noisy_image [0:00.206] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
 Shouldly.ShouldAssertException
 sanitized.Swift.Cleaned
     should be
@@ -1078,8 +1078,8 @@ Actual Code    | 83   87   73   70   84   66   78   77   88   77   88   77   77 
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-     TextSanitizerTests (1 test) [0:01.674] Failed: One or more child tests failed: 1 test failed
-      CleanAccount_and_Swift_from_fixture_are_normalized [0:01.580] Failed: System.IndexOutOfRangeException: Index was outside the bounds of the array.
+     TextSanitizerTests (1 test) [0:00.559] Failed: One or more child tests failed: 1 test failed
+      CleanAccount_and_Swift_from_fixture_are_normalized [0:00.454] Failed: System.IndexOutOfRangeException: Index was outside the bounds of the array.
 System.IndexOutOfRangeException
 Index was outside the bounds of the array.
    at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TextSanitizerTests.CleanAccount_and_Swift_from_fixture_are_normalized() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TextSanitizerTests.cs:line 65
@@ -1087,22 +1087,675 @@ Index was outside the bounds of the array.
    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
 
 
-  03 System (14 tests) [0:04.080] Failed: 14 tests failed
-   ExxerCube.Prisma.Tests.System.Ocr.Pipeline (14 tests) [0:04.080] Failed: 14 tests failed
-    ExxerCube.Prisma.Tests.System (14 tests) [0:04.080] Failed: 14 tests failed
-     AnalyticalFilterE2ETests (5 tests) [0:00.081] Failed: One or more child tests failed: 5 tests failed
-      Analytical filter should improve OCR quality (Levenshtein distance) (5 tests) [0:00.079] Failed: One or more child tests failed: 5 tests failed
-       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q1_Poor", filename: "333BBB-44444444442025_page1.png") [0:00.073] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
+  03 System (25 tests) [1:26.072] Failed: 25 tests failed
+   ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E (20 tests) [0:50.920] Failed: 20 tests failed
+    ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E (20 tests) [0:50.920] Failed: 20 tests failed
+     OcrExtractionE2ETests (7 tests) [0:00.125] Failed: One or more child tests failed: 7 tests failed
+      ExtractFromPdf_AllPRP1Fixtures_ShouldExist [0:00.098] Failed: Shouldly.ShouldAssertException: failureCount
 Shouldly.ShouldAssertException
-File.Exists(degradedPath)
+failureCount
+    should be
+0
+    but was
+4
+
+Additional Info:
+    All PDF fixtures should exist
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_AllPRP1Fixtures_ShouldExist() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 261
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 38
+Initializing OCR E2E tests...
+Smoke test: Verifying all 4 PDF fixtures exist
+  ✗ 222AAA-44444444442025.pdf: NOT FOUND
+  ✗ 333BBB-44444444442025.pdf: NOT FOUND
+  ✗ 333ccc-666666662025.pdf: NOT FOUND
+  ✗ 555CCC-6666662025.pdf: NOT FOUND
+Smoke test results: 0 found, 4 missing
+OCR Extraction E2E tests completed
+
+      ExtractFromPdf_PRP1_222AAA_ShouldExistAndBeReadable [0:00.005] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
     should be
 True
     but was
 False
 
 Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
-   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 212
+    Fixture not found: 222AAA-44444444442025.pdf
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_PRP1_222AAA_ShouldExistAndBeReadable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 114
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 38
+Initializing OCR E2E tests...
+OCR Extraction E2E tests completed
+
+      ExtractFromPdf_PRP1_333BBB_ShouldExistAndBeReadable [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: 333BBB-44444444442025.pdf
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_PRP1_333BBB_ShouldExistAndBeReadable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 136
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 38
+Initializing OCR E2E tests...
+OCR Extraction E2E tests completed
+
+      ExtractFromPdf_PRP1_333ccc_ShouldExistAndBeReadable [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: 333ccc-666666662025.pdf
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_PRP1_333ccc_ShouldExistAndBeReadable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 154
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 38
+Initializing OCR E2E tests...
+OCR Extraction E2E tests completed
+
+      ExtractFromPdf_PRP1_555CCC_ShouldExistAndBeReadable [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: 555CCC-6666662025.pdf
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_PRP1_555CCC_ShouldExistAndBeReadable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 172
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 38
+Initializing OCR E2E tests...
+OCR Extraction E2E tests completed
+
+      Fixtures_PdfAndXml_ShouldHaveMatchingTwins [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    PDF not found: 222AAA-44444444442025.pdf
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests.Fixtures_PdfAndXml_ShouldHaveMatchingTwins() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 208
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 38
+Initializing OCR E2E tests...
+Validating PDF/XML twin pairs
+OCR Extraction E2E tests completed
+
+      Fixtures_PRP1Directory_ShouldContainPdfFiles [0:00.001] Failed: Shouldly.ShouldAssertException: Directory.Exists(_fixturesPath)
+Shouldly.ShouldAssertException
+Directory.Exists(_fixturesPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    PRP1 fixtures directory not found: 
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests.Fixtures_PRP1Directory_ShouldContainPdfFiles() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 80
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.OcrExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 38
+Initializing OCR E2E tests...
+Validating PRP1 fixtures directory: 
+OCR Extraction E2E tests completed
+
+     SiaraSimulatorJobObjectTests (1 test) [0:25.400] Failed: One or more child tests failed: 1 test failed
+      SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed [0:25.392] Failed: Shouldly.ShouldAssertException: loginResult
+Shouldly.ShouldAssertException
+loginResult
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Login should succeed with demo credentials
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.SiaraSimulatorJobObjectTests.SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\SiaraSimulatorJobObjectTests.cs:line 205
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Download path created: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+Simulator is already running
+Initializing browser automation agent in headed mode...
+Launching browser session
+Browser session launched successfully
+Browser automation agent initialized successfully
+✓ Document opener initialized with Windows Job Objects
+  → ALL viewer processes will be automatically cleaned up on disposal
+===========================================
+Starting SIARA Simulator E2E Test - Full Workflow
+===========================================
+Target URL: http://localhost:5001
+Download path: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+
+STEP 1: Waiting for simulator to be ready...
+✓ Simulator ready
+
+STEP 2: Navigating to SIARA Simulator Login Page
+URL: http://localhost:5001
+Navigating to URL: http://localhost:5001
+Successfully navigated to URL: http://localhost:5001
+✓ Successfully navigated to SIARA login page
+Pausing to view login page...
+
+STEP 3: Logging into SIARA Simulator
+Username: BancoDemo
+Password: ********
+Waiting for login form to load...
+Waiting for selector: #username (timeout: 10000ms)
+Failed to find selector: #username
+System.TimeoutException: Timeout 10000ms exceeded.
+Call log:
+  - waiting for Locator("#username") to be visible
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 201
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 499
+   at Microsoft.Playwright.Core.Frame.WaitForSelectorAsync(String selector, FrameWaitForSelectorOptions options) in /_/src/Playwright/Core/Frame.cs:line 681
+   at ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.WaitForSelectorAsync(String selector, Nullable`1 timeoutMs, CancellationToken cancellationToken) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.BrowserAutomation\PlaywrightBrowserAutomationAdapter.cs:line 266
+Login form not found: Failed to find selector #username: Timeout 10000ms exceeded.
+Call log:
+  - waiting for Locator("#username") to be visible
+
+SIARA Simulator E2E test completed
+Browser session closed successfully
+Browser closed successfully
+Cleaning up document opener (opened 0 documents)...
+Closing all opened documents (0 files)...
+All documents closed successfully
+✓ All document processes cleaned up via Job Objects
+  → Guaranteed cleanup of ALL viewers (Adobe Reader, Word, etc.)
+Downloaded documents preserved at: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+
+     SiaraSimulatorTests (1 test) [0:25.233] Failed: One or more child tests failed: 1 test failed
+      SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed [0:25.217] Failed: Shouldly.ShouldAssertException: await Task.Delay(4000, TestContext.Current.CancellationToken); // 4 second pause to view login page
+Shouldly.ShouldAssertException
+await Task.Delay(4000, TestContext.Current.CancellationToken); // 4 second pause to view login page
+
+            // STEP 3: Perform Login
+            _logger.LogInformation("");
+            _logger.LogInformation("STEP 3: Logging into SIARA Simulator");
+            _logger.LogInformation("Username: BancoDemo");
+            _logger.LogInformation("Password: ********");
+            var loginResult = await LoginToSiaraSimulatorAsync("BancoDemo", "demo123");
+
+            loginResult
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Login should succeed with demo credentials
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.SiaraSimulatorTests.SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\SiaraSimulatorTests.cs:line 193
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Download path created: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+Simulator is already running
+Initializing browser automation agent in headed mode...
+Launching browser session
+Browser session launched successfully
+Browser automation agent initialized successfully
+===========================================
+Starting SIARA Simulator E2E Test - Full Workflow
+===========================================
+Target URL: http://localhost:5001
+Download path: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+
+STEP 1: Waiting for simulator to be ready...
+✓ Simulator ready
+
+STEP 2: Navigating to SIARA Simulator Login Page
+URL: http://localhost:5001
+Navigating to URL: http://localhost:5001
+Successfully navigated to URL: http://localhost:5001
+✓ Successfully navigated to SIARA login page
+Pausing to view login page...
+
+STEP 3: Logging into SIARA Simulator
+Username: BancoDemo
+Password: ********
+Waiting for login form to load...
+Waiting for selector: #username (timeout: 10000ms)
+Failed to find selector: #username
+System.TimeoutException: Timeout 10000ms exceeded.
+Call log:
+  - waiting for Locator("#username") to be visible
+   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 201
+   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 499
+   at Microsoft.Playwright.Core.Frame.WaitForSelectorAsync(String selector, FrameWaitForSelectorOptions options) in /_/src/Playwright/Core/Frame.cs:line 681
+   at ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.WaitForSelectorAsync(String selector, Nullable`1 timeoutMs, CancellationToken cancellationToken) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.BrowserAutomation\PlaywrightBrowserAutomationAdapter.cs:line 266
+Login form not found: Failed to find selector #username: Timeout 10000ms exceeded.
+Call log:
+  - waiting for Locator("#username") to be visible
+
+SIARA Simulator E2E test completed
+Browser session closed successfully
+Browser closed successfully
+Downloaded documents preserved at: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+
+     XmlExtractionE2ETests (11 tests) [0:00.142] Failed: One or more child tests failed: 11 tests failed
+      ExtractFromXml_AllPRP1Fixtures_ShouldParseWithoutErrors [0:00.003] Failed: System.ArgumentException: The path is empty. (Parameter 'path')
+System.ArgumentException
+The path is empty. (Parameter 'path')
+   at System.IO.Path.GetFullPath(String path)
+   at System.IO.Enumeration.FileSystemEnumerator`1..ctor(String directory, Boolean isNormalized, EnumerationOptions options)
+   at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+   at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)
+   at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)
+   at System.IO.Directory.GetFiles(String path, String searchPattern, EnumerationOptions enumerationOptions)
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_AllPRP1Fixtures_ShouldParseWithoutErrors() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 334
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_FieldCount_ShouldMeetMinimumBaseline [0:00.004] Failed: System.IO.FileNotFoundException: Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\222AAA-44444444442025.xml'…
+System.IO.FileNotFoundException
+Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\222AAA-44444444442025.xml'.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_FieldCount_ShouldMeetMinimumBaseline() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 437
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_Performance_ShouldMeetTargets [0:00.002] Failed: System.IO.FileNotFoundException: Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\222AAA-44444444442025.xml'…
+System.IO.FileNotFoundException
+Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\222AAA-44444444442025.xml'.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_Performance_ShouldMeetTargets() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 391
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_PRP1_222AAA_ShouldParseAllFields [0:00.004] Failed: Shouldly.ShouldAssertException: File.Exists(xmlPath)
+Shouldly.ShouldAssertException
+File.Exists(xmlPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: 222AAA-44444444442025.xml
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_PRP1_222AAA_ShouldParseAllFields() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 114
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_PRP1_333BBB_ShouldParseAllFields [0:00.103] Failed: Shouldly.ShouldAssertException: File.Exists(xmlPath)
+Shouldly.ShouldAssertException
+File.Exists(xmlPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: 333BBB-44444444442025.xml
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_PRP1_333BBB_ShouldParseAllFields() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 182
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_PRP1_333ccc_ShouldParseAllFields [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(xmlPath)
+Shouldly.ShouldAssertException
+File.Exists(xmlPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: 333ccc-666666662025.xml
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_PRP1_333ccc_ShouldParseAllFields() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 212
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_PRP1_555CCC_ShouldParseAllFields [0:00.004] Failed: Shouldly.ShouldAssertException: File.Exists(xmlPath)
+Shouldly.ShouldAssertException
+File.Exists(xmlPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: 555CCC-6666662025.xml
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_PRP1_555CCC_ShouldParseAllFields() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 240
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_WithCnbvNamespace_ShouldParseCorrectly [0:00.000] Failed: System.IO.FileNotFoundException: Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\222AAA-44444444442025.xml'…
+System.IO.FileNotFoundException
+Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\222AAA-44444444442025.xml'.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_WithCnbvNamespace_ShouldParseCorrectly() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 273
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_WithNullFields_ShouldHandleGracefully [0:00.002] Failed: System.IO.FileNotFoundException: Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\222AAA-44444444442025.xml'…
+System.IO.FileNotFoundException
+Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\222AAA-44444444442025.xml'.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_WithNullFields_ShouldHandleGracefully() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 302
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_WithUTF8BOM_ShouldParseSuccessfully [0:00.003] Failed: System.ArgumentException: The path is empty. (Parameter 'path')
+System.ArgumentException
+The path is empty. (Parameter 'path')
+   at System.IO.Path.GetFullPath(String path)
+   at System.IO.Enumeration.FileSystemEnumerator`1..ctor(String directory, Boolean isNormalized, EnumerationOptions options)
+   at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+   at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)
+   at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)
+   at System.IO.Directory.GetFiles(String path, String searchPattern, EnumerationOptions enumerationOptions)
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_WithUTF8BOM_ShouldParseSuccessfully() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 513
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+Testing UTF-8 BOM handling (critical for production files)
+XML Extraction E2E tests completed
+
+      Fixtures_PRP1Directory_ShouldExist [0:00.003] Failed: Shouldly.ShouldAssertException: Directory.Exists(_fixturesPath)
+Shouldly.ShouldAssertException
+Directory.Exists(_fixturesPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    PRP1 fixtures directory not found: 
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests.Fixtures_PRP1Directory_ShouldExist() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 87
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed to locate PRP1 fixtures directory
+System.IO.DirectoryNotFoundException: Could not find Fixtures directory. Searched from:
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+C:\Users\Abel Briones\AppData\Local\JetBrains\Installations\ReSharperPlatformVs18_1b8cc414_000\TestRunner\netcoreapp3.0
+   at ExxerCube.Prisma.Testing.Infrastructure.FixtureFinder.FindFixturesPath(String fixtureSubPath) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\05-Testing\01-Abstractions\Testing\Infrastructure\FixtureFinder.cs:line 38
+   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.XmlExtractionE2ETests..ctor(ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 39
+Initializing XML parser...
+XML parser initialized successfully
+Validating PRP1 fixtures directory: 
+XML Extraction E2E tests completed
+
+   ExxerCube.Prisma.Tests.System.Ocr.Pipeline (5 tests) [0:35.152] Failed: 5 tests failed
+    ExxerCube.Prisma.Tests.System (5 tests) [0:35.152] Failed: 5 tests failed
+     PolynomialFilterE2ETests (1 test) [0:15.408] Failed: One or more child tests failed: 1 test failed
+      Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%) (1 test) [0:15.408] Failed: One or more child tests failed: 1 test failed
+       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q1_Poor", filename: "333ccc-6666666662025_page1.png") [0:02.324] Failed: Shouldly.ShouldAssertException: polynomialDistance
+Shouldly.ShouldAssertException
+polynomialDistance
+    should be less than
+1016
+    but was
+1033
+
+Additional Info:
+    Polynomial distance (1033) should be less than baseline (1016). Expected 18.4% improvement from validation testing.
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 375
    at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
    at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
    at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
@@ -1114,44 +1767,10 @@ Additional Info:
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 ╔══════════════════════════════════════════════════════════════════╗
-║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
+║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
 ╚══════════════════════════════════════════════════════════════════╝
-✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
-✓ IImageQualityAnalyzer initialized
-✓ IOcrExecutor initialized (Tesseract)
-
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q1_Poor      | 333BBB-44444444442025_page1.png          ║
-╚══════════════════════════════════════════════════════════════════╝
-
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
-
-       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q1_Poor", filename: "333ccc-6666666662025_page1.png") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
-
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
-   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 212
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-╔══════════════════════════════════════════════════════════════════╗
-║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
-✓ IImageQualityAnalyzer initialized
+✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
+✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
 ✓ IOcrExecutor initialized (Tesseract)
 
 ╔══════════════════════════════════════════════════════════════════╗
@@ -1159,283 +1778,73 @@ Additional Info:
 ╚══════════════════════════════════════════════════════════════════╝
 
 📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
+✓ Image loaded: 1,188,804 bytes
+✓ Ground truth loaded: 484 characters
 
-       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q2_MediumPoor", filename: "333BBB-44444444442025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 1405ms
+📊 BASELINE METRICS:
+  Levenshtein Distance: 1016 edits
+  Error Rate: 209.92%
 
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
-   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 212
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: POLYNOMIAL FEATURE EXTRACTION & PREDICTION              │
+└──────────────────────────────────────────────────────────────────┘
+Extracted features: ImagePropertyFeatures(BlurScore=579.09, Contrast=26.78, NoiseEstimate=10.56, EdgeDensity=0.0571)
+Predicted parameters: PolynomialFilterParams(Contrast=1.27, Brightness=1.13, Sharpness=2.01, UnsharpRadius=3.99, UnsharpPercent=81.96)
+✓ Feature extraction completed
+  Image Features:
+    Blur Score:     579.09
+    Noise Level:    0.21
+    Contrast Level: 0.45
+    Sharpness:      0.57
 
-╔══════════════════════════════════════════════════════════════════╗
-║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
-✓ IImageQualityAnalyzer initialized
-✓ IOcrExecutor initialized (Tesseract)
+✓ Parameter prediction completed (GA-optimized, R² > 0.89)
+  Predicted Parameters:
+    Contrast:       1.267
+    Brightness:     1.135
+    Sharpness:      2.014
+    Unsharp Radius: 3.989
+    Unsharp %:      82.0
 
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q2_MediumPoor | 333BBB-44444444442025_page1.png          ║
-╚══════════════════════════════════════════════════════════════════╝
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: APPLY POLYNOMIAL ENHANCEMENT                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial filter applied: 69ms
+  Enhanced image: 388,317 bytes
 
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: ENHANCED OCR (POLYNOMIAL)                               │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial OCR completed: 753ms
+📊 POLYNOMIAL METRICS:
+  Levenshtein Distance: 1033 edits
+  Error Rate: 213.43%
 
-       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q2_MediumPoor", filename: "333ccc-6666666662025_page1.png") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
-
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
-   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 212
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ANALYTICAL FILTER (COMPARISON)                          │
+└──────────────────────────────────────────────────────────────────┘
+✓ Analytical filter selected: PIL Simple
 
 ╔══════════════════════════════════════════════════════════════════╗
-║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
-✓ IImageQualityAnalyzer initialized
-✓ IOcrExecutor initialized (Tesseract)
-
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q2_MediumPoor | 333ccc-6666666662025_page1.png           ║
-╚══════════════════════════════════════════════════════════════════╝
-
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
-
-       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q2_MediumPoor", filename: "555CCC-66666662025_page1.png") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
-
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
-   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 212
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-╔══════════════════════════════════════════════════════════════════╗
-║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
-✓ IImageQualityAnalyzer initialized
-✓ IOcrExecutor initialized (Tesseract)
-
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q2_MediumPoor | 555CCC-66666662025_page1.png             ║
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:        1016 edits                             ║
+║ Polynomial Distance:      1033 edits                             ║
+║ Polynomial Improve:        -17 edits ( -1.67%)                  ║
+║                                                                  ║
+║ Expected from validation:                                        ║
+║   Polynomial Model:    18.4% improvement                         ║
+║   Lookup Table:        12.3% improvement                         ║
+║                                                                  ║
+║ Total Time:               2305ms                              ║
 ╚══════════════════════════════════════════════════════════════════╝
 
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
 
-     PolynomialFilterE2ETests (5 tests) [0:00.008] Failed: One or more child tests failed: 5 tests failed
-      Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%) (5 tests) [0:00.008] Failed: One or more child tests failed: 5 tests failed
-       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q1_Poor", filename: "333BBB-44444444442025_page1.png") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
-
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
-   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 207
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-╔══════════════════════════════════════════════════════════════════╗
-║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
-✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
-✓ IOcrExecutor initialized (Tesseract)
-
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q1_Poor      | 333BBB-44444444442025_page1.png          ║
-╚══════════════════════════════════════════════════════════════════╝
-
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
-
-       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q1_Poor", filename: "333ccc-6666666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
-
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
-   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 207
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-╔══════════════════════════════════════════════════════════════════╗
-║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
-✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
-✓ IOcrExecutor initialized (Tesseract)
-
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q1_Poor      | 333ccc-6666666662025_page1.png           ║
-╚══════════════════════════════════════════════════════════════════╝
-
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
-
-       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q2_MediumPoor", filename: "333BBB-44444444442025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
-
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
-   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 207
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-╔══════════════════════════════════════════════════════════════════╗
-║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
-✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
-✓ IOcrExecutor initialized (Tesseract)
-
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q2_MediumPoor | 333BBB-44444444442025_page1.png          ║
-╚══════════════════════════════════════════════════════════════════╝
-
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
-
-       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q2_MediumPoor", filename: "333ccc-6666666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
-
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
-   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 207
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-╔══════════════════════════════════════════════════════════════════╗
-║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
-✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
-✓ IOcrExecutor initialized (Tesseract)
-
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q2_MediumPoor | 333ccc-6666666662025_page1.png           ║
-╚══════════════════════════════════════════════════════════════════╝
-
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
-
-       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q2_MediumPoor", filename: "555CCC-66666662025_page1.png") [0:00.004] Failed: Shouldly.ShouldAssertException: File.Exists(degradedPath)
-Shouldly.ShouldAssertException
-File.Exists(degradedPath)
-    should be
-True
-    but was
-False
-
-Additional Info:
-    Degraded image not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
-   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 207
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-╔══════════════════════════════════════════════════════════════════╗
-║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
-╚══════════════════════════════════════════════════════════════════╝
-✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
-✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
-✓ IOcrExecutor initialized (Tesseract)
-
-╔══════════════════════════════════════════════════════════════════╗
-║                    TEST: Q2_MediumPoor | 555CCC-66666662025_page1.png             ║
-╚══════════════════════════════════════════════════════════════════╝
-
-📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
-
-     XmlExtractorFixtureTests (4 tests) [0:02.690] Failed: One or more child tests failed: 4 tests failed
-      Extract_Should_Parse_Aseguramiento_Fixture [0:00.001] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+     XmlExtractorFixtureTests (4 tests) [0:00.668] Failed: One or more child tests failed: 4 tests failed
+      Extract_Should_Parse_Aseguramiento_Fixture [0:00.000] Failed: Shouldly.ShouldAssertException: result.IsSuccess
 Shouldly.ShouldAssertException
 result.IsSuccess
     should be
@@ -1479,7 +1888,7 @@ Additional Info:
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-      Extract_Should_Parse_Judicial_With_Curp_And_Rfc [0:00.001] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+      Extract_Should_Parse_Judicial_With_Curp_And_Rfc [0:00.002] Failed: Shouldly.ShouldAssertException: result.IsSuccess
 Shouldly.ShouldAssertException
 result.IsSuccess
     should be
@@ -1501,7 +1910,7 @@ Additional Info:
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-      Extract_Should_Parse_OperacionesIlicitas_With_Accounts_And_Rfc_Variants [0:02.682] Failed: Shouldly.ShouldAssertException: result.IsSuccess
+      Extract_Should_Parse_OperacionesIlicitas_With_Accounts_And_Rfc_Variants [0:00.655] Failed: Shouldly.ShouldAssertException: result.IsSuccess
 Shouldly.ShouldAssertException
 result.IsSuccess
     should be
@@ -1523,11 +1932,11 @@ Additional Info:
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-  04 UI (3 tests) [0:34.068] Failed: 3 tests failed
-   ExxerCube.Prisma.Tests.UI (3 tests) [0:34.068] Failed: 3 tests failed
-    ExxerCube.Prisma.Tests.UI.Navigation (3 tests) [0:34.068] Failed: 3 tests failed
-     NavigationRegistryTests (1 test) [0:02.654] Failed: One or more child tests failed: 1 test failed
-      EveryPageRouteIsRepresentedInNavigationRegistry [0:02.644] Failed: Shouldly.ShouldAssertException: missingInRegistry
+  04 UI (3 tests) [0:20.382] Failed: 3 tests failed
+   ExxerCube.Prisma.Tests.UI (3 tests) [0:20.382] Failed: 3 tests failed
+    ExxerCube.Prisma.Tests.UI.Navigation (3 tests) [0:20.382] Failed: 3 tests failed
+     NavigationRegistryTests (1 test) [0:00.350] Failed: One or more child tests failed: 1 test failed
+      EveryPageRouteIsRepresentedInNavigationRegistry [0:00.337] Failed: Shouldly.ShouldAssertException: missingInRegistry
 Shouldly.ShouldAssertException
 missingInRegistry
     should be empty but had
@@ -1542,8 +1951,8 @@ Additional Info:
    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
 
 
-     NavigationSmokeTests (2 tests) [0:31.413] Failed: One or more child tests failed: 2 tests failed
-      DrawerLinkNavigatesToDocumentProcessing [0:08.628] Failed: Microsoft.Playwright.PlaywrightException: net::ERR_CONNECTION_REFUSED at http://localhost/
+     NavigationSmokeTests (2 tests) [0:20.032] Failed: One or more child tests failed: 2 tests failed
+      DrawerLinkNavigatesToDocumentProcessing [0:08.635] Failed: Microsoft.Playwright.PlaywrightException: net::ERR_CONNECTION_REFUSED at http://localhost/
 Microsoft.Playwright.PlaywrightException
 net::ERR_CONNECTION_REFUSED at http://localhost/
 Call log:
@@ -1558,7 +1967,7 @@ Call log:
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-      UnknownRouteShowsHelpfulNotFoundPanel [0:22.777] Failed: Microsoft.Playwright.PlaywrightException: net::ERR_CONNECTION_REFUSED at http://localhost/definitely-not-a-real-route
+      UnknownRouteShowsHelpfulNotFoundPanel [0:11.390] Failed: Microsoft.Playwright.PlaywrightException: net::ERR_CONNECTION_REFUSED at http://localhost/definitely-not-a-real-route
 Microsoft.Playwright.PlaywrightException
 net::ERR_CONNECTION_REFUSED at http://localhost/definitely-not-a-real-route
 Call log:
@@ -1573,11 +1982,11 @@ Call log:
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-  05 E2E (5 tests) [0:22.946] Failed: 5 tests failed
-   ExxerCube.Prisma.Tests.EndToEnd (5 tests) [0:22.946] Failed: 5 tests failed
-    ExxerCube.Prisma.Tests.EndToEnd (5 tests) [0:22.946] Failed: 5 tests failed
-     WebApplicationFactoryDependencyInjectionTests (5 tests) [0:14.559] Failed: One or more child tests failed: 5 tests failed
-      WebApplicationFactory_AllCriticalServices_ShouldBeResolvable [0:02.035] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
+  05 E2E (5 tests) [0:19.176] Failed: 5 tests failed
+   ExxerCube.Prisma.Tests.EndToEnd (5 tests) [0:19.176] Failed: 5 tests failed
+    ExxerCube.Prisma.Tests.EndToEnd (5 tests) [0:19.176] Failed: 5 tests failed
+     WebApplicationFactoryDependencyInjectionTests (5 tests) [0:10.789] Failed: One or more child tests failed: 5 tests failed
+      WebApplicationFactory_AllCriticalServices_ShouldBeResolvable [0:02.044] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
 System.InvalidOperationException
 Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
    at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
@@ -1609,10 +2018,10 @@ Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Micr
    at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
    at ExxerCube.Prisma.Tests.EndToEnd.WebApplicationFactoryDependencyInjectionTests.WebApplicationFactory_AllCriticalServices_ShouldBeResolvable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\WebApplicationFactoryDependencyInjectionTests.cs:line 32
    at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
 
 
-      WebApplicationFactory_FieldMatchers_ShouldBeRegistered [0:02.058] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
+      WebApplicationFactory_FieldMatchers_ShouldBeRegistered [0:02.050] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
 System.InvalidOperationException
 Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
    at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
@@ -1647,7 +2056,7 @@ Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Micr
    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
 
 
-      WebApplicationFactory_HealthChecks_ShouldBeRegistered [0:02.034] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
+      WebApplicationFactory_HealthChecks_ShouldBeRegistered [0:02.047] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
 System.InvalidOperationException
 Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
    at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
@@ -1683,7 +2092,7 @@ Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Micr
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
 
-      WebApplicationFactory_ServiceLifetimes_ShouldBeCorrect [0:06.377] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
+      WebApplicationFactory_ServiceLifetimes_ShouldBeCorrect [0:02.584] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
 System.InvalidOperationException
 Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
    at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
@@ -1718,7 +2127,7 @@ Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Micr
    at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
 
 
-      WebApplicationFactory_ShouldNotHaveCircularDependencies [0:02.036] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
+      WebApplicationFactory_ShouldNotHaveCircularDependencies [0:02.045] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
 System.InvalidOperationException
 Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
    at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)

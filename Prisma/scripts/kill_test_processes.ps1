@@ -33,7 +33,13 @@ $ProcessNames = @(
     "JetBrains.ReSharper.TaskRunner.CLR45",
     "ReSharperTestRunner",
     "dotMemoryUnit",
-    "JetBrains.Platform.Satellite"
+    "JetBrains.Platform.Satellite",
+    # JetBrains profilers (dotTrace/dotMemory)
+    "JetBrains.DPA.Protocol.Backend",
+    "JetBrains.Dpa.Collector",
+    "JetBrains.Etw.Collector.Host",
+    "JetBrains.dotTrace",
+    "JetBrains.dotMemory"
 )
 
 $KilledCount = 0
