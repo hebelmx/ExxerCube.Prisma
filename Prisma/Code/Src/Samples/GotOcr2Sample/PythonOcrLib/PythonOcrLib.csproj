@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ProductName>Python OCR Library</ProductName>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Python files as additional files for CSnakes code generation -->
+    <AdditionalFiles Include="got_ocr2_wrapper.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AdditionalFiles>
+    <AdditionalFiles Include="simple_test.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AdditionalFiles>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- CSnakes Runtime for Python interop -->
+    <PackageReference Include="CSnakes.Runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copy requirements.txt to output -->
+    <None Include="requirements.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
