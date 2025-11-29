@@ -47,7 +47,7 @@ public abstract class ContainerFixtureBase<TContainer> : IAsyncLifetime
     }
 
     /// <summary>
-    /// Logs a message to the test output using TestContext.Current.SendMessage().
+    /// Logs a message to the test output using TestContext.Current.SendDiagnosticMessage().
     /// Defensive - does nothing if TestContext.Current is not available.
     /// </summary>
     /// <param name="message">The message to log.</param>
@@ -57,7 +57,27 @@ public abstract class ContainerFixtureBase<TContainer> : IAsyncLifetime
         {
             // TestContext.Current is available during test execution
             // This provides real output for debugging container issues
-            TestContext.Current?.SendMessage(message);
+            TestContext.Current?.SendDiagnosticMessage(message);
+        }
+        catch
+        {
+            // Ignore if TestContext is not available (shouldn't happen in fixtures, but be defensive)
+        }
+    }
+
+    /// <summary>
+    /// Logs an error message with exception details to the test output.
+    /// Defensive - does nothing if TestContext.Current is not available.
+    /// </summary>
+    /// <param name="ex">The exception to log.</param>
+    /// <param name="message">The error message.</param>
+    protected void LogMessage(Exception ex, string message)
+    {
+        try
+        {
+            // Format exception details for diagnostic output
+            var fullMessage = $"{message}\nException: {ex.GetType().Name}: {ex.Message}\nStackTrace: {ex.StackTrace}";
+            TestContext.Current?.SendDiagnosticMessage(fullMessage);
         }
         catch
         {

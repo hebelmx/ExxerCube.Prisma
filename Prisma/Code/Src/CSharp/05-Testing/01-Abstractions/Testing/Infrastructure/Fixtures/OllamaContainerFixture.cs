@@ -201,7 +201,7 @@ public sealed class OllamaContainerFixture : ContainerFixtureBase<IContainer>
             using var httpClient = new HttpClient
             {
                 BaseAddress = new Uri(BaseUrl),
-                Timeout = TimeSpan.FromSeconds(5)
+                Timeout = TimeSpan.FromMilliseconds(120_000)
             };
 
             var response = await httpClient.GetAsync("/api/tags",
@@ -218,6 +218,7 @@ public sealed class OllamaContainerFixture : ContainerFixtureBase<IContainer>
     /// <summary>
     /// Verifies that the required models (embedding and LLM) are available in the Ollama instance.
     /// Calls the /api/tags endpoint and checks for the presence of both required models.
+    /// This checks if models are downloaded to disk, not if they're loaded into memory.
     /// </summary>
     /// <returns>A task containing true if both required models are available; otherwise, false.</returns>
     public async Task<bool> VerifyModelsAsync()
@@ -227,7 +228,7 @@ public sealed class OllamaContainerFixture : ContainerFixtureBase<IContainer>
             using var httpClient = new HttpClient
             {
                 BaseAddress = new Uri(BaseUrl),
-                Timeout = TimeSpan.FromSeconds(5)
+                Timeout = TimeSpan.FromMilliseconds(120_000)
             };
 
             var response = await httpClient.GetAsync("/api/tags",
@@ -268,6 +269,82 @@ public sealed class OllamaContainerFixture : ContainerFixtureBase<IContainer>
     }
 
     /// <summary>
+    /// Ensures models are loaded into memory by making a lightweight API call to each model.
+    /// This warms up the models so subsequent operations don't timeout.
+    /// Should be called after VerifyModelsAsync() confirms models are downloaded.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task containing true if models loaded successfully; otherwise, false.</returns>
+    public async Task<bool> EnsureModelsLoadedAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            LogMessage("🔥 Warming up models - loading into memory...");
+
+            using var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(BaseUrl),
+                Timeout = TimeSpan.FromMilliseconds(600_000) // 10 minutes for loading models into memory
+            };
+
+            // Load embedding model into memory with a simple embedding request
+            LogMessage($"  Loading {EmbeddingModel} into memory...");
+            var embeddingRequest = new
+            {
+                model = EmbeddingModel,
+                prompt = "warmup"
+            };
+
+            var embeddingContent = new System.Net.Http.StringContent(
+                System.Text.Json.JsonSerializer.Serialize(embeddingRequest),
+                System.Text.Encoding.UTF8,
+                new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+
+            var embeddingResponse = await httpClient.PostAsync("/api/embeddings", embeddingContent, cancellationToken);
+            if (!embeddingResponse.IsSuccessStatusCode)
+            {
+                LogMessage($"  ❌ Failed to load {EmbeddingModel}");
+                return false;
+            }
+            LogMessage($"  ✅ {EmbeddingModel} loaded into memory");
+
+            // Load LLM model into memory with a simple generation request
+            LogMessage($"  Loading {LLMModel} into memory...");
+            var llmRequest = new
+            {
+                model = LLMModel,
+                prompt = "Hi",
+                stream = false,
+                options = new
+                {
+                    num_predict = 1 // Just 1 token to warm up
+                }
+            };
+
+            var llmContent = new System.Net.Http.StringContent(
+                System.Text.Json.JsonSerializer.Serialize(llmRequest),
+                System.Text.Encoding.UTF8,
+                new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+
+            var llmResponse = await httpClient.PostAsync("/api/generate", llmContent, cancellationToken);
+            if (!llmResponse.IsSuccessStatusCode)
+            {
+                LogMessage($"  ❌ Failed to load {LLMModel}");
+                return false;
+            }
+            LogMessage($"  ✅ {LLMModel} loaded into memory");
+
+            LogMessage("✅ All models loaded into memory and ready");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogMessage($"Model loading failed: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Gets an HTTP client configured for the Ollama API.
     /// Returns a NEW HttpClient instance for each call to avoid "already started" errors.
     /// Each client is pre-configured with the correct base URL and timeout settings.
@@ -279,10 +356,11 @@ public sealed class OllamaContainerFixture : ContainerFixtureBase<IContainer>
         EnsureAvailable();
 
         // Return a new HttpClient instance for each call to avoid HttpClient lifecycle issues
+        // 5 minute timeout for Ollama operations (model loading into memory can be slow)
         return new HttpClient
         {
             BaseAddress = new Uri(BaseUrl),
-            Timeout = TimeSpan.FromSeconds(30)
+            Timeout = TimeSpan.FromMilliseconds(300_000)
         };
     }
 }

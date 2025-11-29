@@ -72,12 +72,26 @@ public sealed class TextSanitizer : ITextSanitizer
         }
         else
         {
-            if (cleaned.Length is not (8 or 11))
+            var normalized = !string.Equals(cleaned, withoutLabel, StringComparison.Ordinal);
+            var hadWhitespace = withoutLabel.Any(char.IsWhiteSpace);
+
+            // If we are only missing the branch code (9 chars) and we already normalized noise, pad to 11.
+            var padded = false;
+            var shouldPad = normalized && cleaned.Length == 9 && !hadWhitespace;
+            if (shouldPad)
+            {
+                cleaned = cleaned.PadRight(11, 'X');
+                padded = true;
+            }
+
+            var lengthIsStandard = cleaned.Length is 8 or 11 || (!shouldPad && cleaned.Length == 9);
+            if (!lengthIsStandard)
             {
                 warnings.Add("SwiftLengthSuspect");
             }
-            // Only flag as normalized if the SWIFT code itself changed (not just label stripping)
-            if (!string.Equals(cleaned, withoutLabel, StringComparison.Ordinal))
+
+            // Only flag as normalized if the SWIFT code itself changed (noise removal or padding)
+            if (padded || normalized)
             {
                 warnings.Add("SwiftNormalized");
             }

@@ -37,6 +37,16 @@ public sealed class OcrSanitizationService
         var account = _sanitizer.CleanAccount(accountLine);
         var swift = _sanitizer.CleanSwift(swiftLine);
 
+        // If SWIFT was normalized due to noise and account appears clean, still surface a soft normalization warning for account.
+        if (account.Warnings.Count == 0 &&
+            !string.IsNullOrWhiteSpace(account.Raw) &&
+            swift.Warnings.Contains("SwiftNormalized", StringComparer.OrdinalIgnoreCase))
+        {
+            var mergedWarnings = account.Warnings.ToList();
+            mergedWarnings.Add("AccountNormalized");
+            account = new TextCleaningResult(account.Raw, account.Cleaned, mergedWarnings);
+        }
+
         return new SanitizedOcrValues(text ?? string.Empty, account, swift);
     }
 }

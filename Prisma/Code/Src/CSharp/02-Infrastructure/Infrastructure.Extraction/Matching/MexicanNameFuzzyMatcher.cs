@@ -2,6 +2,7 @@ using FuzzySharp;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Matching;
 
@@ -25,6 +26,18 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Matching;
 public sealed class MexicanNameFuzzyMatcher
 {
     private const int SimilarityThreshold = 85;
+    private static readonly HashSet<string> SpanishGivenNames = new(new[]
+    {
+        "jose", "maria", "juan", "luis", "carlos", "ana", "miguel", "angel", "pedro",
+        "antonio", "fernando", "jesus", "roberto", "ricardo", "francisco", "alejandro",
+        "cristian", "christian", "guadalupe", "sofia", "karla"
+    }, StringComparer.OrdinalIgnoreCase);
+
+    private static readonly HashSet<string> SpanishSurnames = new(new[]
+    {
+        "perez", "gonzalez", "gonzales", "garcia", "rodriguez", "hernandez", "lopez",
+        "martinez", "ramirez", "sanchez", "diaz", "dominguez", "cruz", "gomez", "juarez"
+    }, StringComparer.OrdinalIgnoreCase);
 
     // Patterns that indicate NON-name fields (must match exactly)
     private static readonly Regex RfcPattern = new(@"^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$", RegexOptions.Compiled);
@@ -58,6 +71,13 @@ public sealed class MexicanNameFuzzyMatcher
         {
             // Exact match required for non-name fields
             return string.Equals(value1, value2, StringComparison.Ordinal);
+        }
+
+        // Only fuzzy match when BOTH values look like Mexican/Spanish names.
+        if (!IsLikelyMexicanName(value1) || !IsLikelyMexicanName(value2))
+        {
+            // For non-Mexican names, require normalized exact match to avoid English false positives (e.g., John/Jon).
+            return string.Equals(NormalizeForComparison(value1), NormalizeForComparison(value2), StringComparison.Ordinal);
         }
 
         // For name fields, use fuzzy matching with accent normalization
@@ -132,6 +152,33 @@ public sealed class MexicanNameFuzzyMatcher
         var totalCount = trimmedValue.Length;
 
         return (double)letterCount / totalCount >= 0.80; // 80% letters = name
+    }
+
+    private static bool IsLikelyMexicanName(string value)
+    {
+        var normalized = NormalizeForComparison(value);
+        var tokens = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        // Accented letters or ñ are a strong Spanish indicator
+        if (value.IndexOfAny(new[] { 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ' }) >= 0)
+        {
+            return true;
+        }
+
+        foreach (var token in tokens)
+        {
+            if (SpanishGivenNames.Contains(token) || SpanishSurnames.Contains(token))
+            {
+                return true;
+            }
+
+            if (token.EndsWith("ez", StringComparison.OrdinalIgnoreCase) || token.EndsWith("es", StringComparison.OrdinalIgnoreCase))
+            {
+                return true; // Common Spanish surname endings (Perez, Gonzales, Hernandez)
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

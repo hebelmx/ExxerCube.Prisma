@@ -16,14 +16,21 @@ namespace ExxerCube.Prisma.Tests.System.Storage.Infrastructure;
 public sealed class OllamaInfrastructureSmokeTests
 {
     private readonly OllamaContainerFixture _fixture;
-    private readonly ILogger<OllamaInfrastructureSmokeTests> _logger;
 
     public OllamaInfrastructureSmokeTests(OllamaContainerFixture fixture)
     {
         _fixture = fixture;
-        // Create logger that writes to xUnit test output using Meziantou
-        _logger = LoggerFactory.Create(builder => builder.AddXUnit(TestContext.Current))
-            .CreateLogger<OllamaInfrastructureSmokeTests>();
+    }
+
+    private void Log(string message)
+    {
+        TestContext.Current?.SendDiagnosticMessage(message);
+    }
+
+    private void Log(Exception ex, string message)
+    {
+        var fullMessage = $"{message}\nException: {ex.GetType().Name}: {ex.Message}\nStackTrace: {ex.StackTrace}";
+        TestContext.Current?.SendDiagnosticMessage(fullMessage);
     }
 
     [Fact]
@@ -34,7 +41,7 @@ public sealed class OllamaInfrastructureSmokeTests
         _fixture.ConnectionString.ShouldNotBeNullOrWhiteSpace("Base URL should be configured");
         _fixture.BaseUrl.ShouldStartWith("http://");
 
-        _logger.LogInformation("✅ Ollama container is available at: {BaseUrl}", _fixture.BaseUrl);
+        Log($"✅ Ollama container is available at: {_fixture.BaseUrl}");
     }
 
     [Fact]
@@ -49,7 +56,7 @@ public sealed class OllamaInfrastructureSmokeTests
         // Assert - Health check should pass
         isHealthy.ShouldBeTrue("Ollama service should be healthy");
 
-        _logger.LogInformation("✅ Ollama health check passed");
+        Log("✅ Ollama health check passed");
     }
 
     [Fact]
@@ -64,9 +71,24 @@ public sealed class OllamaInfrastructureSmokeTests
         // Assert - Both embedding and LLM models should be available
         modelsLoaded.ShouldBeTrue("Required models should be loaded");
 
-        _logger.LogInformation("✅ Ollama models verified: {EmbeddingModel}, {LLMModel}",
-            OllamaContainerFixture.EmbeddingModel,
-            OllamaContainerFixture.LLMModel);
+        Log($"✅ Ollama models verified: {OllamaContainerFixture.EmbeddingModel}, {OllamaContainerFixture.LLMModel}");
+    }
+
+    [Fact]
+    public async Task Models_ShouldLoadIntoMemory()
+    {
+        // Arrange - Ensure container is available and models downloaded
+        _fixture.EnsureAvailable();
+        var modelsDownloaded = await _fixture.VerifyModelsAsync();
+        modelsDownloaded.ShouldBeTrue("Models should be downloaded before loading into memory");
+
+        // Act - Load models into memory (warmup)
+        var modelsLoadedInMemory = await _fixture.EnsureModelsLoadedAsync(TestContext.Current.CancellationToken);
+
+        // Assert - Both models should load into memory successfully
+        modelsLoadedInMemory.ShouldBeTrue("Models should load into memory successfully");
+
+        Log($"✅ Ollama models loaded into memory: {OllamaContainerFixture.EmbeddingModel}, {OllamaContainerFixture.LLMModel}");
     }
 
     [Fact]
@@ -103,7 +125,7 @@ public sealed class OllamaInfrastructureSmokeTests
         embeddingLength.ShouldBe(OllamaContainerFixture.EmbeddingDimensions,
             "Embedding dimensions should match expected value");
 
-        _logger.LogInformation("✅ Embedding generated successfully. Dimensions: {Dimensions}", embeddingLength);
+        Log($"✅ Embedding generated successfully. Dimensions: {embeddingLength}");
     }
 
     [Fact]
@@ -145,7 +167,7 @@ public sealed class OllamaInfrastructureSmokeTests
         generatedText.ShouldNotBeNullOrWhiteSpace("Generated text should not be empty");
         generatedText.Length.ShouldBeGreaterThan(0, "Generated text should have content");
 
-        _logger.LogInformation("✅ Text generated successfully: {Text}", generatedText?.Substring(0, Math.Min(50, generatedText?.Length ?? 0)));
+        Log($"✅ Text generated successfully: {generatedText?.Substring(0, Math.Min(50, generatedText?.Length ?? 0))}");
     }
 
     [Fact]
@@ -182,9 +204,7 @@ public sealed class OllamaInfrastructureSmokeTests
             }
         }
 
-        _logger.LogInformation("✅ Available models ({Count}): {Models}",
-            modelCount,
-            string.Join(", ", modelNames));
+        Log($"✅ Available models ({modelCount}): {string.Join(", ", modelNames)}");
     }
 
     [Fact]
@@ -195,7 +215,7 @@ public sealed class OllamaInfrastructureSmokeTests
         OllamaContainerFixture.LLMModel.ShouldBe("llama3.2:3b");
         OllamaContainerFixture.EmbeddingDimensions.ShouldBe(768);
 
-        _logger.LogInformation("✅ Ollama configuration verified");
+        Log("✅ Ollama configuration verified");
     }
 }
 
