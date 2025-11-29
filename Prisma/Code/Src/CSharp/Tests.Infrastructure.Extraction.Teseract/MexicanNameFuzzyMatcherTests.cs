@@ -1,7 +1,5 @@
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
-using ExxerCube.Prisma.Infrastructure.Extraction.Matching;
-
 /// <summary>
 /// TDD tests for MexicanNameFuzzyMatcher.
 /// CRITICAL: Fuzzy matching ONLY for Mexican names with common variations.

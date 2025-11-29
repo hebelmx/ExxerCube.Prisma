@@ -1,9 +1,5 @@
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
-using ExxerCube.Prisma.Infrastructure.Extraction.Strategies;
-using ExxerCube.Prisma.Domain.Sources;
-using Microsoft.Extensions.Logging.Abstractions;
-
 /// <summary>
 /// TDD tests for SearchExtractionStrategy.
 /// This strategy resolves cross-references in DOCX documents.

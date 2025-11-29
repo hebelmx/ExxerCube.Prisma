@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Imaging;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
 /// <summary>
@@ -19,9 +17,6 @@ public class TesseractFixture : IAsyncLifetime
         // Register Tesseract executor
         // TODO: Implement TesseractOcrExecutor in Infrastructure.Extraction
         builder.Services.AddScoped<IOcrExecutor, TesseractOcrExecutor>();
-
-        // Register imaging infrastructure (quality analyzer, filters)
-        builder.Services.AddImagingInfrastructure(FilterSelectionStrategyType.Analytical);
 
         _host = builder.Build();
 

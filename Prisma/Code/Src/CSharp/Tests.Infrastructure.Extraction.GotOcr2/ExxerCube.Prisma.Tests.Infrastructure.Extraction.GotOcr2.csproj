@@ -3,7 +3,8 @@
   <PropertyGroup Label="Core Properties">
     <!-- Target framework centrally managed, do not add another here -->
     <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
+    <!-- GotOcr2 tests disabled - feature no longer in active development -->
+    <IsTestProject>false</IsTestProject>
     <OutputType>Exe</OutputType>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -78,7 +79,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
     <ProjectReference Include="..\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
-    <ProjectReference Include="..\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
   </ItemGroup>
 

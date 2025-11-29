@@ -1,9 +1,5 @@
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
-using ExxerCube.Prisma.Infrastructure.Extraction.Strategies;
-using ExxerCube.Prisma.Domain.Sources;
-using Microsoft.Extensions.Logging.Abstractions;
-
 /// <summary>
 /// TDD tests for ComplementExtractionStrategy.
 /// This strategy fills gaps when XML/OCR are missing data (EXPECTED behavior, not failure mode).

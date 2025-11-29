@@ -79,7 +79,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
     <ProjectReference Include="..\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
-    <ProjectReference Include="..\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
   </ItemGroup>
 

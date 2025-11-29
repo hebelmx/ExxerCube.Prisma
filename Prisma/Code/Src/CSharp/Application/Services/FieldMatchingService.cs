@@ -94,14 +94,14 @@ public class FieldMatchingService
                 }
 
                 var docxExtractResult = await _docxFieldExtractor.ExtractFieldsAsync(docxSource, fieldDefinitions).ConfigureAwait(false);
-                
+
                 // Propagate cancellation from dependencies
                 if (docxExtractResult.IsCancelled())
                 {
                     _logger.LogWarning("Field matching workflow cancelled by DOCX extractor");
                     return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
                 }
-                
+
                 if (docxExtractResult.IsSuccess && docxExtractResult.Value != null)
                 {
                     CollectFieldValues(allFieldValues, docxExtractResult.Value, "DOCX");
@@ -123,14 +123,14 @@ public class FieldMatchingService
                 }
 
                 var pdfExtractResult = await _pdfFieldExtractor.ExtractFieldsAsync(pdfSource, fieldDefinitions).ConfigureAwait(false);
-                
+
                 // Propagate cancellation from dependencies
                 if (pdfExtractResult.IsCancelled())
                 {
                     _logger.LogWarning("Field matching workflow cancelled by PDF extractor");
                     return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
                 }
-                
+
                 if (pdfExtractResult.IsSuccess && pdfExtractResult.Value != null)
                 {
                     CollectFieldValues(allFieldValues, pdfExtractResult.Value, "PDF");
@@ -152,14 +152,14 @@ public class FieldMatchingService
                 }
 
                 var xmlExtractResult = await _xmlFieldExtractor.ExtractFieldsAsync(xmlSource, fieldDefinitions).ConfigureAwait(false);
-                
+
                 // Propagate cancellation from dependencies
                 if (xmlExtractResult.IsCancelled())
                 {
                     _logger.LogWarning("Field matching workflow cancelled by XML extractor");
                     return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
                 }
-                
+
                 if (xmlExtractResult.IsSuccess && xmlExtractResult.Value != null)
                 {
                     CollectFieldValues(allFieldValues, xmlExtractResult.Value, "XML");
@@ -185,14 +185,14 @@ public class FieldMatchingService
                 if (allFieldValues.TryGetValue(fieldDef.FieldName, out var values) && values.Count > 0)
                 {
                     var matchResult = await _matchingPolicy.SelectBestValueAsync(fieldDef.FieldName, values).ConfigureAwait(false);
-                    
+
                     // Propagate cancellation from dependencies
                     if (matchResult.IsCancelled())
                     {
                         _logger.LogWarning("Field matching workflow cancelled by matching policy");
                         return ResultExtensions.Cancelled<UnifiedMetadataRecord>();
                     }
-                    
+
                     if (matchResult.IsSuccess && matchResult.Value != null)
                     {
                         matchedFields.FieldMatches[fieldDef.FieldName] = matchResult.Value;
@@ -237,7 +237,7 @@ public class FieldMatchingService
                 AdditionalFieldConflicts = matchedFields.AdditionalConflicts
             };
 
-            PopulateComplianceActions(unifiedRecord);
+            //PopulateComplianceActions(unifiedRecord);
             DeriveSlaFromAdditional(unifiedRecord);
             AggregateValidation(unifiedRecord);
 
@@ -311,9 +311,11 @@ public class FieldMatchingService
                 case "expediente":
                     extractedFields.Expediente = match.Value.MatchedValue;
                     break;
+
                 case "causa":
                     extractedFields.Causa = match.Value.MatchedValue;
                     break;
+
                 case "accionsolicitada":
                 case "accion_solicitada":
                     extractedFields.AccionSolicitada = match.Value.MatchedValue;

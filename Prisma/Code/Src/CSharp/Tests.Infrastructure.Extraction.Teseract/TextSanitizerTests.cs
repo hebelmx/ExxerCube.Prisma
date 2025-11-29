@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Extraction;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
 public class TextSanitizerTests

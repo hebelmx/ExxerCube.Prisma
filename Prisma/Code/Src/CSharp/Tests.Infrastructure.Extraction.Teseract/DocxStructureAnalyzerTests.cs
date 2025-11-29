@@ -1,11 +1,5 @@
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using ExxerCube.Prisma.Domain.Enums;
-using ExxerCube.Prisma.Infrastructure.Extraction.Analysis;
-using FluentAssertions;
-
 /// <summary>
 /// TDD tests for DocxStructureAnalyzer.
 /// Tests document structure analysis for strategy selection.

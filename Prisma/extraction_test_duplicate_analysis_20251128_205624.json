@@ -1,0 +1,2010 @@
+{
+  "exact_duplicates": [
+    {
+      "normalizedName": "extractfieldsasync_withfilepath_extractsfields",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFieldsAsync_WithFilePath_ExtractsFields",
+          "normalizedName": "extractfieldsasync_withfilepath_extractsfields",
+          "className": "DocxFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "fileName": "DocxFieldExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFieldsAsync_WithFilePath_ExtractsFields",
+          "normalizedName": "extractfieldsasync_withfilepath_extractsfields",
+          "className": "PdfOcrFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "fileName": "PdfOcrFieldExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfieldasync_fieldnotfound_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFieldAsync_FieldNotFound_ReturnsFailure",
+          "normalizedName": "extractfieldasync_fieldnotfound_returnsfailure",
+          "className": "DocxFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "fileName": "DocxFieldExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFieldAsync_FieldNotFound_ReturnsFailure",
+          "normalizedName": "extractfieldasync_fieldnotfound_returnsfailure",
+          "className": "PdfOcrFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "fileName": "PdfOcrFieldExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfieldsasync_nofilecontentorpath_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure",
+          "normalizedName": "extractfieldsasync_nofilecontentorpath_returnsfailure",
+          "className": "DocxFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "fileName": "DocxFieldExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure",
+          "normalizedName": "extractfieldsasync_nofilecontentorpath_returnsfailure",
+          "className": "PdfOcrFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "fileName": "PdfOcrFieldExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfrompdfasync_always_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfrompdfasync_always_returnsfailure",
+          "className": "DocxMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "fileName": "DocxMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfrompdfasync_always_returnsfailure",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfromxmlasync_always_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromxmlasync_always_returnsfailure",
+          "className": "DocxMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "fileName": "DocxMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromxmlasync_always_returnsfailure",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfromdocxasync_always_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromdocxasync_always_returnsfailure",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromdocxasync_always_returnsfailure",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+      "instanceCount": 11,
+      "instances": [
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorDegradedTests.cs",
+          "fileName": "GotOcr2OcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorTests.cs",
+          "fileName": "GotOcr2OcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction.Teseract",
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.GotOcr2"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+      "instanceCount": 11,
+      "instances": [
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorDegradedTests.cs",
+          "fileName": "GotOcr2OcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorTests.cs",
+          "fileName": "GotOcr2OcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction.Teseract",
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.GotOcr2"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "ocrfixturepipelinetests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "OcrFixturePipelineTests",
+          "normalizedName": "ocrfixturepipelinetests",
+          "className": "OcrFixturePipelineTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/OcrFixturePipelineTests.cs",
+          "fileName": "OcrFixturePipelineTests.cs"
+        },
+        {
+          "originalName": "OcrFixturePipelineTests",
+          "normalizedName": "ocrfixturepipelinetests",
+          "className": "OcrFixturePipelineTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/OcrFixturePipelineTests.cs",
+          "fileName": "OcrFixturePipelineTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "tesseractocrexecutordegradedtests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "TesseractOcrExecutorDegradedTests",
+          "normalizedName": "tesseractocrexecutordegradedtests",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "TesseractOcrExecutorDegradedTests",
+          "normalizedName": "tesseractocrexecutordegradedtests",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "tesseractocrexecutorenhancedaggressivetests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "normalizedName": "tesseractocrexecutorenhancedaggressivetests",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "normalizedName": "tesseractocrexecutorenhancedaggressivetests",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "tesseractocrexecutortests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "TesseractOcrExecutorTests",
+          "normalizedName": "tesseractocrexecutortests",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        },
+        {
+          "originalName": "TesseractOcrExecutorTests",
+          "normalizedName": "tesseractocrexecutortests",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "textsanitizerocrpipelinetests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "TextSanitizerOcrPipelineTests",
+          "normalizedName": "textsanitizerocrpipelinetests",
+          "className": "TextSanitizerOcrPipelineTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerOcrPipelineTests.cs",
+          "fileName": "TextSanitizerOcrPipelineTests.cs"
+        },
+        {
+          "originalName": "TextSanitizerOcrPipelineTests",
+          "normalizedName": "textsanitizerocrpipelinetests",
+          "className": "TextSanitizerOcrPipelineTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerOcrPipelineTests.cs",
+          "fileName": "TextSanitizerOcrPipelineTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanswift_normalizes_and_checks_length",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanSwift_normalizes_and_checks_length",
+          "normalizedName": "cleanswift_normalizes_and_checks_length",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanSwift_normalizes_and_checks_length",
+          "normalizedName": "cleanswift_normalizes_and_checks_length",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanaccount_flags_missing_when_empty",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanAccount_flags_missing_when_empty",
+          "normalizedName": "cleanaccount_flags_missing_when_empty",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanAccount_flags_missing_when_empty",
+          "normalizedName": "cleanaccount_flags_missing_when_empty",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanswift_accepts_valid_length",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanSwift_accepts_valid_length",
+          "normalizedName": "cleanswift_accepts_valid_length",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanSwift_accepts_valid_length",
+          "normalizedName": "cleanswift_accepts_valid_length",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanaccount_removes_noise_and_flags_normalization",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanAccount_removes_noise_and_flags_normalization",
+          "normalizedName": "cleanaccount_removes_noise_and_flags_normalization",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanAccount_removes_noise_and_flags_normalization",
+          "normalizedName": "cleanaccount_removes_noise_and_flags_normalization",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleangeneric_collapses_whitespace",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanGeneric_collapses_whitespace",
+          "normalizedName": "cleangeneric_collapses_whitespace",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanGeneric_collapses_whitespace",
+          "normalizedName": "cleangeneric_collapses_whitespace",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanaccount_and_swift_from_fixture_are_normalized",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanAccount_and_Swift_from_fixture_are_normalized",
+          "normalizedName": "cleanaccount_and_swift_from_fixture_are_normalized",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanAccount_and_Swift_from_fixture_are_normalized",
+          "normalizedName": "cleanaccount_and_swift_from_fixture_are_normalized",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    }
+  ],
+  "cross_project_duplicates": [
+    {
+      "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+      "instanceCount": 11,
+      "instances": [
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorDegradedTests.cs",
+          "fileName": "GotOcr2OcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorTests.cs",
+          "fileName": "GotOcr2OcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction.Teseract",
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.GotOcr2"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+      "instanceCount": 11,
+      "instances": [
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorDegradedTests.cs",
+          "fileName": "GotOcr2OcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorTests.cs",
+          "fileName": "GotOcr2OcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction.Teseract",
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.GotOcr2"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "ocrfixturepipelinetests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "OcrFixturePipelineTests",
+          "normalizedName": "ocrfixturepipelinetests",
+          "className": "OcrFixturePipelineTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/OcrFixturePipelineTests.cs",
+          "fileName": "OcrFixturePipelineTests.cs"
+        },
+        {
+          "originalName": "OcrFixturePipelineTests",
+          "normalizedName": "ocrfixturepipelinetests",
+          "className": "OcrFixturePipelineTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/OcrFixturePipelineTests.cs",
+          "fileName": "OcrFixturePipelineTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "tesseractocrexecutordegradedtests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "TesseractOcrExecutorDegradedTests",
+          "normalizedName": "tesseractocrexecutordegradedtests",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "TesseractOcrExecutorDegradedTests",
+          "normalizedName": "tesseractocrexecutordegradedtests",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "tesseractocrexecutorenhancedaggressivetests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "normalizedName": "tesseractocrexecutorenhancedaggressivetests",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "normalizedName": "tesseractocrexecutorenhancedaggressivetests",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "tesseractocrexecutortests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "TesseractOcrExecutorTests",
+          "normalizedName": "tesseractocrexecutortests",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        },
+        {
+          "originalName": "TesseractOcrExecutorTests",
+          "normalizedName": "tesseractocrexecutortests",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "textsanitizerocrpipelinetests",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "TextSanitizerOcrPipelineTests",
+          "normalizedName": "textsanitizerocrpipelinetests",
+          "className": "TextSanitizerOcrPipelineTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerOcrPipelineTests.cs",
+          "fileName": "TextSanitizerOcrPipelineTests.cs"
+        },
+        {
+          "originalName": "TextSanitizerOcrPipelineTests",
+          "normalizedName": "textsanitizerocrpipelinetests",
+          "className": "TextSanitizerOcrPipelineTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerOcrPipelineTests.cs",
+          "fileName": "TextSanitizerOcrPipelineTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanswift_normalizes_and_checks_length",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanSwift_normalizes_and_checks_length",
+          "normalizedName": "cleanswift_normalizes_and_checks_length",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanSwift_normalizes_and_checks_length",
+          "normalizedName": "cleanswift_normalizes_and_checks_length",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanaccount_flags_missing_when_empty",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanAccount_flags_missing_when_empty",
+          "normalizedName": "cleanaccount_flags_missing_when_empty",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanAccount_flags_missing_when_empty",
+          "normalizedName": "cleanaccount_flags_missing_when_empty",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanswift_accepts_valid_length",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanSwift_accepts_valid_length",
+          "normalizedName": "cleanswift_accepts_valid_length",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanSwift_accepts_valid_length",
+          "normalizedName": "cleanswift_accepts_valid_length",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanaccount_removes_noise_and_flags_normalization",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanAccount_removes_noise_and_flags_normalization",
+          "normalizedName": "cleanaccount_removes_noise_and_flags_normalization",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanAccount_removes_noise_and_flags_normalization",
+          "normalizedName": "cleanaccount_removes_noise_and_flags_normalization",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleangeneric_collapses_whitespace",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanGeneric_collapses_whitespace",
+          "normalizedName": "cleangeneric_collapses_whitespace",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanGeneric_collapses_whitespace",
+          "normalizedName": "cleangeneric_collapses_whitespace",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    },
+    {
+      "normalizedName": "cleanaccount_and_swift_from_fixture_are_normalized",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "CleanAccount_and_Swift_from_fixture_are_normalized",
+          "normalizedName": "cleanaccount_and_swift_from_fixture_are_normalized",
+          "className": "TextSanitizerTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        },
+        {
+          "originalName": "CleanAccount_and_Swift_from_fixture_are_normalized",
+          "normalizedName": "cleanaccount_and_swift_from_fixture_are_normalized",
+          "className": "TextSanitizerTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TextSanitizerTests.cs",
+          "fileName": "TextSanitizerTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.System",
+        "Tests.Infrastructure.Extraction.Teseract"
+      ],
+      "crossProject": true,
+      "recommendation": "🔥 CRITICAL - Cross-project duplication!"
+    }
+  ],
+  "same_project_duplicates": [
+    {
+      "normalizedName": "extractfieldsasync_withfilepath_extractsfields",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFieldsAsync_WithFilePath_ExtractsFields",
+          "normalizedName": "extractfieldsasync_withfilepath_extractsfields",
+          "className": "DocxFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "fileName": "DocxFieldExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFieldsAsync_WithFilePath_ExtractsFields",
+          "normalizedName": "extractfieldsasync_withfilepath_extractsfields",
+          "className": "PdfOcrFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "fileName": "PdfOcrFieldExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfieldasync_fieldnotfound_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFieldAsync_FieldNotFound_ReturnsFailure",
+          "normalizedName": "extractfieldasync_fieldnotfound_returnsfailure",
+          "className": "DocxFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "fileName": "DocxFieldExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFieldAsync_FieldNotFound_ReturnsFailure",
+          "normalizedName": "extractfieldasync_fieldnotfound_returnsfailure",
+          "className": "PdfOcrFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "fileName": "PdfOcrFieldExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfieldsasync_nofilecontentorpath_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure",
+          "normalizedName": "extractfieldsasync_nofilecontentorpath_returnsfailure",
+          "className": "DocxFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "fileName": "DocxFieldExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFieldsAsync_NoFileContentOrPath_ReturnsFailure",
+          "normalizedName": "extractfieldsasync_nofilecontentorpath_returnsfailure",
+          "className": "PdfOcrFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "fileName": "PdfOcrFieldExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfrompdfasync_always_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfrompdfasync_always_returnsfailure",
+          "className": "DocxMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "fileName": "DocxMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfrompdfasync_always_returnsfailure",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfromxmlasync_always_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromxmlasync_always_returnsfailure",
+          "className": "DocxMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "fileName": "DocxMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromxmlasync_always_returnsfailure",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    },
+    {
+      "normalizedName": "extractfromdocxasync_always_returnsfailure",
+      "instanceCount": 2,
+      "instances": [
+        {
+          "originalName": "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromdocxasync_always_returnsfailure",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromdocxasync_always_returnsfailure",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "projects": [
+        "Tests.Infrastructure.Extraction"
+      ],
+      "crossProject": false,
+      "recommendation": "⚠️  REVIEW - Same method name in multiple locations"
+    }
+  ],
+  "high_similarity_duplicates": [],
+  "suspicious_similarities": [
+    {
+      "method1": "extractfieldasync_validdocx_returnsfieldvalue",
+      "method2": "extractfieldasync_validpdf_returnsfieldvalue",
+      "similarity": 0.75,
+      "instances1": [
+        {
+          "originalName": "ExtractFieldAsync_ValidDocx_ReturnsFieldValue",
+          "normalizedName": "extractfieldasync_validdocx_returnsfieldvalue",
+          "className": "DocxFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxFieldExtractorTests.cs",
+          "fileName": "DocxFieldExtractorTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "ExtractFieldAsync_ValidPdf_ReturnsFieldValue",
+          "normalizedName": "extractfieldasync_validpdf_returnsfieldvalue",
+          "className": "PdfOcrFieldExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfOcrFieldExtractorTests.cs",
+          "fileName": "PdfOcrFieldExtractorTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "extractfrompdfasync_always_returnsfailure",
+      "method2": "extractfromxmlasync_always_returnsfailure",
+      "similarity": 0.7727272727272727,
+      "instances1": [
+        {
+          "originalName": "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfrompdfasync_always_returnsfailure",
+          "className": "DocxMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "fileName": "DocxMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfrompdfasync_always_returnsfailure",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromxmlasync_always_returnsfailure",
+          "className": "DocxMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "fileName": "DocxMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromxmlasync_always_returnsfailure",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "extractfrompdfasync_always_returnsfailure",
+      "method2": "extractfromdocxasync_always_returnsfailure",
+      "similarity": 0.7555555555555555,
+      "instances1": [
+        {
+          "originalName": "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfrompdfasync_always_returnsfailure",
+          "className": "DocxMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "fileName": "DocxMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromPdfAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfrompdfasync_always_returnsfailure",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromdocxasync_always_returnsfailure",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromdocxasync_always_returnsfailure",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "extractfromxmlasync_always_returnsfailure",
+      "method2": "extractfromdocxasync_always_returnsfailure",
+      "similarity": 0.7555555555555555,
+      "instances1": [
+        {
+          "originalName": "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromxmlasync_always_returnsfailure",
+          "className": "DocxMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/DocxMetadataExtractorTests.cs",
+          "fileName": "DocxMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromXmlAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromxmlasync_always_returnsfailure",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromdocxasync_always_returnsfailure",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        },
+        {
+          "originalName": "ExtractFromDocxAsync_Always_ReturnsFailure",
+          "normalizedName": "extractfromdocxasync_always_returnsfailure",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "identifyfiletypeasync_emptycontent_returnsfailure",
+      "method2": "identifyfiletypeasync_nullcontent_returnsfailure",
+      "similarity": 0.75,
+      "instances1": [
+        {
+          "originalName": "IdentifyFileTypeAsync_EmptyContent_ReturnsFailure",
+          "normalizedName": "identifyfiletypeasync_emptycontent_returnsfailure",
+          "className": "FileTypeIdentifierServiceTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/FileTypeIdentifierServiceTests.cs",
+          "fileName": "FileTypeIdentifierServiceTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "IdentifyFileTypeAsync_NullContent_ReturnsFailure",
+          "normalizedName": "identifyfiletypeasync_nullcontent_returnsfailure",
+          "className": "FileTypeIdentifierServiceTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/FileTypeIdentifierServiceTests.cs",
+          "fileName": "FileTypeIdentifierServiceTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "pdfmetadataextractortests",
+      "method2": "xmlmetadataextractortests",
+      "similarity": 0.7692307692307693,
+      "instances1": [
+        {
+          "originalName": "PdfMetadataExtractorTests",
+          "normalizedName": "pdfmetadataextractortests",
+          "className": "PdfMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/PdfMetadataExtractorTests.cs",
+          "fileName": "PdfMetadataExtractorTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "XmlMetadataExtractorTests",
+          "normalizedName": "xmlmetadataextractortests",
+          "className": "XmlMetadataExtractorTests",
+          "project": "Tests.Infrastructure.Extraction",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction/XmlMetadataExtractorTests.cs",
+          "fileName": "XmlMetadataExtractorTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "executeocrasync_withemptyimagedata_returnsfailure",
+      "method2": "executeocrasync_withnullimagedata_returnsfailure",
+      "similarity": 0.7547169811320755,
+      "instances1": [
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorDegradedTests.cs",
+          "fileName": "GotOcr2OcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorTests.cs",
+          "fileName": "GotOcr2OcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithEmptyImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withemptyimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorDegradedTests.cs",
+          "fileName": "GotOcr2OcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "GotOcr2OcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorTests.cs",
+          "fileName": "GotOcr2OcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorDegradedTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorDegradedTests.cs",
+          "fileName": "TesseractOcrExecutorDegradedTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "ExecuteOcrAsync_WithNullImageData_ReturnsFailure",
+          "normalizedName": "executeocrasync_withnullimagedata_returnsfailure",
+          "className": "TesseractOcrExecutorTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorTests.cs",
+          "fileName": "TesseractOcrExecutorTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "gotocr2ocrexecutorenhancedaggressivetests",
+      "method2": "tesseractocrexecutorenhancedaggressivetests",
+      "similarity": 0.75,
+      "instances1": [
+        {
+          "originalName": "GotOcr2OcrExecutorEnhancedAggressiveTests",
+          "normalizedName": "gotocr2ocrexecutorenhancedaggressivetests",
+          "className": "GotOcr2OcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.GotOcr2",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.GotOcr2",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.GotOcr2/GotOcr2OcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "GotOcr2OcrExecutorEnhancedAggressiveTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "normalizedName": "tesseractocrexecutorenhancedaggressivetests",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        },
+        {
+          "originalName": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "normalizedName": "tesseractocrexecutorenhancedaggressivetests",
+          "className": "TesseractOcrExecutorEnhancedAggressiveTests",
+          "project": "Tests.System",
+          "namespace": "ExxerCube.Prisma.Tests.System",
+          "fullPath": "Code/Src/CSharp/Tests.System/TesseractOcrExecutorEnhancedAggressiveTests.cs",
+          "fileName": "TesseractOcrExecutorEnhancedAggressiveTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "extractcomplementasync_xmlmissingcausa_docxfillsgap",
+      "method2": "extractcomplementasync_xmlmissingrfc_docxfillsgap",
+      "similarity": 0.7777777777777778,
+      "instances1": [
+        {
+          "originalName": "ExtractComplementAsync_XmlMissingCausa_DocxFillsGap",
+          "normalizedName": "extractcomplementasync_xmlmissingcausa_docxfillsgap",
+          "className": "ComplementExtractionStrategyTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/ComplementExtractionStrategyTests.cs",
+          "fileName": "ComplementExtractionStrategyTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "ExtractComplementAsync_XmlMissingRFC_DocxFillsGap",
+          "normalizedName": "extractcomplementasync_xmlmissingrfc_docxfillsgap",
+          "className": "ComplementExtractionStrategyTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/ComplementExtractionStrategyTests.cs",
+          "fileName": "ComplementExtractionStrategyTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    },
+    {
+      "method1": "canhandle_documentwithoutcrossreferences_returnstrue",
+      "method2": "canhandle_documentwithcrossreferences_returnstrue",
+      "similarity": 0.8653846153846154,
+      "instances1": [
+        {
+          "originalName": "CanHandle_DocumentWithoutCrossReferences_ReturnsTrue",
+          "normalizedName": "canhandle_documentwithoutcrossreferences_returnstrue",
+          "className": "SearchExtractionStrategyTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/SearchExtractionStrategyTests.cs",
+          "fileName": "SearchExtractionStrategyTests.cs"
+        }
+      ],
+      "instances2": [
+        {
+          "originalName": "CanHandle_DocumentWithCrossReferences_ReturnsTrue",
+          "normalizedName": "canhandle_documentwithcrossreferences_returnstrue",
+          "className": "SearchExtractionStrategyTests",
+          "project": "Tests.Infrastructure.Extraction.Teseract",
+          "namespace": "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract",
+          "fullPath": "Code/Src/CSharp/Tests.Infrastructure.Extraction.Teseract/SearchExtractionStrategyTests.cs",
+          "fileName": "SearchExtractionStrategyTests.cs"
+        }
+      ],
+      "recommendation": "❓ CHECK - Similar method names, may be related"
+    }
+  ],
+  "statistics": {
+    "total_unique_normalized": 116,
+    "exact_duplicates": 19,
+    "cross_project": 13,
+    "same_project": 6,
+    "high_similarity": 0,
+    "suspicious": 10,
+    "total_methods": 153
+  },
+  "metadata": {
+    "generated_on": "2025-11-28T20:56:24.460930",
+    "base_path": "Code\\Src\\CSharp",
+    "analyzer_version": "1.0.0_prisma_extraction_tests",
+    "scope": "4 extraction test projects: Tests.Infrastructure.Extraction, Tests.Infrastructure.Extraction.GotOcr2, Tests.Infrastructure.Extraction.Teseract, Tests.System",
+    "thresholds": {
+      "exact_match": 1.0,
+      "high_similarity": 0.9,
+      "suspicious": 0.75
+    }
+  }
+}

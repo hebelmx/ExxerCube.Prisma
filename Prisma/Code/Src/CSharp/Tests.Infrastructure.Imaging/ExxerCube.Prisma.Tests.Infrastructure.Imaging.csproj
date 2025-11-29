@@ -75,8 +75,8 @@
     <ProjectReference Include="..\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
-    <ProjectReference Include="..\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
     <ProjectReference Include="..\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj" />
+    <ProjectReference Include="..\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Testing Platform Capabilities">
