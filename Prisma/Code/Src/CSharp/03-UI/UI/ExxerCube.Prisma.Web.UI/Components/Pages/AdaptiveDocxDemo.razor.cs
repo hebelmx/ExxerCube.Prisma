@@ -11,6 +11,9 @@ using MudBlazor;
 
 namespace ExxerCube.Prisma.Web.UI.Components.Pages;
 
+/// <summary>
+/// AdaptiveDocxDemo
+/// </summary>
 public partial class AdaptiveDocxDemo : ComponentBase
 {
     private static readonly AdaptiveDocxFixture PlaceholderFixture = new("placeholder", "Select fixture", string.Empty, string.Empty, string.Empty);
@@ -40,6 +43,10 @@ public partial class AdaptiveDocxDemo : ComponentBase
     private MergeResult _mergeResult = new();
     private List<KeyValuePair<string, string>> _additionalFields = new();
 
+    /// <summary>
+    /// OnInitializedAsync
+    /// </summary>
+    /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
         await LoadFixturesAsync();

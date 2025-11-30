@@ -181,6 +181,21 @@ public sealed class SchemaEvolutionDetector : ISchemaEvolutionDetector
         var normalized1 = NormalizeFieldName(fieldName1);
         var normalized2 = NormalizeFieldName(fieldName2);
 
+        // Check for substring containment (e.g., "Name" in "FullName")
+        // This handles common field naming patterns
+        if (normalized1.Contains(normalized2) || normalized2.Contains(normalized1))
+        {
+            var shorter = Math.Min(normalized1.Length, normalized2.Length);
+            var longer = Math.Max(normalized1.Length, normalized2.Length);
+
+            // High similarity if one contains the other
+            // Score based on ratio of lengths, but boost to minimum 0.7
+            // since substring containment is a strong indicator of field rename
+            var containmentSimilarity = (double)shorter / longer;
+            var boostedSimilarity = Math.Max(containmentSimilarity, 0.7);
+            return Math.Round(boostedSimilarity, 2);
+        }
+
         // Calculate Levenshtein distance
         var distance = ComputeLevenshteinDistance(normalized1, normalized2);
         var maxLength = Math.Max(normalized1.Length, normalized2.Length);
