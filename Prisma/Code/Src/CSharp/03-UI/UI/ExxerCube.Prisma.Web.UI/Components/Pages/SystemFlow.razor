@@ -32,6 +32,9 @@
         <MudIcon Icon="@Icons.Material.Filled.Insights" Class="mr-2" Color="Color.Primary" />
         Complete Flow Overview
     </MudText>
+    <MudAlert Severity="Severity.Warning" Elevation="0" Dense="true" Class="mb-3" Style="font-weight: 700; text-transform: uppercase;">
+        REMINDER: Add HUD-style live + historical metrics on each card (intake volume, last SIARA poll, active downloads, processing throughput).
+    </MudAlert>
 
     <MudGrid Spacing="3" Class="mb-6">
         @* External Systems *@
@@ -124,6 +127,9 @@
         <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Class="mr-2" Color="Color.Primary" />
         Live Demo Entry Points
     </MudText>
+    <MudAlert Severity="Severity.Warning" Elevation="0" Dense="true" Class="mb-3" Style="font-weight: 700; text-transform: uppercase;">
+        REMINDER: Overlay each card with real-time status badges and history spark-lines (success/error counts, last run, SLA).
+    </MudAlert>
 
     <MudGrid Spacing="3" Class="mb-6">
         <MudItem xs="12" md="6" lg="4">
@@ -671,5 +677,25 @@
 </style>
 
 @code {
-    // Component logic (if needed later)
+    [Inject]
+    public ISnackbar Snackbar { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (!firstRender || Snackbar == null)
+        {
+            return;
+        }
+
+        Snackbar.Add(
+            "Reminder: Add HUD live/historical metrics + spark-line status badges to every card on this page.",
+            Severity.Warning,
+            options =>
+            {
+                options.VisibleStateDuration = 8000;
+                options.RequireInteraction = true;
+            });
+    }
 }

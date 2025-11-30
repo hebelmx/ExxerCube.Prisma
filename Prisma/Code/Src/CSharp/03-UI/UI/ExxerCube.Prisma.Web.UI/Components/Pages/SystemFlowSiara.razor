@@ -1,0 +1,22 @@
+@page "/system-flow/siara"
+@using MudBlazor
+
+<PageTitle>System Flow - SIARA</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-6">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.CloudQueue" Class="mr-2" />
+            SIARA Distribution
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Placeholder: surface live SIARA poll status, last successful fetch, backlog size, and XML/PDF/DOCX availability with history spark-lines.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            TODO: Hook to browser automation/ingestion metrics (poll cadence, auth failures, download rates).
+        </MudAlert>
+        <MudButton Href="/system-flow" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>

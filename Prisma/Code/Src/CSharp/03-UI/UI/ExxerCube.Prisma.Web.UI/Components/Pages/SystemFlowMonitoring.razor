@@ -1,0 +1,22 @@
+@page "/system-flow/monitoring"
+@using MudBlazor
+
+<PageTitle>System Flow - Monitoring</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-6">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Visibility" Class="mr-2" />
+            Monitoring & Download
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Placeholder: real-time status of Playwright watcher, active downloads, error rate, and download latency trends.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            TODO: connect to automation telemetry for uptime, retries, and capture counts per source.
+        </MudAlert>
+        <MudButton Href="/system-flow" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>

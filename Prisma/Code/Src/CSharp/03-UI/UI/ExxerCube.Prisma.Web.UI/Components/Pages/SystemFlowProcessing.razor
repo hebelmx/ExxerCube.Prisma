@@ -1,0 +1,22 @@
+@page "/system-flow/processing"
+@using MudBlazor
+
+<PageTitle>System Flow - Processing</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-6">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.AutoFixHigh" Class="mr-2" />
+            Intelligent Processing
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Placeholder: display live pipeline throughput, OCR confidence distributions, filter selection trends, and error breakdowns.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            TODO: bind to processing metrics (per-step success %, avg confidence, retries) and show 24h spark-lines.
+        </MudAlert>
+        <MudButton Href="/system-flow" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>

@@ -1,0 +1,22 @@
+@page "/system-flow/final-processing"
+@using MudBlazor
+
+<PageTitle>System Flow - Final Processing</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-6">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+            Final Processing & Delivery
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Placeholder: show auto-processing %, manual review load, template adaptation events, and delivery readiness KPIs.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            TODO: wire to orchestration/export metrics for throughput, queue length, and adapter hits; add SLA badges.
+        </MudAlert>
+        <MudButton Href="/system-flow" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>

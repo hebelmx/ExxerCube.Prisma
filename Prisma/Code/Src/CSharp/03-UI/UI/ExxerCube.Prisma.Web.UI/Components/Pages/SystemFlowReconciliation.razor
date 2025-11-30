@@ -1,0 +1,22 @@
+@page "/system-flow/reconciliation"
+@using MudBlazor
+
+<PageTitle>System Flow - Reconciliation</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-6">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+            Reconciliation & Matching
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Placeholder: show match rates, conflict counts, missing field alerts, and classification accuracy with history charts.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            TODO: connect to comparison service metrics and classification outcomes; add trendlines and SLA badges.
+        </MudAlert>
+        <MudButton Href="/system-flow" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>

@@ -1,0 +1,22 @@
+@page "/system-flow/external"
+@using MudBlazor
+
+<PageTitle>System Flow - External Systems</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-6">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Gavel" Class="mr-2" />
+            External Systems
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Placeholder: add live and historical metrics for authority intake (IMSS, SAT, UIF, FGR), CNBV vetting, and SIARA publication cadence.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            TODO: Wire to ingestion service for requirement counts, freshness, SLA, and failure reasons.
+        </MudAlert>
+        <MudButton Href="/system-flow" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>

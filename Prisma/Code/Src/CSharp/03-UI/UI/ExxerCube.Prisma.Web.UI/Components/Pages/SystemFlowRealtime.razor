@@ -1,0 +1,22 @@
+@page "/system-flow/realtime"
+@using MudBlazor
+
+<PageTitle>System Flow - Real-time</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 mb-6">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Class="mr-2" />
+            Real-time UI & Signals
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Placeholder: stream SignalR status, active notifications, and live pipeline signals with history spark-lines.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            TODO: connect to SignalR status/notifications feed and show latency, disconnects, and message counts.
+        </MudAlert>
+        <MudButton Href="/system-flow" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>

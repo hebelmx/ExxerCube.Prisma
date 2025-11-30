@@ -1,0 +1,22 @@
+@page "/system-flow/storage"
+@using MudBlazor
+
+<PageTitle>System Flow - Storage</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" ClassName="mt-4 mb-6">
+    <MudPaper Class="pa-6" Elevation="3">
+        <MudText Typo="Typo.h4" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Storage" Class="mr-2" />
+            Storage & Adaptive Intelligence
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mb-4">
+            Placeholder: expose storage health, audit queue depth, schema evolution detections, and adaptive learning signals over time.
+        </MudText>
+        <MudAlert Severity="Severity.Warning" Class="mb-3">
+            TODO: hook to observability/audit services for traceability stats, error rates, and template/schema change detections.
+        </MudAlert>
+        <MudButton Href="/system-flow" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Back to System Flow
+        </MudButton>
+    </MudPaper>
+</MudContainer>
