@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
 using ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data;
@@ -33,6 +36,31 @@ public static class ServiceCollectionExtensions
         // Register schema evolution detection services
         services.AddScoped<ISchemaEvolutionDetector, SchemaEvolutionDetector>();
 
+        // Register template seeder for database initialization
+        services.AddScoped<TemplateSeeder>();
+
+        // Register adapter for backward compatibility with IResponseExporter
+        // This enables zero-downtime migration from SiroXmlExporter to AdaptiveExporter
+        // OLD: services.AddScoped<IResponseExporter, SiroXmlExporter>();
+        // NEW: services.AddScoped<IResponseExporter, AdaptiveResponseExporterAdapter>();
+        services.AddScoped<IResponseExporter, AdaptiveResponseExporterAdapter>();
+
         return services;
+    }
+
+    /// <summary>
+    /// Seeds initial templates (Excel, XML) if they don't already exist.
+    /// Call this during application startup to ensure templates are available.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public static async Task SeedTemplatesAsync(
+        this IServiceProvider serviceProvider,
+        CancellationToken cancellationToken = default)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<TemplateSeeder>();
+        await seeder.SeedAllTemplatesAsync(cancellationToken);
     }
 }
