@@ -1,0 +1,14 @@
+global using Xunit;
+global using NSubstitute;
+global using Shouldly;
+global using Microsoft.Extensions.Logging;
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using ExxerCube.Prisma.Testing.Abstractions;
+global using ExxerCube.Prisma.Domain.Entities;
+global using ExxerCube.Prisma.Domain.Interfaces;
+global using ExxerCube.Prisma.Domain.ValueObjects;
+global using IndQuestResults;

@@ -1,508 +1,26 @@
- 04 Tests (30 tests) [4:03.462] Failed: 30 tests failed
-  02 Infrastructure (15 tests) [1:32.188] Failed: 15 tests failed
-   ExxerCube.Prisma.Tests.Infrastructure.Extraction (1 test) [0:01.774] Failed: 1 test failed
-    ExxerCube.Prisma.Tests.Infrastructure.Extraction (1 test) [0:01.774] Failed: 1 test failed
-     DocumentComparisonServiceTests (1 test) [0:00.163] Failed: One or more child tests failed: 1 test failed
-      CompareExpedientes_HalfFieldsMatch_ReturnsApproximately50PercentSimilarity [0:00.089] Failed: Shouldly.ShouldAssertException: result.OverallSimilarity
+   ExxerCube.Prisma.Tests.System.Ocr.Pipeline (11 tests) [0:46.841] Failed: 11 tests failed
+    ExxerCube.Prisma.Tests.System (11 tests) [0:46.841] Failed: 11 tests failed
+     AnalyticalFilterE2ETests (5 tests) [0:14.129] Failed: One or more child tests failed: 5 tests failed
+      Analytical filter should improve OCR quality (Levenshtein distance) (5 tests) [0:14.128] Failed: One or more child tests failed: 5 tests failed
+       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q1_Poor", filename: "333BBB-44444444442025_page1.png") [0:03.569] Failed: Shouldly.ShouldAssertException: enhancedText
 Shouldly.ShouldAssertException
-result.OverallSimilarity
-    should be less than
-0.6f
-    but was
-0.855625f
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.DocumentComparisonServiceTests.CompareExpedientes_HalfFieldsMatch_ReturnsApproximately50PercentSimilarity() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction\DocumentComparisonServiceTests.cs:line 192
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-Comparing expedientes: XML vs OCR
-Fuzzy match for 'NumeroExpediente': 'A/AS1-1111-222222-AAA' vs 'DIFFERENT-VALUE' = 11 % (Different)
-Fuzzy match for 'NumeroOficio': '222/AAA/-4444444444/2025' vs '999/ZZZ/-9999999999/2099' = 25 % (Different)
-Fuzzy match for 'SolicitudSiara': 'AGAFADAFSON2/2025/000084' vs 'DIFFERENT123/2099/999999' = 33 % (Different)
-Comparison complete: 13/16 exact matches (86 % overall similarity)
-
-   ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (14 tests) [1:15.391] Failed: 14 tests failed
-    ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (14 tests) [1:15.391] Failed: 14 tests failed
-     DocxStructureAnalyzerTests (3 tests) [0:00.472] Failed: One or more child tests failed: 3 tests failed
-      AnalyzeStructure_DocumentWithBoldLabels_ReturnsContextualStrategy [0:00.039] Failed: Expected result.HasKeyValuePairs to be True, but found False.
-Xunit.Sdk.XunitException
-Expected result.HasKeyValuePairs to be True, but found False.
-   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
-   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
-   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
-   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.DocxStructureAnalyzerTests.AnalyzeStructure_DocumentWithBoldLabels_ReturnsContextualStrategy() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\DocxStructureAnalyzerTests.cs:line 54
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-
-      AnalyzeStructure_EmptyDocument_ThrowsArgumentException [0:00.019] Failed: Expected the exception message to match the equivalent of "*cannot be empty*", but "DOCX bytes cannot be null or empty. (Parameter 'docxBytes')" does not.
-Xunit.Sdk.XunitException
-Expected the exception message to match the equivalent of "*cannot be empty*", but "DOCX bytes cannot be null or empty. (Parameter 'docxBytes')" does not.
-   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
-   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
-   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
-   at FluentAssertions.Specialized.ExceptionAssertions`1.AssertExceptionMessage(Action`1 messageAssertion)
-   at FluentAssertions.Specialized.ExceptionAssertions`1.WithMessage(String expectedWildcardPattern, String because, Object[] becauseArgs)
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.DocxStructureAnalyzerTests.AnalyzeStructure_EmptyDocument_ThrowsArgumentException() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\DocxStructureAnalyzerTests.cs:line 119
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
-
-
-      AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat [0:00.349] Failed: Expected result.HasStructuredFormat to be True because CNBV template should be detected, but found False.
-Xunit.Sdk.XunitException
-Expected result.HasStructuredFormat to be True because CNBV template should be detected, but found False.
-   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
-   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
-   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
-   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.DocxStructureAnalyzerTests.AnalyzeStructure_StructuredCNBVDocument_ReturnsStructuredFormat() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\DocxStructureAnalyzerTests.cs:line 21
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-
-     MexicanNameFuzzyMatcherTests (3 tests) [0:00.187] Failed: One or more child tests failed: 3 tests failed
-      GetSimilarityScore_MexicanNames_ReturnsCorrectScore (2 tests) [0:00.137] Failed: One or more child tests failed: 2 tests failed
-       GetSimilarityScore_MexicanNames_ReturnsCorrectScore(name1: "González", name2: "Gonzales", minExpectedScore: 90, reason: "high similarity with spelling variation") [0:00.121] Failed: Expected score to be greater than or equal to 90 because high similarity with spelling variation, but found 88 (difference of -2).
-Xunit.Sdk.XunitException
-Expected score to be greater than or equal to 90 because high similarity with spelling variation, but found 88 (difference of -2).
-   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
-   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
-   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
-   at FluentAssertions.Numeric.NumericAssertionsBase`3.BeGreaterThanOrEqualTo(T expected, String because, Object[] becauseArgs)
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.MexicanNameFuzzyMatcherTests.GetSimilarityScore_MexicanNames_ReturnsCorrectScore(String name1, String name2, Int32 minExpectedScore, String reason) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\MexicanNameFuzzyMatcherTests.cs:line 120
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
-
-
-       GetSimilarityScore_MexicanNames_ReturnsCorrectScore(name1: "Smith", name2: "Smyth", minExpectedScore: 85, reason: "high similarity but below threshold") [0:00.002] Failed: Expected score to be greater than or equal to 85 because high similarity but below threshold, but found 80 (difference of -5).
-Xunit.Sdk.XunitException
-Expected score to be greater than or equal to 85 because high similarity but below threshold, but found 80 (difference of -5).
-   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
-   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
-   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
-   at FluentAssertions.Numeric.NumericAssertionsBase`3.BeGreaterThanOrEqualTo(T expected, String because, Object[] becauseArgs)
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.MexicanNameFuzzyMatcherTests.GetSimilarityScore_MexicanNames_ReturnsCorrectScore(String name1, String name2, Int32 minExpectedScore, String reason) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\MexicanNameFuzzyMatcherTests.cs:line 120
-   at InvokeStub_MexicanNameFuzzyMatcherTests.GetSimilarityScore_MexicanNames_ReturnsCorrectScore(Object, Span`1)
-   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
-
-
-      IsMatch_MexicanNameVariations_ReturnsTrue (1 test) [0:00.016] Failed: One or more child tests failed: 1 test failed
-       IsMatch_MexicanNameVariations_ReturnsTrue(name1: "González", name2: "Gonzales", expected: True, reason: "accent + spelling variation should match") [0:00.015] Failed: Expected result to be True because accent + spelling variation should match, but found False.
-Xunit.Sdk.XunitException
-Expected result to be True because accent + spelling variation should match, but found False.
-   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
-   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
-   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
-   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
-   at FluentAssertions.Primitives.BooleanAssertions`1.Be(Boolean expected, String because, Object[] becauseArgs)
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.MexicanNameFuzzyMatcherTests.IsMatch_MexicanNameVariations_ReturnsTrue(String name1, String name2, Boolean expected, String reason) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\MexicanNameFuzzyMatcherTests.cs:line 40
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
-
-
-     OcrFixturePipelineTests (4 tests) [0:02.386] Failed: One or more child tests failed: 4 tests failed
-      Accounts_clean_fixture_sanitizes_without_changes [0:00.286] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
-Shouldly.ShouldAssertException
-sanitized.Swift.Cleaned
-    should be
-"BNMXMXMMX"
-    but was
-"SWIFTBNMXMXMMX"
-    difference
-Difference     |  |    |    |    |    |    |    |              |    |    |    |    |   
-               | \|/  \|/  \|/  \|/  \|/  \|/  \|/            \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    8    9    10   11   12   13   
-Expected Value | B    N    M    X    M    X    M    M    X                             
-Actual Value   | S    W    I    F    T    B    N    M    X    M    X    M    M    X    
-Expected Code  | 66   78   77   88   77   88   77   77   88                            
-Actual Code    | 83   87   73   70   84   66   78   77   88   77   88   77   77   88   
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.OcrFixturePipelineTests.Accounts_clean_fixture_sanitizes_without_changes() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\OcrFixturePipelineTests.cs:line 28
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-
-      Accounts_noisy_fixture_normalizes_digits_and_swift [0:00.340] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
-Shouldly.ShouldAssertException
-sanitized.Swift.Cleaned
-    should be
-"BNMXMXMMX"
-    but was
-"SWIFTBNMXMXMMX"
-    difference
-Difference     |  |    |    |    |    |    |    |              |    |    |    |    |   
-               | \|/  \|/  \|/  \|/  \|/  \|/  \|/            \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    8    9    10   11   12   13   
-Expected Value | B    N    M    X    M    X    M    M    X                             
-Actual Value   | S    W    I    F    T    B    N    M    X    M    X    M    M    X    
-Expected Code  | 66   78   77   88   77   88   77   77   88                            
-Actual Code    | 83   87   73   70   84   66   78   77   88   77   88   77   77   88   
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.OcrFixturePipelineTests.Accounts_noisy_fixture_normalizes_digits_and_swift() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\OcrFixturePipelineTests.cs:line 39
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-
-      Edge_no_xml_fixture_sanitizes_account_and_swift [0:00.223] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
-Shouldly.ShouldAssertException
-sanitized.Swift.Cleaned
-    should be
-"ABCDUS33XXX"
-    but was
-"SWIFTABCDUS33XXX"
-    difference
-Difference     |  |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |   
-               | \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   
-Expected Value | A    B    C    D    U    S    3    3    X    X    X                             
-Actual Value   | S    W    I    F    T    A    B    C    D    U    S    3    3    X    X    X    
-Expected Code  | 65   66   67   68   85   83   51   51   88   88   88                            
-Actual Code    | 83   87   73   70   84   65   66   67   68   85   83   51   51   88   88   88   
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.OcrFixturePipelineTests.Edge_no_xml_fixture_sanitizes_account_and_swift() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\OcrFixturePipelineTests.cs:line 59
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-
-      Gibberish_fixture_raises_warnings_but_keeps_flow [0:00.620] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
-Shouldly.ShouldAssertException
-sanitized.Swift.Cleaned
-    should be
-""
-    but was
-"SWIFTO0ORAS"
-    difference
-Difference     |  |    |    |    |    |    |    |    |    |    |    |   
-               | \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    8    9    10   
-Expected Value |                                                        
-Actual Value   | S    W    I    F    T    O    0    O    R    A    S    
-Expected Code  |                                                        
-Actual Code    | 83   87   73   70   84   79   48   79   82   65   83   
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.OcrFixturePipelineTests.Gibberish_fixture_raises_warnings_but_keeps_flow() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\OcrFixturePipelineTests.cs:line 88
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-
-     TesseractOcrExecutorEnhancedTests (2 tests) [0:12.880] Failed: One or more child tests failed: 2 tests failed
-      Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images (2 tests) [0:12.851] Failed: One or more child tests failed: 2 tests failed
-       Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 70) [0:01.724] Failed: Shouldly.ShouldAssertException: ocrResult
-Shouldly.ShouldAssertException
-ocrResult
-    should satisfy all the conditions specified, but does not.
-The following errors were found ...
---------------- Error 1 ---------------
-    ocrResult.ConfidenceAvg
-        should be greater than or equal to
-    70f
-        but was
-    69.624954f
-
-    Additional Info:
-        Enhanced Q2_MediumPoor should reach 70% confidence
-
------------------------------------------
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedTests.ExecuteOcrAsync_EnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedTests.cs:line 235
-
-=== Initializing Tesseract Enhanced Image Test Instance ===
-Testing digitally enhanced Q1 and Q2 images
-Tesseract executor created for enhanced image testing
-
-=== ENHANCEMENT ROI TEST: Q2_MediumPoor/333BBB-44444444442025_page1.png ===
-Quality Level: Q2_MediumPoor
-Expected Min Confidence: 70%
-Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced\Q2_MediumPoor\333BBB-44444444442025_page1.png
-BASELINE (Phase 1): 42-53% confidence
-TARGET: 70-80% confidence (lift ~25-35%) ← CRITICAL THRESHOLD
-Image file size: 913,033 bytes
-Starting Tesseract execution on ENHANCED Q2_MediumPoor image...
->>> TIMER START <<<
->>> TIMER END: 1.72s <<<
-
-=== TESSERACT ENHANCED RESULTS (Q2_MediumPoor) ===
-  Quality Level: Q2_MediumPoor (ENHANCED)
-  Document: 333BBB-44444444442025_page1.png
-  Execution time: 1.72s
-  Text length: 1663 characters
-  Confidence avg: 69.62%
-  Confidence median: 82.42%
-  Language used: spa
-  Text preview (first 200 chars): Acmirastiación Genera! de aucroria Prscol Federa A
-Acrunestración Desconcentrada de Augitora Fiscal de Sonora "2" YY,
-Ho De isenicacione: AA
-AGAS ADAFSON/ E
-Juan Juan Melón Sandía Y z
-Vicepresidente d
-
-=== FULL OCR TEXT ===
-Acmirastiación Genera! de aucroria Prscol Federa A
-Acrunestración Desconcentrada de Augitora Fiscal de Sonora "2" YY,
-Ho De isenicacione: AA
-AGAS ADAFSON/ E
-Juan Juan Melón Sandía Y z
-Vicepresidente de Supermisión de Procesos Preventivos hh "a bo
-Comisión Nacional Bancaria y de valores hr" E
-insurgentes Sur 1971, Conjunto Plaza inn, col. Guadalupe inn. Lé-
-Dei Alvaro obregón, C.P. 01020, Ciudad de L Y
-Presente , SE Ve
-Datos gengrates del E
-AOMCEIMACIÓN GemeRAaL DÉ AJOSMORÍA PEA rammierso Hacendaro
-ADMINSTRAJON DESCONCENTRADA DE FSCATDE a
-SONORA "1" % A " MTRO GUADALUPE PEPHA PEPA
-besa, Turno y/o Unidad, Secreranaane : ADMINISTRADOR DESCONCENTRADA DE
-DESCONCENTRADA DE LR re S ASTORIA FISCAL OE SONORA 7"
-AE RODOLFO ELFIAS CALLES leo 11H, : Y] mel (88) 1919-2722
-wcióto Centro CP 0000 a g Correo upte pepta papales dub ma
-- uz
-e e E - j
-iii Se a Sl
-E ES acultades de la Autondad
-requenmiente de náprmac mutas
-ESTA ADMINISTRACIÓN DESCONCENTRADA DE AUDITORÍA FISCAL DE SONORA "2" CON SEDE EN
-SONORA DE YA ADMINISTRACIÓN GENERAL DE AUDITORÍA FISCAL FEDERAL. DEL SERVICIO DÉ
-ADMINISTRACIÓN TRISUTARIA CON FUNDAMENTO EN LOS ARTÍCULOS 16 DE LA CONSTITUCION
-POUTICA DELOS ESTADOS UNIDOS MEXICANOS. 1, ? FRACCIONES VI Y XVIMIYA., FRACCIONES ii
-DELALEY DEL SERVICIO DE ADMINISTRACIÓN TRIBUTARIA, PUBLICADA EN EL DIARIO OFICIAL DELA
-FEDERACIÓN El 19/12/1995. REFORMADA POR DECRETO PUBLICADO EN EL PROPIO DIARIO OFICIAL
-DE LA FEDERACIÓN El 12/07/2003; t, 2, PÁRRAFO PRIMERO APARTADO C Y SEGUNDO, 5, PÁRRAFO
-TERCERO. E. PÁRRAFO PRIMERO, APARTADO A, FRACCIÓN JOY INCISO 8, 14 FRACCIÓN 1, EN
-RELACIÓN CON EL ARTÍCULO 22 PÁRRAFOS PRIMERO FRACCIÓN Vi . 24, PARRAFO PRIMERO
-=== END FULL TEXT ===
-
-=== ENHANCEMENT ROI ===
-  Baseline avg confidence: 47.50%
-  Enhanced confidence: 69.62%
-  Improvement: +22.12%
-  ⚠️ BELOW TARGET: Q2 enhanced did not reach 70% threshold
-  💡 RECOMMENDATION: Try aggressive enhancement or reject Q2 documents
->>> TIMER END (FAILED): 1.72s <<<
-Tesseract FAILED on ENHANCED Q2_MediumPoor image
-Shouldly.ShouldAssertException: ocrResult
-    should satisfy all the conditions specified, but does not.
-The following errors were found ...
---------------- Error 1 ---------------
-    ocrResult.ConfidenceAvg
-        should be greater than or equal to
-    70f
-        but was
-    69.624954f
-
-    Additional Info:
-        Enhanced Q2_MediumPoor should reach 70% confidence
-
------------------------------------------
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedTests.ExecuteOcrAsync_EnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedTests.cs:line 235
-Inner exception
-
-       Tesseract ENHANCED: Measure filter ROI on Q1+Q2 images(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 70) [0:01.581] Failed: Shouldly.ShouldAssertException: ocrResult
-Shouldly.ShouldAssertException
-ocrResult
-    should satisfy all the conditions specified, but does not.
-The following errors were found ...
---------------- Error 1 ---------------
-    ocrResult.ConfidenceAvg
-        should be greater than or equal to
-    70f
-        but was
-    60.13687f
-
-    Additional Info:
-        Enhanced Q2_MediumPoor should reach 70% confidence
-
------------------------------------------
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedTests.ExecuteOcrAsync_EnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedTests.cs:line 235
-
-=== Initializing Tesseract Enhanced Image Test Instance ===
-Testing digitally enhanced Q1 and Q2 images
-Tesseract executor created for enhanced image testing
-
-=== ENHANCEMENT ROI TEST: Q2_MediumPoor/333ccc-6666666662025_page1.png ===
-Quality Level: Q2_MediumPoor
-Expected Min Confidence: 70%
-Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced\Q2_MediumPoor\333ccc-6666666662025_page1.png
-BASELINE (Phase 1): 42-53% confidence
-TARGET: 70-80% confidence (lift ~25-35%) ← CRITICAL THRESHOLD
-Image file size: 848,243 bytes
-Starting Tesseract execution on ENHANCED Q2_MediumPoor image...
->>> TIMER START <<<
->>> TIMER END: 1.53s <<<
-
-=== TESSERACT ENHANCED RESULTS (Q2_MediumPoor) ===
-  Quality Level: Q2_MediumPoor (ENHANCED)
-  Document: 333ccc-6666666662025_page1.png
-  Execution time: 1.53s
-  Text length: 1082 characters
-  Confidence avg: 60.14%
-  Confidence median: 67.57%
-  Language used: spa
-  Text preview (first 200 chars): acrenmsación Generaí de Auctona Fiscal Federal AS
-Administración Desconcentrada de Aydtoria Fiscal de Sonora 27
-Eta.
-No. De Identificar: sz
-AGAFADAS SONZ/20. Do" e
-juan juan Melón Sandia Ah y ó o
-Vice
-
-=== FULL OCR TEXT ===
-acrenmsación Generaí de Auctona Fiscal Federal AS
-Administración Desconcentrada de Aydtoria Fiscal de Sonora 27
-Eta.
-No. De Identificar: sz
-AGAFADAS SONZ/20. Do" e
-juan juan Melón Sandia Ah y ó o
-Vicepresidente de Supervisión de Procesos Preventivos . O E
-Comisión Nacional Bancaria y de valores pa
-insurgentes Sur 1971, Conjunto Plaza inn, col. Guadalupe inn. nr
-Dei Alvaro obregón. C.P. 01020, Ciudad de Mígico -
-Preosente h 43
-ud S
-Datos gengraies del soticigto e
-hh o
-e
-AOMINISTRACION GENERAL, DE AUDITORIA FISCAL Mp ARuerimiento Hacendaño
-ADMINSTRAJON DESCONCENTRADA DE HSCALDE 4
-SONORA -7" L e MTRO. DUADALUPE PESA DESTA
-mesa, Hno yo Uned. Secta" ae sr : ADMINISTRADOR DESCONCÉN RADA DE
-DESCONCENTRADA DE AUTORIAÍÍCAL DÉ a AMSTORÍA FISCAL DE SONORA "2"
-Ave RODOLFO ELEIAS CALLES, No 1111 greo. Y Tel 1869 1111-2222
-Municipo Centro CP 0000 Y de 6 Correo tupaa pepe peptafbiat gol Ta
-e de
-E a A Motivación del requerimiento
-e Sr
-MERCANTIL ÍÉCUTIVO
-¿Origos det requerimiento
-¿ENS AQUCIUS contiene requerimientos de aseguramiento desbloqueo de cuentas o transterencias
-desaido? sl
-=== END FULL TEXT ===
-
-=== ENHANCEMENT ROI ===
-  Baseline avg confidence: 47.50%
-  Enhanced confidence: 60.14%
-  Improvement: +12.64%
-  ⚠️ BELOW TARGET: Q2 enhanced did not reach 70% threshold
-  💡 RECOMMENDATION: Try aggressive enhancement or reject Q2 documents
->>> TIMER END (FAILED): 1.55s <<<
-Tesseract FAILED on ENHANCED Q2_MediumPoor image
-Shouldly.ShouldAssertException: ocrResult
-    should satisfy all the conditions specified, but does not.
-The following errors were found ...
---------------- Error 1 ---------------
-    ocrResult.ConfidenceAvg
-        should be greater than or equal to
-    70f
-        but was
-    60.13687f
-
-    Additional Info:
-        Enhanced Q2_MediumPoor should reach 70% confidence
-
------------------------------------------
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedTests.ExecuteOcrAsync_EnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedTests.cs:line 235
-Inner exception
-
-     TextSanitizerOcrPipelineTests (1 test) [0:00.249] Failed: One or more child tests failed: 1 test failed
-      Ocr_and_sanitizer_normalize_account_and_swift_from_noisy_image [0:00.249] Failed: Shouldly.ShouldAssertException: sanitized.Swift.Cleaned
-Shouldly.ShouldAssertException
-sanitized.Swift.Cleaned
-    should be
-"BNMXMXMMX"
-    but was
-"SWIFTBNMXMXMMX"
-    difference
-Difference     |  |    |    |    |    |    |    |              |    |    |    |    |   
-               | \|/  \|/  \|/  \|/  \|/  \|/  \|/            \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    8    9    10   11   12   13   
-Expected Value | B    N    M    X    M    X    M    M    X                             
-Actual Value   | S    W    I    F    T    B    N    M    X    M    X    M    M    X    
-Expected Code  | 66   78   77   88   77   88   77   77   88                            
-Actual Code    | 83   87   73   70   84   66   78   77   88   77   88   77   77   88   
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TextSanitizerOcrPipelineTests.Ocr_and_sanitizer_normalize_account_and_swift_from_noisy_image() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TextSanitizerOcrPipelineTests.cs:line 45
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-
-     TextSanitizerTests (1 test) [0:00.181] Failed: One or more child tests failed: 1 test failed
-      CleanAccount_and_Swift_from_fixture_are_normalized [0:00.069] Failed: System.IndexOutOfRangeException: Index was outside the bounds of the array.
-System.IndexOutOfRangeException
-Index was outside the bounds of the array.
-   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TextSanitizerTests.CleanAccount_and_Swift_from_fixture_are_normalized() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\TextSanitizerTests.cs:line 65
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
-
-
-  03 System (7 tests) [1:30.868] Failed: 7 tests failed
-   ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E (2 tests) [0:53.278] Failed: 2 tests failed
-    ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E (2 tests) [0:53.278] Failed: 2 tests failed
-     SiaraSimulatorJobObjectTests (1 test) [0:25.203] Failed: One or more child tests failed: 1 test failed
-      SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed [0:25.194] Failed: Shouldly.ShouldAssertException: loginResult
-Shouldly.ShouldAssertException
-loginResult
-    should be
-True
-    but was
-False
+enhancedText
+    should contain (case insensitive comparison)
+"EXPEDIENTE"
+    but was actually
+"¡ / ¡ ¡ ¡
+HE H ) JH ) HE JA
+4 d ¿ A
+en a ar pa er?
+. A
+AN a
+Agente m0 ae Porsa e manual
+Ñ e Py Lao A..."
 
 Additional Info:
-    Login should succeed with demo credentials
-   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.SiaraSimulatorJobObjectTests.SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\SiaraSimulatorJobObjectTests.cs:line 205
+    Enhanced OCR must surface the EXPEDIENTE label
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AssertMandatoryTokens(String enhancedText, String documentId) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 433
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 412
    at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
    at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
    at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
@@ -513,69 +31,491 @@ Additional Info:
    at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
-Download path created: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
-Simulator is already running
-Initializing browser automation agent in headed mode...
-Launching browser session
-Browser session launched successfully
-Browser automation agent initialized successfully
-✓ Document opener initialized with Windows Job Objects
-  → ALL viewer processes will be automatically cleaned up on disposal
-===========================================
-Starting SIARA Simulator E2E Test - Full Workflow
-===========================================
-Target URL: http://localhost:5001
-Download path: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+╔══════════════════════════════════════════════════════════════════╗
+║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
+✓ IImageQualityAnalyzer initialized
+✓ IOcrExecutor initialized (Tesseract)
 
-STEP 1: Waiting for simulator to be ready...
-✓ Simulator ready
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q1_Poor      | 333BBB-44444444442025_page1.png          ║
+╚══════════════════════════════════════════════════════════════════╝
 
-STEP 2: Navigating to SIARA Simulator Login Page
-URL: http://localhost:5001
-Navigating to URL: http://localhost:5001
-Successfully navigated to URL: http://localhost:5001
-✓ Successfully navigated to SIARA login page
-Pausing to view login page...
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
+✓ Image loaded: 1,341,303 bytes
+✓ Ground truth loaded: 423 characters
 
-STEP 3: Logging into SIARA Simulator
-Username: BancoDemo
-Password: ********
-Waiting for login form to load...
-Waiting for selector: #username (timeout: 10000ms)
-Failed to find selector: #username
-System.TimeoutException: Timeout 10000ms exceeded.
-Call log:
-  - waiting for Locator("#username") to be visible
-   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 201
-   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 499
-   at Microsoft.Playwright.Core.Frame.WaitForSelectorAsync(String selector, FrameWaitForSelectorOptions options) in /_/src/Playwright/Core/Frame.cs:line 681
-   at ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.WaitForSelectorAsync(String selector, Nullable`1 timeoutMs, CancellationToken cancellationToken) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.BrowserAutomation\PlaywrightBrowserAutomationAdapter.cs:line 266
-Login form not found: Failed to find selector #username: Timeout 10000ms exceeded.
-Call log:
-  - waiting for Locator("#username") to be visible
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 2549ms
+  Extracted 1842 characters
 
-SIARA Simulator E2E test completed
-Browser session closed successfully
-Browser closed successfully
-Cleaning up document opener (opened 0 documents)...
-Closing all opened documents (0 files)...
-All documents closed successfully
-✓ All document processes cleaned up via Job Objects
-  → Guaranteed cleanup of ALL viewers (Adobe Reader, Word, etc.)
-Downloaded documents preserved at: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+📊 BASELINE METRICS:
+  Levenshtein Distance: 1634 edits
+  Error Rate: 386.29% (1634/423 chars)
 
-     SiaraSimulatorTests (1 test) [0:27.866] Failed: One or more child tests failed: 1 test failed
-      SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed [0:27.857] Failed: Shouldly.ShouldAssertException: loginResult
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: IMAGE QUALITY ANALYSIS                                  │
+└──────────────────────────────────────────────────────────────────┘
+✓ Quality analysis completed
+  Quality Level: Q4 - Very Low
+  Metrics:
+    Blur Score:     891.80
+    Noise Level:    0.09
+    Contrast Level: 0.24
+    Sharpness:      1.00
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: ANALYTICAL FILTER SELECTION                             │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter selected by analytical strategy (820 OCR baseline runs)
+  Filter Type: PIL Simple
+  Enhancement Enabled: True
+  PIL Parameters (NSGA-II optimized):
+    Contrast Factor: 1.9500
+    Median Size: 5
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: APPLY SELECTED FILTER                                   │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter applied: 56ms
+  Enhanced image: 222,111 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ENHANCED OCR                                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Enhanced OCR completed: 474ms
+  Extracted 189 characters
+
+📊 ENHANCED METRICS:
+  Levenshtein Distance: 350 edits
+  Error Rate: 82.74% (350/423 chars)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:       1634 edits                             ║
+║ Enhanced Distance:        350 edits                             ║
+║ Improvement:             1284 edits ( 78.58%)                  ║
+║                                                                  ║
+║ Total Time:              3527ms                              ║
+║   Baseline OCR:          2549ms                              ║
+║   Enhanced OCR:           474ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q1_Poor", filename: "333ccc-6666666662025_page1.png") [0:01.479] Failed: Shouldly.ShouldAssertException: enhancedText
 Shouldly.ShouldAssertException
-loginResult
+enhancedText
+    should contain (case insensitive comparison)
+"EXPEDIENTE"
+    but was actually
+"PA
+eo e? o? e? to
+U . a
+E 3"
+
+Additional Info:
+    Enhanced OCR must surface the EXPEDIENTE label
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AssertMandatoryTokens(String enhancedText, String documentId) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 433
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 412
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+╔══════════════════════════════════════════════════════════════════╗
+║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
+✓ IImageQualityAnalyzer initialized
+✓ IOcrExecutor initialized (Tesseract)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q1_Poor      | 333ccc-6666666662025_page1.png           ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333ccc-6666666662025_page1.png
+✓ Image loaded: 1,188,804 bytes
+✓ Ground truth loaded: 484 characters
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 1178ms
+  Extracted 1188 characters
+
+📊 BASELINE METRICS:
+  Levenshtein Distance: 1016 edits
+  Error Rate: 209.92% (1016/484 chars)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: IMAGE QUALITY ANALYSIS                                  │
+└──────────────────────────────────────────────────────────────────┘
+✓ Quality analysis completed
+  Quality Level: Q4 - Very Low
+  Metrics:
+    Blur Score:     579.24
+    Noise Level:    0.07
+    Contrast Level: 0.21
+    Sharpness:      0.83
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: ANALYTICAL FILTER SELECTION                             │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter selected by analytical strategy (820 OCR baseline runs)
+  Filter Type: PIL Simple
+  Enhancement Enabled: True
+  PIL Parameters (NSGA-II optimized):
+    Contrast Factor: 1.9500
+    Median Size: 5
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: APPLY SELECTED FILTER                                   │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter applied: 46ms
+  Enhanced image: 161,994 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ENHANCED OCR                                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Enhanced OCR completed: 175ms
+  Extracted 27 characters
+
+📊 ENHANCED METRICS:
+  Levenshtein Distance: 462 edits
+  Error Rate: 95.45% (462/484 chars)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:       1016 edits                             ║
+║ Enhanced Distance:        462 edits                             ║
+║ Improvement:              554 edits ( 54.53%)                  ║
+║                                                                  ║
+║ Total Time:              1477ms                              ║
+║   Baseline OCR:          1178ms                              ║
+║   Enhanced OCR:           175ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q2_MediumPoor", filename: "333BBB-44444444442025_page1.png") [0:03.021] Failed: Shouldly.ShouldAssertException: enhancedText
+Shouldly.ShouldAssertException
+enhancedText
+    should contain (case insensitive comparison)
+"EXPEDIENTE"
+    but was actually
+"á A Á 4 A
+Acrmirustiación Genera: de Auartone Fiscal Fedora
+hnmenerración Descuncentiada de Auditori..."
+
+Additional Info:
+    Enhanced OCR must surface the EXPEDIENTE label
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AssertMandatoryTokens(String enhancedText, String documentId) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 433
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 412
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+╔══════════════════════════════════════════════════════════════════╗
+║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
+✓ IImageQualityAnalyzer initialized
+✓ IOcrExecutor initialized (Tesseract)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q2_MediumPoor | 333BBB-44444444442025_page1.png          ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
+✓ Image loaded: 1,239,189 bytes
+✓ Ground truth loaded: 423 characters
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 2007ms
+  Extracted 2060 characters
+
+📊 BASELINE METRICS:
+  Levenshtein Distance: 1831 edits
+  Error Rate: 432.86% (1831/423 chars)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: IMAGE QUALITY ANALYSIS                                  │
+└──────────────────────────────────────────────────────────────────┘
+✓ Quality analysis completed
+  Quality Level: Q4 - Very Low
+  Metrics:
+    Blur Score:     1201.88
+    Noise Level:    0.07
+    Contrast Level: 0.17
+    Sharpness:      0.98
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: ANALYTICAL FILTER SELECTION                             │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter selected by analytical strategy (820 OCR baseline runs)
+  Filter Type: PIL Simple
+  Enhancement Enabled: True
+  PIL Parameters (NSGA-II optimized):
+    Contrast Factor: 1.5046
+    Median Size: 3
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: APPLY SELECTED FILTER                                   │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter applied: 40ms
+  Enhanced image: 626,837 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ENHANCED OCR                                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Enhanced OCR completed: 888ms
+  Extracted 1677 characters
+
+📊 ENHANCED METRICS:
+  Levenshtein Distance: 1482 edits
+  Error Rate: 350.35% (1482/423 chars)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:       1831 edits                             ║
+║ Enhanced Distance:       1482 edits                             ║
+║ Improvement:              349 edits ( 19.06%)                  ║
+║                                                                  ║
+║ Total Time:              3020ms                              ║
+║   Baseline OCR:          2007ms                              ║
+║   Enhanced OCR:           888ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q2_MediumPoor", filename: "333ccc-6666666662025_page1.png") [0:02.386] Failed: Shouldly.ShouldAssertException: enhancedText
+Shouldly.ShouldAssertException
+enhancedText
+    should contain (case insensitive comparison)
+"EXPEDIENTE"
+    but was actually
+", . ,
+Á Á Á
+4 A A 4 A
+Acrremisración Generai de Auctona Fiscal Federa -
+acrmimstración Desconcentrad..."
+
+Additional Info:
+    Enhanced OCR must surface the EXPEDIENTE label
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AssertMandatoryTokens(String enhancedText, String documentId) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 433
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 412
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+╔══════════════════════════════════════════════════════════════════╗
+║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
+✓ IImageQualityAnalyzer initialized
+✓ IOcrExecutor initialized (Tesseract)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q2_MediumPoor | 333ccc-6666666662025_page1.png           ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
+✓ Image loaded: 1,177,561 bytes
+✓ Ground truth loaded: 484 characters
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 1645ms
+  Extracted 1564 characters
+
+📊 BASELINE METRICS:
+  Levenshtein Distance: 1366 edits
+  Error Rate: 282.23% (1366/484 chars)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: IMAGE QUALITY ANALYSIS                                  │
+└──────────────────────────────────────────────────────────────────┘
+✓ Quality analysis completed
+  Quality Level: Q4 - Very Low
+  Metrics:
+    Blur Score:     1088.81
+    Noise Level:    0.07
+    Contrast Level: 0.16
+    Sharpness:      0.82
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: ANALYTICAL FILTER SELECTION                             │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter selected by analytical strategy (820 OCR baseline runs)
+  Filter Type: PIL Simple
+  Enhancement Enabled: True
+  PIL Parameters (NSGA-II optimized):
+    Contrast Factor: 1.5046
+    Median Size: 3
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: APPLY SELECTED FILTER                                   │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter applied: 41ms
+  Enhanced image: 459,181 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ENHANCED OCR                                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Enhanced OCR completed: 606ms
+  Extracted 904 characters
+
+📊 ENHANCED METRICS:
+  Levenshtein Distance: 769 edits
+  Error Rate: 158.88% (769/484 chars)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:       1366 edits                             ║
+║ Enhanced Distance:        769 edits                             ║
+║ Improvement:              597 edits ( 43.70%)                  ║
+║                                                                  ║
+║ Total Time:              2377ms                              ║
+║   Baseline OCR:          1645ms                              ║
+║   Enhanced OCR:           606ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+       Analytical filter should improve OCR quality (Levenshtein distance)(qualityLevel: "Q2_MediumPoor", filename: "555CCC-66666662025_page1.png") [0:03.670] Failed: Shouldly.ShouldAssertException: enhancedText
+Shouldly.ShouldAssertException
+enhancedText
+    should contain (case insensitive comparison)
+"EXPEDIENTE"
+    but was actually
+"Administración Genersi de Auditoría Fiscal Federal
+Administración Desconcentrada de Auditoría Fiscal..."
+
+Additional Info:
+    Enhanced OCR must surface the EXPEDIENTE label
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AssertMandatoryTokens(String enhancedText, String documentId) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 433
+   at ExxerCube.Prisma.Tests.System.AnalyticalFilterE2ETests.AnalyticalFilter_ShouldImproveOcrQuality_MeasuredByLevenshteinDistance(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\AnalyticalFilterE2ETests.cs:line 412
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+╔══════════════════════════════════════════════════════════════════╗
+║         ANALYTICAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ AnalyticalFilterSelectionStrategy initialized (data-driven, 820 OCR runs)
+✓ IImageQualityAnalyzer initialized
+✓ IOcrExecutor initialized (Tesseract)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q2_MediumPoor | 555CCC-66666662025_page1.png             ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
+✓ Image loaded: 1,248,550 bytes
+✓ Ground truth loaded: 400 characters
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 2597ms
+  Extracted 2896 characters
+
+📊 BASELINE METRICS:
+  Levenshtein Distance: 2679 edits
+  Error Rate: 669.75% (2679/400 chars)
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: IMAGE QUALITY ANALYSIS                                  │
+└──────────────────────────────────────────────────────────────────┘
+✓ Quality analysis completed
+  Quality Level: Q4 - Very Low
+  Metrics:
+    Blur Score:     1441.23
+    Noise Level:    0.09
+    Contrast Level: 0.23
+    Sharpness:      1.00
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: ANALYTICAL FILTER SELECTION                             │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter selected by analytical strategy (820 OCR baseline runs)
+  Filter Type: PIL Simple
+  Enhancement Enabled: True
+  PIL Parameters (NSGA-II optimized):
+    Contrast Factor: 1.5046
+    Median Size: 3
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: APPLY SELECTED FILTER                                   │
+└──────────────────────────────────────────────────────────────────┘
+✓ Filter applied: 48ms
+  Enhanced image: 663,476 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ENHANCED OCR                                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Enhanced OCR completed: 924ms
+  Extracted 1834 characters
+
+📊 ENHANCED METRICS:
+  Levenshtein Distance: 1655 edits
+  Error Rate: 413.75% (1655/400 chars)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:       2679 edits                             ║
+║ Enhanced Distance:       1655 edits                             ║
+║ Improvement:             1024 edits ( 38.22%)                  ║
+║                                                                  ║
+║ Total Time:              3669ms                              ║
+║   Baseline OCR:          2597ms                              ║
+║   Enhanced OCR:           924ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+     DocumentPipelineEventPersistenceTests (1 test) [0:09.073] Failed: One or more child tests failed: 1 test failed
+      FullPipeline_PublishesMultipleEvents_AllPersistWithCorrectOrdering [0:05.661] Failed: Shouldly.ShouldAssertException: auditRecords.Count
+Shouldly.ShouldAssertException
+auditRecords.Count
     should be
-True
+2
     but was
-False
+0
 
 Additional Info:
-    Login should succeed with demo credentials
-   at ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E.SiaraSimulatorTests.SiaraSimulator_CompleteE2EWorkflow_ShouldSucceed() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.Infrastructure.BrowserAutomation.E2E\SiaraSimulatorTests.cs:line 202
+    Both ingestion and OCR events should be persisted
+   at ExxerCube.Prisma.Tests.System.DocumentPipelineEventPersistenceTests.FullPipeline_PublishesMultipleEvents_AllPersistWithCorrectOrdering() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\DocumentPipelineEventPersistenceTests.cs:line 221
    at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
    at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
    at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
@@ -586,69 +526,122 @@ Additional Info:
    at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
-Download path created: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
-Simulator is already running
-Initializing browser automation agent in headed mode...
-Launching browser session
-Browser session launched successfully
-Browser automation agent initialized successfully
-===========================================
-Starting SIARA Simulator E2E Test - Full Workflow
-===========================================
-Target URL: http://localhost:5001
-Download path: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
+EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentDownloadedEvent with ID 029439a0-7d38-49cb-a6cf-50dd5492cf8d (Correlation: d2df94c7-c7c5-4209-bf8b-c1069617f6d2)
+Publishing event OcrCompletedEvent with ID a2a43f42-017c-4dcc-afe0-4fcee984e106 (Correlation: d2df94c7-c7c5-4209-bf8b-c1069617f6d2)
+EventPersistenceWorker stopping - unsubscribing from domain events
 
-STEP 1: Waiting for simulator to be ready...
-✓ Simulator ready
-
-STEP 2: Navigating to SIARA Simulator and Clearing Session
-URL: http://localhost:5001
-Clearing persisted login session...
-Navigating to URL: http://localhost:5001/logout
-Successfully navigated to URL: http://localhost:5001/logout
-✓ Session cleared
-Navigating to URL: http://localhost:5001
-Successfully navigated to URL: http://localhost:5001
-✓ Successfully navigated to SIARA login page
-Pausing to view login page...
-
-STEP 3: Logging into SIARA Simulator
-Username: BancoDemo
-Password: ********
-Waiting for login form to load...
-Waiting for selector: #username (timeout: 10000ms)
-Failed to find selector: #username
-System.TimeoutException: Timeout 10000ms exceeded.
-Call log:
-  - waiting for Locator("#username") to be visible
-   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 201
-   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 499
-   at Microsoft.Playwright.Core.Frame.WaitForSelectorAsync(String selector, FrameWaitForSelectorOptions options) in /_/src/Playwright/Core/Frame.cs:line 681
-   at ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter.WaitForSelectorAsync(String selector, Nullable`1 timeoutMs, CancellationToken cancellationToken) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\02-Infrastructure\Infrastructure.BrowserAutomation\PlaywrightBrowserAutomationAdapter.cs:line 266
-Login form not found: Failed to find selector #username: Timeout 10000ms exceeded.
-Call log:
-  - waiting for Locator("#username") to be visible
-
-SIARA Simulator E2E test completed
-Browser session closed successfully
-Browser closed successfully
-Downloaded documents preserved at: C:\Users\Abel Briones\Documents\SIARA_Downloads\2025\11\29
-
-   ExxerCube.Prisma.Tests.System.Ocr.Pipeline (5 tests) [0:37.590] Failed: 5 tests failed
-    ExxerCube.Prisma.Tests.System (5 tests) [0:37.590] Failed: 5 tests failed
-     PolynomialFilterE2ETests (1 test) [0:22.532] Failed: One or more child tests failed: 1 test failed
-      Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%) (1 test) [0:22.532] Failed: One or more child tests failed: 1 test failed
-       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q1_Poor", filename: "333ccc-6666666662025_page1.png") [0:05.946] Failed: Shouldly.ShouldAssertException: polynomialDistance
+     PolynomialFilterE2ETests (5 tests) [0:13.718] Failed: One or more child tests failed: 5 tests failed
+      Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%) (5 tests) [0:13.718] Failed: One or more child tests failed: 5 tests failed
+       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q1_Poor", filename: "333BBB-44444444442025_page1.png") [0:02.505] Failed: Shouldly.ShouldAssertException: polynomialImprovementPercent
 Shouldly.ShouldAssertException
-polynomialDistance
-    should be less than
-1016
+polynomialImprovementPercent
+    should be greater than or equal to
+10d
     but was
-1033
+0.7343941248470013d
 
 Additional Info:
-    Polynomial distance (1033) should be less than baseline (1016). Expected 18.4% improvement from validation testing.
-   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 375
+    Polynomial enhancement should improve OCR by at least 10% over baseline on degraded images.
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 382
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+╔══════════════════════════════════════════════════════════════════╗
+║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
+✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
+✓ IOcrExecutor initialized (Tesseract)
+
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q1_Poor      | 333BBB-44444444442025_page1.png          ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q1_Poor\333BBB-44444444442025_page1.png
+✓ Image loaded: 1,341,303 bytes
+✓ Ground truth loaded: 423 characters
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 1462ms
+📊 BASELINE METRICS:
+  Levenshtein Distance: 1634 edits
+  Error Rate: 386.29%
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: POLYNOMIAL FEATURE EXTRACTION & PREDICTION              │
+└──────────────────────────────────────────────────────────────────┘
+Extracted features: ImagePropertyFeatures(BlurScore=891.64, Contrast=30.14, NoiseEstimate=14.13, EdgeDensity=0.0775)
+Predicted parameters: PolynomialFilterParams(Contrast=1.13, Brightness=1.17, Sharpness=2.67, UnsharpRadius=3.64, UnsharpPercent=0.00)
+✓ Feature extraction completed
+  Image Features:
+    Blur Score:     891.64
+    Noise Level:    0.28
+    Contrast Level: 0.50
+    Sharpness:      0.78
+
+✓ Parameter prediction completed (GA-optimized, R² > 0.89)
+  Predicted Parameters:
+    Contrast:       1.129
+    Brightness:     1.174
+    Sharpness:      2.665
+    Unsharp Radius: 3.635
+    Unsharp %:      0.0
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: APPLY POLYNOMIAL ENHANCEMENT                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial filter applied: 52ms
+  Enhanced image: 634,628 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: ENHANCED OCR (POLYNOMIAL)                               │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial OCR completed: 915ms
+📊 POLYNOMIAL METRICS:
+  Levenshtein Distance: 1622 edits
+  Error Rate: 383.45%
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ANALYTICAL FILTER (COMPARISON)                          │
+└──────────────────────────────────────────────────────────────────┘
+✓ Analytical filter selected: PIL Simple
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:        1634 edits                         ║
+║ Polynomial Distance:      1622 edits                         ║
+║ Polynomial Improve:         12 edits (  0.73%)    ║
+║                                                                  ║
+║ Expected from validation:                                        ║
+║   Polynomial Model:    18.4% improvement                         ║
+║   Lookup Table:        12.3% improvement                         ║
+║                                                                  ║
+║ Total Time:               2502ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q1_Poor", filename: "333ccc-6666666662025_page1.png") [0:01.948] Failed: Shouldly.ShouldAssertException: polynomialImprovementPercent
+Shouldly.ShouldAssertException
+polynomialImprovementPercent
+    should be greater than or equal to
+10d
+    but was
+-1.673228346456693d
+
+Additional Info:
+    Polynomial enhancement should improve OCR by at least 10% over baseline on degraded images.
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 382
    at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
    at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
    at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
@@ -677,7 +670,7 @@ Additional Info:
 ┌──────────────────────────────────────────────────────────────────┐
 │ STEP 1: BASELINE OCR (NO FILTER)                                │
 └──────────────────────────────────────────────────────────────────┘
-✓ Baseline OCR completed: 3291ms
+✓ Baseline OCR completed: 1091ms
 📊 BASELINE METRICS:
   Levenshtein Distance: 1016 edits
   Error Rate: 209.92%
@@ -705,13 +698,13 @@ Predicted parameters: PolynomialFilterParams(Contrast=1.27, Brightness=1.13, Sha
 ┌──────────────────────────────────────────────────────────────────┐
 │ STEP 3: APPLY POLYNOMIAL ENHANCEMENT                            │
 └──────────────────────────────────────────────────────────────────┘
-✓ Polynomial filter applied: 150ms
+✓ Polynomial filter applied: 49ms
   Enhanced image: 388,317 bytes
 
 ┌──────────────────────────────────────────────────────────────────┐
 │ STEP 4: ENHANCED OCR (POLYNOMIAL)                               │
 └──────────────────────────────────────────────────────────────────┘
-✓ Polynomial OCR completed: 1873ms
+✓ Polynomial OCR completed: 745ms
 📊 POLYNOMIAL METRICS:
   Levenshtein Distance: 1033 edits
   Error Rate: 213.43%
@@ -724,369 +717,332 @@ Predicted parameters: PolynomialFilterParams(Contrast=1.27, Brightness=1.13, Sha
 ╔══════════════════════════════════════════════════════════════════╗
 ║                        FINAL RESULTS                             ║
 ╠══════════════════════════════════════════════════════════════════╣
-║ Baseline Distance:        1016 edits                             ║
-║ Polynomial Distance:      1033 edits                             ║
-║ Polynomial Improve:        -17 edits ( -1.67%)                  ║
+║ Baseline Distance:        1016 edits                         ║
+║ Polynomial Distance:      1033 edits                         ║
+║ Polynomial Improve:        -17 edits ( -1.67%)    ║
 ║                                                                  ║
 ║ Expected from validation:                                        ║
 ║   Polynomial Model:    18.4% improvement                         ║
 ║   Lookup Table:        12.3% improvement                         ║
 ║                                                                  ║
-║ Total Time:               5932ms                              ║
+║ Total Time:               1947ms                              ║
 ╚══════════════════════════════════════════════════════════════════╝
 
 
-     XmlExtractorFixtureTests (4 tests) [0:00.112] Failed: One or more child tests failed: 4 tests failed
-      Extract_Should_Parse_Aseguramiento_Fixture [0:00.001] Failed: Shouldly.ShouldAssertException: fields.AdditionalFields["Subdivision"]
+       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q2_MediumPoor", filename: "333BBB-44444444442025_page1.png") [0:02.727] Failed: Shouldly.ShouldAssertException: enhancedText
 Shouldly.ShouldAssertException
-fields.AdditionalFields["Subdivision"]
-    should be
-"Aseguramiento"
-    but was
-"A_TF"
-    difference
-Difference     |       |    |    |    |    |    |    |    |    |    |    |    |   
-               |      \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    8    9    10   11   12   
-Expected Value | A    s    e    g    u    r    a    m    i    e    n    t    o    
-Actual Value   | A    _    T    F                                                 
-Expected Code  | 65   115  101  103  117  114  97   109  105  101  110  116  111  
-Actual Code    | 65   95   84   70                                                
-   at ExxerCube.Prisma.Tests.System.XmlExtractorFixtureTests.Extract_Should_Parse_Aseguramiento_Fixture() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\XmlExtractorFixtureTests.cs:line 32
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-Testing XML extraction for file: Fixtures\PRP1\222AAA-44444444442025.xml
-Current working directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0
-Fixture root directory: Fixtures\PRP1
-File exists: True
-
-      Extract_Should_Parse_Hacendario_Documentacion [0:00.000] Failed: Shouldly.ShouldAssertException: fields.AdditionalFields["Subdivision"]
-Shouldly.ShouldAssertException
-fields.AdditionalFields["Subdivision"]
-    should be
-"Hacendario"
-    but was
-"A_AS"
-    difference
-Difference     |  |    |    |    |    |    |    |    |    |    |   
-               | \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    8    9    
-Expected Value | H    a    c    e    n    d    a    r    i    o    
-Actual Value   | A    _    A    S                                  
-Expected Code  | 72   97   99   101  110  100  97   114  105  111  
-Actual Code    | 65   95   65   83                                 
-   at ExxerCube.Prisma.Tests.System.XmlExtractorFixtureTests.Extract_Should_Parse_Hacendario_Documentacion() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\XmlExtractorFixtureTests.cs:line 51
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-Testing XML extraction for file: Fixtures\PRP1\333BBB-44444444442025.xml
-Current working directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0
-Fixture root directory: Fixtures\PRP1
-File exists: True
-
-      Extract_Should_Parse_Judicial_With_Curp_And_Rfc [0:00.002] Failed: Shouldly.ShouldAssertException: fields.AdditionalFields["Subdivision"]
-Shouldly.ShouldAssertException
-fields.AdditionalFields["Subdivision"]
-    should be
-"Judicial"
-    but was
-"A_DE"
-    difference
-Difference     |  |    |    |    |    |    |    |    |   
-               | \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    
-Expected Value | J    u    d    i    c    i    a    l    
-Actual Value   | A    _    D    E                        
-Expected Code  | 74   117  100  105  99   105  97   108  
-Actual Code    | 65   95   68   69                       
-   at ExxerCube.Prisma.Tests.System.XmlExtractorFixtureTests.Extract_Should_Parse_Judicial_With_Curp_And_Rfc() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\XmlExtractorFixtureTests.cs:line 72
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-Testing XML extraction for file: Fixtures\PRP1\333ccc-6666666662025.xml
-Current working directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0
-Fixture root directory: Fixtures\PRP1
-File exists: True
-
-      Extract_Should_Parse_OperacionesIlicitas_With_Accounts_And_Rfc_Variants [0:00.095] Failed: Shouldly.ShouldAssertException: fields.AdditionalFields["Subdivision"]
-Shouldly.ShouldAssertException
-fields.AdditionalFields["Subdivision"]
-    should be
-"OperacionesIlicitas"
-    but was
-"A_IN"
-    difference
-Difference     |  |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |    |   
-               | \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  \|/  
-Index          | 0    1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   
-Expected Value | O    p    e    r    a    c    i    o    n    e    s    I    l    i    c    i    t    a    s    
-Actual Value   | A    _    I    N                                                                               
-Expected Code  | 79   112  101  114  97   99   105  111  110  101  115  73   108  105  99   105  116  97   115  
-Actual Code    | 65   95   73   78                                                                              
-   at ExxerCube.Prisma.Tests.System.XmlExtractorFixtureTests.Extract_Should_Parse_OperacionesIlicitas_With_Accounts_And_Rfc_Variants() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\XmlExtractorFixtureTests.cs:line 94
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
---- End of stack trace from previous location ---
-   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
-   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
-
-Testing XML extraction for file: Fixtures\PRP1\555CCC-66666662025.xml
-Current working directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0
-Fixture root directory: Fixtures\PRP1
-File exists: True
-
-  04 UI (3 tests) [0:18.180] Failed: 3 tests failed
-   ExxerCube.Prisma.Tests.UI (3 tests) [0:18.180] Failed: 3 tests failed
-    ExxerCube.Prisma.Tests.UI.Navigation (3 tests) [0:18.180] Failed: 3 tests failed
-     NavigationRegistryTests (1 test) [0:00.104] Failed: One or more child tests failed: 1 test failed
-      EveryPageRouteIsRepresentedInNavigationRegistry [0:00.084] Failed: Shouldly.ShouldAssertException: missingInRegistry
-Shouldly.ShouldAssertException
-missingInRegistry
-    should be empty but had
-8
-    items and was
-["/system-flow/external", "/system-flow/final-processing", "/system-flow/intake", "/system-flow/monitoring", "/system-flow/processing", "/system-flow/reconciliation", "/system-flow/siara", "/system-flow/storage"]
+enhancedText
+    should contain (case insensitive comparison)
+"EXPEDIENTE"
+    but was actually
+"se o pa
+Lo ps E E HA -
+o EA: TED -. TE.
+Eb A A A, A O A
+A A E 1 E es
+ES ua A IO
+E A AA Gi
+Ps E Ed m
+..."
 
 Additional Info:
-    Add these routes to NavigationRegistry: /system-flow/external, /system-flow/final-processing, /system-flow/intake, /system-flow/monitoring, /system-flow/processing, /system-flow/reconciliation, /system-flow/siara, /system-flow/storage
-   at ExxerCube.Prisma.Tests.UI.Navigation.NavigationRegistryTests.EveryPageRouteIsRepresentedInNavigationRegistry() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\04-UI\Tests.UI\Navigation\NavigationRegistryTests.cs:line 41
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
-
-
-     NavigationSmokeTests (2 tests) [0:18.075] Failed: One or more child tests failed: 2 tests failed
-      DrawerLinkNavigatesToDocumentProcessing [0:08.435] Failed: Microsoft.Playwright.PlaywrightException: net::ERR_CONNECTION_REFUSED at http://localhost/
-Microsoft.Playwright.PlaywrightException
-net::ERR_CONNECTION_REFUSED at http://localhost/
-Call log:
-  - navigating to "http://localhost/", waiting until "load"
-   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 201
-   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 499
-   at Microsoft.Playwright.Core.Frame.GotoAsync(String url, FrameGotoOptions options) in /_/src/Playwright/Core/Frame.cs:line 807
-   at ExxerCube.Prisma.Tests.UI.Navigation.NavigationSmokeTests.DrawerLinkNavigatesToDocumentProcessing() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\04-UI\Tests.UI\Navigation\NavigationSmokeTests.cs:line 48
-   at ExxerCube.Prisma.Tests.UI.Navigation.NavigationSmokeTests.DrawerLinkNavigatesToDocumentProcessing() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\04-UI\Tests.UI\Navigation\NavigationSmokeTests.cs:line 55
+    Enhanced OCR must surface the EXPEDIENTE label
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.AssertMandatoryTokens(String enhancedText, String documentId) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 407
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 386
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
    at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
 --- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
+╔══════════════════════════════════════════════════════════════════╗
+║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
+✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
+✓ IOcrExecutor initialized (Tesseract)
 
-      UnknownRouteShowsHelpfulNotFoundPanel [0:09.628] Failed: Microsoft.Playwright.PlaywrightException: net::ERR_CONNECTION_REFUSED at http://localhost/definitely-not-a-real-route
-Microsoft.Playwright.PlaywrightException
-net::ERR_CONNECTION_REFUSED at http://localhost/definitely-not-a-real-route
-Call log:
-  - navigating to "http://localhost/definitely-not-a-real-route", waiting until "load"
-   at Microsoft.Playwright.Transport.Connection.InnerSendMessageToServerAsync[T](ChannelOwner object, String method, Dictionary`2 dictionary, Boolean keepNulls) in /_/src/Playwright/Transport/Connection.cs:line 201
-   at Microsoft.Playwright.Transport.Connection.WrapApiCallAsync[T](Func`1 action, Boolean isInternal, String title) in /_/src/Playwright/Transport/Connection.cs:line 499
-   at Microsoft.Playwright.Core.Frame.GotoAsync(String url, FrameGotoOptions options) in /_/src/Playwright/Core/Frame.cs:line 807
-   at ExxerCube.Prisma.Tests.UI.Navigation.NavigationSmokeTests.UnknownRouteShowsHelpfulNotFoundPanel() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\04-UI\Tests.UI\Navigation\NavigationSmokeTests.cs:line 64
-   at ExxerCube.Prisma.Tests.UI.Navigation.NavigationSmokeTests.UnknownRouteShowsHelpfulNotFoundPanel() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\04-UI\Tests.UI\Navigation\NavigationSmokeTests.cs:line 73
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q2_MediumPoor | 333BBB-44444444442025_page1.png          ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333BBB-44444444442025_page1.png
+✓ Image loaded: 1,239,189 bytes
+✓ Ground truth loaded: 423 characters
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 1968ms
+📊 BASELINE METRICS:
+  Levenshtein Distance: 1831 edits
+  Error Rate: 432.86%
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: POLYNOMIAL FEATURE EXTRACTION & PREDICTION              │
+└──────────────────────────────────────────────────────────────────┘
+Extracted features: ImagePropertyFeatures(BlurScore=1201.73, Contrast=21.41, NoiseEstimate=17.34, EdgeDensity=0.0760)
+Predicted parameters: PolynomialFilterParams(Contrast=1.97, Brightness=1.18, Sharpness=1.96, UnsharpRadius=4.44, UnsharpPercent=0.00)
+✓ Feature extraction completed
+  Image Features:
+    Blur Score:     1201.73
+    Noise Level:    0.35
+    Contrast Level: 0.36
+    Sharpness:      0.76
+
+✓ Parameter prediction completed (GA-optimized, R² > 0.89)
+  Predicted Parameters:
+    Contrast:       1.974
+    Brightness:     1.175
+    Sharpness:      1.963
+    Unsharp Radius: 4.440
+    Unsharp %:      0.0
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: APPLY POLYNOMIAL ENHANCEMENT                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial filter applied: 44ms
+  Enhanced image: 221,773 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: ENHANCED OCR (POLYNOMIAL)                               │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial OCR completed: 648ms
+📊 POLYNOMIAL METRICS:
+  Levenshtein Distance: 342 edits
+  Error Rate: 80.85%
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ANALYTICAL FILTER (COMPARISON)                          │
+└──────────────────────────────────────────────────────────────────┘
+✓ Analytical filter selected: PIL Simple
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:        1831 edits                         ║
+║ Polynomial Distance:       342 edits                         ║
+║ Polynomial Improve:       1489 edits ( 81.32%)    ║
+║                                                                  ║
+║ Expected from validation:                                        ║
+║   Polynomial Model:    18.4% improvement                         ║
+║   Lookup Table:        12.3% improvement                         ║
+║                                                                  ║
+║ Total Time:               2725ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q2_MediumPoor", filename: "333ccc-6666666662025_page1.png") [0:02.256] Failed: Shouldly.ShouldAssertException: enhancedText
+Shouldly.ShouldAssertException
+enhancedText
+    should contain (case insensitive comparison)
+"EXPEDIENTE"
+    but was actually
+"o z . PA ¿ e A añ
+e an pa E. BÉ. BR :
+a MS TE. GRE GEA
+A A E A E
+a EM Es Lt
+PA yd - .
+o ae 1 ma
+nl A..."
+
+Additional Info:
+    Enhanced OCR must surface the EXPEDIENTE label
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.AssertMandatoryTokens(String enhancedText, String documentId) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 407
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 386
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
    at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
 --- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
+╔══════════════════════════════════════════════════════════════════╗
+║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
+✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
+✓ IOcrExecutor initialized (Tesseract)
 
-  05 E2E (5 tests) [0:18.827] Failed: 5 tests failed
-   ExxerCube.Prisma.Tests.EndToEnd (5 tests) [0:18.827] Failed: 5 tests failed
-    ExxerCube.Prisma.Tests.EndToEnd (5 tests) [0:18.827] Failed: 5 tests failed
-     WebApplicationFactoryDependencyInjectionTests (5 tests) [0:10.440] Failed: One or more child tests failed: 5 tests failed
-      WebApplicationFactory_AllCriticalServices_ShouldBeResolvable [0:02.053] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
-System.InvalidOperationException
-Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
-   at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
-   at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
-   at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
-   at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Infrastructure.IInfrastructure<System.IServiceProvider>.get_Instance()
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService(IInfrastructure`1 accessor, Type serviceType)
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.get_Dependencies()
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated()
-   at ExxerCube.Prisma.Tests.EndToEnd.TestWebApplicationFactory.<>c.<ConfigureWebHost>b__1_1(IServiceCollection services) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\TestWebApplicationFactory.cs:line 119
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.HostBuilderAdapter.ApplyChanges()
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
-   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
-   at ExxerCube.Prisma.Web.UI.Program.Main(String[] args) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\03-UI\UI\ExxerCube.Prisma.Web.UI\Program.cs:line 50
-   at InvokeStub_Program.Main(Object, Span`1)
-   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
---- End of stack trace from previous location ---
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
-   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.StartServer()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
-   at ExxerCube.Prisma.Tests.EndToEnd.WebApplicationFactoryDependencyInjectionTests.WebApplicationFactory_AllCriticalServices_ShouldBeResolvable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\WebApplicationFactoryDependencyInjectionTests.cs:line 32
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q2_MediumPoor | 333ccc-6666666662025_page1.png           ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\333ccc-6666666662025_page1.png
+✓ Image loaded: 1,177,561 bytes
+✓ Ground truth loaded: 484 characters
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 1741ms
+📊 BASELINE METRICS:
+  Levenshtein Distance: 1366 edits
+  Error Rate: 282.23%
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: POLYNOMIAL FEATURE EXTRACTION & PREDICTION              │
+└──────────────────────────────────────────────────────────────────┘
+Extracted features: ImagePropertyFeatures(BlurScore=1088.66, Contrast=20.23, NoiseEstimate=15.18, EdgeDensity=0.0498)
+Predicted parameters: PolynomialFilterParams(Contrast=2.00, Brightness=1.16, Sharpness=1.78, UnsharpRadius=4.34, UnsharpPercent=0.00)
+✓ Feature extraction completed
+  Image Features:
+    Blur Score:     1088.66
+    Noise Level:    0.30
+    Contrast Level: 0.34
+    Sharpness:      0.50
+
+✓ Parameter prediction completed (GA-optimized, R² > 0.89)
+  Predicted Parameters:
+    Contrast:       2.000
+    Brightness:     1.159
+    Sharpness:      1.777
+    Unsharp Radius: 4.344
+    Unsharp %:      0.0
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: APPLY POLYNOMIAL ENHANCEMENT                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial filter applied: 43ms
+  Enhanced image: 182,739 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: ENHANCED OCR (POLYNOMIAL)                               │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial OCR completed: 406ms
+📊 POLYNOMIAL METRICS:
+  Levenshtein Distance: 395 edits
+  Error Rate: 81.61%
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ANALYTICAL FILTER (COMPARISON)                          │
+└──────────────────────────────────────────────────────────────────┘
+✓ Analytical filter selected: PIL Simple
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:        1366 edits                         ║
+║ Polynomial Distance:       395 edits                         ║
+║ Polynomial Improve:        971 edits ( 71.08%)    ║
+║                                                                  ║
+║ Expected from validation:                                        ║
+║   Polynomial Model:    18.4% improvement                         ║
+║   Lookup Table:        12.3% improvement                         ║
+║                                                                  ║
+║ Total Time:               2255ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
 
 
-      WebApplicationFactory_FieldMatchers_ShouldBeRegistered [0:02.032] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
-System.InvalidOperationException
-Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
-   at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
-   at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
-   at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
-   at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Infrastructure.IInfrastructure<System.IServiceProvider>.get_Instance()
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService(IInfrastructure`1 accessor, Type serviceType)
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.get_Dependencies()
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated()
-   at ExxerCube.Prisma.Tests.EndToEnd.TestWebApplicationFactory.<>c.<ConfigureWebHost>b__1_1(IServiceCollection services) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\TestWebApplicationFactory.cs:line 119
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.HostBuilderAdapter.ApplyChanges()
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
-   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
-   at ExxerCube.Prisma.Web.UI.Program.Main(String[] args) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\03-UI\UI\ExxerCube.Prisma.Web.UI\Program.cs:line 50
-   at InvokeStub_Program.Main(Object, Span`1)
-   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
---- End of stack trace from previous location ---
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
-   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.StartServer()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
-   at ExxerCube.Prisma.Tests.EndToEnd.WebApplicationFactoryDependencyInjectionTests.WebApplicationFactory_FieldMatchers_ShouldBeRegistered() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\WebApplicationFactoryDependencyInjectionTests.cs:line 162
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+       Polynomial filter should improve OCR quality better than Analytical (18.4% vs 12.3%)(qualityLevel: "Q2_MediumPoor", filename: "555CCC-66666662025_page1.png") [0:04.281] Failed: Shouldly.ShouldAssertException: enhancedText
+Shouldly.ShouldAssertException
+enhancedText
+    should contain (case insensitive comparison)
+"EXPEDIENTE"
+    but was actually
+"ai . . : ,
+: Pr Y o v 4
+dá á A a E SS
+A O Y E
+] La dd A A A E :
+y ME 7 O. E AE
+. A 11 Ta dl a A] PU ..."
 
-
-      WebApplicationFactory_HealthChecks_ShouldBeRegistered [0:02.039] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
-System.InvalidOperationException
-Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
-   at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
-   at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
-   at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
-   at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Infrastructure.IInfrastructure<System.IServiceProvider>.get_Instance()
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService(IInfrastructure`1 accessor, Type serviceType)
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.get_Dependencies()
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated()
-   at ExxerCube.Prisma.Tests.EndToEnd.TestWebApplicationFactory.<>c.<ConfigureWebHost>b__1_1(IServiceCollection services) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\TestWebApplicationFactory.cs:line 119
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.HostBuilderAdapter.ApplyChanges()
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
-   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
-   at ExxerCube.Prisma.Web.UI.Program.Main(String[] args) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\03-UI\UI\ExxerCube.Prisma.Web.UI\Program.cs:line 50
-   at InvokeStub_Program.Main(Object, Span`1)
-   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
---- End of stack trace from previous location ---
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
-   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.StartServer()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
-   at ExxerCube.Prisma.Tests.EndToEnd.WebApplicationFactoryDependencyInjectionTests.WebApplicationFactory_HealthChecks_ShouldBeRegistered() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\WebApplicationFactoryDependencyInjectionTests.cs:line 133
+Additional Info:
+    Enhanced OCR must surface the EXPEDIENTE label
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.AssertMandatoryTokens(String enhancedText, String documentId) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 407
+   at ExxerCube.Prisma.Tests.System.PolynomialFilterE2ETests.PolynomialFilter_ShouldImproveOcrQuality_BetterThanAnalytical(String qualityLevel, String filename) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\03-System\Tests.System\PolynomialFilterE2ETests.cs:line 386
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
    at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
 --- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
    at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
 
+╔══════════════════════════════════════════════════════════════════╗
+║         POLYNOMIAL FILTER E2E TEST - INITIALIZATION            ║
+╚══════════════════════════════════════════════════════════════════╝
+✓ PolynomialImageQualityAnalyzer initialized (GA-trained, R² > 0.89)
+✓ AnalyticalFilterSelectionStrategy initialized (for comparison)
+✓ IOcrExecutor initialized (Tesseract)
 
-      WebApplicationFactory_ServiceLifetimes_ShouldBeCorrect [0:02.255] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
-System.InvalidOperationException
-Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
-   at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
-   at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
-   at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
-   at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Infrastructure.IInfrastructure<System.IServiceProvider>.get_Instance()
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService(IInfrastructure`1 accessor, Type serviceType)
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.get_Dependencies()
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated()
-   at ExxerCube.Prisma.Tests.EndToEnd.TestWebApplicationFactory.<>c.<ConfigureWebHost>b__1_1(IServiceCollection services) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\TestWebApplicationFactory.cs:line 119
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.HostBuilderAdapter.ApplyChanges()
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
-   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
-   at ExxerCube.Prisma.Web.UI.Program.Main(String[] args) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\03-UI\UI\ExxerCube.Prisma.Web.UI\Program.cs:line 50
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
---- End of stack trace from previous location ---
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
-   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.StartServer()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
-   at ExxerCube.Prisma.Tests.EndToEnd.WebApplicationFactoryDependencyInjectionTests.WebApplicationFactory_ServiceLifetimes_ShouldBeCorrect() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\WebApplicationFactoryDependencyInjectionTests.cs:line 76
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+╔══════════════════════════════════════════════════════════════════╗
+║                    TEST: Q2_MediumPoor | 555CCC-66666662025_page1.png             ║
+╚══════════════════════════════════════════════════════════════════╝
 
+📁 Image Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Ocr.Pipeline\Debug\net10.0\Fixtures\PRP1_Degraded\Q2_MediumPoor\555CCC-66666662025_page1.png
+✓ Image loaded: 1,248,550 bytes
+✓ Ground truth loaded: 400 characters
 
-      WebApplicationFactory_ShouldNotHaveCircularDependencies [0:02.044] Failed: System.InvalidOperationException: Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only…
-System.InvalidOperationException
-Services for database providers 'Microsoft.EntityFrameworkCore.SqlServer', 'Microsoft.EntityFrameworkCore.InMemory' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
-   at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
-   at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
-   at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
-   at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Infrastructure.IInfrastructure<System.IServiceProvider>.get_Instance()
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService(IInfrastructure`1 accessor, Type serviceType)
-   at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService[TService](IInfrastructure`1 accessor)
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.get_Dependencies()
-   at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated()
-   at ExxerCube.Prisma.Tests.EndToEnd.TestWebApplicationFactory.<>c.<ConfigureWebHost>b__1_1(IServiceCollection services) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\TestWebApplicationFactory.cs:line 119
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.HostBuilderAdapter.ApplyChanges()
-   at Microsoft.Extensions.Hosting.HostApplicationBuilder.Build()
-   at Microsoft.AspNetCore.Builder.WebApplicationBuilder.Build()
-   at ExxerCube.Prisma.Web.UI.Program.Main(String[] args) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\03-UI\UI\ExxerCube.Prisma.Web.UI\Program.cs:line 50
-   at InvokeStub_Program.Main(Object, Span`1)
-   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
---- End of stack trace from previous location ---
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
-   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
-   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.StartServer()
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
-   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
-   at ExxerCube.Prisma.Tests.EndToEnd.WebApplicationFactoryDependencyInjectionTests.WebApplicationFactory_ShouldNotHaveCircularDependencies() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\WebApplicationFactoryDependencyInjectionTests.cs:line 101
-   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
-   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 1: BASELINE OCR (NO FILTER)                                │
+└──────────────────────────────────────────────────────────────────┘
+✓ Baseline OCR completed: 2820ms
+📊 BASELINE METRICS:
+  Levenshtein Distance: 2679 edits
+  Error Rate: 669.75%
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 2: POLYNOMIAL FEATURE EXTRACTION & PREDICTION              │
+└──────────────────────────────────────────────────────────────────┘
+Extracted features: ImagePropertyFeatures(BlurScore=1441.06, Contrast=29.05, NoiseEstimate=18.35, EdgeDensity=0.0845)
+Predicted parameters: PolynomialFilterParams(Contrast=1.44, Brightness=1.22, Sharpness=2.81, UnsharpRadius=4.14, UnsharpPercent=0.00)
+✓ Feature extraction completed
+  Image Features:
+    Blur Score:     1441.06
+    Noise Level:    0.37
+    Contrast Level: 0.48
+    Sharpness:      0.85
+
+✓ Parameter prediction completed (GA-optimized, R² > 0.89)
+  Predicted Parameters:
+    Contrast:       1.440
+    Brightness:     1.223
+    Sharpness:      2.806
+    Unsharp Radius: 4.135
+    Unsharp %:      0.0
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 3: APPLY POLYNOMIAL ENHANCEMENT                            │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial filter applied: 51ms
+  Enhanced image: 553,497 bytes
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 4: ENHANCED OCR (POLYNOMIAL)                               │
+└──────────────────────────────────────────────────────────────────┘
+✓ Polynomial OCR completed: 1302ms
+📊 POLYNOMIAL METRICS:
+  Levenshtein Distance: 1924 edits
+  Error Rate: 481.00%
+
+┌──────────────────────────────────────────────────────────────────┐
+│ STEP 5: ANALYTICAL FILTER (COMPARISON)                          │
+└──────────────────────────────────────────────────────────────────┘
+✓ Analytical filter selected: PIL Simple
+
+╔══════════════════════════════════════════════════════════════════╗
+║                        FINAL RESULTS                             ║
+╠══════════════════════════════════════════════════════════════════╣
+║ Baseline Distance:        2679 edits                         ║
+║ Polynomial Distance:      1924 edits                         ║
+║ Polynomial Improve:        755 edits ( 28.18%)    ║
+║                                                                  ║
+║ Expected from validation:                                        ║
+║   Polynomial Model:    18.4% improvement                         ║
+║   Lookup Table:        12.3% improvement                         ║
+║                                                                  ║
+║ Total Time:               4262ms                              ║
+╚══════════════════════════════════════════════════════════════════╝
 
