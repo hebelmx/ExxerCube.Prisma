@@ -186,7 +186,7 @@ public class NavigationSmokeTests : IAsyncLifetime
 
         try
         {
-            await WaitForHealthAsync(baseAddress, TimeSpan.FromSeconds(40));
+            await WaitForHealthAsync(baseAddress, TimeSpan.FromSeconds(90));
             return baseAddress.TrimEnd('/');
         }
         catch

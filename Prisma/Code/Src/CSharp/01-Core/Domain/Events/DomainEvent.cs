@@ -2,6 +2,8 @@
 // Copyright (c) Exxerpro Solutions SA de CV. All rights reserved.
 // </copyright>
 
+using System.Text.Json.Serialization;
+
 namespace ExxerCube.Prisma.Domain.Events;
 
 /// <summary>
@@ -10,6 +12,15 @@ namespace ExxerCube.Prisma.Domain.Events;
 /// - Background workers (persist to database)
 /// - SignalR hubs (broadcast to UI in real-time)
 /// </summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(DocumentDownloadedEvent), "DocumentDownloadedEvent")]
+[JsonDerivedType(typeof(QualityAnalysisCompletedEvent), "QualityAnalysisCompletedEvent")]
+[JsonDerivedType(typeof(OcrCompletedEvent), "OcrCompletedEvent")]
+[JsonDerivedType(typeof(ClassificationCompletedEvent), "ClassificationCompletedEvent")]
+[JsonDerivedType(typeof(ConflictDetectedEvent), "ConflictDetectedEvent")]
+[JsonDerivedType(typeof(DocumentFlaggedForReviewEvent), "DocumentFlaggedForReviewEvent")]
+[JsonDerivedType(typeof(DocumentProcessingCompletedEvent), "DocumentProcessingCompletedEvent")]
+[JsonDerivedType(typeof(ProcessingErrorEvent), "ProcessingErrorEvent")]
 public abstract record DomainEvent
 {
     /// <summary>

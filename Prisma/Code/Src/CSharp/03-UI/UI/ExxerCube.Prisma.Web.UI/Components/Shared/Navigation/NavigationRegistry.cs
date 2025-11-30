@@ -122,6 +122,14 @@ internal static class NavigationRegistry
                     Tags: new[] { "system-flow", "siara" },
                     IncludeInPrimaryNavigation: false),
                 new NavigationLink(
+                    "System Flow - Realtime",
+                    "/system-flow/realtime",
+                    Icons.Material.Filled.Speed,
+                    "Realtime eventing and live updates within the flow.",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "system-flow", "realtime", "live" },
+                    IncludeInPrimaryNavigation: false),
+                new NavigationLink(
                     "Document Processing",
                     "/document-processing",
                     Icons.Material.Filled.Description,

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
@@ -28,6 +29,19 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
     private readonly ServiceProvider _serviceProvider;
     private readonly ILogger<EventPersistenceWorker> _logger;
     private readonly ITestOutputHelper _output;
+
+    /// <summary>
+    /// JSON serializer options for deserializing events - must match EventPersistenceWorker.
+    /// Uses PascalCase naming (default) to match C# property names exactly.
+    /// </summary>
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = null, // PascalCase (default)
+        Converters = { new JsonStringEnumConverter() },
+    };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventPersistenceWorkerIntegrationTests"/> class.
@@ -148,7 +162,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         record.ActionDetails.ShouldNotBeEmpty();
 
         // Verify event details are serialized
-        var deserializedEvent = JsonSerializer.Deserialize<DocumentDownloadedEvent>(record.ActionDetails);
+        var deserializedEvent = JsonSerializer.Deserialize<DocumentDownloadedEvent>(record.ActionDetails, JsonOptions);
         deserializedEvent.ShouldNotBeNull();
         deserializedEvent!.FileId.ShouldBe(fileId);
         deserializedEvent.FileName.ShouldBe("test.pdf");
@@ -521,7 +535,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
 
         var actionDetails = auditRecords[0].ActionDetails;
         actionDetails.ShouldNotBeNullOrEmpty();
-        var deserializedEvent = JsonSerializer.Deserialize<DocumentDownloadedEvent>(actionDetails!);
+        var deserializedEvent = JsonSerializer.Deserialize<DocumentDownloadedEvent>(actionDetails!, JsonOptions);
         deserializedEvent.ShouldNotBeNull();
         deserializedEvent!.FileName.ShouldBe("before-stop.pdf");
     }

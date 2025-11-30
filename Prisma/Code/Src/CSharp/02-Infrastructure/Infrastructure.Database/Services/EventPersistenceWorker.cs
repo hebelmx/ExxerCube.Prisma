@@ -4,6 +4,7 @@
 
 using System.Reactive.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
@@ -24,6 +25,19 @@ public class EventPersistenceWorker : BackgroundService
     private readonly ILogger<EventPersistenceWorker> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private IDisposable? _subscription;
+
+    /// <summary>
+    /// JSON serializer options optimized for .NET 10 record types with init properties.
+    /// Uses default PascalCase naming to match C# property names exactly (for internal storage).
+    /// </summary>
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = false, // Compact JSON for database storage
+        DefaultIgnoreCondition = JsonIgnoreCondition.Never, // Include all properties
+        PropertyNameCaseInsensitive = true, // Case-insensitive deserialization (defensive)
+        PropertyNamingPolicy = null, // Use PascalCase (default) to match C# property names
+        Converters = { new JsonStringEnumConverter() }, // Serialize enums as strings
+    };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EventPersistenceWorker"/> class.
@@ -113,7 +127,7 @@ public class EventPersistenceWorker : BackgroundService
             CorrelationId = domainEvent.CorrelationId?.ToString() ?? string.Empty,
             FileId = fileId,
             ActionType = actionType,
-            ActionDetails = JsonSerializer.Serialize(domainEvent),
+            ActionDetails = JsonSerializer.Serialize(domainEvent, JsonOptions),
             UserId = null, // System action
             Timestamp = domainEvent.Timestamp,
             Stage = stage,

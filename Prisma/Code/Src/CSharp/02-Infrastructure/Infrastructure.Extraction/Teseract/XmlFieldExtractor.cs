@@ -14,7 +14,8 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
     private static readonly XNamespace Ns = "http://www.cnbv.gob.mx";
     private static readonly Regex AccountRegex = new(@"\b\d{6,}\b", RegexOptions.Compiled);
     private static readonly Regex StrictCurpRegex = new(@"\b[A-Z][AEIOUX][A-Z]{2}\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[HM][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z0-9]\d\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly Regex LooseCurpRegex = new(@"\b(?<curp>[A-Z]{4}\d{6}[A-Z0-9]{6})(?:\d{2})?\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    // CURP can appear truncated or with/without the verification digits; capture the whole payload if present.
+    private static readonly Regex LooseCurpRegex = new(@"\b(?<curp>[A-Z]{4}\d{6}[A-Z0-9]{6}(?:\d{2})?)\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     /// <inheritdoc />
     public Task<Result<ExtractedFields>> ExtractFieldsAsync(XmlSource source, FieldDefinition[] fieldDefinitions)
@@ -81,7 +82,7 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
             var curp = ExtractCurp(root);
             if (!string.IsNullOrWhiteSpace(curp))
             {
-                additional["Curp"] = curp;
+                additional["Curp"] = NormalizeCurp(curp);
             }
 
             var extractedFields = new ExtractedFields
@@ -278,16 +279,32 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
             var strict = StrictCurpRegex.Match(complementarios!);
             if (strict.Success)
             {
-                return strict.Value.ToUpperInvariant();
+                return NormalizeCurp(strict.Value);
             }
 
             var loose = LooseCurpRegex.Match(complementarios!);
             if (loose.Success)
             {
-                return loose.Groups["curp"].Value.ToUpperInvariant();
+                return NormalizeCurp(loose.Groups["curp"].Value);
             }
         }
 
         return null;
+    }
+
+    private static string NormalizeCurp(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var curp = value.ToUpperInvariant().Trim();
+        // Normalize to canonical 16-char base when extra checksum digits are present
+        if (curp.Length > 16)
+        {
+            curp = curp[..16];
+        }
+        return curp;
     }
 }

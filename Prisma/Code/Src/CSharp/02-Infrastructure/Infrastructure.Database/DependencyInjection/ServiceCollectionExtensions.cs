@@ -24,6 +24,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<PrismaDbContext>(options =>
             options.UseSqlServer(connectionString));
+        // Expose the EF Core context through the internal abstraction for consumers that depend on the interface.
+        services.AddScoped<IPrismaDbContext, PrismaDbContext>();
         services.AddScoped(typeof(IRepository<,>), typeof(EfCoreRepository<,>));
 
         services.AddScoped<IDownloadTracker, DownloadTrackerService>();
