@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Infrastructure.Extraction.DependencyInjection;
 
+using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
+
 /// <summary>
 /// Extension methods for registering extraction services in the dependency injection container.
 /// </summary>
@@ -23,8 +25,13 @@ public static class ServiceCollectionExtensions
         // Register composite extractor that delegates to format-specific ones
         services.AddScoped<IMetadataExtractor, CompositeMetadataExtractor>();
 
+        // Register adaptive DOCX extraction system (replaces old DocxFieldExtractor)
+        // MIGRATION: AdaptiveDocxFieldExtractorAdapter implements IFieldExtractor<DocxSource>
+        // and wraps the new IAdaptiveDocxExtractor with 5 strategies
+        services.AddAdaptiveDocxExtraction();
+
         // Register generic field extractors for Story 1.3
-        services.AddScoped<IFieldExtractor<DocxSource>, DocxFieldExtractor>();
+        // OLD (replaced by adaptive extraction): services.AddScoped<IFieldExtractor<DocxSource>, DocxFieldExtractor>();
         services.AddScoped<IFieldExtractor<PdfSource>, PdfOcrFieldExtractor>();
         // Register dummy XML field extractor (temporary placeholder until full implementation is added)
         services.AddScoped<IFieldExtractor<XmlSource>, XmlFieldExtractor>();
