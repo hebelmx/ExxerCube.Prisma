@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -30,7 +31,7 @@ public class Program
     /// Application entry point.
     /// </summary>
     /// <param name="args">Command-line arguments.</param>
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -88,6 +89,19 @@ public class Program
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
+
+            // Seed adaptive export templates (Excel, XML) on startup
+            // This is idempotent - safe to run on every startup
+            try
+            {
+                Log.Information("Seeding adaptive export templates...");
+                await app.Services.SeedTemplatesAsync();
+                Log.Information("Adaptive export templates seeded successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to seed adaptive export templates - application will continue but exports may fail");
+            }
 
             Log.Information("Application started successfully");
             app.Run();
