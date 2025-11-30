@@ -1,4 +1,4 @@
-Absolutely — here is a clear, structured narrative of the solution that includes the problem statement, objectives, and a description of the system architecture you are implementing to meet the client's regulatory compliance requirements.
+ structured narrative of the solution that includes the problem statement, objectives, and a description of the system architecture you are implementing to meet the client's regulatory compliance requirements.
 
 📄 Solution Narrative: Regulatory Compliance Automation for Financial Institutions
 🔍 Problem Statement

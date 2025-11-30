@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Infrastructure.Database.Metrics;
 using ExxerCube.Prisma.Testing.Infrastructure.Logging;
 using System.Net.Http;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
@@ -25,7 +26,7 @@ public class WebApplicationFactoryDependencyInjectionTests : IClassFixture<TestW
     public WebApplicationFactoryDependencyInjectionTests(TestWebApplicationFactory factory, ITestOutputHelper output)
     {
         _factory = factory;
-        _logger = XUnitLogger.CreateLogger<WebApplicationFactoryDependencyInjectionTests>(output);
+        _logger = Meziantou.Extensions.Logging.Xunit.v3.XUnitLogger.CreateLogger<WebApplicationFactoryDependencyInjectionTests>(output);
     }
 
     /// <summary>
