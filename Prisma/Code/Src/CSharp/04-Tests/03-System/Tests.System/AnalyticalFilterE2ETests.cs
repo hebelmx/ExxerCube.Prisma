@@ -404,7 +404,29 @@ public class AnalyticalFilterE2ETests : IDisposable
             $"Enhanced Levenshtein distance ({enhancedDistance}) should be less than baseline ({baselineDistance}). " +
             $"Expected improvement based on baseline testing: Q2=78.1%, Q1=24.9%");
 
+        // Stronger bar for production readiness: at least 10% uplift on degraded samples
+        improvementPercent.ShouldBeGreaterThanOrEqualTo(10,
+            "Enhanced OCR should deliver at least a 10% improvement over baseline on degraded images.");
+
+        // Validate mandatory-token presence (proxy for required CNBV fields) in enhanced text
+        AssertMandatoryTokens(enhancedText, documentId);
+
         _logger.LogInformation("✅ TEST PASSED: Analytical filter improved OCR quality by {Percent:F2}%", improvementPercent);
         _logger.LogInformation("");
+    }
+
+    /// <summary>
+    /// Minimal mandatory token checks to ensure key CNBV-required fields are recoverable.
+    /// </summary>
+    private static void AssertMandatoryTokens(string enhancedText, string documentId)
+    {
+        enhancedText.ShouldContain("EXPEDIENTE", Case.Insensitive,
+            "Enhanced OCR must surface the EXPEDIENTE label");
+        enhancedText.ShouldContain(documentId, Case.Insensitive,
+            "Enhanced OCR should include the expediente identifier value");
+        enhancedText.ShouldContain("FOLIO", Case.Insensitive,
+            "Enhanced OCR must surface the FOLIO label");
+        enhancedText.ShouldContain("FECHA", Case.Insensitive,
+            "Enhanced OCR must surface the FECHA label");
     }
 }

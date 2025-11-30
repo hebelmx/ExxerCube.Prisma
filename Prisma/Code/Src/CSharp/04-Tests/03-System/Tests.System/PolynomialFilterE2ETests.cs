@@ -378,7 +378,29 @@ public class PolynomialFilterE2ETests : IDisposable
             $"Polynomial distance ({polynomialDistance}) should be within tolerance of baseline ({baselineDistance} + {tolerance}). " +
             $"Best-effort OCR: Enhancement doesn't always help. Actual: {polynomialImprovementPercent:F2}%");
 
+        // Require at least 10% uplift on these degraded fixtures to align with mission success criteria
+        polynomialImprovementPercent.ShouldBeGreaterThanOrEqualTo(10,
+            "Polynomial enhancement should improve OCR by at least 10% over baseline on degraded images.");
+
+        // Mandatory token presence check (proxy for required CNBV fields)
+        AssertMandatoryTokens(polynomialText, documentId);
+
         _logger.LogInformation("✅ TEST PASSED: Polynomial filter performance: {Percent:F2}% (within tolerance)", polynomialImprovementPercent);
         _logger.LogInformation("");
+    }
+
+    /// <summary>
+    /// Minimal mandatory token checks to ensure key CNBV-required fields are recoverable.
+    /// </summary>
+    private static void AssertMandatoryTokens(string enhancedText, string documentId)
+    {
+        enhancedText.ShouldContain("EXPEDIENTE", Case.Insensitive,
+            "Enhanced OCR must surface the EXPEDIENTE label");
+        enhancedText.ShouldContain(documentId, Case.Insensitive,
+            "Enhanced OCR should include the expediente identifier value");
+        enhancedText.ShouldContain("FOLIO", Case.Insensitive,
+            "Enhanced OCR must surface the FOLIO label");
+        enhancedText.ShouldContain("FECHA", Case.Insensitive,
+            "Enhanced OCR must surface the FECHA label");
     }
 }
