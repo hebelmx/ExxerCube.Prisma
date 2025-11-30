@@ -45,11 +45,8 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
             .UseSqlServer(_fixture.ConnectionString)
             .Options;
 
-        // Ensure database is migrated and cleaned
-        using (var context = new PrismaDbContext(_dbOptions))
-        {
-            context.Database.Migrate();
-        }
+        // Database migration handled by fixture
+        // Clean database before each test to ensure isolated test state
         _fixture.CleanDatabaseAsync().Wait();
 
         // Set up service collection for dependency injection
@@ -75,6 +72,23 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
     }
 
     /// <summary>
+    /// Creates a FileMetadata record to satisfy foreign key constraints.
+    /// Real database reveals FK constraints that InMemory database ignores!
+    /// </summary>
+    private async Task CreateFileMetadataAsync(Guid fileId)
+    {
+        using var context = new PrismaDbContext(_dbOptions);
+        context.FileMetadata.Add(new FileMetadata
+        {
+            FileId = fileId.ToString(),
+            FileName = $"test-file-{fileId}.pdf",
+            DownloadDateTime = DateTime.UtcNow,
+            Format = FileFormat.Pdf
+        });
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+    }
+
+    /// <summary>
     /// Tests that <see cref="DocumentDownloadedEvent"/> is persisted to AuditRecords.
     /// </summary>
     [Fact]
@@ -86,6 +100,9 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
 
         var correlationId = Guid.NewGuid();
         var fileId = Guid.NewGuid();
+
+        // Create FileMetadata to satisfy FK constraint
+        await CreateFileMetadataAsync(fileId);
 
         var evt = new DocumentDownloadedEvent
         {

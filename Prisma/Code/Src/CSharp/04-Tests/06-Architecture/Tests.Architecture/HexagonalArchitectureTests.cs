@@ -49,28 +49,17 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             .ResideInNamespace("ExxerCube.Prisma.Domain.Interfaces")
             .GetResult();
 
-        // Allowlist: historical interface type name that may be carried in assemblies
-        var allowlistedInterfaces = new HashSet<string>
-        {
-            "ExxerCube.Prisma.Application.Services.IEventPublisher"
-        };
-
         if (!result.IsSuccessful)
         {
             var list = result.FailingTypes?
-                .Where(t => !allowlistedInterfaces.Contains(t.FullName ?? string.Empty))
                 .Select(t => $" - {t.FullName}")
                 .ToList() ?? new List<string>();
             logger.LogWarning("Rule: Interfaces in Domain only. Count={Count}\n{Details}",
                 list.Count, string.Join(Environment.NewLine, list));
-            list.Count.ShouldBe(0,
-                $"All interfaces must be in Domain.Interfaces namespace. Violations: {string.Join(", ", list)}");
         }
-        else
-        {
-            result.IsSuccessful.ShouldBeTrue(
-                $"All interfaces must be in Domain.Interfaces namespace. Violations: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
-        }
+
+        result.IsSuccessful.ShouldBeTrue(
+            $"All interfaces must be in Domain.Interfaces namespace. Violations: {string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>())}");
     }
 
     /// <summary>
@@ -587,10 +576,7 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
                 var layers = kvp.Value.Select(v => v.Split(':')[0]).Distinct().ToList();
                 return layers.Count > 1; // Duplicate across different layers
             })
-            .ToList();
-
-        // Exclude compiler-generated anonymous types
-        duplicates = duplicates
+            // Ignore compiler-generated anonymous types
             .Where(kvp => !kvp.Key.StartsWith("<>f__AnonymousType", StringComparison.Ordinal))
             .ToList();
 
