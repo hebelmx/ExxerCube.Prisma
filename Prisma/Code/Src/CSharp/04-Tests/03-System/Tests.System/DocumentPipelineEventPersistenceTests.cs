@@ -6,6 +6,7 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using ExxerCube.Prisma.Infrastructure.Database.Services;
+using ExxerCube.Prisma.Infrastructure.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

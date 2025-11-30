@@ -2,7 +2,7 @@
 // Copyright (c) Exxerpro Solutions SA de CV. All rights reserved.
 // </copyright>
 
-namespace ExxerCube.Prisma.Domain.Enum.LookUpTable;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
 /// Represents a lookup table interface for entities with ID, name, and display name.

@@ -1,6 +1,7 @@
 using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using ExxerCube.Prisma.Infrastructure.Database.Repositories;
+using ExxerCube.Prisma.Infrastructure.Events;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 
@@ -27,11 +28,11 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IDownloadTracker, DownloadTrackerService>();
         services.AddScoped<IFileMetadataLogger, FileMetadataLoggerService>();
-        
+
         // Register queued audit processor as singleton and hosted service (manages the channel and processes queue)
         services.AddSingleton<Services.QueuedAuditProcessorService>();
         services.AddSingleton<IHostedService>(sp => sp.GetRequiredService<Services.QueuedAuditProcessorService>());
-        
+
         // Register queued audit logger as scoped (uses the singleton processor's channel)
         services.AddScoped<IAuditLogger>(sp =>
         {
@@ -40,13 +41,13 @@ public static class ServiceCollectionExtensions
             var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Services.QueuedAuditLoggerService>>();
             return new Services.QueuedAuditLoggerService(processorService, scopeFactory, logger);
         });
-        
+
         // Register SLA metrics collector (singleton for metrics consistency)
         services.AddSingleton<SLAMetricsCollector>();
-        
+
         // Register SLAEnforcerService as implementation
         services.AddScoped<SLAEnforcerService>();
-        
+
         // Register ResilientSLAEnforcerService as the ISLAEnforcer interface
         // This wraps SLAEnforcerService with circuit breaker, retry, and timeout policies
         services.AddScoped<ISLAEnforcer>(sp =>
@@ -56,7 +57,7 @@ public static class ServiceCollectionExtensions
             var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SLAResilienceOptions>>();
             return new ResilientSLAEnforcerService(innerService, logger, options);
         });
-        
+
         services.AddScoped<IManualReviewerPanel, ManualReviewerService>();
 
         // Configure SLA options
@@ -67,7 +68,7 @@ public static class ServiceCollectionExtensions
                 var section = configuration.GetSection(SLAOptions.SectionName);
                 var criticalThreshold = section["CriticalThreshold"];
                 var warningThreshold = section["WarningThreshold"];
-                
+
                 if (!string.IsNullOrEmpty(criticalThreshold) && TimeSpan.TryParse(criticalThreshold, out var critical))
                 {
                     options.CriticalThreshold = critical;
@@ -76,7 +77,7 @@ public static class ServiceCollectionExtensions
                 {
                     options.CriticalThreshold = TimeSpan.FromHours(4);
                 }
-                
+
                 if (!string.IsNullOrEmpty(warningThreshold) && TimeSpan.TryParse(warningThreshold, out var warning))
                 {
                     options.WarningThreshold = warning;
@@ -100,22 +101,22 @@ public static class ServiceCollectionExtensions
             if (configuration != null)
             {
                 var section = configuration.GetSection(SLAUpdateOptions.SectionName);
-                
+
                 if (int.TryParse(section["UpdateIntervalSeconds"], out var interval))
                 {
                     options.UpdateIntervalSeconds = interval;
                 }
-                
+
                 if (int.TryParse(section["BatchSize"], out var batchSize))
                 {
                     options.BatchSize = batchSize;
                 }
-                
+
                 if (int.TryParse(section["MaxRetries"], out var maxRetries))
                 {
                     options.MaxRetries = maxRetries;
                 }
-                
+
                 if (int.TryParse(section["RetryDelaySeconds"], out var retryDelay))
                 {
                     options.RetryDelaySeconds = retryDelay;
@@ -129,37 +130,37 @@ public static class ServiceCollectionExtensions
             if (configuration != null)
             {
                 var section = configuration.GetSection(SLAResilienceOptions.SectionName);
-                
+
                 if (int.TryParse(section["CircuitBreakerFailureThreshold"], out var failureThreshold))
                 {
                     options.CircuitBreakerFailureThreshold = failureThreshold;
                 }
-                
+
                 if (TimeSpan.TryParse(section["CircuitBreakerResetTimeout"], out var resetTimeout))
                 {
                     options.CircuitBreakerResetTimeout = resetTimeout;
                 }
-                
+
                 if (int.TryParse(section["CircuitBreakerSuccessThreshold"], out var successThreshold))
                 {
                     options.CircuitBreakerSuccessThreshold = successThreshold;
                 }
-                
+
                 if (int.TryParse(section["MaxRetryAttempts"], out var maxRetries))
                 {
                     options.MaxRetryAttempts = maxRetries;
                 }
-                
+
                 if (TimeSpan.TryParse(section["RetryBaseDelay"], out var baseDelay))
                 {
                     options.RetryBaseDelay = baseDelay;
                 }
-                
+
                 if (TimeSpan.TryParse(section["RetryMaxDelay"], out var maxDelay))
                 {
                     options.RetryMaxDelay = maxDelay;
                 }
-                
+
                 if (TimeSpan.TryParse(section["OperationTimeout"], out var timeout))
                 {
                     options.OperationTimeout = timeout;
@@ -236,4 +237,3 @@ public static class ServiceCollectionExtensions
         return services;
     }
 }
-

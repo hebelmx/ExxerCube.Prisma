@@ -24,5 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\01-Core\Application\ExxerCube.Prisma.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

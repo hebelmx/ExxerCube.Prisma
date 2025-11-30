@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Infrastructure.Metrics;
+namespace ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection;
 
 /// <summary>
 /// Extension methods for registering metrics services in the dependency injection container.

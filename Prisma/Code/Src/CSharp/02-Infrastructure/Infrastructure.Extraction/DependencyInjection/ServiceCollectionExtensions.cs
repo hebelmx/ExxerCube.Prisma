@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Infrastructure.Extraction;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.DependencyInjection;
 
 /// <summary>
 /// Extension methods for registering extraction services in the dependency injection container.

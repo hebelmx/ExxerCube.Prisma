@@ -1,8 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using ExxerCube.Prisma.Domain.Interfaces;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace ExxerCube.Prisma.Infrastructure.Classification;
+namespace ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
 
 /// <summary>
 /// Extension methods for registering classification services in the dependency injection container.

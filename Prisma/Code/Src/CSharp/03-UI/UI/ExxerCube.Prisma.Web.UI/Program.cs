@@ -12,6 +12,9 @@ using ExxerCube.Prisma.Infrastructure.Metrics;
 using ExxerCube.Prisma.Infrastructure.Imaging;
 using IndFusion.Ember.Abstractions.Hubs;
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection;
 using IndFusion.Ember.Extensions;
 
 namespace ExxerCube.Prisma.Web.UI;

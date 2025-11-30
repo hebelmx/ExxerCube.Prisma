@@ -5,10 +5,11 @@ using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using ExxerCube.Prisma.Infrastructure.Database.Services;
+using ExxerCube.Prisma.Infrastructure.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
+namespace ExxerCube.Prisma.Tests.System.Storage;
 
 /// <summary>
 /// Integration tests for <see cref="EventPersistenceWorker"/> with real database operations.
@@ -32,7 +33,6 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
 
         // Set up InMemory database options (shared across scopes)
         _dbOptions = new DbContextOptionsBuilder<PrismaDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
         // Set up service collection for dependency injection

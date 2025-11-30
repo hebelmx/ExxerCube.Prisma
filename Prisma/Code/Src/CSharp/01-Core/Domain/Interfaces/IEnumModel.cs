@@ -2,7 +2,7 @@
 // Copyright (c) Exxerpro Solutions SA de CV. All rights reserved.
 // </copyright>
 
-namespace ExxerCube.Prisma.Domain.Enum;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
 /// Represents a base interface for enumerations with value, name, and display name.

@@ -51,7 +51,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (!result.IsSuccessful)
         {
-            logger.LogWarning("Rule: Interfaces in Domain only. Violations: {Violations}", string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>()));
+            var list = result.FailingTypes?.Select(t => $" - {t.FullName}").ToList() ?? new List<string>();
+            logger.LogWarning("Rule: Interfaces in Domain only. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         result.IsSuccessful.ShouldBeTrue(
@@ -72,7 +74,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (interfaces.Any())
         {
-            logger.LogWarning("Rule: Application should not declare interfaces. Found: {Interfaces}", string.Join(", ", interfaces.Select(t => t.FullName)));
+            var list = interfaces.Select(t => $" - {t.FullName}").ToList();
+            logger.LogWarning("Rule: Application should not declare interfaces. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         interfaces.ShouldBeEmpty(
@@ -115,7 +119,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: Infrastructure should not expose ports. Violations: {Violations}", string.Join("; ", violations));
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Infrastructure should not expose ports. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         violations.ShouldBeEmpty(
@@ -160,7 +166,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: Domain interfaces implemented only in Infra. Violations: {Violations}", string.Join("; ", violations));
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Domain interfaces implemented only in Infra. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         violations.ShouldBeEmpty(
@@ -204,7 +212,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: Application services should not implement Domain interfaces. Violations: {Violations}", string.Join("; ", violations));
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Application services should not implement Domain interfaces. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         violations.ShouldBeEmpty(
@@ -228,7 +238,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (!result.IsSuccessful)
         {
-            logger.LogWarning("Rule: Domain must not depend on Application. Violations: {Violations}", string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>()));
+            var list = result.FailingTypes?.Select(t => $" - {t.FullName}").ToList() ?? new List<string>();
+            logger.LogWarning("Rule: Domain must not depend on Application. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         result.IsSuccessful.ShouldBeTrue(
@@ -271,7 +283,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: Domain must not depend on Infrastructure. Violations: {Violations}", string.Join("; ", violations));
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Domain must not depend on Infrastructure. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         violations.ShouldBeEmpty(
@@ -314,7 +328,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: Application must not depend on Infrastructure. Violations: {Violations}", string.Join("; ", violations));
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Application must not depend on Infrastructure. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         violations.ShouldBeEmpty(
@@ -432,7 +448,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: Infrastructure depends on Domain. Violations: {Violations}", string.Join("; ", violations));
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Infrastructure depends on Domain. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         violations.ShouldBeEmpty(
@@ -489,7 +507,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: Infrastructure projects should be isolated. Violations: {Violations}", string.Join("; ", violations));
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Infrastructure projects should be isolated. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         violations.ShouldBeEmpty(
@@ -572,7 +592,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (duplicates.Any())
         {
-            logger.LogWarning("Rule: No duplicate class names across layers. Duplicates: {Duplicates}", string.Join("; ", duplicates.Select(d => $"{d.Key} in {string.Join(", ", d.Value)}")));
+            var list = duplicates.Select(d => $" - {d.Key} in {string.Join(", ", d.Value)}").ToList();
+            logger.LogWarning("Rule: No duplicate class names across layers. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         duplicates.ShouldBeEmpty(
@@ -645,7 +667,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (duplicates.Any())
         {
-            logger.LogWarning("Rule: No duplicate interface names across layers. Duplicates: {Duplicates}", string.Join("; ", duplicates.Select(d => $"{d.Key} in {string.Join(", ", d.Value)}")));
+            var list = duplicates.Select(d => $" - {d.Key} in {string.Join(", ", d.Value)}").ToList();
+            logger.LogWarning("Rule: No duplicate interface names across layers. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         duplicates.ShouldBeEmpty(
@@ -669,7 +693,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (!result.IsSuccessful)
         {
-            logger.LogWarning("Rule: Application should not reference EFCore. Violations: {Violations}", string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>()));
+            var list = result.FailingTypes?.Select(t => $" - {t.FullName}").ToList() ?? new List<string>();
+            logger.LogWarning("Rule: Application should not reference EFCore. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         result.IsSuccessful.ShouldBeTrue(
@@ -713,7 +739,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: Domain entities should be persistence-agnostic. Violations: {Violations}", string.Join("; ", violations));
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Domain entities should be persistence-agnostic. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         violations.ShouldBeEmpty(
@@ -773,7 +801,9 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (unimplementedInterfaces.Any())
         {
-            logger.LogWarning("Rule: Domain interfaces must have implementations. Missing: {Missing}", string.Join(", ", unimplementedInterfaces));
+            var list = unimplementedInterfaces.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Domain interfaces must have implementations. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
         }
 
         unimplementedInterfaces.ShouldBeEmpty(
@@ -865,7 +895,10 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         if (violations.Any())
         {
-            logger.LogWarning("Rule: No stub implementations. Suspicious methods: {Suspicious}", string.Join("; ", violations.Take(10)) + (violations.Count > 10 ? $" ... and {violations.Count - 10} more." : string.Empty));
+            var top = violations.Take(10).Select(v => $" - {v}").ToList();
+            var suffix = violations.Count > 10 ? $" ... and {violations.Count - 10} more." : string.Empty;
+            logger.LogWarning("Rule: No stub implementations. Count={Count}\n{Details}{Suffix}",
+                violations.Count, string.Join(Environment.NewLine, top), suffix);
         }
 
         violations.ShouldBeEmpty(
