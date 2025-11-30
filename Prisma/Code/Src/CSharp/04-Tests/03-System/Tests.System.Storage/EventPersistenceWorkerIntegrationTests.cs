@@ -6,6 +6,8 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using ExxerCube.Prisma.Infrastructure.Database.Services;
 using ExxerCube.Prisma.Infrastructure.Events;
+using ExxerCube.Prisma.Testing.Infrastructure;
+using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,9 +16,12 @@ namespace ExxerCube.Prisma.Tests.System.Storage;
 /// <summary>
 /// Integration tests for <see cref="EventPersistenceWorker"/> with real database operations.
 /// Tests that domain events are correctly persisted to the AuditRecords table.
+/// Uses containerized SQL Server via SqlServerContainerFixture.
 /// </summary>
+[Collection("DatabaseInfrastructure")]
 public class EventPersistenceWorkerIntegrationTests : IDisposable
 {
+    private readonly SqlServerContainerFixture _fixture;
     private readonly DbContextOptions<PrismaDbContext> _dbOptions;
     private readonly IEventPublisher _eventPublisher;
     private readonly EventPersistenceWorker _worker;
@@ -27,13 +32,25 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="EventPersistenceWorkerIntegrationTests"/> class.
     /// </summary>
-    public EventPersistenceWorkerIntegrationTests(ITestOutputHelper output)
+    public EventPersistenceWorkerIntegrationTests(SqlServerContainerFixture fixture, ITestOutputHelper output)
     {
+        _fixture = fixture;
         _output = output;
 
-        // Set up InMemory database options (shared across scopes)
+        // Ensure SQL Server container is available
+        _fixture.EnsureAvailable();
+
+        // Set up SQL Server Container with real connection string
         _dbOptions = new DbContextOptionsBuilder<PrismaDbContext>()
+            .UseSqlServer(_fixture.ConnectionString)
             .Options;
+
+        // Ensure database is migrated and cleaned
+        using (var context = new PrismaDbContext(_dbOptions))
+        {
+            context.Database.Migrate();
+        }
+        _fixture.CleanDatabaseAsync().Wait();
 
         // Set up service collection for dependency injection
         var services = new ServiceCollection();
