@@ -33,4 +33,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Generated\CSnakes.SourceGeneration\CSnakes.PythonStaticGenerator\" />
+  </ItemGroup>
 </Project>

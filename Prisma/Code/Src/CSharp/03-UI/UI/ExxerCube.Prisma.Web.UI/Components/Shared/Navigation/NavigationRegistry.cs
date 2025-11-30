@@ -137,6 +137,13 @@ internal static class NavigationRegistry
                     Match: NavLinkMatch.Prefix,
                     Tags: new[] { "xml", "ocr", "extraction", "expediente", "cnbv", "pdf", "prp1", "stakeholder" }),
                 new NavigationLink(
+                    "Adaptive DOCX Extractor",
+                    "/adaptive-extractor",
+                    Icons.Material.Filled.AutoAwesome,
+                    "Demo adaptive DOCX extraction (best/merge/complement) with real fixtures and conflict reporting.",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "docx", "adaptive", "merge", "confidence", "mission7" }),
+                new NavigationLink(
                     "Processing Dashboard",
                     "/document-processing-dashboard",
                     Icons.Material.Filled.CloudDownload,

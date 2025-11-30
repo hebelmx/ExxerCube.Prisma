@@ -37,6 +37,7 @@
     <ProjectReference Include="..\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Generated\CSnakes.SourceGeneration\CSnakes.PythonStaticGenerator\" />
     <Folder Include="Python\Wrappers\" />
     <Folder Include="Python\python\" />
   </ItemGroup>

@@ -1,0 +1,322 @@
+@page "/adaptive-extractor"
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Domain.ValueObjects
+@using ExxerCube.Prisma.Web.UI.Services
+@inject IAdaptiveDocxExtractor AdaptiveExtractor
+@inject IFieldMergeStrategy FieldMergeStrategy
+@inject IEnumerable<IAdaptiveDocxStrategy> Strategies
+@inject AdaptiveDocxFixtureService FixtureService
+@inject ILogger<AdaptiveDocxDemo> Logger
+@inject ISnackbar Snackbar
+
+<PageTitle>Adaptive DOCX Extractor</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="5" Style="background: linear-gradient(135deg, #0f172a, #1f2937); color: #e2e8f0;">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h4" Class="d-flex align-center">
+                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Class="mr-2" />
+                Adaptive DOCX Extractor
+            </MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">
+                Multi-strategy extraction with merge/complement visualization against existing DOCX fixtures.
+            </MudText>
+            <MudText Typo="Typo.caption" Class="text-muted">
+                Uses real PRP1 DOCX fixtures already in the repo—no synthetic samples.
+            </MudText>
+        </MudStack>
+
+        <MudGrid Class="mt-4" GutterSize="3">
+            <MudItem xs="12" md="5">
+                <MudPaper Elevation="2" Class="pa-4 h-100">
+                    <MudText Typo="Typo.h6" Class="mb-2">Fixture</MudText>
+                    <MudSelect T="string" Label="Choose DOCX fixture"
+                               Value="_selectedFixtureKey"
+                               ValueChanged="OnFixtureChanged"
+                               Immediate="true"
+                               Dense="true"
+                               Disabled="_loadingFixture || _running">
+                        @foreach (var fixture in _fixtures)
+                        {
+                            <MudSelectItem Value="@fixture.Key">@fixture.DisplayName</MudSelectItem>
+                        }
+                    </MudSelect>
+                    @if (_hasLoadedFixture)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Class="mt-3 mb-3" Variant="Variant.Outlined">
+                            <MudText Typo="Typo.body2" Class="mb-1">@_selectedFixture.Description</MudText>
+                            <MudText Typo="Typo.caption" Class="d-flex align-center">
+                                <MudIcon Icon="@Icons.Material.Filled.PersonSearch" Size="Size.Small" Class="mr-1" />
+                                Persona: @_selectedFixture.Persona
+                            </MudText>
+                        </MudAlert>
+                    }
+
+                    <MudText Typo="Typo.caption" Class="mb-1 text-muted">Preview (first 14 lines)</MudText>
+                    <MudPaper Elevation="0" Class="pa-2" Style="background-color: rgba(255,255,255,0.04);">
+                        <pre style="white-space: pre-wrap; font-family: 'Cascadia Code', monospace; font-size: 0.85rem; color: #cbd5e1; max-height: 280px; overflow-y: auto;">@_preview</pre>
+                    </MudPaper>
+                    @if (_hasLoadedFixture)
+                    {
+                        <MudText Typo="Typo.caption" Class="mt-1 text-muted">
+                            Source: @_loadedFixture.FullPath
+                        </MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="7">
+                <MudPaper Elevation="2" Class="pa-4 h-100">
+                    <MudText Typo="Typo.h6" Class="mb-2">Mode &amp; Inputs</MudText>
+                    <MudChipSet T="ExtractionMode"
+                                @bind-SelectedChip="_mode"
+                                Filter="false"
+                                Class="mb-3">
+                        <MudChip T="ExtractionMode" Color="Color.Info" Variant="Variant.Outlined" Value="ExtractionMode.BestStrategy">Best strategy</MudChip>
+                        <MudChip T="ExtractionMode" Color="Color.Success" Variant="Variant.Outlined" Value="ExtractionMode.MergeAll">Merge all</MudChip>
+                        <MudChip T="ExtractionMode" Color="Color.Warning" Variant="Variant.Outlined" Value="ExtractionMode.Complement">Complement gaps</MudChip>
+                    </MudChipSet>
+
+                    <MudGrid GutterSize="2">
+                        <MudItem xs="12" sm="4">
+                            <MudTextField @bind-Value="_existingExpediente"
+                                          Label="Existing Expediente (optional)"
+                                          Dense="true"
+                                          Disabled="_running"
+                                          Placeholder="e.g., A/AS1-1111-222222-AAA" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudTextField @bind-Value="_existingCausa"
+                                          Label="Existing Causa (optional)"
+                                          Dense="true"
+                                          Disabled="_running"
+                                          Placeholder="e.g., Lavado de dinero" />
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudTextField @bind-Value="_existingAccion"
+                                          Label="Existing Acción (optional)"
+                                          Dense="true"
+                                          Disabled="_running"
+                                          Placeholder="e.g., Aseguramiento precautorio" />
+                        </MudItem>
+                    </MudGrid>
+
+                    <MudStack Row="true" Spacing="2" Class="mt-3">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   OnClick="RunExtractionAsync"
+                                   Disabled="_running || _loadingFixture || string.IsNullOrWhiteSpace(_docxText)">
+                            <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Class="mr-1" />
+                            Run adaptive extraction
+                        </MudButton>
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Secondary"
+                                   Disabled="_running || _loadingFixture"
+                                   OnClick="PrimeConfidencesAsync">
+                            Refresh confidences
+                        </MudButton>
+                    </MudStack>
+
+                    <MudProgressLinear Color="Color.Primary"
+                                       Class="mt-3"
+                                       Indeterminate="true"
+                                       Style="height:6px;"
+                                       Visible="@(_running || _loadingFixture)" />
+
+                    @if (!string.IsNullOrWhiteSpace(_error))
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3">@_error</MudAlert>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudGrid GutterSize="3">
+            <MudItem xs="12" md="5">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-2">Strategy confidences</MudText>
+                    @if (_confidences.Count == 0)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Run extraction to populate scores.</MudText>
+                    }
+                    else
+                    {
+                        <MudStack Spacing="1">
+                            @foreach (var confidence in _confidences)
+                            {
+                                <MudPaper Class="pa-2" Elevation="0" Style="background-color: rgba(255,255,255,0.04);">
+                                    <MudGrid>
+                                        <MudItem xs="7">
+                                            <MudText Typo="Typo.body1">@confidence.StrategyName</MudText>
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">capability</MudText>
+                                        </MudItem>
+                                        <MudItem xs="5" Class="d-flex justify-end align-center">
+                                            <MudChip T="int" Color="@ConfidenceColor(confidence.Confidence)" Variant="Variant.Filled" Label="true">
+                                                @confidence.Confidence
+                                            </MudChip>
+                                        </MudItem>
+                                    </MudGrid>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="7">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-2">Merged fields (@_mode)</MudText>
+                    @if (!_hasResult)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">No extraction yet. Choose a fixture and run.</MudText>
+                    }
+                    else
+                    {
+                        <MudGrid GutterSize="2" Class="mb-3">
+                            <MudItem xs="12" sm="4">
+                                <MudPaper Class="pa-3" Elevation="1">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Expediente</MudText>
+                                    <MudText Typo="Typo.body1">@_result.Expediente ?? "—"</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudPaper Class="pa-3" Elevation="1">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Causa</MudText>
+                                    <MudText Typo="Typo.body1">@_result.Causa ?? "—"</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="12" sm="4">
+                                <MudPaper Class="pa-3" Elevation="1">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Acción solicitada</MudText>
+                                    <MudText Typo="Typo.body1">@_result.AccionSolicitada ?? "—"</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+
+                        @if (_result.Montos.Count > 0)
+                        {
+                            <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Montos</MudText>
+                            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1">
+                                @foreach (var monto in _result.Montos)
+                                {
+                                    <MudChip T="string" Color="Color.Info" Variant="Variant.Outlined">
+                                        @($"{monto.Currency} {monto.Value:N2}") @if (!string.IsNullOrWhiteSpace(monto.OriginalText)) { <span class="mud-typography mud-typography-caption ml-1">(@monto.OriginalText)</span>; }
+                                    </MudChip>
+                                }
+                            </MudStack>
+                        }
+
+                        @if (_result.Fechas.Count > 0)
+                        {
+                            <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Fechas</MudText>
+                            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1">
+                                @foreach (var fecha in _result.Fechas)
+                                {
+                                    <MudChip T="string" Color="Color.Success" Variant="Variant.Outlined">@fecha</MudChip>
+                                }
+                            </MudStack>
+                        }
+
+                        @if (_additionalFields.Count > 0)
+                        {
+                            <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Additional fields</MudText>
+                            <MudTable T="KeyValuePair<string, string>" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm"
+                                      Items="@_additionalFields">
+                                <HeaderContent>
+                                    <MudTh>Field</MudTh>
+                                    <MudTh>Value</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Field">@context.Key</MudTd>
+                                    <MudTd DataLabel="Value">@context.Value</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Class="mt-4" GutterSize="3">
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-2">Merge diagnostics</MudText>
+                    @if (!_hasResult && _mergeResult.SourceCount == 0)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Run in merge/complement mode to see conflicts.</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">Sources merged: @_mergeResult.SourceCount</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">Merged fields: @(_mergeResult.MergedFieldNames.Count)</MudText>
+
+                        @if (_mergeResult.Conflicts.Count == 0)
+                        {
+                            <MudAlert Severity="Severity.Success" Dense="true">No conflicts detected.</MudAlert>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">
+                                @_mergeResult.Conflicts.Count conflict(s) detected.
+                            </MudAlert>
+                            <MudTable T="FieldConflict" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm"
+                                      Items="@_mergeResult.Conflicts">
+                                <HeaderContent>
+                                    <MudTh>Field</MudTh>
+                                    <MudTh>Values</MudTh>
+                                    <MudTh>Resolved</MudTh>
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd DataLabel="Field">@context.FieldName</MudTd>
+                                    <MudTd DataLabel="Values">
+                                        <MudStack Spacing="1">
+                                            @foreach (var value in context.ConflictingValues)
+                                            {
+                                                <MudChip T="string" Color="Color.Warning" Variant="Variant.Outlined">@value</MudChip>
+                                            }
+                                        </MudStack>
+                                    </MudTd>
+                                    <MudTd DataLabel="Resolved">@context.ResolvedValue</MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        }
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-2">Per-strategy output</MudText>
+                    @if (_strategyRuns.Count == 0)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Run extraction to see what each strategy found.</MudText>
+                    }
+                    else
+                    {
+                        <MudTable T="StrategyRunResult" Dense="true" Hover="true" Breakpoint="Breakpoint.Sm"
+                                  Items="@_strategyRuns.OrderByDescending(r => r.Confidence).ToList()">
+                            <HeaderContent>
+                                <MudTh>Strategy</MudTh>
+                                <MudTh>Confidence</MudTh>
+                                <MudTh>Expediente</MudTh>
+                                <MudTh>Fields</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Strategy">@context.Name</MudTd>
+                                <MudTd DataLabel="Confidence">
+                                    <MudChip T="int" Color="@ConfidenceColor(context.Confidence)" Variant="Variant.Filled">@context.Confidence</MudChip>
+                                </MudTd>
+                                <MudTd DataLabel="Expediente">@(context.HasExtraction ? context.Fields.Expediente ?? "—" : "—")</MudTd>
+                                <MudTd DataLabel="Fields">
+                                    <MudText Typo="Typo.caption">@FormatSummary(context.HasExtraction ? context.Fields : null)</MudText>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+</MudContainer>

@@ -236,6 +236,8 @@ public class Program
 
         // Add Demo Administration service (ONLY for demo environments - performs hard deletes!)
         services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DemoAdminService>();
+        // Adaptive DOCX fixtures for Mission 7 demo page
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.AdaptiveDocxFixtureService>();
 
         // Add SLA health checks
         services.AddHealthChecks()
