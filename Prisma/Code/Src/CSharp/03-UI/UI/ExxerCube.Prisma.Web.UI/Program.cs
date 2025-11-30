@@ -17,6 +17,7 @@ using ExxerCube.Prisma.Infrastructure.Extraction.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection;
 using IndFusion.Ember.Extensions;
 using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection;
 
 namespace ExxerCube.Prisma.Web.UI;
 
@@ -229,6 +230,7 @@ public class Program
 
         // Add Story 1.7 & 1.8 services: Export Generation (SIRO XML, Excel, PDF Signing)
         services.AddExportServices(configuration);
+        services.AddAdaptiveExportServices(applicationConnectionString);
         services.AddScoped<ExportService>();
 
         // Add Story 1.9 services: Audit Reporting

@@ -14,7 +14,7 @@
     {
       "id": "pack.architecture",
       "title": "Architecture & Patterns",
-      "rules": [1031, 1008, 1044, 1016, 1018]
+      "rules": [1031, 1008, 1044, 1016, 1018, 1036]
     },
     {
       "id": "pack.cqrs",
