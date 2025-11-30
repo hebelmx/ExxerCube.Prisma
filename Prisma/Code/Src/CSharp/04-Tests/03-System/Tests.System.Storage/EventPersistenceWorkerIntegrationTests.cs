@@ -151,6 +151,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         var fileId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var evt = new OcrCompletedEvent
         {
@@ -189,6 +190,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         var fileId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var evt = new ClassificationCompletedEvent
         {
@@ -226,6 +228,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         var fileId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var evt = new ProcessingErrorEvent
         {
@@ -264,6 +267,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
 
         var fileId = Guid.NewGuid();
         var correlationId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var downloadEvent = new DocumentDownloadedEvent
         {
@@ -325,6 +329,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         var fileId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var evt = new ConflictDetectedEvent
         {
@@ -364,6 +369,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         var fileId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var evt = new DocumentFlaggedForReviewEvent
         {
@@ -399,6 +405,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         await Task.Delay(100, TestContext.Current.CancellationToken);
 
         var fileId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var evt = new DocumentProcessingCompletedEvent
         {
@@ -467,6 +474,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         // Arrange
         await _worker.StartAsync(TestContext.Current.CancellationToken);
         var fileId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var evt1 = new DocumentDownloadedEvent
         {
@@ -516,6 +524,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
 
         var fileId = Guid.NewGuid();
         var correlationId = Guid.NewGuid();
+        await CreateFileMetadataAsync(fileId);
 
         var evt = new DocumentDownloadedEvent
         {

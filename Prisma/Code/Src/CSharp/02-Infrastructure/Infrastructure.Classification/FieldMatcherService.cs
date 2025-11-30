@@ -8,7 +8,6 @@ using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Infrastructure.Extraction;
 using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification;
@@ -131,11 +130,11 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
             // Merge additional fields (non-core) across sources
             if (additionalFromSources.Count > 0)
             {
-                var xmlFields = MergeAdditional(additionalFromSources, FieldOrigin.Xml);
-                var ocrFields = MergeAdditional(additionalFromSources, FieldOrigin.PdfOcr);
-                var reconciled = AdditionalFieldsReconciler.Merge(xmlFields, ocrFields);
-                matchedFields.AdditionalMerged = reconciled.Merged;
-                matchedFields.AdditionalConflicts = reconciled.Conflicts;
+                var xmlFields = CollectAdditional(additionalFromSources, FieldOrigin.Xml);
+                var ocrFields = CollectAdditional(additionalFromSources, FieldOrigin.PdfOcr);
+                var mergeResult = MergeAdditionalFields(xmlFields, ocrFields);
+                matchedFields.AdditionalMerged = mergeResult.Merged;
+                matchedFields.AdditionalConflicts = mergeResult.Conflicts;
             }
 
             _logger.LogDebug("Field matching completed. Matched: {MatchedCount}, Conflicts: {ConflictCount}, Missing: {MissingCount}, Overall Agreement: {Agreement}",
@@ -289,7 +288,7 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
         }
     }
 
-    private static Dictionary<string, string?> MergeAdditional(List<ExtractedFields> sources, FieldOrigin origin)
+    private static Dictionary<string, string?> CollectAdditional(List<ExtractedFields> sources, FieldOrigin origin)
     {
         var dict = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         foreach (var fields in sources)
@@ -313,5 +312,46 @@ public class FieldMatcherService<T> : IFieldMatcher<T>
         }
         return dict;
     }
+
+    private static AdditionalFieldMergeResult MergeAdditionalFields(
+        IReadOnlyDictionary<string, string?> xmlFields,
+        IReadOnlyDictionary<string, string?> ocrFields)
+    {
+        var result = new AdditionalFieldMergeResult();
+        var merged = result.Merged;
+
+        foreach (var kvp in xmlFields)
+        {
+            merged[kvp.Key] = kvp.Value;
+        }
+
+        foreach (var kvp in ocrFields)
+        {
+            var key = kvp.Key;
+            var ocrValue = Normalize(kvp.Value);
+            if (!merged.TryGetValue(key, out var existing))
+            {
+                merged[key] = kvp.Value;
+                continue;
+            }
+
+            var existingNormalized = Normalize(existing);
+            if (!string.IsNullOrWhiteSpace(ocrValue) &&
+                !string.IsNullOrWhiteSpace(existingNormalized) &&
+                !string.Equals(existingNormalized, ocrValue, StringComparison.OrdinalIgnoreCase))
+            {
+                result.Conflicts.Add(key);
+            }
+            else if (string.IsNullOrWhiteSpace(existing) && !string.IsNullOrWhiteSpace(ocrValue))
+            {
+                merged[key] = kvp.Value;
+            }
+        }
+
+        return result;
+    }
+
+    private static string Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
 }
 

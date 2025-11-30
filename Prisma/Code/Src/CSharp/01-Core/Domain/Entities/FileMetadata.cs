@@ -69,5 +69,9 @@ public class FileMetadata
     /// Gets or sets the oficio linked to this evidence (if any).
     /// </summary>
     public string LinkedOficio { get; set; } = string.Empty;
-}
 
+    /// <summary>
+    /// Gets or sets the exact date and time when the file was downloaded.
+    /// </summary>
+    public DateTime DownloadDateTime { get; set; }
+}
