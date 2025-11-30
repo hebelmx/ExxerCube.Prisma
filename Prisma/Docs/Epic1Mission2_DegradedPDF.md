@@ -37,3 +37,4 @@ Definition of Done:
 - System/unit tests pass; assertions are behavioral and stable (non-flaky).
 - Razor demo page shows before/after confidence and filter; works end-to-end.
 - Playwright/demo run in headed mode confirms scenario works (no UI assertions).
+- Structured logging/metrics emitted (filter choice, improvement %, timings) and verified in tests; audit entries recorded for filter selection if available.
