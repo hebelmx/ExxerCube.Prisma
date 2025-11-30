@@ -30,6 +30,7 @@ Conventions (applies to this mission; do not skip):
 - Code style: C# 10, warnings-as-errors; SmartEnums need EF converters; PascalCase types/properties, camelCase locals/params; keep methods small/pure; avoid solution churn.
 - Fixtures: place drifted XML/template variants under `Prisma/Fixtures` with clear naming.
 - Telemetry: audit SchemaChangeDetected and TemplateAdapterApplied with correlation; metrics/log warnings for non-mapped fields; assert behavior/telemetry, not UI.
+- Observability & security: structured logging with correlation ids, performance timings, metrics for adapter hits/warnings; audit drift detection/apply; honor authentication/authorization where applicable.
 
 Definition of Done:
 - Build passes with warnings-as-errors, no new suppressions.

@@ -76,6 +76,23 @@ Context: we are in system-test mode, chaining real services with real fixtures t
 - **Deliverables**:
   - System test applying drifted XML and asserting adapter events, warnings, and successful storage with flags.
 
+## Mission 7 — Adaptive DOCX Extraction & Field Merging
+- **Objective**: Implement adaptive DOCX extraction using multiple strategies and merge logic; pass contract tests and a system test with real DOCX fixtures.
+- **Services chained**: Adaptive DOCX strategies → Adaptive extractor → Merge strategy → Storage/Audit/Telemetry.
+- **Fixtures**: DOCX variants (structured, semi-structured, table-heavy) under `Prisma/Fixtures/DocxAdaptive/`.
+- **Test contract**:
+  - `IAdaptiveDocxExtractor` modes behave per contracts; confidences sorted; respects cancellation.
+  - `IFieldMergeStrategy` merges without null, reports conflicts/merged fields, handles null entries.
+  - System test: run on DOCX variants; mandatory fields covered or flagged; audit/metrics record strategy/merge/conflicts.
+- **Deliverables**:
+  - Implementation passing contract tests; system test for DOCX fixtures; Razor demo page showing strategies/confidences/merged fields/conflicts.
+
+## Observability, Security, and Telemetry (applies to all missions)
+- Emit structured logs with correlation ids; capture performance timings and metrics (success/error rates, confidence deltas, throughput).
+- Record audit events for key actions (ingestion, filter selection, reconciliation, export, adapter changes) with correlation.
+- Ensure authentication/authorization is honored on services/pages where applicable.
+- Tests should assert behavior/telemetry, not UI; no flakiness; warnings-as-errors build.
+
 ## How to Demo (select 3–4 cases)
 - Pick from Missions: 1 (happy path), 2 (degraded PDF uplift), 3 (manual review routing), 4 (export evidence).
 - Demo flow: run system tests, capture artifacts (audit ids, exports), then showcase via UI pages (System Flow, Audit Trail, Manual Review, Export Management) using real outputs—no UI assertions in tests.

@@ -32,6 +32,7 @@ Conventions (applies to this mission; do not skip):
 - Code style: C# 10, warnings-as-errors; SmartEnums need EF converters; PascalCase types/properties, camelCase locals/params; keep methods small/pure; avoid solution churn.
 - Fixtures: place DOCX variants under `Prisma/Fixtures/DocxAdaptive/` with clear naming; include paired XML/PDF if available for comparison.
 - Telemetry: audit strategy choice/merge mode/conflicts; metrics for confidences and merge outcomes; consistent correlation ids.
+- Observability & security: structured logging with correlation ids, performance timings, metrics for success/error/conflicts; audit strategy/merge events; honor authentication/authorization where applicable.
 
 Definition of Done:
 - Build passes with warnings-as-errors, no new suppressions.

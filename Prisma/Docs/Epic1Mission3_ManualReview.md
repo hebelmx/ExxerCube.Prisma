@@ -30,6 +30,7 @@ Conventions (applies to this mission; do not skip):
 - Code style: C# 10, warnings-as-errors; SmartEnums need EF converters; PascalCase types/properties, camelCase locals/params; keep methods small/pure; avoid solution churn.
 - Fixtures: use `Prisma/Fixtures`; create missing-field/conflict variants as needed.
 - Telemetry: emit audit for conflicts and enqueue with correlation ids; metrics for classification confidence/SLA tagging; assert behavior/metrics, not UI.
+- Observability & security: structured logging with correlation ids, performance timings, metrics for review queue health; audit conflict/enqueue; honor authentication/authorization roles for reviewers.
 
 Definition of Done:
 - Build passes with warnings-as-errors, no new suppressions.
