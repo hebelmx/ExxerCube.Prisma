@@ -45,9 +45,23 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
             .UseSqlServer(_fixture.ConnectionString)
             .Options;
 
-        // Database migration handled by fixture
+        // Apply EF Core database creation strategy using DatabaseFacade API
+        // Strategy: Use EnsureCreatedAsync for tests (creates schema from model without migrations)
+        // This is faster and doesn't require maintaining migration files for test databases
+        using (var context = new PrismaDbContext(_dbOptions))
+        {
+            var database = context.Database;
+
+            // EnsureCreatedAsync creates the database schema from the current model
+            // Idempotent - safe to call multiple times (only creates if not exists)
+            // Better for tests than Migrate() which requires migration files
+            database.EnsureCreatedAsync(TestContext.Current.CancellationToken)
+                .GetAwaiter()
+                .GetResult();
+        }
+
         // Clean database before each test to ensure isolated test state
-        _fixture.CleanDatabaseAsync().Wait();
+        _fixture.CleanDatabaseAsync().GetAwaiter().GetResult();
 
         // Set up service collection for dependency injection
         var services = new ServiceCollection();

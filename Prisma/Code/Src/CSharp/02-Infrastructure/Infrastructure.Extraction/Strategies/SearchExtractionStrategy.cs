@@ -59,9 +59,20 @@ public sealed class SearchExtractionStrategy : IDocxExtractionStrategy
     /// <inheritdoc />
     public bool CanHandle(DocxStructure structure)
     {
-        // Search strategy can always attempt extraction
-        // It will handle cross-references if present, direct extraction otherwise
-        return true;
+        // Prefer documents that hint at cross-references or have enough body text
+        // to make a search worthwhile. Avoid empty/very short docs.
+        if (structure == null)
+        {
+            return false;
+        }
+
+        if (structure.HasCrossReferences)
+        {
+            return true;
+        }
+
+        // Fallback: unstructured text with some length benefits from search.
+        return structure.ParagraphCount > 5 || structure.StyledElementCount > 5;
     }
 
     /// <inheritdoc />
