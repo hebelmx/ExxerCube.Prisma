@@ -25,6 +25,17 @@ public class NoOpEnhancementFilter : IImageEnhancementFilter
     /// <inheritdoc />
     public bool CanProcess(ImageData imageData)
     {
-        return true;
+        if (imageData == null || imageData.Data == null || imageData.Data.Length == 0)
+        {
+            return false;
+        }
+
+        var hasValidPage = imageData.PageNumber >= 1 &&
+                           imageData.TotalPages >= imageData.PageNumber;
+
+        var hasSource = !string.IsNullOrWhiteSpace(imageData.SourcePath);
+
+        // Accept any format; this is intentionally a pass-through filter.
+        return hasValidPage || hasSource;
     }
 }

@@ -90,10 +90,10 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
         await Task.Delay(1000, TestContext.Current.CancellationToken); // Wait for async persistence
 
         // Assert
-        using var queryContext = new PrismaDbContext(_dbOptions);
-        var auditRecords = await queryContext.AuditRecords
-            .Where(r => r.FileId == fileId.ToString())
-            .ToListAsync(TestContext.Current.CancellationToken);
+        var auditRecords = await WaitForAuditRecordsAsync(
+            ctx => ctx.AuditRecords.Where(r => r.FileId == fileId.ToString()),
+            expectedCount: 1,
+            timeout: TimeSpan.FromSeconds(2));
 
         auditRecords.Count.ShouldBe(1, "Expected exactly one audit record for the ingested document");
 
@@ -144,10 +144,10 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
         await Task.Delay(1000, TestContext.Current.CancellationToken);
 
         // Assert
-        using var queryContext = new PrismaDbContext(_dbOptions);
-        var auditRecords = await queryContext.AuditRecords
-            .Where(r => r.FileId == fileId.ToString())
-            .ToListAsync(TestContext.Current.CancellationToken);
+        var auditRecords = await WaitForAuditRecordsAsync(
+            ctx => ctx.AuditRecords.Where(r => r.FileId == fileId.ToString()),
+            expectedCount: 1,
+            timeout: TimeSpan.FromSeconds(2));
 
         auditRecords.Count.ShouldBe(1, "Expected exactly one audit record for OCR processing");
 
@@ -212,11 +212,12 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
         await Task.Delay(1000, TestContext.Current.CancellationToken);
 
         // Assert - Verify all events persisted with same correlation ID
-        using var queryContext = new PrismaDbContext(_dbOptions);
-        var auditRecords = await queryContext.AuditRecords
-            .Where(r => r.CorrelationId == correlationId.ToString())
-            .OrderBy(r => r.Timestamp)
-            .ToListAsync(TestContext.Current.CancellationToken);
+        var auditRecords = await WaitForAuditRecordsAsync(
+            ctx => ctx.AuditRecords
+                .Where(r => r.CorrelationId == correlationId.ToString())
+                .OrderBy(r => r.Timestamp),
+            expectedCount: 2,
+            timeout: TimeSpan.FromSeconds(2));
 
         auditRecords.Count.ShouldBe(2, "Both ingestion and OCR events should be persisted");
 
@@ -273,15 +274,15 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
         await Task.Delay(1000, TestContext.Current.CancellationToken);
 
         // Assert
-        using var queryContext = new PrismaDbContext(_dbOptions);
+        var workflow1Records = await WaitForAuditRecordsAsync(
+            ctx => ctx.AuditRecords.Where(r => r.CorrelationId == correlationId1.ToString()),
+            expectedCount: 1,
+            timeout: TimeSpan.FromSeconds(2));
 
-        var workflow1Records = await queryContext.AuditRecords
-            .Where(r => r.CorrelationId == correlationId1.ToString())
-            .ToListAsync(TestContext.Current.CancellationToken);
-
-        var workflow2Records = await queryContext.AuditRecords
-            .Where(r => r.CorrelationId == correlationId2.ToString())
-            .ToListAsync(TestContext.Current.CancellationToken);
+        var workflow2Records = await WaitForAuditRecordsAsync(
+            ctx => ctx.AuditRecords.Where(r => r.CorrelationId == correlationId2.ToString()),
+            expectedCount: 1,
+            timeout: TimeSpan.FromSeconds(2));
 
         workflow1Records.Count.ShouldBe(1, "Workflow 1 should have exactly 1 event");
         workflow2Records.Count.ShouldBe(1, "Workflow 2 should have exactly 1 event");
@@ -298,5 +299,26 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
         _worker.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
         _worker.Dispose();
         _serviceProvider.Dispose();
+    }
+
+    private async Task<List<AuditRecord>> WaitForAuditRecordsAsync(
+        Func<PrismaDbContext, IQueryable<AuditRecord>> queryFactory,
+        int expectedCount,
+        TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+
+        while (true)
+        {
+            using var queryContext = new PrismaDbContext(_dbOptions);
+            var records = await queryFactory(queryContext).ToListAsync(TestContext.Current.CancellationToken);
+
+            if (records.Count >= expectedCount || DateTime.UtcNow >= deadline)
+            {
+                return records;
+            }
+
+            await Task.Delay(100, TestContext.Current.CancellationToken);
+        }
     }
 }

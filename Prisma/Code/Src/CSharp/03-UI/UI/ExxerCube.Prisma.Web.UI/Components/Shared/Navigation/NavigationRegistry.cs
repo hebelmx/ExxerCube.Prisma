@@ -134,7 +134,7 @@ internal static class NavigationRegistry
                     "/document-processing",
                     Icons.Material.Filled.Description,
                     "Extract CNBV expediente data from XML and PDF files with OCR. Click any PRP1 fixture to see instant results.",
-                    Match: NavLinkMatch.All,
+                    Match: NavLinkMatch.Prefix,
                     Tags: new[] { "xml", "ocr", "extraction", "expediente", "cnbv", "pdf", "prp1", "stakeholder" }),
                 new NavigationLink(
                     "Processing Dashboard",

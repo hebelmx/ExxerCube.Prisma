@@ -1,4 +1,6 @@
 using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+using System.IO;
+using System.Reflection;
 
 namespace ExxerCube.Prisma.Tests.Architecture;
 
@@ -22,17 +24,8 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
     private static readonly Assembly DomainAssembly = typeof(ExxerCube.Prisma.Domain.Entities.FileMetadata).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(ExxerCube.Prisma.Application.Services.DocumentIngestionService).Assembly;
 
-    private static readonly Assembly[] InfrastructureAssemblies = new[]
-    {
-        typeof(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext).Assembly,
-        typeof(ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService).Assembly,
-        typeof(XmlMetadataExtractor).Assembly,
-        typeof(ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner).Assembly,
-        typeof(ExxerCube.Prisma.Infrastructure.FileStorage.FileSystemDownloadStorageAdapter).Assembly,
-        typeof(ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter).Assembly,
-        typeof(ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader).Assembly,
-        typeof(ExxerCube.Prisma.Infrastructure.Metrics.ProcessingMetricsService).Assembly,
-    };
+    private static readonly Assembly[] InfrastructureAssemblies =
+        GetInfrastructureAssemblies().ToArray();
 
     // Rule 1: Ports (Interfaces) → Domain Layer ONLY
 
@@ -99,7 +92,8 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
         var excludedInterfaces = new HashSet<string>
         {
             "ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext",
-            "CSnakes.Runtime.IPrismaOcrWrapper"
+            "CSnakes.Runtime.IPrismaOcrWrapper",
+            "CSnakes.Runtime.IGotOcr2Wrapper"
         };
 
         foreach (var infrastructureAssembly in InfrastructureAssemblies)
@@ -260,6 +254,7 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             "ExxerCube.Prisma.Infrastructure.Database",
             "ExxerCube.Prisma.Infrastructure.Classification",
             "ExxerCube.Prisma.Infrastructure.Extraction",
+            "ExxerCube.Prisma.Infrastructure.Extraction.Adaptive",
             "ExxerCube.Prisma.Infrastructure.Export",
             "ExxerCube.Prisma.Infrastructure.FileStorage",
             "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
@@ -471,10 +466,13 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
         for (int i = 0; i < InfrastructureAssemblies.Length; i++)
         {
+            var sourceAssembly = InfrastructureAssemblies[i];
+            var sourceNamespace = infrastructureNamespaces
+                .FirstOrDefault(ns => sourceAssembly.GetName().Name?.StartsWith(ns, StringComparison.OrdinalIgnoreCase) == true);
+            if (string.IsNullOrEmpty(sourceNamespace)) continue;
+
             for (int j = 0; j < infrastructureNamespaces.Length; j++)
             {
-                var sourceAssembly = InfrastructureAssemblies[i];
-                var sourceNamespace = infrastructureNamespaces[i];
                 var targetNamespace = infrastructureNamespaces[j];
 
                 if (sourceNamespace == targetNamespace) continue; // Skip self
@@ -566,7 +564,15 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
         // Exclude known acceptable duplicates:
         // - ServiceCollectionExtensions: Standard .NET DI pattern, each Infrastructure project has its own extension
         // - <PrivateImplementationDetails>: Compiler-generated types, not actual duplicates
-        var excludedNames = new HashSet<string> { "ServiceCollectionExtensions", "<PrivateImplementationDetails>" };
+        var excludedNames = new HashSet<string>
+        {
+            "ServiceCollectionExtensions",
+            "<PrivateImplementationDetails>",
+            // Intentional overlap between legacy and adaptive docx strategies during transition
+            "ComplementExtractionStrategy",
+            "SearchExtractionStrategy",
+            "StructuredDocxStrategy"
+        };
 
         var duplicates = allTypes
             .Where(kvp => kvp.Value.Count > 1)
@@ -764,7 +770,7 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             "ExxerCube.Prisma.Domain.Interfaces.IImageQualityAnalyzer",
             "ExxerCube.Prisma.Domain.Interfaces.IOcrSessionRepository",
             "ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService",
-            "ExxerCube.Prisma.Domain.Interfaces.ITextComparer"
+            "ExxerCube.Prisma.Domain.Interfaces.ITextComparer",
         };
 
         foreach (var domainInterface in domainInterfaces)
@@ -908,5 +914,91 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             $" These indicate technical debt where implementations were created but not properly implemented.");
     }
 
+    /// <summary>
+    /// Test assemblies must respect layering: never reference Application; non-system tests should depend on at most one Infrastructure assembly.
+    /// System/E2E/UI tests may depend on multiple Infrastructure assemblies but still not on Application.
+    /// </summary>
+    [Fact]
+    public void Test_Assemblies_Should_Respect_Infrastructure_Dependency_Boundaries()
+    {
+        var testAssemblies = Directory.GetFiles(AppContext.BaseDirectory, "ExxerCube.Prisma.Tests.*.dll")
+            .Select(Assembly.LoadFrom)
+            .Where(a => !a.GetName().Name?.Contains("Architecture", StringComparison.OrdinalIgnoreCase) == true)
+            .ToList();
+
+        var violations = new List<string>();
+
+        foreach (var testAssembly in testAssemblies)
+        {
+            var name = testAssembly.GetName().Name ?? string.Empty;
+            var isSystem = name.Contains(".Tests.System.", StringComparison.OrdinalIgnoreCase)
+                           || name.Contains(".Tests.EndToEnd.", StringComparison.OrdinalIgnoreCase)
+                           || name.Contains(".Tests.UI.", StringComparison.OrdinalIgnoreCase);
+
+            var referencedInfra = testAssembly.GetReferencedAssemblies()
+                .Where(a => a.FullName?.StartsWith("ExxerCube.Prisma.Infrastructure", StringComparison.OrdinalIgnoreCase) == true)
+                .Select(a => a.Name ?? string.Empty)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var hasApplication = testAssembly.GetReferencedAssemblies()
+                .Any(a => a.FullName?.StartsWith("ExxerCube.Prisma.Application", StringComparison.OrdinalIgnoreCase) == true);
+
+            if (hasApplication)
+            {
+                violations.Add($"{name}: should not reference Application layer.");
+            }
+
+            if (!isSystem && referencedInfra.Count > 1)
+            {
+                violations.Add($"{name}: non-system tests should depend on at most one Infrastructure assembly (found {referencedInfra.Count}: {string.Join(", ", referencedInfra)}).");
+            }
+        }
+
+        if (violations.Any())
+        {
+            var list = violations.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Test assemblies infra dependencies. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
+        }
+
+        violations.ShouldBeEmpty(
+            $"Test assemblies must not reference Application and non-system tests may depend on at most one Infrastructure assembly. Violations: {string.Join("; ", violations)}");
+    }
+
     //
+
+    private static IEnumerable<Assembly> GetInfrastructureAssemblies()
+    {
+        var roots = new[]
+        {
+            AppContext.BaseDirectory,
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..")),
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", ".."))
+        }.Distinct(StringComparer.OrdinalIgnoreCase);
+
+        var files = roots
+            .Where(Directory.Exists)
+            .SelectMany(root => Directory.GetFiles(root, "ExxerCube.Prisma.Infrastructure*.dll", SearchOption.AllDirectories))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(path => new FileInfo(path))
+            .OrderByDescending(fi => fi.LastWriteTimeUtc)
+            .Select(fi => fi.FullName);
+
+        return files
+            .Select(file =>
+            {
+                try
+                {
+                    return Assembly.LoadFrom(file);
+                }
+                catch
+                {
+                    return null;
+                }
+            })
+            .Where(a => a != null)
+            .DistinctBy(a => a!.FullName)
+            .Select(a => a!);
+    }
 }

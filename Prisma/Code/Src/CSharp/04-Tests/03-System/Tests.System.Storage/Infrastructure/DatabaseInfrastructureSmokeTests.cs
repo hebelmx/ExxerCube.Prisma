@@ -99,6 +99,7 @@ public sealed class DatabaseInfrastructureSmokeTests : IDisposable
     {
         // Arrange - Create database and context
         _fixture.EnsureAvailable();
+        await _fixture.CleanDatabaseAsync();
         await _fixture.ApplyMigrationsAsync(
             connStr => new PrismaDbContext(new DbContextOptionsBuilder<PrismaDbContext>()
                 .UseSqlServer(connStr)

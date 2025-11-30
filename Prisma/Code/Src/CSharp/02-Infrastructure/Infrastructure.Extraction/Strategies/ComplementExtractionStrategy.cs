@@ -69,9 +69,16 @@ public sealed class ComplementExtractionStrategy : IComplementDocxExtractionStra
     /// <inheritdoc />
     public bool CanHandle(DocxStructure structure)
     {
-        // Complement is designed to always attempt filling gaps when invoked.
-        // We still short-circuit on null to avoid NREs.
-        return structure != null;
+        if (structure == null)
+        {
+            return false;
+        }
+
+        // Prefer documents with structure, labels, or tables; still allow fallback if minimal hints exist.
+        return structure.HasStructuredFormat
+               || structure.HasBoldLabels
+               || structure.HasKeyValuePairs
+               || (structure.HasTables && structure.TableStructure?.RowCount > 0);
     }
 
     /// <inheritdoc />
