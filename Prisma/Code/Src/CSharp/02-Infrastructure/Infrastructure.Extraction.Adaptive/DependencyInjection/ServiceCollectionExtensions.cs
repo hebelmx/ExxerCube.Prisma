@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
 
         // Register orchestrator (receives all strategies via IEnumerable<IAdaptiveDocxStrategy>)
         services.AddScoped<IAdaptiveDocxExtractor, AdaptiveDocxExtractor>();
+        services.AddScoped<IReadOnlyList<IAdaptiveDocxStrategy>>(sp => sp.GetServices<IAdaptiveDocxStrategy>().ToList());
 
         // Register merge strategy
         services.AddScoped<IFieldMergeStrategy, EnhancedFieldMergeStrategy>();
@@ -100,6 +101,7 @@ public static class ServiceCollectionExtensions
 
         // Register orchestrator
         services.AddScoped<IAdaptiveDocxExtractor, AdaptiveDocxExtractor>();
+        services.AddScoped<IReadOnlyList<IAdaptiveDocxStrategy>>(sp => sp.GetServices<IAdaptiveDocxStrategy>().ToList());
 
         // Register merge strategy
         services.AddScoped<IFieldMergeStrategy, EnhancedFieldMergeStrategy>();

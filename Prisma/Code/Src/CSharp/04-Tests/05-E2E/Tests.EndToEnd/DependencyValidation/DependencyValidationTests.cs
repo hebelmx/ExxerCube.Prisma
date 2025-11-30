@@ -1,8 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies;
-using IndFusion.Ember.Abstractions.Hubs;
-using ExxerCube.Prisma.Domain.Events;
-
 namespace ExxerCube.Prisma.Tests.EndToEnd.DependencyValidation;
 
 /// <summary>
@@ -113,16 +108,16 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
     [Trait("Category", "E2E")]
     [Trait("Category", "DI")]
     [Trait("Category", "WebApplicationFactory")]
-    public void HealthChecks_ShouldBeRegistered()
+    public async Task HealthChecks_ShouldBeRegistered()
     {
         using var client = _factory.CreateClient();
 
         var healthCheckService = _factory.Services.GetRequiredService<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService>();
         healthCheckService.ShouldNotBeNull();
 
-        var response = client.GetAsync("/health", TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+        var response = await client.GetAsync("/health", TestContext.Current.CancellationToken);
         response.ShouldNotBeNull();
-        _ = response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken).GetAwaiter().GetResult();
+        _ = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]

@@ -164,6 +164,14 @@ internal static class NavigationRegistry
                     "Test OCR improvement with analytical filter selection. Upload degraded images and see real-time enhancement results with Levenshtein distance metrics.",
                     Match: NavLinkMatch.All,
                     Tags: new[] { "ocr", "filter", "testing", "analytical", "nsga-ii", "enhancement", "quality" }),
+                new NavigationLink(
+                    "Mission 1 Telemetry",
+                    "/mission1",
+                    Icons.Material.Filled.Timeline,
+                    "Happy-path run summary for intake → OCR → reconciliation → storage (Mission 1 telemetry).",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "mission", "telemetry", "audit", "correlation", "happy-path" },
+                    IncludeInPrimaryNavigation: false),
             }),
         new NavigationSection(
             "Review & Compliance",

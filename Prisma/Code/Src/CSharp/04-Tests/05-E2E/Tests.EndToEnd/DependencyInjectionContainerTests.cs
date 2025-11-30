@@ -1,11 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Database.Metrics;
-using IndFusion.Ember.Abstractions.Hubs;
-using ExxerCube.Prisma.Domain.Events;
-using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Sources;
-
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 /// <summary>

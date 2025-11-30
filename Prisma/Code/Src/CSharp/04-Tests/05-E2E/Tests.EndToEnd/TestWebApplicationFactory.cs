@@ -1,11 +1,5 @@
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
-using ExxerCube.Prisma.Web.UI.Services;
-using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Sources;
-
 /// <summary>
 /// Custom WebApplicationFactory for testing the ExxerCube.Prisma.Web.UI application.
 /// Configures the application for testing with test-specific settings and isolated localdb instances.
