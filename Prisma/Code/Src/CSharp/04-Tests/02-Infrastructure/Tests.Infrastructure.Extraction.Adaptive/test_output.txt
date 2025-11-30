@@ -1,0 +1,10 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  ExxerCube.Prisma.Testing.Abstractions -> F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Testing.Abstractions\net10.0\ExxerCube.Prisma.Testing.Abstractions.dll
+  ExxerCube.Prisma.Domain -> F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Domain\net10.0\ExxerCube.Prisma.Domain.dll
+  ExxerCube.Prisma.Infrastructure.Extraction.Adaptive -> F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Extraction.Adaptive\net10.0\ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.dll
+  ExxerCube.Prisma.Testing.Infrastructure -> F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Testing.Infrastructure\net10.0\ExxerCube.Prisma.Testing.Infrastructure.dll
+  ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive -> F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive.dll
+  Run tests: 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive.dll' [net10.0|x64]
+  Failed! - Failed: 2, Passed: 15, Skipped: 0, Total: 17, Duration: 486ms - ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive.dll (net10.0|x64)
+F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive\net10.0\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive.dll : error run failed: Tests failed: 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive\net10.0\TestResults\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive_net10.0_x64.log' [net10.0|x64] [F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Adaptive\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Adaptive.csproj]
