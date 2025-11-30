@@ -22,8 +22,8 @@ public class RequirementType : EnumModel
     /// Keywords: "solicita información", "estados de cuenta".
     /// Authority: Judicial, Fiscal, Administrative.
     /// </summary>
-    public static readonly RequirementType Judicial
-        = new(100, "Judicial", "Solicitud de Información");
+    public static readonly RequirementType InformationRequest
+        = new(100, "InformationRequest", "Solicitud de Información");
 
     /// <summary>
     /// Aseguramiento/Bloqueo (Seizure/Freezing) - Type 101.
@@ -105,7 +105,7 @@ public class RequirementType : EnumModel
     /// <summary>
     /// Creates a RequirementType instance from a name.
     /// </summary>
-    /// <param name="name">The internal name (e.g., "Judicial", "Aseguramiento").</param>
+    /// <param name="name">The internal name (e.g., "InformationRequest", "Aseguramiento").</param>
     /// <returns>Matching RequirementType or Unknown if not found.</returns>
     public static RequirementType FromName(string name) => FromName<RequirementType>(name);
 

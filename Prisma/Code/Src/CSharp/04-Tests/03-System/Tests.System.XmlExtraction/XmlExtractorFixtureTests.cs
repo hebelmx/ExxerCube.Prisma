@@ -60,7 +60,7 @@ public class XmlExtractorFixtureTests(ITestOutputHelper output)
         fields.AdditionalFields["RfcList"]?.ShouldContain("ZUCM444444555");
         if (fields.AdditionalFields.TryGetValue("Curp", out var curp))
         {
-            curp!.ShouldBe("ZUCM444444ABCDEF");
+            curp!.ShouldBe("ZUCM444444ABCDEF01");
         }
 
         LogFields("Judicial fixture", fields);

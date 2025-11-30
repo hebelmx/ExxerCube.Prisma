@@ -58,9 +58,9 @@ public class RequirementTypeDictionaryConfiguration : IEntityTypeConfiguration<R
         builder.HasData(
             new RequirementTypeDictionary
             {
-                Id = RequirementType.Judicial.Value,
-                Name = RequirementType.Judicial.Name,
-                DisplayName = RequirementType.Judicial.DisplayName,
+                Id = RequirementType.InformationRequest.Value,
+                Name = RequirementType.InformationRequest.Name,
+                DisplayName = RequirementType.InformationRequest.DisplayName,
                 DiscoveredAt = new DateTime(2025, 1, 25, 0, 0, 0, DateTimeKind.Utc),
                 KeywordPattern = "solicita información|estados de cuenta",
                 IsActive = true,

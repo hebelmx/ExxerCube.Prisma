@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Sockets;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E;
 
 /// <summary>
@@ -31,36 +34,29 @@ public class SiaraSimulatorTests : IAsyncLifetime
     {
         // Start from the assembly base directory (bin folder) and walk upwards until we find Deployments/Siara.Simulator/app
         var currentDir = new DirectoryInfo(AppContext.BaseDirectory);
-        Console.WriteLine($"[GetSimulatorPath] Starting search from base directory: {currentDir.FullName}");
 
         while (currentDir != null)
         {
             // 1) Directly under this directory (useful when running from repo root or build output)
             var directCandidate = Path.Combine(currentDir.FullName, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
-            Console.WriteLine($"[GetSimulatorPath] Checking: {directCandidate} (exists: {File.Exists(directCandidate)})");
             if (File.Exists(directCandidate))
             {
-                Console.WriteLine($"[GetSimulatorPath] Found simulator at: {directCandidate}");
                 return directCandidate;
             }
 
             // 2) Sibling 'ExxerCube.Prisma' folder (when running from solution parent like F:\\Dynamic\\ExxerCubeBanamex)
             var siblingRepo = Path.Combine(currentDir.FullName, "ExxerCube.Prisma");
             var siblingCandidate = Path.Combine(siblingRepo, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
-            Console.WriteLine($"[GetSimulatorPath] Checking sibling repo: {siblingCandidate} (exists: {File.Exists(siblingCandidate)})");
             if (File.Exists(siblingCandidate))
             {
-                Console.WriteLine($"[GetSimulatorPath] Found simulator at sibling repo: {siblingCandidate}");
                 return siblingCandidate;
             }
 
             // 3) Nested repo folder (when running from within BuildArtifacts)
             var nestedRepo = Path.Combine(currentDir.FullName, "ExxerCube.Prisma", "Prisma");
             var nestedCandidate = Path.Combine(nestedRepo, "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe");
-            Console.WriteLine($"[GetSimulatorPath] Checking nested repo: {nestedCandidate} (exists: {File.Exists(nestedCandidate)})");
             if (File.Exists(nestedCandidate))
             {
-                Console.WriteLine($"[GetSimulatorPath] Found simulator at nested repo: {nestedCandidate}");
                 return nestedCandidate;
             }
 
@@ -75,7 +71,6 @@ public class SiaraSimulatorTests : IAsyncLifetime
                 AppContext.BaseDirectory,
                 "..", "..", "..", "..", "..", "..", "..", "..",
                 "ExxerCube.Prisma", "Deployments", "Siara.Simulator", "app", "Siara.Simulator.exe"));
-        Console.WriteLine($"[GetSimulatorPath] Using fallback path: {fallbackPath} (exists: {File.Exists(fallbackPath)})");
         return fallbackPath;
     }
 
@@ -131,6 +126,8 @@ public class SiaraSimulatorTests : IAsyncLifetime
     /// </summary>
     public async ValueTask InitializeAsync()
     {
+        LogRunContext();
+
         // Check if simulator is already running
         if (!await IsSimulatorRunningAsync())
         {
@@ -235,6 +232,15 @@ public class SiaraSimulatorTests : IAsyncLifetime
             _logger.LogError(ex, "Failed to login to Siara Simulator");
             return false;
         }
+    }
+
+    private void LogRunContext()
+    {
+        var simulatorExists = File.Exists(SimulatorExePath);
+        var manifestExists = File.Exists(_manifestFilePath);
+        var portInUse = IsPortInUse(new Uri(SimulatorUrl).Port);
+        _logger.LogInformation("Run context: simulatorPath={Path} (exists:{Exists}), downloadPath={DownloadPath}, manifestExists={ManifestExists}, portInUse={PortInUse}",
+            SimulatorExePath, simulatorExists, _downloadPath, manifestExists, portInUse);
     }
 
     /// <summary>
@@ -525,7 +531,14 @@ public class SiaraSimulatorTests : IAsyncLifetime
             RedirectStandardError = true
         };
 
-        _simulatorProcess = Process.Start(startInfo);
+        try
+        {
+            _simulatorProcess = Process.Start(startInfo);
+        }
+        catch (IOException ioEx) when (ioEx.Message.Contains("address already in use", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"Port conflict: {SimulatorUrl} is already bound. Stop the existing service or configure the simulator to use a free port before running the test.", ioEx);
+        }
         if (_simulatorProcess == null)
         {
             throw new InvalidOperationException("Failed to start simulator process");
@@ -567,6 +580,27 @@ public class SiaraSimulatorTests : IAsyncLifetime
             attempt++;
         }
 
-        throw new TimeoutException($"Simulator did not become ready within 20 seconds on {SimulatorUrl}");
+        throw new TimeoutException($"Simulator did not become ready within 20 seconds on {SimulatorUrl}. Check for port conflicts or startup errors in simulator logs.");
+    }
+
+    private static bool IsPortInUse(int port)
+    {
+        bool inUse = false;
+        TcpListener? listener = null;
+        try
+        {
+            listener = new TcpListener(IPAddress.Loopback, port);
+            listener.Start();
+        }
+        catch (SocketException)
+        {
+            inUse = true;
+        }
+        finally
+        {
+            listener?.Stop();
+        }
+
+        return inUse;
     }
 }

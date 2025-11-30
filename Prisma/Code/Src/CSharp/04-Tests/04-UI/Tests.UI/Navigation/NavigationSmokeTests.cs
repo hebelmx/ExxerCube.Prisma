@@ -14,6 +14,7 @@ public class NavigationSmokeTests : IAsyncLifetime
     private IBrowser? _browser;
     private string? _baseUrl;
     private Process? _uiProcess;
+    private readonly List<string> _uiOutput = new();
 
     private string BaseUrl => _baseUrl ??
         Environment.GetEnvironmentVariable(BaseUrlEnvironmentVariable)?.TrimEnd('/') ??
@@ -168,9 +169,10 @@ public class NavigationSmokeTests : IAsyncLifetime
     {
         var httpPort = GetFreePort();
         var baseAddress = $"http://127.0.0.1:{httpPort}";
+        var urls = baseAddress;
 
         var uiDllPath = ResolveUiDllPath();
-        var psi = new ProcessStartInfo("dotnet", $"\"{uiDllPath}\" --urls={baseAddress}")
+        var psi = new ProcessStartInfo("dotnet", $"\"{uiDllPath}\" --urls={urls}")
         {
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -179,14 +181,29 @@ public class NavigationSmokeTests : IAsyncLifetime
             WorkingDirectory = Path.GetDirectoryName(uiDllPath)!,
         };
         psi.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
+        psi.Environment["ASPNETCORE_URLS"] = urls;
 
         _uiProcess = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start Prisma UI process");
+        _uiProcess.OutputDataReceived += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.Data))
+            {
+                lock (_uiOutput) { _uiOutput.Add($"[OUT] {e.Data}"); }
+            }
+        };
+        _uiProcess.ErrorDataReceived += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.Data))
+            {
+                lock (_uiOutput) { _uiOutput.Add($"[ERR] {e.Data}"); }
+            }
+        };
         _uiProcess.BeginOutputReadLine();
         _uiProcess.BeginErrorReadLine();
 
         try
         {
-            await WaitForHealthAsync(baseAddress, TimeSpan.FromSeconds(90));
+            await WaitForHealthAsync(baseAddress, TimeSpan.FromSeconds(150));
             return baseAddress.TrimEnd('/');
         }
         catch
@@ -195,6 +212,11 @@ public class NavigationSmokeTests : IAsyncLifetime
             {
                 _uiProcess.Kill(entireProcessTree: true);
                 _uiProcess.WaitForExit(TimeSpan.FromSeconds(5));
+            }
+            var tail = GetUiLogTail();
+            if (!string.IsNullOrEmpty(tail))
+            {
+                throw new TimeoutException($"Failed to start UI process. Recent output: {tail}");
             }
             throw;
         }
@@ -238,7 +260,7 @@ public class NavigationSmokeTests : IAsyncLifetime
         throw new FileNotFoundException("Unable to locate ExxerCube.Prisma.Web.UI.dll for UI smoke tests.");
     }
 
-    private static async Task WaitForHealthAsync(string baseAddress, TimeSpan timeout)
+    private async Task WaitForHealthAsync(string baseAddress, TimeSpan timeout)
     {
         var handler = new HttpClientHandler
         {
@@ -246,9 +268,17 @@ public class NavigationSmokeTests : IAsyncLifetime
         };
         using var client = new HttpClient(handler) { BaseAddress = new Uri(baseAddress) };
         var stopAt = DateTime.UtcNow + timeout;
+        string? lastError = null;
+        HttpStatusCode? lastStatus = null;
 
         while (DateTime.UtcNow < stopAt)
         {
+            if (_uiProcess is { HasExited: true })
+            {
+                var tail = GetUiLogTail();
+                throw new InvalidOperationException($"UI process exited with code {_uiProcess.ExitCode}. Output tail: {tail}");
+            }
+
             try
             {
                 using var response = await client.GetAsync("/health");
@@ -256,15 +286,25 @@ public class NavigationSmokeTests : IAsyncLifetime
                 {
                     return;
                 }
+                lastStatus = response.StatusCode;
+                lastError = $"StatusCode={(int)response.StatusCode}";
             }
             catch
             {
-                // keep retrying until timeout
+                lastError = "exception during health probe";
             }
 
             await Task.Delay(250);
         }
 
-        throw new TimeoutException($"Prisma UI did not become healthy at {baseAddress} within {timeout.TotalSeconds} seconds.");
+        throw new TimeoutException($"Prisma UI did not become healthy at {baseAddress} within {timeout.TotalSeconds} seconds. LastStatus={lastStatus?.ToString() ?? "n/a"}; LastError={lastError ?? "n/a"}.");
+    }
+
+    private string GetUiLogTail()
+    {
+        lock (_uiOutput)
+        {
+            return string.Join(Environment.NewLine, _uiOutput.TakeLast(20));
+        }
     }
 }

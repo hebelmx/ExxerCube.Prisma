@@ -53,6 +53,9 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             var actions = new List<ComplianceAction>();
             var upperText = documentText.ToUpperInvariant();
 
+            // Detect document relation type (Recordatorio, Alcance, Precisión, or NewRequirement)
+            var documentRelationType = DetectDocumentRelationType(upperText);
+
             // Detect block directives
             if (ContainsBlockDirective(upperText))
             {
@@ -61,9 +64,11 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
                     ActionType = ComplianceActionKind.Block,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
-                    Confidence = CalculateConfidence(upperText, BlockKeywords)
+                    Confidence = CalculateConfidence(upperText, BlockKeywords),
+                    DocumentRelationType = documentRelationType
                 };
                 ExtractActionDetails(upperText, blockAction);
+                ApplyEdgeCaseValidation(upperText, blockAction);
                 actions.Add(blockAction);
             }
 
@@ -75,9 +80,11 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
                     ActionType = ComplianceActionKind.Unblock,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
-                    Confidence = CalculateConfidence(upperText, UnblockKeywords)
+                    Confidence = CalculateConfidence(upperText, UnblockKeywords),
+                    DocumentRelationType = documentRelationType
                 };
                 ExtractActionDetails(upperText, unblockAction);
+                ApplyEdgeCaseValidation(upperText, unblockAction);
                 actions.Add(unblockAction);
             }
 
@@ -102,9 +109,11 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
                     ActionType = ComplianceActionKind.Transfer,
                     ExpedienteOrigen = expediente?.NumeroExpediente,
                     OficioOrigen = expediente?.NumeroOficio,
-                    Confidence = CalculateConfidence(upperText, TransferKeywords)
+                    Confidence = CalculateConfidence(upperText, TransferKeywords),
+                    DocumentRelationType = documentRelationType
                 };
                 ExtractActionDetails(upperText, transferAction);
+                ApplyEdgeCaseValidation(upperText, transferAction);
                 actions.Add(transferAction);
             }
 
@@ -221,37 +230,38 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             _logger.LogDebug("Mapping directive to compliance action: {Directive}", directiveText.Substring(0, Math.Min(100, directiveText.Length)));
 
             var upperText = directiveText.ToUpperInvariant();
-            ComplianceActionKind actionType;
-            int confidence;
 
-            if (ContainsBlockDirective(upperText))
+            // Use precedence-based classification to handle ambiguous documents
+            var actionType = DetermineActionTypeWithPrecedence(upperText);
+
+            // Calculate confidence based on detected action type
+            int confidence;
+            if (actionType == ComplianceActionKind.Block)
             {
-                actionType = ComplianceActionKind.Block;
                 confidence = CalculateConfidence(upperText, BlockKeywords);
             }
-            else if (ContainsUnblockDirective(upperText))
+            else if (actionType == ComplianceActionKind.Unblock)
             {
-                actionType = ComplianceActionKind.Unblock;
                 confidence = CalculateConfidence(upperText, UnblockKeywords);
             }
-            else if (ContainsDocumentDirective(upperText))
+            else if (actionType == ComplianceActionKind.Document)
             {
-                actionType = ComplianceActionKind.Document;
                 confidence = CalculateConfidence(upperText, DocumentKeywords);
             }
-            else if (ContainsTransferDirective(upperText))
+            else if (actionType == ComplianceActionKind.Transfer)
             {
-                actionType = ComplianceActionKind.Transfer;
                 confidence = CalculateConfidence(upperText, TransferKeywords);
             }
-            else if (ContainsInformationDirective(upperText))
+            else if (actionType == ComplianceActionKind.Information)
             {
-                actionType = ComplianceActionKind.Information;
                 confidence = CalculateConfidence(upperText, InformationKeywords);
+            }
+            else if (actionType == ComplianceActionKind.Unknown)
+            {
+                confidence = 30;
             }
             else
             {
-                actionType = ComplianceActionKind.Ignore;
                 confidence = 50;
             }
 
@@ -260,10 +270,12 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
                 ActionType = actionType,
                 ExpedienteOrigen = expediente?.NumeroExpediente,
                 OficioOrigen = expediente?.NumeroOficio,
-                Confidence = confidence
+                Confidence = confidence,
+                DocumentRelationType = DetectDocumentRelationType(upperText)
             };
 
             ExtractActionDetails(upperText, action);
+            ApplyEdgeCaseValidation(upperText, action);
 
             _logger.LogDebug("Mapped directive to {ActionType} with confidence {Confidence}%", actionType, confidence);
             return Task.FromResult(Result<ComplianceAction>.Success(action));
@@ -286,6 +298,98 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
     private static bool ContainsDocumentDirective(string text) => DocumentKeywords.Any(keyword => text.Contains(keyword));
     private static bool ContainsTransferDirective(string text) => TransferKeywords.Any(keyword => text.Contains(keyword));
     private static bool ContainsInformationDirective(string text) => InformationKeywords.Any(keyword => text.Contains(keyword));
+
+    /// <summary>
+    /// Determines the action type with precedence rules when multiple keywords are present.
+    /// Implements priority-based classification to handle ambiguous documents.
+    /// </summary>
+    /// <param name="text">The document text (already uppercased).</param>
+    /// <returns>The highest priority action type detected.</returns>
+    /// <remarks>
+    /// Priority order:
+    /// 1. Unblock (highest - e.g., "desbloquear el aseguramiento" is Unblock, not Block)
+    /// 2. Block, Transfer, Document (specific operations)
+    /// 3. Information (default for general requests)
+    /// 4. Unknown (flag for review)
+    /// </remarks>
+    private static ComplianceActionKind DetermineActionTypeWithPrecedence(string text)
+    {
+        // PRIORITY 1: Unblock takes precedence over Block
+        // Document saying "desbloquear el aseguramiento" is an Unblock, not a Block
+        if (ContainsUnblockDirective(text))
+        {
+            return ComplianceActionKind.Unblock;
+        }
+
+        // PRIORITY 2: Specific operations
+        if (ContainsBlockDirective(text))
+        {
+            return ComplianceActionKind.Block;
+        }
+
+        if (ContainsTransferDirective(text))
+        {
+            return ComplianceActionKind.Transfer;
+        }
+
+        if (ContainsDocumentDirective(text))
+        {
+            return ComplianceActionKind.Document;
+        }
+
+        // PRIORITY 3: Information request (default for general requests)
+        if (ContainsInformationDirective(text))
+        {
+            return ComplianceActionKind.Information;
+        }
+
+        // PRIORITY 4: Unknown (flag for review)
+        return ComplianceActionKind.Unknown;
+    }
+
+    /// <summary>
+    /// Detects the document relation type to determine how to process relative to existing requirements.
+    /// Helps avoid duplicate processing of reminders and properly link related documents.
+    /// </summary>
+    /// <param name="text">The document text (already uppercased).</param>
+    /// <returns>The detected document relation type.</returns>
+    private static DocumentRelationType DetectDocumentRelationType(string text)
+    {
+        // Check for Recordatorio (reminder) - do not duplicate processing
+        if (text.Contains("RECORDATORIO DEL OFICIO") ||
+            text.Contains("RECORDATORIO DE OFICIO") ||
+            text.Contains("RECORDATORIO AL OFICIO"))
+        {
+            return DocumentRelationType.Recordatorio;
+        }
+
+        // Check for Alcance (scope expansion) - create new record linked to original
+        if (text.Contains("ALCANCE AL OFICIO") ||
+            text.Contains("ALCANCE DE OFICIO") ||
+            text.Contains("ALCANCE DEL OFICIO") ||
+            text.Contains("AMPLÍA") ||
+            text.Contains("AMPLIA") ||
+            text.Contains("AMPLIACIÓN"))
+        {
+            return DocumentRelationType.Alcance;
+        }
+
+        // Check for Precisión (clarification) - update existing record
+        if (text.Contains("PRECISIÓN") ||
+            text.Contains("PRECISION") ||
+            text.Contains("ACLARA") ||
+            text.Contains("ACLARACIÓN") ||
+            text.Contains("ACLARACION") ||
+            text.Contains("CORRIGE") ||
+            text.Contains("CORRECCIÓN") ||
+            text.Contains("CORRECCION"))
+        {
+            return DocumentRelationType.Precision;
+        }
+
+        // Default: New requirement
+        return DocumentRelationType.NewRequirement;
+    }
 
     private static int CalculateConfidence(string text, string[] keywords)
     {
@@ -385,6 +489,63 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
         {
             action.ProductType = "CUENTA";
         }
+    }
+
+    /// <summary>
+    /// Applies edge case validation to detect potential issues requiring manual review.
+    /// Adds warnings and sets RequiresManualReview flag when edge cases are detected.
+    /// </summary>
+    /// <param name="text">The document text (already uppercased).</param>
+    /// <param name="action">The compliance action to validate.</param>
+    private static void ApplyEdgeCaseValidation(string text, ComplianceAction action)
+    {
+        // Edge Case 1: Transfer without CLABE (18-digit account)
+        if (action.ActionType == ComplianceActionKind.Transfer)
+        {
+            var clabePattern = new Regex(@"\b\d{18}\b");
+            if (!clabePattern.IsMatch(text))
+            {
+                action.Warnings.Add("Missing CLABE - Transferencia requires 18-digit CLABE account number");
+                action.RequiresManualReview = true;
+            }
+        }
+
+        // Edge Case 2: Unblock without prior order reference
+        if (action.ActionType == ComplianceActionKind.Unblock)
+        {
+            // Look for reference to prior order (oficio, expediente, etc.)
+            var hasPriorReference = text.Contains("OFICIO") ||
+                                   text.Contains("EXPEDIENTE") ||
+                                   text.Contains("ORDEN") ||
+                                   text.Contains("ANTERIOR");
+
+            if (!hasPriorReference)
+            {
+                action.Warnings.Add("Missing prior order reference - Desbloqueo should reference original blocking order");
+                action.RequiresManualReview = true;
+            }
+        }
+
+        // Edge Case 3: Block without account or amount
+        if (action.ActionType == ComplianceActionKind.Block)
+        {
+            if (string.IsNullOrWhiteSpace(action.AccountNumber) && !action.Amount.HasValue)
+            {
+                action.Warnings.Add("Missing account or amount - Aseguramiento should specify what to block");
+                action.RequiresManualReview = true;
+            }
+        }
+
+        // Edge Case 4: Low confidence threshold
+        if (action.Confidence < 70)
+        {
+            action.Warnings.Add($"Low classification confidence ({action.Confidence}%) - Review recommended");
+            action.RequiresManualReview = true;
+        }
+
+        // Edge Case 5: Multiple action types detected (ambiguous classification)
+        // This will be detected by the calling method since it creates multiple actions
+        // We'll handle this in Gap 2 with precedence rules
     }
 }
 

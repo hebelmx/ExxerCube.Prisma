@@ -1,6 +1,9 @@
 using IndFusion.Ember.Abstractions.Hubs;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.Database.Metrics;
+using ExxerCube.Prisma.Testing.Infrastructure.Logging;
+using System.Net.Http;
+using System.Reflection;
 
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
@@ -12,14 +15,17 @@ namespace ExxerCube.Prisma.Tests.EndToEnd;
 public class WebApplicationFactoryDependencyInjectionTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly TestWebApplicationFactory _factory;
+    private readonly ILogger<WebApplicationFactoryDependencyInjectionTests> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WebApplicationFactoryDependencyInjectionTests"/> class.
     /// </summary>
     /// <param name="factory">The web application factory.</param>
-    public WebApplicationFactoryDependencyInjectionTests(TestWebApplicationFactory factory)
+    /// <param name="output">xUnit output helper.</param>
+    public WebApplicationFactoryDependencyInjectionTests(TestWebApplicationFactory factory, ITestOutputHelper output)
     {
         _factory = factory;
+        _logger = XUnitLogger.CreateLogger<WebApplicationFactoryDependencyInjectionTests>(output);
     }
 
     /// <summary>
@@ -185,5 +191,142 @@ public class WebApplicationFactoryDependencyInjectionTests : IClassFixture<TestW
 
         var pdfMatcher = scopedProvider.GetService<IFieldMatcher<PdfSource>>();
         pdfMatcher.ShouldNotBeNull();
+    }
+
+    /// <summary>
+    /// Verifies that all hosted services resolve successfully (no scoped dependencies injected into singletons).
+    /// This catches issues like singleton hosted services depending on scoped hubs.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "E2E")]
+    [Trait("Category", "DI")]
+    [Trait("Category", "WebApplicationFactory")]
+    public void WebApplicationFactory_HostedServices_ShouldResolveWithoutScopeViolations()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        using var scope = _factory.Services.CreateScope();
+        var provider = scope.ServiceProvider;
+
+        // Act
+        var hostedServices = provider.GetServices<IHostedService>().ToList();
+
+        // Assert
+        hostedServices.ShouldNotBeNull();
+        hostedServices.ShouldNotBeEmpty("at least one hosted service is expected (e.g., SignalREventBroadcaster)");
+        hostedServices.ShouldAllBe(hs => hs != null, "hosted services should resolve without scope violations");
+    }
+
+    /// <summary>
+    /// Builds a provider with validation enabled to catch lifetime/missing registrations early.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "E2E")]
+    [Trait("Category", "DI")]
+    [Trait("Category", "WebApplicationFactory")]
+    public void WebApplicationFactory_ShouldValidateScopesAndBuild()
+    {
+        // Arrange
+        using var client = _factory.CreateClient();
+
+        var services = new ServiceCollection();
+        foreach (var sd in _factory.Services.GetRequiredService<IServiceCollection>())
+        {
+            services.Add(sd);
+        }
+
+        // Act
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateScopes = true,
+            ValidateOnBuild = true
+        });
+
+        provider.ShouldNotBeNull();
+    }
+
+    /// <summary>
+    /// Ensures named HttpClient registrations exist and have base addresses.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "E2E")]
+    [Trait("Category", "DI")]
+    [Trait("Category", "WebApplicationFactory")]
+    public void WebApplicationFactory_NamedHttpClients_ShouldBeRegistered()
+    {
+        using var client = _factory.CreateClient();
+
+        var factory = _factory.Services.GetRequiredService<IHttpClientFactory>();
+        factory.ShouldNotBeNull();
+
+        var apiClient = factory.CreateClient("api");
+        apiClient.ShouldNotBeNull();
+        apiClient.BaseAddress.ShouldNotBeNull("named client 'api' should have a BaseAddress");
+    }
+
+    /// <summary>
+    /// Ensures key options-bound configs can be read without exceptions, indicating bindings exist.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "E2E")]
+    [Trait("Category", "DI")]
+    [Trait("Category", "WebApplicationFactory")]
+    public void WebApplicationFactory_Options_ShouldBeBindable()
+    {
+        using var client = _factory.CreateClient();
+        using var scope = _factory.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+
+        var browserOptions = sp.GetRequiredService<IOptionsMonitor<BrowserAutomationOptions>>().CurrentValue;
+        browserOptions.ShouldNotBeNull();
+    }
+
+    /// <summary>
+    /// Flags any classes that inject HttpClient directly instead of using IHttpClientFactory.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "E2E")]
+    [Trait("Category", "DI")]
+    [Trait("Category", "WebApplicationFactory")]
+    public void WebApplicationFactory_ShouldNotInjectHttpClientDirectly()
+    {
+        var assemblies = new[]
+        {
+            typeof(ExxerCube.Prisma.Application.Services.DocumentIngestionService).Assembly,
+            typeof(ExxerCube.Prisma.Infrastructure.BrowserAutomation.PlaywrightBrowserAutomationAdapter).Assembly,
+            typeof(ExxerCube.Prisma.Web.UI.Program).Assembly
+        };
+
+        var offenders = new List<string>();
+
+        foreach (var asm in assemblies)
+        {
+            var types = asm.GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract && t.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Any());
+
+            foreach (var type in types)
+            {
+                var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var ctor in ctors)
+                {
+                    if (ctor.GetParameters().Any(p => p.ParameterType == typeof(HttpClient)))
+                    {
+                        offenders.Add(type.FullName ?? type.Name);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (offenders.Any())
+        {
+            foreach (var offender in offenders)
+            {
+                _logger.LogWarning("HttpClient injected directly in type: {Type}", offender);
+            }
+        }
+
+        offenders.ShouldBeEmpty("Services should inject IHttpClientFactory/typed clients, not raw HttpClient.");
     }
 }

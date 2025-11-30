@@ -59,6 +59,24 @@ public class ComplianceAction
     public int Confidence { get; set; }
 
     /// <summary>
+    /// Gets or sets the list of warnings detected during classification.
+    /// Used for flagging edge cases and potential issues requiring manual review.
+    /// </summary>
+    public List<string> Warnings { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets whether this action requires manual review.
+    /// Set to true when confidence is low, required data is missing, or edge cases are detected.
+    /// </summary>
+    public bool RequiresManualReview { get; set; }
+
+    /// <summary>
+    /// Gets or sets the document relation type (NewRequirement, Recordatorio, Alcance, Precisión).
+    /// Used to determine how to process the document in relation to existing requirements.
+    /// </summary>
+    public DocumentRelationType DocumentRelationType { get; set; } = DocumentRelationType.NewRequirement;
+
+    /// <summary>
     /// Legal basis for the preocedure
     /// </summary>
     public string LegalBasis { get; set; } = string.Empty;

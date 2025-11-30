@@ -245,6 +245,13 @@ internal static class NavigationRegistry
                     Match: NavLinkMatch.All,
                     Tags: new[] { "configuration", "administration" },
                     RequiredRoles: new[] { "Administrator" }),
+                new NavigationLink(
+                    "Demo Admin",
+                    "/demo-admin",
+                    Icons.Material.Filled.DeleteForever,
+                    "Demo database cleanup panel - HARD DELETES all demo data. ONLY for demo environments!",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "demo", "cleanup", "database", "administration" }),
             }),
     ];
 

@@ -5,42 +5,34 @@
 namespace ExxerCube.Prisma.Domain.Enum;
 
 /// <summary>
-/// Relationship type for follow-up documents per Article 5 of Disposiciones SIARA.
-/// Determines how to handle document in R29 reporting and workflow.
+/// Represents the relationship type of a document to previous requirements.
+/// Used to handle reminders, scope expansions, and clarifications without duplicating processing.
 /// </summary>
 public enum DocumentRelationType
 {
     /// <summary>
-    /// New requirement (standard case).
-    /// Creates new R29 record with new NumeroOficio.
+    /// Standard new requirement - process as new record.
     /// </summary>
     NewRequirement = 0,
 
     /// <summary>
-    /// Recordatorio - Reminder of previous request (Article 5).
-    /// Keyword: "recordatorio del oficio número..."
-    /// Does NOT create new R29 record.
-    /// Updates FechaSolicitud to reminder date.
-    /// Does NOT change response deadline.
+    /// Recordatorio - Reminder of previous request.
+    /// Do not duplicate processing, link to existing record.
+    /// Keywords: "RECORDATORIO DEL OFICIO"
     /// </summary>
     Recordatorio = 1,
 
     /// <summary>
-    /// Alcance - Scope expansion (Article 5).
-    /// Keywords: "alcance al oficio número...", "amplía información solicitada"
-    /// Creates NEW R29 record.
-    /// References original NumeroOficio.
-    /// May add accounts, extend date range, or add subjects.
+    /// Alcance - Scope expansion of previous requirement.
+    /// Create new record but link to original requirement.
+    /// Keywords: "ALCANCE AL OFICIO", "AMPLÍA"
     /// </summary>
     Alcance = 2,
 
     /// <summary>
-    /// Precisión - Clarification of ambiguous prior request (Article 5).
-    /// Keywords: "precisión", "aclara", "corrige"
-    /// Updates EXISTING R29 record.
-    /// Keeps original NumeroOficio.
-    /// Corrects subject names, account numbers, dates, etc.
-    /// Documents correction in notes.
+    /// Precisión - Clarification or correction of previous requirement.
+    /// Update existing record, do not create new one.
+    /// Keywords: "PRECISIÓN", "ACLARA", "CORRIGE"
     /// </summary>
-    Precision = 3,
+    Precision = 3
 }

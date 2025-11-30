@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExxerCube.Prisma.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(PrismaDbContext))]
-    partial class PrismaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130041433_SyncModelChangesForDemo")]
+    partial class SyncModelChangesForDemo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,7 +275,7 @@ namespace ExxerCube.Prisma.Infrastructure.Database.Migrations
                             DisplayName = "Solicitud de Información",
                             IsActive = true,
                             KeywordPattern = "solicita información|estados de cuenta",
-                            Name = "InformationRequest",
+                            Name = "Judicial",
                             Notes = "Art. 142 LIC - Judicial/Fiscal/Administrative information requests"
                         },
                         new

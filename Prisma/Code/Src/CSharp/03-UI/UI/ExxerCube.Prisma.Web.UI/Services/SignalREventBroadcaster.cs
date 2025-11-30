@@ -18,7 +18,7 @@ namespace ExxerCube.Prisma.Web.UI.Services;
 public class SignalREventBroadcaster : BackgroundService
 {
     private readonly IEventPublisher _eventPublisher;
-    private readonly IExxerHub<DomainEvent> _hub;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<SignalREventBroadcaster> _logger;
     private IDisposable? _subscription;
 
@@ -26,15 +26,15 @@ public class SignalREventBroadcaster : BackgroundService
     /// Initializes a new instance of the <see cref="SignalREventBroadcaster"/> class.
     /// </summary>
     /// <param name="eventPublisher">Event publisher to subscribe to.</param>
-    /// <param name="hub">Ember hub abstraction for broadcasting events.</param>
+    /// <param name="scopeFactory">Scope factory for resolving scoped hubs safely.</param>
     /// <param name="logger">Logger for diagnostics.</param>
     public SignalREventBroadcaster(
         IEventPublisher eventPublisher,
-        IExxerHub<DomainEvent> hub,
+        IServiceScopeFactory scopeFactory,
         ILogger<SignalREventBroadcaster> logger)
     {
         _eventPublisher = eventPublisher;
-        _hub = hub;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -70,8 +70,11 @@ public class SignalREventBroadcaster : BackgroundService
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task BroadcastEventAsync(DomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        // Use Ember's SendToAllAsync which returns Result<T> for Railway-Oriented Programming
-        var result = await _hub.SendToAllAsync(domainEvent, cancellationToken);
+        // Resolve hub in a scope to avoid singleton depending on scoped services
+        using var scope = _scopeFactory.CreateScope();
+        var hub = scope.ServiceProvider.GetRequiredService<IExxerHub<DomainEvent>>();
+
+        var result = await hub.SendToAllAsync(domainEvent, cancellationToken);
 
         if (result.IsSuccess)
         {

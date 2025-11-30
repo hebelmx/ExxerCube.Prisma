@@ -231,6 +231,9 @@ public class Program
         // Add Story 1.9 services: Audit Reporting
         services.AddScoped<AuditReportingService>();
 
+        // Add Demo Administration service (ONLY for demo environments - performs hard deletes!)
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DemoAdminService>();
+
         // Add SLA health checks
         services.AddHealthChecks()
             .AddCheck<SLAEnforcerHealthCheck>(

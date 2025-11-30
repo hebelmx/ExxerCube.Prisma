@@ -300,10 +300,10 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
         }
 
         var curp = value.ToUpperInvariant().Trim();
-        // Normalize to canonical 16-char base when extra checksum digits are present
-        if (curp.Length > 16)
+        // Cap at standard CURP length (18) to avoid noise, but keep full verifier when present.
+        if (curp.Length > 18)
         {
-            curp = curp[..16];
+            curp = curp[..18];
         }
         return curp;
     }
