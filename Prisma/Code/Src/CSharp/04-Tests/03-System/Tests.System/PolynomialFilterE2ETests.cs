@@ -385,6 +385,16 @@ public class PolynomialFilterE2ETests : IDisposable
         // Mandatory token presence check (proxy for required CNBV fields)
         AssertMandatoryTokens(polynomialText, documentId);
 
+        EmitTelemetry(
+            scenario: "PolynomialFilter",
+            qualityLevel,
+            filename,
+            baselineDistance,
+            polynomialDistance,
+            polynomialImprovementPercent,
+            ocrBaselineStopwatch.ElapsedMilliseconds,
+            polynomialOcrStopwatch.ElapsedMilliseconds);
+
         _logger.LogInformation("✅ TEST PASSED: Polynomial filter performance: {Percent:F2}% (within tolerance)", polynomialImprovementPercent);
         _logger.LogInformation("");
     }
@@ -402,5 +412,33 @@ public class PolynomialFilterE2ETests : IDisposable
             "Enhanced OCR must surface the FOLIO label");
         enhancedText.ShouldContain("FECHA", Case.Insensitive,
             "Enhanced OCR must surface the FECHA label");
+    }
+
+    /// <summary>
+    /// Emit structured telemetry for observability dashboards.
+    /// </summary>
+    private void EmitTelemetry(
+        string scenario,
+        string qualityLevel,
+        string filename,
+        int baselineDistance,
+        int enhancedDistance,
+        double improvementPercent,
+        long baselineMs,
+        long enhancedMs)
+    {
+        _logger.LogInformation(
+            "METRIC OCR_IMPROVEMENT {@Metric}",
+            new
+            {
+                Scenario = scenario,
+                QualityLevel = qualityLevel,
+                File = filename,
+                BaselineDistance = baselineDistance,
+                EnhancedDistance = enhancedDistance,
+                ImprovementPercent = improvementPercent,
+                BaselineMs = baselineMs,
+                EnhancedMs = enhancedMs
+            });
     }
 }

@@ -411,6 +411,16 @@ public class AnalyticalFilterE2ETests : IDisposable
         // Validate mandatory-token presence (proxy for required CNBV fields) in enhanced text
         AssertMandatoryTokens(enhancedText, documentId);
 
+        EmitTelemetry(
+            scenario: "AnalyticalFilter",
+            qualityLevel,
+            filename,
+            baselineDistance,
+            enhancedDistance,
+            improvementPercent,
+            baselineStopwatch.ElapsedMilliseconds,
+            enhancedStopwatch.ElapsedMilliseconds);
+
         _logger.LogInformation("✅ TEST PASSED: Analytical filter improved OCR quality by {Percent:F2}%", improvementPercent);
         _logger.LogInformation("");
     }
@@ -428,5 +438,33 @@ public class AnalyticalFilterE2ETests : IDisposable
             "Enhanced OCR must surface the FOLIO label");
         enhancedText.ShouldContain("FECHA", Case.Insensitive,
             "Enhanced OCR must surface the FECHA label");
+    }
+
+    /// <summary>
+    /// Emit structured telemetry for observability dashboards.
+    /// </summary>
+    private void EmitTelemetry(
+        string scenario,
+        string qualityLevel,
+        string filename,
+        int baselineDistance,
+        int enhancedDistance,
+        double improvementPercent,
+        long baselineMs,
+        long enhancedMs)
+    {
+        _logger.LogInformation(
+            "METRIC OCR_IMPROVEMENT {@Metric}",
+            new
+            {
+                Scenario = scenario,
+                QualityLevel = qualityLevel,
+                File = filename,
+                BaselineDistance = baselineDistance,
+                EnhancedDistance = enhancedDistance,
+                ImprovementPercent = improvementPercent,
+                BaselineMs = baselineMs,
+                EnhancedMs = enhancedMs
+            });
     }
 }
