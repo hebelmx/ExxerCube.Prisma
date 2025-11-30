@@ -1,0 +1,174 @@
+@page "/mission1"
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using ExxerCube.Prisma.Domain.Enum
+@using ExxerCube.Prisma.Domain.Events
+@inject IAuditLogger AuditLogger
+@inject ILogger<Mission1HappyPath> Logger
+
+<MudPaper Class="pa-6" Elevation="6" Style="background: linear-gradient(135deg, #0b1f3a, #122b52); color: #f2f6ff;">
+    <MudText Typo="Typo.h4" Class="mb-2">Mission 1 — Happy Path Telemetry</MudText>
+    <MudText Typo="Typo.subtitle1" Class="mb-6">
+        Track a single run end-to-end: ingestion → OCR → reconciliation → storage with correlation continuity.
+    </MudText>
+
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="8" md="6">
+            <MudTextField @bind-Value="_correlationId"
+                          Label="Correlation ID"
+                          Placeholder="Paste correlation id"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Link"
+                          Immediate="true"
+                          Class="w-100" />
+        </MudItem>
+        <MudItem xs="12" sm="4" md="3" Class="d-flex align-center">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="_loading"
+                       OnClick="LoadTelemetry">
+                @_buttonLabel
+            </MudButton>
+        </MudItem>
+    </MudGrid>
+
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4">@_error</MudAlert>
+    }
+
+    @if (_summary is not null)
+    {
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="3">
+                    <MudText Typo="Typo.h6">Correlation</MudText>
+                    <MudText Typo="Typo.subtitle2">@_summary.CorrelationId</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="3">
+                    <MudText Typo="Typo.h6">Audit Entries</MudText>
+                    <MudText Typo="Typo.h5">@_summary.AuditCount</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="3">
+                    <MudText Typo="Typo.h6">OCR Confidence</MudText>
+                    <MudText Typo="Typo.h5">@(_summary.OcrConfidence?.ToString("F1") ?? "—")%</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="3">
+                    <MudText Typo="Typo.h6">Reconcile Match</MudText>
+                    <MudText Typo="Typo.h5">@(_summary.MatchPercentage?.ToString("F1") ?? "—")%</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Class="pa-4 mt-4" Elevation="2">
+            <MudText Typo="Typo.h6">Audit Sequence</MudText>
+            <MudText Typo="Typo.subtitle2">@_summary.StageSequence</MudText>
+        </MudPaper>
+    }
+</MudPaper>
+
+@code {
+    private string _correlationId = string.Empty;
+    private bool _loading;
+    private string? _error;
+    private MissionSummary? _summary;
+
+    private string _buttonLabel => _loading ? "Loading..." : "Load Telemetry";
+
+    private readonly JsonSerializerOptions _options = new()
+    {
+        PropertyNamingPolicy = null,
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
+
+    private async Task LoadTelemetry()
+    {
+        _error = null;
+        _summary = null;
+
+        if (string.IsNullOrWhiteSpace(_correlationId))
+        {
+            _error = "Enter a correlation id to load telemetry.";
+            return;
+        }
+
+        _loading = true;
+        try
+        {
+            var result = await AuditLogger.GetAuditRecordsByCorrelationIdAsync(_correlationId, CancellationToken.None);
+            if (!result.IsSuccess || result.Value == null || result.Value.Count == 0)
+            {
+                _error = result.Error ?? "No audit records found for this correlation.";
+                return;
+            }
+                                                                   
+            var records = result.Value.OrderBy(r => r.Timestamp).ToList();
+            var ocrRecord = records.FirstOrDefault(r => r.Stage == ProcessingStage.Extraction);
+            var reconcileRecord = records.FirstOrDefault(r => r.Stage == ProcessingStage.DecisionLogic);
+
+            decimal? ocrConfidence = null;
+            if (!string.IsNullOrWhiteSpace(ocrRecord?.ActionDetails))
+            {
+                try
+                {
+                    var payload = JsonSerializer.Deserialize<OcrCompletedEvent>(ocrRecord.ActionDetails, _options);
+                    ocrConfidence = payload?.Confidence;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "Failed to parse OCR audit payload for correlation {CorrelationId}", _correlationId);
+                }
+            }
+
+            float? matchPercent = null;
+            if (!string.IsNullOrWhiteSpace(reconcileRecord?.ActionDetails))
+            {
+                try
+                {
+                    var payload = JsonSerializer.Deserialize<ReconcilePayload>(reconcileRecord.ActionDetails, _options);
+                    matchPercent = payload?.MatchPercentage;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "Failed to parse reconciliation payload for correlation {CorrelationId}", _correlationId);
+                }
+            }
+
+            var stageSequence = string.Join(" → ", records.Select(r => r.Stage.DisplayName));
+
+            _summary = new MissionSummary
+            {
+                CorrelationId = _correlationId,
+                AuditCount = records.Count,
+                OcrConfidence = ocrConfidence,
+                MatchPercentage = matchPercent,
+                StageSequence = stageSequence
+            };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private sealed class MissionSummary
+    {
+        public string CorrelationId { get; set; } = string.Empty;
+        public int AuditCount { get; set; }
+        public decimal? OcrConfidence { get; set; }
+        public float? MatchPercentage { get; set; }
+        public string StageSequence { get; set; } = string.Empty;
+    }
+
+    private sealed class ReconcilePayload
+    {
+        public float MatchPercentage { get; set; }
+    }
+}

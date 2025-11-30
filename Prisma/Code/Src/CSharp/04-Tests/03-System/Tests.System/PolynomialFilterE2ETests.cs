@@ -358,9 +358,9 @@ public class PolynomialFilterE2ETests : IDisposable
         _logger.LogInformation("╔══════════════════════════════════════════════════════════════════╗");
         _logger.LogInformation("║                        FINAL RESULTS                             ║");
         _logger.LogInformation("╠══════════════════════════════════════════════════════════════════╣");
-        _logger.LogInformation("║ Baseline Distance:    {Distance,8} edits                             ║", baselineDistance);
-        _logger.LogInformation("║ Polynomial Distance:  {Distance,8} edits                             ║", polynomialDistance);
-        _logger.LogInformation("║ Polynomial Improve:   {Improvement,8} edits ({Percent,6:F2}%)                  ║",
+        _logger.LogInformation("║ Baseline Distance:    {Distance,8} edits                         ║", baselineDistance);
+        _logger.LogInformation("║ Polynomial Distance:  {Distance,8} edits                         ║", polynomialDistance);
+        _logger.LogInformation("║ Polynomial Improve:   {Improvement,8} edits ({Percent,6:F2}%)    ║",
             polynomialImprovement, polynomialImprovementPercent);
         _logger.LogInformation("║                                                                  ║");
         _logger.LogInformation("║ Expected from validation:                                        ║");
@@ -392,7 +392,7 @@ public class PolynomialFilterE2ETests : IDisposable
             baselineDistance,
             polynomialDistance,
             polynomialImprovementPercent,
-            ocrBaselineStopwatch.ElapsedMilliseconds,
+            stopwatch.ElapsedMilliseconds,
             polynomialOcrStopwatch.ElapsedMilliseconds);
 
         _logger.LogInformation("✅ TEST PASSED: Polynomial filter performance: {Percent:F2}% (within tolerance)", polynomialImprovementPercent);

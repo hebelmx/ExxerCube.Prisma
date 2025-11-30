@@ -45,7 +45,8 @@
     <PropertyGroup>
       <!-- Use MSBuildProjectDirectory to get project root, then go up to find Python modules -->
       <_ProjectRoot>$(MSBuildProjectDirectory)</_ProjectRoot>
-      <_OcrModulesPath>$(_ProjectRoot)\..\..\Python\prisma-ocr-pipeline\src</_OcrModulesPath>
+      <!-- Use existing ocr_modules folder; fallback can be added if prisma-ocr-pipeline is introduced -->
+      <_OcrModulesPath>$(_ProjectRoot)\..\..\Python\ocr_modules</_OcrModulesPath>
       <_OcrModulesPathNormalized>$([System.IO.Path]::GetFullPath('$(_OcrModulesPath)'))</_OcrModulesPathNormalized>
     </PropertyGroup>
     <Message Text="Setting PYTHONPATH for CSnakes code generation..." Importance="normal" />
