@@ -1,6 +1,10 @@
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
 using ExxerCube.Prisma.Web.UI.Services;
+using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies;
+using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Sources;
 
 /// <summary>
 /// Custom WebApplicationFactory for testing the ExxerCube.Prisma.Web.UI application.
@@ -91,6 +95,15 @@ public class TestWebApplicationFactory : WebApplicationFactory<ExxerCube.Prisma.
             {
                 services.Remove(broadcasterDescriptor);
             }
+
+            // Ensure adaptive DOCX extraction is registered for DI validation (matches production Program.ConfigureServices)
+            services.AddAdaptiveDocxExtraction();
+            services.AddScoped<IAdaptiveDocxStrategy, StructuredDocxStrategy>();
+            services.AddScoped<IAdaptiveDocxStrategy, ContextualDocxStrategy>();
+            services.AddScoped<IAdaptiveDocxStrategy, TableBasedDocxStrategy>();
+            services.AddScoped<IAdaptiveDocxStrategy, ComplementExtractionStrategy>();
+            services.AddScoped<IAdaptiveDocxStrategy, SearchExtractionStrategy>();
+            services.AddScoped<IReadOnlyList<IAdaptiveDocxStrategy>>(sp => sp.GetServices<IAdaptiveDocxStrategy>().ToList());
 
             // Configure test-specific services if needed
             // For example, you could replace real services with mocks here

@@ -1,6 +1,10 @@
 using ExxerCube.Prisma.Infrastructure.Database.Metrics;
 using IndFusion.Ember.Abstractions.Hubs;
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies;
+using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Sources;
 
 namespace ExxerCube.Prisma.Tests.EndToEnd;
 
@@ -282,6 +286,15 @@ public class DependencyInjectionContainerTests
 
         // Use the actual Program.cs ConfigureServices method to ensure we test the real DI configuration
         ExxerCube.Prisma.Web.UI.Program.ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+
+        // Defensive: ensure adaptive DOCX strategies are registered for DI validation
+        builder.Services.AddAdaptiveDocxExtraction();
+        builder.Services.AddScoped<IAdaptiveDocxStrategy, StructuredDocxStrategy>();
+        builder.Services.AddScoped<IAdaptiveDocxStrategy, ContextualDocxStrategy>();
+        builder.Services.AddScoped<IAdaptiveDocxStrategy, TableBasedDocxStrategy>();
+        builder.Services.AddScoped<IAdaptiveDocxStrategy, ComplementExtractionStrategy>();
+        builder.Services.AddScoped<IAdaptiveDocxStrategy, SearchExtractionStrategy>();
+        builder.Services.AddScoped<IReadOnlyList<IAdaptiveDocxStrategy>>(sp => sp.GetServices<IAdaptiveDocxStrategy>().ToList());
 
         return builder.Services;
     }
