@@ -1,0 +1,1298 @@
+[
+    {
+        "source_file": "Fiscalias_Estatales.pdf",
+        "entidades": [
+            {
+                "nombre": "Fiscalía General del Estado de Aguascalientes Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Aguascalientes",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Baja California Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Baja California",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Campeche Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Campeche",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Chiapas Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Chiapas",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Chihuahua Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Chihuahua",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Coahuila Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Coahuila",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Colima Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Colima",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia de la CDMX Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Durango Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Durango",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de México Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Estado De México",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Guanajuato Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Guanajuato",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Guerrero Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Guerrero",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Jalisco Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Jalisco",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Michoacán Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Michoacán",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Morelos Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Morelos",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Nayarit Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Nayarit",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Nayarit Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Nayarit",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Oaxaca Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Oaxaca",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Puebla Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Puebla",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Querétaro Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Querétaro",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Quintana Roo Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Quintana Roo",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de San Luis Potosí Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "San Luis Potosí",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Sinaloa Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Sinaloa",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Sonora Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Sonora",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Tabasco Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Tabasco",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Tamaulipas Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Tamaulipas",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Veracruz Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Veracruz",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Yucatán Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Yucatán",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Zacatecas Dirección",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Zacatecas",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría Gener al de Justicia de Baja California Sur Dirección",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Baja California",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia de Hidalgo Dirección",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Hidalgo",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Tlaxcala Dirección",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Tlaxcala",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Aguascalientes",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Baja California",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia de Baja California Sur",
+                "type": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Campeche",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Chiapas",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Chihuahua",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Coahuila",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Colima",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia de la CDMX",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Durango",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de México",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Guanajuato",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Guerrero",
+                "type": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia de Hidalgo",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Jalisco",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Michoacán",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Morelos",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Nayarit",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Nayarit",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Oaxaca",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Puebla",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Querétaro",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Quintana Roo",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de San Luis Potosí",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Sinaloa",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Sonora",
+                "type": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Tabasco",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Tamaulipas",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Tlaxcala",
+                "tipo": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Veracruz",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Yucatán",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Zacatecas",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            }
+        ],
+        "stats": {
+            "raw_count": 64,
+            "unique_count": 64,
+            "methods_used": [
+                "regex",
+                "llama3:8b"
+            ]
+        }
+    },
+    {
+        "source_file": "UIF_Presentacion.pdf",
+        "entidades": [
+            {
+                "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO INTRODUCCIÓN Con el propósito de coadyuvar en la prevención a los delitos de Operaciones con Recursos de Procedencia Ilícita",
+                "tipo": "Secretaría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "Secretaría de Hacienda y Crédito Público, es la instancia central nacional para",
+                "tipo": "Secretaría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO cumplimiento técnico de las 40 Recomendaciones del GAFI y el nivel de efectividad del sistema de prevención de LD",
+                "tipo": "Secretaría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO",
+                "tipo": "Secretaría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO general es proveer un foro para que las UIF alrededor del mundo mejoren sus vínculos de cooperación en la lucha contra el LD",
+                "tipo": "Secretaría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO el nivel de cumplimiento de los países con respecto a las nuevas 40 Recomendaciones del GAFI, así como monitorear a los países que no cumplan cabalmente con éstas",
+                "tipo": "Secretaría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO Dominicana y México",
+                "tipo": "Secretaría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "SECRETARÍA DE HACIENDA Y CRÉDITO PÚBLICO con las Recomendaciones 5 a 8 del GAFI, así como aquellos factores que tengan incidencia en la evaluación de los Resultados Inmediatos 9, 10 y 11 de la Metodología de Evaluación",
+                "tipo": "Secretaría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "comisión de los s iguientes delitos previstos en el Código Penal Federal",
+                "tipo": "Comisión",
+                "jurisdiccion": "Federal",
+                "source": "regex"
+            },
+            {
+                "nombre": "comisión de tal delito o delitos a eludir las con secuencias jurídicas de sus acciones",
+                "tipo": "Comisión",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "Comisión Europea",
+                "tipo": "Comisión",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "pleno derecho del Grupo Egmont",
+                "tipo": "Pleno",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "pleno derecho desde el año 2000, y asumió la Presidencia de dicho Grupo por el periodo de julio de 2 010 a junio de 2011",
+                "tipo": "Pleno",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "pleno derecho del GAFILAT desde el año 2006 y ha ocupado la presidencia de este organismo en dos ocasiones, la primera en el año de 2008 -2009 y la segunda en el año 2014 -2015",
+                "tipo": "Pleno",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "Unidad de Inteligencia Financiera",
+                "tipo": "SECRETARÍA",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Grupo Egmont",
+                "tipo": "Consejo",
+                "source": "llm:llama3:8b"
+            }
+        ],
+        "stats": {
+            "raw_count": 21,
+            "unique_count": 16,
+            "methods_used": [
+                "regex",
+                "llama3:8b"
+            ]
+        }
+    },
+    {
+        "source_file": "Fiscalias_GOB_2018.pdf",
+        "entidades": [
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Aguascalientes Fiscalía General del Estado Aguascalientes Avenida Héroe de Nacozari esq",
+                "tipo": "Dirección",
+                "jurisdiccion": "Aguascalientes",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Campeche Fiscalía General del Estado Campeche Av",
+                "tipo": "Dirección",
+                "jurisdiccion": "Campeche",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Chihuahua Fiscalía General del Estado de Chihuahua Av",
+                "tipo": "Dirección",
+                "jurisdiccion": "Chihuahua",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Guanajuato Procuraduría General de Justicia del Estado de Guanajuato Complejo Miguel Hidalgo, camino a San José de Cervera",
+                "tipo": "Dirección",
+                "jurisdiccion": "Hidalgo",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Jalisco Fiscalía General del Estado de Jalisco Calle 14",
+                "tipo": "Dirección",
+                "jurisdiccion": "Jalisco",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Morelos Fiscalía General del Estado de Morelos Av",
+                "tipo": "Dirección",
+                "jurisdiccion": "Morelos",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Oaxaca Fiscalía General del Estado de Oaxaca Centro Administrativo del Poder Ejecutivo y Judicial, General Porfirio Díaz, Soldado de la Patria",
+                "tipo": "Dirección",
+                "jurisdiccion": "Oaxaca",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Quintana Roo Fiscalía General del Estado de Quintana Roo Av",
+                "tipo": "Dirección",
+                "jurisdiccion": "Quintana Roo",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Tabasco Fiscalía General del Estado de Tabasco Av",
+                "tipo": "Dirección",
+                "jurisdiccion": "Tabasco",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres Fiscalías Generales de Justicia Entidad Federativa Institución encargada de la línea Dirección completa Número telefónico de atención Servicios que se brindan Días y horarios de atención Veracruz Fiscalía General del Estado de Veracruz Circuito R afael Guisar y Valencia No",
+                "tipo": "Dirección",
+                "jurisdiccion": "Federal",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado Aguascalientes Avenida Héroe de Nacozari esq",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Aguascalientes",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado Campeche Av",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Campeche",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Chihuahua Av",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Chihuahua",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Guerrero Boulevard René Juárez Cisneros s",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Guerrero",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Jalisco Calle 14",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Jalisco",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Morelos Av",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Morelos",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Nayarit Av",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Nayarit",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Nuevo León Melchor Ocampo 470 Pte",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Nuevo León",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Oaxaca Centro Administrativo del Poder Ejecutivo y Judicial, General Porfirio Díaz, Soldado de la Patria",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Oaxaca",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Puebla Boulevard Hé roes del 5 de Mayo y 31 Oriente, Col",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Puebla",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Querétaro Autopista México - Querétaro No",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Querétaro",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Quintana Roo Av",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Quintana Roo",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de San Luis Potosí Eje Vial",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "San Luis Potosí",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Sinaloa Blvrd",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Sinaloa",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Sonora Calle Pedro Moreno",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Sonora",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Tabasco Av",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Tabasco",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Veracruz Circuito R afael Guisar y Valencia No",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Federal",
+                "source": "regex"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Yucatán Km",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Yucatán",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado Baja California Calzada de los Presidentes número 1199",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Baja California",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado Baja California Sur Boulevard Lic",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Baja California",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia de la Ciudad de México General Gabriel Hernández Núm",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Ciudad De México",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Guanajuato Complejo Miguel Hidalgo, camino a San José de Cervera",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Hidalgo",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Hidalgo Carretera México - Pachuca Km",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Hidalgo",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Michoacán Periférico República",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Michoacán",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Tamaulipas Carretera A",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Tamaulipas",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Tlaxcala Libramiento Poniente S",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Tlaxcala",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Zacatecas Circuito Zacatec as 401, Cd",
+                "tipo": "Procuraduría",
+                "jurisdiccion": "Federal",
+                "source": "regex"
+            },
+            {
+                "nombre": "Procuraduría General de la República Av",
+                "tipo": "Procuraduría",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECCIÓN GENERAL PARA UNA VIDA LIBRE DE VIOLENCIA Y PARA LA IGUALDAD POLÍTICA Y SOCIAL",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado Aguascalientes",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado Baja California",
+                "tipo": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado Baja California Sur",
+                "tipo": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado Campeche",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscal General del Estado de Coahuila",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscal General del Estado de Colima",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscal General del Estado de Chiapas",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Chihuahua",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia de la Ciudad de México",
+                "tipo": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscal General Estado de Durango",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Guanajuato",
+                "tipo": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Guerrero",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Hidalgo",
+                "tipo": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Jalisco",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscal General de Justicia del Estado de México",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Michoacán",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Dirección de Seguimiento a la Política Nacional para Combatir la Violencia contra las Mujeres",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalías Generales de Justicia",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Morelos",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Nayarit",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Nuevo León",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Oaxaca",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Puebla",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Querétaro",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Quintana Roo",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de San Luis Potosí",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Sinaloa",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General de Justicia del Estado de Sonora",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Tabasco",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Tamaulipas",
+                "tipo": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Procuraduría General de Justicia del Estado de Tlaxcala",
+                "tipo": "Procuraduría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Fiscalía General del Estado de Veracruz",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            }
+        ],
+        "stats": {
+            "raw_count": 75,
+            "unique_count": 71,
+            "methods_used": [
+                "regex",
+                "llama3:8b"
+            ]
+        }
+    },
+    {
+        "source_file": "FGR_Delegaciones.pdf",
+        "entidades": [
+            {
+                "nombre": "FISCALÍA GENERAL DE LA REPÚBLICA AGUASCALIENTES SEDE AGUASCALIENTES Domicilio",
+                "tipo": "Fiscalía",
+                "jurisdiccion": "Aguascalientes",
+                "source": "regex"
+            },
+            {
+                "nombre": "DIRECTORIO DE LAS DELEGACIONES DE LA FISCALÍA GENERAL DE LA REPÚBLICA",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "FISCALÍA GENERAL DE LA REPÚBLICA",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN MEXICALI",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN ENSENADA",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA TECATE",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "BAJA CALIFORNIA SUR SEDE LA PAZ",
+                "tipo": "Sede",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA CIUDAD CONSTITUCIÓN",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA CABO SAN LUCAS",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA SANTA ROSALÍA",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA LORETO",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "CAMPECHE SEDE CAMPECHE",
+                "tipo": "Sede",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Agencia Orientadora Escárcega",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN CIUDAD DEL CARMEN",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "CHIAPAS SEDE TUXTLA GUTIERREZ",
+                "tipo": "Sede",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA CINTALAPA",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN TAPACHULA",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA ARRIAGA",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN SAN CRISTÓBAL DE LAS CASAS",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA COMITAN",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA OCOSINGO",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA PALENQUE",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA PICHUCALCO",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "CHIHUAHUA SEDE CIUDAD JUAREZ",
+                "tipo": "Sede Ciudad Juárez",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN CHIHUAHUA",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA DELICIAS",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN HIDALGO DEL PARRAL",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA CIUDAD CUAUHTÉMOC",
+                "tipo": "Agencia Orientadora",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "CIUDAD DE MÉXICO SEDE CIUDAD DE MÉXICO",
+                "tipo": "Sede Ciudad de México",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "ZONA CENTRO CIUDAD DE MÉXICO",
+                "tipo": "Zona Centro",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AEROPUERTO (AICM)",
+                "tipo": "Aeropuerto",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "IZTAPALAPA",
+                "tipo": "Iztapalapa",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "ÁLVARO OBREGÓN",
+                "tipo": "Alvaro Obregón",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Secretaría",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "Dirección",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA TLALNEPANTLA",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA ECATEPEC",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SEDE LEÓN",
+                "tipo": "Sede",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA GUANAJUATO",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA CELAYA",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA SALAMANCA",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA IRAPUATO",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA SAN MIGUEL ALLENDE",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SEDE CHILPANCINGO",
+                "tipo": "Sede",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN CHILPANCINGO",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SUBDELEGACIÓN ACAPULCO",
+                "tipo": "Subdelegación",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA IGUALA",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA CIUDAD ALTAMIRANO",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA ZIHUATANEJO",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SEDE PACHUCA DE SOTO",
+                "tipo": "Sede",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA TULA DE ALLENDE",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "AGENCIA ORIENTADORA TULANCINGO DE BRAVO",
+                "tipo": "Dirección",
+                "source": "llm:llama3:8b"
+            }
+        ],
+        "stats": {
+            "raw_count": 60,
+            "unique_count": 52,
+            "methods_used": [
+                "regex",
+                "llama3:8b"
+            ]
+        }
+    },
+    {
+        "source_file": "SAT_Organigrama.pdf",
+        "entidades": [
+            {
+                "nombre": "COMISIÓN NACIONAL DE HONOR Y JUSTICIA",
+                "tipo": "Comisión",
+                "jurisdiccion": null,
+                "source": "regex"
+            },
+            {
+                "nombre": "SECRETARIA GENERAL",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE ORGANIZACIÓN",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE COMUNICACIÓN",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE PREVISIÓN SOCIAL",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE SERVICIOS SOCIALES",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE DESARROLLO DE LA MUJER",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE VIVIENDA",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE PROM. Y CAPAC. ADMVA. TEC Y PROF.",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE PROMOCIÓN Y FOMENTO DE BECAS",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE PENSIONES Y JUBILACIONES",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE PRESTACIONES ECONÓMICAS",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE SERVICIO CIVIL Y FISCAL DE CARRERA",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE PATRIMONIO SINDICAL",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE CAPACITACIÓN POLÍTICA Y SINDICAL",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE ACCIÓN POLÍTICA Y DIVULGACIÓN IDEOLÓGICA",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE ACTAS Y ACUERDOS",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE PROMOCIÓN CULTURAL TURISTICA Y RECREATIVA",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE FOMENTO DEPORTIVO",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE FINANZAS",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "SECRETARIA DE TRABAJO Y CONFLICTOS",
+                "tipo": "Secretaría",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "COMITÉS Y COMISIONES NACIONALES",
+                "tipo": "Comités y Comisiones",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "COMITÉ EJECUTIVO NACIONAL",
+                "tipo": "Comité",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "COMITÉ NACIONAL DE VIGILANCIA",
+                "tipo": "Comité",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "COMITÉ TÉCNICO DE ENTIDADES ECONÓMICAS",
+                "tipo": "Comité",
+                "source": "llm:llama3:8b"
+            },
+            {
+                "nombre": "HONORABLE COMISIÓN NACIONAL DE HONOR Y JUSTICIA",
+                "tipo": "Fiscalía",
+                "source": "llm:llama3:8b"
+            }
+        ],
+        "stats": {
+            "raw_count": 26,
+            "unique_count": 26,
+            "methods_used": [
+                "regex",
+                "llama3:8b"
+            ]
+        }
+    }
+]
