@@ -1,6 +1,6 @@
 using ExxerCube.Prisma.Domain.Enums;
 
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
 /// PDF field extractor implementation with OCR fallback using existing OCR pipeline.

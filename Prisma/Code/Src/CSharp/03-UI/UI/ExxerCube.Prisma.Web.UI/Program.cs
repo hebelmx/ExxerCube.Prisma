@@ -14,11 +14,6 @@ using ExxerCube.Prisma.Infrastructure.Imaging;
 using IndFusion.Ember.Abstractions.Hubs;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Extraction.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection;
-using IndFusion.Ember.Extensions;
-using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
-using ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection;
 
 namespace ExxerCube.Prisma.Web.UI;
 
@@ -220,10 +215,6 @@ public class Program
         services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.Factories.ISpecificationFactory,
             ExxerCube.Prisma.Infrastructure.Database.Factories.SpecificationFactory>();
 
-        // Add Story 1.2 services: Extraction, Classification, and Metadata Extraction
-        services.AddExtractionServices();
-        // Ensure adaptive DOCX strategies are registered for DI validation in all environments
-        services.AddAdaptiveDocxExtraction();
         services.AddClassificationServices(configuration);
         services.AddScoped<MetadataExtractionService>();
 

@@ -1,9 +1,7 @@
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using ExxerCube.Prisma.Domain.Enums;
-using ExxerCube.Prisma.Domain.Enum;
 
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
 /// XML field extractor implementation for CNBV/PRP1 fixtures.

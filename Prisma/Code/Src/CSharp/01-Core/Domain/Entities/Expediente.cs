@@ -144,6 +144,41 @@ public class Expediente
     public DateTime FechaEstimadaConclusion { get; set; }
 
     /// <summary>
+    /// CNBV law-mandated fields for R29 compliance.
+    /// Nullable until CNBV XML schema includes these fields, bank systems provide data,
+    /// or manual enrichment occurs.
+    /// </summary>
+    /// <remarks>
+    /// Source: Laws/MandatoryFields_CNBV.md, DATA_MODEL.md Sections 2.1-2.4
+    /// Contains fields required by law but not yet in XML samples (will be null initially).
+    /// Expediente is the ubiquitous language - natural place for case data (DDD).
+    /// </remarks>
+    public LawMandatedFields? LawMandatedFields { get; set; }
+
+    /// <summary>
+    /// Semantic analysis of legal directive - the "5 Situations".
+    /// Describes WHAT the case requires (bloqueo, desbloqueo, documentación, etc.).
+    /// Nullable until semantic analysis is performed by classification engine.
+    /// </summary>
+    /// <remarks>
+    /// Source: DATA_MODEL.md Section 2.5
+    /// This is a DOMAIN field (what the case requires) computed by infrastructure.
+    /// Once computed, it becomes a fact about the expediente.
+    /// </remarks>
+    public SemanticAnalysis? SemanticAnalysis { get; set; }
+
+    /// <summary>
+    /// Captures any XML fields not recognized by current schema.
+    /// Future-proofing for CNBV schema evolution - ensures zero data loss.
+    /// </summary>
+    /// <remarks>
+    /// When CNBV adds new fields to XML, they are captured here automatically.
+    /// Extractor logs warnings for unknown fields but preserves data.
+    /// Defensive intelligence pattern.
+    /// </remarks>
+    public Dictionary<string, string> AdditionalFields { get; set; } = new();
+
+    /// <summary>
     /// Validation state for required fields.
     /// </summary>
     public ValidationState Validation { get; } = new();

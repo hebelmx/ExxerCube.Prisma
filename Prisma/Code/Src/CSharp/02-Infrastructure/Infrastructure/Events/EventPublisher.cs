@@ -2,10 +2,6 @@
 // Copyright (c) Exxerpro Solutions SA de CV. All rights reserved.
 // </copyright>
 
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ExxerCube.Prisma.Domain.Events;
-
 namespace ExxerCube.Prisma.Infrastructure.Events;
 
 /// <summary>

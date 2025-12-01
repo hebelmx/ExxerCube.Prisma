@@ -1,9 +1,4 @@
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
-using FuzzySharp;
-
-namespace ExxerCube.Prisma.Infrastructure.Extraction;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 
 /// <summary>
 /// Service for comparing extracted data from different sources (XML vs OCR).

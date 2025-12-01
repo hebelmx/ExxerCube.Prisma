@@ -1,10 +1,4 @@
-using PDFtoImage;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SkiaSharp;
-using Tesseract;
-
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
 /// Tesseract OCR implementation of IOcrExecutor.

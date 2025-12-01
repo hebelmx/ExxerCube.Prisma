@@ -1,6 +1,7 @@
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Extraction;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Testing.Infrastructure;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;

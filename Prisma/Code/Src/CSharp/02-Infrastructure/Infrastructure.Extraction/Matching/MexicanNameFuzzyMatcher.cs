@@ -1,10 +1,8 @@
-using FuzzySharp;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Collections.Generic;
 
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Matching;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching;
 
 /// <summary>
 /// Fuzzy matcher specifically for Mexican names with common variations.

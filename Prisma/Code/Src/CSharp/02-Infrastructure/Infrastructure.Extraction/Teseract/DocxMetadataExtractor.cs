@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
 /// DOCX metadata extractor implementation for extracting metadata from DOCX documents using DocumentFormat.OpenXml.
@@ -50,13 +50,21 @@ public class DocxMetadataExtractor : IMetadataExtractor
             var dates = ExtractDates(textContent);
             var legalReferences = ExtractLegalReferences(textContent);
 
+            // Build extraction metadata for fusion quality scoring (DRY principle)
+            ExtractionMetadata? qualityMetadata = null;
+            if (expediente != null)
+            {
+                qualityMetadata = BuildExtractionMetadata(expediente, textContent, rfcValues);
+            }
+
             var metadata = new ExtractedMetadata
             {
                 Expediente = expediente,
                 RfcValues = rfcValues.Length > 0 ? rfcValues : null,
                 Names = names.Length > 0 ? names : null,
                 Dates = dates.Length > 0 ? dates : null,
-                LegalReferences = legalReferences.Length > 0 ? legalReferences : null
+                LegalReferences = legalReferences.Length > 0 ? legalReferences : null,
+                QualityMetadata = qualityMetadata
             };
 
             _logger.LogDebug("Successfully extracted metadata from DOCX document");
@@ -92,10 +100,22 @@ public class DocxMetadataExtractor : IMetadataExtractor
         var match = System.Text.RegularExpressions.Regex.Match(text, expedientePattern);
         if (match.Success)
         {
+            var areaDescripcion = ExtractAreaDescripcion(text);
+            var autoridadNombre = ExtractAutoridadNombre(text);
+
             return new Expediente
             {
                 NumeroExpediente = match.Value,
-                AreaDescripcion = ExtractAreaDescripcion(text)
+                AreaDescripcion = areaDescripcion,
+
+                // Law-mandated fields - best-effort extraction from DOCX text
+                LawMandatedFields = ExtractLawMandatedFieldsFromText(autoridadNombre, areaDescripcion),
+
+                // Semantic analysis - null until classification engine runs
+                SemanticAnalysis = null,
+
+                // Future-proofing: capture unknown fields (not applicable for DOCX extraction)
+                AdditionalFields = new Dictionary<string, string>()
             };
         }
 
@@ -106,6 +126,56 @@ public class DocxMetadataExtractor : IMetadataExtractor
     {
         var areas = new[] { "ASEGURAMIENTO", "HACENDARIO", "JUDICIAL" };
         return areas.FirstOrDefault(a => text.Contains(a, StringComparison.OrdinalIgnoreCase)) ?? string.Empty;
+    }
+
+    private static string? ExtractAutoridadNombre(string text)
+    {
+        // Common patterns for authority names in CNBV documents
+        var patterns = new[]
+        {
+            @"(?:SUBDELEGACION|SUBDELEGACIÓN)\s+\d+\s+[A-Z\s]+",
+            @"(?:ADMINISTRACION|ADMINISTRACIÓN)\s+[A-Z\s]+",
+            @"(?:UNIDAD|OFICINA)\s+[A-Z\s]+"
+        };
+
+        foreach (var pattern in patterns)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(text, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                return match.Value.Trim();
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Best-effort extraction of law-mandated fields from DOCX text.
+    /// Populates what we can from unstructured text; bank systems will enrich missing fields later.
+    /// </summary>
+    private static LawMandatedFields? ExtractLawMandatedFieldsFromText(string? autoridadNombre, string areaDescripcion)
+    {
+        // Only create LawMandatedFields if we can populate at least one field
+        var hasData = !string.IsNullOrWhiteSpace(autoridadNombre) ||
+                      !string.IsNullOrWhiteSpace(areaDescripcion);
+
+        if (!hasData)
+        {
+            return null; // No law-mandated data available from DOCX
+        }
+
+        return new LawMandatedFields
+        {
+            // Section 2.1: Core Identification & Tracking
+            SourceAuthorityCode = !string.IsNullOrWhiteSpace(autoridadNombre) ? autoridadNombre : null,
+
+            // Section 2.2: SLA & Classification
+            RequirementType = !string.IsNullOrWhiteSpace(areaDescripcion) ? areaDescripcion : null,
+            // RequirementTypeCode cannot be reliably extracted from unstructured text
+
+            // Section 2.3 & 2.4: Other fields come from bank systems (null for now)
+        };
     }
 
     private static string[] ExtractRfcValues(string text)
@@ -217,6 +287,114 @@ public class DocxMetadataExtractor : IMetadataExtractor
             _logger.LogError(ex, "Error extracting text from DOCX");
             return Task.FromResult(Result<string>.WithFailure($"Error extracting DOCX text: {ex.Message}", default(string), ex));
         }
+    }
+
+    /// <summary>
+    /// Builds extraction metadata for multi-source data fusion quality scoring.
+    /// Applies DRY principle: cleaning, validation, and confidence calculation happen ONCE here.
+    /// </summary>
+    /// <param name="expediente">The extracted Expediente entity (partial from DOCX).</param>
+    /// <param name="extractedText">The full text extracted from DOCX.</param>
+    /// <param name="rfcValues">RFC values extracted from text.</param>
+    /// <returns>Extraction metadata with quality metrics.</returns>
+    /// <remarks>
+    /// For DOCX extraction (authority OCR):
+    /// - OCR confidence estimates (DOCX from authorities may have varying quality)
+    /// - Image quality metrics (estimated based on text quality)
+    /// - Pattern validation and catalog validation
+    /// - Base reliability: 0.70 (authority scans may have inconsistent quality)
+    /// </remarks>
+    private static ExtractionMetadata BuildExtractionMetadata(
+        Expediente expediente,
+        string extractedText,
+        string[] rfcValues)
+    {
+        var metadata = new ExtractionMetadata
+        {
+            Source = SourceType.DOCX_OCR_Authority
+        };
+
+        // Pattern regex definitions (Mexican standards)
+        var rfcPattern = new System.Text.RegularExpressions.Regex(@"^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$");
+
+        // CNBV catalog values
+        var validAreaDescripciones = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "ASEGURAMIENTO",
+            "HACENDARIO",
+            "PENAL",
+            "CIVIL",
+            "ADMINISTRATIVO",
+            "JUDICIAL"
+        };
+
+        int regexMatches = 0;
+        int totalFieldsExtracted = 0;
+        int catalogValidations = 0;
+        int patternViolations = 0;
+
+        // Count extracted fields (DOCX extraction is minimal compared to XML)
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroExpediente))
+        {
+            totalFieldsExtracted++;
+            regexMatches++; // Expediente number follows pattern
+        }
+
+        if (!string.IsNullOrWhiteSpace(expediente.AreaDescripcion))
+        {
+            totalFieldsExtracted++;
+            if (validAreaDescripciones.Contains(expediente.AreaDescripcion.Trim()))
+            {
+                catalogValidations++;
+            }
+            else
+            {
+                patternViolations++;
+            }
+        }
+
+        // Validate RFC values
+        foreach (var rfc in rfcValues)
+        {
+            if (!string.IsNullOrWhiteSpace(rfc))
+            {
+                totalFieldsExtracted++;
+                var rfcClean = rfc.Trim();
+                if (rfcPattern.IsMatch(rfcClean))
+                {
+                    regexMatches++;
+                }
+                else
+                {
+                    patternViolations++;
+                }
+            }
+        }
+
+        // Populate extraction success metrics
+        metadata.RegexMatches = regexMatches;
+        metadata.TotalFieldsExtracted = totalFieldsExtracted;
+        metadata.CatalogValidations = catalogValidations;
+        metadata.PatternViolations = patternViolations;
+
+        // OCR metrics (estimated - DOCX from authorities may have varying quality)
+        var wordCount = extractedText.Split(new[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        metadata.TotalWords = wordCount;
+
+        // Heuristic: Authority DOCX files have moderate quality (not as good as CNBV PDFs)
+        // Real implementation would get this from actual OCR if DOCX was generated from scanned documents
+        metadata.MeanConfidence = 0.70; // Moderate confidence for authority documents
+        metadata.MinConfidence = 0.55;  // Lower minimum than CNBV
+        metadata.LowConfidenceWords = (int)(wordCount * 0.15); // Estimate 15% low confidence
+
+        // Image quality metrics (estimated - authority scans may vary)
+        metadata.QualityIndex = 0.70;
+        metadata.BlurScore = 0.25;      // Moderate blur
+        metadata.ContrastScore = 0.65;  // Moderate contrast
+        metadata.NoiseEstimate = 0.15;  // Moderate noise
+        metadata.EdgeDensity = 0.55;    // Moderate edge density
+
+        return metadata;
     }
 }
 

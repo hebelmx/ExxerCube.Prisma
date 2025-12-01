@@ -8,7 +8,8 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- NU1902: OpenTelemetry.Api vulnerability (transitive dependency, documented in SECURITY_SUPPRESSIONS.md) -->
-    <NoWarn>$(NoWarn);NU1902</NoWarn>
+    <!-- CS8602, CS8604, CS8315: Nullable reference warnings (Shouldly has null checks) -->
+    <NoWarn>$(NoWarn);NU1902;CS8602;CS8604;CS0815</NoWarn>
     <WarningsNotAsErrors>NU1903;NU1902;IQR002</WarningsNotAsErrors>
     <WarningsAsErrors />
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
@@ -67,7 +68,6 @@
     <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
     <ProjectReference Include="..\..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\..\05-Testing\01-Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\05-Testing\01-Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\05-Testing\01-Abstractions\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">

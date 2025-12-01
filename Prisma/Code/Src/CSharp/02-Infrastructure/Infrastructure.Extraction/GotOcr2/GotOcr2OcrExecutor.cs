@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Infrastructure.Extraction.GotOcr2;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.GotOcr2;
 
 /// <summary>
 /// GOT-OCR2 implementation of IOcrExecutor using CSnakes Python interop.

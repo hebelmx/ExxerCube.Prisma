@@ -6,13 +6,13 @@ namespace ExxerCube.Prisma.Infrastructure.DependencyInjection;
 /// </summary>
 public sealed class OcrProcessingServiceAdapter : IOcrProcessingService
 {
-    private readonly OcrProcessingService _ocrProcessingService;
+    private readonly IOcrProcessingService _ocrProcessingService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OcrProcessingServiceAdapter"/> class.
     /// </summary>
     /// <param name="ocrProcessingService">The Application OCR processing service to delegate to.</param>
-    public OcrProcessingServiceAdapter(OcrProcessingService ocrProcessingService)
+    public OcrProcessingServiceAdapter(IOcrProcessingService ocrProcessingService)
     {
         _ocrProcessingService = ocrProcessingService;
     }

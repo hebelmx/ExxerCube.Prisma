@@ -28,7 +28,11 @@ public static class ServiceCollectionExtensions
         
         // Register legal directive classifier service
         services.AddScoped<ILegalDirectiveClassifier, LegalDirectiveClassifierService>();
-        
+
+        // Register data fusion services
+        services.AddScoped<IFusionExpediente, FusionExpedienteService>();
+        services.AddScoped<IExpedienteClasifier, ExpedienteClasifierService>();
+
         // Register matching policy options from configuration
         if (configuration != null)
         {

@@ -1,9 +1,4 @@
-using System;
-using System.Linq;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
-
-namespace ExxerCube.Prisma.Infrastructure.Extraction;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 
 /// <summary>
 /// Helper to sanitize common OCR-extracted financial identifiers (account/SWIFT) while preserving raw text.

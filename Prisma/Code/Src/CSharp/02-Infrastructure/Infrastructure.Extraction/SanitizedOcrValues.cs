@@ -1,6 +1,4 @@
-using ExxerCube.Prisma.Domain.Models;
-
-namespace ExxerCube.Prisma.Infrastructure.Extraction;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 
 /// <summary>
 /// Captures raw OCR text plus sanitized account and SWIFT values.

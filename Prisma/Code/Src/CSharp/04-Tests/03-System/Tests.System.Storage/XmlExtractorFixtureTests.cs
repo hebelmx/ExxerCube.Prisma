@@ -1,8 +1,9 @@
 using System.Text;
 using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Sources;
-using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 using ExxerCube.Prisma.Infrastructure.Extraction;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 namespace ExxerCube.Prisma.Tests.System.XmlExtraction;
 
@@ -176,7 +177,7 @@ public class XmlExtractorFixtureTests(ITestOutputHelper output)
             ["RfcList"] = "BBB222"
         };
 
-        var merge = ExxerCube.Prisma.Infrastructure.Extraction.AdditionalFieldsReconciler.Merge(xml, ocr);
+        var merge = AdditionalFieldsReconciler.Merge(xml, ocr);
 
         merge.Merged["Subdivision"].ShouldBe("Aseguramiento"); // XML wins
         merge.Merged["CuentasRaw"].ShouldBe("1234"); // Same value, no conflict

@@ -28,13 +28,13 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="System.Reactive" />
     <PackageReference Include="IndQuestResults" />
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\..\01-Core\Application\ExxerCube.Prisma.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
+    <!-- Infrastructure orchestration: Reference all infrastructure projects for DI composition -->
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Generated\CSnakes.SourceGeneration\CSnakes.PythonStaticGenerator\" />

@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
 /// Composite metadata extractor that delegates to the appropriate format-specific extractor.

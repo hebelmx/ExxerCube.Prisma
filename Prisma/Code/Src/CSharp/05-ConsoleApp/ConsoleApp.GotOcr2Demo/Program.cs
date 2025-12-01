@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.GotOcr2;
 using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.ConsoleApp.GotOcr2Demo;

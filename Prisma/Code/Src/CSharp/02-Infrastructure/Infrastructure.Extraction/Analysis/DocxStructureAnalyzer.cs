@@ -1,9 +1,4 @@
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using ExxerCube.Prisma.Domain.Enums;
-using ExxerCube.Prisma.Domain.Models;
-
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Analysis;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Analysis;
 
 /// <summary>
 /// Analyzes DOCX documents to infer structure and recommend an extraction strategy.

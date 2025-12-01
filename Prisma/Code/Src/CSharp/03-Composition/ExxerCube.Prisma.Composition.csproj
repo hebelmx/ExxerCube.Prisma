@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- "Target framework centrally manged do not add another here"  -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Core -->
+    <ProjectReference Include="..\01-Core\Application\ExxerCube.Prisma.Application.csproj" />
+    <!-- Infrastructure Projects -->
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure.Extraction.Adaptive\ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.csproj" />
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
+    <ProjectReference Include="..\02-Infrastructure\Infrastructure.Export.Adaptive\ExxerCube.Prisma.Infrastructure.Export.Adaptive.csproj" />
+  </ItemGroup>
+</Project>

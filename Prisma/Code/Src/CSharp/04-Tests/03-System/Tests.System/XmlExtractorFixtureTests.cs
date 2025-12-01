@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 using Microsoft.CodeCoverage.Core.Reports.Coverage;
 
 namespace ExxerCube.Prisma.Tests.System;

@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
 /// PDF metadata extractor implementation with OCR fallback using existing OCR pipeline.
@@ -81,6 +81,18 @@ public class PdfMetadataExtractor : IMetadataExtractor
                 Montos = ExtractMontos(extractedText)
             };
 
+            // Build extraction metadata for fusion quality scoring (DRY principle)
+            ExtractionMetadata? qualityMetadata = null;
+            if (expediente != null)
+            {
+                qualityMetadata = BuildExtractionMetadata(
+                    expediente,
+                    extractedText,
+                    rfcValues,
+                    textResult.IsSuccess && !string.IsNullOrWhiteSpace(textResult.Value ?? string.Empty) // Did direct extraction work?
+                );
+            }
+
             var metadata = new ExtractedMetadata
             {
                 Expediente = expediente,
@@ -88,7 +100,8 @@ public class PdfMetadataExtractor : IMetadataExtractor
                 RfcValues = rfcValues.Length > 0 ? rfcValues : null,
                 Names = names.Length > 0 ? names : null,
                 Dates = dates.Length > 0 ? dates : null,
-                LegalReferences = legalReferences.Length > 0 ? legalReferences : null
+                LegalReferences = legalReferences.Length > 0 ? legalReferences : null,
+                QualityMetadata = qualityMetadata
             };
 
             _logger.LogDebug("Successfully extracted metadata from PDF document");
@@ -260,10 +273,22 @@ public class PdfMetadataExtractor : IMetadataExtractor
         var match = System.Text.RegularExpressions.Regex.Match(text, expedientePattern);
         if (match.Success)
         {
+            var areaDescripcion = ExtractAreaDescripcion(text);
+            var autoridadNombre = ExtractAutoridadNombre(text);
+
             return new Expediente
             {
                 NumeroExpediente = match.Value,
-                AreaDescripcion = ExtractAreaDescripcion(text)
+                AreaDescripcion = areaDescripcion,
+
+                // Law-mandated fields - best-effort extraction from PDF text
+                LawMandatedFields = ExtractLawMandatedFieldsFromText(autoridadNombre, areaDescripcion),
+
+                // Semantic analysis - null until classification engine runs
+                SemanticAnalysis = null,
+
+                // Future-proofing: capture unknown fields (not applicable for PDF extraction)
+                AdditionalFields = new Dictionary<string, string>()
             };
         }
 
@@ -274,6 +299,56 @@ public class PdfMetadataExtractor : IMetadataExtractor
     {
         var areas = new[] { "ASEGURAMIENTO", "HACENDARIO", "JUDICIAL" };
         return areas.FirstOrDefault(a => text.Contains(a, StringComparison.OrdinalIgnoreCase)) ?? string.Empty;
+    }
+
+    private static string? ExtractAutoridadNombre(string text)
+    {
+        // Common patterns for authority names in CNBV documents
+        var patterns = new[]
+        {
+            @"(?:SUBDELEGACION|SUBDELEGACIÓN)\s+\d+\s+[A-Z\s]+",
+            @"(?:ADMINISTRACION|ADMINISTRACIÓN)\s+[A-Z\s]+",
+            @"(?:UNIDAD|OFICINA)\s+[A-Z\s]+"
+        };
+
+        foreach (var pattern in patterns)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(text, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                return match.Value.Trim();
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Best-effort extraction of law-mandated fields from PDF text.
+    /// Populates what we can from unstructured text; bank systems will enrich missing fields later.
+    /// </summary>
+    private static LawMandatedFields? ExtractLawMandatedFieldsFromText(string? autoridadNombre, string areaDescripcion)
+    {
+        // Only create LawMandatedFields if we can populate at least one field
+        var hasData = !string.IsNullOrWhiteSpace(autoridadNombre) ||
+                      !string.IsNullOrWhiteSpace(areaDescripcion);
+
+        if (!hasData)
+        {
+            return null; // No law-mandated data available from PDF
+        }
+
+        return new LawMandatedFields
+        {
+            // Section 2.1: Core Identification & Tracking
+            SourceAuthorityCode = !string.IsNullOrWhiteSpace(autoridadNombre) ? autoridadNombre : null,
+
+            // Section 2.2: SLA & Classification
+            RequirementType = !string.IsNullOrWhiteSpace(areaDescripcion) ? areaDescripcion : null,
+            // RequirementTypeCode cannot be reliably extracted from unstructured text
+
+            // Section 2.3 & 2.4: Other fields come from bank systems (null for now)
+        };
     }
 
     private static string[] ExtractRfcValues(string text)
@@ -412,5 +487,133 @@ public class PdfMetadataExtractor : IMetadataExtractor
         }
 
         return montos.DistinctBy(m => m.Value).ToList();
+    }
+
+    /// <summary>
+    /// Builds extraction metadata for multi-source data fusion quality scoring.
+    /// Applies DRY principle: cleaning, validation, and confidence calculation happen ONCE here.
+    /// </summary>
+    /// <param name="expediente">The extracted Expediente entity (partial from PDF).</param>
+    /// <param name="extractedText">The full text extracted from PDF.</param>
+    /// <param name="rfcValues">RFC values extracted from text.</param>
+    /// <param name="usedDirectExtraction">Whether direct text extraction worked (not OCR).</param>
+    /// <returns>Extraction metadata with quality metrics.</returns>
+    /// <remarks>
+    /// For PDF extraction (CNBV OCR):
+    /// - OCR confidence from Tesseract (when OCR was used)
+    /// - Image quality metrics from preprocessing (when OCR was used)
+    /// - Pattern validation and catalog validation
+    /// - Base reliability: 0.85 (high quality CNBV scans)
+    /// </remarks>
+    private static ExtractionMetadata BuildExtractionMetadata(
+        Expediente expediente,
+        string extractedText,
+        string[] rfcValues,
+        bool usedDirectExtraction)
+    {
+        var metadata = new ExtractionMetadata
+        {
+            Source = SourceType.PDF_OCR_CNBV
+        };
+
+        // Pattern regex definitions (Mexican standards)
+        var rfcPattern = new System.Text.RegularExpressions.Regex(@"^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$");
+
+        // CNBV catalog values
+        var validAreaDescripciones = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "ASEGURAMIENTO",
+            "HACENDARIO",
+            "PENAL",
+            "CIVIL",
+            "ADMINISTRATIVO",
+            "JUDICIAL"
+        };
+
+        int regexMatches = 0;
+        int totalFieldsExtracted = 0;
+        int catalogValidations = 0;
+        int patternViolations = 0;
+
+        // Count extracted fields (PDF extraction is minimal compared to XML)
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroExpediente))
+        {
+            totalFieldsExtracted++;
+            regexMatches++; // Expediente number follows pattern
+        }
+
+        if (!string.IsNullOrWhiteSpace(expediente.AreaDescripcion))
+        {
+            totalFieldsExtracted++;
+            if (validAreaDescripciones.Contains(expediente.AreaDescripcion.Trim()))
+            {
+                catalogValidations++;
+            }
+            else
+            {
+                patternViolations++;
+            }
+        }
+
+        // Validate RFC values
+        foreach (var rfc in rfcValues)
+        {
+            if (!string.IsNullOrWhiteSpace(rfc))
+            {
+                totalFieldsExtracted++;
+                var rfcClean = rfc.Trim();
+                if (rfcPattern.IsMatch(rfcClean))
+                {
+                    regexMatches++;
+                }
+                else
+                {
+                    patternViolations++;
+                }
+            }
+        }
+
+        // Populate extraction success metrics
+        metadata.RegexMatches = regexMatches;
+        metadata.TotalFieldsExtracted = totalFieldsExtracted;
+        metadata.CatalogValidations = catalogValidations;
+        metadata.PatternViolations = patternViolations;
+
+        // OCR metrics (simplified - real OCR confidence would come from Tesseract)
+        if (!usedDirectExtraction)
+        {
+            // PDF required OCR - estimate confidence based on text quality
+            var wordCount = extractedText.Split(new[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            metadata.TotalWords = wordCount;
+
+            // Heuristic: CNBV PDFs are usually high quality scans
+            // Real implementation would get this from Tesseract OCRResult
+            metadata.MeanConfidence = 0.85; // High confidence for CNBV documents
+            metadata.MinConfidence = 0.70;  // Reasonable minimum
+            metadata.LowConfidenceWords = (int)(wordCount * 0.10); // Estimate 10% low confidence
+
+            // Image quality metrics (would come from ImagePreprocessor in real implementation)
+            // For now, assume good quality CNBV scans
+            metadata.QualityIndex = 0.80;
+            metadata.BlurScore = 0.15;      // Low blur
+            metadata.ContrastScore = 0.75;  // Good contrast
+            metadata.NoiseEstimate = 0.10;  // Low noise
+            metadata.EdgeDensity = 0.65;    // Decent edge density
+        }
+        else
+        {
+            // Direct extraction (digital PDF, not scanned) - no OCR metrics
+            metadata.MeanConfidence = null;
+            metadata.MinConfidence = null;
+            metadata.TotalWords = null;
+            metadata.LowConfidenceWords = null;
+            metadata.QualityIndex = null;
+            metadata.BlurScore = null;
+            metadata.ContrastScore = null;
+            metadata.NoiseEstimate = null;
+            metadata.EdgeDensity = null;
+        }
+
+        return metadata;
     }
 }

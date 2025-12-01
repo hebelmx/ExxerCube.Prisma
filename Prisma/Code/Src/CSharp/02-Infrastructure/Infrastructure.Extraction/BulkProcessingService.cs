@@ -1,11 +1,6 @@
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Enum;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.ValueObjects;
 using System.Diagnostics;
 
-namespace ExxerCube.Prisma.Infrastructure.Extraction;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 
 /// <summary>
 /// Service for batch processing documents with XML, OCR, and comparison.
@@ -236,7 +231,16 @@ public class BulkProcessingService : IBulkProcessingService
             Referencia = "",
             Referencia1 = "",
             Referencia2 = "",
-            TieneAseguramiento = false
+            TieneAseguramiento = false,
+
+            // Law-mandated fields - null until enriched by bank systems or classification engine
+            LawMandatedFields = null,
+
+            // Semantic analysis - null until classification engine runs
+            SemanticAnalysis = null,
+
+            // Future-proofing: capture unknown fields (not applicable for OCR extraction)
+            AdditionalFields = new Dictionary<string, string>()
         };
     }
 }

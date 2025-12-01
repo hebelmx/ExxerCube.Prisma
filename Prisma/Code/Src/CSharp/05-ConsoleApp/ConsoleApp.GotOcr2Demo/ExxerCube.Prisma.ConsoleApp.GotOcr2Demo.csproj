@@ -21,7 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\..\02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
+    <ProjectReference Include="..\..\02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
     <ProjectReference Include="..\..\02-Infrastructure\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
   </ItemGroup>
 </Project>

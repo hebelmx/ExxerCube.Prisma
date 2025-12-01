@@ -1,6 +1,6 @@
 using ExxerCube.Prisma.Domain.Enums;
 
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
 /// DOCX field extractor implementation for extracting structured fields from DOCX documents.

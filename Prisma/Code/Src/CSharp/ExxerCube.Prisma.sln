@@ -24,7 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00 Solution Items", "00 Sol
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Web.UI", "03-UI\UI\ExxerCube.Prisma.Web.UI\ExxerCube.Prisma.Web.UI.csproj", "{217B7541-5A6B-43E8-1430-765D9F66AA89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Infrastructure.Extraction", "02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj", "{CB2300AB-9AB2-46F9-90CD-1ADF911FD277}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Infrastructure.Extraction.Ocr", "02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj", "{CB2300AB-9AB2-46F9-90CD-1ADF911FD277}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Infrastructure.Classification", "02-Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj", "{3D9EA495-D459-4108-9026-77A97053B353}"
 EndProject

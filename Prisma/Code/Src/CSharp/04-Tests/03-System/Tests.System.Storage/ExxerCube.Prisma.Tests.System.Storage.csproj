@@ -69,7 +69,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
     <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
     <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />

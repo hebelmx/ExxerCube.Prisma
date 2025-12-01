@@ -1,13 +1,6 @@
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
 using ExxerCube.Prisma.Domain.Enums;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.ValueObjects;
-using IndQuestResults;
-using Microsoft.Extensions.Logging;
 
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Strategies;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies;
 
 /// <summary>
 /// Complement extraction strategy for filling gaps when XML/OCR are missing data.

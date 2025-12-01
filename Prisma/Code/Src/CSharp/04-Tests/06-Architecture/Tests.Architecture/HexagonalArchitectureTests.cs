@@ -1,4 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 using System.IO;
 using System.Reflection;
 
@@ -19,7 +18,6 @@ namespace ExxerCube.Prisma.Tests.Architecture;
 public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 {
     private readonly ILogger logger = XUnitLogger.CreateLogger<HexagonalArchitectureTests>(output);
-
 
     private static readonly Assembly DomainAssembly = typeof(ExxerCube.Prisma.Domain.Entities.FileMetadata).Assembly;
     private static readonly Assembly ApplicationAssembly = typeof(ExxerCube.Prisma.Application.Services.DocumentIngestionService).Assembly;
@@ -765,12 +763,12 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             "ExxerCube.Prisma.Domain.Interfaces.ILookupEntity",
             "ExxerCube.Prisma.Domain.Interfaces.ILookUpTable",
             // Intentional domain-only ports pending adapters
-            "ExxerCube.Prisma.Domain.Interfaces.IFilterSelectionStrategy",
-            "ExxerCube.Prisma.Domain.Interfaces.IImageEnhancementFilter",
-            "ExxerCube.Prisma.Domain.Interfaces.IImageQualityAnalyzer",
-            "ExxerCube.Prisma.Domain.Interfaces.IOcrSessionRepository",
-            "ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService",
-            "ExxerCube.Prisma.Domain.Interfaces.ITextComparer",
+            //"ExxerCube.Prisma.Domain.Interfaces.IFilterSelectionStrategy",
+            //"ExxerCube.Prisma.Domain.Interfaces.IImageEnhancementFilter",
+            //"ExxerCube.Prisma.Domain.Interfaces.IImageQualityAnalyzer",
+            //"ExxerCube.Prisma.Domain.Interfaces.IOcrSessionRepository",
+            //"ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService",
+            //"ExxerCube.Prisma.Domain.Interfaces.ITextComparer",
         };
 
         foreach (var domainInterface in domainInterfaces)

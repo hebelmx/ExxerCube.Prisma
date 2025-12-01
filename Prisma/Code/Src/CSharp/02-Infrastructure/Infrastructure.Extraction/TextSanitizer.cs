@@ -1,9 +1,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
 
-namespace ExxerCube.Prisma.Infrastructure.Extraction;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 
 /// <summary>
 /// Default OCR text cleaner that normalizes noisy captures while keeping the raw text and warnings.

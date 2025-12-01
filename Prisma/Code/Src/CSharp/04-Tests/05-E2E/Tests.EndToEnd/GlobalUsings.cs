@@ -59,7 +59,6 @@ global using ExxerCube.Prisma.Infrastructure.DependencyInjection;
 global using ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
 global using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
 global using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies;
-global using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 global using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
 global using ExxerCube.Prisma.Web.UI.Services;
 global using IndFusion.Ember.Abstractions.Hubs;
@@ -73,5 +72,3 @@ global using MudBlazor.Services;
 global using NSubstitute;
 global using Shouldly;
 global using Xunit;
-
-

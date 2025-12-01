@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
@@ -123,8 +125,74 @@ public class XmlExpedienteParserTests
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldNotBeNullOrEmpty();
         // Error message may vary, just check it contains relevant keywords
-        (result.Error.Contains("root", StringComparison.OrdinalIgnoreCase) || 
+        (result.Error.Contains("root", StringComparison.OrdinalIgnoreCase) ||
          result.Error.Contains("element", StringComparison.OrdinalIgnoreCase)).ShouldBeTrue();
+    }
+
+    /// <summary>
+    /// Tests that best-effort extraction populates LawMandatedFields from XML data.
+    /// Verifies fields available in XML (SourceAuthorityCode, RequirementType, RequirementTypeCode)
+    /// are populated, while bank-system fields remain null.
+    /// </summary>
+    [Fact]
+    public async Task ParseAsync_ValidXml_PopulatesLawMandatedFields()
+    {
+        // Arrange
+        var xml = @"<?xml version=""1.0""?>
+<Expediente>
+    <NumeroExpediente>A/AS1-2505-088637-PHM</NumeroExpediente>
+    <AutoridadNombre>SUBDELEGACION 8 SAN ANGEL</AutoridadNombre>
+    <AreaDescripcion>ASEGURAMIENTO</AreaDescripcion>
+    <AreaClave>3</AreaClave>
+    <TieneAseguramiento>true</TieneAseguramiento>
+</Expediente>";
+        var xmlBytes = System.Text.Encoding.UTF8.GetBytes(xml);
+
+        // Act
+        var result = await _parser.ParseAsync(xmlBytes, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+
+        // Best-effort extraction should populate LawMandatedFields
+        result.Value.LawMandatedFields.ShouldNotBeNull();
+        result.Value.LawMandatedFields.SourceAuthorityCode.ShouldBe("SUBDELEGACION 8 SAN ANGEL");
+        result.Value.LawMandatedFields.RequirementType.ShouldBe("ASEGURAMIENTO");
+        result.Value.LawMandatedFields.RequirementTypeCode.ShouldBe(3);
+
+        // Fields from bank systems should remain null
+        result.Value.LawMandatedFields.InternalCaseId.ShouldBeNull();
+        result.Value.LawMandatedFields.ProcessingStatus.ShouldBeNull();
+        result.Value.LawMandatedFields.IsPrimaryTitular.ShouldBeNull();
+        result.Value.LawMandatedFields.BranchCode.ShouldBeNull();
+        result.Value.LawMandatedFields.AccountNumber.ShouldBeNull();
+        result.Value.LawMandatedFields.InitialBlockedAmount.ShouldBeNull();
+    }
+
+    /// <summary>
+    /// Tests that LawMandatedFields remains null when XML has no relevant authority/area data.
+    /// </summary>
+    [Fact]
+    public async Task ParseAsync_XmlWithoutAuthorityData_LawMandatedFieldsIsNull()
+    {
+        // Arrange - minimal XML without authority or area information
+        var xml = @"<?xml version=""1.0""?>
+<Expediente>
+    <NumeroExpediente>A/AS1-2505-088637-PHM</NumeroExpediente>
+    <NumeroOficio>214-1-18714972/2025</NumeroOficio>
+</Expediente>";
+        var xmlBytes = System.Text.Encoding.UTF8.GetBytes(xml);
+
+        // Act
+        var result = await _parser.ParseAsync(xmlBytes, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+
+        // LawMandatedFields should be null if no data can be extracted
+        result.Value.LawMandatedFields.ShouldBeNull();
     }
 }
 

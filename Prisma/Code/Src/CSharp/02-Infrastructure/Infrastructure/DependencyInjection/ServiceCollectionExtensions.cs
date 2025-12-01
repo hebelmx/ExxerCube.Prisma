@@ -22,28 +22,6 @@ public static class ServiceCollectionExtensions
         // to avoid Infrastructure → Infrastructure.Metrics coupling.
         // services.AddMetricsServices(pythonConfiguration.MaxConcurrency);
 
-        services.AddScoped<HealthCheckService>();
-
-        // Register Application service (does not implement Domain interface for architectural compliance)
-        services.AddScoped<OcrProcessingService>(provider =>
-        {
-            var imagePreprocessor = provider.GetRequiredService<IImagePreprocessor>();
-            var ocrExecutor = provider.GetRequiredService<IOcrExecutor>();
-            var fieldExtractor = provider.GetRequiredService<IFieldExtractor>();
-            var eventPublisher = provider.GetRequiredService<IEventPublisher>();
-            var logger = provider.GetRequiredService<ILogger<IOcrProcessingService>>();
-            var metricsService = provider.GetRequiredService<IProcessingMetricsService>();
-
-            return new OcrProcessingService(imagePreprocessor, ocrExecutor, fieldExtractor, eventPublisher, logger, metricsService);
-        });
-
-        // Register Infrastructure adapter that implements Domain interface
-        services.AddScoped<IOcrProcessingService>(provider =>
-        {
-            var ocrProcessingService = provider.GetRequiredService<OcrProcessingService>();
-            return new OcrProcessingServiceAdapter(ocrProcessingService);
-        });
-
         // DEPRECATED: All IPythonInteropService-related registrations are commented out.
         // The new Tesseract/GOT-OCR2 implementations in Infrastructure.Extraction do not require Python interop.
         // These old services had low cohesion and poor coupling - they are replaced by:

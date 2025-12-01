@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Domain.Enum;
-
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
 /// <summary>

@@ -25,7 +25,6 @@ global using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 global using ExxerCube.Prisma.Domain.Models;
 global using ExxerCube.Prisma.Domain.Sources;
 global using ExxerCube.Prisma.Domain.ValueObjects;
-global using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 global using ExxerCube.Prisma.Testing.Abstractions;
 global using ExxerCube.Prisma.Testing.Infrastructure;
 global using ExxerCube.Prisma.Testing.Infrastructure.TestData;

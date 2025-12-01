@@ -35,8 +35,6 @@ global using ExxerCube.Prisma.Domain.Interfaces;
 global using ExxerCube.Prisma.Domain.Models;
 global using ExxerCube.Prisma.Domain.Sources;
 global using ExxerCube.Prisma.Domain.ValueObjects;
-global using ExxerCube.Prisma.Infrastructure.Extraction.GotOcr2;
-global using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
 global using ExxerCube.Prisma.Infrastructure.Imaging;
 global using ExxerCube.Prisma.Infrastructure.Imaging.Filters;
 global using ExxerCube.Prisma.Infrastructure.Imaging.Strategies;

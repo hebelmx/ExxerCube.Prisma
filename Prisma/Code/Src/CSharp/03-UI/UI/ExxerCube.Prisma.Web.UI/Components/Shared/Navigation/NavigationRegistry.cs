@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using FuzzySharp;
 using FuzzySharp.Extractor;
-using Microsoft.AspNetCore.Components.Routing;
-using MudBlazor;
 
 namespace ExxerCube.Prisma.Web.UI.Components.Shared.Navigation;
 

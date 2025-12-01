@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
 /// <summary>

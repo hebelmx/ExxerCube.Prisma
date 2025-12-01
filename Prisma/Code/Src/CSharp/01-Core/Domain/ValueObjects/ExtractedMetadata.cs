@@ -36,6 +36,16 @@ public class ExtractedMetadata
     public string[]? LegalReferences { get; set; }
 
     /// <summary>
+    /// Gets or sets the extraction quality metadata for multi-source data fusion.
+    /// Includes OCR confidence, image quality, pattern validation, and catalog validation metrics.
+    /// </summary>
+    /// <remarks>
+    /// DRY principle: Extractors calculate this metadata ONCE during extraction.
+    /// Fusion service uses this to calculate dynamic source reliability weighting.
+    /// </remarks>
+    public ExtractionMetadata? QualityMetadata { get; set; }
+
+    /// <summary>
     /// Gets or sets additional metadata as a dictionary.
     /// </summary>
     public System.Collections.Generic.Dictionary<string, object>? AdditionalMetadata { get; set; }

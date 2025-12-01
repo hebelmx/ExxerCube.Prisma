@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
 /// XML metadata extractor implementation for extracting metadata from XML documents.

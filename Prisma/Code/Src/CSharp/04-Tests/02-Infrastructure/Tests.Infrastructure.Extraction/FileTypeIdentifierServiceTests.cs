@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 

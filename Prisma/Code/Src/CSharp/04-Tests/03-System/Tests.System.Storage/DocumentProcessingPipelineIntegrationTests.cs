@@ -14,7 +14,7 @@ using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using ExxerCube.Prisma.Infrastructure.Database.Services;
 using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Infrastructure.Extraction;
-using ExxerCube.Prisma.Infrastructure.Extraction.Teseract;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 using ExxerCube.Prisma.Infrastructure.Imaging;
 using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
 using Microsoft.EntityFrameworkCore;

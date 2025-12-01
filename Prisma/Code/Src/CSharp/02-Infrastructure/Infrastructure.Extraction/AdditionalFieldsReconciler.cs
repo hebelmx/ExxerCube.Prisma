@@ -1,6 +1,4 @@
-using ExxerCube.Prisma.Domain.ValueObjects;
-
-namespace ExxerCube.Prisma.Infrastructure.Extraction;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 
 /// <summary>
 /// Reconciles additional fields coming from XML and OCR sources.
