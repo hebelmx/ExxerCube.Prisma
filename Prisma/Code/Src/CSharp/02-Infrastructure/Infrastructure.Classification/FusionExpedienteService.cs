@@ -104,6 +104,7 @@ public class FusionExpedienteService : IFusionExpediente
             await FuseReferencia2Async(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseAreaClaveAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseSubdivisionAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseTieneAseguramientoAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
 
             // Calculate overall confidence
             var (overallConfidence, requiredFieldsScore, optionalFieldsScore) = CalculateOverallConfidence(fieldResults);
@@ -1929,6 +1930,66 @@ public class FusionExpedienteService : IFusionExpediente
             {
                 // If name not recognized, default to Unknown
                 fused.Subdivision = LegalSubdivisionKind.Unknown;
+            }
+        }
+    }
+
+    private async Task FuseTieneAseguramientoAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        // XML candidate - only add if explicitly true (false is default)
+        if (xml != null && xml.TieneAseguramiento)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = "true",
+                Source = SourceType.XML_HandFilled,
+                SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                MatchesPattern = true // bool is always valid
+            });
+        }
+
+        // PDF candidate
+        if (pdf != null && pdf.TieneAseguramiento)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = "true",
+                Source = SourceType.PDF_OCR_CNBV,
+                SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                MatchesPattern = true
+            });
+        }
+
+        // DOCX candidate
+        if (docx != null && docx.TieneAseguramiento)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = "true",
+                Source = SourceType.DOCX_OCR_Authority,
+                SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                MatchesPattern = true
+            });
+        }
+
+        // Fuse - if any source says true with sufficient confidence, set to true
+        var result = await FuseFieldAsync("TieneAseguramiento", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null && result.Value.Value != null)
+        {
+            if (bool.TryParse(result.Value.Value, out var tieneAseguramiento))
+            {
+                fused.TieneAseguramiento = tieneAseguramiento;
+                results["TieneAseguramiento"] = result.Value;
+                if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+                {
+                    conflicts.Add("TieneAseguramiento");
+                }
             }
         }
     }
