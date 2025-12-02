@@ -16,7 +16,8 @@ Actionable, test-first plan to deliver the dual-worker topology (Orion ingestion
 - `Prisma.Athena.Processing` (lib) + `Prisma.Athena.Worker` (host).
 - `Prisma.Sentinel.Monitor` (monitor utility).
 - `Prisma.Auth.Domain` + `Prisma.Auth.Infrastructure` (auth abstraction).
-- HMI: existing MudBlazor UI, to be wired to events/auth.
+- HMI: existing MudBlazor for Demo development Purpouse UI, to be wired to events/auth.
+- New HMI: add with evokative name desing for monitoring dashboard reporting panel admin, user admin etc...
 
 ## Stage Overview (Tests First)
 1. DI & Contracts Baseline
