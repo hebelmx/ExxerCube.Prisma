@@ -14,10 +14,13 @@ This is your **ONLY MESSAGE** to the user. Make it comprehensive, actionable, an
 
 **Supporting Sources** (Use these to validate requirements):
 - `docs/AAA Initiative Design/DATA_MODEL.md`
+
 - `docs/AAA Initiative Design/SYSTEM_FLOW_DIAGRAM.md`
 - `docs/AAA Initiative Design/Requirements.md`
-- `docs/AAA Initiative Design/Laws/MandatoryFields_CNBV.md`
 - `docs/AAA Initiative Design/Laws/ClassificationRules.md`
+
+- `docs/AAA Initiative Design/Laws/MandatoryFields_CNBV.md`
+
 
 ---
 

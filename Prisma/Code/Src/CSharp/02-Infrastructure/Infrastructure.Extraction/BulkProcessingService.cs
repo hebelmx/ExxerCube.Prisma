@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 
 /// <summary>

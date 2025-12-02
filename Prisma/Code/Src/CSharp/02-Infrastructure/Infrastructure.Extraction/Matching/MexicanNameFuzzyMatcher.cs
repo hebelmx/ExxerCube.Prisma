@@ -1,7 +1,3 @@
-using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
-
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching;
 
 /// <summary>
@@ -24,6 +20,7 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching;
 public sealed class MexicanNameFuzzyMatcher
 {
     private const int SimilarityThreshold = 85;
+
     private static readonly HashSet<string> SpanishGivenNames = new(new[]
     {
         "jose", "maria", "juan", "luis", "carlos", "ana", "miguel", "angel", "pedro",
@@ -39,6 +36,7 @@ public sealed class MexicanNameFuzzyMatcher
 
     // Patterns that indicate NON-name fields (must match exactly)
     private static readonly Regex RfcPattern = new(@"^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$", RegexOptions.Compiled);
+
     private static readonly Regex CurpPattern = new(@"^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$", RegexOptions.Compiled);
     private static readonly Regex ExpedientePattern = new(@"^[A-Z]/[A-Z]{1,2}\d+-\d+-\d+-[A-Z]+$", RegexOptions.Compiled);
     private static readonly Regex AccountPattern = new(@"^\d{10,18}$", RegexOptions.Compiled);

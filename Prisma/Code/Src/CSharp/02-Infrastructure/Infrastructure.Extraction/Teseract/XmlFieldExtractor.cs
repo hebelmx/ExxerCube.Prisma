@@ -1,6 +1,3 @@
-using System.Text.RegularExpressions;
-using ExxerCube.Prisma.Domain.Enums;
-
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>

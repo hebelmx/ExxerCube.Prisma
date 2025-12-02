@@ -1,5 +1,3 @@
-using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
-
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
 
 /// <summary>

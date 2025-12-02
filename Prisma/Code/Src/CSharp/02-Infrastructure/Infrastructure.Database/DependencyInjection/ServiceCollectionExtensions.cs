@@ -1,7 +1,6 @@
 using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using ExxerCube.Prisma.Infrastructure.Database.Repositories;
-using ExxerCube.Prisma.Infrastructure.Events;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 
@@ -229,9 +228,6 @@ public static class ServiceCollectionExtensions
 
         // Register background service for automatic audit retention enforcement
         services.AddHostedService<Services.AuditRetentionBackgroundService>();
-
-        // Register event publisher as singleton for domain event streaming
-        services.AddSingleton<IEventPublisher, EventPublisher>();
 
         // Register event persistence worker to persist events to database
         services.AddHostedService<Services.EventPersistenceWorker>();

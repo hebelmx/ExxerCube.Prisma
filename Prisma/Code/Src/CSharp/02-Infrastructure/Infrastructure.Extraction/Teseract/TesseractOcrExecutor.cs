@@ -1,3 +1,6 @@
+using PDFtoImage;
+using SixLabors.ImageSharp.PixelFormats;
+
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
