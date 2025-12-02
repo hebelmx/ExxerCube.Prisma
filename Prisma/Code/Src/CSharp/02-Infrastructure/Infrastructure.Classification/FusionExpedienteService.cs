@@ -106,6 +106,14 @@ public class FusionExpedienteService : IFusionExpediente
             await FuseSubdivisionAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseTieneAseguramientoAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
 
+            // Calculate FechaEstimadaConclusion (FechaRecepcion + DiasPlazo business days)
+            if (fusedExpediente.FechaRecepcion != default && fusedExpediente.DiasPlazo > 0)
+            {
+                fusedExpediente.FechaEstimadaConclusion = CalculateBusinessDays(fusedExpediente.FechaRecepcion, fusedExpediente.DiasPlazo);
+                _logger.LogDebug("Calculated FechaEstimadaConclusion: {FechaEstimada} (FechaRecepcion: {FechaRecepcion} + {DiasPlazo} business days)",
+                    fusedExpediente.FechaEstimadaConclusion, fusedExpediente.FechaRecepcion, fusedExpediente.DiasPlazo);
+            }
+
             // Calculate overall confidence
             var (overallConfidence, requiredFieldsScore, optionalFieldsScore) = CalculateOverallConfidence(fieldResults);
 
@@ -2495,6 +2503,36 @@ public class FusionExpedienteService : IFusionExpediente
         if (string.IsNullOrWhiteSpace(expediente.AreaDescripcion)) missing.Add("AreaDescripcion");
 
         return missing;
+    }
+
+    /// <summary>
+    /// Calculates a future date by adding business days (skipping weekends).
+    /// </summary>
+    /// <param name="startDate">The starting date.</param>
+    /// <param name="businessDays">The number of business days to add.</param>
+    /// <returns>The calculated end date.</returns>
+    /// <remarks>
+    /// Simplification: Only skips weekends (Saturday/Sunday).
+    /// Does not account for Mexican federal holidays.
+    /// For production, integrate with holiday calendar service.
+    /// </remarks>
+    private DateTime CalculateBusinessDays(DateTime startDate, int businessDays)
+    {
+        var currentDate = startDate;
+        var daysAdded = 0;
+
+        while (daysAdded < businessDays)
+        {
+            currentDate = currentDate.AddDays(1);
+
+            // Skip weekends
+            if (currentDate.DayOfWeek != DayOfWeek.Saturday && currentDate.DayOfWeek != DayOfWeek.Sunday)
+            {
+                daysAdded++;
+            }
+        }
+
+        return currentDate;
     }
 
     #endregion
