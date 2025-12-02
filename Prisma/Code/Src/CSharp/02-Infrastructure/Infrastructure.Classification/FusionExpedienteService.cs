@@ -583,6 +583,12 @@ public class FusionExpedienteService : IFusionExpediente
 
         // Fuse Materno
         await FuseTitularMaternoAsync(xml, pdf, docx, reliabilities, fusedTitular, results, conflicts, cancellationToken);
+
+        // Fuse PersonaTipo (Fisica/Moral)
+        await FuseTitularPersonaTipoAsync(xml, pdf, docx, reliabilities, fusedTitular, results, conflicts, cancellationToken);
+
+        // Fuse Caracter (role/character)
+        await FuseTitularCaracterAsync(xml, pdf, docx, reliabilities, fusedTitular, results, conflicts, cancellationToken);
     }
 
     private async Task FuseTitularRfcAsync(
@@ -1216,6 +1222,136 @@ public class FusionExpedienteService : IFusionExpediente
             if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
             {
                 conflicts.Add("AutoridadEspecificaNombre");
+            }
+        }
+    }
+
+    private async Task FuseTitularPersonaTipoAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        SolicitudParte fusedTitular, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml?.SolicitudPartes.Count > 0)
+        {
+            var sanitized = FieldSanitizer.Sanitize(xml.SolicitudPartes[0].PersonaTipo);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.XML_HandFilled,
+                    SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 50)
+                });
+            }
+        }
+
+        if (pdf?.SolicitudPartes.Count > 0)
+        {
+            var sanitized = FieldSanitizer.Sanitize(pdf.SolicitudPartes[0].PersonaTipo);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.PDF_OCR_CNBV,
+                    SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 50)
+                });
+            }
+        }
+
+        if (docx?.SolicitudPartes.Count > 0)
+        {
+            var sanitized = FieldSanitizer.Sanitize(docx.SolicitudPartes[0].PersonaTipo);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.DOCX_OCR_Authority,
+                    SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 50)
+                });
+            }
+        }
+
+        var result = await FuseFieldAsync("Titular_PersonaTipo", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null)
+        {
+            fusedTitular.PersonaTipo = result.Value.Value ?? string.Empty;
+            results["Titular_PersonaTipo"] = result.Value;
+            if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+            {
+                conflicts.Add("Titular_PersonaTipo");
+            }
+        }
+    }
+
+    private async Task FuseTitularCaracterAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        SolicitudParte fusedTitular, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml?.SolicitudPartes.Count > 0)
+        {
+            var sanitized = FieldSanitizer.Sanitize(xml.SolicitudPartes[0].Caracter);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.XML_HandFilled,
+                    SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        if (pdf?.SolicitudPartes.Count > 0)
+        {
+            var sanitized = FieldSanitizer.Sanitize(pdf.SolicitudPartes[0].Caracter);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.PDF_OCR_CNBV,
+                    SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        if (docx?.SolicitudPartes.Count > 0)
+        {
+            var sanitized = FieldSanitizer.Sanitize(docx.SolicitudPartes[0].Caracter);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.DOCX_OCR_Authority,
+                    SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        var result = await FuseFieldAsync("Titular_Caracter", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null)
+        {
+            fusedTitular.Caracter = result.Value.Value ?? string.Empty;
+            results["Titular_Caracter"] = result.Value;
+            if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+            {
+                conflicts.Add("Titular_Caracter");
             }
         }
     }

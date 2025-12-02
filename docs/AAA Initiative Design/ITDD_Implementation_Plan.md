@@ -179,7 +179,7 @@ app.MapGet("/dashboard", (IMetricsSnapshot metrics) =>
 
 ---
 
-## New/Proposed Interfaces and Classes (to be added/reused)
+## Interfaces and Classes to be used already existing and implemented
 - **Reuse existing Domain interfaces** (do not duplicate):
   - Quality: `IImageQualityAnalyzer`, `IFilterSelectionStrategy`
   - OCR: `IOcrExecutor`, `IOcrProcessingService`, `IOcrSessionRepository`
@@ -191,6 +191,7 @@ app.MapGet("/dashboard", (IMetricsSnapshot metrics) =>
   - Audit/Events: `IAuditLogger`, `IEventPublisher`
   - Ingestion helpers: `IBrowserAutomationAgent`, `IDownloadStorage`, `IDownloadTracker`
 
+## New/Proposed Interfaces and Classes (to be added)
 - **Add to Domain/Contracts**:
   - Optional `IContentHasher` (if hashing not folded into tracker)
 
@@ -198,5 +199,5 @@ app.MapGet("/dashboard", (IMetricsSnapshot metrics) =>
   - Orion: `IngestionOrchestrator` (lib), `OrionWorkerService` (host)
   - Athena: `ProcessingOrchestrator` (lib), `AthenaWorkerService` (host)
   - Sentinel: `SentinelService` (monitor)
-  - Auth: `InMemoryIdentityProvider` (initial impl), plus domain interfaces in `Prisma.Auth.Domain`
+  - Auth: `InMemoryIdentityProvider` (initial implementation), plus domain interfaces in `Prisma.Auth.Domain`
   - Shared contracts: `DocumentDownloadedEvent`, `WorkerHeartbeat` (in `Prisma.Shared.Contracts`)
