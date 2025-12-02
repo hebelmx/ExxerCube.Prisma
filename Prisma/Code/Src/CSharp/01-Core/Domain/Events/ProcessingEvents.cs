@@ -322,3 +322,100 @@ public record ProcessingErrorEvent : DomainEvent
         EventType = nameof(ProcessingErrorEvent);
     }
 }
+
+/// <summary>
+/// Document rejected due to unacceptable quality (defensive flagging - not crash).
+/// </summary>
+public record QualityRejectedEvent : DomainEvent
+{
+    /// <summary>
+    /// Gets the unique identifier for the rejected file.
+    /// </summary>
+    public Guid FileId { get; init; }
+
+    /// <summary>
+    /// Gets the quality score that caused rejection.
+    /// </summary>
+    public decimal Score { get; init; }
+
+    /// <summary>
+    /// Gets the reason for quality rejection.
+    /// </summary>
+    public string Reason { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="QualityRejectedEvent"/> class.
+    /// </summary>
+    public QualityRejectedEvent()
+    {
+        EventType = nameof(QualityRejectedEvent);
+    }
+}
+
+/// <summary>
+/// Fusion/reconciliation completed successfully (XML + PDF + DOCX merged).
+/// </summary>
+public record FusionCompletedEvent : DomainEvent
+{
+    /// <summary>
+    /// Gets the unique identifier for the source file.
+    /// </summary>
+    public Guid FileId { get; init; }
+
+    /// <summary>
+    /// Gets the unique identifier for the resulting Expediente.
+    /// </summary>
+    public Guid ExpedienteId { get; init; }
+
+    /// <summary>
+    /// Gets the number of fields successfully fused.
+    /// </summary>
+    public int FieldsFused { get; init; }
+
+    /// <summary>
+    /// Gets the number of conflicts detected during fusion.
+    /// </summary>
+    public int ConflictsDetected { get; init; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FusionCompletedEvent"/> class.
+    /// </summary>
+    public FusionCompletedEvent()
+    {
+        EventType = nameof(FusionCompletedEvent);
+    }
+}
+
+/// <summary>
+/// Adaptive export completed successfully (Expediente → target format).
+/// </summary>
+public record ExportCompletedEvent : DomainEvent
+{
+    /// <summary>
+    /// Gets the unique identifier for the source file.
+    /// </summary>
+    public Guid FileId { get; init; }
+
+    /// <summary>
+    /// Gets the destination path where file was exported.
+    /// </summary>
+    public string Destination { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the export format used (PDF, Excel, Word, etc.).
+    /// </summary>
+    public string Format { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the size of the exported file in bytes.
+    /// </summary>
+    public long ExportedSizeBytes { get; init; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExportCompletedEvent"/> class.
+    /// </summary>
+    public ExportCompletedEvent()
+    {
+        EventType = nameof(ExportCompletedEvent);
+    }
+}
