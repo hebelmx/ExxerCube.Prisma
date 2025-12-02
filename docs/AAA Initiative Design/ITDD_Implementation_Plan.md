@@ -44,17 +44,17 @@ Actionable, test-first plan to deliver the dual-worker topology (Orion ingestion
   - DI resolution tests green without host projects.
 
 ## Stage 2: Orion Ingestion (TDD)
-**Goal**: Watch SIARA, download to `year/month/day`, write JSON journal (hash, correlation, URL, timestamp), emit `DocumentDownloadedEvent`.
+**Goal**: Watch SIARA, download to `year/month/day`, persist manifest to DB (hash, correlation, URL, stored path, timestamp), emit `DocumentDownloadedEvent`.
 
 - Tests (new):
   - `Prisma.Orion.Ingestion.Tests`:
     - Watcher triggers download on new case.
-    - File stored at `root/yyyy/MM/dd/{filename}`.
-    - Journal contains hash, size, URL, correlation, timestamp; idempotent on rerun.
-    - Emits `DocumentDownloadedEvent` with path + journal path.
+  - File stored at `root/yyyy/MM/dd/{filename}`.
+  - Manifest row in DB contains hash, size, URL, stored path, correlation, timestamp; idempotent on rerun (unique hash+URL).
+  - Emits `DocumentDownloadedEvent` with stored path + manifest key.
 - Interfaces (in contracts/domain to use/reuse):
     - Reuse existing: `IBrowserAutomationAgent` (watch/identify/download), `IDownloadStorage` (deterministic save), `IDownloadTracker` (duplicate detection), `IEventPublisher`.
-    - Add: `IIngestionJournal` (journal read/write), optional `IContentHasher` (if hashing not folded into tracker).
+    - Add: `IIngestionJournal` (DB-backed manifest read/write), optional `IContentHasher` (if hashing not folded into tracker).
 - Implementation:
   - `IngestionOrchestrator` coordinates watcher → downloader → hasher → journal → event.
   - Ensure idempotency (check journal/hash before re-download).
@@ -185,13 +185,13 @@ app.MapGet("/dashboard", (IMetricsSnapshot metrics) =>
   - OCR: `IOcrExecutor`, `IOcrProcessingService`, `IOcrSessionRepository`
   - XML/Metadata: `IMetadataExtractor`, `IFieldExtractor<T>`, `IXmlNullableParser<T>`
   - Fusion/Reconciliation: `IFusionExpediente`, `IFieldMatcher`
+  - Fusion/Reconciliation: `IFusionExpediente`, `IFieldMatcher`
   - Classification: `IFileClassifier`, `ILegalDirectiveClassifier`
   - Export: `IResponseExporter`, `IAdaptiveExporter`
   - Audit/Events: `IAuditLogger`, `IEventPublisher`
   - Ingestion helpers: `IBrowserAutomationAgent`, `IDownloadStorage`, `IDownloadTracker`
 
 - **Add to Domain/Contracts**:
-  - `IIngestionJournal` (write/read JSON journal entries)
   - Optional `IContentHasher` (if hashing not folded into tracker)
 
 - **Classes (libs/hosts already scaffolded)**:

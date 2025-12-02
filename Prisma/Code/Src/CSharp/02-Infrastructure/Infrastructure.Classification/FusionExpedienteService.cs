@@ -87,6 +87,13 @@ public class FusionExpedienteService : IFusionExpediente
             // Fuse titular fields (first SolicitudParte)
             await FusePrimaryTitularFieldsAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
 
+            // Fuse additional R29 fields (Phase 2 Task 4)
+            await FuseFundamentoLegalAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseDiasPlazoAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseFechaRegistroAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseNombreSolicitanteAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseAutoridadEspecificaNombreAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+
             // Calculate overall confidence
             var (overallConfidence, requiredFieldsScore, optionalFieldsScore) = CalculateOverallConfidence(fieldResults);
 
@@ -899,6 +906,316 @@ public class FusionExpedienteService : IFusionExpediente
             if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
             {
                 conflicts.Add("Titular_Materno");
+            }
+        }
+    }
+
+    private async Task FuseFundamentoLegalAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(xml.FundamentoLegal);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.XML_HandFilled,
+                    SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 500)
+                });
+            }
+        }
+
+        if (pdf != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(pdf.FundamentoLegal);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.PDF_OCR_CNBV,
+                    SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 500)
+                });
+            }
+        }
+
+        if (docx != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(docx.FundamentoLegal);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.DOCX_OCR_Authority,
+                    SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 500)
+                });
+            }
+        }
+
+        var result = await FuseFieldAsync("FundamentoLegal", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null)
+        {
+            fused.FundamentoLegal = result.Value.Value ?? string.Empty;
+            results["FundamentoLegal"] = result.Value;
+            if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+            {
+                conflicts.Add("FundamentoLegal");
+            }
+        }
+    }
+
+    private async Task FuseDiasPlazoAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml != null && xml.DiasPlazo > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = xml.DiasPlazo.ToString(),
+                Source = SourceType.XML_HandFilled,
+                SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                MatchesPattern = true // int is always valid if > 0
+            });
+        }
+
+        if (pdf != null && pdf.DiasPlazo > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = pdf.DiasPlazo.ToString(),
+                Source = SourceType.PDF_OCR_CNBV,
+                SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                MatchesPattern = true
+            });
+        }
+
+        if (docx != null && docx.DiasPlazo > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = docx.DiasPlazo.ToString(),
+                Source = SourceType.DOCX_OCR_Authority,
+                SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                MatchesPattern = true
+            });
+        }
+
+        var result = await FuseFieldAsync("DiasPlazo", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null && result.Value.Value != null)
+        {
+            if (int.TryParse(result.Value.Value, out var days))
+            {
+                fused.DiasPlazo = days;
+                results["DiasPlazo"] = result.Value;
+                if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+                {
+                    conflicts.Add("DiasPlazo");
+                }
+            }
+        }
+    }
+
+    private async Task FuseFechaRegistroAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml != null && xml.FechaRegistro != default)
+        {
+            var dateString = xml.FechaRegistro.ToString("yyyyMMdd");
+            candidates.Add(new FieldCandidate
+            {
+                Value = dateString,
+                Source = SourceType.XML_HandFilled,
+                SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                MatchesPattern = FieldPatternValidator.IsValidDate(dateString)
+            });
+        }
+
+        if (pdf != null && pdf.FechaRegistro != default)
+        {
+            var dateString = pdf.FechaRegistro.ToString("yyyyMMdd");
+            candidates.Add(new FieldCandidate
+            {
+                Value = dateString,
+                Source = SourceType.PDF_OCR_CNBV,
+                SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                MatchesPattern = FieldPatternValidator.IsValidDate(dateString)
+            });
+        }
+
+        if (docx != null && docx.FechaRegistro != default)
+        {
+            var dateString = docx.FechaRegistro.ToString("yyyyMMdd");
+            candidates.Add(new FieldCandidate
+            {
+                Value = dateString,
+                Source = SourceType.DOCX_OCR_Authority,
+                SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                MatchesPattern = FieldPatternValidator.IsValidDate(dateString)
+            });
+        }
+
+        var result = await FuseFieldAsync("FechaRegistro", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null && result.Value.Value != null)
+        {
+            if (DateTime.TryParseExact(result.Value.Value, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var date))
+            {
+                fused.FechaRegistro = date;
+                results["FechaRegistro"] = result.Value;
+                if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+                {
+                    conflicts.Add("FechaRegistro");
+                }
+            }
+        }
+    }
+
+    private async Task FuseNombreSolicitanteAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(xml.NombreSolicitante);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.XML_HandFilled,
+                    SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        if (pdf != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(pdf.NombreSolicitante);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.PDF_OCR_CNBV,
+                    SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        if (docx != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(docx.NombreSolicitante);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.DOCX_OCR_Authority,
+                    SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        var result = await FuseFieldAsync("NombreSolicitante", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null)
+        {
+            fused.NombreSolicitante = result.Value.Value;
+            results["NombreSolicitante"] = result.Value;
+            if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+            {
+                conflicts.Add("NombreSolicitante");
+            }
+        }
+    }
+
+    private async Task FuseAutoridadEspecificaNombreAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(xml.AutoridadEspecificaNombre);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.XML_HandFilled,
+                    SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 250)
+                });
+            }
+        }
+
+        if (pdf != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(pdf.AutoridadEspecificaNombre);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.PDF_OCR_CNBV,
+                    SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 250)
+                });
+            }
+        }
+
+        if (docx != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(docx.AutoridadEspecificaNombre);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.DOCX_OCR_Authority,
+                    SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 250)
+                });
+            }
+        }
+
+        var result = await FuseFieldAsync("AutoridadEspecificaNombre", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null)
+        {
+            fused.AutoridadEspecificaNombre = result.Value.Value;
+            results["AutoridadEspecificaNombre"] = result.Value;
+            if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+            {
+                conflicts.Add("AutoridadEspecificaNombre");
             }
         }
     }
