@@ -94,6 +94,7 @@ public class FusionExpedienteService : IFusionExpediente
             await FuseNombreSolicitanteAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseAutoridadEspecificaNombreAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseFolioAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseMedioEnvioAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
 
             // Calculate overall confidence
             var (overallConfidence, requiredFieldsScore, optionalFieldsScore) = CalculateOverallConfidence(fieldResults);
@@ -1279,6 +1280,71 @@ public class FusionExpedienteService : IFusionExpediente
                 {
                     conflicts.Add("Folio");
                 }
+            }
+        }
+    }
+
+    private async Task FuseMedioEnvioAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(xml.MedioEnvio);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.XML_HandFilled,
+                    SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 50)
+                });
+            }
+        }
+
+        if (pdf != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(pdf.MedioEnvio);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.PDF_OCR_CNBV,
+                    SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 50)
+                });
+            }
+        }
+
+        if (docx != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(docx.MedioEnvio);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.DOCX_OCR_Authority,
+                    SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 50)
+                });
+            }
+        }
+
+        var result = await FuseFieldAsync("MedioEnvio", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null)
+        {
+            fused.MedioEnvio = result.Value.Value ?? string.Empty;
+            results["MedioEnvio"] = result.Value;
+            if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+            {
+                conflicts.Add("MedioEnvio");
             }
         }
     }
