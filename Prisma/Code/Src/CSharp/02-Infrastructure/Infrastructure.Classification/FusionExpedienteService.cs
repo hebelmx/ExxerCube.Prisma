@@ -102,6 +102,7 @@ public class FusionExpedienteService : IFusionExpediente
             await FuseReferenciaAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseReferencia1Async(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseReferencia2Async(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseAreaClaveAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
 
             // Calculate overall confidence
             var (overallConfidence, requiredFieldsScore, optionalFieldsScore) = CalculateOverallConfidence(fieldResults);
@@ -1802,6 +1803,66 @@ public class FusionExpedienteService : IFusionExpediente
             if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
             {
                 conflicts.Add("Referencia2");
+            }
+        }
+    }
+
+    private async Task FuseAreaClaveAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        // XML candidate
+        if (xml != null && xml.AreaClave > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = xml.AreaClave.ToString(),
+                Source = SourceType.XML_HandFilled,
+                SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                MatchesPattern = true // int is always valid if > 0
+            });
+        }
+
+        // PDF candidate
+        if (pdf != null && pdf.AreaClave > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = pdf.AreaClave.ToString(),
+                Source = SourceType.PDF_OCR_CNBV,
+                SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                MatchesPattern = true
+            });
+        }
+
+        // DOCX candidate
+        if (docx != null && docx.AreaClave > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = docx.AreaClave.ToString(),
+                Source = SourceType.DOCX_OCR_Authority,
+                SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                MatchesPattern = true
+            });
+        }
+
+        // Fuse
+        var result = await FuseFieldAsync("AreaClave", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null && result.Value.Value != null)
+        {
+            if (int.TryParse(result.Value.Value, out var areaClave))
+            {
+                fused.AreaClave = areaClave;
+                results["AreaClave"] = result.Value;
+                if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+                {
+                    conflicts.Add("AreaClave");
+                }
             }
         }
     }
