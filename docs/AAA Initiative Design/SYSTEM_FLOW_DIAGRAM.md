@@ -1,7 +1,7 @@
 # ExxerCube Prisma - Complete System Flow (Enhanced)
 
 ## Overview
-This diagram shows the complete, enhanced flow for the ExxerCube Prisma system. It includes the real-time requirement processing pipeline, the offline support systems for catalog generation, and the final reporting outputs. This design incorporates the "best-effort" principle and addresses gaps identified during analysis.
+This diagram shows the complete, enhanced flow for the ExxerCube Prisma system. It now reflects the split into two independent workers—**Orion** (monitor/download/journal) and **Athena** (process/classify/export)—plus the UI consuming real-time events. It also keeps the offline support systems and final reporting outputs. The design incorporates the "best-effort" principle and addresses the newly identified gaps (dual-worker topology, missing orchestrator, authenticity checks).
 
 ## System Flow Diagram
 
@@ -39,81 +39,101 @@ flowchart TD
     subgraph BankSystem["🏢 Bank's Intelligent Automation System (ExxerCube Prisma)"]
         direction TB
 
-        %% Monitoring & Download
-        subgraph Monitor["🔍 Monitoring & Download"]
+        %% Orion Worker (Monitoring & Download)
+        subgraph Orion["🛰️ Orion Worker (Monitoring & Download)"]
             Watch["⏰ SIARA Page Watcher"]
             Download["⬇️ Document Downloader"]
+            Journal["🧾 JSON Journal<br/>(Metadata + Hash + Correlation)"]
+            Storage["🗂️ File Storage<br/>(year/month/day)"]
             SiaraWeb -.->|"Monitors for New Cases"| Watch
             Watch -->|"Case Arrives"| Download
-            Download -->|"Downloads XML, PDF, DOCX"| Intake
+            Download -->|"Downloads XML, PDF, DOCX"| Storage
+            Download --> Journal
+            Download -->|"Emit DocumentDownloadedEvent"| AthenaIn
         end
 
-        %% Document Intake (Reality)
-        subgraph Intake["📥 Document Intake (Dealing with Reality)"]
+        %% Athena Worker (Processing Pipeline)
+        subgraph Athena["🧠 Athena Worker (Processing Pipeline)"]
+            AthenaIn["📨 Ingest from Orion<br/>(Event + Journal/Folder Watch)"]
             PDFBad["📄 Bad PDF State"]
             XMLBad["📋 Bad XML State"]
             WordDocBad["📝 Word Doc State"]
+
+            %% Intelligent Processing Pipeline
+            subgraph Pipeline["🤖 Intelligent Processing Pipeline"]
+                WordExtractor["📖 Word Text Extractor"]
+                QualityAnalysis["📊 Image Quality Analysis"]
+                FilterSelect["🎯 Adaptive Filter Selection"]
+                Enhancement["✨ Image Enhancement"]
+                OCR["👁️ OCR Processing"]
+                XMLParse["📖 Tolerant XML Parser"]
+                
+                WordDocBad --> WordExtractor
+                PDFBad --> QualityAnalysis --> FilterSelect --> Enhancement --> OCR
+                XMLBad --> XMLParse
+            end
+
+            %% Reconciliation & Intelligence
+            subgraph Reconcile["🔄 Reconciliation & Intelligence Engine"]
+                Sanitization["🧹 Text Sanitization"]
+                IdentityResolver["👤 Identity Resolution<br/>(RFCs, Aliases)"]
+                DataFusion["⚖️ Data Fusion & Confidence Engine<br/>(Best-Effort Logic + Authenticity Checks)"]
+                SemanticAnalysis["🧠 Semantic Analysis & Action Formulation<br/>(See ClassificationRules.md)"]
+                
+                OCR --> Sanitization
+                WordExtractor --> Sanitization
+                Sanitization --> IdentityResolver
+                XMLParse --> IdentityResolver
+                IdentityResolver --> DataFusion
+                DataFusion --> SemanticAnalysis
+            end
+
+            %% Final Processing & Storage
+            subgraph FinalProcess["📦 Final Processing & Storage"]
+                Generate["📋 Final Requirement Generation<br/>(See DATA_MODEL.md)"]
+                Conflict["🚨 Conflict & Confidence Check"]
+                Review["👤 Manual Review Queue"]
+                LogRejection["✍️ Log Rejection Decision"]
+                DB["🗄️ Structured Storage (DB)"]
+                Trace["🔍 Traceability Log"]
+                SLATracker["⏱️ SLA Tracker & Alerter"]
+                
+                SemanticAnalysis --> Generate
+                Generate --> Conflict
+                Conflict -->|"High Confidence"| DB
+                Conflict -->|"Low Confidence / Conflict"| Review
+                Review -->|"Data Corrected"| DB
+                Review -->|"Mark as Rejected"| LogRejection
+                LogRejection --> Trace
+                DB --> Trace
+                Generate --> SLATracker
+            end
+            
+            %% Adaptive Learning Loop
+            subgraph LearningLoop["🧠 Adaptive Learning Loop"]
+                Learn["✨ Adaptive Learning Engine"]
+                AuthorityCatalogDB -.-> SemanticAnalysis
+                Trace --> Learn
+                Learn -.->|"Improves Filters"| FilterSelect
+                Learn -.->|"Improves Parsing"| XMLParse
+                Learn -.->|"Flags Unknown Authorities"| AuthorityCatalogDB
+            end
         end
 
-        %% Intelligent Processing Pipeline
-        subgraph Pipeline["🤖 Intelligent Processing Pipeline"]
-            WordExtractor["📖 Word Text Extractor"]
-            QualityAnalysis["📊 Image Quality Analysis"]
-            FilterSelect["🎯 Adaptive Filter Selection"]
-            Enhancement["✨ Image Enhancement"]
-            OCR["👁️ OCR Processing"]
-            XMLParse["📖 Tolerant XML Parser"]
-            
-            WordDocBad --> WordExtractor
-            PDFBad --> QualityAnalysis --> FilterSelect --> Enhancement --> OCR
-            XMLBad --> XMLParse
+        %% UI / HMI (Real-Time Notifications)
+        subgraph HMI["🖥️ HMI / Web UI"]
+            Notifications["🔔 Real-Time Alerts (SignalR/Event Stream)"]
+            Dashboard["📊 Ops Dashboard"]
+            Notifications <-.-> Athena
+            Dashboard <-.-> Athena
         end
+    end
 
-        %% Reconciliation & Intelligence
-        subgraph Reconcile["🔄 Reconciliation & Intelligence Engine"]
-            Sanitization["🧹 Text Sanitization"]
-            IdentityResolver["👤 Identity Resolution<br/>(RFCs, Aliases)"]
-            DataFusion["⚖️ Data Fusion & Confidence Engine<br/>(Best-Effort Logic)"]
-            SemanticAnalysis["🧠 Semantic Analysis & Action Formulation<br/>(See ClassificationRules.md)"]
-            
-            OCR --> Sanitization
-            WordExtractor --> Sanitization
-            Sanitization --> IdentityResolver
-            XMLParse --> IdentityResolver
-            IdentityResolver --> DataFusion
-            DataFusion --> SemanticAnalysis
-        end
-
-        %% Final Processing & Storage
-        subgraph FinalProcess["📦 Final Processing & Storage"]
-            Generate["📋 Final Requirement Generation<br/>(See DATA_MODEL.md)"]
-            Conflict["🚨 Conflict & Confidence Check"]
-            Review["👤 Manual Review Queue"]
-            LogRejection["✍️ Log Rejection Decision"]
-            DB["🗄️ Structured Storage (DB)"]
-            Trace["🔍 Traceability Log"]
-            SLATracker["⏱️ SLA Tracker & Alerter"]
-            
-            SemanticAnalysis --> Generate
-            Generate --> Conflict
-            Conflict -->|"High Confidence"| DB
-            Conflict -->|"Low Confidence / Conflict"| Review
-            Review -->|"Data Corrected"| DB
-            Review -->|"Mark as Rejected"| LogRejection
-            LogRejection --> Trace
-            DB --> Trace
-            Generate --> SLATracker
-        end
-        
-        %% Adaptive Learning Loop
-        subgraph LearningLoop["🧠 Adaptive Learning Loop"]
-            Learn["✨ Adaptive Learning Engine"]
-            AuthorityCatalogDB -.-> SemanticAnalysis
-            Trace --> Learn
-            Learn -.->|"Improves Filters"| FilterSelect
-            Learn -.->|"Improves Parsing"| XMLParse
-            Learn -.->|"Flags Unknown Authorities"| AuthorityCatalogDB
-        end
+    %% ===== PROCESS MONITOR =====
+    subgraph MonitorProcess["🛡️ Sentinel Monitor"]
+        Sentinel["❤️‍🔥 Health/Restart Sentinel"]
+        Sentinel -.-> Orion
+        Sentinel -.-> Athena
     end
 
     %% ===== BANK OUTPUTS =====
