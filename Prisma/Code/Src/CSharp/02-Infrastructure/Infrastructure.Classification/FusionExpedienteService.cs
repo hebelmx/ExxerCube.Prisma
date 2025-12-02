@@ -96,6 +96,7 @@ public class FusionExpedienteService : IFusionExpediente
             await FuseFolioAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseMedioEnvioAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseOficioYearAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseOficioOrigenAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
 
             // Calculate overall confidence
             var (overallConfidence, requiredFieldsScore, optionalFieldsScore) = CalculateOverallConfidence(fieldResults);
@@ -1406,6 +1407,71 @@ public class FusionExpedienteService : IFusionExpediente
                 {
                     conflicts.Add("OficioYear");
                 }
+            }
+        }
+    }
+
+    private async Task FuseOficioOrigenAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(xml.OficioOrigen);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.XML_HandFilled,
+                    SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        if (pdf != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(pdf.OficioOrigen);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.PDF_OCR_CNBV,
+                    SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        if (docx != null)
+        {
+            var sanitized = FieldSanitizer.Sanitize(docx.OficioOrigen);
+            if (sanitized != null)
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = sanitized,
+                    Source = SourceType.DOCX_OCR_Authority,
+                    SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                    MatchesPattern = FieldPatternValidator.IsValidTextField(sanitized, 100)
+                });
+            }
+        }
+
+        var result = await FuseFieldAsync("OficioOrigen", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null)
+        {
+            fused.OficioOrigen = result.Value.Value ?? string.Empty;
+            results["OficioOrigen"] = result.Value;
+            if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+            {
+                conflicts.Add("OficioOrigen");
             }
         }
     }
