@@ -105,6 +105,9 @@ public class FusionExpedienteService : IFusionExpediente
             await FuseAreaClaveAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseSubdivisionAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseTieneAseguramientoAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            // Fuse primary solicitud especifica fields (first SolicitudEspecifica)
+            await FusePrimarySolicitudEspecificaFieldsAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+
 
             // Calculate FechaEstimadaConclusion (FechaRecepcion + DiasPlazo business days)
             if (fusedExpediente.FechaRecepcion != default && fusedExpediente.DiasPlazo > 0)
@@ -2503,6 +2506,244 @@ public class FusionExpedienteService : IFusionExpediente
         if (string.IsNullOrWhiteSpace(expediente.AreaDescripcion)) missing.Add("AreaDescripcion");
 
         return missing;
+    }
+
+    /// <summary>
+    /// Fuses fields from the primary SolicitudEspecifica (first in collection).
+    /// </summary>
+    private async Task FusePrimarySolicitudEspecificaFieldsAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        // Only fuse if at least one source has SolicitudEspecifica collection
+        var hasEspecificas = (xml?.SolicitudEspecificas?.Count > 0) ||
+                             (pdf?.SolicitudEspecificas?.Count > 0) ||
+                             (docx?.SolicitudEspecificas?.Count > 0);
+
+        if (!hasEspecificas)
+        {
+            _logger.LogDebug("No SolicitudEspecifica collections found, skipping primary solicitud especifica fusion");
+            return;
+        }
+
+        _logger.LogDebug("Fusing primary SolicitudEspecifica fields (first in collection)");
+
+        // Ensure fusedExpediente has collection initialized
+        fused.SolicitudEspecificas ??= new List<SolicitudEspecifica>();
+
+        // Ensure at least one SolicitudEspecifica exists to hold fused values
+        if (fused.SolicitudEspecificas.Count == 0)
+        {
+            fused.SolicitudEspecificas.Add(new SolicitudEspecifica());
+        }
+
+        // Fuse individual fields
+        await FuseSolicitudEspecificaIdAsync(xml, pdf, docx, reliabilities, fused, results, conflicts, cancellationToken);
+        await FuseSolicitudMeasureAsync(xml, pdf, docx, reliabilities, fused, results, conflicts, cancellationToken);
+        await FuseSolicitudInstruccionesAsync(xml, pdf, docx, reliabilities, fused, results, conflicts, cancellationToken);
+    }
+
+    /// <summary>
+    /// Fuses SolicitudEspecificaId from the primary SolicitudEspecifica.
+    /// </summary>
+    private async Task FuseSolicitudEspecificaIdAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        // XML candidate
+        if (xml?.SolicitudEspecificas?.Count > 0 && xml.SolicitudEspecificas[0].SolicitudEspecificaId > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = xml.SolicitudEspecificas[0].SolicitudEspecificaId.ToString(),
+                Source = SourceType.XML_HandFilled,
+                SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                MatchesPattern = true
+            });
+        }
+
+        // PDF candidate
+        if (pdf?.SolicitudEspecificas?.Count > 0 && pdf.SolicitudEspecificas[0].SolicitudEspecificaId > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = pdf.SolicitudEspecificas[0].SolicitudEspecificaId.ToString(),
+                Source = SourceType.PDF_OCR_CNBV,
+                SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                MatchesPattern = true
+            });
+        }
+
+        // DOCX candidate
+        if (docx?.SolicitudEspecificas?.Count > 0 && docx.SolicitudEspecificas[0].SolicitudEspecificaId > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = docx.SolicitudEspecificas[0].SolicitudEspecificaId.ToString(),
+                Source = SourceType.DOCX_OCR_Authority,
+                SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                MatchesPattern = true
+            });
+        }
+
+        // Fuse
+        var result = await FuseFieldAsync("SolicitudEspecificaId", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null && result.Value.Value != null)
+        {
+            if (int.TryParse(result.Value.Value, out var fusedId))
+            {
+                fused.SolicitudEspecificas[0].SolicitudEspecificaId = fusedId;
+                results["SolicitudEspecificaId"] = result.Value;
+                if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+                {
+                    conflicts.Add("SolicitudEspecificaId");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fuses Measure (MeasureKind enum) from the primary SolicitudEspecifica.
+    /// </summary>
+    private async Task FuseSolicitudMeasureAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        // XML candidate
+        if (xml?.SolicitudEspecificas?.Count > 0 && xml.SolicitudEspecificas[0].Measure != MeasureKind.Unknown)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = xml.SolicitudEspecificas[0].Measure.Name,
+                Source = SourceType.XML_HandFilled,
+                SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                MatchesPattern = true
+            });
+        }
+
+        // PDF candidate
+        if (pdf?.SolicitudEspecificas?.Count > 0 && pdf.SolicitudEspecificas[0].Measure != MeasureKind.Unknown)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = pdf.SolicitudEspecificas[0].Measure.Name,
+                Source = SourceType.PDF_OCR_CNBV,
+                SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                MatchesPattern = true
+            });
+        }
+
+        // DOCX candidate
+        if (docx?.SolicitudEspecificas?.Count > 0 && docx.SolicitudEspecificas[0].Measure != MeasureKind.Unknown)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = docx.SolicitudEspecificas[0].Measure.Name,
+                Source = SourceType.DOCX_OCR_Authority,
+                SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                MatchesPattern = true
+            });
+        }
+
+        // Fuse
+        var result = await FuseFieldAsync("Measure", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null && result.Value.Value != null)
+        {
+            try
+            {
+                var fusedMeasure = MeasureKind.FromName(result.Value.Value);
+                fused.SolicitudEspecificas[0].Measure = fusedMeasure;
+                results["Measure"] = result.Value;
+                if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+                {
+                    conflicts.Add("Measure");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse fused Measure value: {Value}", result.Value.Value);
+                fused.SolicitudEspecificas[0].Measure = MeasureKind.Unknown;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Fuses InstruccionesCuentasPorConocer from the primary SolicitudEspecifica.
+    /// </summary>
+    private async Task FuseSolicitudInstruccionesAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        // XML candidate
+        if (xml?.SolicitudEspecificas?.Count > 0)
+        {
+            var value = xml.SolicitudEspecificas[0].InstruccionesCuentasPorConocer;
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = value,
+                    Source = SourceType.XML_HandFilled,
+                    SourceReliability = reliabilities[SourceType.XML_HandFilled]
+                });
+            }
+        }
+
+        // PDF candidate
+        if (pdf?.SolicitudEspecificas?.Count > 0)
+        {
+            var value = pdf.SolicitudEspecificas[0].InstruccionesCuentasPorConocer;
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = value,
+                    Source = SourceType.PDF_OCR_CNBV,
+                    SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV]
+                });
+            }
+        }
+
+        // DOCX candidate
+        if (docx?.SolicitudEspecificas?.Count > 0)
+        {
+            var value = docx.SolicitudEspecificas[0].InstruccionesCuentasPorConocer;
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                candidates.Add(new FieldCandidate
+                {
+                    Value = value,
+                    Source = SourceType.DOCX_OCR_Authority,
+                    SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority]
+                });
+            }
+        }
+
+        // Fuse
+        var result = await FuseFieldAsync("InstruccionesCuentasPorConocer", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null)
+        {
+            fused.SolicitudEspecificas[0].InstruccionesCuentasPorConocer = result.Value.Value ?? string.Empty;
+            results["InstruccionesCuentasPorConocer"] = result.Value;
+            if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+            {
+                conflicts.Add("InstruccionesCuentasPorConocer");
+            }
+        }
     }
 
     /// <summary>
