@@ -93,6 +93,7 @@ public class FusionExpedienteService : IFusionExpediente
             await FuseFechaRegistroAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseNombreSolicitanteAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseAutoridadEspecificaNombreAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseFolioAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
 
             // Calculate overall confidence
             var (overallConfidence, requiredFieldsScore, optionalFieldsScore) = CalculateOverallConfidence(fieldResults);
@@ -1222,6 +1223,62 @@ public class FusionExpedienteService : IFusionExpediente
             if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
             {
                 conflicts.Add("AutoridadEspecificaNombre");
+            }
+        }
+    }
+
+    private async Task FuseFolioAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        if (xml != null && xml.Folio > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = xml.Folio.ToString(),
+                Source = SourceType.XML_HandFilled,
+                SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                MatchesPattern = true // int is always valid if > 0
+            });
+        }
+
+        if (pdf != null && pdf.Folio > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = pdf.Folio.ToString(),
+                Source = SourceType.PDF_OCR_CNBV,
+                SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                MatchesPattern = true
+            });
+        }
+
+        if (docx != null && docx.Folio > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = docx.Folio.ToString(),
+                Source = SourceType.DOCX_OCR_Authority,
+                SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                MatchesPattern = true
+            });
+        }
+
+        var result = await FuseFieldAsync("Folio", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null && result.Value.Value != null)
+        {
+            if (int.TryParse(result.Value.Value, out var folio))
+            {
+                fused.Folio = folio;
+                results["Folio"] = result.Value;
+                if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+                {
+                    conflicts.Add("Folio");
+                }
             }
         }
     }
