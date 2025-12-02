@@ -1,0 +1,120 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Core Properties">
+    <!-- Target framework centrally managed, do not add another here -->
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTestingPlatformEntryPoint>false</GenerateTestingPlatformEntryPoint>
+  </PropertyGroup>
+  <PropertyGroup Label="Testing Platform">
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <TestingPlatformServer>true</TestingPlatformServer>
+  </PropertyGroup>
+  <!-- ============================================================================ -->
+  <!-- TESTING UTILITIES -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Testing Utilities">
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- LOGGING & DIAGNOSTICS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Logging">
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Meziantou.Extensions.Logging.Xunit.v3" />
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- DEPENDENCY INJECTION -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Dependency Injection">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- ANALYZERS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="NSubstitute Analyzers">
+    <PackageReference Include="NSubstitute.Analyzers.CSharp">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- MICROSOFT TESTING PLATFORM -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Microsoft Testing Platform">
+    <PackageReference Include="Microsoft.Testing.Platform" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="Microsoft.Testing.Extensions.VSTestBridge" />
+    <PackageReference Include="Microsoft.Testing.Extensions.HangDump" />
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- XUNIT V3 UNIVERSAL CONFIGURATION -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="xUnit v3">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3.runner.inproc.console" />
+    <PackageReference Include="xunit.v3.runner.msbuild">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- CODE COVERAGE -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Code Coverage">
+    <PackageReference Include="coverlet.collector">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- PROJECT REFERENCES -->
+  <!-- ============================================================================ -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Events\ExxerCube.Prisma.Infrastructure.Events.csproj" />
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- TESTING PLATFORM CAPABILITIES -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Testing Platform Capabilities">
+    <ProjectCapability Include="DiagnoseCapabilities" />
+    <ProjectCapability Include="TestingPlatformServer" />
+    <ProjectCapability Include="TestContainer" />
+  </ItemGroup>
+  <!-- ============================================================================ -->
+  <!-- GLOBAL USINGS -->
+  <!-- ============================================================================ -->
+  <ItemGroup Label="Global Usings">
+    <Using Include="Xunit" />
+    <Using Include="NSubstitute" />
+    <Using Include="Shouldly" />
+    <Using Include="Microsoft.Extensions.Logging" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="System.Text" />
+    <Using Include="System.Text.Json" />
+    <Using Include="System.IO" />
+  </ItemGroup>
+</Project>
