@@ -103,6 +103,7 @@ public class FusionExpedienteService : IFusionExpediente
             await FuseReferencia1Async(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseReferencia2Async(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
             await FuseAreaClaveAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
+            await FuseSubdivisionAsync(xmlExpediente, pdfExpediente, docxExpediente, sourceReliabilities, fusedExpediente, fieldResults, conflictingFields, cancellationToken);
 
             // Calculate overall confidence
             var (overallConfidence, requiredFieldsScore, optionalFieldsScore) = CalculateOverallConfidence(fieldResults);
@@ -1863,6 +1864,71 @@ public class FusionExpedienteService : IFusionExpediente
                 {
                     conflicts.Add("AreaClave");
                 }
+            }
+        }
+    }
+
+    private async Task FuseSubdivisionAsync(
+        Expediente? xml, Expediente? pdf, Expediente? docx,
+        Dictionary<SourceType, double> reliabilities,
+        Expediente fused, Dictionary<string, FieldFusionResult> results,
+        List<string> conflicts, CancellationToken cancellationToken)
+    {
+        var candidates = new List<FieldCandidate>();
+
+        // XML candidate
+        if (xml != null && xml.Subdivision != null && xml.Subdivision.Value > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = xml.Subdivision.Name,
+                Source = SourceType.XML_HandFilled,
+                SourceReliability = reliabilities[SourceType.XML_HandFilled],
+                MatchesPattern = true // SmartEnum validated at parse time
+            });
+        }
+
+        // PDF candidate
+        if (pdf != null && pdf.Subdivision != null && pdf.Subdivision.Value > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = pdf.Subdivision.Name,
+                Source = SourceType.PDF_OCR_CNBV,
+                SourceReliability = reliabilities[SourceType.PDF_OCR_CNBV],
+                MatchesPattern = true
+            });
+        }
+
+        // DOCX candidate
+        if (docx != null && docx.Subdivision != null && docx.Subdivision.Value > 0)
+        {
+            candidates.Add(new FieldCandidate
+            {
+                Value = docx.Subdivision.Name,
+                Source = SourceType.DOCX_OCR_Authority,
+                SourceReliability = reliabilities[SourceType.DOCX_OCR_Authority],
+                MatchesPattern = true
+            });
+        }
+
+        // Fuse
+        var result = await FuseFieldAsync("Subdivision", candidates, cancellationToken);
+        if (result.IsSuccess && result.Value != null && result.Value.Value != null)
+        {
+            try
+            {
+                fused.Subdivision = LegalSubdivisionKind.FromName(result.Value.Value);
+                results["Subdivision"] = result.Value;
+                if (result.Value.Decision == FusionDecision.WeightedVoting || result.Value.Decision == FusionDecision.Conflict)
+                {
+                    conflicts.Add("Subdivision");
+                }
+            }
+            catch
+            {
+                // If name not recognized, default to Unknown
+                fused.Subdivision = LegalSubdivisionKind.Unknown;
             }
         }
     }
