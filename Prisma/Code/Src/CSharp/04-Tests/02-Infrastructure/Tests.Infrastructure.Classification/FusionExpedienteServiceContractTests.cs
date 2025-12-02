@@ -13,6 +13,7 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 /// </remarks>
 public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
 {
+    private readonly ITestOutputHelper _output = output;
     private readonly FusionCoefficients _defaultCoefficients = new();
     private readonly ILogger<FusionExpedienteServiceContractTests> _logger = XUnitLogger.CreateLogger<FusionExpedienteServiceContractTests>(output);
 
@@ -368,9 +369,10 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
 
     #region Helper Methods
 
-    private static IFusionExpediente CreateSystemUnderTest()
+    private IFusionExpediente CreateSystemUnderTest()
     {
-        var logger = Substitute.For<ILogger<FusionExpedienteService>>();
+        // Use real logger instead of mock for better debugging
+        var logger = XUnitLogger.CreateLogger<FusionExpedienteService>(_output);
         var coefficients = new FusionCoefficients(); // Use default coefficients
         return new FusionExpedienteService(logger, coefficients);
     }

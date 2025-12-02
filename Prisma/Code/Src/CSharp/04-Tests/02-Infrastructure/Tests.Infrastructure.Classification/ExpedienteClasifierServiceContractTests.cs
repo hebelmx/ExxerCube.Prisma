@@ -13,6 +13,7 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 /// </remarks>
 public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
 {
+    private readonly ITestOutputHelper _output = output;
     private readonly ILogger<ExpedienteClasifierServiceContractTests> _logger = XUnitLogger.CreateLogger<ExpedienteClasifierServiceContractTests>(output);
 
     #region Classification Tests - Requirement Types (100-104)
@@ -396,9 +397,10 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
 
     #region Helper Methods - Test Data Builders
 
-    private static IExpedienteClasifier CreateSystemUnderTest()
+    private IExpedienteClasifier CreateSystemUnderTest()
     {
-        var logger = Substitute.For<ILogger<ExpedienteClasifierService>>();
+        // Use real logger instead of mock for better debugging
+        var logger = XUnitLogger.CreateLogger<ExpedienteClasifierService>(_output);
         return new ExpedienteClasifierService(logger);
     }
 
