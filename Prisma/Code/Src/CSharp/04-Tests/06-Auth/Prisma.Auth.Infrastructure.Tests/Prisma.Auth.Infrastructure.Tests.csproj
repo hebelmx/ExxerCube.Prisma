@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Core Properties">
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
+  </PropertyGroup>
+  <ItemGroup Label="xUnit v3">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Platform" />
+  </ItemGroup>
+  <ItemGroup Label="Testing Infrastructure">
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\06-Auth\Prisma.Auth.Domain\Prisma.Auth.Domain.csproj" />
+    <ProjectReference Include="..\..\..\06-Auth\Prisma.Auth.Infrastructure\Prisma.Auth.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
