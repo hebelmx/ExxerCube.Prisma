@@ -125,15 +125,23 @@ Actionable, test-first plan to deliver the dual-worker topology (Orion ingestion
   - ✅ Hosts use abstractions (clean interfaces defined)
   - ✅ Easy swap of provider (adapter pattern implemented)
 
-## Stage 7: HMI Event Consumption (ITDD)
+## Stage 7: HMI Event Consumption (ITDD) ⚠️ PARTIAL (31% - 5/16 tests)
 **Goal**: UI receives real-time events and shows notifications/alerts with auth.
+**Status**: Notification rendering complete, SignalR mocking requires TestServer
+**Commits**: 55d13f7 (RED), aa4e0f0 (GREEN-Partial)
 
 - Tests (new):
-  - `Prisma.HMI.Tests`: SignalR/event-stream client subscribes to classification/conflict/completion; renders notification; denies when unauthenticated.
+  - ✅ `Prisma.HMI.Tests` created with 16 tests (5 passing)
+  - ✅ NotificationRenderingTests: 5/5 passing (100%)
+  - ⏳ SignalREventSubscriptionTests: 0/5 (requires TestServer infrastructure)
+  - ⏳ SignalRAuthenticationTests: 0/8 (requires TestServer infrastructure)
 - Implementation:
-  - Keep UI logic thin; consume contracts; integrate auth token into SignalR connection.
+  - ✅ Notification rendering logic (severity, formatting, queue)
+  - ✅ Event contracts (ClassificationCompletedEvent, ProcessingCompletedEvent)
+  - ⏳ SignalR client mocking (blocked by HubConnection design constraints)
 - Exit Criteria:
-  - Tests green; basic notification flow observable with mock events.
+  - ⚠️ Partial: Notification rendering verified
+  - ⏳ Pending: Full SignalR integration (recommend TestServer in Stage 8)
 
 ## Stage 8: End-to-End Validation
 **Goal**: Synthetic SIARA → Orion → Athena → DB/Export → UI notification; audit trail complete; health green.
