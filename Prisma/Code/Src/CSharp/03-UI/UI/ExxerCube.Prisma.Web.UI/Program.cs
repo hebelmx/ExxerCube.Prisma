@@ -14,6 +14,8 @@ using ExxerCube.Prisma.Infrastructure.Imaging;
 using IndFusion.Ember.Abstractions.Hubs;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
 
 namespace ExxerCube.Prisma.Web.UI;
 
@@ -148,6 +150,9 @@ public class Program
         // Add metrics services (needed for Dashboard and HealthCheckService)
         services.AddMetricsServices(pythonConfig.MaxConcurrency);
 
+        // Add health check service (needed by Dashboard.razor)
+        services.AddScoped<ExxerCube.Prisma.Application.Services.HealthCheckService>();
+
         // Add services to the container.
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
@@ -218,6 +223,12 @@ public class Program
         services.AddClassificationServices(configuration);
         services.AddScoped<MetadataExtractionService>();
 
+        // Add Extraction services (OCR executors, field extractors, document comparison)
+        services.AddExtractionServices();
+
+        // Add Adaptive DOCX Extraction (5-strategy extraction for AdaptiveDocxDemo.razor)
+        services.AddAdaptiveDocxExtraction();
+
         // Add Imaging services (filters, quality analysis)
         services.AddImagingInfrastructure(FilterSelectionStrategyType.Analytical);
 
@@ -236,10 +247,12 @@ public class Program
         // Add Story 1.7 & 1.8 services: Export Generation (SIRO XML, Excel, PDF Signing)
         services.AddExportServices(configuration);
         services.AddAdaptiveExportServices(applicationConnectionString);
-        // services.AddScoped<ExportService>();
+        // Legacy ExportService (still used by ExportManagement.razor)
+        services.AddScoped<ExxerCube.Prisma.Application.Services.ExportService>();
 
         // Add Story 1.9 services: Audit Reporting
-        // //services.AddScoped<AuditReportingService>();
+        // AuditReportingService (still used by Audit/AuditTrailViewer.razor)
+        services.AddScoped<ExxerCube.Prisma.Application.Services.AuditReportingService>();
 
         // Add Demo Administration service (ONLY for demo environments - performs hard deletes!)
         services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DemoAdminService>();
