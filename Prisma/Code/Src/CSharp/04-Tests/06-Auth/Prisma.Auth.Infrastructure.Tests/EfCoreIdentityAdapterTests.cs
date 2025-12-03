@@ -228,6 +228,128 @@ public sealed class EfCoreIdentityAdapterTests
 
         return (adapter, userManager, signInManager);
     }
+
+    // ========================================================================
+    // NEW: Railway-Oriented Programming Tests (Stage 6.5)
+    // ========================================================================
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Stage", "6.5")]
+    public async Task GetCurrentWithResult_UserSignedIn_ReturnsSuccessWithIdentity()
+    {
+        // Arrange
+        var (adapter, userManager, signInManager) = CreateAdapter();
+        var user = new TestIdentityUser { Id = "123", UserName = "testuser" };
+        var roles = new[] { "Admin", "User" };
+
+        userManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(user);
+        userManager.GetRolesAsync(user).Returns(roles);
+
+        var httpContext = CreateAuthenticatedHttpContext("123", "testuser", roles);
+        adapter.SetHttpContext(httpContext);
+
+        // Act
+        var result = await adapter.GetCurrentWithResultAsync(TestContext.Current.CancellationToken);
+
+        // Assert - Railway-Oriented Programming
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.UserId.ShouldBe("123");
+        result.Value!.UserName.ShouldBe("testuser");
+        result.Value!.Roles.ShouldBe(roles);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Stage", "6.5")]
+    public async Task GetCurrentWithResult_WhenCancelled_ReturnsCancelled()
+    {
+        // Arrange
+        var (adapter, _, _) = CreateAdapter();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act
+        var result = await adapter.GetCurrentWithResultAsync(cts.Token);
+
+        // Assert - Railway-Oriented: cancellation is Result, not exception
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Stage", "6.5")]
+    public async Task CreateTokenWithResult_ValidIdentity_ReturnsSuccessWithToken()
+    {
+        // Arrange
+        var (adapter, _, _) = CreateAdapter();
+        var identity = new UserIdentity("123", "testuser", new[] { "Admin" });
+
+        // Act
+        var result = await adapter.CreateTokenWithResultAsync(identity, TestContext.Current.CancellationToken);
+
+        // Assert - Railway-Oriented Programming
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNullOrWhiteSpace();
+        result.Value!.ShouldStartWith("eyJ"); // JWT tokens start with eyJ
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Stage", "6.5")]
+    public async Task CreateTokenWithResult_WhenCancelled_ReturnsCancelled()
+    {
+        // Arrange
+        var (adapter, _, _) = CreateAdapter();
+        var identity = new UserIdentity("123", "testuser", new[] { "Admin" });
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act
+        var result = await adapter.CreateTokenWithResultAsync(identity, cts.Token);
+
+        // Assert - Railway-Oriented: cancellation is Result, not exception
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Stage", "6.5")]
+    public async Task ValidateTokenWithResult_ValidToken_ReturnsSuccessWithValidationResult()
+    {
+        // Arrange
+        var (adapter, _, _) = CreateAdapter();
+        var identity = new UserIdentity("123", "testuser", new[] { "Admin" });
+        var token = await adapter.CreateTokenAsync(identity, TestContext.Current.CancellationToken);
+
+        // Act
+        var result = await adapter.ValidateTokenWithResultAsync(token, TestContext.Current.CancellationToken);
+
+        // Assert - Railway-Oriented Programming
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.IsValid.ShouldBeTrue();
+        result.Value!.Identity.ShouldNotBeNull();
+        result.Value!.Identity!.UserId.ShouldBe("123");
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Stage", "6.5")]
+    public async Task ValidateTokenWithResult_WhenCancelled_ReturnsCancelled()
+    {
+        // Arrange
+        var (adapter, _, _) = CreateAdapter();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act
+        var result = await adapter.ValidateTokenWithResultAsync("some-token", cts.Token);
+
+        // Assert - Railway-Oriented: cancellation is Result, not exception
+        result.IsCancelled().ShouldBeTrue();
+    }
 }
 
 /// <summary>

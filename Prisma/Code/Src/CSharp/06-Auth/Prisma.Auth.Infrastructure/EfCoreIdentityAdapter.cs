@@ -147,4 +147,85 @@ public sealed class EfCoreIdentityAdapter<TUser> : IIdentityProvider, ITokenServ
             return Task.FromResult(new DomainTokenValidationResult(false, null, "Invalid token"));
         }
     }
+
+    // ========================================================================
+    // NEW: Railway-Oriented Programming Methods (Stage 6.5)
+    // ========================================================================
+
+    /// <summary>
+    /// Gets the current user identity using Railway-Oriented Programming.
+    /// Returns Result&lt;UserIdentity?&gt; instead of throwing exceptions.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A Result containing UserIdentity on success, or null if not authenticated.</returns>
+    public async Task<Result<UserIdentity?>> GetCurrentWithResultAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<UserIdentity?>();
+        }
+
+        try
+        {
+            var identity = await GetCurrentAsync(cancellationToken).ConfigureAwait(false);
+            return Result<UserIdentity?>.Success(identity);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get current user identity");
+            return Result<UserIdentity?>.WithFailure(new[] { $"Failed to retrieve current user: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Creates a JWT token using Railway-Oriented Programming.
+    /// Returns Result&lt;string&gt; instead of throwing exceptions.
+    /// </summary>
+    /// <param name="identity">User identity to create token for.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A Result containing JWT token string on success.</returns>
+    public async Task<Result<string>> CreateTokenWithResultAsync(UserIdentity identity, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<string>();
+        }
+
+        try
+        {
+            var token = await CreateTokenAsync(identity, cancellationToken).ConfigureAwait(false);
+            return Result<string>.Success(token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create JWT token for user {UserId}", identity.UserId);
+            return Result<string>.WithFailure(new[] { $"Failed to create token for user {identity.UserId}: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Validates a JWT token using Railway-Oriented Programming.
+    /// Returns Result&lt;DomainTokenValidationResult&gt; instead of throwing exceptions.
+    /// </summary>
+    /// <param name="token">JWT token to validate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A Result containing TokenValidationResult on success.</returns>
+    public async Task<Result<DomainTokenValidationResult>> ValidateTokenWithResultAsync(string token, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<DomainTokenValidationResult>();
+        }
+
+        try
+        {
+            var validationResult = await ValidateTokenAsync(token, cancellationToken).ConfigureAwait(false);
+            return Result<DomainTokenValidationResult>.Success(validationResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception during token validation");
+            return Result<DomainTokenValidationResult>.WithFailure(new[] { $"Token validation failed with exception: {ex.Message}" });
+        }
+    }
 }

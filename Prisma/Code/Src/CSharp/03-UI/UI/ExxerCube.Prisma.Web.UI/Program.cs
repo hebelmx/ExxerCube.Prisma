@@ -144,6 +144,13 @@ public class Program
         };
         services.AddOcrProcessingServices(pythonConfig);
 
+        // Register event publisher (needed by legacy services)
+        services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.IEventPublisher, ExxerCube.Prisma.Infrastructure.Events.EventPublisher>();
+
+        // Register OCR processing service adapter (needed by BulkProcessingService)
+        services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService, ExxerCube.Prisma.Infrastructure.DependencyInjection.OcrProcessingServiceAdapter>();
+        services.AddScoped<ExxerCube.Prisma.Application.Services.OcrProcessingService>();
+
         // Add Python environment services (required for GOT-OCR2)
         //services.AddPrismaPythonEnvironment();
 

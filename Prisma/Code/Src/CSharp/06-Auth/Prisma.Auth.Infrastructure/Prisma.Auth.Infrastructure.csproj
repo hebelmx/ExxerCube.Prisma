@@ -13,6 +13,7 @@
     <InternalsVisibleTo Include="Prisma.Auth.Infrastructure.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="IndQuestResults" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
