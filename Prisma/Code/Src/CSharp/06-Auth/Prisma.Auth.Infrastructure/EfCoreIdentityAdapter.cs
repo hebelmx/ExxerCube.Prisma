@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Prisma.Auth.Domain.Interfaces;
+using DomainTokenValidationResult = Prisma.Auth.Domain.Interfaces.TokenValidationResult;
 
 namespace Prisma.Auth.Infrastructure;
 
@@ -106,7 +107,7 @@ public sealed class EfCoreIdentityAdapter<TUser> : IIdentityProvider, ITokenServ
     }
 
     /// <inheritdoc />
-    public Task<TokenValidationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
+    public Task<DomainTokenValidationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -131,19 +132,19 @@ public sealed class EfCoreIdentityAdapter<TUser> : IIdentityProvider, ITokenServ
             var roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
 
             if (userId == null || userName == null)
-                return Task.FromResult(new TokenValidationResult(false, null, "Missing required claims"));
+                return Task.FromResult(new DomainTokenValidationResult(false, null, "Missing required claims"));
 
             var identity = new UserIdentity(userId, userName, roles);
-            return Task.FromResult(new TokenValidationResult(true, identity));
+            return Task.FromResult(new DomainTokenValidationResult(true, identity));
         }
         catch (SecurityTokenExpiredException)
         {
-            return Task.FromResult(new TokenValidationResult(false, null, "Token has expired"));
+            return Task.FromResult(new DomainTokenValidationResult(false, null, "Token has expired"));
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Token validation failed");
-            return Task.FromResult(new TokenValidationResult(false, null, "Invalid token"));
+            return Task.FromResult(new DomainTokenValidationResult(false, null, "Invalid token"));
         }
     }
 }

@@ -79,12 +79,12 @@ public sealed class InMemoryIdentityProviderTests
 
     [Fact]
     [Trait("Category", "Unit")]
-    public void Current_AfterTokenCreation_ReturnsIdentity()
+    public async Task Current_AfterTokenCreation_ReturnsIdentity()
     {
         // Arrange
         var provider = new InMemoryIdentityProvider();
         var identity = new UserIdentity("dev-user-5", "devuser5", Array.Empty<string>());
-        provider.CreateTokenAsync(identity, CancellationToken.None).GetAwaiter().GetResult();
+        await provider.CreateTokenAsync(identity, TestContext.Current.CancellationToken);
 
         // Act
         var current = provider.Current;

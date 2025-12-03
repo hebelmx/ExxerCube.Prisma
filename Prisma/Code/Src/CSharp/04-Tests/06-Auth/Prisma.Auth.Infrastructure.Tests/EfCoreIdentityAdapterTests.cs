@@ -98,6 +98,7 @@ public sealed class EfCoreIdentityAdapterTests
 
         // Assert
         result.IsValid.ShouldBeFalse();
+        result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("expired", Case.Insensitive);
     }
 
@@ -199,7 +200,7 @@ public sealed class EfCoreIdentityAdapterTests
     }
 
     // Helper method to create adapter with mocked dependencies
-    private static (EfCoreIdentityAdapter adapter, UserManager<TestIdentityUser> userManager, SignInManager<TestIdentityUser> signInManager)
+    private static (EfCoreIdentityAdapter<TestIdentityUser> adapter, UserManager<TestIdentityUser> userManager, SignInManager<TestIdentityUser> signInManager)
         CreateAdapter(TimeSpan? tokenLifetime = null)
     {
         var userStore = Substitute.For<IUserStore<TestIdentityUser>>();

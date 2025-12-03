@@ -9,19 +9,23 @@ public class InMemoryIdentityProvider : IIdentityProvider, ITokenService, IUserC
 {
     private UserIdentity? _current;
 
+    /// <inheritdoc />
     public UserIdentity? Current => _current;
 
+    /// <inheritdoc />
     public Task<UserIdentity?> GetCurrentAsync(CancellationToken cancellationToken = default)
     {
         return Task.FromResult(_current);
     }
 
+    /// <inheritdoc />
     public Task<string> CreateTokenAsync(UserIdentity identity, CancellationToken cancellationToken = default)
     {
         _current = identity;
         return Task.FromResult($"DEV-TOKEN-{identity.UserId}");
     }
 
+    /// <inheritdoc />
     public Task<TokenValidationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         if (_current is null || token != $"DEV-TOKEN-{_current.UserId}")
