@@ -35,6 +35,40 @@ public sealed record DocumentDownloadedEvent(
     DateTimeOffset Timestamp);
 
 /// <summary>
+/// Quality analysis completion event payload.
+/// </summary>
+/// <param name="FileId">Unique identifier for the document file.</param>
+/// <param name="FileName">Name of the analyzed file.</param>
+/// <param name="QualityScore">Quality score (0.0 to 1.0).</param>
+/// <param name="IsAcceptable">Whether quality meets acceptance criteria.</param>
+/// <param name="CorrelationId">End-to-end tracing identifier.</param>
+/// <param name="Timestamp">UTC timestamp when quality analysis completed.</param>
+public sealed record QualityCompletedEvent(
+    Guid FileId,
+    string FileName,
+    double QualityScore,
+    bool IsAcceptable,
+    Guid CorrelationId,
+    DateTimeOffset Timestamp);
+
+/// <summary>
+/// OCR processing completion event payload.
+/// </summary>
+/// <param name="FileId">Unique identifier for the document file.</param>
+/// <param name="FileName">Name of the OCR-processed file.</param>
+/// <param name="ExtractedText">Extracted text content.</param>
+/// <param name="PageCount">Number of pages processed.</param>
+/// <param name="CorrelationId">End-to-end tracing identifier.</param>
+/// <param name="Timestamp">UTC timestamp when OCR processing completed.</param>
+public sealed record OcrCompletedEvent(
+    Guid FileId,
+    string FileName,
+    string ExtractedText,
+    int PageCount,
+    Guid CorrelationId,
+    DateTimeOffset Timestamp);
+
+/// <summary>
 /// Classification completion event payload.
 /// </summary>
 /// <param name="FileId">Unique identifier for the document file.</param>
