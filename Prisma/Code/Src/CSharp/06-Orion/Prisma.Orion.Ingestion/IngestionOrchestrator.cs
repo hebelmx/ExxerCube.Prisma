@@ -3,20 +3,19 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
-using DomainEvent = ExxerCube.Prisma.Domain.Events.DomainEvent;
 
 namespace Prisma.Orion.Ingestion;
 
 /// <summary>
 /// Orchestrates SIARA monitoring, download, and journaling (logic only, host-agnostic).
+/// Uses Railway-Oriented Programming with Result&lt;T&gt; and event broadcasting via IExxerHub&lt;T&gt;.
 /// </summary>
 public class IngestionOrchestrator
 {
     private readonly IIngestionJournal _journal;
     private readonly IDocumentDownloader _downloader;
-    private readonly IEventPublisher _eventPublisher;
+    private readonly IExxerHub<DocumentDownloadedEvent> _eventHub;
     private readonly ILogger<IngestionOrchestrator> _logger;
     private readonly string _storageBasePath;
 
@@ -25,59 +24,144 @@ public class IngestionOrchestrator
     /// </summary>
     /// <param name="journal">The ingestion journal for idempotency tracking.</param>
     /// <param name="downloader">The document downloader.</param>
-    /// <param name="eventPublisher">The event publisher for domain events.</param>
+    /// <param name="eventHub">The event hub for broadcasting DocumentDownloadedEvent.</param>
     /// <param name="logger">The logger.</param>
     /// <param name="storageBasePath">Base path for document storage (defaults to ./storage).</param>
     public IngestionOrchestrator(
         IIngestionJournal journal,
         IDocumentDownloader downloader,
-        IEventPublisher eventPublisher,
+        IExxerHub<DocumentDownloadedEvent> eventHub,
         ILogger<IngestionOrchestrator> logger,
         string? storageBasePath = null)
     {
         _journal = journal ?? throw new ArgumentNullException(nameof(journal));
         _downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
-        _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
+        _eventHub = eventHub ?? throw new ArgumentNullException(nameof(eventHub));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _storageBasePath = storageBasePath ?? Path.Combine(Directory.GetCurrentDirectory(), "storage");
     }
 
     /// <summary>
     /// Ingests a single document with idempotency, hashing, storage, and event emission.
+    /// Uses Railway-Oriented Programming - no exceptions for control flow.
     /// </summary>
     /// <param name="documentId">SIARA document ID.</param>
     /// <param name="correlationId">Correlation ID for end-to-end tracing.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public async Task IngestDocumentAsync(string documentId, Guid correlationId, CancellationToken cancellationToken = default)
+    /// <returns>A Result containing IngestionResult on success, or error messages on failure.</returns>
+    public async Task<Result<IngestionResult>> IngestDocumentAsync(
+        string documentId,
+        Guid correlationId,
+        CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<IngestionResult>();
+        }
+
         _logger.LogInformation(
             "Starting document ingestion. DocumentId: {DocumentId}, CorrelationId: {CorrelationId}",
             documentId,
             correlationId);
 
+        // ✅ Railway-Oriented Programming: each step returns Result<T>
+        var result = await DownloadDocumentAsync(documentId, cancellationToken)
+            .ThenAsync(async bytes => await CheckDuplicateAsync(bytes, cancellationToken))
+            .ThenAsync(async context => await StoreDocumentAsync(context, documentId, cancellationToken))
+            .ThenAsync(async context => await RecordInJournalAsync(context, cancellationToken))
+            .ThenTap(async context => await BroadcastEventAsync(context, correlationId, cancellationToken));
+
+        if (result.IsSuccess && result.Value is not null)
+        {
+            var context = result.Value;
+            _logger.LogInformation(
+                "Document ingestion completed. FileId: {FileId}, WasDuplicate: {WasDuplicate}",
+                context.FileId,
+                context.WasDuplicate);
+
+            return Result<IngestionResult>.Success(new IngestionResult(
+                FileId: context.FileId,
+                FileName: context.FileName,
+                Hash: context.Hash,
+                StoredPath: context.StoredPath,
+                FileSizeBytes: context.FileSizeBytes,
+                CorrelationId: correlationId,
+                WasDuplicate: context.WasDuplicate));
+        }
+
+        _logger.LogError("Document ingestion failed: {Errors}", string.Join(", ", result.Errors));
+        return Result<IngestionResult>.WithFailure(result.Errors);
+    }
+
+    private async Task<Result<byte[]>> DownloadDocumentAsync(
+        string documentId,
+        CancellationToken cancellationToken)
+    {
         try
         {
-            // Step 1: Download document
-            var documentBytes = await _downloader.DownloadAsync(documentId, cancellationToken).ConfigureAwait(false);
-            _logger.LogDebug("Document downloaded. Size: {Size} bytes", documentBytes.Length);
+            var bytes = await _downloader.DownloadAsync(documentId, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug("Document downloaded. Size: {Size} bytes", bytes.Length);
+            return Result<byte[]>.Success(bytes);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Document download cancelled");
+            return ResultExtensions.Cancelled<byte[]>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Document download failed");
+            return Result<byte[]>.WithFailure($"Download failed: {ex.Message}");
+        }
+    }
 
-            // Step 2: Compute SHA-256 hash
-            var hash = ComputeSha256Hash(documentBytes);
-            _logger.LogDebug("Document hash computed: {Hash}", hash);
+    private async Task<Result<IngestionContext>> CheckDuplicateAsync(
+        byte[] documentBytes,
+        CancellationToken cancellationToken)
+    {
+        var hash = ComputeSha256Hash(documentBytes);
+        _logger.LogDebug("Document hash computed: {Hash}", hash);
 
-            // Step 3: Check for duplicate (idempotency)
-            var isDuplicate = await _journal.IsDuplicateAsync(hash, cancellationToken).ConfigureAwait(false);
-            if (isDuplicate)
-            {
-                _logger.LogInformation(
-                    "Duplicate document detected (hash: {Hash}). Skipping ingestion. DocumentId: {DocumentId}",
-                    hash,
-                    documentId);
-                return; // DEFENSIVE - skip duplicate documents
-            }
+        var isDuplicate = await _journal.IsDuplicateAsync(hash, cancellationToken).ConfigureAwait(false);
 
-            // Step 4: Create partitioned storage path: {base}/YYYY/MM/DD/{docId}.pdf
+        if (isDuplicate)
+        {
+            _logger.LogInformation("Duplicate document detected (hash: {Hash}). Skipping ingestion", hash);
+
+            // ✅ Return success with WasDuplicate=true (idempotent skip)
+            return Result<IngestionContext>.Success(new IngestionContext(
+                FileId: Guid.NewGuid(),
+                FileName: string.Empty,
+                Hash: hash,
+                StoredPath: string.Empty,
+                FileSizeBytes: documentBytes.Length,
+                WasDuplicate: true,
+                DocumentBytes: documentBytes));
+        }
+
+        return Result<IngestionContext>.Success(new IngestionContext(
+            FileId: Guid.NewGuid(),
+            FileName: string.Empty,
+            Hash: hash,
+            StoredPath: string.Empty,
+            FileSizeBytes: documentBytes.Length,
+            WasDuplicate: false,
+            DocumentBytes: documentBytes));
+    }
+
+    private Task<Result<IngestionContext>> StoreDocumentAsync(
+        IngestionContext context,
+        string documentId,
+        CancellationToken cancellationToken)
+    {
+        // Skip storage for duplicates
+        if (context.WasDuplicate)
+        {
+            return Task.FromResult(Result<IngestionContext>.Success(context));
+        }
+
+        try
+        {
             var now = DateTime.UtcNow;
             var partitionPath = Path.Combine(
                 _storageBasePath,
@@ -87,52 +171,79 @@ public class IngestionOrchestrator
 
             Directory.CreateDirectory(partitionPath);
 
-            var filePath = Path.Combine(partitionPath, $"{documentId}.pdf");
+            var fileName = $"{documentId}.pdf";
+            var filePath = Path.Combine(partitionPath, fileName);
 
-            // Step 5: Write file to disk
-            await File.WriteAllBytesAsync(filePath, documentBytes, cancellationToken).ConfigureAwait(false);
+            File.WriteAllBytes(filePath, context.DocumentBytes);
             _logger.LogInformation("Document stored at: {FilePath}", filePath);
 
-            // Step 6: Record in journal
-            await _journal.RecordAsync(hash, filePath, cancellationToken).ConfigureAwait(false);
-            _logger.LogDebug("Document recorded in journal");
-
-            // Step 7: Emit DocumentDownloadedEvent (using existing Domain event)
-            var fileId = Guid.NewGuid();
-            var @event = new ExxerCube.Prisma.Domain.Events.DocumentDownloadedEvent
+            var updatedContext = context with
             {
-                EventId = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
-                CorrelationId = correlationId,
-                FileId = fileId,
-                FileName = $"{documentId}.pdf",
-                Source = "SIARA",
-                FileSizeBytes = documentBytes.Length,
-                Format = ExxerCube.Prisma.Domain.Enum.FileFormat.Pdf,
-                DownloadUrl = $"siara://documents/{documentId}"
+                FileName = fileName,
+                StoredPath = filePath
             };
 
-            _eventPublisher.Publish(@event);
-            _logger.LogInformation(
-                "DocumentDownloadedEvent published. FileId: {FileId}, CorrelationId: {CorrelationId}",
-                fileId,
-                correlationId);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Document ingestion cancelled. DocumentId: {DocumentId}", documentId);
-            throw;
+            return Task.FromResult(Result<IngestionContext>.Success(updatedContext));
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Document ingestion failed. DocumentId: {DocumentId}, CorrelationId: {CorrelationId}, Error: {ErrorMessage}",
-                documentId,
-                correlationId,
-                ex.Message);
-            throw;
+            _logger.LogError(ex, "Document storage failed");
+            return Task.FromResult(Result<IngestionContext>.WithFailure($"Storage failed: {ex.Message}"));
         }
+    }
+
+    private async Task<Result<IngestionContext>> RecordInJournalAsync(
+        IngestionContext context,
+        CancellationToken cancellationToken)
+    {
+        // Skip journal recording for duplicates (already exists)
+        if (context.WasDuplicate)
+        {
+            return Result<IngestionContext>.Success(context);
+        }
+
+        try
+        {
+            await _journal.RecordAsync(context.Hash, context.StoredPath, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug("Document recorded in journal");
+            return Result<IngestionContext>.Success(context);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Journal recording failed");
+            return Result<IngestionContext>.WithFailure($"Journal recording failed: {ex.Message}");
+        }
+    }
+
+    private async Task BroadcastEventAsync(
+        IngestionContext context,
+        Guid correlationId,
+        CancellationToken cancellationToken)
+    {
+        // Skip event broadcast for duplicates
+        if (context.WasDuplicate)
+        {
+            _logger.LogDebug("Skipping event broadcast for duplicate document");
+            return;
+        }
+
+        var evt = new DocumentDownloadedEvent(
+            FileId: context.FileId,
+            FileName: context.FileName,
+            Source: "SIARA",
+            FileSizeBytes: context.FileSizeBytes,
+            Path: context.StoredPath,
+            JournalPath: context.Hash,  // Use hash as journal identifier
+            CorrelationId: correlationId,
+            Timestamp: DateTimeOffset.UtcNow);
+
+        // ✅ Broadcast via IExxerHub<T> (transport-agnostic)
+        await _eventHub.SendToAllAsync(evt, cancellationToken);
+
+        _logger.LogInformation(
+            "DocumentDownloadedEvent broadcast. FileId: {FileId}, CorrelationId: {CorrelationId}",
+            context.FileId,
+            correlationId);
     }
 
     /// <summary>
@@ -152,4 +263,16 @@ public class IngestionOrchestrator
         var hashBytes = SHA256.HashData(data);
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
+
+    /// <summary>
+    /// Internal context for passing data through the Railway-Oriented Programming pipeline.
+    /// </summary>
+    private sealed record IngestionContext(
+        Guid FileId,
+        string FileName,
+        string Hash,
+        string StoredPath,
+        long FileSizeBytes,
+        bool WasDuplicate,
+        byte[] DocumentBytes);
 }

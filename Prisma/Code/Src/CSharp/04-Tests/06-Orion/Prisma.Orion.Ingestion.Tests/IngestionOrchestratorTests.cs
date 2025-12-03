@@ -1,31 +1,31 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Events;
 using Prisma.Orion.Ingestion;
+using Prisma.Shared.Contracts;
 
 namespace Prisma.Orion.Ingestion.Tests;
 
 /// <summary>
-/// TDD tests for IngestionOrchestrator proving download, hashing, idempotency, and event emission.
+/// Stage 2.5 REFACTORED tests for IngestionOrchestrator using IExxerHub&lt;T&gt; and Result&lt;T&gt;.
+/// Validates Railway-Oriented Programming, transport-agnostic event broadcasting, and idempotency.
 /// </summary>
 /// <remarks>
-/// Stage 2 TDD Exit Criteria:
-/// - Download PDF from SIARA (simulated)
-/// - Compute SHA-256 hash
-/// - Check journal for duplicate (idempotency)
-/// - Store in partitioned structure: {base}/YYYY/MM/DD/{docId}.pdf
-/// - Emit DocumentDownloaded event with correlation ID
-/// - All tests passing (RED → GREEN)
+/// Stage 2.5 Exit Criteria:
+/// - Uses IExxerHub&lt;DocumentDownloadedEvent&gt; instead of IEventPublisher
+/// - Returns Result&lt;IngestionResult&gt; instead of Task (void)
+/// - No exceptions for control flow (uses Result.Failure(), ResultExtensions.Cancelled())
+/// - Events broadcast via SendToAllAsync() (transport-agnostic)
+/// - All tests green (Railway-Oriented Programming validated)
 /// </remarks>
 public sealed class IngestionOrchestratorTests
 {
     [Fact]
-    public async Task IngestDocument_NewDocument_StoresAndEmitsEvent()
+    [Trait("Category", "Unit")]
+    public async Task IngestDocument_NewDocument_ReturnsSuccessAndBroadcastsEvent()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
-        var publisher = Substitute.For<IEventPublisher>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -34,32 +34,43 @@ public sealed class IngestionOrchestratorTests
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new byte[] { 0x25, 0x50, 0x44, 0x46 }); // PDF header
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, publisher, logger);
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
         var documentId = "DOC123";
         var correlationId = Guid.NewGuid();
 
         // Act
-        await orchestrator.IngestDocumentAsync(documentId, correlationId, TestContext.Current.CancellationToken);
+        var result = await orchestrator.IngestDocumentAsync(documentId, correlationId, TestContext.Current.CancellationToken);
 
-        // Assert
+        // Assert - Railway-Oriented Programming
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.FileId.ShouldNotBe(Guid.Empty);
+        result.Value.CorrelationId.ShouldBe(correlationId);
+        result.Value.WasDuplicate.ShouldBeFalse();
+
         await journal.Received(1).RecordAsync(
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
 
-        publisher.Received(1).Publish(
+        await eventHub.Received(1).SendToAllAsync(
             Arg.Is<DocumentDownloadedEvent>(e =>
                 e.FileId != Guid.Empty &&
-                e.CorrelationId == correlationId));
+                e.CorrelationId == correlationId),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task IngestDocument_DuplicateHash_SkipsStorageAndEvent()
+    [Trait("Category", "Unit")]
+    public async Task IngestDocument_DuplicateHash_ReturnsSuccessWithoutBroadcast()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
-        var publisher = Substitute.For<IEventPublisher>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         // Return test data that will hash to a known value
@@ -69,26 +80,32 @@ public sealed class IngestionOrchestratorTests
         journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(true); // Duplicate detected after hashing
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, publisher, logger);
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
         var documentId = "DOC123";
         var correlationId = Guid.NewGuid();
 
         // Act
-        await orchestrator.IngestDocumentAsync(documentId, correlationId, TestContext.Current.CancellationToken);
+        var result = await orchestrator.IngestDocumentAsync(documentId, correlationId, TestContext.Current.CancellationToken);
 
-        // Assert - MUST download to compute hash, but should NOT store or emit event after detecting duplicate
+        // Assert - Railway-Oriented: duplicate is SUCCESS (idempotent skip)
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.WasDuplicate.ShouldBeTrue();
+        result.Value!.CorrelationId.ShouldBe(correlationId);
+
+        // MUST download to compute hash, but should NOT store or broadcast after detecting duplicate
         await downloader.Received(1).DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await journal.DidNotReceive().RecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-        publisher.DidNotReceive().Publish(Arg.Any<DocumentDownloadedEvent>());
+        await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
+    [Trait("Category", "Unit")]
     public async Task IngestDocument_ComputesCorrectSHA256Hash()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
-        var publisher = Substitute.For<IEventPublisher>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         var testData = new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F }; // "Hello"
@@ -100,12 +117,18 @@ public sealed class IngestionOrchestratorTests
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(testData);
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, publisher, logger);
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
 
         // Act
-        await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         // Assert - verify hash was computed correctly
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Hash.ShouldBe(expectedHash);
+
         await journal.Received(1).RecordAsync(
             expectedHash,
             Arg.Any<string>(),
@@ -113,12 +136,13 @@ public sealed class IngestionOrchestratorTests
     }
 
     [Fact]
+    [Trait("Category", "Unit")]
     public async Task IngestDocument_CreatesPartitionedStoragePath()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
-        var publisher = Substitute.For<IEventPublisher>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -127,14 +151,23 @@ public sealed class IngestionOrchestratorTests
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new byte[] { 0x25, 0x50, 0x44, 0x46 });
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, publisher, logger);
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
         var documentId = "DOC123";
         var now = DateTime.UtcNow;
 
         // Act
-        await orchestrator.IngestDocumentAsync(documentId, Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var result = await orchestrator.IngestDocumentAsync(documentId, Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         // Assert - path should be: {base}/YYYY/MM/DD/{docId}.pdf
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.StoredPath.ShouldContain($"{now.Year:D4}");
+        result.Value!.StoredPath.ShouldContain($"{now.Month:D2}");
+        result.Value!.StoredPath.ShouldContain($"{now.Day:D2}");
+        result.Value!.StoredPath.ShouldEndWith($"{documentId}.pdf");
+
         await journal.Received(1).RecordAsync(
             Arg.Any<string>(),
             Arg.Is<string>(path =>
@@ -146,12 +179,13 @@ public sealed class IngestionOrchestratorTests
     }
 
     [Fact]
-    public async Task IngestDocument_CorrelationId_PreservedInEvent()
+    [Trait("Category", "Unit")]
+    public async Task IngestDocument_CorrelationId_PreservedInResult()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
-        var publisher = Substitute.For<IEventPublisher>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -160,14 +194,109 @@ public sealed class IngestionOrchestratorTests
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new byte[] { 0x25, 0x50, 0x44, 0x46 });
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, publisher, logger);
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
         var correlationId = Guid.Parse("12345678-1234-1234-1234-123456789012");
 
         // Act
-        await orchestrator.IngestDocumentAsync("DOC123", correlationId, TestContext.Current.CancellationToken);
+        var result = await orchestrator.IngestDocumentAsync("DOC123", correlationId, TestContext.Current.CancellationToken);
 
         // Assert - CRITICAL: correlation ID must be preserved exactly
-        publisher.Received(1).Publish(
-            Arg.Is<DocumentDownloadedEvent>(e => e.CorrelationId == correlationId));
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.CorrelationId.ShouldBe(correlationId);
+
+        await eventHub.Received(1).SendToAllAsync(
+            Arg.Is<DocumentDownloadedEvent>(e => e.CorrelationId == correlationId),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestDocument_WhenCancelled_ReturnsCancelledResult()
+    {
+        // Arrange
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+        var logger = NullLogger<IngestionOrchestrator>.Instance;
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act
+        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), cts.Token);
+
+        // Assert - Railway-Oriented: cancellation is Result, not exception
+        result.IsCancelled().ShouldBeTrue();
+
+        // No operations should have been called
+        await downloader.DidNotReceive().DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await journal.DidNotReceive().RecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestDocument_WhenDownloadFails_ReturnsFailureWithoutBroadcast()
+    {
+        // Arrange
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+        var logger = NullLogger<IngestionOrchestrator>.Instance;
+
+        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns<byte[]>(_ => throw new InvalidOperationException("Network error"));
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+
+        // Act
+        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+        // Assert - Railway-Oriented: failure is Result, not exception
+        result.IsFailure.ShouldBeTrue();
+        result.Errors.ShouldContain(e => e.Contains("Download failed"));
+
+        // No downstream operations should have been called
+        await journal.DidNotReceive().RecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestDocument_BroadcastsViaIExxerHub_NotIEventPublisher()
+    {
+        // Arrange
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+        var logger = NullLogger<IngestionOrchestrator>.Instance;
+
+        journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new byte[] { 0x25, 0x50, 0x44, 0x46 });
+
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+
+        // Act
+        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+        // Assert - CRITICAL: uses IExxerHub<T>.SendToAllAsync() (transport-agnostic)
+        result.IsSuccess.ShouldBeTrue();
+
+        await eventHub.Received(1).SendToAllAsync(
+            Arg.Is<DocumentDownloadedEvent>(e =>
+                e.Source == "SIARA" &&
+                e.FileSizeBytes > 0),
+            Arg.Any<CancellationToken>());
     }
 }
