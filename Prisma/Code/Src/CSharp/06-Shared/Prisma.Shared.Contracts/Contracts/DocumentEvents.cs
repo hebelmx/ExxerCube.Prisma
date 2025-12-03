@@ -33,10 +33,3 @@ public sealed record DocumentDownloadedEvent(
     string JournalPath,
     Guid CorrelationId,
     DateTimeOffset Timestamp);
-
-/// <summary>Heartbeat payload for workers.</summary>
-public sealed record WorkerHeartbeat(
-    string WorkerName,
-    DateTimeOffset Timestamp,
-    string Status,
-    string? Details = null);
