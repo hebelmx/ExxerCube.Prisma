@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Core Properties">
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
+  </PropertyGroup>
+  <ItemGroup Label="xUnit v3">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Platform" />
+  </ItemGroup>
+  <ItemGroup Label="Testing Infrastructure">
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.Worker\Prisma.Orion.Worker.csproj" />
+    <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
+    <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.HealthChecks\Prisma.Orion.HealthChecks.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Core Properties">
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup Label="xUnit v3">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Platform" />
+  </ItemGroup>
+  <ItemGroup Label="Testing Infrastructure">
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Shouldly" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\06-Athena\Prisma.Athena.HealthChecks\Prisma.Athena.HealthChecks.csproj" />
+    <ProjectReference Include="..\..\..\06-Athena\Prisma.Athena.Processing\Prisma.Athena.Processing.csproj" />
+    <ProjectReference Include="..\..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+  </ItemGroup>
+</Project>

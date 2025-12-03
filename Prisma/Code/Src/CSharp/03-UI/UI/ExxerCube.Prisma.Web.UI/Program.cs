@@ -127,8 +127,8 @@ public class Program
         // Add SignalR abstractions (Ember) for real-time updates
         services.AddSignalRAbstractions();
         services.AddSignalR();
-        services.AddScoped<ProcessingHub>();
-        services.AddScoped<IExxerHub<DomainEvent>, ProcessingHub>();
+        //  services.AddScoped<ProcessingHub>();
+        //  services.AddScoped<IExxerHub<DomainEvent>, ProcessingHub>();
 
         // Add OCR processing services
         var pythonModulesPath = Path.Combine(environment.ContentRootPath, "..", "..", "Python", "ocr_modules");
@@ -143,7 +143,7 @@ public class Program
         services.AddOcrProcessingServices(pythonConfig);
 
         // Add Python environment services (required for GOT-OCR2)
-        services.AddPrismaPythonEnvironment();
+        //services.AddPrismaPythonEnvironment();
 
         // Add metrics services (needed for Dashboard and HealthCheckService)
         services.AddMetricsServices(pythonConfig.MaxConcurrency);
@@ -231,32 +231,32 @@ public class Program
         services.AddScoped<DecisionLogicService>();
 
         // Add Story 1.5 services: SLA Tracking and Escalation
-        services.AddScoped<SLATrackingService>();
+        //   services.AddScoped<SLATrackingService>();
 
         // Add Story 1.7 & 1.8 services: Export Generation (SIRO XML, Excel, PDF Signing)
         services.AddExportServices(configuration);
         services.AddAdaptiveExportServices(applicationConnectionString);
-        services.AddScoped<ExportService>();
+        // services.AddScoped<ExportService>();
 
         // Add Story 1.9 services: Audit Reporting
-        services.AddScoped<AuditReportingService>();
+        // //services.AddScoped<AuditReportingService>();
 
         // Add Demo Administration service (ONLY for demo environments - performs hard deletes!)
         services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DemoAdminService>();
         // Adaptive DOCX fixtures for Mission 7 demo page
         services.AddScoped<ExxerCube.Prisma.Web.UI.Services.AdaptiveDocxFixtureService>();
 
-        // Add SLA health checks
-        services.AddHealthChecks()
-            .AddCheck<SLAEnforcerHealthCheck>(
-                "sla_enforcer",
-                tags: new[] { "sla", "database", "ready" })
-            .AddCheck<SLABackgroundJobHealthCheck>(
-                "sla_background_job",
-                tags: new[] { "sla", "background", "ready" });
+        //// Add SLA health checks
+        //services.AddHealthChecks()
+        //    .AddCheck<SLAEnforcerHealthCheck>(
+        //        "sla_enforcer",
+        //        tags: new[] { "sla", "database", "ready" })
+        //    .AddCheck<SLABackgroundJobHealthCheck>(
+        //        "sla_background_job",
+        //        tags: new[] { "sla", "background", "ready" });
 
         // Add SignalR event broadcaster for real-time event streaming to UI
-        services.AddHostedService<Services.SignalREventBroadcaster>();
+        // services.AddHostedService<Services.SignalREventBroadcaster>();
     }
 
     /// <summary>
