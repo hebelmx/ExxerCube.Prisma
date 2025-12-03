@@ -91,4 +91,54 @@ public sealed class SentinelService
 
         _logger.LogInformation("Sentinel monitoring service stopped");
     }
+
+    // ========================================================================
+    // NEW: Railway-Oriented Programming Methods (Stage 5.5)
+    // ========================================================================
+
+    /// <summary>
+    /// Checks for failed workers and triggers restarts using Railway-Oriented Programming.
+    /// Returns Result&lt;CheckWorkersResult&gt; with detailed statistics about the operation.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for graceful cancellation.</param>
+    /// <returns>A Result containing CheckWorkersResult with operation statistics.</returns>
+    public async Task<Result<CheckWorkersResult>> CheckWorkersWithResultAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<CheckWorkersResult>();
+        }
+
+        var failedWorkers = (await _heartbeatMonitor.GetFailedWorkersAsync(cancellationToken)).ToList();
+
+        var workersChecked = failedWorkers.Count;
+        var workersRestarted = 0;
+        var failedRestarts = new List<string>();
+
+        foreach (var workerId in failedWorkers)
+        {
+            _logger.LogWarning("Worker {WorkerId} has failed heartbeat checks, attempting restart", workerId);
+
+            var success = await _processRestarter.RestartAsync(workerId, workerId, cancellationToken);
+
+            if (success)
+            {
+                workersRestarted++;
+                _logger.LogInformation("Successfully restarted worker {WorkerId}", workerId);
+            }
+            else
+            {
+                failedRestarts.Add(workerId);
+                _logger.LogError("Failed to restart worker {WorkerId}", workerId);
+            }
+        }
+
+        var result = new CheckWorkersResult(
+            WorkersChecked: workersChecked,
+            WorkersRestarted: workersRestarted,
+            WorkersFailed: failedRestarts.Count,
+            FailedWorkerIds: failedRestarts.AsReadOnly());
+
+        return Result<CheckWorkersResult>.Success(result);
+    }
 }

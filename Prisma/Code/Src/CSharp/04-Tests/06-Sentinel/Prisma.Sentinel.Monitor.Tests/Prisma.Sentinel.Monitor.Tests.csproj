@@ -13,8 +13,13 @@
     <PackageReference Include="Microsoft.Testing.Platform" />
   </ItemGroup>
   <ItemGroup Label="Testing Infrastructure">
+    <PackageReference Include="IndQuestResults" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Shouldly" />
+  </ItemGroup>
+  <ItemGroup Label="Global Usings">
+    <Using Include="IndQuestResults" />
+    <Using Include="IndQuestResults.Operations" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\06-Sentinel\Prisma.Sentinel.Monitor\Prisma.Sentinel.Monitor.csproj" />
