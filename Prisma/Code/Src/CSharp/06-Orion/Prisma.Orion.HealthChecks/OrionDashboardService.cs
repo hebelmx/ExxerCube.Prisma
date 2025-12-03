@@ -70,4 +70,25 @@ public sealed class OrionDashboardService : IDashboardService
         _documentsProcessed++;
         _lastEventTime = DateTime.UtcNow;
     }
+
+    // ========================================================================
+    // NEW: Railway-Oriented Programming Methods (Stage 4.5)
+    // ========================================================================
+
+    /// <summary>
+    /// Gets the dashboard statistics using Railway-Oriented Programming.
+    /// Returns Result&lt;DashboardStats&gt; instead of throwing exceptions.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A Result containing DashboardStats on success.</returns>
+    public async Task<Result<DashboardStats>> GetStatsWithResultAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<DashboardStats>();
+        }
+
+        var stats = await GetStatsAsync(cancellationToken).ConfigureAwait(false);
+        return Result<DashboardStats>.Success(stats);
+    }
 }

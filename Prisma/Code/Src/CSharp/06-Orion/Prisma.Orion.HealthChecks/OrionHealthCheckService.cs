@@ -94,4 +94,59 @@ public sealed class OrionHealthCheckService : IHealthCheckService
 
         return result;
     }
+
+    // ========================================================================
+    // NEW: Railway-Oriented Programming Methods (Stage 4.5)
+    // ========================================================================
+
+    /// <summary>
+    /// Gets the liveness status using Railway-Oriented Programming.
+    /// Returns Result&lt;HealthCheckResult&gt; instead of throwing exceptions.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A Result containing HealthCheckResult on success.</returns>
+    public async Task<Result<HealthCheckResult>> GetLivenessWithResultAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<HealthCheckResult>();
+        }
+
+        var healthCheckResult = await GetLivenessAsync(cancellationToken).ConfigureAwait(false);
+        return Result<HealthCheckResult>.Success(healthCheckResult);
+    }
+
+    /// <summary>
+    /// Gets the readiness status using Railway-Oriented Programming.
+    /// Returns Result&lt;HealthCheckResult&gt; instead of throwing exceptions.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A Result containing HealthCheckResult on success.</returns>
+    public async Task<Result<HealthCheckResult>> GetReadinessWithResultAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<HealthCheckResult>();
+        }
+
+        var healthCheckResult = await GetReadinessAsync(cancellationToken).ConfigureAwait(false);
+        return Result<HealthCheckResult>.Success(healthCheckResult);
+    }
+
+    /// <summary>
+    /// Gets the overall health status using Railway-Oriented Programming.
+    /// Returns Result&lt;HealthCheckResult&gt; instead of throwing exceptions.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A Result containing HealthCheckResult on success.</returns>
+    public async Task<Result<HealthCheckResult>> GetHealthWithResultAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<HealthCheckResult>();
+        }
+
+        var healthCheckResult = await GetHealthAsync(cancellationToken).ConfigureAwait(false);
+        return Result<HealthCheckResult>.Success(healthCheckResult);
+    }
 }

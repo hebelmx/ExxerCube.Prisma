@@ -1,8 +1,9 @@
-using ExxerCube.Prisma.Domain.Interfaces;
+using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Prisma.Orion.HealthChecks;
 using Prisma.Orion.Ingestion;
+using Prisma.Shared.Contracts;
 using Shouldly;
 using Xunit;
 
@@ -29,7 +30,7 @@ public sealed class OrionDashboardServiceTests
         var orchestrator = new IngestionOrchestrator(
             Substitute.For<IIngestionJournal>(),
             Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IEventPublisher>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
             NullLogger<IngestionOrchestrator>.Instance);
         var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
 
@@ -49,7 +50,7 @@ public sealed class OrionDashboardServiceTests
         var orchestrator = new IngestionOrchestrator(
             Substitute.For<IIngestionJournal>(),
             Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IEventPublisher>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
             NullLogger<IngestionOrchestrator>.Instance);
         var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
 
@@ -68,7 +69,7 @@ public sealed class OrionDashboardServiceTests
         var orchestrator = new IngestionOrchestrator(
             Substitute.For<IIngestionJournal>(),
             Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IEventPublisher>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
             NullLogger<IngestionOrchestrator>.Instance);
         var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
         var beforeCall = DateTime.UtcNow;
@@ -90,7 +91,7 @@ public sealed class OrionDashboardServiceTests
         var orchestrator = new IngestionOrchestrator(
             Substitute.For<IIngestionJournal>(),
             Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IEventPublisher>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
             NullLogger<IngestionOrchestrator>.Instance);
         var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
 
@@ -109,7 +110,7 @@ public sealed class OrionDashboardServiceTests
         var orchestrator = new IngestionOrchestrator(
             Substitute.For<IIngestionJournal>(),
             Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IEventPublisher>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
             NullLogger<IngestionOrchestrator>.Instance);
         var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
 
@@ -131,7 +132,7 @@ public sealed class OrionDashboardServiceTests
         var orchestrator = new IngestionOrchestrator(
             Substitute.For<IIngestionJournal>(),
             Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IEventPublisher>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
             NullLogger<IngestionOrchestrator>.Instance);
         var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
         var beforeEvent = DateTime.UtcNow;
@@ -154,7 +155,7 @@ public sealed class OrionDashboardServiceTests
         var orchestrator = new IngestionOrchestrator(
             Substitute.For<IIngestionJournal>(),
             Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IEventPublisher>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
             NullLogger<IngestionOrchestrator>.Instance);
         var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
 
@@ -173,7 +174,7 @@ public sealed class OrionDashboardServiceTests
         var orchestrator = new IngestionOrchestrator(
             Substitute.For<IIngestionJournal>(),
             Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IEventPublisher>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
             NullLogger<IngestionOrchestrator>.Instance);
         var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
 
@@ -182,5 +183,55 @@ public sealed class OrionDashboardServiceTests
 
         // Assert
         stats.Status.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    // ========================================================================
+    // NEW: Railway-Oriented Programming Tests (Stage 4.5)
+    // ========================================================================
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Stage", "4.5")]
+    public async Task GetStatsWithResult_ReturnsSuccessWithStats()
+    {
+        // Arrange
+        var orchestrator = new IngestionOrchestrator(
+            Substitute.For<IIngestionJournal>(),
+            Substitute.For<IDocumentDownloader>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
+            NullLogger<IngestionOrchestrator>.Instance);
+        var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
+
+        // Act
+        var result = await service.GetStatsWithResultAsync(TestContext.Current.CancellationToken);
+
+        // Assert - Railway-Oriented Programming
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.WorkerName.ShouldBe("Orion Ingestion Worker");
+        result.Value!.Status.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Stage", "4.5")]
+    public async Task GetStatsWithResult_WhenCancelled_ReturnsCancelled()
+    {
+        // Arrange
+        var orchestrator = new IngestionOrchestrator(
+            Substitute.For<IIngestionJournal>(),
+            Substitute.For<IDocumentDownloader>(),
+            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
+            NullLogger<IngestionOrchestrator>.Instance);
+        var service = new OrionDashboardService(orchestrator, NullLogger<OrionDashboardService>.Instance);
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act
+        var result = await service.GetStatsWithResultAsync(cts.Token);
+
+        // Assert - Railway-Oriented: cancellation is Result, not exception
+        result.IsCancelled().ShouldBeTrue();
     }
 }
