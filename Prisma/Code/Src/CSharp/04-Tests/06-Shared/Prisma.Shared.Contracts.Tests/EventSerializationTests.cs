@@ -78,44 +78,55 @@ public sealed class EventSerializationTests
     public void WorkerHeartbeat_SerializesAndDeserializes_PreservesPascalCase()
     {
         // Arrange
-        var timestamp = DateTimeOffset.UtcNow;
+        var timestamp = DateTime.UtcNow;
+        var lastEventTime = DateTime.UtcNow.AddMinutes(-5);
         var originalHeartbeat = new WorkerHeartbeat(
+            WorkerId: "orion-worker-001",
             WorkerName: "Orion.Worker.Instance1",
             Timestamp: timestamp,
-            Status: "Healthy",
-            Details: "Processing 5 documents, queue depth: 12"
+            Status: WorkerStatus.Processing,
+            DocumentsProcessed: 5,
+            LastEventTime: lastEventTime,
+            HealthEndpoint: "http://localhost:5000/health"
         );
 
         // Act - Serialize to JSON
         var json = JsonSerializer.Serialize(originalHeartbeat);
 
         // Assert - Verify Pascal case preserved (record types preserve property casing)
+        json.ShouldContain("\"WorkerId\":");
         json.ShouldContain("\"WorkerName\":");
         json.ShouldContain("\"Timestamp\":");
         json.ShouldContain("\"Status\":");
-        json.ShouldContain("\"Details\":");
+        json.ShouldContain("\"DocumentsProcessed\":");
 
         // Act - Deserialize back
         var deserializedHeartbeat = JsonSerializer.Deserialize<WorkerHeartbeat>(json);
 
         // Assert - Liskov: Round-trip preserves all data
         deserializedHeartbeat.ShouldNotBeNull();
+        deserializedHeartbeat.WorkerId.ShouldBe("orion-worker-001");
         deserializedHeartbeat.WorkerName.ShouldBe("Orion.Worker.Instance1");
         deserializedHeartbeat.Timestamp.ShouldBe(timestamp);
-        deserializedHeartbeat.Status.ShouldBe("Healthy");
-        deserializedHeartbeat.Details.ShouldBe("Processing 5 documents, queue depth: 12");
+        deserializedHeartbeat.Status.ShouldBe(WorkerStatus.Processing);
+        deserializedHeartbeat.DocumentsProcessed.ShouldBe(5);
+        deserializedHeartbeat.LastEventTime.ShouldBe(lastEventTime);
+        deserializedHeartbeat.HealthEndpoint.ShouldBe("http://localhost:5000/health");
     }
 
     [Fact]
-    public void WorkerHeartbeat_WithNullDetails_SerializesCorrectly()
+    public void WorkerHeartbeat_WithNullLastEventTime_SerializesCorrectly()
     {
-        // Arrange - Details is nullable
-        var timestamp = DateTimeOffset.UtcNow;
+        // Arrange - LastEventTime and HealthEndpoint are nullable
+        var timestamp = DateTime.UtcNow;
         var originalHeartbeat = new WorkerHeartbeat(
+            WorkerId: "athena-worker-002",
             WorkerName: "Athena.Worker.Instance2",
             Timestamp: timestamp,
-            Status: "Idle",
-            Details: null
+            Status: WorkerStatus.Idle,
+            DocumentsProcessed: 0,
+            LastEventTime: null,
+            HealthEndpoint: null
         );
 
         // Act
@@ -124,9 +135,12 @@ public sealed class EventSerializationTests
 
         // Assert - Liskov: null values must round-trip correctly
         deserializedHeartbeat.ShouldNotBeNull();
+        deserializedHeartbeat.WorkerId.ShouldBe("athena-worker-002");
         deserializedHeartbeat.WorkerName.ShouldBe("Athena.Worker.Instance2");
-        deserializedHeartbeat.Status.ShouldBe("Idle");
-        deserializedHeartbeat.Details.ShouldBeNull();
+        deserializedHeartbeat.Status.ShouldBe(WorkerStatus.Idle);
+        deserializedHeartbeat.DocumentsProcessed.ShouldBe(0);
+        deserializedHeartbeat.LastEventTime.ShouldBeNull();
+        deserializedHeartbeat.HealthEndpoint.ShouldBeNull();
     }
 
     [Fact]
