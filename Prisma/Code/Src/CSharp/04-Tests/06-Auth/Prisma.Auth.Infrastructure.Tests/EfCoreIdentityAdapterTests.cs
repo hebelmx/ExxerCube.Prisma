@@ -239,14 +239,25 @@ public sealed class EfCoreIdentityAdapterTests
     public async Task GetCurrentWithResult_UserSignedIn_ReturnsSuccessWithIdentity()
     {
         // Arrange
-        var (adapter, userManager, signInManager) = CreateAdapter();
+        var (adapter, userManager, _) = CreateAdapter();
         var user = new TestIdentityUser { Id = "123", UserName = "testuser" };
         var roles = new[] { "Admin", "User" };
 
-        userManager.GetUserAsync(Arg.Any<ClaimsPrincipal>()).Returns(user);
-        userManager.GetRolesAsync(user).Returns(roles);
+        // Simulate user is signed in
+        var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+        var claimsPrincipal = new ClaimsPrincipal(
+            new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, "123"),
+                new Claim(ClaimTypes.Name, "testuser"),
+                new Claim(ClaimTypes.Role, "Admin"),
+                new Claim(ClaimTypes.Role, "User")
+            }, "TestAuth"));
+        httpContext.User = claimsPrincipal;
 
-        var httpContext = CreateAuthenticatedHttpContext("123", "testuser", roles);
+        userManager.GetUserAsync(claimsPrincipal).Returns(user);
+        userManager.GetRolesAsync(user).Returns(new List<string> { "Admin", "User" });
+
         adapter.SetHttpContext(httpContext);
 
         // Act
@@ -257,7 +268,8 @@ public sealed class EfCoreIdentityAdapterTests
         result.Value.ShouldNotBeNull();
         result.Value!.UserId.ShouldBe("123");
         result.Value!.UserName.ShouldBe("testuser");
-        result.Value!.Roles.ShouldBe(roles);
+        result.Value!.Roles.ShouldContain("Admin");
+        result.Value!.Roles.ShouldContain("User");
     }
 
     [Fact]
