@@ -53,7 +53,37 @@ public class Program
             // Configure services using the extracted method
             ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 
-            var app = builder.Build();
+            WebApplication app;
+            try
+            {
+                Log.Information("Building application and resolving DI container...");
+                app = builder.Build();
+                Log.Information("Application built successfully");
+            }
+            catch (Exception ex)
+            {
+                var errorLogPath = Path.Combine(builder.Environment.ContentRootPath, "di_error.log");
+                var errorDetails = $@"
+=== DI CONTAINER BUILD ERROR ===
+Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+Exception Type: {ex.GetType().FullName}
+Message: {ex.Message}
+
+Stack Trace:
+{ex.StackTrace}
+
+Inner Exception:
+{ex.InnerException?.Message}
+
+Inner Stack Trace:
+{ex.InnerException?.StackTrace}
+====================================
+";
+                File.WriteAllText(errorLogPath, errorDetails);
+                Log.Fatal(ex, "Failed to build application - DI container resolution error. Details written to {ErrorLogPath}", errorLogPath);
+                Console.WriteLine($"\n\n!!! DI CONTAINER ERROR - See details in: {errorLogPath} !!!\n");
+                throw;
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -145,17 +175,20 @@ public class Program
         services.AddOcrProcessingServices(pythonConfig);
 
         // Register event publisher (needed by legacy services)
-        services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.IEventPublisher, ExxerCube.Prisma.Infrastructure.Events.EventPublisher>();
+        // NOTE: Must be Singleton because EventPersistenceWorker (IHostedService) is Singleton
+        services.AddSingleton<ExxerCube.Prisma.Domain.Interfaces.IEventPublisher, ExxerCube.Prisma.Infrastructure.Events.EventPublisher>();
 
-        // Register OCR processing service adapter (needed by BulkProcessingService)
-        services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService, ExxerCube.Prisma.Infrastructure.DependencyInjection.OcrProcessingServiceAdapter>();
-        services.AddScoped<ExxerCube.Prisma.Application.Services.OcrProcessingService>();
+        // Register OCR processing service (Application layer implements Domain interface directly - Liskov principle)
+        services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService, ExxerCube.Prisma.Application.Services.OcrProcessingService>();
 
         // Add Python environment services (required for GOT-OCR2)
         //services.AddPrismaPythonEnvironment();
 
         // Add metrics services (needed for Dashboard and HealthCheckService)
         services.AddMetricsServices(pythonConfig.MaxConcurrency);
+
+        // Add health checks (required by app.MapHealthChecks)
+        services.AddHealthChecks();
 
         // Add health check service (needed by Dashboard.razor)
         services.AddScoped<ExxerCube.Prisma.Application.Services.HealthCheckService>();

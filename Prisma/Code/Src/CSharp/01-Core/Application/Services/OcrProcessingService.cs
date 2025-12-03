@@ -5,11 +5,8 @@ namespace ExxerCube.Prisma.Application.Services;
 /// <summary>
 /// Main OCR processing service that orchestrates the entire pipeline.
 /// Implements Railway Oriented Programming for error handling and performance monitoring.
-///
-/// Note: This service does not implement IOcrProcessingService directly to maintain architectural compliance.
-/// The Infrastructure layer provides OcrProcessingServiceAdapter which implements the Domain interface.
 /// </summary>
-public class OcrProcessingService
+public class OcrProcessingService : IOcrProcessingService
 {
     private readonly IImagePreprocessor _imagePreprocessor;
     private readonly IOcrExecutor _ocrExecutor;
