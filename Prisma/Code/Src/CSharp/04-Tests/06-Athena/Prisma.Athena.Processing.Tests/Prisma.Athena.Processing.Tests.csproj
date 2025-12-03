@@ -18,6 +18,8 @@
     <TestingPlatformServer>true</TestingPlatformServer>
   </PropertyGroup>
   <ItemGroup Label="Testing Utilities">
+    <PackageReference Include="IndFusion.Ember" />
+    <PackageReference Include="IndQuestResults" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
@@ -72,6 +74,9 @@
     <Using Include="Xunit" />
     <Using Include="NSubstitute" />
     <Using Include="Shouldly" />
+    <Using Include="IndFusion.Ember.Abstractions.Hubs" />
+    <Using Include="IndQuestResults" />
+    <Using Include="IndQuestResults.Operations" />
     <Using Include="Microsoft.Extensions.Logging" />
     <Using Include="System" />
     <Using Include="System.Collections.Generic" />

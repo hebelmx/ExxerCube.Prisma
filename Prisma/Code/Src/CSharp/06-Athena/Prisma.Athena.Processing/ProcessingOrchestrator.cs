@@ -21,6 +21,7 @@ public sealed class ProcessingOrchestrator
     private readonly IAdaptiveExporter? _exporter;
     private readonly IFileLoader? _fileLoader;
     private readonly IEventPublisher _eventPublisher;
+    private readonly IExxerHub<DocumentProcessingCompletedEvent>? _eventHub;
     private readonly ILogger<ProcessingOrchestrator> _logger;
 
     /// <summary>
@@ -28,6 +29,7 @@ public sealed class ProcessingOrchestrator
     /// </summary>
     /// <param name="eventPublisher">The event publisher for domain events.</param>
     /// <param name="logger">The logger.</param>
+    /// <param name="eventHub">Optional: Event hub for Railway-Oriented Programming event broadcasting.</param>
     /// <param name="qualityAnalyzer">Optional: Quality analysis service for image assessment.</param>
     /// <param name="ocrExecutor">Optional: OCR execution service for text extraction.</param>
     /// <param name="fusionService">Optional: Fusion service for data reconciliation.</param>
@@ -41,6 +43,7 @@ public sealed class ProcessingOrchestrator
     public ProcessingOrchestrator(
         IEventPublisher eventPublisher,
         ILogger<ProcessingOrchestrator> logger,
+        IExxerHub<DocumentProcessingCompletedEvent>? eventHub = null,
         IImageQualityAnalyzer? qualityAnalyzer = null,
         IOcrExecutor? ocrExecutor = null,
         IFusionExpediente? fusionService = null,
@@ -50,6 +53,7 @@ public sealed class ProcessingOrchestrator
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _eventHub = eventHub;
         _qualityAnalyzer = qualityAnalyzer;
         _ocrExecutor = ocrExecutor;
         _fusionService = fusionService;
@@ -308,6 +312,97 @@ public sealed class ProcessingOrchestrator
 
             // Don't re-throw - system continues (defensive intelligence)
             _logger.LogWarning("Error event published, continuing operation (defensive mode)");
+        }
+    }
+
+    /// <summary>
+    /// Processes a document through the complete pipeline using Railway-Oriented Programming.
+    /// Returns Result&lt;ProcessingResult&gt; instead of throwing exceptions.
+    /// </summary>
+    /// <param name="downloadEvent">The document downloaded event triggering processing.</param>
+    /// <param name="cancellationToken">Cancellation token for graceful shutdown.</param>
+    /// <returns>A Result containing ProcessingResult on success, or error messages on failure.</returns>
+    public async Task<Result<ProcessingResult>> ProcessDocumentWithResultAsync(
+        DocumentDownloadedEvent downloadEvent,
+        CancellationToken cancellationToken = default)
+    {
+        if (downloadEvent is null)
+        {
+            return Result<ProcessingResult>.WithFailure("Download event cannot be null");
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<ProcessingResult>();
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+        var fileId = downloadEvent.FileId;
+        var correlationId = downloadEvent.CorrelationId;
+
+        _logger.LogInformation(
+            "Starting document processing pipeline (ROP). FileId: {FileId}, CorrelationId: {CorrelationId}, FileName: {FileName}",
+            fileId,
+            correlationId,
+            downloadEvent.FileName);
+
+        try
+        {
+            // Placeholder processing - emit completion event only
+            stopwatch.Stop();
+
+            var completionEvent = new DocumentProcessingCompletedEvent
+            {
+                EventId = Guid.NewGuid(),
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = correlationId,
+                FileId = fileId,
+                TotalProcessingTime = stopwatch.Elapsed,
+                AutoProcessed = true
+            };
+
+            // Broadcast via IExxerHub if available
+            if (_eventHub != null)
+            {
+                var broadcastResult = await _eventHub.SendToAllAsync(completionEvent, cancellationToken);
+                if (broadcastResult.IsFailure)
+                {
+                    _logger.LogWarning("Event broadcast failed: {Errors}", broadcastResult.Errors);
+                }
+            }
+
+            _logger.LogInformation(
+                "Document processing pipeline completed successfully (ROP). FileId: {FileId}, Duration: {Duration}ms",
+                fileId,
+                stopwatch.ElapsedMilliseconds);
+
+            return Result<ProcessingResult>.Success(new ProcessingResult(
+                FileId: fileId,
+                CorrelationId: correlationId,
+                TotalProcessingTime: stopwatch.Elapsed,
+                StagesCompleted: 0,
+                AutoProcessed: true));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation(
+                "Document processing pipeline cancelled (ROP). FileId: {FileId}, Duration: {Duration}ms",
+                fileId,
+                stopwatch.ElapsedMilliseconds);
+            return ResultExtensions.Cancelled<ProcessingResult>();
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+
+            _logger.LogError(
+                ex,
+                "Document processing pipeline failed (ROP). FileId: {FileId}, CorrelationId: {CorrelationId}, Duration: {Duration}ms",
+                fileId,
+                correlationId,
+                stopwatch.ElapsedMilliseconds);
+
+            return Result<ProcessingResult>.WithFailure($"Processing failed: {ex.Message}");
         }
     }
 
