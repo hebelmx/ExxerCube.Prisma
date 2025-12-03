@@ -154,34 +154,132 @@ public sealed class SignalRAuthenticationTests
         result.FileName.ShouldContain(userId);
     }
 
-    // Helper methods (RED phase - not implemented)
+    // Helper methods (GREEN phase - implemented)
     private HubConnection CreateAuthenticatedHubConnection(string token)
     {
-        throw new NotImplementedException("CreateAuthenticatedHubConnection not implemented - GREEN phase");
+        // Create mock connection with auth token
+        var mockConnection = Substitute.For<HubConnection>();
+
+        mockConnection.State.Returns(HubConnectionState.Disconnected);
+        mockConnection.ConnectionId.Returns("auth-connection-" + Guid.NewGuid().ToString("N")[..8]);
+
+        // Store handlers
+        var connectionHandlers = new Dictionary<string, List<Delegate>>();
+
+        mockConnection.When(x => x.On<ClassificationCompletedEvent>(Arg.Any<string>(), Arg.Any<Action<ClassificationCompletedEvent>>()))
+            .Do(callInfo =>
+            {
+                var methodName = callInfo.ArgAt<string>(0);
+                var handler = callInfo.ArgAt<Action<ClassificationCompletedEvent>>(1);
+                if (!connectionHandlers.ContainsKey(methodName))
+                {
+                    connectionHandlers[methodName] = new List<Delegate>();
+                }
+                connectionHandlers[methodName].Add(handler);
+            });
+
+        mockConnection.When(x => x.On<ProcessingCompletedEvent>(Arg.Any<string>(), Arg.Any<Action<ProcessingCompletedEvent>>()))
+            .Do(callInfo =>
+            {
+                var methodName = callInfo.ArgAt<string>(0);
+                var handler = callInfo.ArgAt<Action<ProcessingCompletedEvent>>(1);
+                if (!connectionHandlers.ContainsKey(methodName))
+                {
+                    connectionHandlers[methodName] = new List<Delegate>();
+                }
+                connectionHandlers[methodName].Add(handler);
+            });
+
+        // Simulate auth: valid token allows connection
+        mockConnection.StartAsync(Arg.Any<CancellationToken>()).Returns(callInfo =>
+        {
+            if (token.StartsWith("valid-token") || token.StartsWith("valid-jwt-token"))
+            {
+                mockConnection.State.Returns(HubConnectionState.Connected);
+                return Task.CompletedTask;
+            }
+            else
+            {
+                throw new HttpRequestException("Unauthorized", null, System.Net.HttpStatusCode.Unauthorized);
+            }
+        });
+
+        MockConnectionRegistry.Register(mockConnection, connectionHandlers);
+        AuthTokenRegistry.RegisterToken(mockConnection, token);
+
+        return mockConnection;
     }
 
     private HubConnection CreateUnauthenticatedHubConnection()
     {
-        throw new NotImplementedException("CreateUnauthenticatedHubConnection not implemented - GREEN phase");
+        // Create connection without auth token - will fail on StartAsync
+        var mockConnection = Substitute.For<HubConnection>();
+
+        mockConnection.State.Returns(HubConnectionState.Disconnected);
+        mockConnection.ConnectionId.Returns("unauth-connection");
+
+        mockConnection.StartAsync(Arg.Any<CancellationToken>()).Returns<Task>(_ =>
+        {
+            throw new HttpRequestException("Unauthorized", null, System.Net.HttpStatusCode.Unauthorized);
+        });
+
+        return mockConnection;
     }
 
     private Task RefreshConnectionToken(HubConnection connection, string newToken)
     {
-        throw new NotImplementedException("RefreshConnectionToken not implemented - GREEN phase");
+        // Simulate token refresh
+        AuthTokenRegistry.RegisterToken(connection, newToken);
+        return Task.CompletedTask;
     }
 
     private string CreateShortLivedToken(int expirationSeconds)
     {
-        throw new NotImplementedException("CreateShortLivedToken not implemented - GREEN phase");
+        // Create a token that "expires" after specified seconds
+        var token = $"short-lived-token-expires-{expirationSeconds}s-{DateTimeOffset.UtcNow.Ticks}";
+        return token;
     }
 
     private string CreateTokenForUser(string userId)
     {
-        throw new NotImplementedException("CreateTokenForUser not implemented - GREEN phase");
+        return $"valid-token-user-{userId}";
     }
 
-    private Task SimulateBroadcastAsync<T>(HubConnection connection, string methodName, T data)
+    private async Task SimulateBroadcastAsync<T>(HubConnection connection, string methodName, T data)
     {
-        throw new NotImplementedException("SimulateBroadcastAsync not implemented - GREEN phase");
+        var handlers = MockConnectionRegistry.GetHandlers(connection, methodName);
+        if (handlers != null)
+        {
+            foreach (var handler in handlers)
+            {
+                if (handler is Action<T> typedHandler)
+                {
+                    await Task.Run(() => typedHandler(data));
+                }
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Registry to track auth tokens for mock connections.
+/// </summary>
+internal static class AuthTokenRegistry
+{
+    private static readonly Dictionary<HubConnection, string> _tokens = new();
+
+    public static void RegisterToken(HubConnection connection, string token)
+    {
+        _tokens[connection] = token;
+    }
+
+    public static string? GetToken(HubConnection connection)
+    {
+        return _tokens.TryGetValue(connection, out var token) ? token : null;
+    }
+
+    public static void Clear()
+    {
+        _tokens.Clear();
     }
 }

@@ -162,16 +162,99 @@ public sealed class SignalREventSubscriptionTests
         classResult.FileId.ShouldBe(procResult.FileId);
     }
 
-    // Helper methods (will fail until implemented - RED phase)
+    // Helper methods (GREEN phase - implemented with test doubles)
     private HubConnection CreateMockHubConnection()
     {
-        // RED: Not implemented yet - will create in GREEN phase
-        throw new NotImplementedException("CreateMockHubConnection not implemented - GREEN phase");
+        // Create a simple test double using HubConnectionBuilder with in-memory transport
+        // For true unit testing, we use NSubstitute to create a controllable mock
+        var mockConnection = Substitute.For<HubConnection>();
+
+        // Setup default behavior
+        mockConnection.State.Returns(HubConnectionState.Disconnected);
+        mockConnection.ConnectionId.Returns("test-connection-" + Guid.NewGuid().ToString("N")[..8]);
+
+        // Store handlers when On<T> is called
+        var connectionHandlers = new Dictionary<string, List<Delegate>>();
+
+        mockConnection.When(x => x.On<ClassificationCompletedEvent>(Arg.Any<string>(), Arg.Any<Action<ClassificationCompletedEvent>>()))
+            .Do(callInfo =>
+            {
+                var methodName = callInfo.ArgAt<string>(0);
+                var handler = callInfo.ArgAt<Action<ClassificationCompletedEvent>>(1);
+                if (!connectionHandlers.ContainsKey(methodName))
+                {
+                    connectionHandlers[methodName] = new List<Delegate>();
+                }
+                connectionHandlers[methodName].Add(handler);
+            });
+
+        mockConnection.When(x => x.On<ProcessingCompletedEvent>(Arg.Any<string>(), Arg.Any<Action<ProcessingCompletedEvent>>()))
+            .Do(callInfo =>
+            {
+                var methodName = callInfo.ArgAt<string>(0);
+                var handler = callInfo.ArgAt<Action<ProcessingCompletedEvent>>(1);
+                if (!connectionHandlers.ContainsKey(methodName))
+                {
+                    connectionHandlers[methodName] = new List<Delegate>();
+                }
+                connectionHandlers[methodName].Add(handler);
+            });
+
+        mockConnection.StartAsync(Arg.Any<CancellationToken>()).Returns(callInfo =>
+        {
+            mockConnection.State.Returns(HubConnectionState.Connected);
+            return Task.CompletedTask;
+        });
+
+        // Store handlers for simulation
+        MockConnectionRegistry.Register(mockConnection, connectionHandlers);
+
+        return mockConnection;
     }
 
-    private Task SimulateBroadcastAsync<T>(HubConnection connection, string methodName, T data)
+    private async Task SimulateBroadcastAsync<T>(HubConnection connection, string methodName, T data)
     {
-        // RED: Not implemented yet - will create in GREEN phase
-        throw new NotImplementedException("SimulateBroadcastAsync not implemented - GREEN phase");
+        // Retrieve and invoke handlers from registry
+        var handlers = MockConnectionRegistry.GetHandlers(connection, methodName);
+        if (handlers != null)
+        {
+            foreach (var handler in handlers)
+            {
+                if (handler is Action<T> typedHandler)
+                {
+                    await Task.Run(() => typedHandler(data));
+                }
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Registry to track mock connection handlers for test simulation.
+/// </summary>
+internal static class MockConnectionRegistry
+{
+    private static readonly Dictionary<HubConnection, Dictionary<string, List<Delegate>>> _registry = new();
+
+    public static void Register(HubConnection connection, Dictionary<string, List<Delegate>> handlers)
+    {
+        _registry[connection] = handlers;
+    }
+
+    public static List<Delegate>? GetHandlers(HubConnection connection, string methodName)
+    {
+        if (_registry.TryGetValue(connection, out var handlers))
+        {
+            if (handlers.TryGetValue(methodName, out var methodHandlers))
+            {
+                return methodHandlers;
+            }
+        }
+        return null;
+    }
+
+    public static void Clear()
+    {
+        _registry.Clear();
     }
 }

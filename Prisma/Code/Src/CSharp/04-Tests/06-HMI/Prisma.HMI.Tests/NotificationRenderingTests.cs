@@ -129,25 +129,68 @@ public sealed class NotificationRenderingTests
         queue.Dequeue().Message.ShouldContain("Third");
     }
 
-    // Helper methods and types (RED phase - not implemented)
+    // Helper methods and types (GREEN phase - implemented)
     private Notification RenderNotification(ClassificationCompletedEvent evt)
     {
-        throw new NotImplementedException("RenderNotification not implemented - GREEN phase");
+        // Determine severity based on confidence score
+        var severity = evt.ConfidenceScore switch
+        {
+            < 0.6 => NotificationSeverity.Warning,
+            _ => NotificationSeverity.Success
+        };
+
+        // Format confidence as percentage
+        var confidencePercent = (evt.ConfidenceScore * 100).ToString("F0");
+
+        // Build message with suggestion for low confidence
+        var message = evt.ConfidenceScore < 0.6
+            ? $"Document '{evt.FileName}' classified as {evt.ClassificationType} with {confidencePercent}% confidence. Manual review recommended."
+            : $"Document '{evt.FileName}' classified as {evt.ClassificationType} with {confidencePercent}% confidence.";
+
+        return new Notification(
+            Title: "Classification Complete",
+            Message: message,
+            Severity: severity,
+            Timestamp: evt.Timestamp
+        );
     }
 
     private Notification RenderNotification(ProcessingCompletedEvent evt)
     {
-        throw new NotImplementedException("RenderNotification not implemented - GREEN phase");
+        // Determine severity and title based on status
+        var (title, severity) = evt.Status.ToLowerInvariant() switch
+        {
+            "success" => ("Processing Complete", NotificationSeverity.Success),
+            "failed" => ("Processing Failed", NotificationSeverity.Error),
+            "partialsuccess" => ("Processing Partially Complete", NotificationSeverity.Warning),
+            _ => ("Processing Status", NotificationSeverity.Info)
+        };
+
+        // Format duration
+        var durationSeconds = evt.ProcessingDuration.TotalSeconds.ToString("F1");
+        var message = $"Document '{evt.FileName}' processing {evt.Status.ToLowerInvariant()} in {durationSeconds}s.";
+
+        return new Notification(
+            Title: title,
+            Message: message,
+            Severity: severity,
+            Timestamp: evt.Timestamp
+        );
     }
 
     private INotificationQueue CreateNotificationQueue()
     {
-        throw new NotImplementedException("CreateNotificationQueue not implemented - GREEN phase");
+        return new NotificationQueue();
     }
 
     private Notification CreateTestNotification(string message, DateTimeOffset timestamp)
     {
-        throw new NotImplementedException("CreateTestNotification not implemented - GREEN phase");
+        return new Notification(
+            Title: "Test Notification",
+            Message: message,
+            Severity: NotificationSeverity.Info,
+            Timestamp: timestamp
+        );
     }
 }
 
@@ -173,4 +216,22 @@ public interface INotificationQueue
     int Count { get; }
     void Enqueue(Notification notification);
     Notification Dequeue();
+}
+
+/// <summary>Simple FIFO notification queue implementation.</summary>
+public sealed class NotificationQueue : INotificationQueue
+{
+    private readonly Queue<Notification> _queue = new();
+
+    public int Count => _queue.Count;
+
+    public void Enqueue(Notification notification)
+    {
+        _queue.Enqueue(notification);
+    }
+
+    public Notification Dequeue()
+    {
+        return _queue.Dequeue();
+    }
 }
