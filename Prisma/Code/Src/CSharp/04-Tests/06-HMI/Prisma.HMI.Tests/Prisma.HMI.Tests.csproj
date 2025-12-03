@@ -15,9 +15,10 @@
   <ItemGroup Label="Testing Infrastructure">
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Shouldly" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+  </ItemGroup>
+  <ItemGroup Label="Real-Time Abstractions">
+    <PackageReference Include="IndFusion.Ember" />
+    <PackageReference Include="IndQuestResults" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\06-Shared\Prisma.Shared.Contracts\Prisma.Shared.Contracts.csproj" />
