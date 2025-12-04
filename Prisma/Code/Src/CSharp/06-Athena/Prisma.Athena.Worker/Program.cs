@@ -29,7 +29,7 @@ var app = builder.Build();
 app.MapGet("/health", async (IHealthCheckService healthCheck, CancellationToken ct) =>
 {
     var result = await healthCheck.GetHealthAsync(ct);
-    return result.Status == HealthStatus.Healthy
+    return result.Status == OrchestratorHealthState.Healthy
         ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
         : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
 });
@@ -43,7 +43,7 @@ app.MapGet("/health/live", async (IHealthCheckService healthCheck, CancellationT
 app.MapGet("/health/ready", async (IHealthCheckService healthCheck, CancellationToken ct) =>
 {
     var result = await healthCheck.GetReadinessAsync(ct);
-    return result.Status == HealthStatus.Healthy
+    return result.Status == OrchestratorHealthState.Healthy
         ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
         : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
 });
