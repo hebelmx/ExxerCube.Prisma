@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Athena.HealthChecks;
 using Prisma.Athena.Processing;
@@ -5,8 +7,16 @@ using Prisma.Athena.Worker;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Register event publisher (required by ProcessingOrchestrator)
+builder.Services.AddSingleton<IEventPublisher, StubEventPublisher>();
+
 // Register orchestrator and worker service
-builder.Services.AddSingleton<ProcessingOrchestrator>();
+builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
+{
+    var eventPublisher = sp.GetRequiredService<IEventPublisher>();
+    var logger = sp.GetRequiredService<ILogger<ProcessingOrchestrator>>();
+    return new ProcessingOrchestrator(eventPublisher, logger);
+});
 builder.Services.AddHostedService<AthenaWorkerService>();
 
 // Register health check and dashboard services
@@ -47,7 +57,10 @@ app.MapGet("/dashboard", async (IDashboardService dashboard, CancellationToken c
 
 await app.RunAsync();
 
-/// <summary>
-/// Program class for Athena Worker (made public for WebApplicationFactory testing).
-/// </summary>
-public partial class Program { }
+namespace Prisma.Athena.Worker
+{
+    /// <summary>
+    /// Program class for Athena Worker (made public for WebApplicationFactory testing).
+    /// </summary>
+    public partial class Program { }
+}

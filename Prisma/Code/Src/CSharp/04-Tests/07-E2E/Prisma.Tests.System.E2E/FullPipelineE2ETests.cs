@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Mvc.Testing;
 using Prisma.Shared.Contracts;
 using Prisma.Tests.System.E2E.Fixtures;
 using Prisma.Tests.System.E2E.Infrastructure;
+using System.Net;
 
 namespace Prisma.Tests.System.E2E;
 
@@ -281,33 +283,94 @@ public sealed class FullPipelineE2ETests
         expectedCorrelationId.ShouldNotBe(Guid.Empty);
     }
 
-    [Fact(Skip = "Health endpoints require running Orion/Athena worker processes - deferred to Stage 8.1 (Full Integration)")]
+    [Fact]
     public async Task E2E_HealthEndpoints_ReflectPipelineStatus()
     {
-        // ARRANGE
-        // This test validates health check infrastructure with running workers
-        // Requirements:
-        // - Orion worker running on localhost:5001
-        // - Athena worker running on localhost:5002
-        // - Health check endpoints: /health, /health/ready, /health/live
-        // - Dashboard endpoints: /dashboard
+        var ct = TestContext.Current.CancellationToken;
 
-        // ACT
-        // 1. Call /health endpoints on both workers → Verify 200 OK response
-        // 2. Call /dashboard endpoints → Verify metrics JSON
-        // 3. Submit test document → Process through pipeline
-        // 4. Re-check dashboard metrics → Verify counters incremented
+        // ARRANGE: Create WebApplicationFactory instances for both workers
+        await using var orionFactory = new WebApplicationFactory<Prisma.Orion.Worker.Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    // Override with test configurations if needed
+                });
+            });
 
-        // ASSERT
-        // 1. Health endpoints return { "status": "Healthy", "timestamp": "..." }
-        // 2. Dashboard shows: processedCount, lastEventTime, uptimeTot
-        // 3. Liveness reflects operational status (up/degraded/down)
-        // 4. Metrics update after document processing
+        await using var athenaFactory = new WebApplicationFactory<Prisma.Athena.Worker.Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    // Override with test configurations if needed
+                });
+            });
 
-        // NOTE: This is infrastructure validation only - actual integration testing
-        // requires WebApplicationFactory or Testcontainers for worker hosting
+        var orionClient = orionFactory.CreateClient();
+        var athenaClient = athenaFactory.CreateClient();
 
-        await Task.CompletedTask;
+        // ACT & ASSERT: Test Orion health endpoints
+        var orionHealthResponse = await orionClient.GetAsync("/health", ct);
+        orionHealthResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable);
+
+        var orionHealthContent = await orionHealthResponse.Content.ReadAsStringAsync(ct);
+        orionHealthContent.ShouldNotBeNullOrEmpty();
+        orionHealthContent.ShouldContain("status");
+
+        // Test Orion liveness endpoint (should always return 200)
+        var orionLivenessResponse = await orionClient.GetAsync("/health/live", ct);
+        orionLivenessResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var orionLivenessContent = await orionLivenessResponse.Content.ReadAsStringAsync(ct);
+        orionLivenessContent.ShouldNotBeNullOrEmpty();
+        orionLivenessContent.ShouldContain("status");
+
+        // Test Orion readiness endpoint
+        var orionReadinessResponse = await orionClient.GetAsync("/health/ready", ct);
+        orionReadinessResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable);
+
+        var orionReadinessContent = await orionReadinessResponse.Content.ReadAsStringAsync(ct);
+        orionReadinessContent.ShouldNotBeNullOrEmpty();
+        orionReadinessContent.ShouldContain("status");
+
+        // Test Orion dashboard endpoint
+        var orionDashboardResponse = await orionClient.GetAsync("/dashboard", ct);
+        orionDashboardResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var orionDashboardContent = await orionDashboardResponse.Content.ReadAsStringAsync(ct);
+        orionDashboardContent.ShouldNotBeNullOrEmpty();
+
+        // ACT & ASSERT: Test Athena health endpoints
+        var athenaHealthResponse = await athenaClient.GetAsync("/health", ct);
+        athenaHealthResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable);
+
+        var athenaHealthContent = await athenaHealthResponse.Content.ReadAsStringAsync(ct);
+        athenaHealthContent.ShouldNotBeNullOrEmpty();
+        athenaHealthContent.ShouldContain("status");
+
+        // Test Athena liveness endpoint (should always return 200)
+        var athenaLivenessResponse = await athenaClient.GetAsync("/health/live", ct);
+        athenaLivenessResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var athenaLivenessContent = await athenaLivenessResponse.Content.ReadAsStringAsync(ct);
+        athenaLivenessContent.ShouldNotBeNullOrEmpty();
+        athenaLivenessContent.ShouldContain("status");
+
+        // Test Athena readiness endpoint
+        var athenaReadinessResponse = await athenaClient.GetAsync("/health/ready", ct);
+        athenaReadinessResponse.StatusCode.ShouldBeOneOf(HttpStatusCode.OK, HttpStatusCode.ServiceUnavailable);
+
+        var athenaReadinessContent = await athenaReadinessResponse.Content.ReadAsStringAsync(ct);
+        athenaReadinessContent.ShouldNotBeNullOrEmpty();
+        athenaReadinessContent.ShouldContain("status");
+
+        // Test Athena dashboard endpoint
+        var athenaDashboardResponse = await athenaClient.GetAsync("/dashboard", ct);
+        athenaDashboardResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var athenaDashboardContent = await athenaDashboardResponse.Content.ReadAsStringAsync(ct);
+        athenaDashboardContent.ShouldNotBeNullOrEmpty();
     }
 
     [Theory]

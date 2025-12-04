@@ -104,9 +104,14 @@
   <!-- ============================================================================ -->
   <ItemGroup>
     <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
+    <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.Worker\Prisma.Orion.Worker.csproj" />
     <ProjectReference Include="..\..\..\06-Athena\Prisma.Athena.Processing\Prisma.Athena.Processing.csproj" />
+    <ProjectReference Include="..\..\..\06-Athena\Prisma.Athena.Worker\Prisma.Athena.Worker.csproj" />
     <ProjectReference Include="..\..\..\06-Shared\Prisma.Shared.Contracts\Prisma.Shared.Contracts.csproj" />
     <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
+    <ProjectReference Include="..\..\..\02-Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
   </ItemGroup>
 
   <!-- ============================================================================ -->

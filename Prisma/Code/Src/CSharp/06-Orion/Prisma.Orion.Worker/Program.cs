@@ -1,12 +1,33 @@
+using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Orion.HealthChecks;
 using Prisma.Orion.Ingestion;
 using Prisma.Orion.Worker;
+using Prisma.Shared.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Register orchestrator dependencies
+builder.Services.AddSingleton<IIngestionJournal>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<FileIngestionJournal>>();
+    var journalPath = Path.Combine(Directory.GetCurrentDirectory(), "journal.txt");
+    return new FileIngestionJournal(journalPath, logger);
+});
+builder.Services.AddSingleton<IDocumentDownloader, StubDocumentDownloader>();
+
+// Register event hub (stub for now - replace with actual SignalR hub in production)
+builder.Services.AddSingleton<IExxerHub<DocumentDownloadedEvent>, StubExxerHub<DocumentDownloadedEvent>>();
+
 // Register orchestrator and worker service
-builder.Services.AddSingleton<IngestionOrchestrator>();
+builder.Services.AddSingleton<IngestionOrchestrator>(sp =>
+{
+    var journal = sp.GetRequiredService<IIngestionJournal>();
+    var downloader = sp.GetRequiredService<IDocumentDownloader>();
+    var eventHub = sp.GetRequiredService<IExxerHub<DocumentDownloadedEvent>>();
+    var logger = sp.GetRequiredService<ILogger<IngestionOrchestrator>>();
+    return new IngestionOrchestrator(journal, downloader, eventHub, logger);
+});
 builder.Services.AddHostedService<OrionWorkerService>();
 
 // Register health check and dashboard services
@@ -47,7 +68,10 @@ app.MapGet("/dashboard", async (IDashboardService dashboard, CancellationToken c
 
 await app.RunAsync();
 
-/// <summary>
-/// Program class for Orion Worker (made public for WebApplicationFactory testing).
-/// </summary>
-public partial class Program { }
+namespace Prisma.Orion.Worker
+{
+    /// <summary>
+    /// Program class for Orion Worker (made public for WebApplicationFactory testing).
+    /// </summary>
+    public partial class Program { }
+}
