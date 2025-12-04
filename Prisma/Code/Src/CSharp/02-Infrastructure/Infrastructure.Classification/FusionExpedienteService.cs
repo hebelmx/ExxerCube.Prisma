@@ -182,14 +182,15 @@ public class FusionExpedienteService : IFusionExpediente
 
             if (distinctValues.Count == 1)
             {
-                // All agree exactly
+                // All agree exactly - unanimous agreement boosts confidence
+                // Use max reliability instead of average because agreement is strong evidence
                 var agreedValue = validCandidates[0].Value;
-                var avgReliability = validCandidates.Average(c => c.SourceReliability);
+                var maxReliability = validCandidates.Max(c => c.SourceReliability);
 
                 return Result<FieldFusionResult>.Success(new FieldFusionResult
                 {
                     Value = agreedValue,
-                    Confidence = avgReliability,
+                    Confidence = maxReliability,
                     Decision = FusionDecision.AllAgree,
                     ContributingSources = validCandidates.Select(c => c.Source).ToList()
                 });
@@ -2458,11 +2459,18 @@ public class FusionExpedienteService : IFusionExpediente
         // Required fields have higher weight
         var requiredFields = new[] { "NumeroExpediente", "NumeroOficio", "AreaDescripcion" };
 
-        var requiredFieldsConfidence = fieldResults
-            .Where(kvp => requiredFields.Contains(kvp.Key))
-            .Average(kvp => kvp.Value.Confidence);
+        // Only include fields with actual data (exclude AllSourcesNull) to avoid diluting confidence
+        var fieldsWithData = fieldResults
+            .Where(kvp => kvp.Value.Decision != FusionDecision.AllSourcesNull)
+            .ToList();
 
-        var optionalFieldsConfidence = fieldResults
+        var requiredFieldsConfidence = fieldsWithData
+            .Where(kvp => requiredFields.Contains(kvp.Key))
+            .Select(kvp => kvp.Value.Confidence)
+            .DefaultIfEmpty(0.0)
+            .Average();
+
+        var optionalFieldsConfidence = fieldsWithData
             .Where(kvp => !requiredFields.Contains(kvp.Key))
             .Select(kvp => kvp.Value.Confidence)
             .DefaultIfEmpty(0.0)

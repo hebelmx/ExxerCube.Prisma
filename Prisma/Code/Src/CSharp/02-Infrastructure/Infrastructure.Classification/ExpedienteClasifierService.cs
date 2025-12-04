@@ -177,8 +177,10 @@ public class ExpedienteClasifierService : IExpedienteClasifier
             }
 
             // Check 2: Missing signature (Article 17.I - formalities)
-            // Note: Signature validation would typically be in document metadata
-            // For now, we assume signature is present if document passed extraction
+            if (string.IsNullOrWhiteSpace(expediente.EvidenciaFirma))
+            {
+                rejectionReasons.Add(RejectionReason.MissingSignature);
+            }
 
             // Check 3: Lack of specificity (Article 17.I)
             var hasAccountNumber = expediente.LawMandatedFields?.AccountNumber != null;

@@ -524,6 +524,7 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
             AreaDescripcion = "ASEGURAMIENTO",
             AutoridadNombre = "SUBDELEGACION 8 SAN ANGEL",
             FundamentoLegal = "Artículo 42 Código Fiscal de la Federación",
+            EvidenciaFirma = "SHA256:abc123def456",
             TieneAseguramiento = true,
             SolicitudPartes = new List<SolicitudParte>
             {
@@ -575,7 +576,7 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
     private static Expediente CreateExpedienteWithoutSignature()
     {
         var expediente = CreateCompleteExpediente();
-        // Signature validation would be in metadata, not entity
+        expediente.EvidenciaFirma = string.Empty; // Clear signature to test missing signature detection
         return expediente;
     }
 
