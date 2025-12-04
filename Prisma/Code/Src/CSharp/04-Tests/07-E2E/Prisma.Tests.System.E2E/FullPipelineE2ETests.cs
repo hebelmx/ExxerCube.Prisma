@@ -93,7 +93,7 @@ public sealed class FullPipelineE2ETests
             Timestamp: timestamp.AddSeconds(1)
         );
         await qualityHub.SendToAllAsync(qualityEvent, CancellationToken.None);
-        tracker.RecordStage(PipelineStages.QualityAnalysis, qualityEvent.CorrelationId);
+        tracker.RecordStage(PipelineStages.QualityAnalysis, correlationId);
 
         // Stage 3: OCR Processing Completed
         var ocrEvent = new OcrCompletedEvent(
@@ -130,7 +130,7 @@ public sealed class FullPipelineE2ETests
             Timestamp: timestamp.AddSeconds(5)
         );
         await processingHub.SendToAllAsync(processingEvent, CancellationToken.None);
-        tracker.RecordStage(PipelineStages.ProcessingCompleted, processingEvent.CorrelationId);
+        tracker.RecordStage(PipelineStages.ProcessingCompleted, correlationId);
 
         // Wait for all events to be collected
         var downloadedReceived = await downloadedEventCollector.WaitForEventsAsync(1, TimeSpan.FromSeconds(2));

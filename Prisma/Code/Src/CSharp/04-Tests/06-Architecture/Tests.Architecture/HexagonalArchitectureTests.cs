@@ -981,6 +981,53 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
     //
 
+    // Rule 8: Domain Event Inheritance
+
+    /// <summary>
+    /// Ensures all domain event classes inherit from DomainEvent base class.
+    /// This enforces consistent event structure with EventId, Timestamp, EventType, and CorrelationId.
+    /// Events are published via IObservable and consumed by background workers and SignalR hubs.
+    /// </summary>
+    [Fact]
+    public void All_Domain_Events_Must_Inherit_From_DomainEvent()
+    {
+        // Arrange: Get all types in Domain.Events namespace that end with "Event"
+        var domainEventBaseType = typeof(ExxerCube.Prisma.Domain.Events.DomainEvent);
+
+        var eventTypes = Types.InAssembly(DomainAssembly)
+            .That()
+            .ResideInNamespace("ExxerCube.Prisma.Domain.Events")
+            .And()
+            .AreClasses()
+            .And()
+            .DoNotHaveNameMatching(".*<.*>.*") // Exclude compiler-generated types
+            .GetTypes()
+            .Where(t => t.Name.EndsWith("Event", StringComparison.Ordinal) && !t.IsAbstract)
+            .ToList();
+
+        // Act: Find events that don't inherit from DomainEvent
+        var violatingEvents = eventTypes
+            .Where(t => !domainEventBaseType.IsAssignableFrom(t))
+            .Select(t => t.FullName ?? t.Name)
+            .ToList();
+
+        if (violatingEvents.Any())
+        {
+            var list = violatingEvents.Select(v => $" - {v}").ToList();
+            logger.LogWarning("Rule: Domain events must inherit from DomainEvent. Count={Count}\n{Details}",
+                list.Count, string.Join(Environment.NewLine, list));
+        }
+
+        // Assert: All events must inherit from DomainEvent
+        violatingEvents.ShouldBeEmpty(
+            $"The following events do not inherit from DomainEvent:\n" +
+            $"{string.Join("\n", violatingEvents)}\n\n" +
+            $"All domain events must inherit from the DomainEvent base class to ensure consistent event handling " +
+            $"with EventId, Timestamp, EventType, and CorrelationId properties.");
+    }
+
+    //
+
     private static IEnumerable<Assembly> GetInfrastructureAssemblies()
     {
         var roots = new[]

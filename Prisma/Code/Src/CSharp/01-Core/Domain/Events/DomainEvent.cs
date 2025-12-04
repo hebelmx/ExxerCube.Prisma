@@ -24,6 +24,9 @@ namespace ExxerCube.Prisma.Domain.Events;
 [JsonDerivedType(typeof(QualityRejectedEvent), "QualityRejectedEvent")]
 [JsonDerivedType(typeof(FusionCompletedEvent), "FusionCompletedEvent")]
 [JsonDerivedType(typeof(ExportCompletedEvent), "ExportCompletedEvent")]
+[JsonDerivedType(typeof(ProcessingEvent), "ProcessingEvent")]
+[JsonDerivedType(typeof(ProcessingCompletedEvent), "ProcessingCompletedEvent")]
+[JsonDerivedType(typeof(QualityCompletedEvent), "QualityCompletedEvent")]
 public abstract record DomainEvent
 {
     /// <summary>

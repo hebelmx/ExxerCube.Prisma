@@ -3,35 +3,38 @@ namespace ExxerCube.Prisma.Domain.Events;
 /// <summary>
 /// Represents a processing event for real-time monitoring.
 /// </summary>
-public class ProcessingEvent
+public record ProcessingEvent : DomainEvent
 {
     /// <summary>
-    /// Gets or sets the document identifier.
+    /// Gets the document identifier.
     /// </summary>
-    public string DocumentId { get; set; } = string.Empty;
+    public string DocumentId { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the processing time in seconds.
+    /// Gets the processing time in seconds.
     /// </summary>
-    public double ProcessingTimeSeconds { get; set; }
+    public double ProcessingTimeSeconds { get; init; }
 
     /// <summary>
-    /// Gets or sets whether the processing was successful.
+    /// Gets whether the processing was successful.
     /// </summary>
-    public bool IsSuccess { get; set; }
+    public bool IsSuccess { get; init; }
 
     /// <summary>
-    /// Gets or sets the OCR confidence score.
+    /// Gets the OCR confidence score.
     /// </summary>
-    public float Confidence { get; set; }
+    public float Confidence { get; init; }
 
     /// <summary>
-    /// Gets or sets the error message if processing failed.
+    /// Gets the error message if processing failed.
     /// </summary>
-    public string? ErrorMessage { get; set; }
+    public string? ErrorMessage { get; init; }
 
     /// <summary>
-    /// Gets or sets when the event occurred.
+    /// Initializes a new instance of the <see cref="ProcessingEvent"/> class.
     /// </summary>
-    public DateTime Timestamp { get; set; }
+    public ProcessingEvent()
+    {
+        EventType = nameof(ProcessingEvent);
+    }
 }
