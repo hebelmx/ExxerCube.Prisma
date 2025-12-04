@@ -1,4 +1,4 @@
-﻿namespace ExxerCube.Prisma.Domain.Interfaces.Contracts
+﻿namespace ExxerCube.Prisma.Domain.Interfaces
 {
     /// <summary>
     /// Provides the Prisma domain with a generic repository abstraction so aggregates can be

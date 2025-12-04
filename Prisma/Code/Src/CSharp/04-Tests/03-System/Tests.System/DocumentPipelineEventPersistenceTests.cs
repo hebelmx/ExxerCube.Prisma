@@ -1,16 +1,9 @@
 using System.Text.Json;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
-using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using ExxerCube.Prisma.Infrastructure.Database.Services;
 using ExxerCube.Prisma.Infrastructure.Events;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace ExxerCube.Prisma.Tests.System;
+namespace ExxerCube.Prisma.Tests.System.Ocr.Pipeline;
 
 /// <summary>
 /// System tests for event persistence during full document processing pipeline.

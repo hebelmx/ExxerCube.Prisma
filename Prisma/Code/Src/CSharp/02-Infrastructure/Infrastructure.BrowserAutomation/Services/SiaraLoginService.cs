@@ -36,7 +36,7 @@ public class SiaraLoginService : ISiaraLoginService
             var waitUsernameResult = await agent.WaitForSelectorAsync("input[name='username']", timeoutMs: 10000, cancellationToken);
             if (!waitUsernameResult.IsSuccess)
             {
-                return Result.WithFailure($"Username input field not found: {waitUsernameResult.ErrorMessage}");
+                return Result.WithFailure($"Username input field not found: {waitUsernameResult.Error}");
             }
 
             // Fill username
@@ -44,7 +44,7 @@ public class SiaraLoginService : ISiaraLoginService
             var fillUsernameResult = await agent.FillInputAsync("input[name='username']", username, cancellationToken);
             if (!fillUsernameResult.IsSuccess)
             {
-                return Result.WithFailure($"Failed to fill username: {fillUsernameResult.ErrorMessage}");
+                return Result.WithFailure($"Failed to fill username: {fillUsernameResult.Error}");
             }
 
             // Fill password
@@ -52,7 +52,7 @@ public class SiaraLoginService : ISiaraLoginService
             var fillPasswordResult = await agent.FillInputAsync("input[name='password']", password, cancellationToken);
             if (!fillPasswordResult.IsSuccess)
             {
-                return Result.WithFailure($"Failed to fill password: {fillPasswordResult.ErrorMessage}");
+                return Result.WithFailure($"Failed to fill password: {fillPasswordResult.Error}");
             }
 
             // Click login button
@@ -60,7 +60,7 @@ public class SiaraLoginService : ISiaraLoginService
             var clickResult = await agent.ClickElementAsync("button[type='submit']", cancellationToken);
             if (!clickResult.IsSuccess)
             {
-                return Result.WithFailure($"Failed to click login button: {clickResult.ErrorMessage}");
+                return Result.WithFailure($"Failed to click login button: {clickResult.Error}");
             }
 
             // Wait for navigation to complete (wait for a post-login element or URL change)

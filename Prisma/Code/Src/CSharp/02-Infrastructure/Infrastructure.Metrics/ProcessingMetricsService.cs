@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Infrastructure.Metrics;

@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Models;
+namespace ExxerCube.Prisma.Domain.Events;
 
 /// <summary>
 /// Quality analysis completion event payload.

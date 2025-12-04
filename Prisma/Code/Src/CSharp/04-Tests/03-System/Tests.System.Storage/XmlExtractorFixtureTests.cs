@@ -1,11 +1,9 @@
 using System.Text;
-using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Sources;
-using ExxerCube.Prisma.Infrastructure.Extraction;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
-namespace ExxerCube.Prisma.Tests.System.XmlExtraction;
+namespace ExxerCube.Prisma.Tests.System.Storage;
 
 /// <summary>
 /// System-level checks for XML extraction against real PRP1 fixtures.

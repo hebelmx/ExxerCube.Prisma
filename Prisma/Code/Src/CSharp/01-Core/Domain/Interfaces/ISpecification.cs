@@ -1,4 +1,4 @@
-﻿namespace ExxerCube.Prisma.Domain.Interfaces.Contracts;
+﻿namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
 /// Represents a reusable description of how to query an entity, including filtering, sorting,

@@ -1,6 +1,7 @@
+using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Prisma.Orion.Ingestion;
-using Prisma.Shared.Contracts;
 
 namespace Prisma.Orion.Ingestion.Tests;
 

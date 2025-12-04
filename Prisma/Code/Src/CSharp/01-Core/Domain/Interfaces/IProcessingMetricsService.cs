@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Events;
+
 namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>

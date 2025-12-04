@@ -1,5 +1,4 @@
 using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using ExxerCube.Prisma.Infrastructure.Database.Repositories;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;

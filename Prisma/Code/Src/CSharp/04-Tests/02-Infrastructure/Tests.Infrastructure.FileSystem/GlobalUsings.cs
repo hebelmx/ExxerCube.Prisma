@@ -17,7 +17,6 @@ global using ExxerCube.Prisma.Domain;
 global using ExxerCube.Prisma.Domain.Entities;
 global using ExxerCube.Prisma.Infrastructure.FileSystem;
 global using ExxerCube.Prisma.Domain.Interfaces;
-global using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 global using ExxerCube.Prisma.Testing.Abstractions;
 global using ExxerCube.Prisma.Testing.Infrastructure;
 global using ExxerCube.Prisma.Testing.Infrastructure.TestData;

@@ -18,7 +18,6 @@ global using ExxerCube.Prisma.Domain;
 global using ExxerCube.Prisma.Domain.Entities;
 global using ExxerCube.Prisma.Domain.Enum;
 global using ExxerCube.Prisma.Domain.Interfaces;
-global using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 global using ExxerCube.Prisma.Domain.Interfaces.Factories;
 global using ExxerCube.Prisma.Domain.Models;
 global using ExxerCube.Prisma.Domain.Sources;

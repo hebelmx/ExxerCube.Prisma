@@ -1,6 +1,6 @@
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
-namespace ExxerCube.Prisma.Tests.System;
+namespace ExxerCube.Prisma.Tests.System.Ocr.Pipeline;
 
 /// <summary>
 /// Shared fixture for Tesseract OCR executor.

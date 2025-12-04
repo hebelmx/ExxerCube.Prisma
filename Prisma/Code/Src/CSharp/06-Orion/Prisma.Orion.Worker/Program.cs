@@ -1,5 +1,4 @@
 using ExxerCube.Prisma.Domain.Events;
-using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Orion.HealthChecks;

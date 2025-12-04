@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E;
+namespace ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E;
 
 /// <summary>
 /// End-to-end tests for Siara Simulator integration.

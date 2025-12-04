@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Tests.System;
+namespace ExxerCube.Prisma.Tests.System.Ocr.Pipeline;
 
 /// <summary>
 /// System-level integration tests for <see cref="DocumentIngestionService"/> that test complete workflows.

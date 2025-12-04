@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.EntityFrameworkCore;

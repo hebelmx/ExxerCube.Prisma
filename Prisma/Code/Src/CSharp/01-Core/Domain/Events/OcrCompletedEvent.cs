@@ -34,6 +34,22 @@ public record OcrCompletedEvent : DomainEvent
     /// Gets a value indicating whether fallback OCR engine was triggered.
     /// </summary>
     public bool FallbackTriggered { get; init; }
+    /// <summary>
+    /// The name of the processed file.
+    /// </summary>
+    public string FileName { get; } = string.Empty;
+    /// <summary>
+    /// The extracted text from the OCR process.
+    /// </summary>
+    public string ExtractedText { get; } = string.Empty;
+    /// <summary>
+    /// The number of pages processed in the document.
+    /// </summary>
+    public int PageCount { get; }
+    /// <summary>
+    /// The expected correlation ID for tracking.
+    /// </summary>
+    public DateTimeOffset Timestamp1 { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OcrCompletedEvent"/> class.
@@ -41,5 +57,23 @@ public record OcrCompletedEvent : DomainEvent
     public OcrCompletedEvent()
     {
         EventType = nameof(OcrCompletedEvent);
+    }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OcrCompletedEvent"/> class.
+    /// </summary>
+    /// <param name="FileId"></param>
+    /// <param name="FileName"></param>
+    /// <param name="ExtractedText"></param>
+    /// <param name="PageCount"></param>
+    /// <param name="CorrelationId"></param>
+    /// <param name="Timestamp"></param>
+    public OcrCompletedEvent(Guid FileId, string FileName, string ExtractedText, int PageCount, Guid CorrelationId, DateTimeOffset Timestamp)
+    {
+        this.FileId = FileId;
+        this.FileName = FileName;
+        this.ExtractedText = ExtractedText;
+        this.PageCount = PageCount;
+        this.CorrelationId = CorrelationId;
+        Timestamp1 = Timestamp;
     }
 }

@@ -1,4 +1,4 @@
-using ExxerCube.Prisma.Domain.Interfaces.Contracts;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Events;
 using Microsoft.Extensions.Logging.Abstractions;
 

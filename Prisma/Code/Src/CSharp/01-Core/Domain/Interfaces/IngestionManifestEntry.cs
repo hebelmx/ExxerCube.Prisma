@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Interfaces.Contracts;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
 /// Ingestion manifest record for tracking downloaded documents.

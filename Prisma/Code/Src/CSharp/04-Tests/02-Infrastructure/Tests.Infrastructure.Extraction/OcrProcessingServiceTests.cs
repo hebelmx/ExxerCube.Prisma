@@ -1,4 +1,7 @@
-namespace ExxerCube.Prisma.Tests.Application.Services;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution;
+using ExxerCube.Prisma.Domain.Interfaces;
+
+namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
 /// Unit tests for <see cref="OcrProcessingService"/> covering preprocessing, OCR execution, extraction, and failure paths.

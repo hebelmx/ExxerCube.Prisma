@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-using Prisma.Shared.Contracts;
-using Prisma.Tests.System.E2E.Fixtures;
-using Prisma.Tests.System.E2E.Infrastructure;
-using System.Net;
-
 namespace Prisma.Tests.System.E2E;
 
 /// <summary>
@@ -75,7 +69,7 @@ public sealed class FullPipelineE2ETests
         var timestamp = DateTimeOffset.UtcNow;
 
         // Stage 1: Document Downloaded
-        var downloadedEvent = new DocumentDownloadedEvent(
+        DocumentDownloadedEvent downloadedEvent = new DocumentDownloadedEvent(
             FileId: fileId,
             FileName: fixture.FileNameWithoutExtension,
             Source: "SIARA",
@@ -85,8 +79,9 @@ public sealed class FullPipelineE2ETests
             CorrelationId: correlationId,
             Timestamp: timestamp
         );
+
         await downloadedHub.SendToAllAsync(downloadedEvent, CancellationToken.None);
-        tracker.RecordStage(PipelineStages.DocumentDownloaded, downloadedEvent.CorrelationId);
+        tracker.RecordStage(PipelineStages.DocumentDownloaded, correlationId);
 
         // Stage 2: Quality Analysis Completed
         var qualityEvent = new QualityCompletedEvent(
@@ -110,7 +105,8 @@ public sealed class FullPipelineE2ETests
             Timestamp: timestamp.AddSeconds(2)
         );
         await ocrHub.SendToAllAsync(ocrEvent, CancellationToken.None);
-        tracker.RecordStage(PipelineStages.OcrProcessing, ocrEvent.CorrelationId);
+
+        tracker.RecordStage(PipelineStages.OcrProcessing, correlationId);
 
         // Stage 4: Classification Completed
         var classificationEvent = new ClassificationCompletedEvent(
@@ -122,7 +118,7 @@ public sealed class FullPipelineE2ETests
             Timestamp: timestamp.AddSeconds(3)
         );
         await classificationHub.SendToAllAsync(classificationEvent, CancellationToken.None);
-        tracker.RecordStage(PipelineStages.Classification, classificationEvent.CorrelationId);
+        tracker.RecordStage(PipelineStages.Classification, correlationId);
 
         // Stage 5: Processing Completed
         var processingEvent = new ProcessingCompletedEvent(
@@ -440,4 +436,3 @@ public sealed class FullPipelineE2ETests
         // will be implemented in Stage 8.1 (Full Integration)
     }
 }
-

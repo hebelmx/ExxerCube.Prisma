@@ -2,7 +2,6 @@
 
 global using ExxerCube.Prisma.Domain.Events;
 global using ExxerCube.Prisma.Domain.Interfaces;
-global using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 global using ExxerCube.Prisma.Infrastructure.Events;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.DependencyInjection.Extensions;

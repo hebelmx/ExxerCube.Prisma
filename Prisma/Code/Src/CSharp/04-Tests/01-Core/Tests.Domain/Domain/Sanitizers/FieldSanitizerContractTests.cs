@@ -2,9 +2,9 @@
 // Copyright (c) Exxerpro Solutions SA de CV. All rights reserved.
 // </copyright>
 
-namespace ExxerCube.Prisma.Tests.Domain.Sanitizers;
-
 using ExxerCube.Prisma.Domain.Sanitizers;
+
+namespace ExxerCube.Prisma.Tests.Domain.Domain.Sanitizers;
 
 /// <summary>
 /// ITDD contract tests for <see cref="FieldSanitizer"/> static utility class.

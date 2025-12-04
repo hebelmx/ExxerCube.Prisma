@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Models;
+namespace ExxerCube.Prisma.Domain.Events;
 
 /// <summary>
 /// Contract events shared across Orion (ingestion), Athena (processing), and HMI.

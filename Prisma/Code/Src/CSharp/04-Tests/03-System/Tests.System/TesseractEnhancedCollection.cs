@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Tests.System;
+namespace ExxerCube.Prisma.Tests.System.Ocr.Pipeline;
 
 /// <summary>
 /// Collection fixture for Tesseract enhanced image tests.

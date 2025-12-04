@@ -84,7 +84,6 @@
   <!-- ============================================================================ -->
   <ItemGroup>
     <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
-    <ProjectReference Include="..\..\..\06-Shared\Prisma.Shared.Contracts\Prisma.Shared.Contracts.csproj" />
   </ItemGroup>
   <!-- ============================================================================ -->
   <!-- TESTING PLATFORM CAPABILITIES -->

@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Domain.Models;
+namespace ExxerCube.Prisma.Domain.Events;
 
 /// <summary>
 /// Represents a processing event for real-time monitoring.

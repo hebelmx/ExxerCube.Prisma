@@ -1,8 +1,4 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace ExxerCube.Prisma.Domain.Interfaces.Contracts;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
 /// Journal abstraction for tracking ingested documents with hash-based idempotency.

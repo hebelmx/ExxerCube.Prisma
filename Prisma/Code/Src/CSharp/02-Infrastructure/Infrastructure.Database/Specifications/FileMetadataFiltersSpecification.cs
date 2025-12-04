@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using ExxerCube.Prisma.Domain.Enum;
-using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.Specifications;
 

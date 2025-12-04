@@ -1,8 +1,4 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace ExxerCube.Prisma.Domain.Interfaces.Contracts;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
 /// Event subscription registration for wiring handlers to event names.

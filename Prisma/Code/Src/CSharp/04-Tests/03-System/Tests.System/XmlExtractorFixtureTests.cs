@@ -1,7 +1,6 @@
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
-using Microsoft.CodeCoverage.Core.Reports.Coverage;
 
-namespace ExxerCube.Prisma.Tests.System;
+namespace ExxerCube.Prisma.Tests.System.Ocr.Pipeline;
 
 /// <summary>
 /// System-level checks for XML extraction against real PRP1 fixtures.

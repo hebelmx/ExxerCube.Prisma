@@ -1,11 +1,6 @@
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Testing.Infrastructure;
 using System.Text;
 
-namespace ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E;
+namespace ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E;
 
 /// <summary>
 /// End-to-end tests for OCR Extraction using real PRP1 PDF fixtures.

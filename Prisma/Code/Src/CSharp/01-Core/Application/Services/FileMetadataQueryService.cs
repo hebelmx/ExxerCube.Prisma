@@ -1,4 +1,3 @@
-using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using ExxerCube.Prisma.Domain.Interfaces.Factories;
 
 namespace ExxerCube.Prisma.Application.Services;

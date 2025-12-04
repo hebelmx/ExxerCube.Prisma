@@ -1,6 +1,3 @@
-using Prisma.Shared.Contracts;
-using System.Collections.Concurrent;
-
 namespace Prisma.Tests.System.E2E.Infrastructure;
 
 /// <summary>

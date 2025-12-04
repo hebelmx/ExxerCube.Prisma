@@ -1,9 +1,7 @@
 using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
-using ExxerCube.Prisma.Testing.Infrastructure;
 
-namespace ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.E2E;
+namespace ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E;
 
 /// <summary>
 /// End-to-end tests for XML Extraction using real PRP1 fixtures.

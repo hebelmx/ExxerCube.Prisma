@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.Repositories;

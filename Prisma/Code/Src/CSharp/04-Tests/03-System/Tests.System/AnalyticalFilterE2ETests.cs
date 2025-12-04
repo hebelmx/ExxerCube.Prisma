@@ -32,7 +32,7 @@
 using System.Text.Json;
 using System.Xml.Linq;
 
-namespace ExxerCube.Prisma.Tests.System;
+namespace ExxerCube.Prisma.Tests.System.Ocr.Pipeline;
 
 /// <summary>
 /// End-to-end tests validating OCR improvement with analytical filter selection.

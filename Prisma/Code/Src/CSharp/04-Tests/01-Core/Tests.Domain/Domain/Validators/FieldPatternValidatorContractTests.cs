@@ -2,9 +2,9 @@
 // Copyright (c) Exxerpro Solutions SA de CV. All rights reserved.
 // </copyright>
 
-namespace ExxerCube.Prisma.Tests.Domain.Validators;
-
 using ExxerCube.Prisma.Domain.Validators;
+
+namespace ExxerCube.Prisma.Tests.Domain.Domain.Validators;
 
 /// <summary>
 /// ITDD contract tests for <see cref="FieldPatternValidator"/> static utility class.
