@@ -60,16 +60,9 @@ public sealed class ComplementExtractionStrategy : IComplementDocxExtractionStra
     /// <inheritdoc />
     public bool CanHandle(DocxStructure structure)
     {
-        if (structure == null)
-        {
-            return false;
-        }
-
-        // Prefer documents with structure, labels, or tables; still allow fallback if minimal hints exist.
-        return structure.HasStructuredFormat
-               || structure.HasBoldLabels
-               || structure.HasKeyValuePairs
-               || (structure.HasTables && structure.TableStructure?.RowCount > 0);
+        // Complement strategy can always attempt to fill gaps, regardless of document structure.
+        // Even minimally structured docs may contain field values that can complement XML/OCR data.
+        return structure != null;
     }
 
     /// <inheritdoc />

@@ -50,6 +50,9 @@ public static class ServiceCollectionExtensions
         // Register bulk processing service
         services.AddScoped<IBulkProcessingService, BulkProcessingService>();
 
+        // Register OCR processing service (used by BulkProcessingService)
+        services.AddScoped<IOcrProcessingService, Execution.OcrProcessingService>();
+
         // OCR text cleaning (raw + normalized forms retained)
         services.AddSingleton<ITextSanitizer, TextSanitizer>();
         services.AddSingleton<OcrSanitizationService>();

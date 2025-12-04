@@ -159,8 +159,8 @@ Inner Stack Trace:
         // Add SignalR abstractions (Ember) for real-time updates
         services.AddSignalRAbstractions();
         services.AddSignalR();
-        //  services.AddScoped<ProcessingHub>();
-        //  services.AddScoped<IExxerHub<DomainEvent>, ProcessingHub>();
+        services.AddScoped<ProcessingHub>();
+        services.AddScoped<IExxerHub<DomainEvent>, ProcessingHub>();
 
         // Add OCR processing services
         var pythonModulesPath = Path.Combine(environment.ContentRootPath, "..", "..", "Python", "ocr_modules");
@@ -281,7 +281,7 @@ Inner Stack Trace:
         services.AddScoped<DecisionLogicService>();
 
         // Add Story 1.5 services: SLA Tracking and Escalation
-        //   services.AddScoped<SLATrackingService>();
+        services.AddScoped<SLATrackingService>();
 
         // Add Story 1.7 & 1.8 services: Export Generation (SIRO XML, Excel, PDF Signing)
         services.AddExportServices(configuration);

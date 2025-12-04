@@ -50,17 +50,9 @@ public sealed class SearchExtractionStrategy : IDocxExtractionStrategy
     /// <inheritdoc />
     public bool CanHandle(DocxStructure structure)
     {
-        if (structure == null)
-        {
-            return false;
-        }
-
-        // Designed for cross-references or loosely structured docs; require at least some text cues.
-        return structure.HasCrossReferences
-               || structure.HasStructuredFormat
-               || structure.HasBoldLabels
-               || structure.HasKeyValuePairs
-               || structure.StyledElementCount > 0;
+        // Search strategy can still extract even without cross-references.
+        // It can handle any document structure, even minimally structured ones.
+        return structure != null;
     }
 
     /// <inheritdoc />
