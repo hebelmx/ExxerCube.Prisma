@@ -57,6 +57,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITextSanitizer, TextSanitizer>();
         services.AddSingleton<OcrSanitizationService>();
 
+        // OCR session repository for data collection and model retraining
+        services.AddSingleton<IOcrSessionRepository, Repositories.OcrSessionRepository>();
+
         return services;
     }
 }

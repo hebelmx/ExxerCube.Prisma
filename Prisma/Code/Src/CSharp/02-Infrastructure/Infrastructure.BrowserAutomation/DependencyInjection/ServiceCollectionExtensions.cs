@@ -36,6 +36,9 @@ public static class ServiceCollectionExtensions
         services.AddKeyedScoped<INavigationTarget, InternetArchiveNavigationTarget>("archive");
         services.AddKeyedScoped<INavigationTarget, GutenbergNavigationTarget>("gutenberg");
 
+        // SIARA login service
+        services.AddScoped<ISiaraLoginService, Services.SiaraLoginService>();
+
         return services;
     }
 }
