@@ -30,13 +30,13 @@ public sealed class AthenaHealthCheckService : IHealthCheckService
     }
 
     /// <inheritdoc/>
-    public Task<HealthCheckResult> GetLivenessAsync(CancellationToken cancellationToken = default)
+    public Task<OrchestratorHealthStatus> GetLivenessAsync(CancellationToken cancellationToken = default)
     {
         // Liveness: Process is running (if we can execute this, we're alive)
         _logger.LogTrace("Liveness check requested");
 
-        var result = new HealthCheckResult(
-            HealthStatus.Healthy,
+        var result = new OrchestratorHealthStatus(
+            OrchestratorHealthState.Healthy,
             "Athena worker process is running",
             new Dictionary<string, object>
             {
@@ -47,7 +47,7 @@ public sealed class AthenaHealthCheckService : IHealthCheckService
     }
 
     /// <inheritdoc/>
-    public Task<HealthCheckResult> GetReadinessAsync(CancellationToken cancellationToken = default)
+    public Task<OrchestratorHealthStatus> GetReadinessAsync(CancellationToken cancellationToken = default)
     {
         // Readiness: Orchestrator is started and ready to process
         _logger.LogTrace("Readiness check requested");
@@ -56,8 +56,8 @@ public sealed class AthenaHealthCheckService : IHealthCheckService
         // For now, assume ready if orchestrator is not null
         var isReady = _orchestrator != null;
 
-        var result = new HealthCheckResult(
-            isReady ? HealthStatus.Healthy : HealthStatus.Unhealthy,
+        var result = new OrchestratorHealthStatus(
+            isReady ? OrchestratorHealthState.Healthy : OrchestratorHealthState.Unhealthy,
             isReady ? "Athena orchestrator is ready" : "Athena orchestrator is not ready",
             new Dictionary<string, object>
             {
@@ -69,7 +69,7 @@ public sealed class AthenaHealthCheckService : IHealthCheckService
     }
 
     /// <inheritdoc/>
-    public async Task<HealthCheckResult> GetHealthAsync(CancellationToken cancellationToken = default)
+    public async Task<OrchestratorHealthStatus> GetHealthAsync(CancellationToken cancellationToken = default)
     {
         // Overall health: Combine liveness and readiness
         _logger.LogTrace("Health check requested");
@@ -78,11 +78,11 @@ public sealed class AthenaHealthCheckService : IHealthCheckService
         var readiness = await GetReadinessAsync(cancellationToken).ConfigureAwait(false);
 
         // Overall health is degraded if readiness is not healthy
-        var overallStatus = readiness.Status == HealthStatus.Healthy
-            ? HealthStatus.Healthy
-            : HealthStatus.Degraded;
+        var overallStatus = readiness.Status == OrchestratorHealthState.Healthy
+            ? OrchestratorHealthState.Healthy
+            : OrchestratorHealthState.Degraded;
 
-        var result = new HealthCheckResult(
+        var result = new OrchestratorHealthStatus(
             overallStatus,
             $"Athena worker: {overallStatus}",
             new Dictionary<string, object>

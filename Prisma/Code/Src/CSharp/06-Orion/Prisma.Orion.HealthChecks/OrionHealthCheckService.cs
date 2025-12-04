@@ -30,13 +30,13 @@ public sealed class OrionHealthCheckService : IHealthCheckService
     }
 
     /// <inheritdoc/>
-    public Task<HealthCheckResult> GetLivenessAsync(CancellationToken cancellationToken = default)
+    public Task<OrchestratorHealthStatus> GetLivenessAsync(CancellationToken cancellationToken = default)
     {
         // Liveness: Process is running (if we can execute this, we're alive)
         _logger.LogTrace("Liveness check requested");
 
-        var result = new HealthCheckResult(
-            HealthStatus.Healthy,
+        var result = new OrchestratorHealthStatus(
+            OrchestratorHealthState.Healthy,
             "Orion worker process is running",
             new Dictionary<string, object>
             {
@@ -47,7 +47,7 @@ public sealed class OrionHealthCheckService : IHealthCheckService
     }
 
     /// <inheritdoc/>
-    public Task<HealthCheckResult> GetReadinessAsync(CancellationToken cancellationToken = default)
+    public Task<OrchestratorHealthStatus> GetReadinessAsync(CancellationToken cancellationToken = default)
     {
         // Readiness: Orchestrator is started and ready to process
         _logger.LogTrace("Readiness check requested");
@@ -56,8 +56,8 @@ public sealed class OrionHealthCheckService : IHealthCheckService
         // For now, assume ready if orchestrator is not null
         var isReady = _orchestrator != null;
 
-        var result = new HealthCheckResult(
-            isReady ? HealthStatus.Healthy : HealthStatus.Unhealthy,
+        var result = new OrchestratorHealthStatus(
+            isReady ? OrchestratorHealthState.Healthy : OrchestratorHealthState.Unhealthy,
             isReady ? "Orion orchestrator is ready" : "Orion orchestrator is not ready",
             new Dictionary<string, object>
             {
@@ -69,7 +69,7 @@ public sealed class OrionHealthCheckService : IHealthCheckService
     }
 
     /// <inheritdoc/>
-    public async Task<HealthCheckResult> GetHealthAsync(CancellationToken cancellationToken = default)
+    public async Task<OrchestratorHealthStatus> GetHealthAsync(CancellationToken cancellationToken = default)
     {
         // Overall health: Combine liveness and readiness
         _logger.LogTrace("Health check requested");
@@ -78,11 +78,11 @@ public sealed class OrionHealthCheckService : IHealthCheckService
         var readiness = await GetReadinessAsync(cancellationToken).ConfigureAwait(false);
 
         // Overall health is degraded if readiness is not healthy
-        var overallStatus = readiness.Status == HealthStatus.Healthy
-            ? HealthStatus.Healthy
-            : HealthStatus.Degraded;
+        var overallStatus = readiness.Status == OrchestratorHealthState.Healthy
+            ? OrchestratorHealthState.Healthy
+            : OrchestratorHealthState.Degraded;
 
-        var result = new HealthCheckResult(
+        var result = new OrchestratorHealthStatus(
             overallStatus,
             $"Orion worker: {overallStatus}",
             new Dictionary<string, object>
@@ -101,52 +101,52 @@ public sealed class OrionHealthCheckService : IHealthCheckService
 
     /// <summary>
     /// Gets the liveness status using Railway-Oriented Programming.
-    /// Returns Result&lt;HealthCheckResult&gt; instead of throwing exceptions.
+    /// Returns Result&lt;OrchestratorHealthStatus&gt; instead of throwing exceptions.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A Result containing HealthCheckResult on success.</returns>
-    public async Task<Result<HealthCheckResult>> GetLivenessWithResultAsync(CancellationToken cancellationToken = default)
+    /// <returns>A Result containing OrchestratorHealthStatus on success.</returns>
+    public async Task<Result<OrchestratorHealthStatus>> GetLivenessWithResultAsync(CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return ResultExtensions.Cancelled<HealthCheckResult>();
+            return ResultExtensions.Cancelled<OrchestratorHealthStatus>();
         }
 
         var healthCheckResult = await GetLivenessAsync(cancellationToken).ConfigureAwait(false);
-        return Result<HealthCheckResult>.Success(healthCheckResult);
+        return Result<OrchestratorHealthStatus>.Success(healthCheckResult);
     }
 
     /// <summary>
     /// Gets the readiness status using Railway-Oriented Programming.
-    /// Returns Result&lt;HealthCheckResult&gt; instead of throwing exceptions.
+    /// Returns Result&lt;OrchestratorHealthStatus&gt; instead of throwing exceptions.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A Result containing HealthCheckResult on success.</returns>
-    public async Task<Result<HealthCheckResult>> GetReadinessWithResultAsync(CancellationToken cancellationToken = default)
+    /// <returns>A Result containing OrchestratorHealthStatus on success.</returns>
+    public async Task<Result<OrchestratorHealthStatus>> GetReadinessWithResultAsync(CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return ResultExtensions.Cancelled<HealthCheckResult>();
+            return ResultExtensions.Cancelled<OrchestratorHealthStatus>();
         }
 
         var healthCheckResult = await GetReadinessAsync(cancellationToken).ConfigureAwait(false);
-        return Result<HealthCheckResult>.Success(healthCheckResult);
+        return Result<OrchestratorHealthStatus>.Success(healthCheckResult);
     }
 
     /// <summary>
     /// Gets the overall health status using Railway-Oriented Programming.
-    /// Returns Result&lt;HealthCheckResult&gt; instead of throwing exceptions.
+    /// Returns Result&lt;OrchestratorHealthStatus&gt; instead of throwing exceptions.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A Result containing HealthCheckResult on success.</returns>
-    public async Task<Result<HealthCheckResult>> GetHealthWithResultAsync(CancellationToken cancellationToken = default)
+    /// <returns>A Result containing OrchestratorHealthStatus on success.</returns>
+    public async Task<Result<OrchestratorHealthStatus>> GetHealthWithResultAsync(CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return ResultExtensions.Cancelled<HealthCheckResult>();
+            return ResultExtensions.Cancelled<OrchestratorHealthStatus>();
         }
 
         var healthCheckResult = await GetHealthAsync(cancellationToken).ConfigureAwait(false);
-        return Result<HealthCheckResult>.Success(healthCheckResult);
+        return Result<OrchestratorHealthStatus>.Success(healthCheckResult);
     }
 }

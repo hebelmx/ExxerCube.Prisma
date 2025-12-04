@@ -1,7 +1,7 @@
-namespace Prisma.Orion.HealthChecks;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
-/// Service for providing dashboard metrics and statistics for Orion worker.
+/// Service for providing dashboard metrics and statistics for orchestrator workers.
 /// </summary>
 /// <remarks>
 /// Dashboard exposes real-time metrics for monitoring and observability:

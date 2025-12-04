@@ -1,6 +1,6 @@
 using ExxerCube.Prisma.Domain.Events;
 
-namespace ExxerCube.Prisma.Application.Services;
+namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Execution;
 
 /// <summary>
 /// Main OCR processing service that orchestrates the entire pipeline.

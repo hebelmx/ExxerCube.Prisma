@@ -43,6 +43,7 @@ global using ExxerCube.Prisma.Infrastructure.Extraction;
 global using ExxerCube.Prisma.Infrastructure.Classification;
 global using ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
 global using ExxerCube.Prisma.Application.Services;
+global using ExxerCube.Prisma.Infrastructure.Events;
 global using ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection;
 global using ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection;
 global using ExxerCube.Prisma.Web.UI.Components.Shared.Navigation;

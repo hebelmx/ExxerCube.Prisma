@@ -176,10 +176,9 @@ Inner Stack Trace:
 
         // Register event publisher (needed by legacy services)
         // NOTE: Must be Singleton because EventPersistenceWorker (IHostedService) is Singleton
-        services.AddSingleton<ExxerCube.Prisma.Domain.Interfaces.IEventPublisher, ExxerCube.Prisma.Infrastructure.Events.EventPublisher>();
+        services.AddSingleton<IEventPublisher, EventPublisher>();
 
         // Register OCR processing service (Application layer implements Domain interface directly - Liskov principle)
-        services.AddScoped<ExxerCube.Prisma.Domain.Interfaces.IOcrProcessingService, ExxerCube.Prisma.Application.Services.OcrProcessingService>();
 
         // Add Python environment services (required for GOT-OCR2)
         //services.AddPrismaPythonEnvironment();
@@ -191,7 +190,7 @@ Inner Stack Trace:
         services.AddHealthChecks();
 
         // Add health check service (needed by Dashboard.razor)
-        services.AddScoped<ExxerCube.Prisma.Application.Services.HealthCheckService>();
+        services.AddScoped<HealthCheckService>();
 
         // Add services to the container.
         services.AddRazorComponents()

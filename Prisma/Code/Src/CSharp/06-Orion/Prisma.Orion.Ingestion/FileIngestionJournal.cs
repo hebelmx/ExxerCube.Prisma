@@ -2,17 +2,19 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Orion.Ingestion;
 
 /// <summary>
-/// File-based ingestion journal for hash-based idempotency tracking.
+/// File-based ingestion journal for manifest-based idempotency tracking.
 /// </summary>
 /// <remarks>
-/// Stores processed document hashes in a simple text file (one hash per line).
+/// Stores ingestion manifest entries in JSON format (one entry per line).
 /// In-memory cache for performance. Thread-safe for concurrent access.
 /// Production: Consider SQLite or database for better scalability and querying.
 /// </remarks>
@@ -20,7 +22,8 @@ public sealed class FileIngestionJournal : IIngestionJournal
 {
     private readonly string _journalFilePath;
     private readonly ILogger<FileIngestionJournal> _logger;
-    private readonly ConcurrentDictionary<string, string> _processedHashes;
+    private readonly ConcurrentDictionary<string, IngestionManifestEntry> _manifestEntries;
+    private readonly ConcurrentDictionary<Guid, IngestionManifestEntry> _entriesByFileId;
     private readonly SemaphoreSlim _fileLock = new(1, 1);
 
     /// <summary>
@@ -30,54 +33,65 @@ public sealed class FileIngestionJournal : IIngestionJournal
     /// <param name="logger">The logger.</param>
     public FileIngestionJournal(string? journalFilePath, ILogger<FileIngestionJournal> logger)
     {
-        _journalFilePath = journalFilePath ?? Path.Combine(Directory.GetCurrentDirectory(), "journal.txt");
+        _journalFilePath = journalFilePath ?? Path.Combine(Directory.GetCurrentDirectory(), "ingestion-journal.jsonl");
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _processedHashes = new ConcurrentDictionary<string, string>();
+        _manifestEntries = new ConcurrentDictionary<string, IngestionManifestEntry>();
+        _entriesByFileId = new ConcurrentDictionary<Guid, IngestionManifestEntry>();
 
-        LoadJournalAsync().GetAwaiter().GetResult(); // Load existing hashes on startup
+        LoadJournalAsync().GetAwaiter().GetResult(); // Load existing entries on startup
     }
 
     /// <inheritdoc />
-    public Task<bool> IsDuplicateAsync(string hash, CancellationToken cancellationToken = default)
+    public Task<bool> ExistsAsync(
+        string contentHash,
+        string sourceUrl,
+        CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(hash))
+        if (string.IsNullOrWhiteSpace(contentHash) || string.IsNullOrWhiteSpace(sourceUrl))
         {
-            _logger.LogWarning("Cannot check duplicate for null/empty hash");
+            _logger.LogWarning("Cannot check existence for null/empty hash or URL");
             return Task.FromResult(false);
         }
 
-        var isDuplicate = _processedHashes.ContainsKey(hash);
-        return Task.FromResult(isDuplicate);
+        var key = GetKey(contentHash, sourceUrl);
+        var exists = _manifestEntries.ContainsKey(key);
+        return Task.FromResult(exists);
     }
 
     /// <inheritdoc />
-    public async Task RecordAsync(string hash, string storagePath, CancellationToken cancellationToken = default)
+    public async Task RecordAsync(IngestionManifestEntry entry, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(hash))
+        if (entry == null)
         {
-            _logger.LogWarning("Cannot record null/empty hash");
+            _logger.LogWarning("Cannot record null entry");
             return;
         }
 
-        // Add to in-memory cache
-        if (_processedHashes.TryAdd(hash, storagePath))
+        var key = GetKey(entry.ContentHash, entry.SourceUrl);
+
+        // Add to in-memory caches (idempotent - no-op if already exists)
+        if (_manifestEntries.TryAdd(key, entry))
         {
-            _logger.LogDebug("Hash added to journal cache: {Hash}", hash);
+            _entriesByFileId.TryAdd(entry.FileId, entry);
+            _logger.LogDebug("Manifest entry added to journal cache: {FileId}, Hash: {Hash}",
+                entry.FileId, entry.ContentHash);
 
             // Persist to file
             await _fileLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                // Append hash to journal file (format: hash|storagePath)
-                var journalEntry = $"{hash}|{storagePath}{Environment.NewLine}";
-                await File.AppendAllTextAsync(_journalFilePath, journalEntry, cancellationToken).ConfigureAwait(false);
-                _logger.LogDebug("Hash persisted to journal file: {Hash}", hash);
+                // Append entry to journal file (JSONL format - one JSON object per line)
+                var json = JsonSerializer.Serialize(entry);
+                var journalLine = $"{json}{Environment.NewLine}";
+                await File.AppendAllTextAsync(_journalFilePath, journalLine, cancellationToken).ConfigureAwait(false);
+                _logger.LogDebug("Manifest entry persisted to journal file: {FileId}", entry.FileId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to persist hash to journal file: {Hash}", hash);
-                // Remove from cache since persistence failed
-                _processedHashes.TryRemove(hash, out _);
+                _logger.LogError(ex, "Failed to persist entry to journal file: {FileId}", entry.FileId);
+                // Remove from caches since persistence failed
+                _manifestEntries.TryRemove(key, out _);
+                _entriesByFileId.TryRemove(entry.FileId, out _);
                 throw;
             }
             finally
@@ -87,9 +101,22 @@ public sealed class FileIngestionJournal : IIngestionJournal
         }
         else
         {
-            _logger.LogDebug("Hash already exists in journal: {Hash}", hash);
+            _logger.LogDebug("Entry already exists in journal: {FileId}, Hash: {Hash}",
+                entry.FileId, entry.ContentHash);
         }
     }
+
+    /// <inheritdoc />
+    public Task<IngestionManifestEntry?> GetByFileIdAsync(
+        Guid fileId,
+        CancellationToken cancellationToken = default)
+    {
+        _entriesByFileId.TryGetValue(fileId, out var entry);
+        return Task.FromResult(entry);
+    }
+
+    private static string GetKey(string contentHash, string sourceUrl) =>
+        $"{contentHash}|{sourceUrl}";
 
     private async Task LoadJournalAsync()
     {
@@ -104,16 +131,23 @@ public sealed class FileIngestionJournal : IIngestionJournal
             var lines = await File.ReadAllLinesAsync(_journalFilePath).ConfigureAwait(false);
             foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
             {
-                var parts = line.Split('|', 2);
-                if (parts.Length >= 1)
+                try
                 {
-                    var hash = parts[0];
-                    var storagePath = parts.Length > 1 ? parts[1] : string.Empty;
-                    _processedHashes.TryAdd(hash, storagePath);
+                    var entry = JsonSerializer.Deserialize<IngestionManifestEntry>(line);
+                    if (entry != null)
+                    {
+                        var key = GetKey(entry.ContentHash, entry.SourceUrl);
+                        _manifestEntries.TryAdd(key, entry);
+                        _entriesByFileId.TryAdd(entry.FileId, entry);
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Failed to deserialize journal entry, skipping: {Line}", line);
                 }
             }
 
-            _logger.LogInformation("Loaded {Count} hashes from journal file", _processedHashes.Count);
+            _logger.LogInformation("Loaded {Count} manifest entries from journal file", _manifestEntries.Count);
         }
         catch (Exception ex)
         {

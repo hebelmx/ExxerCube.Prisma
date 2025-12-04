@@ -1,9 +1,10 @@
+using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Interfaces.Contracts;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Orion.HealthChecks;
 using Prisma.Orion.Ingestion;
 using Prisma.Orion.Worker;
-using Prisma.Shared.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,7 +41,7 @@ var app = builder.Build();
 app.MapGet("/health", async (IHealthCheckService healthCheck, CancellationToken ct) =>
 {
     var result = await healthCheck.GetHealthAsync(ct);
-    return result.Status == HealthStatus.Healthy
+    return result.Status == OrchestratorHealthState.Healthy
         ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
         : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
 });
@@ -54,7 +55,7 @@ app.MapGet("/health/live", async (IHealthCheckService healthCheck, CancellationT
 app.MapGet("/health/ready", async (IHealthCheckService healthCheck, CancellationToken ct) =>
 {
     var result = await healthCheck.GetReadinessAsync(ct);
-    return result.Status == HealthStatus.Healthy
+    return result.Status == OrchestratorHealthState.Healthy
         ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
         : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
 });

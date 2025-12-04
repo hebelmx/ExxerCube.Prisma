@@ -66,9 +66,9 @@ public class IngestionOrchestrator
 
         // ✅ Railway-Oriented Programming: each step returns Result<T>
         var result = await DownloadDocumentAsync(documentId, cancellationToken)
-            .ThenAsync(async bytes => await CheckDuplicateAsync(bytes, cancellationToken))
+            .ThenAsync(async bytes => await CheckDuplicateAsync(bytes, documentId, cancellationToken))
             .ThenAsync(async context => await StoreDocumentAsync(context, documentId, cancellationToken))
-            .ThenAsync(async context => await RecordInJournalAsync(context, cancellationToken))
+            .ThenAsync(async context => await RecordInJournalAsync(context, documentId, cancellationToken))
             .ThenTap(async context => await BroadcastEventAsync(context, correlationId, cancellationToken));
 
         if (result.IsSuccess && result.Value is not null)
@@ -117,16 +117,17 @@ public class IngestionOrchestrator
 
     private async Task<Result<IngestionContext>> CheckDuplicateAsync(
         byte[] documentBytes,
+        string sourceUrl,
         CancellationToken cancellationToken)
     {
         var hash = ComputeSha256Hash(documentBytes);
         _logger.LogDebug("Document hash computed: {Hash}", hash);
 
-        var isDuplicate = await _journal.IsDuplicateAsync(hash, cancellationToken).ConfigureAwait(false);
+        var isDuplicate = await _journal.ExistsAsync(hash, sourceUrl, cancellationToken).ConfigureAwait(false);
 
         if (isDuplicate)
         {
-            _logger.LogInformation("Duplicate document detected (hash: {Hash}). Skipping ingestion", hash);
+            _logger.LogInformation("Duplicate document detected (hash: {Hash}, URL: {URL}). Skipping ingestion", hash, sourceUrl);
 
             // ✅ Return success with WasDuplicate=true (idempotent skip)
             return Result<IngestionContext>.Success(new IngestionContext(
@@ -194,6 +195,7 @@ public class IngestionOrchestrator
 
     private async Task<Result<IngestionContext>> RecordInJournalAsync(
         IngestionContext context,
+        string sourceUrl,
         CancellationToken cancellationToken)
     {
         // Skip journal recording for duplicates (already exists)
@@ -204,8 +206,18 @@ public class IngestionOrchestrator
 
         try
         {
-            await _journal.RecordAsync(context.Hash, context.StoredPath, cancellationToken).ConfigureAwait(false);
-            _logger.LogDebug("Document recorded in journal");
+            var manifestEntry = new IngestionManifestEntry(
+                FileId: context.FileId,
+                FileName: context.FileName,
+                SourceUrl: sourceUrl,
+                ContentHash: context.Hash,
+                FileSizeBytes: context.FileSizeBytes,
+                StoredPath: context.StoredPath,
+                CorrelationId: Guid.NewGuid(),
+                DownloadedAt: DateTimeOffset.UtcNow);
+
+            await _journal.RecordAsync(manifestEntry, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug("Document recorded in journal: {FileId}", context.FileId);
             return Result<IngestionContext>.Success(context);
         }
         catch (Exception ex)
@@ -227,15 +239,17 @@ public class IngestionOrchestrator
             return;
         }
 
-        var evt = new DocumentDownloadedEvent(
-            FileId: context.FileId,
-            FileName: context.FileName,
-            Source: "SIARA",
-            FileSizeBytes: context.FileSizeBytes,
-            Path: context.StoredPath,
-            JournalPath: context.Hash,  // Use hash as journal identifier
-            CorrelationId: correlationId,
-            Timestamp: DateTimeOffset.UtcNow);
+        var evt = new DocumentDownloadedEvent
+        {
+            FileId = context.FileId,
+            FileName = context.FileName,
+            Source = "SIARA",
+            FileSizeBytes = context.FileSizeBytes,
+            DownloadUrl = string.Empty,  // Set if available
+            EventType = nameof(DocumentDownloadedEvent),
+            CorrelationId = correlationId,
+            Timestamp = DateTime.UtcNow
+        };
 
         // ✅ Broadcast via IExxerHub<T> (transport-agnostic)
         await _eventHub.SendToAllAsync(evt, cancellationToken);

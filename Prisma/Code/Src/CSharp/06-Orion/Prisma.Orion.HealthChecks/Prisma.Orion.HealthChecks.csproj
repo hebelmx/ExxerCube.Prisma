@@ -16,7 +16,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\06-Shared\Prisma.Shared.Contracts\Prisma.Shared.Contracts.csproj" />
     <ProjectReference Include="..\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
   </ItemGroup>
 </Project>

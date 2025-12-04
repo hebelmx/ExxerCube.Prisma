@@ -18,6 +18,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\..\06-Shared\Prisma.Shared.Contracts\Prisma.Shared.Contracts.csproj" />
   </ItemGroup>
 </Project>

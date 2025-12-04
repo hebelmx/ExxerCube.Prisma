@@ -1,0 +1,296 @@
+   ExxerCube.Prisma.Tests.Domain (1 test) [0:00.126] Failed: 1 test failed
+ 04 Tests (14 tests) [0:29.214] Failed: 13 tests failed
+  01 Core (1 test) [0:00.126] Failed: 1 test failed
+    ExxerCube.Prisma.Tests.Domain.Validators (1 test) [0:00.126] Failed: 1 test failed
+     FieldPatternValidatorContractTests (1 test) [0:00.126] Failed: One or more child tests failed: 1 test failed
+      IsValidNumeroExpediente_ValidHacendario_ReturnsTrue [0:00.101] Failed: Shouldly.ShouldAssertException: result
+Shouldly.ShouldAssertException
+result
+    should be
+True
+    but was
+False
+   at ExxerCube.Prisma.Tests.Domain.Validators.FieldPatternValidatorContractTests.IsValidNumeroExpediente_ValidHacendario_ReturnsTrue() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\01-Core\Tests.Domain\Domain\Validators\FieldPatternValidatorContractTests.cs:line 207
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Test data: NumeroExpediente='H/H123-456789-PENAL'
+
+  02 Infrastructure (4 tests) [0:00.513] Failed: 4 tests failed
+   ExxerCube.Prisma.Tests.Infrastructure.Classification (2 tests) [0:00.335] Failed: 2 tests failed
+    ExxerCube.Prisma.Tests.Infrastructure.Classification (2 tests) [0:00.335] Failed: 2 tests failed
+     ExpedienteClasifierServiceContractTests (1 test) [0:00.168] Failed: One or more child tests failed: 1 test failed
+      CheckArticle17RejectionAsync_MissingSignature_ReturnsRejectionReason [0:00.148] Failed: Shouldly.ShouldAssertException: rejectionReasons
+Shouldly.ShouldAssertException
+rejectionReasons
+    should contain
+Falta firma de autoridad
+    but was actually
+[] (System.Collections.Generic.List`1[ExxerCube.Prisma.Domain.Enum.RejectionReason])
+   at ExxerCube.Prisma.Tests.Infrastructure.Classification.ExpedienteClasifierServiceContractTests.CheckArticle17RejectionAsync_MissingSignature_ReturnsRejectionReason() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Classification\ExpedienteClasifierServiceContractTests.cs:line 247
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Checking Article 17 rejection grounds for A/AS1-1111-222222-AAA
+Article 17 check - Rejection reasons: 0
+
+     FusionExpedienteServiceContractTests (1 test) [0:00.166] Failed: One or more child tests failed: 1 test failed
+      FuseAsync_AllSourcesAgreeExactly_ReturnsHighConfidenceAllAgree [0:00.152] Failed: Shouldly.ShouldAssertException: fusion.OverallConfidence
+Shouldly.ShouldAssertException
+fusion.OverallConfidence
+    should be greater than or equal to
+0.85d
+    but was
+0.637979797979798d
+   at ExxerCube.Prisma.Tests.Infrastructure.Classification.FusionExpedienteServiceContractTests.FuseAsync_AllSourcesAgreeExactly_ReturnsHighConfidenceAllAgree() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Classification\FusionExpedienteServiceContractTests.cs:line 60
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== TEST START: AllSourcesAgreeExactly ===
+Test data: All 3 sources agree on NumeroExpediente='A/AS1-1111-222222-AAA', AreaDescripcion='ASEGURAMIENTO'
+Starting multi-source Expediente fusion
+Source reliabilities - XML: 0.67, PDF: 1.00, DOCX: 0.97
+Fusing field: NumeroExpediente with 3 candidates
+Fusing field: NumeroOficio with 3 candidates
+Fusing field: AreaDescripcion with 3 candidates
+Fusing field: AutoridadNombre with 3 candidates
+Fusing field: SolicitudSiara with 3 candidates
+Fusing field: FechaRecepcion with 0 candidates
+Fusing field: FechaPublicacion with 0 candidates
+Fusing field: Titular_RFC with 0 candidates
+Fusing field: Titular_CURP with 0 candidates
+Fusing field: Titular_Nombre with 0 candidates
+Fusing field: Titular_Paterno with 0 candidates
+Fusing field: Titular_Materno with 0 candidates
+Fusing field: Titular_PersonaTipo with 0 candidates
+Fusing field: Titular_Caracter with 0 candidates
+Fusing field: Titular_Relacion with 0 candidates
+Fusing field: Titular_Domicilio with 0 candidates
+Fusing field: Titular_Complementarios with 0 candidates
+Fusing field: Titular_FechaNacimiento with 0 candidates
+Fusing field: FundamentoLegal with 0 candidates
+Fusing field: DiasPlazo with 0 candidates
+Fusing field: FechaRegistro with 0 candidates
+Fusing field: NombreSolicitante with 0 candidates
+Fusing field: AutoridadEspecificaNombre with 0 candidates
+Fusing field: Folio with 0 candidates
+Fusing field: MedioEnvio with 0 candidates
+Fusing field: OficioYear with 0 candidates
+Fusing field: OficioOrigen with 0 candidates
+Fusing field: AcuerdoReferencia with 0 candidates
+Fusing field: EvidenciaFirma with 0 candidates
+Fusing field: Referencia with 0 candidates
+Fusing field: Referencia1 with 0 candidates
+Fusing field: Referencia2 with 0 candidates
+Fusing field: AreaClave with 0 candidates
+Fusing field: Subdivision with 0 candidates
+Fusing field: TieneAseguramiento with 0 candidates
+No SolicitudEspecifica collections found, skipping primary solicitud especifica fusion
+Fusion complete - Confidence: 0.64, Conflicts: 0, NextAction: Revisión manual requerida
+Fusion result - OverallConfidence: 0.6380, NextAction: Revisión manual requerida, Conflicting fields: 0
+
+   ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (2 tests) [0:00.178] Failed: 2 tests failed
+    ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (2 tests) [0:00.178] Failed: 2 tests failed
+     ComplementExtractionStrategyTests (1 test) [0:00.089] Failed: One or more child tests failed: 1 test failed
+      CanHandle_Always_ReturnsTrue [0:00.075] Failed: Expected canHandle to be True because complement strategy can always attempt to fill gaps, but found False.
+Xunit.Sdk.XunitException
+Expected canHandle to be True because complement strategy can always attempt to fill gaps, but found False.
+   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.ComplementExtractionStrategyTests.CanHandle_Always_ReturnsTrue() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\ComplementExtractionStrategyTests.cs:line 171
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+     SearchExtractionStrategyTests (1 test) [0:00.088] Failed: One or more child tests failed: 1 test failed
+      CanHandle_DocumentWithoutCrossReferences_ReturnsTrue [0:00.078] Failed: Expected canHandle to be True because search strategy can still extract even without cross-references, but found False.
+Xunit.Sdk.XunitException
+Expected canHandle to be True because search strategy can still extract even without cross-references, but found False.
+   at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.SearchExtractionStrategyTests.CanHandle_DocumentWithoutCrossReferences_ReturnsTrue() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\02-Infrastructure\Tests.Infrastructure.Extraction.Teseract\SearchExtractionStrategyTests.cs:line 168
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+  03 System (1 test) [0:02.072] Success
+   ExxerCube.Prisma.Tests.System.Ocr.Pipeline (1 test) [0:02.072] Success
+    ExxerCube.Prisma.Tests.System (1 test) [0:02.072] Success
+     DocumentPipelineEventPersistenceTests (1 test) [0:02.072] Success
+      FullPipeline_PublishesMultipleEvents_AllPersistWithCorrectOrdering [0:02.053] Success
+EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentDownloadedEvent with ID 7ab461b1-6b4e-43bc-8996-56ecf74a7b93 (Correlation: 7d523910-c61a-41a9-86a6-d49021d6c3d2)
+Persisted event DocumentDownloadedEvent with ID 7ab461b1-6b4e-43bc-8996-56ecf74a7b93 to database
+Publishing event OcrCompletedEvent with ID fd15f549-39f6-46f9-8200-4854c576dfd4 (Correlation: 7d523910-c61a-41a9-86a6-d49021d6c3d2)
+Persisted event OcrCompletedEvent with ID fd15f549-39f6-46f9-8200-4854c576dfd4 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+
+  04 UI (1 test) [0:20.804] Failed: 1 test failed
+   ExxerCube.Prisma.Tests.UI (1 test) [0:20.804] Failed: 1 test failed
+    ExxerCube.Prisma.Tests.UI.Navigation (1 test) [0:20.804] Failed: 1 test failed
+     NavigationSmokeTests (1 test) [0:20.804] Failed: One or more child tests failed: 1 test failed
+      DrawerLinkNavigatesToDocumentProcessing [0:20.775] Failed: Microsoft.Playwright.PlaywrightException: Locator expected to have attribute 'aria-current' 'page'
+Microsoft.Playwright.PlaywrightException
+Locator expected to have attribute 'aria-current' 'page'
+But was: 'null' 
+Call log:
+  - Expect "ToHaveAttributeAsync" with timeout 5000ms
+  - waiting for Locator("a[href='/document-processing']").First
+    9 × locator resolved to <a rel="" tabindex="0" href="/document-processing" class="mud-nav-link mud-ripple">…</a>
+      - unexpected value "null"
+   at Microsoft.Playwright.Core.AssertionsBase.ExpectImplAsync(String expression, FrameExpectOptions expectOptions, Object expected, String message, String title) in /_/src/Playwright/Core/AssertionsBase.cs:line 92
+   at Microsoft.Playwright.Core.AssertionsBase.ExpectImplAsync(String expression, ExpectedTextValue[] expectedText, Object expected, String message, String title, FrameExpectOptions options) in /_/src/Playwright/Core/AssertionsBase.cs:line 66
+   at Microsoft.Playwright.Core.AssertionsBase.ExpectImplAsync(String expression, ExpectedTextValue textValue, Object expected, String message, String title, FrameExpectOptions options) in /_/src/Playwright/Core/AssertionsBase.cs:line 58
+   at ExxerCube.Prisma.Tests.UI.Navigation.NavigationSmokeTests.DrawerLinkNavigatesToDocumentProcessing() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\04-UI\Tests.UI\Navigation\NavigationSmokeTests.cs:line 71
+   at ExxerCube.Prisma.Tests.UI.Navigation.NavigationSmokeTests.DrawerLinkNavigatesToDocumentProcessing() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\04-UI\Tests.UI\Navigation\NavigationSmokeTests.cs:line 71
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+  05 E2E (3 tests) [0:03.148] Failed: 3 tests failed
+   ExxerCube.Prisma.Tests.EndToEnd (3 tests) [0:03.148] Failed: 3 tests failed
+    ExxerCube.Prisma.Tests.EndToEnd (3 tests) [0:03.148] Failed: 3 tests failed
+     DependencyValidation (1 test) [0:02.078] Failed: 1 test failed
+      DependencyValidationTests (1 test) [0:02.078] Failed: One or more child tests failed: 1 test failed
+       AllCriticalServices_ShouldBeResolvable [0:02.055] Failed: Shouldly.ShouldAssertException: scopedProvider.GetService<SLATrackingService>()
+Shouldly.ShouldAssertException
+scopedProvider.GetService<SLATrackingService>()
+    should not be null but was
+   at ExxerCube.Prisma.Tests.EndToEnd.DependencyValidation.DependencyValidationTests.AllCriticalServices_ShouldBeResolvable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\DependencyValidation\DependencyValidationTests.cs:line 34
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+     DependencyInjectionContainerTests (2 tests) [0:01.070] Failed: One or more child tests failed: 2 tests failed
+      BuildServiceProvider_AllCriticalServices_ShouldBeResolvable [0:01.043] Failed: Shouldly.ShouldAssertException: scopedProvider.GetService<SLATrackingService>()
+Shouldly.ShouldAssertException
+scopedProvider.GetService<SLATrackingService>()
+    should not be null but was
+   at ExxerCube.Prisma.Tests.EndToEnd.DependencyInjectionContainerTests.BuildServiceProvider_AllCriticalServices_ShouldBeResolvable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\DependencyInjectionContainerTests.cs:line 40
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Resolving application services
+
+      SignalRHub_ShouldBeResolvable [0:00.005] Failed: Shouldly.ShouldAssertException: hub
+Shouldly.ShouldAssertException
+hub
+    should not be null but was
+   at ExxerCube.Prisma.Tests.EndToEnd.DependencyInjectionContainerTests.SignalRHub_ShouldBeResolvable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\05-E2E\Tests.EndToEnd\DependencyInjectionContainerTests.cs:line 164
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+  06 Architecture (4 tests) [0:02.547] Failed: 4 tests failed
+   ExxerCube.Prisma.Tests.Architecture (4 tests) [0:02.547] Failed: 4 tests failed
+    ExxerCube.Prisma.Tests.Architecture (4 tests) [0:02.547] Failed: 4 tests failed
+     HexagonalArchitectureTests (4 tests) [0:02.547] Failed: One or more child tests failed: 4 tests failed
+      All_Domain_Interfaces_Should_Have_At_Least_One_Implementation [0:02.246] Failed: Shouldly.ShouldAssertException: unimplementedInterfaces
+Shouldly.ShouldAssertException
+unimplementedInterfaces
+    should be empty but had
+18
+    items and was
+["ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxExtractor", "ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxStrategy", "ExxerCube.Prisma.Domain.Interfaces.IAdaptiveExporter", "ExxerCube.Prisma.Domain.Interfaces.IFieldMergeStrategy", "ExxerCube.Prisma.Domain.Interfaces.IFilterSelectionStrategy", "ExxerCube.Prisma.Domain.Interfaces.IImageEnhancementFilter", "ExxerCube.Prisma.Domain.Interfaces.IImageQualityAnalyzer", "ExxerCube.Prisma.Domain.Interfaces.IOcrSessionRepository", "ExxerCube.Prisma.Domain.Interfaces.IProcessingContext", "ExxerCube.Prisma.Domain.Interfaces.IProcessingMetricsService", "ExxerCube.Prisma.Domain.Interfaces.ISchemaEvolutionDetector", "ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService", "ExxerCube.Prisma.Domain.Interfaces.ITemplateFieldMapper", "ExxerCube.Prisma.Domain.Interfaces.ITemplateRepository", "ExxerCube.Prisma.Domain.Interfaces.ITextComparer", "ExxerCube.Prisma.Domain.Interfaces.Contracts.IEventHandler`1", "ExxerCube.Prisma.Domain.Interfaces.Contracts.IEventSubscriber", "ExxerCube.Prisma.Domain.Interfaces.Contracts.IIngestionJournal"]
+
+Additional Info:
+    All Domain interfaces must have at least one implementation in Infrastructure. Missing implementations for: ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxExtractor, ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxStrategy, ExxerCube.Prisma.Domain.Interfaces.IAdaptiveExporter, ExxerCube.Prisma.Domain.Interfaces.IFieldMergeStrategy, ExxerCube.Prisma.Domain.Interfaces.IFilterSelectionStrategy, ExxerCube.Prisma.Domain.Interfaces.IImageEnhancementFilter, ExxerCube.Prisma.Domain.Interfaces.IImageQualityAnalyzer, ExxerCube.Prisma.Domain.Interfaces.IOcrSessionRepository, ExxerCube.Prisma.Domain.Interfaces.IProcessingContext, ExxerCube.Prisma.Domain.Interfaces.IProcessingMetricsService, ExxerCube.Prisma.Domain.Interfaces.ISchemaEvolutionDetector, ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService, ExxerCube.Prisma.Domain.Interfaces.ITemplateFieldMapper, ExxerCube.Prisma.Domain.Interfaces.ITemplateRepository, ExxerCube.Prisma.Domain.Interfaces.ITextComparer, ExxerCube.Prisma.Domain.Interfaces.Contracts.IEventHandler`1, ExxerCube.Prisma.Domain.Interfaces.Contracts.IEventSubscriber, ExxerCube.Prisma.Domain.Interfaces.Contracts.IIngestionJournal. This indicates architectural gaps where interfaces were defined (ITTDD) but never implemented.
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.All_Domain_Interfaces_Should_Have_At_Least_One_Implementation() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\06-Architecture\Tests.Architecture\HexagonalArchitectureTests.cs:line 813
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Rule: Domain interfaces must have implementations. Count=18
+ - ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxExtractor
+ - ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxStrategy
+ - ExxerCube.Prisma.Domain.Interfaces.IAdaptiveExporter
+ - ExxerCube.Prisma.Domain.Interfaces.IFieldMergeStrategy
+ - ExxerCube.Prisma.Domain.Interfaces.IFilterSelectionStrategy
+ - ExxerCube.Prisma.Domain.Interfaces.IImageEnhancementFilter
+ - ExxerCube.Prisma.Domain.Interfaces.IImageQualityAnalyzer
+ - ExxerCube.Prisma.Domain.Interfaces.IOcrSessionRepository
+ - ExxerCube.Prisma.Domain.Interfaces.IProcessingContext
+ - ExxerCube.Prisma.Domain.Interfaces.IProcessingMetricsService
+ - ExxerCube.Prisma.Domain.Interfaces.ISchemaEvolutionDetector
+ - ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService
+ - ExxerCube.Prisma.Domain.Interfaces.ITemplateFieldMapper
+ - ExxerCube.Prisma.Domain.Interfaces.ITemplateRepository
+ - ExxerCube.Prisma.Domain.Interfaces.ITextComparer
+ - ExxerCube.Prisma.Domain.Interfaces.Contracts.IEventHandler`1
+ - ExxerCube.Prisma.Domain.Interfaces.Contracts.IEventSubscriber
+ - ExxerCube.Prisma.Domain.Interfaces.Contracts.IIngestionJournal
+
+      Application_Services_Should_Not_Implement_Domain_Interfaces [0:00.073] Failed: Shouldly.ShouldAssertException: violations
+Shouldly.ShouldAssertException
+violations
+    should be empty but had
+1
+    item and was
+["Application services implement IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService"]
+
+Additional Info:
+    Application services must not implement Domain interfaces. Violations: Application services implement IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.Application_Services_Should_Not_Implement_Domain_Interfaces() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\06-Architecture\Tests.Architecture\HexagonalArchitectureTests.cs:line 214
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Rule: Application services should not implement Domain interfaces. Count=1
+ - Application services implement IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService
+
+      Domain_Interfaces_Should_Only_Be_Implemented_In_Infrastructure [0:00.079] Failed: Shouldly.ShouldAssertException: violations
+Shouldly.ShouldAssertException
+violations
+    should be empty but had
+1
+    item and was
+["Application layer implements IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService"]
+
+Additional Info:
+    Domain interfaces must only be implemented in Infrastructure layer. Violations: Application layer implements IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.Domain_Interfaces_Should_Only_Be_Implemented_In_Infrastructure() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\06-Architecture\Tests.Architecture\HexagonalArchitectureTests.cs:line 168
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Rule: Domain interfaces implemented only in Infra. Count=1
+ - Application layer implements IOcrProcessingService: ExxerCube.Prisma.Application.Services.OcrProcessingService
+
+      Infrastructure_Should_Depend_On_Domain [0:00.135] Failed: Shouldly.ShouldAssertException: violations
+Shouldly.ShouldAssertException
+violations
+    should be empty but had
+1
+    item and was
+["ExxerCube.Prisma.Infrastructure.Python.GotOcr2 does not depend on Domain (NetArchTest: Fail, Direct check: Not found)"]
+
+Additional Info:
+    All Infrastructure layers must depend on Domain. Violations: ExxerCube.Prisma.Infrastructure.Python.GotOcr2 does not depend on Domain (NetArchTest: Fail, Direct check: Not found)
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.Infrastructure_Should_Depend_On_Domain() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\04-Tests\06-Architecture\Tests.Architecture\HexagonalArchitectureTests.cs:line 437
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Rule: Infrastructure depends on Domain. Count=1
+ - ExxerCube.Prisma.Infrastructure.Python.GotOcr2 does not depend on Domain (NetArchTest: Fail, Direct check: Not found)

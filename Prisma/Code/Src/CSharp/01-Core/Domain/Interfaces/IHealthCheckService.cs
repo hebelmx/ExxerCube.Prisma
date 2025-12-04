@@ -1,7 +1,7 @@
-namespace Prisma.Athena.HealthChecks;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
-/// Service for providing health check status of Athena worker.
+/// Service for providing health check status of orchestrator workers.
 /// </summary>
 /// <remarks>
 /// Health checks follow standard patterns:
@@ -13,37 +13,42 @@ public interface IHealthCheckService
     /// <summary>
     /// Gets liveness status (process is running).
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Health check result with status.</returns>
-    Task<HealthCheckResult> GetLivenessAsync(CancellationToken cancellationToken = default);
+    Task<OrchestratorHealthStatus> GetLivenessAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets readiness status (orchestrator is ready).
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Health check result with status and details.</returns>
-    Task<HealthCheckResult> GetReadinessAsync(CancellationToken cancellationToken = default);
+    Task<OrchestratorHealthStatus> GetReadinessAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets overall health status.
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Health check result combining liveness and readiness.</returns>
-    Task<HealthCheckResult> GetHealthAsync(CancellationToken cancellationToken = default);
+    Task<OrchestratorHealthStatus> GetHealthAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Health check result.
+/// Orchestrator health check result.
+/// Renamed from HealthCheckResult to avoid collision with Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.
 /// </summary>
 /// <param name="Status">Health status (Healthy, Degraded, Unhealthy).</param>
 /// <param name="Description">Human-readable description.</param>
 /// <param name="Data">Additional diagnostic data.</param>
-public record HealthCheckResult(
-    HealthStatus Status,
+public record OrchestratorHealthStatus(
+    OrchestratorHealthState Status,
     string Description,
     IReadOnlyDictionary<string, object>? Data = null);
 
 /// <summary>
-/// Health status enumeration.
+/// Orchestrator health state enumeration.
+/// Renamed from HealthStatus to avoid collision with Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.
 /// </summary>
-public enum HealthStatus
+public enum OrchestratorHealthState
 {
     /// <summary>
     /// Service is healthy.
