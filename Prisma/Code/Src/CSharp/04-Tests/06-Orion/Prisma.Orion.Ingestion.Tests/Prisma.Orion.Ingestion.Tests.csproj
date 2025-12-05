@@ -83,6 +83,7 @@
   <!-- PROJECT REFERENCES -->
   <!-- ============================================================================ -->
   <ItemGroup>
+    <ProjectReference Include="..\..\..\01-Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
   </ItemGroup>
   <!-- ============================================================================ -->
@@ -112,13 +113,5 @@
     <Using Include="System.Text" />
     <Using Include="System.Text.Json" />
     <Using Include="System.IO" />
-  </ItemGroup>
-  <!-- ============================================================================ -->
-  <!-- EXCLUDED FILES (API SIGNATURE CHANGES) -->
-  <!-- ============================================================================ -->
-  <ItemGroup Label="Excluded Test Files">
-    <!-- Excluded due to IIngestionJournal API changes from Prisma.Shared.Contracts deletion -->
-    <!-- Test file needs refactoring to match new IIngestionJournal interface signature -->
-    <Compile Remove="IngestionOrchestratorTests.cs" />
   </ItemGroup>
 </Project>

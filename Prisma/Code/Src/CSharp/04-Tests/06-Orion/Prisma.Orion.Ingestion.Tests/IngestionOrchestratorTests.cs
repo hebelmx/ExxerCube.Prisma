@@ -29,7 +29,7 @@ public sealed class IngestionOrchestratorTests
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
-        journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -53,8 +53,10 @@ public sealed class IngestionOrchestratorTests
         result.Value.WasDuplicate.ShouldBeFalse();
 
         await journal.Received(1).RecordAsync(
-            Arg.Any<string>(),
-            Arg.Any<string>(),
+            Arg.Is<IngestionManifestEntry>(e =>
+                !string.IsNullOrEmpty(e.ContentHash) &&
+                !string.IsNullOrEmpty(e.SourceUrl) &&
+                e.FileId != Guid.Empty),
             Arg.Any<CancellationToken>());
 
         await eventHub.Received(1).SendToAllAsync(
@@ -78,7 +80,7 @@ public sealed class IngestionOrchestratorTests
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F }); // "Hello"
 
-        journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(true); // Duplicate detected after hashing
 
         var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
@@ -95,7 +97,7 @@ public sealed class IngestionOrchestratorTests
 
         // MUST download to compute hash, but should NOT store or broadcast after detecting duplicate
         await downloader.Received(1).DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        await journal.DidNotReceive().RecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
         await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
     }
 
@@ -112,7 +114,7 @@ public sealed class IngestionOrchestratorTests
         var testData = new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F }; // "Hello"
         var expectedHash = "185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969"; // SHA-256 of "Hello"
 
-        journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -131,8 +133,7 @@ public sealed class IngestionOrchestratorTests
         result.Value!.Hash.ShouldBe(expectedHash);
 
         await journal.Received(1).RecordAsync(
-            expectedHash,
-            Arg.Any<string>(),
+            Arg.Is<IngestionManifestEntry>(e => e.ContentHash == expectedHash),
             Arg.Any<CancellationToken>());
     }
 
@@ -146,7 +147,7 @@ public sealed class IngestionOrchestratorTests
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
-        journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -170,12 +171,11 @@ public sealed class IngestionOrchestratorTests
         result.Value!.StoredPath.ShouldEndWith($"{documentId}.pdf");
 
         await journal.Received(1).RecordAsync(
-            Arg.Any<string>(),
-            Arg.Is<string>(path =>
-                path.Contains($"{now.Year:D4}") &&
-                path.Contains($"{now.Month:D2}") &&
-                path.Contains($"{now.Day:D2}") &&
-                path.EndsWith($"{documentId}.pdf")),
+            Arg.Is<IngestionManifestEntry>(e =>
+                e.StoredPath.Contains($"{now.Year:D4}") &&
+                e.StoredPath.Contains($"{now.Month:D2}") &&
+                e.StoredPath.Contains($"{now.Day:D2}") &&
+                e.StoredPath.EndsWith($"{documentId}.pdf")),
             Arg.Any<CancellationToken>());
     }
 
@@ -189,7 +189,7 @@ public sealed class IngestionOrchestratorTests
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
-        journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -236,7 +236,7 @@ public sealed class IngestionOrchestratorTests
 
         // No operations should have been called
         await downloader.DidNotReceive().DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        await journal.DidNotReceive().RecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
         await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
     }
 
@@ -263,7 +263,7 @@ public sealed class IngestionOrchestratorTests
         result.Errors.ShouldContain(e => e.Contains("Download failed"));
 
         // No downstream operations should have been called
-        await journal.DidNotReceive().RecordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
         await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
     }
 
@@ -277,7 +277,7 @@ public sealed class IngestionOrchestratorTests
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
-        journal.IsDuplicateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
