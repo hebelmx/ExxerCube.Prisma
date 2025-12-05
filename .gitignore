@@ -669,3 +669,11 @@ Prisma/Fixtures/Demo/
 # Ignore entire Deployments folder (binaries, wwwroot, logs)
 Deployments/
 Prisma/Deployments/
+
+# Code Coverage artifacts
+# TestResults folder contains .coverage files and .trx logs
+TestResults/
+# Coverage report output
+coverage/
+# Keep coverage.xml in root for CI/CD (not ignored)
+# CI/CD tools read this file from root
