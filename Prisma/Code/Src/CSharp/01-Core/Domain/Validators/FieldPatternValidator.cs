@@ -36,7 +36,7 @@ public static partial class FieldPatternValidator
     [GeneratedRegex(@"^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]{2}$", RegexOptions.Compiled)]
     private static partial Regex CurpPattern();
 
-    [GeneratedRegex(@"^[A-Z]/[A-Z0-9]+-\d+-\d+-[A-Z]+$", RegexOptions.Compiled)]
+    [GeneratedRegex(@"^[A-Z]/[A-Z0-9]+(-[A-Z0-9]+)+-[A-Z]+$", RegexOptions.Compiled)]
     private static partial Regex NumeroExpedientePattern();
 
     [GeneratedRegex(@"^\d{18}$", RegexOptions.Compiled)]
