@@ -3,6 +3,7 @@
 **Last Updated**: 2025-12-05
 **Status**: Ready for ITDD → Refactoring Phase Transition
 **Primary Goal**: Branch Coverage for Mutation Testing Readiness
+**.NET Version**: 10.0 (uses coverlet/XPlat Code Coverage)
 
 ---
 

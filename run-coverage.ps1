@@ -1,7 +1,7 @@
 # ============================================================================
-# Code Coverage Runner for ExxerCube Prisma
+# Code Coverage Runner for ExxerCube Prisma (.NET 10.0)
 # ============================================================================
-# Purpose: Run all tests with branch coverage collection
+# Purpose: Run all tests with coverlet coverage collection
 # Output: Cobertura XML for CI/CD + HTML reports for local viewing
 # ============================================================================
 
@@ -23,7 +23,6 @@ $RootDir = $PSScriptRoot
 $CSharpRoot = Join-Path $RootDir "Prisma\Code\Src\CSharp"
 $TestResultsDir = Join-Path $RootDir "TestResults"
 $CoverageOutputDir = Join-Path $RootDir "coverage"
-$RunSettingsFile = Join-Path $RootDir "coverage.runsettings"
 
 # ============================================================================
 # Banner
@@ -32,7 +31,7 @@ $RunSettingsFile = Join-Path $RootDir "coverage.runsettings"
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "  ExxerCube Prisma - Code Coverage Analysis" -ForegroundColor Cyan
-Write-Host "  Branch Coverage + Cobertura XML Output" -ForegroundColor Cyan
+Write-Host "  Using Coverlet (XPlat Code Coverage)" -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -80,39 +79,64 @@ if (-not $SkipBuild) {
 }
 
 # ============================================================================
-# Run Tests with Coverage
+# Run Tests with Coverage (Using Coverlet)
 # ============================================================================
 
 Write-Host ""
-Write-Host "[3/5] Running tests with coverage collection..." -ForegroundColor Yellow
-Write-Host "  Settings: $RunSettingsFile" -ForegroundColor Gray
+Write-Host "[3/5] Running tests with coverlet coverage collection..." -ForegroundColor Yellow
 
 Push-Location $CSharpRoot
 
-$testCommand = @(
+# Build command arguments
+$verbosityLevel = switch ($Verbosity) {
+    1 { "normal" }
+    2 { "detailed" }
+    default { "minimal" }
+}
+
+# Construct command with coverlet arguments
+$cmdArgs = @(
     "test"
-    "--configuration", "Release"
+    "--configuration"
+    "Release"
     "--no-build"
-    "--settings", "`"$RunSettingsFile`""
-    "--results-directory", "`"$TestResultsDir`""
-    "--collect:`"Code Coverage`""
+    "--results-directory"
+    $TestResultsDir
+    "--collect"
+    "XPlat Code Coverage"
+    "--verbosity"
+    $verbosityLevel
 )
 
+# Add coverlet settings via runsettings
+$cmdArgs += "--"
+$cmdArgs += "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,opencover"
+
 if ($Filter) {
-    $testCommand += "--filter", "`"$Filter`""
+    # Insert filter before --
+    $cmdArgs = @(
+        "test"
+        "--configuration"
+        "Release"
+        "--no-build"
+        "--results-directory"
+        $TestResultsDir
+        "--collect"
+        "XPlat Code Coverage"
+        "--filter"
+        $Filter
+        "--verbosity"
+        $verbosityLevel
+        "--"
+        "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,opencover"
+    )
     Write-Host "  Filter: $Filter" -ForegroundColor Gray
 }
 
-switch ($Verbosity) {
-    1 { $testCommand += "--verbosity", "normal" }
-    2 { $testCommand += "--verbosity", "detailed" }
-    default { $testCommand += "--verbosity", "minimal" }
-}
-
-Write-Host "  Running: dotnet $($testCommand -join ' ')" -ForegroundColor DarkGray
+Write-Host "  Running tests with coverlet..." -ForegroundColor DarkGray
 Write-Host ""
 
-$testOutput = & dotnet @testCommand 2>&1
+$testOutput = & dotnet @cmdArgs 2>&1
 $testExitCode = $LASTEXITCODE
 
 Write-Host $testOutput
@@ -126,21 +150,26 @@ if ($testExitCode -ne 0) {
 }
 
 # ============================================================================
-# Find Coverage File
+# Find Coverage Files
 # ============================================================================
 
 Write-Host ""
 Write-Host "[4/5] Locating coverage data..." -ForegroundColor Yellow
 
-$coverageFiles = Get-ChildItem -Path $TestResultsDir -Filter "*.coverage" -Recurse
+# Coverlet creates coverage.cobertura.xml files in TestResults subdirectories
+$coverageFiles = Get-ChildItem -Path $TestResultsDir -Filter "coverage.cobertura.xml" -Recurse
+
 if ($coverageFiles.Count -eq 0) {
     Write-Host "  ✗ No coverage files found!" -ForegroundColor Red
-    Write-Host "  Looking for *.coverage in: $TestResultsDir" -ForegroundColor Red
+    Write-Host "  Looking for coverage.cobertura.xml in: $TestResultsDir" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "  Troubleshooting:" -ForegroundColor Yellow
+    Write-Host "  - Ensure coverlet.collector is installed in test projects" -ForegroundColor Gray
+    Write-Host "  - Check that tests actually ran successfully" -ForegroundColor Gray
     exit 1
 }
 
-$coverageFile = $coverageFiles[0].FullName
-Write-Host "  ✓ Found coverage file: $($coverageFiles[0].Name)" -ForegroundColor Green
+Write-Host "  ✓ Found $($coverageFiles.Count) coverage file(s)" -ForegroundColor Green
 
 # ============================================================================
 # Install ReportGenerator (if needed)
@@ -163,16 +192,19 @@ if (-not $toolCheck) {
 }
 
 # ============================================================================
-# Generate Cobertura XML (for CI/CD)
+# Merge Coverage Files and Generate Reports
 # ============================================================================
 
-Write-Host "  Generating Cobertura XML..." -ForegroundColor Gray
+# Create a list of all coverage files for ReportGenerator
+$coverageFilePaths = ($coverageFiles | ForEach-Object { $_.FullName }) -join ";"
 
-$coberturaOutputDir = Join-Path $CoverageOutputDir "cobertura"
+Write-Host "  Generating merged Cobertura XML..." -ForegroundColor Gray
+
+$coberturaOutputDir = Join-Path $CoverageOutputDir "merged"
 New-Item -ItemType Directory -Path $coberturaOutputDir -Force | Out-Null
 
 & $reportGeneratorTool `
-    "-reports:$coverageFile" `
+    "-reports:$coverageFilePaths" `
     "-targetdir:$coberturaOutputDir" `
     "-reporttypes:Cobertura" `
     "-verbosity:Warning"
@@ -182,11 +214,11 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-$coberturaXml = Join-Path $coberturaOutputDir "Cobertura.xml"
-if (Test-Path $coberturaXml) {
-    # Copy to root for easy CI/CD access
+# Copy merged Cobertura XML to root for CI/CD
+$mergedCobertura = Join-Path $coberturaOutputDir "Cobertura.xml"
+if (Test-Path $mergedCobertura) {
     $rootCoberturaXml = Join-Path $RootDir "coverage.xml"
-    Copy-Item $coberturaXml $rootCoberturaXml -Force
+    Copy-Item $mergedCobertura $rootCoberturaXml -Force
     Write-Host "  ✓ Cobertura XML: coverage.xml" -ForegroundColor Green
 }
 
@@ -200,7 +232,7 @@ if ($GenerateHtml) {
     $htmlOutputDir = Join-Path $CoverageOutputDir "html"
 
     & $reportGeneratorTool `
-        "-reports:$coverageFile" `
+        "-reports:$coverageFilePaths" `
         "-targetdir:$htmlOutputDir" `
         "-reporttypes:Html;HtmlSummary;Badges" `
         "-historydir:$htmlOutputDir\history" `
@@ -235,8 +267,8 @@ Write-Host ""
 Write-Host "Next Steps:" -ForegroundColor Yellow
 Write-Host "  1. Review HTML report for coverage gaps" -ForegroundColor Gray
 Write-Host "  2. Add coverage.xml to your CI/CD pipeline" -ForegroundColor Gray
-Write-Host "  3. Set coverage thresholds (recommend: 80% branch coverage)" -ForegroundColor Gray
-Write-Host "  4. Integrate with mutation testing when available" -ForegroundColor Gray
+Write-Host "  3. Set coverage thresholds (recommend: 75%+ branch coverage)" -ForegroundColor Gray
+Write-Host "  4. Write tests for RED (uncovered) branches" -ForegroundColor Gray
 Write-Host ""
 
 # Exit with test result code
