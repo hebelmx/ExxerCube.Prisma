@@ -26,11 +26,12 @@ public static class ServiceCollectionExtensions
         // Register identity resolution service
         services.AddScoped<IPersonIdentityResolver, PersonIdentityResolverService>();
 
-        // Register legacy classifier (TODO: Remove after DecisionLogicService migration)
-        services.AddScoped<ILegalDirectiveClassifier, LegalDirectiveClassifierService>();
-
         // Register semantic analyzer service with fuzzy phrase matching
         services.AddScoped<ISemanticAnalyzer, SemanticAnalyzerService>();
+
+        // Register adapter that bridges ILegalDirectiveClassifier → ISemanticAnalyzer
+        // This allows DecisionLogicService to use the new fuzzy matching implementation
+        services.AddScoped<ILegalDirectiveClassifier, SemanticAnalyzerAdapter>();
 
         // Register data fusion services
         services.AddScoped<IFusionExpediente, FusionExpedienteService>();
