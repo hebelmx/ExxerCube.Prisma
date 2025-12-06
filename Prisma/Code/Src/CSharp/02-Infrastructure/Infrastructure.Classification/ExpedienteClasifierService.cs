@@ -21,6 +21,7 @@ namespace ExxerCube.Prisma.Infrastructure.Classification;
 public class ExpedienteClasifierService : IExpedienteClasifier
 {
     private readonly ILogger<ExpedienteClasifierService> _logger;
+    private readonly ISemanticAnalyzer _semanticAnalyzer;
 
     // Required fields per requirement type (from R29 A-2911 specification)
     // Note: Only includes fields that actually exist in LawMandatedFields
@@ -52,9 +53,13 @@ public class ExpedienteClasifierService : IExpedienteClasifier
     /// <summary>
     /// Initializes a new instance of the <see cref="ExpedienteClasifierService"/> class.
     /// </summary>
+    /// <param name="semanticAnalyzer">The semantic analyzer service (NEW - uses fuzzy matching).</param>
     /// <param name="logger">The logger instance.</param>
-    public ExpedienteClasifierService(ILogger<ExpedienteClasifierService> logger)
+    public ExpedienteClasifierService(
+        ISemanticAnalyzer semanticAnalyzer,
+        ILogger<ExpedienteClasifierService> logger)
     {
+        _semanticAnalyzer = semanticAnalyzer;
         _logger = logger;
     }
 
@@ -223,7 +228,7 @@ public class ExpedienteClasifierService : IExpedienteClasifier
     }
 
     /// <inheritdoc />
-    public Task<Result<SemanticAnalysis>> AnalyzeSemanticRequirementsAsync(
+    public async Task<Result<SemanticAnalysis>> AnalyzeSemanticRequirementsAsync(
         Expediente expediente,
         CancellationToken cancellationToken = default)
     {
@@ -231,81 +236,111 @@ public class ExpedienteClasifierService : IExpedienteClasifier
         {
             _logger.LogDebug("Analyzing semantic requirements for {NumeroExpediente}", expediente.NumeroExpediente);
 
-            var references = $"{expediente.Referencia} {expediente.Referencia1} {expediente.Referencia2}".ToUpperInvariant();
-            var analysis = new SemanticAnalysis();
+            // Build document text from all reference fields for fuzzy matching
+            var documentText = $"{expediente.Referencia} {expediente.Referencia1} {expediente.Referencia2}".Trim();
 
-            // Analyze for Bloqueo (Asset Freeze)
-            if (expediente.TieneAseguramiento &&
-                !references.Contains("DESBLOQUEO") &&
-                !references.Contains("TRANSFERIR"))
+            // If document text is empty, infer from expediente metadata (TieneAseguramiento, AreaDescripcion)
+            if (string.IsNullOrWhiteSpace(documentText))
             {
-                analysis.RequiereBloqueo = new BloqueoRequirement
-                {
-                    EsRequerido = true,
-                    EsParcial = expediente.LawMandatedFields?.InitialBlockedAmount != null,
-                    Monto = expediente.LawMandatedFields?.InitialBlockedAmount,
-                    Moneda = expediente.LawMandatedFields?.Currency ?? "MXN"
-                };
+                documentText = InferDocumentTextFromMetadata(expediente);
             }
 
-            // Analyze for Desbloqueo (Asset Unfreeze)
-            if (references.Contains("DESBLOQUEO") || references.Contains("LIBERAR"))
+            // Use the new ISemanticAnalyzer with fuzzy phrase matching (fixes audit gap)
+            var analysisResult = await _semanticAnalyzer.AnalyzeDirectivesAsync(
+                documentText,
+                expediente,
+                cancellationToken);
+
+            if (analysisResult.IsFailure)
             {
-                analysis.RequiereDesbloqueo = new DesbloqueoRequirement
-                {
-                    EsRequerido = true,
-                    ExpedienteBloqueoOriginal = expediente.OficioOrigen
-                };
+                _logger.LogWarning(
+                    "Semantic analysis failed for {NumeroExpediente}: {Error}",
+                    expediente.NumeroExpediente,
+                    analysisResult.Error);
+                return analysisResult;
             }
 
-            // Analyze for Transferencia (Transfer Order)
-            if (references.Contains("TRANSFERIR") || references.Contains("CLABE"))
+            var analysis = analysisResult.Value;
+
+            if (analysis == null)
             {
-                analysis.RequiereTransferencia = new TransferenciaRequirement
-                {
-                    EsRequerido = true,
-                    Monto = expediente.LawMandatedFields?.OperationAmount
-                };
+                _logger.LogWarning("Semantic analysis returned null for {NumeroExpediente}", expediente.NumeroExpediente);
+                return Result<SemanticAnalysis>.WithFailure("Semantic analysis returned null");
             }
 
-            // Analyze for Documentacion (Documentation Request)
-            if (!expediente.TieneAseguramiento &&
-                (references.Contains("ESTADO") || references.Contains("DOCUMENTO")))
-            {
-                analysis.RequiereDocumentacion = new DocumentacionRequirement
-                {
-                    EsRequerido = true
-                };
-            }
-
-            // Default to general information if no specific requirements identified
-            if (analysis.RequiereBloqueo == null &&
-                analysis.RequiereDesbloqueo == null &&
-                analysis.RequiereTransferencia == null &&
-                analysis.RequiereDocumentacion == null)
-            {
-                analysis.RequiereInformacionGeneral = new InformacionGeneralRequirement
-                {
-                    EsRequerido = true,
-                    InformacionSolicitada = "General information request"
-                };
-            }
+            // Enrich the analysis with expediente-specific metadata (amounts, accounts, etc.)
+            EnrichSemanticAnalysisWithExpedienteMetadata(expediente, analysis);
 
             _logger.LogInformation("Semantic analysis completed for {NumeroExpediente}", expediente.NumeroExpediente);
 
-            return Task.FromResult(Result<SemanticAnalysis>.Success(analysis));
+            return Result<SemanticAnalysis>.Success(analysis);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing semantic requirements");
-            return Task.FromResult(Result<SemanticAnalysis>.WithFailure(
+            return Result<SemanticAnalysis>.WithFailure(
                 $"Semantic analysis error: {ex.Message}",
                 default(SemanticAnalysis),
-                ex));
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Enriches the semantic analysis with expediente-specific metadata (amounts, accounts, currencies, etc.).
+    /// </summary>
+    private static void EnrichSemanticAnalysisWithExpedienteMetadata(Expediente expediente, SemanticAnalysis analysis)
+    {
+        // Enrich Bloqueo requirement with metadata
+        if (analysis.RequiereBloqueo != null)
+        {
+            analysis.RequiereBloqueo.EsParcial = expediente.LawMandatedFields?.InitialBlockedAmount != null;
+            analysis.RequiereBloqueo.Monto = expediente.LawMandatedFields?.InitialBlockedAmount;
+            analysis.RequiereBloqueo.Moneda = expediente.LawMandatedFields?.Currency ?? "MXN";
+        }
+
+        // Enrich Desbloqueo requirement with metadata
+        if (analysis.RequiereDesbloqueo != null)
+        {
+            analysis.RequiereDesbloqueo.ExpedienteBloqueoOriginal = expediente.OficioOrigen;
+        }
+
+        // Enrich Transferencia requirement with metadata
+        if (analysis.RequiereTransferencia != null)
+        {
+            analysis.RequiereTransferencia.Monto = expediente.LawMandatedFields?.OperationAmount;
         }
     }
 
     #region Private Helper Methods
+
+    /// <summary>
+    /// Infers document text from expediente metadata when Referencia fields are null/empty.
+    /// Maps TieneAseguramiento and AreaDescripcion to Spanish legal phrases.
+    /// </summary>
+    private static string InferDocumentTextFromMetadata(Expediente expediente)
+    {
+        // Priority 1: Check TieneAseguramiento flag
+        if (expediente.TieneAseguramiento)
+        {
+            return "aseguramiento de fondos"; // Matches ClassificationDictionary Block phrases
+        }
+
+        // Priority 2: Check AreaDescripcion
+        var areaDescripcion = (expediente.AreaDescripcion ?? string.Empty).ToUpperInvariant();
+
+        if (areaDescripcion.Contains("ASEGURAMIENTO"))
+        {
+            return "aseguramiento de fondos";
+        }
+
+        if (areaDescripcion.Contains("DESBLOQUEO"))
+        {
+            return "desbloqueo de cuenta";
+        }
+
+        // Priority 3: Default to general information request
+        return "solicitud de información"; // Matches ClassificationDictionary Information phrases
+    }
 
     private (RequirementType type, double confidence) ClassifyRequirementType(Expediente expediente)
     {

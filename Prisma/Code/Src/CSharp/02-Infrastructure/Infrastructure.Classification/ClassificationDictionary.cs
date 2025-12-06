@@ -137,6 +137,9 @@ internal static class ClassificationDictionary
         // Primary terms
         ["solicitud de documentación"] = ComplianceActionKind.Document,
         ["solicitud de documentos"] = ComplianceActionKind.Document,
+        ["solicito estados de cuenta"] = ComplianceActionKind.Document,
+        ["estados de cuenta"] = ComplianceActionKind.Document,
+        ["solicito información"] = ComplianceActionKind.Document,
         ["entrega de documentación"] = ComplianceActionKind.Document,
         ["entrega de documentos"] = ComplianceActionKind.Document,
         ["presentación de documentación"] = ComplianceActionKind.Document,

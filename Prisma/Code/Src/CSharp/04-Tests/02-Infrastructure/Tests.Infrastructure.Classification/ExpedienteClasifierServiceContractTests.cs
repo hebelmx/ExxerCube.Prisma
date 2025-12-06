@@ -399,9 +399,17 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
 
     private IExpedienteClasifier CreateSystemUnderTest()
     {
-        // Use real logger instead of mock for better debugging
+        // Use real implementations for integration-style testing
         var logger = XUnitLogger.CreateLogger<ExpedienteClasifierService>(_output);
-        return new ExpedienteClasifierService(logger);
+
+        // Create real ISemanticAnalyzer with fuzzy matching
+        var textComparerLogger = Substitute.For<ILogger<LevenshteinTextComparer>>();
+        var semanticAnalyzerLogger = Substitute.For<ILogger<SemanticAnalyzerService>>();
+
+        var textComparer = new LevenshteinTextComparer(textComparerLogger);
+        var semanticAnalyzer = new SemanticAnalyzerService(textComparer, semanticAnalyzerLogger);
+
+        return new ExpedienteClasifierService(semanticAnalyzer, logger);
     }
 
     private static Expediente CreateInformationRequestExpediente()
