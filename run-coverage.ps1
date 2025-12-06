@@ -31,7 +31,7 @@ $CoverageOutputDir = Join-Path $RootDir "coverage"
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "  ExxerCube Prisma - Code Coverage Analysis" -ForegroundColor Cyan
-Write-Host "  Using Coverlet (XPlat Code Coverage)" -ForegroundColor Cyan
+Write-Host "  Using Microsoft Testing Platform Code Coverage" -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -79,11 +79,11 @@ if (-not $SkipBuild) {
 }
 
 # ============================================================================
-# Run Tests with Coverage (Using Coverlet)
+# Run Tests with Coverage (Using Microsoft Testing Platform)
 # ============================================================================
 
 Write-Host ""
-Write-Host "[3/5] Running tests with coverlet coverage collection..." -ForegroundColor Yellow
+Write-Host "[3/5] Running tests with code coverage collection..." -ForegroundColor Yellow
 
 Push-Location $CSharpRoot
 
@@ -94,46 +94,39 @@ $verbosityLevel = switch ($Verbosity) {
     default { "minimal" }
 }
 
-# Construct command with coverlet arguments
+# Microsoft Testing Platform arguments passed through dotnet test via --
 $cmdArgs = @(
     "test"
     "--configuration"
     "Release"
     "--no-build"
-    "--results-directory"
-    $TestResultsDir
-    "--collect"
-    "XPlat Code Coverage"
     "--verbosity"
     $verbosityLevel
+    "--"
+    "--coverage"
+    "--coverage-output-format"
+    "cobertura"
 )
 
-# Add coverlet settings via runsettings
-$cmdArgs += "--"
-$cmdArgs += "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,opencover"
-
 if ($Filter) {
-    # Insert filter before --
     $cmdArgs = @(
         "test"
         "--configuration"
         "Release"
         "--no-build"
-        "--results-directory"
-        $TestResultsDir
-        "--collect"
-        "XPlat Code Coverage"
         "--filter"
         $Filter
         "--verbosity"
         $verbosityLevel
         "--"
-        "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,opencover"
+        "--coverage"
+        "--coverage-output-format"
+        "cobertura"
     )
     Write-Host "  Filter: $Filter" -ForegroundColor Gray
 }
 
-Write-Host "  Running tests with coverlet..." -ForegroundColor DarkGray
+Write-Host "  Running tests with Microsoft Testing Platform..." -ForegroundColor DarkGray
 Write-Host ""
 
 $testOutput = & dotnet @cmdArgs 2>&1
@@ -156,16 +149,19 @@ if ($testExitCode -ne 0) {
 Write-Host ""
 Write-Host "[4/5] Locating coverage data..." -ForegroundColor Yellow
 
-# Coverlet creates coverage.cobertura.xml files in TestResults subdirectories
-$coverageFiles = Get-ChildItem -Path $TestResultsDir -Filter "coverage.cobertura.xml" -Recurse
+# Microsoft Testing Platform creates *.cobertura.xml files in each test project's bin/*/TestResults directory
+# BuildArtifacts is in the parent directory (F:\Dynamic\ExxerCubeBanamex\BuildArtifacts)
+$BuildArtifactsDir = Join-Path (Split-Path $RootDir -Parent) "BuildArtifacts"
+$coverageFiles = Get-ChildItem -Path $BuildArtifactsDir -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*.cobertura.xml" }
 
 if ($coverageFiles.Count -eq 0) {
     Write-Host "  ✗ No coverage files found!" -ForegroundColor Red
-    Write-Host "  Looking for coverage.cobertura.xml in: $TestResultsDir" -ForegroundColor Red
+    Write-Host "  Looking for coverage.cobertura.xml in: $BuildArtifactsDir" -ForegroundColor Red
     Write-Host ""
     Write-Host "  Troubleshooting:" -ForegroundColor Yellow
-    Write-Host "  - Ensure coverlet.collector is installed in test projects" -ForegroundColor Gray
+    Write-Host "  - Ensure Microsoft.Testing.Extensions.CodeCoverage is installed in test projects" -ForegroundColor Gray
     Write-Host "  - Check that tests actually ran successfully" -ForegroundColor Gray
+    Write-Host "  - Verify that --coverage is working correctly" -ForegroundColor Gray
     exit 1
 }
 

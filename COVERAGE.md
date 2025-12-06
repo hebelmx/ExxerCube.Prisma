@@ -245,15 +245,24 @@ Open `coverage/html/index.html` to see:
 
 ### Current Status
 
+**Baseline Coverage (as of 2025-12-05):**
+- **Line Coverage**: 31.95%
+- **Branch Coverage**: 36.08%
+
+**Gap Analysis:**
+- Need **+48% line coverage** to reach 80% target
+- Need **+39% branch coverage** to reach 75% target
+
 Run this to check current coverage:
 ```powershell
 .\run-coverage.ps1
 ```
 
-Look for:
-```
-Branch Coverage: XX.X%
-```
+**Next Actions:**
+1. Review HTML report (`coverage\html\index.html`) to identify RED areas
+2. Focus on Domain layer and validators (highest business risk)
+3. Add tests for uncovered branches systematically
+4. Aim for incremental improvement (5-10% per iteration)
 
 **Target for next milestone**: **75% branch coverage**
 
