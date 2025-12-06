@@ -16,6 +16,13 @@ namespace ExxerCube.Prisma.Infrastructure.Classification;
 /// <summary>
 /// Service for classifying legal directives from document text and mapping clauses to compliance actions.
 /// </summary>
+/// <remarks>
+/// DEPRECATED: This implementation uses naive keyword matching which has been superseded by fuzzy phrase matching.
+/// Use SemanticAnalyzerAdapter (wrapping SemanticAnalyzerService) instead for improved accuracy.
+/// This class is maintained for backward compatibility during migration but will be removed in a future release.
+/// Migration path: ILegalDirectiveClassifier now resolves to SemanticAnalyzerAdapter in DI container.
+/// </remarks>
+[Obsolete("Use SemanticAnalyzerAdapter with fuzzy phrase matching instead. This naive implementation will be removed after migration verification period.")]
 public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
 {
     private readonly ILogger<LegalDirectiveClassifierService> _logger;
