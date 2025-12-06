@@ -19,4 +19,10 @@ public class TransferenciaRequirement
     /// Amount to transfer (if specified).
     /// </summary>
     public decimal? Monto { get; set; }
+
+    /// <summary>
+    /// Confidence score of the classification (0.0 to 1.0).
+    /// Represents how confident the classifier is that this requirement exists.
+    /// </summary>
+    public double Confidence { get; set; }
 }

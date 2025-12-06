@@ -34,4 +34,10 @@ public class BloqueoRequirement
     /// Specific products to freeze (if specified).
     /// </summary>
     public List<string> ProductosEspecificos { get; set; } = new();
+
+    /// <summary>
+    /// Confidence score of the classification (0.0 to 1.0).
+    /// Represents how confident the classifier is that this requirement exists.
+    /// </summary>
+    public double Confidence { get; set; }
 }

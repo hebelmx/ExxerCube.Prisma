@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Models;
 using FuzzySharp;
 using Microsoft.Extensions.Logging;
 
@@ -153,5 +154,144 @@ public class LevenshteinTextComparer : ITextComparer
             specialCharRatio);
 
         return score;
+    }
+
+    /// <inheritdoc />
+    public TextMatchResult? FindBestMatch(string phrase, string text, double threshold = 0.85)
+    {
+        // Handle edge cases
+        if (string.IsNullOrWhiteSpace(phrase) || string.IsNullOrWhiteSpace(text))
+        {
+            _logger.LogDebug("FindBestMatch: Null or empty input (phrase={PhraseEmpty}, text={TextEmpty})",
+                string.IsNullOrWhiteSpace(phrase),
+                string.IsNullOrWhiteSpace(text));
+            return null;
+        }
+
+        // Normalize for comparison (case-insensitive)
+        var phraseNormalized = phrase.Trim().ToUpperInvariant();
+        var textNormalized = text.ToUpperInvariant();
+
+        // If phrase is longer than text, no match possible
+        if (phraseNormalized.Length > textNormalized.Length)
+        {
+            _logger.LogDebug("FindBestMatch: Phrase longer than text ({PhraseLen} > {TextLen})",
+                phraseNormalized.Length, textNormalized.Length);
+            return null;
+        }
+
+        TextMatchResult? bestMatch = null;
+        double bestSimilarity = 0.0;
+        int bestStartIndex = -1;
+
+        // Calculate word count for sliding window
+        var phraseWords = phraseNormalized.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        int phraseWordCount = phraseWords.Length;
+
+        // Split text into words for window sliding
+        var textWords = textNormalized.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (textWords.Length == 0)
+        {
+            return null;
+        }
+
+        // Use sliding window of similar word count to phrase
+        // Window size: phraseWordCount - 1 to phraseWordCount + 2 (to handle variations)
+        for (int windowSize = Math.Max(1, phraseWordCount - 1);
+             windowSize <= Math.Min(textWords.Length, phraseWordCount + 2);
+             windowSize++)
+        {
+            for (int i = 0; i <= textWords.Length - windowSize; i++)
+            {
+                // Extract window
+                var windowWords = textWords.Skip(i).Take(windowSize).ToArray();
+                var windowText = string.Join(" ", windowWords);
+
+                // Calculate fuzzy similarity using FuzzySharp
+                int fuzzyScore = Fuzz.Ratio(phraseNormalized, windowText);
+                double similarity = fuzzyScore / 100.0;
+
+                // Track best match
+                if (similarity > bestSimilarity)
+                {
+                    bestSimilarity = similarity;
+
+                    // Find start index in original text (need to account for original casing/spacing)
+                    // This is approximate - find first word of window in original text
+                    int startIndex = FindSubstringIndex(text, windowWords[0], i);
+
+                    if (startIndex >= 0)
+                    {
+                        int length = windowText.Length;
+
+                        bestMatch = new TextMatchResult
+                        {
+                            MatchedText = text.Substring(startIndex, Math.Min(length, text.Length - startIndex)),
+                            Similarity = similarity,
+                            StartIndex = startIndex,
+                            Length = length
+                        };
+                        bestStartIndex = startIndex;
+
+                        _logger.LogTrace(
+                            "FindBestMatch: New best match found - Similarity={Similarity:F2}, Window='{Window}', OriginalText='{Match}'",
+                            similarity,
+                            windowText,
+                            bestMatch.MatchedText);
+                    }
+                }
+            }
+        }
+
+        // Return best match only if it meets threshold
+        if (bestMatch != null && bestSimilarity >= threshold)
+        {
+            _logger.LogDebug(
+                "FindBestMatch: Match found - Phrase='{Phrase}', Match='{Match}', Similarity={Similarity:F2}",
+                phrase,
+                bestMatch.MatchedText.Length > 50 ? bestMatch.MatchedText[..50] + "..." : bestMatch.MatchedText,
+                bestSimilarity);
+
+            return bestMatch;
+        }
+
+        _logger.LogDebug(
+            "FindBestMatch: No match above threshold - Phrase='{Phrase}', BestSimilarity={BestSim:F2}, Threshold={Threshold:F2}",
+            phrase,
+            bestSimilarity,
+            threshold);
+
+        return null;
+    }
+
+    /// <summary>
+    /// Helper method to find the approximate start index of a word in the original (non-normalized) text.
+    /// </summary>
+    private int FindSubstringIndex(string originalText, string normalizedWord, int wordPosition)
+    {
+        var words = originalText.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (wordPosition >= words.Length)
+            return -1;
+
+        // Find cumulative position
+        int currentPos = 0;
+        for (int i = 0; i < wordPosition && i < words.Length; i++)
+        {
+            currentPos = originalText.IndexOf(words[i], currentPos, StringComparison.OrdinalIgnoreCase);
+            if (currentPos < 0)
+                return -1;
+            currentPos += words[i].Length;
+        }
+
+        // Find the actual word at wordPosition
+        if (wordPosition < words.Length)
+        {
+            currentPos = originalText.IndexOf(words[wordPosition], currentPos, StringComparison.OrdinalIgnoreCase);
+            return currentPos;
+        }
+
+        return -1;
     }
 }

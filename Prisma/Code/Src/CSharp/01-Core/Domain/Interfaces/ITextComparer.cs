@@ -44,4 +44,15 @@ public interface ITextComparer
     /// <param name="text">Text to analyze.</param>
     /// <returns>Quality score between 0 and 100.</returns>
     double CalculateQualityScore(string text);
+
+    /// <summary>
+    /// Finds the best matching phrase in a document text using fuzzy matching.
+    /// Uses sliding window approach to find the substring that best matches the search phrase.
+    /// Critical for dictionary-based classification where exact phrase matches are rare.
+    /// </summary>
+    /// <param name="phrase">The phrase to search for (e.g., "aseguramiento de fondos").</param>
+    /// <param name="text">The document text to search within.</param>
+    /// <param name="threshold">Minimum similarity threshold (0.0-1.0). Default is 0.85 (85% match).</param>
+    /// <returns>TextMatchResult with matched text and similarity score, or null if no match above threshold.</returns>
+    TextMatchResult? FindBestMatch(string phrase, string text, double threshold = 0.85);
 }
