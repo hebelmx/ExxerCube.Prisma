@@ -2,26 +2,32 @@
 
 ## Mission Statement
 
-Conduct a **thorough, evidence-based code audit** of the ExxerCube.Prisma C# codebase using the `docs/AAA Initiative Design/Audit301120205.md` document as your baseline. Your task is to **verify, update, complete, and expand** the findings in that audit report with current code evidence.
+Conduct a **thorough, evidence-based code audit** of the ExxerCube.Prisma C# codebase using the testing code, implementation code, and design documentes, commit logs, documentation reports, adr, and ony othr kind of documntation on th Code
+ as your baseline.
+Your task is to **find, document, any deviation founded on the code, also, to document any decision make to hencance the aplication, find any missing gap and any oportuny to quickle add any missing o quick feature in orde to have a better application**
 
 This is your **ONLY MESSAGE** to the user. Make it comprehensive, actionable, and complete.
 
 ---
 
+
 ## Input Document
 
-**Primary Source**: `F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\docs\AAA Initiative Design\Audit301120205.md`
+**Primary Source**: 
 
 **Supporting Sources** (Use these to validate requirements):
 - `docs/AAA Initiative Design/DATA_MODEL.md`
-
 - `docs/AAA Initiative Design/SYSTEM_FLOW_DIAGRAM.md`
 - `docs/AAA Initiative Design/Requirements.md`
 - `docs/AAA Initiative Design/Laws/ClassificationRules.md`
-
 - `docs/AAA Initiative Design/Laws/MandatoryFields_CNBV.md`
 
 
+---
+
+<--  Very importat, you must inspect all the cs documentes on the project and all the related md documents, as long as all fixtures and related documents alist of references is Expected
+whit all the documentes you persolanlly readed the fist list is just the starting poing, you must read all the documents on the repo and create a pland and a check list to ensure al documentes where
+readed do to ensure these audit was comprensiove -->
 ---
 
 ## Report Structure (Follow This Exactly)
@@ -30,21 +36,21 @@ Your final report MUST follow this structure:
 
 ```markdown
 # Code Audit Report - ExxerCube.Prisma
-**Audit ID**: Audit301120205-UPDATE
+**Audit ID**: Audit05122005.md
 **Audit Date**: [Current Date]
-**Auditor**: Claude Code Agent
+**Auditor**: [Audhitor Name]
 **Status**: COMPREHENSIVE REVIEW
 
 ---
 
 ## Executive Summary
 
-[3-5 paragraphs summarizing:
+[70-10 paragraphs summarizing:
 - Overall code health (excellent/good/needs work/critical)
 - Total findings count by priority
 - Key blockers to MVP/production
 - Funding recommendation (SECURE/AT RISK/NOT READY)
-- High-level next steps]
+- High-level next steps
 
 ---
 
@@ -625,6 +631,12 @@ Before submitting your report, verify:
 8. **E2E thinking** - attack root cause AND symptoms
 
 **This report will determine funding. Make it comprehensive, accurate, and actionable.**
+
+---
+
+<--  Very importat, you must inspect all the cs documentes on the project and all the related md documents, as long as all fixtures and related documents alist of references is Expected
+whit all the documentes you persolanlly readed the fist list is just the starting poing, you must read all the documents on the repo and create a pland and a check list to ensure al documentes where
+readed do to ensure these audit was comprensiove -->
 
 ---
 
