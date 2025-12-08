@@ -11,8 +11,6 @@ global using CSnakes.Runtime;
 global using ExxerCube.Prisma.Application.Services;
 global using ExxerCube.Prisma.Domain;
 global using ExxerCube.Prisma.Domain.Interfaces;
-global using ExxerCube.Prisma.Testing.Abstractions;
-global using ExxerCube.Prisma.Testing.Infrastructure;
 global using ExxerCube.Prisma.Tests.UI.Infrastructure;
 global using ExxerCube.Prisma.Web.UI.Components.Shared.Navigation;
 global using IndQuestResults;
@@ -31,5 +29,3 @@ global using Shouldly;
 global using Xunit;
 global using static Microsoft.Playwright.Assertions;
 global using UiProgram = ExxerCube.Prisma.Web.UI.Program;
-
-

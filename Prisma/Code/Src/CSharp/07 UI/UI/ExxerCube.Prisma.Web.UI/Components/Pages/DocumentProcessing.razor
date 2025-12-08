@@ -2,6 +2,7 @@
 @using ExxerCube.Prisma.Application.Services
 @using ExxerCube.Prisma.Domain.Interfaces
 @using ExxerCube.Prisma.Domain.Entities
+@using ExxerCube.Prisma.Testing.Infrastructure
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
 @using Microsoft.AspNetCore.SignalR.Client
@@ -9,7 +10,6 @@
 @using ExxerCube.Prisma.Domain.Models
 @using ExxerCube.Prisma.Domain.ValueObjects
 @using Microsoft.JSInterop
-@using ExxerCube.Prisma.Testing.Infrastructure
 @inject IOcrProcessingService OcrService
 @inject IProcessingMetricsService MetricsService
 @inject IXmlNullableParser<Expediente> XmlParser

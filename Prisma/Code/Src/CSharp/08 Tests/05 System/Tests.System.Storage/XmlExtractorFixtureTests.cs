@@ -1,8 +1,3 @@
-using System.Text;
-using ExxerCube.Prisma.Domain.Sources;
-using ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
-using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
-
 namespace ExxerCube.Prisma.Tests.System.Storage;
 
 /// <summary>

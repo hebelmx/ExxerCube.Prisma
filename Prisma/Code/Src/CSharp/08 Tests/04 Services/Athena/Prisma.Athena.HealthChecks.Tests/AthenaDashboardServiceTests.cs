@@ -1,11 +1,3 @@
-using ExxerCube.Prisma.Domain.Interfaces;
-using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute;
-using Prisma.Athena.HealthChecks;
-using Prisma.Athena.Processing;
-using Shouldly;
-using Xunit;
-
 namespace Prisma.Athena.HealthChecks.Tests;
 
 /// <summary>

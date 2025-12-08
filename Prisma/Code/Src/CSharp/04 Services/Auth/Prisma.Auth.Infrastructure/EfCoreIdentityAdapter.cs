@@ -1,13 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Prisma.Auth.Domain.Interfaces;
-using DomainTokenValidationResult = Prisma.Auth.Domain.Interfaces.TokenValidationResult;
-
 namespace Prisma.Auth.Infrastructure;
 
 /// <summary>
@@ -45,7 +35,7 @@ public sealed class EfCoreIdentityAdapter<TUser> : IIdentityProvider, ITokenServ
     /// <summary>
     /// Sets the HTTP context for testing purposes (internal use only).
     /// </summary>
-    internal void SetHttpContext(HttpContext context) => _httpContext = context;
+    public void SetHttpContext(HttpContext context) => _httpContext = context;
 
     /// <inheritdoc />
     public UserIdentity? Current
@@ -107,7 +97,7 @@ public sealed class EfCoreIdentityAdapter<TUser> : IIdentityProvider, ITokenServ
     }
 
     /// <inheritdoc />
-    public Task<DomainTokenValidationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
+    public Task<TokenValidationResult> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -132,19 +122,19 @@ public sealed class EfCoreIdentityAdapter<TUser> : IIdentityProvider, ITokenServ
             var roles = principal.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
 
             if (userId == null || userName == null)
-                return Task.FromResult(new DomainTokenValidationResult(false, null, "Missing required claims"));
+                return Task.FromResult(new TokenValidationResult(false, null, "Missing required claims"));
 
             var identity = new UserIdentity(userId, userName, roles);
-            return Task.FromResult(new DomainTokenValidationResult(true, identity));
+            return Task.FromResult(new TokenValidationResult(true, identity));
         }
         catch (SecurityTokenExpiredException)
         {
-            return Task.FromResult(new DomainTokenValidationResult(false, null, "Token has expired"));
+            return Task.FromResult(new TokenValidationResult(false, null, "Token has expired"));
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Token validation failed");
-            return Task.FromResult(new DomainTokenValidationResult(false, null, "Invalid token"));
+            return Task.FromResult(new TokenValidationResult(false, null, "Invalid token"));
         }
     }
 
@@ -205,27 +195,27 @@ public sealed class EfCoreIdentityAdapter<TUser> : IIdentityProvider, ITokenServ
 
     /// <summary>
     /// Validates a JWT token using Railway-Oriented Programming.
-    /// Returns Result&lt;DomainTokenValidationResult&gt; instead of throwing exceptions.
+    /// Returns Result&lt;TokenValidationResult&gt; instead of throwing exceptions.
     /// </summary>
     /// <param name="token">JWT token to validate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A Result containing TokenValidationResult on success.</returns>
-    public async Task<Result<DomainTokenValidationResult>> ValidateTokenWithResultAsync(string token, CancellationToken cancellationToken = default)
+    public async Task<Result<TokenValidationResult>> ValidateTokenWithResultAsync(string token, CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return ResultExtensions.Cancelled<DomainTokenValidationResult>();
+            return ResultExtensions.Cancelled<TokenValidationResult>();
         }
 
         try
         {
             var validationResult = await ValidateTokenAsync(token, cancellationToken).ConfigureAwait(false);
-            return Result<DomainTokenValidationResult>.Success(validationResult);
+            return Result<TokenValidationResult>.Success(validationResult);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception during token validation");
-            return Result<DomainTokenValidationResult>.WithFailure(new[] { $"Token validation failed with exception: {ex.Message}" });
+            return Result<TokenValidationResult>.WithFailure(new[] { $"Token validation failed with exception: {ex.Message}" });
         }
     }
 }

@@ -43,10 +43,10 @@ public sealed class ComplementExtractionStrategyTests
         var result = await strategy.ExtractComplementAsync(docxSource, fieldDefinitions, xmlFields, ocrFields);
 
         // Assert
-        result.IsSuccess.Should().BeTrue("complement extraction should succeed");
-        result.Value.Should().NotBeNull();
-        result.Value!.AdditionalFields["RFC"].Should().Be("XAXX010101000", "DOCX should fill RFC gap");
-        result.Value.Expediente.Should().BeNull("should not duplicate data from XML/OCR");
+        result.IsSuccess.ShouldBeTrue("complement extraction should succeed");
+        result.Value.ShouldNotBeNull();
+        result.Value!.AdditionalFields["RFC"].ShouldBe("XAXX010101000", "DOCX should fill RFC gap");
+        result.Value.Expediente.ShouldBeNull("should not duplicate data from XML/OCR");
     }
 
     [Fact]
@@ -79,10 +79,10 @@ public sealed class ComplementExtractionStrategyTests
         var result = await strategy.ExtractComplementAsync(docxSource, fieldDefinitions, xmlFields, ocrFields);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.Causa.Should().Be("Transferencia no autorizada", "DOCX should fill Causa gap");
-        result.Value.Expediente.Should().BeNull("should not duplicate existing field");
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Causa.ShouldBe("Transferencia no autorizada", "DOCX should fill Causa gap");
+        result.Value.Expediente.ShouldBeNull("should not duplicate existing field");
     }
 
     [Fact]
@@ -111,10 +111,10 @@ public sealed class ComplementExtractionStrategyTests
         var result = await strategy.ExtractComplementAsync(docxSource, fieldDefinitions, xmlFields, ocrFields);
 
         // Assert
-        result.IsSuccess.Should().BeTrue("should succeed even when no complement needed");
-        result.Value.Should().NotBeNull();
-        result.Value!.Expediente.Should().BeNull("should not return fields that already exist");
-        result.Value.AdditionalFields.Should().NotContainKey("RFC", "should not return fields that already exist");
+        result.IsSuccess.ShouldBeTrue("should succeed even when no complement needed");
+        result.Value.ShouldNotBeNull();
+        result.Value!.Expediente.ShouldBeNull("should not return fields that already exist");
+        result.Value.AdditionalFields.ShouldNotContainKey("RFC", "should not return fields that already exist");
     }
 
     [Fact]
@@ -146,10 +146,10 @@ public sealed class ComplementExtractionStrategyTests
         var result = await strategy.ExtractComplementAsync(docxSource, fieldDefinitions, xmlFields, ocrFields);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.Causa.Should().BeNull("OCR already has this field");
-        result.Value.Expediente.Should().BeNull("XML already has this field");
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Causa.ShouldBeNull("OCR already has this field");
+        result.Value.Expediente.ShouldBeNull("XML already has this field");
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public sealed class ComplementExtractionStrategyTests
         var canHandle = strategy.CanHandle(structure);
 
         // Assert
-        canHandle.Should().BeTrue("complement strategy can always attempt to fill gaps");
+        canHandle.ShouldBeTrue("complement strategy can always attempt to fill gaps");
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public sealed class ComplementExtractionStrategyTests
         var confidence = strategy.CalculateConfidence(structure);
 
         // Assert
-        confidence.Should().Be(0.80f, "complement strategy has high confidence for filling gaps");
+        confidence.ShouldBe(0.80f, "complement strategy has high confidence for filling gaps");
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public sealed class ComplementExtractionStrategyTests
         var type = strategy.StrategyType;
 
         // Assert
-        type.Should().Be(DocxExtractionStrategy.Complement);
+        type.ShouldBe(DocxExtractionStrategy.Complement);
     }
 
     // Helper methods to create test DOCX documents

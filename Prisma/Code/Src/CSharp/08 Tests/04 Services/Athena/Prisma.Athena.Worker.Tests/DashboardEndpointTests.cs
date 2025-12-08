@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Prisma.Athena.HealthChecks;
 using Prisma.Athena.Worker;

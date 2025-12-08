@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Matching;
+using Shouldly;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract;
 
@@ -39,7 +40,7 @@ public sealed class MexicanNameFuzzyMatcherTests
         var result = matcher.IsMatch(name1, name2);
 
         // Assert
-        result.Should().Be(expected, reason);
+        result.ShouldBe(expected, reason);
     }
 
     [Theory]
@@ -58,7 +59,7 @@ public sealed class MexicanNameFuzzyMatcherTests
         var result = matcher.IsMatch(value1, value2);
 
         // Assert
-        result.Should().Be(expected, reason);
+        result.ShouldBe(expected, reason);
     }
 
     [Theory]
@@ -75,7 +76,7 @@ public sealed class MexicanNameFuzzyMatcherTests
         var result = matcher.IsMatch(name1, name2);
 
         // Assert
-        result.Should().Be(expected, reason);
+        result.ShouldBe(expected, reason);
     }
 
     [Theory]
@@ -91,7 +92,7 @@ public sealed class MexicanNameFuzzyMatcherTests
         var result = matcher.IsMatch(name1, name2);
 
         // Assert
-        result.Should().Be(expected, reason);
+        result.ShouldBe(expected, reason);
     }
 
     [Fact]
@@ -101,9 +102,9 @@ public sealed class MexicanNameFuzzyMatcherTests
         var matcher = new MexicanNameFuzzyMatcher();
 
         // Act & Assert
-        matcher.IsMatch("PÉREZ", "perez").Should().BeTrue("should ignore case");
-        matcher.IsMatch("González", "GONZALEZ").Should().BeTrue("should ignore case");
-        matcher.IsMatch("pérez", "PEREZ").Should().BeTrue("should ignore case");
+        matcher.IsMatch("PÉREZ", "perez").ShouldBeTrue("should ignore case");
+        matcher.IsMatch("González", "GONZALEZ").ShouldBeTrue("should ignore case");
+        matcher.IsMatch("pérez", "PEREZ").ShouldBeTrue("should ignore case");
     }
 
     [Theory]
@@ -119,7 +120,7 @@ public sealed class MexicanNameFuzzyMatcherTests
         var score = matcher.GetSimilarityScore(name1, name2);
 
         // Assert
-        score.Should().BeGreaterThanOrEqualTo(minExpectedScore, reason);
+        score.ShouldBeGreaterThanOrEqualTo(minExpectedScore, reason);
     }
 
     [Fact]
@@ -132,7 +133,7 @@ public sealed class MexicanNameFuzzyMatcherTests
         var threshold = matcher.MatchThreshold;
 
         // Assert
-        threshold.Should().Be(85, "Mexican name fuzzy matching uses 85% similarity threshold (best-effort OCR)");
+        threshold.ShouldBe(85, "Mexican name fuzzy matching uses 85% similarity threshold (best-effort OCR)");
     }
 
     [Theory]
@@ -152,7 +153,7 @@ public sealed class MexicanNameFuzzyMatcherTests
         var result = matcher.IsNameField(value);
 
         // Assert
-        result.Should().Be(expected, reason);
+        result.ShouldBe(expected, reason);
     }
 
     [Fact]
@@ -162,11 +163,11 @@ public sealed class MexicanNameFuzzyMatcherTests
         var matcher = new MexicanNameFuzzyMatcher();
 
         // Act & Assert
-        matcher.IsMatch(null!, "Pérez").Should().BeFalse("null should not match");
-        matcher.IsMatch("Pérez", null!).Should().BeFalse("null should not match");
-        matcher.IsMatch("", "Pérez").Should().BeFalse("empty should not match");
-        matcher.IsMatch("Pérez", "").Should().BeFalse("empty should not match");
-        matcher.IsMatch(null!, null!).Should().BeFalse("both null should not match");
+        matcher.IsMatch(null!, "Pérez").ShouldBeFalse("null should not match");
+        matcher.IsMatch("Pérez", null!).ShouldBeFalse("null should not match");
+        matcher.IsMatch("", "Pérez").ShouldBeFalse("empty should not match");
+        matcher.IsMatch("Pérez", "").ShouldBeFalse("empty should not match");
+        matcher.IsMatch(null!, null!).ShouldBeFalse("both null should not match");
     }
 
     [Theory]
@@ -182,6 +183,6 @@ public sealed class MexicanNameFuzzyMatcherTests
         var result = matcher.IsMatch(name1, name2);
 
         // Assert
-        result.Should().Be(expected, reason);
+        result.ShouldBe(expected, reason);
     }
 }

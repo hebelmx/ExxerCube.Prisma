@@ -2,24 +2,6 @@
 // Copyright (c) Exxerpro Solutions SA de CV. All rights reserved.
 // </copyright>
 
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using ExxerCube.Prisma.Application.Services;
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Domain.Enum;
-using ExxerCube.Prisma.Domain.Enums;
-using ExxerCube.Prisma.Domain.Events;
-using ExxerCube.Prisma.Domain.Sources;
-using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
-using ExxerCube.Prisma.Infrastructure.Database.Services;
-using ExxerCube.Prisma.Infrastructure.Events;
-using ExxerCube.Prisma.Infrastructure.Extraction;
-using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
-using ExxerCube.Prisma.Infrastructure.Imaging;
-using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace ExxerCube.Prisma.Tests.System.Storage;
 
 /// <summary>

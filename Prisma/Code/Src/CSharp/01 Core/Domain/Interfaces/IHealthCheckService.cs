@@ -31,37 +31,3 @@ public interface IHealthCheckService
     /// <returns>Health check result combining liveness and readiness.</returns>
     Task<OrchestratorHealthStatus> GetHealthAsync(CancellationToken cancellationToken = default);
 }
-
-/// <summary>
-/// Orchestrator health check result.
-/// Renamed from HealthCheckResult to avoid collision with Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.
-/// </summary>
-/// <param name="Status">Health status (Healthy, Degraded, Unhealthy).</param>
-/// <param name="Description">Human-readable description.</param>
-/// <param name="Data">Additional diagnostic data.</param>
-public record OrchestratorHealthStatus(
-    OrchestratorHealthState Status,
-    string Description,
-    IReadOnlyDictionary<string, object>? Data = null);
-
-/// <summary>
-/// Orchestrator health state enumeration.
-/// Renamed from HealthStatus to avoid collision with Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.
-/// </summary>
-public enum OrchestratorHealthState
-{
-    /// <summary>
-    /// Service is healthy.
-    /// </summary>
-    Healthy,
-
-    /// <summary>
-    /// Service is degraded but functional.
-    /// </summary>
-    Degraded,
-
-    /// <summary>
-    /// Service is unhealthy.
-    /// </summary>
-    Unhealthy
-}

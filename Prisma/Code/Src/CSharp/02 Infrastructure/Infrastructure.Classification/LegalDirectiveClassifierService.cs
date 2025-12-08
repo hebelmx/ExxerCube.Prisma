@@ -17,12 +17,11 @@ namespace ExxerCube.Prisma.Infrastructure.Classification;
 /// Service for classifying legal directives from document text and mapping clauses to compliance actions.
 /// </summary>
 /// <remarks>
-/// DEPRECATED: This implementation uses naive keyword matching which has been superseded by fuzzy phrase matching.
+/// This implementation uses naive keyword matching which has been superseded by fuzzy phrase matching.
 /// Use SemanticAnalyzerAdapter (wrapping SemanticAnalyzerService) instead for improved accuracy.
 /// This class is maintained for backward compatibility during migration but will be removed in a future release.
 /// Migration path: ILegalDirectiveClassifier now resolves to SemanticAnalyzerAdapter in DI container.
 /// </remarks>
-[Obsolete("Use SemanticAnalyzerAdapter with fuzzy phrase matching instead. This naive implementation will be removed after migration verification period.")]
 public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
 {
     private readonly ILogger<LegalDirectiveClassifierService> _logger;
@@ -180,7 +179,7 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             _logger.LogDebug("Detecting legal instruments in document text");
 
             var instruments = new List<string>();
-            
+
             // Pattern for Acuerdo (e.g., "Acuerdo 105/2021")
             var acuerdoPattern = new Regex(@"Acuerdo\s+(\d+/\d{4})", RegexOptions.IgnoreCase);
             var acuerdoMatches = acuerdoPattern.Matches(documentText);
@@ -301,9 +300,13 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
     private static readonly string[] InformationKeywords = { "INFORMACIÓN", "INFORMAR", "REPORTAR", "COMUNICAR" };
 
     private static bool ContainsBlockDirective(string text) => BlockKeywords.Any(keyword => text.Contains(keyword));
+
     private static bool ContainsUnblockDirective(string text) => UnblockKeywords.Any(keyword => text.Contains(keyword));
+
     private static bool ContainsDocumentDirective(string text) => DocumentKeywords.Any(keyword => text.Contains(keyword));
+
     private static bool ContainsTransferDirective(string text) => TransferKeywords.Any(keyword => text.Contains(keyword));
+
     private static bool ContainsInformationDirective(string text) => InformationKeywords.Any(keyword => text.Contains(keyword));
 
     /// <summary>
@@ -439,10 +442,10 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
             // Pattern 4: Formatted amounts with at least 2 commas (to distinguish from account numbers)
             new Regex(@"(\d{1,3}(?:,\d{3}){2,}(?:\.\d{2})?)", RegexOptions.IgnoreCase)
         };
-        
+
         Match? bestMatch = null;
         int bestPatternPriority = int.MaxValue;
-        
+
         // Try each pattern in priority order
         for (int i = 0; i < amountPatterns.Length; i++)
         {
@@ -452,10 +455,10 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
                 // Skip if this looks like an account number (all digits, no formatting context)
                 var amountValue = match.Groups[1].Value;
                 var digitsOnly = amountValue.Replace(",", "").Replace(".", "");
-                
+
                 // Skip if it's a long number without commas/formatting that could be an account number
-                if (digitsOnly.Length >= 10 && 
-                    !match.Value.Contains("$") && 
+                if (digitsOnly.Length >= 10 &&
+                    !match.Value.Contains("$") &&
                     !match.Value.Contains("monto", StringComparison.OrdinalIgnoreCase) &&
                     !match.Value.Contains("cantidad", StringComparison.OrdinalIgnoreCase) &&
                     !match.Value.Contains("importe", StringComparison.OrdinalIgnoreCase) &&
@@ -464,10 +467,10 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
                 {
                     continue; // Likely an account number, skip it
                 }
-                
+
                 // Prefer matches from higher priority patterns (lower index)
                 // Also prefer longer matches (more complete amounts)
-                if (bestMatch == null || 
+                if (bestMatch == null ||
                     (i < bestPatternPriority) ||
                     (i == bestPatternPriority && match.Value.Length > bestMatch.Value.Length))
                 {
@@ -476,7 +479,7 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
                 }
             }
         }
-        
+
         if (bestMatch != null)
         {
             // Extract the numeric part from group 1 (all patterns use group 1 for the amount)
@@ -555,4 +558,3 @@ public class LegalDirectiveClassifierService : ILegalDirectiveClassifier
         // We'll handle this in Gap 2 with precedence rules
     }
 }
-

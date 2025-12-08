@@ -32,9 +32,9 @@ public sealed class SearchExtractionStrategyTests
         var result = await strategy.ExtractAsync(docxSource, fieldDefinitions);
 
         // Assert
-        result.IsSuccess.Should().BeTrue("search strategy should resolve backward reference");
-        result.Value.Should().NotBeNull();
-        result.Value!.AdditionalFields["Monto"].Should().Be("$100,000.00", "should find referenced amount");
+        result.IsSuccess.ShouldBeTrue("search strategy should resolve backward reference");
+        result.Value.ShouldNotBeNull();
+        result.Value!.AdditionalFields["Monto"].ShouldBe("$100,000.00", "should find referenced amount");
     }
 
     [Fact]
@@ -56,9 +56,9 @@ public sealed class SearchExtractionStrategyTests
         var result = await strategy.ExtractAsync(docxSource, fieldDefinitions);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.AdditionalFields["RFC"].Should().Be("XAXX010101000", "should find referenced RFC");
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.AdditionalFields["RFC"].ShouldBe("XAXX010101000", "should find referenced RFC");
     }
 
     [Fact]
@@ -80,9 +80,9 @@ public sealed class SearchExtractionStrategyTests
         var result = await strategy.ExtractAsync(docxSource, fieldDefinitions);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.Expediente.Should().Be("A/AS1-2505-088637-PHM", "should find referenced expediente");
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Expediente.ShouldBe("A/AS1-2505-088637-PHM", "should find referenced expediente");
     }
 
     [Fact]
@@ -103,10 +103,10 @@ public sealed class SearchExtractionStrategyTests
         var result = await strategy.ExtractAsync(docxSource, fieldDefinitions);
 
         // Assert
-        result.IsSuccess.Should().BeTrue("should extract directly when no references");
-        result.Value.Should().NotBeNull();
-        result.Value!.AdditionalFields["RFC"].Should().Be("XAXX010101000");
-        result.Value!.Causa.Should().Be("Transferencia");
+        result.IsSuccess.ShouldBeTrue("should extract directly when no references");
+        result.Value.ShouldNotBeNull();
+        result.Value!.AdditionalFields["RFC"].ShouldBe("XAXX010101000");
+        result.Value!.Causa.ShouldBe("Transferencia");
     }
 
     [Fact]
@@ -127,10 +127,10 @@ public sealed class SearchExtractionStrategyTests
         var result = await strategy.ExtractAsync(docxSource, fieldDefinitions);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeNull();
-        result.Value!.AdditionalFields["RFC"].Should().Be("XAXX010101000", "should resolve RFC reference");
-        result.Value!.AdditionalFields["Monto"].Should().Be("$50,000.00", "should resolve amount reference");
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.AdditionalFields["RFC"].ShouldBe("XAXX010101000", "should resolve RFC reference");
+        result.Value!.AdditionalFields["Monto"].ShouldBe("$50,000.00", "should resolve amount reference");
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public sealed class SearchExtractionStrategyTests
         var canHandle = strategy.CanHandle(structure);
 
         // Assert
-        canHandle.Should().BeTrue("search strategy should handle documents with cross-references");
+        canHandle.ShouldBeTrue("search strategy should handle documents with cross-references");
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public sealed class SearchExtractionStrategyTests
         var canHandle = strategy.CanHandle(structure);
 
         // Assert
-        canHandle.Should().BeTrue("search strategy can still extract even without cross-references");
+        canHandle.ShouldBeTrue("search strategy can still extract even without cross-references");
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public sealed class SearchExtractionStrategyTests
         var confidence = strategy.CalculateConfidence(structure);
 
         // Assert
-        confidence.Should().Be(0.90f, "high confidence when cross-references detected");
+        confidence.ShouldBe(0.90f, "high confidence when cross-references detected");
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public sealed class SearchExtractionStrategyTests
         var confidence = strategy.CalculateConfidence(structure);
 
         // Assert
-        confidence.Should().Be(0.60f, "medium confidence when no cross-references");
+        confidence.ShouldBe(0.60f, "medium confidence when no cross-references");
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public sealed class SearchExtractionStrategyTests
         var type = strategy.StrategyType;
 
         // Assert
-        type.Should().Be(DocxExtractionStrategy.Search);
+        type.ShouldBe(DocxExtractionStrategy.Search);
     }
 
     // Helper methods to create test DOCX documents

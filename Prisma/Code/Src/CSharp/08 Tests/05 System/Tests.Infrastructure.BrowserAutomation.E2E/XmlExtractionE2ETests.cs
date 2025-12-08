@@ -1,6 +1,3 @@
-using ExxerCube.Prisma.Domain.Entities;
-using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
-
 namespace ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E;
 
 /// <summary>

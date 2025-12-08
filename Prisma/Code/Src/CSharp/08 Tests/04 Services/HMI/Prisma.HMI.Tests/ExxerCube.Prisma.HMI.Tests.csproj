@@ -20,4 +20,7 @@
     <PackageReference Include="IndFusion.Ember" />
     <PackageReference Include="IndQuestResults" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+  </ItemGroup>
 </Project>

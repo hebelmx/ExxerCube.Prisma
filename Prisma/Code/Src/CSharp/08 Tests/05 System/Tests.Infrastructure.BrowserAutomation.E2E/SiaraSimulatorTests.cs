@@ -1,6 +1,3 @@
-using System.Net;
-using System.Net.Sockets;
-
 namespace ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E;
 
 /// <summary>

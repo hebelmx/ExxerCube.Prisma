@@ -1,4 +1,4 @@
-using System.Text;
+using ExxerCube.Prisma.Testing.Infrastructure;
 
 namespace ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E;
 

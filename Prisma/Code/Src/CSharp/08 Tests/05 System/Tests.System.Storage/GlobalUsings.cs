@@ -1,13 +1,37 @@
 // Global using directives
 
+global using System.Data;
+global using System.IO;
+global using System.Linq;
+global using System.Net.Http;
+global using System.Net.Http.Headers;
+global using System.Text;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
 global using CSnakes.Runtime;
+global using ExxerCube.Prisma.Application.Services;
 global using ExxerCube.Prisma.Domain.Entities;
 global using ExxerCube.Prisma.Domain.Enum;
+global using ExxerCube.Prisma.Domain.Enums;
+global using ExxerCube.Prisma.Domain.Events;
 global using ExxerCube.Prisma.Domain.Interfaces;
 global using ExxerCube.Prisma.Domain.Models;
+global using ExxerCube.Prisma.Domain.Sources;
 global using ExxerCube.Prisma.Domain.ValueObjects;
+global using ExxerCube.Prisma.Infrastructure.Database;
+global using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
+global using ExxerCube.Prisma.Infrastructure.Database.Services;
+global using ExxerCube.Prisma.Infrastructure.Events;
 global using ExxerCube.Prisma.Infrastructure.Extraction;
+global using ExxerCube.Prisma.Infrastructure.Extraction.Ocr;
+global using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
+global using ExxerCube.Prisma.Infrastructure.Imaging;
+global using ExxerCube.Prisma.Testing.Infrastructure;
+global using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
 global using IndQuestResults;
 global using Meziantou.Extensions.Logging.Xunit.v3;
+global using Microsoft.Data.SqlClient;
+global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+global using Shouldly;

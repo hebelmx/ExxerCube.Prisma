@@ -7,7 +7,6 @@ global using System.Reflection;
 global using ExxerCube.Prisma.Domain;
 global using ExxerCube.Prisma.Application;
 global using ExxerCube.Prisma.Infrastructure;
-global using ExxerCube.Prisma.Testing.Abstractions;
 global using IndQuestResults;
 global using IndQuestResults.Async;
 global using IndQuestResults.Operations;
@@ -16,5 +15,3 @@ global using Microsoft.Extensions.Logging;
 global using Shouldly;
 global using Xunit;
 global using NetArchTest.Rules;
-
-

@@ -1,12 +1,3 @@
-using IndFusion.Ember.Abstractions.Hubs;
-using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute;
-using Prisma.Orion.HealthChecks;
-using Prisma.Orion.Ingestion;
-using Prisma.Shared.Contracts;
-using Shouldly;
-using Xunit;
-
 namespace Prisma.Orion.HealthChecks.Tests;
 
 /// <summary>
@@ -37,7 +28,7 @@ public sealed class OrionHealthCheckServiceTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Status.ShouldBe(HealthStatus.Healthy);
+        result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Description.ShouldContain("running", Case.Insensitive);
     }
 
@@ -58,7 +49,7 @@ public sealed class OrionHealthCheckServiceTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Status.ShouldBe(HealthStatus.Healthy);
+        result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Description.ShouldContain("ready", Case.Insensitive);
     }
 
@@ -79,7 +70,7 @@ public sealed class OrionHealthCheckServiceTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Status.ShouldBe(HealthStatus.Healthy);
+        result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Data.ShouldNotBeNull();
         result.Data.ShouldContainKey("liveness");
         result.Data.ShouldContainKey("readiness");
@@ -153,7 +144,7 @@ public sealed class OrionHealthCheckServiceTests
         // Assert - Railway-Oriented Programming
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value!.Status.ShouldBe(HealthStatus.Healthy);
+        result.Value!.Status.ShouldBe(OrchestratorHealthState.Healthy);
     }
 
     [Fact]
@@ -175,7 +166,7 @@ public sealed class OrionHealthCheckServiceTests
         // Assert - Railway-Oriented Programming
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value!.Status.ShouldBe(HealthStatus.Healthy);
+        result.Value!.Status.ShouldBe(OrchestratorHealthState.Healthy);
     }
 
     [Fact]
@@ -197,7 +188,7 @@ public sealed class OrionHealthCheckServiceTests
         // Assert - Railway-Oriented Programming
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value!.Status.ShouldBe(HealthStatus.Healthy);
+        result.Value!.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Value.Data.ShouldNotBeNull();
         result.Value!.Data.ShouldContainKey("liveness");
         result.Value!.Data.ShouldContainKey("readiness");

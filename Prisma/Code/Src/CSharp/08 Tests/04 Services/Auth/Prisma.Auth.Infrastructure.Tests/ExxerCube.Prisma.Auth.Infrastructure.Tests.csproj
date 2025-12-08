@@ -18,4 +18,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\04 Services\Auth\Prisma.Auth.Infrastructure\ExxerCube.Prisma.Auth.Infrastructure.csproj" />
+  </ItemGroup>
 </Project>

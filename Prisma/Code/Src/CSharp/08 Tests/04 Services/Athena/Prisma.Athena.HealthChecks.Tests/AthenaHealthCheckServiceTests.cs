@@ -1,11 +1,3 @@
-using ExxerCube.Prisma.Domain.Interfaces;
-using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute;
-using Prisma.Athena.HealthChecks;
-using Prisma.Athena.Processing;
-using Shouldly;
-using Xunit;
-
 namespace Prisma.Athena.HealthChecks.Tests;
 
 /// <summary>
@@ -34,7 +26,7 @@ public sealed class AthenaHealthCheckServiceTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Status.ShouldBe(HealthStatus.Healthy);
+        result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Description.ShouldContain("running", Case.Insensitive);
     }
 
@@ -53,7 +45,7 @@ public sealed class AthenaHealthCheckServiceTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Status.ShouldBe(HealthStatus.Healthy);
+        result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Description.ShouldContain("ready", Case.Insensitive);
     }
 
@@ -72,7 +64,7 @@ public sealed class AthenaHealthCheckServiceTests
 
         // Assert
         result.ShouldNotBeNull();
-        result.Status.ShouldBe(HealthStatus.Healthy);
+        result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Data.ShouldNotBeNull();
         result.Data.ShouldContainKey("liveness");
         result.Data.ShouldContainKey("readiness");

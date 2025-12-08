@@ -193,31 +193,3 @@ public sealed class AdaptiveDocxFixtureService
         return normalized;
     }
 }
-
-/// <summary>
-/// Represents a predefined DOCX fixture available for adaptive extraction testing.
-/// Each fixture represents a specific document type, structure, and persona scenario.
-/// </summary>
-/// <param name="Key">The unique identifier key for the fixture, used for lookup operations. Case-insensitive.</param>
-/// <param name="DisplayName">The human-readable display name shown in UI components.</param>
-/// <param name="FileName">The name of the DOCX file in the fixtures directory.</param>
-/// <param name="Description">A detailed description of the fixture's characteristics and use case.</param>
-/// <param name="Persona">The persona or document type classification (e.g., "IMSS remit / structured labels").</param>
-public sealed record AdaptiveDocxFixture(
-    string Key,
-    string DisplayName,
-    string FileName,
-    string Description,
-    string Persona);
-
-/// <summary>
-/// Represents the loaded content of a DOCX fixture, including the fixture metadata,
-/// extracted plain text, and the full file system path.
-/// </summary>
-/// <param name="Fixture">The fixture metadata describing the document type and characteristics.</param>
-/// <param name="Text">The plain text content extracted from the DOCX file, with normalized spacing.</param>
-/// <param name="FullPath">The absolute file system path to the source DOCX file.</param>
-public sealed record DocxFixtureContent(
-    AdaptiveDocxFixture Fixture,
-    string Text,
-    string FullPath);

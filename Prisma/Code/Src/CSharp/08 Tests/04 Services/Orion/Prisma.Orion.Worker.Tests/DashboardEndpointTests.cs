@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Prisma.Orion.HealthChecks;
 using Prisma.Orion.Worker;
@@ -125,17 +126,4 @@ public sealed class DashboardEndpointTests
         stats.ShouldNotBeNull();
         stats.QueueDepth.ShouldBeGreaterThanOrEqualTo(0);
     }
-}
-
-/// <summary>
-/// Dashboard statistics DTO for testing.
-/// </summary>
-public record DashboardStats
-{
-    public string WorkerName { get; init; } = string.Empty;
-    public int DocumentsProcessed { get; init; }
-    public DateTime? LastEventTime { get; init; }
-    public DateTime? LastHeartbeat { get; init; }
-    public int QueueDepth { get; init; }
-    public string Status { get; init; } = string.Empty;
 }

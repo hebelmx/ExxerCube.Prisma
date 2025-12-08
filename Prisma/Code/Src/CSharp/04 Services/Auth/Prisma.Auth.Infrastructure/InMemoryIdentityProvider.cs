@@ -1,5 +1,3 @@
-using Prisma.Auth.Domain.Interfaces;
-
 namespace Prisma.Auth.Infrastructure;
 
 /// <summary>

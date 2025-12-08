@@ -363,10 +363,3 @@ public sealed class EfCoreIdentityAdapterTests
         result.IsCancelled().ShouldBeTrue();
     }
 }
-
-/// <summary>
-/// Test identity user for testing purposes.
-/// </summary>
-public class TestIdentityUser : IdentityUser
-{
-}

@@ -65,6 +65,7 @@
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export.Adaptive\ExxerCube.Prisma.Infrastructure.Export.Adaptive.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
+    <ProjectReference Include="..\..\..\04 Services\CrossConcerns\ExxerCube.Prisma.CrossConcerns\ExxerCube.Prisma.CrossConcerns.csproj" />
     
   </ItemGroup>
   <ItemGroup>
