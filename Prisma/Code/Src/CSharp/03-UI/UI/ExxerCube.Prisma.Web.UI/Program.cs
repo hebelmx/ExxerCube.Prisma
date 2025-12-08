@@ -16,6 +16,7 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
+using ExxerCube.Prisma.Web.UI.Middleware;
 
 namespace ExxerCube.Prisma.Web.UI;
 
@@ -86,6 +87,10 @@ Inner Stack Trace:
             }
 
             // Configure the HTTP request pipeline.
+            // Add global exception handler middleware for rich contextual logging
+            // This catches all unhandled exceptions and logs them with request details, user info, etc.
+            app.UseGlobalExceptionHandler();
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -228,7 +233,7 @@ Inner Stack Trace:
             options.UseSqlServer(identityConnectionString));
         services.AddDatabaseDeveloperPageExceptionFilter();
 
-        services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+        services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddSignInManager()
             .AddDefaultTokenProviders();
@@ -308,7 +313,7 @@ Inner Stack Trace:
         //        tags: new[] { "sla", "background", "ready" });
 
         // Add SignalR event broadcaster for real-time event streaming to UI
-        // services.AddHostedService<Services.SignalREventBroadcaster>();
+        services.AddHostedService<Services.SignalREventBroadcaster>();
     }
 
     /// <summary>

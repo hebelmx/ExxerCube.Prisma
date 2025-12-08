@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 namespace ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations;
 
 /// <summary>
@@ -8,6 +10,13 @@ public class PersonaConfiguration : IEntityTypeConfiguration<Persona>
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<Persona> builder)
     {
+        // Value comparer for RfcVariants collection
+        var rfcVariantsComparer = new ValueComparer<List<string>>(
+            (l, r) => (l == null && r == null) || (l != null && r != null && l.SequenceEqual(r)),
+            v => v == null ? 0 : v.Aggregate(0, (a, s) => HashCode.Combine(a, s)),
+            v => v == null ? new List<string>() : v.ToList()
+        );
+
         builder.ToTable("Persona");
 
         builder.HasKey(p => p.ParteId);
@@ -50,7 +59,8 @@ public class PersonaConfiguration : IEntityTypeConfiguration<Persona>
             .HasConversion(
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
-            .HasMaxLength(2000);
+            .HasMaxLength(2000)
+            .Metadata.SetValueComparer(rfcVariantsComparer);
 
         // Index for RFC lookup performance
         builder.HasIndex(p => p.Rfc)

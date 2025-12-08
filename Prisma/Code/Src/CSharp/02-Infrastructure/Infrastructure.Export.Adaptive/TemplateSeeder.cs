@@ -38,6 +38,11 @@ public class TemplateSeeder
     {
         _logger.LogInformation("Starting template seeding process");
 
+        // Ensure database is created (for development/demo environments)
+        // This is safe to call even if the database already exists
+        await _dbContext.Database.EnsureCreatedAsync(cancellationToken);
+        _logger.LogInformation("Database ensured to exist");
+
         await SeedExcelTemplateAsync(cancellationToken);
         await SeedXmlTemplateAsync(cancellationToken);
 

@@ -22,6 +22,13 @@ public class ReviewDecisionConfiguration : IEntityTypeConfiguration<ReviewDecisi
             v => (v ?? DecisionType.Unknown).Value.GetHashCode(),
             v => DecisionType.FromValue((v ?? DecisionType.Unknown).Value));
 
+        // Value comparer for OverriddenFields dictionary
+        var overriddenFieldsComparer = new ValueComparer<Dictionary<string, object>>(
+            (l, r) => JsonSerializer.Serialize(l) == JsonSerializer.Serialize(r),
+            v => v == null ? 0 : JsonSerializer.Serialize(v).GetHashCode(),
+            v => v == null ? new Dictionary<string, object>() : new Dictionary<string, object>(v)
+        );
+
         builder.ToTable("ReviewDecisions");
 
         builder.HasKey(d => d.DecisionId);
@@ -64,7 +71,8 @@ public class ReviewDecisionConfiguration : IEntityTypeConfiguration<ReviewDecisi
             .HasConversion(
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, object>())
-            .HasMaxLength(4000);
+            .HasMaxLength(4000)
+            .Metadata.SetValueComparer(overriddenFieldsComparer);
 
         // Store OverriddenClassification as JSON
         builder.Property(d => d.OverriddenClassification)
