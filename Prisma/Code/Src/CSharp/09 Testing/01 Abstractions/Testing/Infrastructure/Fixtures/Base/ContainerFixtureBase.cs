@@ -1,4 +1,5 @@
 using DotNet.Testcontainers.Containers;
+using ExxerCube.Prisma.Testing.Infrastructure.Docker;
 
 namespace ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base;
 
@@ -88,6 +89,7 @@ public abstract class ContainerFixtureBase<TContainer> : IAsyncLifetime
     /// <summary>
     /// Asynchronously initializes the container.
     /// Called once per test collection by xUnit v3.
+    /// Checks Docker health and attempts auto-start before container initialization.
     /// </summary>
     /// <returns>A ValueTask representing the asynchronous initialization operation.</returns>
     public async ValueTask InitializeAsync()
@@ -95,6 +97,33 @@ public abstract class ContainerFixtureBase<TContainer> : IAsyncLifetime
         try
         {
             LogMessage($"🚀 Initializing {GetContainerTypeName()} container...");
+
+            // Check Docker health and attempt auto-start if needed
+            LogMessage("🔍 Checking Docker daemon status...");
+            var dockerStatus = await DockerHealthCheck.CheckAndStartDockerAsync();
+
+            if (!dockerStatus.IsRunning)
+            {
+                LogMessage($"❌ Docker daemon is not running: {dockerStatus.Message}");
+
+                if (!dockerStatus.IsInstalled)
+                {
+                    LogMessage("⚠️ Docker is not installed. Please install Docker Desktop:");
+                    LogMessage("   Windows/Mac: https://www.docker.com/products/docker-desktop");
+                    LogMessage("   Linux: https://docs.docker.com/engine/install/");
+                }
+                else
+                {
+                    LogMessage("⚠️ Docker is installed but could not be started automatically.");
+                    LogMessage("   Please start Docker manually and retry the tests.");
+                }
+
+                // DO NOT set connection string - leave it null/empty so tests FAIL clearly
+                // Tests will check IsAvailable and fail with meaningful error messages
+                return;
+            }
+
+            LogMessage("✅ Docker daemon is running");
 
             // Build container with defensive patterns
             Container = await BuildContainerAsync();
@@ -114,7 +143,7 @@ public abstract class ContainerFixtureBase<TContainer> : IAsyncLifetime
         catch (Exception ex) when (ex.Message.Contains("Docker", StringComparison.OrdinalIgnoreCase) ||
                                     ex.Message.Contains("daemon", StringComparison.OrdinalIgnoreCase))
         {
-            LogMessage($"⚠️ Docker-related error - {GetContainerTypeName()} container will not be started. Ensure Docker Desktop is running.");
+            LogMessage($"⚠️ Docker-related error - {GetContainerTypeName()} container will not be started.");
             LogMessage($"   Error: {ex.Message}");
 
             // DO NOT set connection string - leave it null/empty so tests FAIL clearly

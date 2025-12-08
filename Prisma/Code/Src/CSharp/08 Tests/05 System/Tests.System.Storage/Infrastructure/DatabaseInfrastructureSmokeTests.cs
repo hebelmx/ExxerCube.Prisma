@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Testing.Infrastructure.Docker;
+
 namespace ExxerCube.Prisma.Tests.System.Storage.Infrastructure;
 
 /// <summary>
@@ -26,6 +28,48 @@ public sealed class DatabaseInfrastructureSmokeTests : IDisposable
     {
         var fullMessage = $"{message}\nException: {ex.GetType().Name}: {ex.Message}\nStackTrace: {ex.StackTrace}";
         TestContext.Current?.SendDiagnosticMessage(fullMessage);
+    }
+
+    /// <summary>
+    /// Health check test to verify Docker/Podman is available before running container tests.
+    /// This test runs first and has a long timeout to allow Docker to start if needed.
+    /// </summary>
+    [Fact(Timeout = 90000)] // 90 seconds timeout to allow Docker/Podman to start
+    public async Task AAA_DockerOrPodman_ShouldBeAvailable()
+    {
+        Log("=== HEALTH CHECK: Docker/Podman Availability ===");
+        Log("This test verifies that a container runtime (Docker or Podman) is available.");
+        Log("If Docker/Podman is not running, the test will attempt to start it automatically.");
+        Log("");
+
+        // Check Docker/Podman status and attempt auto-start
+        var status = await DockerHealthCheck.CheckAndStartDockerAsync();
+
+        // Log detailed status information
+        Log($"Container Runtime Status:");
+        Log($"  - Installed: {status.IsInstalled}");
+        Log($"  - Running: {status.IsRunning}");
+        Log($"  - Runtime: {status.Runtime ?? "None"}");
+        Log($"  - Message: {status.Message}");
+        Log("");
+
+        // Assert that container runtime is available
+        status.IsInstalled.ShouldBeTrue(
+            "A container runtime (Docker or Podman) must be installed to run container tests.\n" +
+            "Please install one of the following:\n" +
+            "  - Docker Desktop: https://www.docker.com/products/docker-desktop\n" +
+            "  - Podman: https://podman.io/getting-started/installation");
+
+        status.IsRunning.ShouldBeTrue(
+            $"Container runtime ({status.Runtime ?? "unknown"}) is installed but not running.\n" +
+            status.Message + "\n" +
+            "The test attempted to start it automatically, but this may require:\n" +
+            "  - Starting Docker Desktop manually (Windows/Mac)\n" +
+            "  - Running with elevated permissions (Linux: sudo or docker group)\n" +
+            "  - Waiting for the container runtime to fully initialize");
+
+        Log($"✅ Container runtime ({status.Runtime}) is available and ready!");
+        Log("All subsequent container tests should now be able to run.");
     }
 
     [Fact]
