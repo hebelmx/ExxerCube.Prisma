@@ -73,8 +73,6 @@
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj" />
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\..\..\05 Testing\01-Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\05 Testing\01-Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\03 UI\UI\ExxerCube.Prisma.Web.UI\ExxerCube.Prisma.Web.UI.csproj" />
   </ItemGroup>
   <ItemGroup>

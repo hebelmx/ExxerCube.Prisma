@@ -65,9 +65,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\..\..\05 Testing\01-Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\05 Testing\01-Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\05 Testing\01-Abstractions\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\05 Testing\01 Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\05 Testing\01 Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\05 Testing\01 Abstractions\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />
