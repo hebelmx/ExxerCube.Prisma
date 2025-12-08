@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
-namespace Prisma.Athena.Worker.Tests;
+namespace ExxerCube.Prisma.Athena.Worker.Tests;
 
 /// <summary>
 /// Test application factory for Athena Worker with health endpoints.
 /// </summary>
-internal class AthenaWorkerApplication : WebApplicationFactory<Program>
+internal class AthenaWorkerApplication : WebApplicationFactory<global::Prisma.Athena.Worker.Program>
 {
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {

@@ -1,4 +1,4 @@
-namespace Prisma.Auth.Infrastructure.Tests;
+namespace ExxerCube.Prisma.Auth.Infrastructure.Tests;
 
 /// <summary>
 /// TDD tests for in-memory identity provider (dev/testing).

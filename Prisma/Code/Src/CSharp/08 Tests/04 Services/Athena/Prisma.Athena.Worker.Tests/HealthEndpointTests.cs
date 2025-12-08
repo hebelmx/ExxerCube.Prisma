@@ -1,10 +1,7 @@
-using Prisma.Athena.HealthChecks;
-using Prisma.Athena.Processing;
-using Prisma.Athena.Worker;
 using Shouldly;
 using Xunit;
 
-namespace Prisma.Athena.Worker.Tests;
+namespace ExxerCube.Prisma.Athena.Worker.Tests;
 
 /// <summary>
 /// TDD tests for Athena Worker health endpoints (liveness/readiness).

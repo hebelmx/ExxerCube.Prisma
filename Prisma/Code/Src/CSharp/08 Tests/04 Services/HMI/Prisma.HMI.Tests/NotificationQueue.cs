@@ -1,4 +1,4 @@
-namespace Prisma.HMI.Tests;
+namespace ExxerCube.Prisma.HMI.Tests;
 
 /// <summary>Simple FIFO notification queue implementation.</summary>
 public sealed class NotificationQueue : INotificationQueue

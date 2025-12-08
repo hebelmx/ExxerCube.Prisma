@@ -3,7 +3,7 @@ using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Prisma.Orion.Ingestion;
 
-namespace Prisma.Orion.Ingestion.Tests;
+namespace ExxerCube.Prisma.Orion.Ingestion.Tests;
 
 /// <summary>
 /// Stage 2.5 REFACTORED tests for IngestionOrchestrator using IExxerHub&lt;T&gt; and Result&lt;T&gt;.

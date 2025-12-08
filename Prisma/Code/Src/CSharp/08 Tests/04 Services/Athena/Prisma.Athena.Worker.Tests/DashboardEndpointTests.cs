@@ -1,12 +1,9 @@
-using ExxerCube.Prisma.Domain.Interfaces;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Prisma.Athena.HealthChecks;
-using Prisma.Athena.Worker;
-using Shouldly;
 using System.Text.Json;
+using ExxerCube.Prisma.Domain.Interfaces;
+using Shouldly;
 using Xunit;
 
-namespace Prisma.Athena.Worker.Tests;
+namespace ExxerCube.Prisma.Athena.Worker.Tests;
 
 /// <summary>
 /// TDD tests for Athena Worker dashboard endpoints (stats/metrics).

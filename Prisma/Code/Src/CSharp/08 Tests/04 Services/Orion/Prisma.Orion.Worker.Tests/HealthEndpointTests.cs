@@ -1,11 +1,7 @@
-using Microsoft.Extensions.Hosting;
-using Prisma.Orion.HealthChecks;
-using Prisma.Orion.Ingestion;
-using Prisma.Orion.Worker;
 using Shouldly;
 using Xunit;
 
-namespace Prisma.Orion.Worker.Tests;
+namespace ExxerCube.Prisma.Orion.Worker.Tests;
 
 /// <summary>
 /// TDD tests for Orion Worker health endpoints (liveness/readiness).

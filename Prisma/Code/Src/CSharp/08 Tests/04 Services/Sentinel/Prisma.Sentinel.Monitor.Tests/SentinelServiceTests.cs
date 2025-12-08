@@ -1,4 +1,4 @@
-namespace Prisma.Sentinel.Monitor.Tests;
+namespace ExxerCube.Prisma.Sentinel.Monitor.Tests;
 
 /// <summary>
 /// TDD tests for Sentinel monitoring service orchestration.

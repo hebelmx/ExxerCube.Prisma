@@ -1,4 +1,4 @@
-namespace Prisma.HMI.Tests;
+namespace ExxerCube.Prisma.HMI.Tests;
 
 /// <summary>Notification display model.</summary>
 public sealed record Notification(

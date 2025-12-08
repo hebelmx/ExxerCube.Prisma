@@ -1,4 +1,4 @@
-namespace Prisma.Composition.Tests;
+namespace ExxerCube.Prisma.Tests.Orchestration;
 
 /// <summary>
 /// ITDD tests proving DI composition and service resolution works correctly.

@@ -1,4 +1,4 @@
-namespace Prisma.Athena.HealthChecks.Tests;
+namespace ExxerCube.Prisma.Athena.HealthChecks.Tests;
 
 /// <summary>
 /// TDD tests for AthenaHealthCheckService.

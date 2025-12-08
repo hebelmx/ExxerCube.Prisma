@@ -1,4 +1,4 @@
-namespace Prisma.Orion.HealthChecks.Tests;
+namespace ExxerCube.Prisma.Orion.HealthChecks.Tests;
 
 /// <summary>
 /// TDD tests for OrionHealthCheckService.

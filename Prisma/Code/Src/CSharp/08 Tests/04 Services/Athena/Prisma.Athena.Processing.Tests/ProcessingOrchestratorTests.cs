@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Logging.Abstractions;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
+using Microsoft.Extensions.Logging.Abstractions;
 using Prisma.Athena.Processing;
 
-namespace Prisma.Athena.Processing.Tests;
+namespace ExxerCube.Prisma.Athena.Processing.Tests;
 
 /// <summary>
 /// ITDD tests for ProcessingOrchestrator proving pipeline coordination and event emission.

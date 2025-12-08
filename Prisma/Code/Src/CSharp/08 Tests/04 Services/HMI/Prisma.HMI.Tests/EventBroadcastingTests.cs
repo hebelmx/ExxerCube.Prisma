@@ -1,4 +1,4 @@
-namespace Prisma.HMI.Tests;
+namespace ExxerCube.Prisma.HMI.Tests;
 
 /// <summary>
 /// ITDD Stage 7: Tests for event broadcasting using IndFusion.Ember abstractions.

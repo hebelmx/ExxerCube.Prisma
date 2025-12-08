@@ -1,0 +1,1229 @@
+ 08 Tests (50 tests) [14:22.948] Failed: 66 tests failed
+  02 Infrastructure (16 tests) [4:34.389] Failed: 16 tests failed
+   ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (16 tests) [1:57.088] Failed: 16 tests failed
+    ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract (16 tests) [1:57.088] Failed: 16 tests failed
+     TesseractOcrExecutorEnhancedAggressiveTests (16 tests) [0:00.683] Failed: One or more child tests failed: 16 tests failed
+      Tesseract aggressive enhanced fixtures should exist (8 tests) [0:00.015] Failed: One or more child tests failed: 8 tests failed
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.008] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+Shouldly.ShouldAssertException
+File.Exists(fixturePath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\222AAA-44444444442025_page-0001.jpg
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.AggressiveEnhancedFixturesExist_AllQualityLevels(String qualityLevel, String imageName) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 115
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== Checking Aggressive Enhanced Fixture: Q1_Poor/222AAA-44444444442025_page-0001.jpg ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\222AAA-44444444442025_page-0001.jpg
+File.Exists check: False
+
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "333BBB-44444444442025_page1.png") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+Shouldly.ShouldAssertException
+File.Exists(fixturePath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333BBB-44444444442025_page1.png
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.AggressiveEnhancedFixturesExist_AllQualityLevels(String qualityLevel, String imageName) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 115
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== Checking Aggressive Enhanced Fixture: Q1_Poor/333BBB-44444444442025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333BBB-44444444442025_page1.png
+File.Exists check: False
+
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+Shouldly.ShouldAssertException
+File.Exists(fixturePath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333ccc-6666666662025_page1.png
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.AggressiveEnhancedFixturesExist_AllQualityLevels(String qualityLevel, String imageName) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 115
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== Checking Aggressive Enhanced Fixture: Q1_Poor/333ccc-6666666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333ccc-6666666662025_page1.png
+File.Exists check: False
+
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q1_Poor", imageName: "555CCC-66666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+Shouldly.ShouldAssertException
+File.Exists(fixturePath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\555CCC-66666662025_page1.png
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.AggressiveEnhancedFixturesExist_AllQualityLevels(String qualityLevel, String imageName) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 115
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== Checking Aggressive Enhanced Fixture: Q1_Poor/555CCC-66666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\555CCC-66666662025_page1.png
+File.Exists check: False
+
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "222AAA-44444444442025_page-0001.jpg") [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+Shouldly.ShouldAssertException
+File.Exists(fixturePath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.AggressiveEnhancedFixturesExist_AllQualityLevels(String qualityLevel, String imageName) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 115
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== Checking Aggressive Enhanced Fixture: Q2_MediumPoor/222AAA-44444444442025_page-0001.jpg ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg
+File.Exists check: False
+
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+Shouldly.ShouldAssertException
+File.Exists(fixturePath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333BBB-44444444442025_page1.png
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.AggressiveEnhancedFixturesExist_AllQualityLevels(String qualityLevel, String imageName) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 115
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== Checking Aggressive Enhanced Fixture: Q2_MediumPoor/333BBB-44444444442025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333BBB-44444444442025_page1.png
+File.Exists check: False
+
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+Shouldly.ShouldAssertException
+File.Exists(fixturePath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333ccc-6666666662025_page1.png
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.AggressiveEnhancedFixturesExist_AllQualityLevels(String qualityLevel, String imageName) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 115
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== Checking Aggressive Enhanced Fixture: Q2_MediumPoor/333ccc-6666666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333ccc-6666666662025_page1.png
+File.Exists check: False
+
+       Tesseract aggressive enhanced fixtures should exist(qualityLevel: "Q2_MediumPoor", imageName: "555CCC-66666662025_page1.png") [0:00.000] Failed: Shouldly.ShouldAssertException: File.Exists(fixturePath)
+Shouldly.ShouldAssertException
+File.Exists(fixturePath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\555CCC-66666662025_page1.png
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.AggressiveEnhancedFixturesExist_AllQualityLevels(String qualityLevel, String imageName) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 115
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== Checking Aggressive Enhanced Fixture: Q2_MediumPoor/555CCC-66666662025_page1.png ===
+AppContext.BaseDirectory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\
+Constructed path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\555CCC-66666662025_page1.png
+File.Exists check: False
+
+      Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better? (8 tests) [0:00.415] Failed: One or more child tests failed: 8 tests failed
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 80) [0:00.000] Failed: Shouldly.ShouldAssertException: fixturePath
+Shouldly.ShouldAssertException
+fixturePath
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    File.Exists(fixturePath)
+        should be
+    True
+        but was
+    False
+
+    Additional Info:
+        Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\222AAA-44444444442025_page-0001.jpg
+
+--------------- Error 2 ---------------
+    Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\222AAA-44444444442025_page-0001.jpg'.
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.ExecuteOcrAsync_AggressiveEnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 173
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== AGGRESSIVE ENHANCEMENT ROI TEST: Q1_Poor/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 80%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\222AAA-44444444442025_page-0001.jpg
+BASELINE (Phase 1): 78-92% confidence
+STANDARD ENHANCED (Phase 2): 80-93% confidence
+TARGET: 80%+ confidence (don't degrade from standard)
+
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 80) [0:00.001] Failed: Shouldly.ShouldAssertException: fixturePath
+Shouldly.ShouldAssertException
+fixturePath
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    File.Exists(fixturePath)
+        should be
+    True
+        but was
+    False
+
+    Additional Info:
+        Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333BBB-44444444442025_page1.png
+
+--------------- Error 2 ---------------
+    Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333BBB-44444444442025_page1.png'.
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.ExecuteOcrAsync_AggressiveEnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 173
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== AGGRESSIVE ENHANCEMENT ROI TEST: Q1_Poor/333BBB-44444444442025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 80%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333BBB-44444444442025_page1.png
+BASELINE (Phase 1): 78-92% confidence
+STANDARD ENHANCED (Phase 2): 80-93% confidence
+TARGET: 80%+ confidence (don't degrade from standard)
+
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 80) [0:00.001] Failed: Shouldly.ShouldAssertException: fixturePath
+Shouldly.ShouldAssertException
+fixturePath
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    File.Exists(fixturePath)
+        should be
+    True
+        but was
+    False
+
+    Additional Info:
+        Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333ccc-6666666662025_page1.png
+
+--------------- Error 2 ---------------
+    Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333ccc-6666666662025_page1.png'.
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.ExecuteOcrAsync_AggressiveEnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 173
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== AGGRESSIVE ENHANCEMENT ROI TEST: Q1_Poor/333ccc-6666666662025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 80%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\333ccc-6666666662025_page1.png
+BASELINE (Phase 1): 78-92% confidence
+STANDARD ENHANCED (Phase 2): 80-93% confidence
+TARGET: 80%+ confidence (don't degrade from standard)
+
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q1_Poor", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 80) [0:00.001] Failed: Shouldly.ShouldAssertException: fixturePath
+Shouldly.ShouldAssertException
+fixturePath
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    File.Exists(fixturePath)
+        should be
+    True
+        but was
+    False
+
+    Additional Info:
+        Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\555CCC-66666662025_page1.png
+
+--------------- Error 2 ---------------
+    Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\555CCC-66666662025_page1.png'.
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.ExecuteOcrAsync_AggressiveEnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 173
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== AGGRESSIVE ENHANCEMENT ROI TEST: Q1_Poor/555CCC-66666662025_page1.png ===
+Quality Level: Q1_Poor
+Expected Min Confidence: 80%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q1_Poor\555CCC-66666662025_page1.png
+BASELINE (Phase 1): 78-92% confidence
+STANDARD ENHANCED (Phase 2): 80-93% confidence
+TARGET: 80%+ confidence (don't degrade from standard)
+
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q2_MediumPoor", imageName: "222AAA-44444444442025_page-0001.jpg", expectedMinConfidence: 70) [0:00.406] Failed: Shouldly.ShouldAssertException: fixturePath
+Shouldly.ShouldAssertException
+fixturePath
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    File.Exists(fixturePath)
+        should be
+    True
+        but was
+    False
+
+    Additional Info:
+        Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg
+
+--------------- Error 2 ---------------
+    Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg'.
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.ExecuteOcrAsync_AggressiveEnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 173
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== AGGRESSIVE ENHANCEMENT ROI TEST: Q2_MediumPoor/222AAA-44444444442025_page-0001.jpg ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 70%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\222AAA-44444444442025_page-0001.jpg
+BASELINE (Phase 1): 42-53% confidence
+STANDARD ENHANCED (Phase 2): 60-75% (2/4 failed @ 70%)
+TARGET: 70%+ confidence (rescue 333BBB @ 69.62%, 333ccc @ 60.14%)
+CRITICAL: Can aggressive filters cross 70% threshold?
+
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q2_MediumPoor", imageName: "333BBB-44444444442025_page1.png", expectedMinConfidence: 70) [0:00.001] Failed: Shouldly.ShouldAssertException: fixturePath
+Shouldly.ShouldAssertException
+fixturePath
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    File.Exists(fixturePath)
+        should be
+    True
+        but was
+    False
+
+    Additional Info:
+        Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333BBB-44444444442025_page1.png
+
+--------------- Error 2 ---------------
+    Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333BBB-44444444442025_page1.png'.
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.ExecuteOcrAsync_AggressiveEnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 173
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== AGGRESSIVE ENHANCEMENT ROI TEST: Q2_MediumPoor/333BBB-44444444442025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 70%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333BBB-44444444442025_page1.png
+BASELINE (Phase 1): 42-53% confidence
+STANDARD ENHANCED (Phase 2): 60-75% (2/4 failed @ 70%)
+TARGET: 70%+ confidence (rescue 333BBB @ 69.62%, 333ccc @ 60.14%)
+CRITICAL: Can aggressive filters cross 70% threshold?
+
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q2_MediumPoor", imageName: "333ccc-6666666662025_page1.png", expectedMinConfidence: 70) [0:00.000] Failed: Shouldly.ShouldAssertException: fixturePath
+Shouldly.ShouldAssertException
+fixturePath
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    File.Exists(fixturePath)
+        should be
+    True
+        but was
+    False
+
+    Additional Info:
+        Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333ccc-6666666662025_page1.png
+
+--------------- Error 2 ---------------
+    Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333ccc-6666666662025_page1.png'.
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.ExecuteOcrAsync_AggressiveEnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 173
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== AGGRESSIVE ENHANCEMENT ROI TEST: Q2_MediumPoor/333ccc-6666666662025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 70%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\333ccc-6666666662025_page1.png
+BASELINE (Phase 1): 42-53% confidence
+STANDARD ENHANCED (Phase 2): 60-75% (2/4 failed @ 70%)
+TARGET: 70%+ confidence (rescue 333BBB @ 69.62%, 333ccc @ 60.14%)
+CRITICAL: Can aggressive filters cross 70% threshold?
+
+       Tesseract AGGRESSIVE ENHANCED: Can we rescue Q2 better?(qualityLevel: "Q2_MediumPoor", imageName: "555CCC-66666662025_page1.png", expectedMinConfidence: 70) [0:00.002] Failed: Shouldly.ShouldAssertException: fixturePath
+Shouldly.ShouldAssertException
+fixturePath
+    should satisfy all the conditions specified, but does not.
+The following errors were found ...
+--------------- Error 1 ---------------
+    File.Exists(fixturePath)
+        should be
+    True
+        but was
+    False
+
+    Additional Info:
+        Aggressive enhanced fixture should exist at F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\555CCC-66666662025_page1.png
+
+--------------- Error 2 ---------------
+    Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\555CCC-66666662025_page1.png'.
+
+-----------------------------------------
+   at ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract.TesseractOcrExecutorEnhancedAggressiveTests.ExecuteOcrAsync_AggressiveEnhancedImages_MeasuresROI(String qualityLevel, String imageName, Single expectedMinConfidence) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\02 Infrastructure\Tests.Infrastructure.Extraction.Teseract\TesseractOcrExecutorEnhancedAggressiveTests.cs:line 173
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+=== Initializing Tesseract AGGRESSIVE Enhanced Image Test Instance ===
+Testing AGGRESSIVELY enhanced Q1 and Q2 images
+WARNING: Includes binarization and deskewing (experimental)
+Tesseract executor created for aggressive enhanced image testing
+
+=== AGGRESSIVE ENHANCEMENT ROI TEST: Q2_MediumPoor/555CCC-66666662025_page1.png ===
+Quality Level: Q2_MediumPoor
+Expected Min Confidence: 70%
+Fixture path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Infrastructure.Extraction.Teseract\Debug\net10.0\Fixtures\PRP1_Enhanced_Aggressive\Q2_MediumPoor\555CCC-66666662025_page1.png
+BASELINE (Phase 1): 42-53% confidence
+STANDARD ENHANCED (Phase 2): 60-75% (2/4 failed @ 70%)
+TARGET: 70%+ confidence (rescue 333BBB @ 69.62%, 333ccc @ 60.14%)
+CRITICAL: Can aggressive filters cross 70% threshold?
+
+  05 System (33 tests) [1:09.135] Failed: 46 tests failed
+   ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E (17 tests) [0:03.061] Failed: 17 tests failed
+    ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E (17 tests) [0:03.061] Failed: 17 tests failed
+     OcrExtractionE2ETests (7 tests) [0:01.525] Failed: One or more child tests failed: 7 tests failed
+      ExtractFromPdf_AllPRP1Fixtures_ShouldExist [0:00.004] Failed: Shouldly.ShouldAssertException: failureCount
+Shouldly.ShouldAssertException
+failureCount
+    should be
+0
+    but was
+4
+
+Additional Info:
+    All PDF fixtures should exist
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_AllPRP1Fixtures_ShouldExist() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 256
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing OCR E2E tests...
+Smoke test: Verifying all 4 PDF fixtures exist
+  ✗ 222AAA-44444444442025.pdf: NOT FOUND
+  ✗ 333BBB-44444444442025.pdf: NOT FOUND
+  ✗ 333ccc-6666666662025.pdf: NOT FOUND
+  ✗ 555CCC-66666662025.pdf: NOT FOUND
+Smoke test results: 0 found, 4 missing
+OCR Extraction E2E tests completed
+
+      ExtractFromPdf_PRP1_222AAA_ShouldExistAndBeReadable [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444444442025.pdf
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_PRP1_222AAA_ShouldExistAndBeReadable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 109
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing OCR E2E tests...
+OCR Extraction E2E tests completed
+
+      ExtractFromPdf_PRP1_333BBB_ShouldExistAndBeReadable [0:01.498] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\333BBB-44444444442025.pdf
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_PRP1_333BBB_ShouldExistAndBeReadable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 131
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing OCR E2E tests...
+OCR Extraction E2E tests completed
+
+      ExtractFromPdf_PRP1_333ccc_ShouldExistAndBeReadable [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\333ccc-6666666662025.pdf
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_PRP1_333ccc_ShouldExistAndBeReadable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 149
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing OCR E2E tests...
+OCR Extraction E2E tests completed
+
+      ExtractFromPdf_PRP1_555CCC_ShouldExistAndBeReadable [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\555CCC-66666662025.pdf
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.OcrExtractionE2ETests.ExtractFromPdf_PRP1_555CCC_ShouldExistAndBeReadable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 167
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing OCR E2E tests...
+OCR Extraction E2E tests completed
+
+      Fixtures_PdfAndXml_ShouldHaveMatchingTwins [0:00.001] Failed: Shouldly.ShouldAssertException: File.Exists(pdfPath)
+Shouldly.ShouldAssertException
+File.Exists(pdfPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    PDF not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444444442025.pdf
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.OcrExtractionE2ETests.Fixtures_PdfAndXml_ShouldHaveMatchingTwins() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 203
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing OCR E2E tests...
+Validating PDF/XML twin pairs
+OCR Extraction E2E tests completed
+
+      Fixtures_PRP1Directory_ShouldContainPdfFiles [0:00.002] Failed: Shouldly.ShouldAssertException: pdfFiles.Length
+Shouldly.ShouldAssertException
+pdfFiles.Length
+    should be greater than or equal to
+4
+    but was
+0
+
+Additional Info:
+    Expected at least 4 PDF fixtures
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.OcrExtractionE2ETests.Fixtures_PRP1Directory_ShouldContainPdfFiles() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\OcrExtractionE2ETests.cs:line 84
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing OCR E2E tests...
+Validating PRP1 fixtures directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Found 0 PDF files in fixtures
+OCR Extraction E2E tests completed
+
+     XmlExtractionE2ETests (10 tests) [0:01.536] Failed: One or more child tests failed: 10 tests failed
+      ExtractFromXml_FieldCount_ShouldMeetMinimumBaseline [0:00.002] Failed: System.IO.FileNotFoundException: Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444…
+System.IO.FileNotFoundException
+Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444444442025.xml'.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_FieldCount_ShouldMeetMinimumBaseline() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 432
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_Performance_ShouldMeetTargets [0:00.003] Failed: System.IO.FileNotFoundException: Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444…
+System.IO.FileNotFoundException
+Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444444442025.xml'.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_Performance_ShouldMeetTargets() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 386
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_PRP1_222AAA_ShouldParseAllFields [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(xmlPath)
+Shouldly.ShouldAssertException
+File.Exists(xmlPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444444442025.xml
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_PRP1_222AAA_ShouldParseAllFields() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 109
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_PRP1_333BBB_ShouldParseAllFields [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(xmlPath)
+Shouldly.ShouldAssertException
+File.Exists(xmlPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\333BBB-44444444442025.xml
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_PRP1_333BBB_ShouldParseAllFields() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 177
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_PRP1_333ccc_ShouldParseAllFields [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(xmlPath)
+Shouldly.ShouldAssertException
+File.Exists(xmlPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\333ccc-6666666662025.xml
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_PRP1_333ccc_ShouldParseAllFields() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 207
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_PRP1_555CCC_ShouldParseAllFields [0:00.002] Failed: Shouldly.ShouldAssertException: File.Exists(xmlPath)
+Shouldly.ShouldAssertException
+File.Exists(xmlPath)
+    should be
+True
+    but was
+False
+
+Additional Info:
+    Fixture not found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\555CCC-66666662025.xml
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_PRP1_555CCC_ShouldParseAllFields() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 235
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_WithCnbvNamespace_ShouldParseCorrectly [0:00.001] Failed: System.IO.FileNotFoundException: Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444…
+System.IO.FileNotFoundException
+Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444444442025.xml'.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_WithCnbvNamespace_ShouldParseCorrectly() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 268
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_WithNullFields_ShouldHandleGracefully [0:00.001] Failed: System.IO.FileNotFoundException: Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444…
+System.IO.FileNotFoundException
+Could not find file 'F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1\222AAA-44444444442025.xml'.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_WithNullFields_ShouldHandleGracefully() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 297
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+XML Extraction E2E tests completed
+
+      ExtractFromXml_WithUTF8BOM_ShouldParseSuccessfully [0:01.502] Failed: Shouldly.ShouldAssertException: filesWithBOM
+Shouldly.ShouldAssertException
+filesWithBOM
+    should be greater than
+0
+    but was
+0
+
+Additional Info:
+    At least some fixtures should have BOM to test the feature
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.ExtractFromXml_WithUTF8BOM_ShouldParseSuccessfully() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 535
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+Testing UTF-8 BOM handling (critical for production files)
+Files with UTF-8 BOM: 0/0
+XML Extraction E2E tests completed
+
+      Fixtures_PRP1Directory_ShouldExist [0:00.001] Failed: Shouldly.ShouldAssertException: xmlFiles.Length
+Shouldly.ShouldAssertException
+xmlFiles.Length
+    should be greater than or equal to
+4
+    but was
+0
+
+Additional Info:
+    Expected at least 4 XML fixtures
+   at ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E.XmlExtractionE2ETests.Fixtures_PRP1Directory_ShouldExist() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.Infrastructure.BrowserAutomation.E2E\XmlExtractionE2ETests.cs:line 87
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Fixtures path found: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Current directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0
+Base directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\
+Initializing XML parser...
+XML parser initialized successfully
+Validating PRP1 fixtures directory: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E\Debug\net10.0\Fixtures\PRP1
+Found 0 XML files in fixtures
+XML Extraction E2E tests completed
+
+   ExxerCube.Prisma.Tests.System.Ocr.Pipeline (1 test) [0:50.672] Failed: 1 test failed
+    ExxerCube.Prisma.Tests.System.Ocr.Pipeline (1 test) [0:50.672] Failed: 1 test failed
+     DocumentPipelineEventPersistenceTests (1 test) [0:10.514] Failed: One or more child tests failed: 1 test failed
+      FullPipeline_PublishesMultipleEvents_AllPersistWithCorrectOrdering [0:07.038] Failed: Shouldly.ShouldAssertException: auditRecords.Count
+Shouldly.ShouldAssertException
+auditRecords.Count
+    should be
+2
+    but was
+0
+
+Additional Info:
+    Both ingestion and OCR events should be persisted
+   at ExxerCube.Prisma.Tests.System.Ocr.Pipeline.DocumentPipelineEventPersistenceTests.FullPipeline_PublishesMultipleEvents_AllPersistWithCorrectOrdering() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System\DocumentPipelineEventPersistenceTests.cs:line 215
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task, ConfigureAwaitOptions options)
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentDownloadedEvent with ID 72ec143c-59ea-4dc9-81e8-2a33fff04d78 (Correlation: 73d1d0ef-e77b-4c46-900d-4ebb24948179)
+Publishing event OcrCompletedEvent with ID 0d790cfe-fcfb-4c21-9f19-23902d1a26c0 (Correlation: 73d1d0ef-e77b-4c46-900d-4ebb24948179)
+EventPersistenceWorker stopping - unsubscribing from domain events
+
+   ExxerCube.Prisma.Tests.System.Storage (15 tests) [0:03.578] Failed: 28 tests failed
+    ExxerCube.Prisma.Tests.System.Storage (15 tests) [0:03.578] Failed: 28 tests failed
+     Infrastructure (3 tests) [0:00.832] Failed: 13 tests failed
+      DatabaseInfrastructureSmokeTests (2 tests) [0:00.433] Failed: One or more child tests failed: 6 tests failed
+       Database_ShouldExist_AndAcceptConnections [0:00.001] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldExist_AndAcceptConnections() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\Infrastructure\DatabaseInfrastructureSmokeTests.cs:line 46
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+       EFCore_ShouldCreateSchema_WhenApplyingMigrations [0:00.424] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.EFCore_ShouldCreateSchema_WhenApplyingMigrations() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\Infrastructure\DatabaseInfrastructureSmokeTests.cs:line 63
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+      OllamaInfrastructureSmokeTests (1 test) [0:00.398] Failed: One or more child tests failed: 7 tests failed
+       EmbeddingModel_ShouldGenerateEmbeddings [0:00.041] Failed: System.InvalidOperationException: Ollama container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+Ollama container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.EmbeddingModel_ShouldGenerateEmbeddings() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\Infrastructure\OllamaInfrastructureSmokeTests.cs:line 92
+   at Xunit.v3.TestRunner`2.<>c__DisplayClass5_0.<<InvokeTest>b__1>d.MoveNext() in /_/src/xunit.v3.core/Runners/TestRunner.cs:line 177
+--- End of stack trace from previous location ---
+   at Xunit.v3.ExceptionAggregator.RunAsync(Func`1 code) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 124
+
+
+     EventPersistenceWorkerIntegrationTests (11 tests) [0:00.002] Failed: One or more child tests failed: 11 tests failed
+      PersistEvent_ClassificationCompletedEvent_MapsCorrectly [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      PersistEvent_ConflictDetectedEvent_MapsCorrectly [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      PersistEvent_DocumentDownloadedEvent_SavesToDatabase [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      PersistEvent_DocumentFlaggedForReview_TracksDefensiveIntelligence [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      PersistEvent_DocumentProcessingCompletedEvent_MapsCorrectly [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      PersistEvent_OcrCompletedEvent_MapsCorrectly [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      PersistEvent_ProcessingErrorEvent_MarksAsFailure [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Constructor(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+
+
+      PersistEvent_SystemLevelError_AllowsNullFileId [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      PersistEvent_WithCorrelationId_PreservesTracing [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      PersistEvents_MultipleEvents_AllSavedInOrder [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+      Worker_StopAsync_StopsGracefully [0:00.000] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests..ctor(SqlServerContainerFixture fixture, ITestOutputHelper output) in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\EventPersistenceWorkerIntegrationTests.cs:line 41
+   at InvokeStub_EventPersistenceWorkerIntegrationTests..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+
+     Mission1HappyPathPipelineTests (1 test) [0:00.001] Failed: One or more child tests failed: 1 test failed
+      HappyPath_EndToEnd_PersistsCorrelationAuditAndStorage [0:00.001] Failed: System.InvalidOperationException: SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+System.InvalidOperationException
+SQL Server container is not available. Ensure Docker Desktop is running and containers have started.
+   at ExxerCube.Prisma.Testing.Infrastructure.Fixtures.Base.ContainerFixtureBase`1.EnsureAvailable() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\09 Testing\01 Abstractions\Testing\Infrastructure\Fixtures\Base\ContainerFixtureBase.cs:line 163
+   at ExxerCube.Prisma.Tests.System.Storage.Mission1HappyPathPipelineTests.InitializeAsync() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\05 System\Tests.System.Storage\Mission1HappyPathPipelineTests.cs:line 35
+   at Xunit.v3.XunitTestRunnerBase`2.CreateTestClassInstance(TContext ctxt) in /_/src/xunit.v3.core/Runners/XunitTestRunnerBase.cs:line 62
+   at Xunit.v3.ExceptionAggregator.RunAsync[T](Func`1 code, T defaultValue) in /_/src/xunit.v3.core/Exceptions/ExceptionAggregator.cs:line 146
+
+
+  09 Architecture (1 test) [2:25.357] Failed: 4 tests failed
+   ExxerCube.Prisma.Tests.Architecture (1 test) [2:25.357] Failed: 4 tests failed
+    ExxerCube.Prisma.Tests.Architecture (1 test) [2:25.357] Failed: 4 tests failed
+     HexagonalArchitectureTests (1 test) [2:25.357] Failed: One or more child tests failed: 4 tests failed
+      No_Stub_Implementations_Should_Exist [0:01.363] Failed: Shouldly.ShouldAssertException: violations
+Shouldly.ShouldAssertException
+violations
+    should be empty but had
+5
+    items and was
+["ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.CanHandle: Suspicious method body (10 bytes IL). Likely empty or only throws exception (stub implementation).", "ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.CanHandle: Suspicious method body (10 bytes IL). Likely empty or only throws exception (stub implementation).", "ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.Publish: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation).", "ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.GetEventStream: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation).", "ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.GetAllEventsStream: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation)."]
+
+Additional Info:
+    No stub/placeholder implementations should exist. Found 5 suspicious methods: ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.CanHandle: Suspicious method body (10 bytes IL). Likely empty or only throws exception (stub implementation).; ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.CanHandle: Suspicious method body (10 bytes IL). Likely empty or only throws exception (stub implementation).; ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.Publish: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation).; ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.GetEventStream: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation).; ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.GetAllEventsStream: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation). These indicate technical debt where implementations were created but not properly implemented.
+   at ExxerCube.Prisma.Tests.Architecture.HexagonalArchitectureTests.No_Stub_Implementations_Should_Exist() in F:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma\Prisma\Code\Src\CSharp\08 Tests\09 Architecture\Tests.Architecture\HexagonalArchitectureTests.cs:line 923
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Rule: No stub implementations. Count=5
+ - ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.CanHandle: Suspicious method body (10 bytes IL). Likely empty or only throws exception (stub implementation).
+ - ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.CanHandle: Suspicious method body (10 bytes IL). Likely empty or only throws exception (stub implementation).
+ - ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.Publish: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation).
+ - ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.GetEventStream: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation).
+ - ExxerCube.Prisma.Infrastructure.Events.InMemoryEventBus.GetAllEventsStream: Suspicious method body (7 bytes IL). Likely empty or only throws exception (stub implementation).

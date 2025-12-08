@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
-namespace Prisma.Orion.Worker.Tests;
+namespace ExxerCube.Prisma.Orion.Worker.Tests;
 
 /// <summary>
 /// Test application factory for Orion Worker with health endpoints.
 /// </summary>
-internal class OrionWorkerApplication : WebApplicationFactory<Program>
+internal class OrionWorkerApplication : WebApplicationFactory<global::Prisma.Orion.Worker.Program>
 {
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {

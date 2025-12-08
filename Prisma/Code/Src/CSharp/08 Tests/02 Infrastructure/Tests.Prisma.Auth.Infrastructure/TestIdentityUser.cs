@@ -1,4 +1,4 @@
-namespace Prisma.Auth.Infrastructure.Tests;
+namespace ExxerCube.Prisma.Auth.Infrastructure.Tests;
 
 /// <summary>
 /// Test identity user for testing purposes.
