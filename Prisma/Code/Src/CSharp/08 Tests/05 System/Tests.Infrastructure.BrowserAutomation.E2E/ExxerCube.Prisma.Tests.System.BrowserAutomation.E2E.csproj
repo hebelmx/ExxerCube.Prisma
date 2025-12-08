@@ -70,6 +70,11 @@
     <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <!-- Copy PRP1 fixtures (PDF + XML) from GotOcr2 test project -->
+  <ItemGroup Label="PRP1 Fixtures">
+    <None Include="..\..\02 Infrastructure\Tests.Infrastructure.Extraction.GotOcr2\Fixtures\PRP1\*.pdf" Link="Fixtures\PRP1\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\02 Infrastructure\Tests.Infrastructure.Extraction.GotOcr2\Fixtures\PRP1\*.xml" Link="Fixtures\PRP1\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />
     <ProjectCapability Include="TestingPlatformServer" />
