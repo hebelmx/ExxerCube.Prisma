@@ -65,8 +65,6 @@
     <ProjectReference Include="..\..\..\07 UI\UI\ExxerCube.Prisma.Web.UI\ExxerCube.Prisma.Web.UI.csproj" />
     <ProjectReference Include="..\..\..\01 Core\Application\ExxerCube.Prisma.Application.csproj" />
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\..\..\..\09 Testing\01 Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\..\..\..\..\09 Testing\01 Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />

@@ -17,9 +17,9 @@
     <PackageReference Include="Shouldly" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.Worker\Prisma.Orion.Worker.csproj" />
-    <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
-    <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.HealthChecks\Prisma.Orion.HealthChecks.csproj" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.HealthChecks\ExxerCube.Prisma.Orion.HealthChecks.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.Ingestion\ExxerCube.Prisma.Orion.Ingestion.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.Worker\ExxerCube.Prisma.Orion.Worker.csproj" />
   </ItemGroup>
 </Project>

@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
-    <ProjectReference Include="..\Prisma.Orion.HealthChecks\Prisma.Orion.HealthChecks.csproj" />
+    <ProjectReference Include="..\Prisma.Orion.HealthChecks\ExxerCube.Prisma.Orion.HealthChecks.csproj" />
+    <ProjectReference Include="..\Prisma.Orion.Ingestion\ExxerCube.Prisma.Orion.Ingestion.csproj" />
   </ItemGroup>
 </Project>

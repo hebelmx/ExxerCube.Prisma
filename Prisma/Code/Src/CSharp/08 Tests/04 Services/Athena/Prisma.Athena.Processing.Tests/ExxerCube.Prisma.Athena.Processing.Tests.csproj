@@ -63,7 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.Processing\Prisma.Athena.Processing.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.Processing\ExxerCube.Prisma.Athena.Processing.csproj" />
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

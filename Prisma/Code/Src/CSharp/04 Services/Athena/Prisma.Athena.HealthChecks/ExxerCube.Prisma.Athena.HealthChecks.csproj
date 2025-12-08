@@ -16,6 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\Prisma.Athena.Processing\Prisma.Athena.Processing.csproj" />
+    <ProjectReference Include="..\Prisma.Athena.Processing\ExxerCube.Prisma.Athena.Processing.csproj" />
   </ItemGroup>
 </Project>

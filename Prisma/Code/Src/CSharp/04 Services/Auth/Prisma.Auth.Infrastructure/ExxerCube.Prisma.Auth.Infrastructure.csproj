@@ -19,7 +19,4 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Prisma.Auth.Domain\Prisma.Auth.Domain.csproj" />
-  </ItemGroup>
 </Project>

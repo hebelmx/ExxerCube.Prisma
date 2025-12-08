@@ -78,22 +78,6 @@
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
   </ItemGroup>
-
-  <ItemGroup Label="Orchestration Layer References">
-    <!-- Orion - Document Ingestion Orchestrator -->
-    <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
-    <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.Worker\Prisma.Orion.Worker.csproj" />
-    <ProjectReference Include="..\..\..\06-Orion\Prisma.Orion.HealthChecks\Prisma.Orion.HealthChecks.csproj" />
-
-    <!-- Athena - Document Processing Orchestrator -->
-    <ProjectReference Include="..\..\..\06-Athena\Prisma.Athena.Processing\Prisma.Athena.Processing.csproj" />
-    <ProjectReference Include="..\..\..\06-Athena\Prisma.Athena.Worker\Prisma.Athena.Worker.csproj" />
-    <ProjectReference Include="..\..\..\06-Athena\Prisma.Athena.HealthChecks\Prisma.Athena.HealthChecks.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Label="Testing References">
-    <ProjectReference Include="..\..\..\..\..\..\..\09 Testing\01 Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
-  </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />
     <ProjectCapability Include="TestingPlatformServer" />

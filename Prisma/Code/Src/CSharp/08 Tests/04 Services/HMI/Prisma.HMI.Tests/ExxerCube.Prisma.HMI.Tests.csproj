@@ -20,8 +20,4 @@
     <PackageReference Include="IndFusion.Ember" />
     <PackageReference Include="IndQuestResults" />
   </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\04 Services\Shared\Prisma.Shared.Contracts\Prisma.Shared.Contracts.csproj" />
-    <ProjectReference Include="..\..\..\..\04 Services\Auth\Prisma.Auth.Domain\Prisma.Auth.Domain.csproj" />
-  </ItemGroup>
 </Project>

@@ -18,9 +18,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.Worker\Prisma.Athena.Worker.csproj" />
-    <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.Processing\Prisma.Athena.Processing.csproj" />
-    <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.HealthChecks\Prisma.Athena.HealthChecks.csproj" />
     <ProjectReference Include="..\..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.HealthChecks\ExxerCube.Prisma.Athena.HealthChecks.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.Processing\ExxerCube.Prisma.Athena.Processing.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.Worker\ExxerCube.Prisma.Athena.Worker.csproj" />
   </ItemGroup>
 </Project>

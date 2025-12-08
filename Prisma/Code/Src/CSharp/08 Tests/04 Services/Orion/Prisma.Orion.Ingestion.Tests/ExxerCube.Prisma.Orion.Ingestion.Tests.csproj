@@ -84,7 +84,7 @@
   <!-- ============================================================================ -->
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.Ingestion\Prisma.Orion.Ingestion.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.Ingestion\ExxerCube.Prisma.Orion.Ingestion.csproj" />
   </ItemGroup>
   <!-- ============================================================================ -->
   <!-- TESTING PLATFORM CAPABILITIES -->

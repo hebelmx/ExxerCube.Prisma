@@ -21,8 +21,4 @@
     <Using Include="IndQuestResults" />
     <Using Include="IndQuestResults.Operations" />
   </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\04 Services\Sentinel\Prisma.Sentinel.Monitor\Prisma.Sentinel.Monitor.csproj" />
-    <ProjectReference Include="..\..\..\..\04 Services\Shared\Prisma.Shared.Contracts\Prisma.Shared.Contracts.csproj" />
-  </ItemGroup>
 </Project>
