@@ -39,10 +39,10 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
         logger.LogInformation("RecommendedStrategy: {RecommendedStrategy} (expected: TableBased)", result.RecommendedStrategy);
 
         // Assert
-        result.HasTables.Should().BeTrue();
-        result.TableStructure.Should().NotBeNull();
-        result.TableStructure!.RowCount.Should().BeGreaterThan(1);
-        result.RecommendedStrategy.Should().Be(DocxExtractionStrategy.TableBased);
+        result.HasTables.ShouldBeTrue();
+        result.TableStructure.ShouldNotBeNull();
+        result.TableStructure!.RowCount.ShouldBeGreaterThan(1);
+        result.RecommendedStrategy.ShouldBe(DocxExtractionStrategy.TableBased);
 
         logger.LogInformation("✓ TEST PASSED");
     }
@@ -58,8 +58,8 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
         var result = analyzer.AnalyzeStructure(docxBytes);
 
         // Assert
-        result.HasCrossReferences.Should().BeTrue();
-        result.RecommendedStrategy.Should().Be(DocxExtractionStrategy.Hybrid);
+        result.HasCrossReferences.ShouldBeTrue();
+        result.RecommendedStrategy.ShouldBe(DocxExtractionStrategy.Hybrid);
     }
 
     [Fact]
@@ -73,10 +73,10 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
         var result = analyzer.AnalyzeStructure(docxBytes);
 
         // Assert
-        result.HasStructuredFormat.Should().BeFalse();
-        result.HasTables.Should().BeFalse();
-        result.HasBoldLabels.Should().BeFalse();
-        result.RecommendedStrategy.Should().Be(DocxExtractionStrategy.Fuzzy);
+        result.HasStructuredFormat.ShouldBeFalse();
+        result.HasTables.ShouldBeFalse();
+        result.HasBoldLabels.ShouldBeFalse();
+        result.RecommendedStrategy.ShouldBe(DocxExtractionStrategy.Fuzzy);
     }
 
     [Fact]
@@ -90,11 +90,11 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
         var result = analyzer.AnalyzeStructure(docxBytes);
 
         // Assert
-        result.TableStructure.Should().NotBeNull();
-        result.TableStructure!.HasHeaderRow.Should().BeTrue();
-        result.TableStructure.ColumnHeaders.Should().NotBeNull();
-        result.TableStructure.ColumnHeaders.Should().Contain("Expediente");
-        result.TableStructure.ColumnHeaders.Should().Contain("RFC");
+        result.TableStructure.ShouldNotBeNull();
+        result.TableStructure!.HasHeaderRow.ShouldBeTrue();
+        result.TableStructure.ColumnHeaders.ShouldNotBeNull();
+        result.TableStructure.ColumnHeaders.ShouldContain("Expediente");
+        result.TableStructure.ColumnHeaders.ShouldContain("RFC");
     }
 
     [Fact]
@@ -108,8 +108,8 @@ public sealed class DocxStructureAnalyzerTests(ITestOutputHelper output)
         var act = () => analyzer.AnalyzeStructure(emptyBytes);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("*cannot be null or empty*"); // Actual: "DOCX bytes cannot be null or empty. (Parameter 'docxBytes')"
+        var exception = act.ShouldThrow<ArgumentException>();
+        exception.Message.ShouldContain("cannot be null or empty");
     }
 
     // Helper methods to create test DOCX documents

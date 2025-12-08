@@ -16,9 +16,14 @@
     <PackageReference Include="IndQuestResults" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
   <ItemGroup Label="Global Usings">
     <Using Include="IndQuestResults" />
     <Using Include="IndQuestResults.Operations" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\04 Services\Sentinel\Prisma.Sentinel.Monitor\ExxerCube.Prisma.Sentinel.Monitor.csproj" />
+    <ProjectReference Include="..\..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
   </ItemGroup>
 </Project>

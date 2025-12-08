@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ExxerCube.Prisma.Application;
 using ExxerCube.Prisma.Infrastructure.DependencyInjection;
@@ -5,9 +6,11 @@ using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.FileStorage;
 using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Python;
 
 namespace ExxerCube.Prisma.Composition;
 
@@ -28,6 +31,9 @@ public static class PrismaServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="pythonConfiguration">The Python configuration for OCR services.</param>
+    /// <param name="connectionString">The database connection string.</param>
+    /// <param name="configureFileStorage">Action to configure file storage options.</param>
+    /// <param name="configuration">The configuration instance (optional, for additional settings).</param>
     /// <returns>The service collection for chaining.</returns>
     /// <remarks>
     /// <para>
@@ -49,12 +55,15 @@ public static class PrismaServiceCollectionExtensions
     /// </para>
     /// <code>
     /// // In Program.cs or Startup.cs:
-    /// services.AddPrismaInfrastructure(pythonConfig);
+    /// services.AddPrismaInfrastructure(pythonConfig, connectionString, options => configuration.GetSection("FileStorage").Bind(options), configuration);
     /// </code>
     /// </remarks>
     public static IServiceCollection AddPrismaInfrastructure(
         this IServiceCollection services,
-        PythonConfiguration pythonConfiguration)
+        PythonConfiguration pythonConfiguration,
+        string connectionString,
+        Action<FileStorageOptions> configureFileStorage,
+        IConfiguration? configuration = null)
     {
         // 1. Core extraction services (OCR, field extractors)
         services.AddExtractionServices();
@@ -66,10 +75,10 @@ public static class PrismaServiceCollectionExtensions
         services.AddClassificationServices();
 
         // 4. Database services (EF Core + Repositories)
-        services.AddDatabaseServices();
+        services.AddDatabaseServices(connectionString, configuration);
 
         // 5. File storage services (Azure Blob)
-        services.AddFileStorageServices();
+        services.AddFileStorageServices(configureFileStorage);
 
         // 6. Export services (PDF generation)
         services.AddExportServices();
