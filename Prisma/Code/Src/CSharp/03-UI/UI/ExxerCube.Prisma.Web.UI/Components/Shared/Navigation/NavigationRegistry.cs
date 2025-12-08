@@ -6,29 +6,6 @@ using FuzzySharp.Extractor;
 
 namespace ExxerCube.Prisma.Web.UI.Components.Shared.Navigation;
 
-internal sealed record NavigationSection(string Title, IReadOnlyList<NavigationLink> Links);
-
-internal sealed record NavigationLink(
-    string Title,
-    string Href,
-    string Icon,
-    string Description,
-    NavLinkMatch Match = NavLinkMatch.All,
-    string[]? Tags = null,
-    string[]? RequiredRoles = null,
-    bool RequiresAuthentication = false,
-    string? Policy = null,
-    bool IncludeInPrimaryNavigation = true,
-    string? DevelopmentSamplePath = null,
-    bool IsExample = false)
-{
-    public string? RolesCsv => RequiredRoles is { Length: > 0 } ? string.Join(',', RequiredRoles) : null;
-
-    public bool RequiresAuthorization => RequiresAuthentication || (RequiredRoles is { Length: > 0 }) || !string.IsNullOrWhiteSpace(Policy);
-
-    public string EffectiveDevelopmentHref => DevelopmentSamplePath ?? Href;
-}
-
 internal static class NavigationRegistry
 {
     private const int DefaultFuzzyCutoff = 60;
@@ -50,7 +27,7 @@ internal static class NavigationRegistry
             {
                 new NavigationLink(
                     "System Flow",
-                    "/system-flow",
+                    "/system-flow/dashboard",
                     Icons.Material.Filled.AccountTree,
                     "Interactive overview of the complete system flow from CNBV requirement creation to bank delivery. Perfect for stakeholders and system understanding.",
                     Match: NavLinkMatch.All,
