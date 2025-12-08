@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\Prisma.Athena.Processing\Prisma.Athena.Processing.csproj" />
+    <ProjectReference Include="..\Prisma.Athena.HealthChecks\Prisma.Athena.HealthChecks.csproj" />
+  </ItemGroup>
+</Project>
