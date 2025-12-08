@@ -1,0 +1,27 @@
+{
+  "total_cases": 17,
+  "by_scenario": {
+    "valid_perfect": 10,
+    "invalid_calculation": 2,
+    "invalid_missing_field": 2,
+    "invalid_image": 1,
+    "invalid_font": 1,
+    "invalid_overlap": 1
+  },
+  "by_product": {
+    "Vista": 7,
+    "Recompra": 2,
+    "Reporto": 1,
+    "CEDE": 2,
+    "Pagaré": 1,
+    "UDIBONO": 1,
+    "Fondos": 2,
+    "Acciones": 1
+  },
+  "by_severity": {
+    "none": 10,
+    "high": 2,
+    "critical": 2,
+    "medium": 3
+  }
+}
