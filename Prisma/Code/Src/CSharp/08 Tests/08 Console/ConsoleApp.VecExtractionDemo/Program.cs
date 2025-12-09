@@ -43,7 +43,7 @@ internal class Program
 
             var host = builder.Build();
             var logger = host.Services.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
-
+            logger.LogInformation("Is these project really working on??");
             // CSnakes will automatically create venv and install packages on first run
             Log.Information("Initializing Python environment (this may take several minutes on first run)...");
             Log.Information("- Downloading Python 3.13 redistributable if needed");

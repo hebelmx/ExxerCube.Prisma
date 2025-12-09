@@ -16,6 +16,10 @@
 @inject IDocumentComparisonService ComparisonService
 @inject IFusionExpediente FusionService
 @inject IBulkProcessingService BulkProcessingService
+@inject IFieldExtractor<PdfSource> PdfFieldExtractor
+@inject IFieldExtractor<XmlSource>? XmlFieldExtractor
+@inject IFieldExtractor<DocxSource>? DocxFieldExtractor
+@inject IFieldMatchingService? FieldMatchingService
 @inject ILogger<DocumentProcessing> Logger
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
@@ -608,6 +612,160 @@
                             </MudButton>
                         </MudStack>
                     </MudPaper>
+
+                    @if (pdfExpediente != null)
+                    {
+                        <MudDivider Class="my-4" />
+
+                        <!-- PDF Expediente Extracted Fields -->
+                        <MudPaper Class="pa-4" Elevation="2">
+                            <MudText Typo="Typo.h6" Class="mb-3">
+                                <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+                                Extracted Expediente from PDF - @currentPdfFixtureName
+                            </MudText>
+
+                            <MudAlert Severity="Severity.Success" Class="mb-3" Icon="@Icons.Material.Filled.CheckCircle">
+                                Successfully extracted <strong>@(GetFieldCount(pdfExpediente)) fields</strong> from PDF using field extraction service
+                            </MudAlert>
+
+                            <MudTabs Elevation="0" Rounded="true" Position="Position.Top" Color="Color.Primary">
+                                <MudTabPanel Text="Main Fields" Icon="@Icons.Material.Filled.Description">
+                                    <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="mt-3">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 30%;">Field Name</th>
+                                                <th style="width: 10%;"></th>
+                                                <th style="width: 60%;">Extracted Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Número de Expediente</strong></td>
+                                                <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                <td>
+                                                    <MudIcon Icon="@(string.IsNullOrWhiteSpace(pdfExpediente.NumeroExpediente) ? Icons.Material.Filled.Warning : Icons.Material.Filled.CheckCircle)"
+                                                             Color="@(string.IsNullOrWhiteSpace(pdfExpediente.NumeroExpediente) ? Color.Warning : Color.Success)"
+                                                             Size="Size.Small" Class="mr-2" />
+                                                    <MudChip T="string" Color="Color.Primary" Size="Size.Small">@(pdfExpediente.NumeroExpediente ?? "Not extracted")</MudChip>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Número de Oficio</strong></td>
+                                                <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                <td>
+                                                    <MudIcon Icon="@(string.IsNullOrWhiteSpace(pdfExpediente.NumeroOficio) ? Icons.Material.Filled.Warning : Icons.Material.Filled.CheckCircle)"
+                                                             Color="@(string.IsNullOrWhiteSpace(pdfExpediente.NumeroOficio) ? Color.Warning : Color.Success)"
+                                                             Size="Size.Small" Class="mr-2" />
+                                                    <MudChip T="string" Color="Color.Secondary" Size="Size.Small">@(pdfExpediente.NumeroOficio ?? "Not extracted")</MudChip>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Solicitud Siara</strong></td>
+                                                <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                <td>
+                                                    <MudIcon Icon="@(string.IsNullOrWhiteSpace(pdfExpediente.SolicitudSiara) ? Icons.Material.Filled.Warning : Icons.Material.Filled.CheckCircle)"
+                                                             Color="@(string.IsNullOrWhiteSpace(pdfExpediente.SolicitudSiara) ? Color.Warning : Color.Success)"
+                                                             Size="Size.Small" Class="mr-2" />
+                                                    <MudChip T="string" Color="Color.Info" Size="Size.Small">@(pdfExpediente.SolicitudSiara ?? "Not extracted")</MudChip>
+                                                </td>
+                                            </tr>
+                                            @if (pdfExpediente.FechaPublicacion.HasValue)
+                                            {
+                                                <tr>
+                                                    <td><strong>Fecha de Publicación</strong></td>
+                                                    <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                    <td>
+                                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                        @pdfExpediente.FechaPublicacion.Value.ToString("dd/MM/yyyy")
+                                                    </td>
+                                                </tr>
+                                            }
+                                            @if (pdfExpediente.DiasPlazo > 0)
+                                            {
+                                                <tr>
+                                                    <td><strong>Días de Plazo</strong></td>
+                                                    <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                    <td>
+                                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                        @pdfExpediente.DiasPlazo días
+                                                    </td>
+                                                </tr>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(pdfExpediente.AreaDescripcion))
+                                            {
+                                                <tr>
+                                                    <td><strong>Área Descripción</strong></td>
+                                                    <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                    <td>
+                                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                        @pdfExpediente.AreaDescripcion
+                                                    </td>
+                                                </tr>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(pdfExpediente.AutoridadNombre))
+                                            {
+                                                <tr>
+                                                    <td><strong>Autoridad Nombre</strong></td>
+                                                    <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                    <td>
+                                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                        @pdfExpediente.AutoridadNombre
+                                                    </td>
+                                                </tr>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(pdfExpediente.Referencia1))
+                                            {
+                                                <tr>
+                                                    <td><strong>Causa (Referencia1)</strong></td>
+                                                    <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                    <td>
+                                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                        @pdfExpediente.Referencia1
+                                                    </td>
+                                                </tr>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(pdfExpediente.Referencia2))
+                                            {
+                                                <tr>
+                                                    <td><strong>Acción Solicitada (Referencia2)</strong></td>
+                                                    <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                                    <td>
+                                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                        @pdfExpediente.Referencia2
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </MudSimpleTable>
+                                </MudTabPanel>
+
+                                <MudTabPanel Text="Complete Object" Icon="@Icons.Material.Filled.DataObject">
+                                    <MudText Typo="Typo.body2" Class="mb-3">
+                                        Complete dump of the extracted <code>Expediente</code> object from PDF showing all fields:
+                                    </MudText>
+                                    <MudTextField Value="@System.Text.Json.JsonSerializer.Serialize(pdfExpediente, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })"
+                                                 Label="Complete PDF Expediente Object (JSON)"
+                                                 ReadOnly="true"
+                                                 Variant="Variant.Outlined"
+                                                 Lines="25"
+                                                 Style="font-family: 'Courier New', monospace; font-size: 12px;" />
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-2"
+                                               OnClick="@(() => CopyToClipboard(System.Text.Json.JsonSerializer.Serialize(pdfExpediente, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })))">
+                                        <MudIcon Icon="@Icons.Material.Filled.ContentCopy" Class="mr-2" />
+                                        Copy to Clipboard
+                                    </MudButton>
+                                </MudTabPanel>
+                            </MudTabs>
+                        </MudPaper>
+                    }
+                    else if (ocrProcessingResult != null)
+                    {
+                        <MudDivider Class="my-4" />
+                        <MudAlert Severity="Severity.Warning" Class="mt-4" Icon="@Icons.Material.Filled.Warning">
+                            <strong>Field Extraction Incomplete:</strong> PDF was processed with OCR, but field extraction failed or returned no results.
+                            Check logs for details or try a different PDF fixture.
+                        </MudAlert>
+                    }
                 }
             </MudCardContent>
         </MudCard>
@@ -1271,6 +1429,16 @@
     private string currentPdfFixtureName = "";
     private byte[]? currentPdfBytes;
 
+    // Multi-source Expediente instances
+    private Expediente? pdfExpediente;   // Extracted from PDF via OCR
+    //private Expediente? docxExpediente;  // Extracted from DOCX (future)  commented out whill the impllmentation is finished
+
+
+    // Extraction metadata for fusion service
+    private ExtractionMetadata xmlMetadata = new();
+    private ExtractionMetadata pdfMetadata = new();
+    private ExtractionMetadata docxMetadata = new();
+
     // Comparison state
     private ComparisonResult? comparisonResult;
     private FusionResult? fusionResult;
@@ -1694,9 +1862,37 @@
                 ocrProcessingResult = result.Value;
                 currentPdfFixtureName = pdfFileName;
                 currentPdfBytes = pdfBytes; // Store PDF bytes for viewer
+
+                // NEW: Extract Expediente from OCR result using PdfOcrFieldExtractor
+                processingStatus = "Extracting fields...";
+                processingProgress = 80;
+                StateHasChanged();
+
+                var expedienteResult = await ExtractExpedienteFromOcrAsync(
+                    ocrProcessingResult,
+                    pdfBytes,
+                    CancellationToken.None);
+
+                if (expedienteResult.IsSuccess && expedienteResult.Value != null)
+                {
+                    pdfExpediente = expedienteResult.Value;
+                    Logger.LogInformation(
+                        "Successfully extracted Expediente from PDF: {NumeroExpediente}",
+                        pdfExpediente.NumeroExpediente);
+                }
+                else
+                {
+                    Logger.LogWarning(
+                        "Failed to extract Expediente from PDF: {Error}",
+                        expedienteResult.Error);
+                    errorMessage = $"Field extraction warning: {expedienteResult.Error}";
+                }
+
                 processingStatus = "Completed";
                 processingProgress = 100;
-                processingMessage = "PDF processed successfully with OCR";
+                processingMessage = pdfExpediente != null
+                    ? "PDF OCR processing and field extraction completed successfully"
+                    : "PDF OCR completed, but field extraction failed";
 
                 Snackbar.Add(
                     $"Success! OCR confidence: {ocrProcessingResult.OCRResult.ConfidenceAvg:F1}%, extracted {ocrProcessingResult.OCRResult.Text.Length} characters from {pdfFileName}",
@@ -1745,11 +1941,16 @@
 
             Logger.LogInformation("Starting comparison: XML vs OCR");
 
-            // Create Expediente from OCR processing result
-            var ocrExpediente = ParseOcrToExpediente(ocrProcessingResult!);
+            // Use the already-extracted pdfExpediente (from LoadPdfFixture → ExtractExpedienteFromOcrAsync)
+            // If not available, skip comparison
+            if (pdfExpediente == null)
+            {
+                Snackbar.Add("PDF Expediente not extracted. Please reload the PDF fixture.", Severity.Warning);
+                return;
+            }
 
             // Perform simple comparison (for compatibility)
-            comparisonResult = await ComparisonService.CompareExpedientesAsync(xmlExpediente!, ocrExpediente);
+            comparisonResult = await ComparisonService.CompareExpedientesAsync(xmlExpediente!, pdfExpediente);
 
             // Perform intelligent 3-way fusion (XML + OCR + DOCX if available)
             processingStatus = "Performing intelligent fusion...";
@@ -1772,7 +1973,7 @@
                 MeanConfidence = ocrProcessingResult!.OCRResult.ConfidenceAvg / 100.0,
                 QualityIndex = 0.8, // Default for demo
                 RegexMatches = 0,
-                TotalFieldsExtracted = CountExtractedFields(ocrExpediente),
+                TotalFieldsExtracted = CountExtractedFields(pdfExpediente),
                 PatternViolations = 0,
                 CatalogValidations = 0
             };
@@ -1789,14 +1990,14 @@
             // Call fusion service (DOCX is null for now - 2-way fusion)
             var fusionResultResponse = await FusionService.FuseAsync(
                 xmlExpediente,
-                ocrExpediente,
+                pdfExpediente,
                 null, // DOCX not used for these demo
                 xmlMetadata,
                 ocrMetadata,
                 docxMetadata,
                 CancellationToken.None);
 
-            if (fusionResultResponse.IsSuccess && fusionResultResponse is not null)
+            if (fusionResultResponse.IsSuccess && fusionResultResponse.Value is not null)
             {
                 fusionResult = fusionResultResponse.Value;
                 Logger.LogInformation("Fusion complete: OverallConfidence={Conf:F2}, NextAction={Action}",
@@ -1832,30 +2033,135 @@
         }
     }
 
-    //these need to be changed for the real exraction service
-    private Expediente ParseOcrToExpediente(ProcessingResult ocrResult)
+    /// <summary>
+    /// Extracts Expediente from OCR result using PdfOcrFieldExtractor (production service).
+    /// Replaces the previous stub implementation with real field extraction.
+    /// </summary>
+    private async Task<Result<Expediente>> ExtractExpedienteFromOcrAsync(
+        ProcessingResult ocrResult,
+        byte[] pdfBytes,
+        CancellationToken cancellationToken = default)
     {
-        
+        try
+        {
+            Logger.LogDebug("Extracting Expediente from OCR result using PdfOcrFieldExtractor");
+
+            // Create PdfSource from OCR result
+            var pdfSource = new PdfSource
+            {
+                FileContent = pdfBytes,
+                FilePath = currentPdfFixtureName,
+              //  OcrConfidence = ocrResult.Confidence
+            };
+
+            // Define fields to extract
+            var fieldDefinitions = new[]
+            {
+                new FieldDefinition { FieldName = "Expediente", IsRequired = true },
+                new FieldDefinition { FieldName = "Causa", IsRequired = false },
+                new FieldDefinition { FieldName = "AccionSolicitada", IsRequired = false },
+                new FieldDefinition { FieldName = "NumeroOficio", IsRequired = true },
+                new FieldDefinition { FieldName = "AutoridadNombre", IsRequired = true },
+                new FieldDefinition { FieldName = "FechaPublicacion", IsRequired = false },
+                new FieldDefinition { FieldName = "DiasPlazo", IsRequired = false }
+            };
+
+            // Extract fields using PdfOcrFieldExtractor
+            var extractionResult = await PdfFieldExtractor.ExtractFieldsAsync(
+                pdfSource,
+                fieldDefinitions);
+
+            if (extractionResult.IsFailure)
+            {
+                return Result<Expediente>.WithFailure(
+                    $"Failed to extract fields from PDF: {extractionResult.Error}");
+            }
+
+            var extractedFields = extractionResult.Value;
+            if (extractedFields == null)
+            {
+                return Result<Expediente>.WithFailure("Extracted fields are null");
+            }
+
+            // Map ExtractedFields to Expediente entity
+            var expediente = MapExtractedFieldsToExpediente(extractedFields);
+
+            Logger.LogDebug(
+                "Successfully extracted Expediente from PDF: {NumeroExpediente}",
+                expediente.NumeroExpediente);
+
+            return Result<Expediente>.Success(expediente);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error extracting Expediente from OCR result");
+            return Result<Expediente>.WithFailure(
+                $"Error extracting Expediente: {ex.Message}",
+                default(Expediente),
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Maps ExtractedFields (from field extraction service) to Expediente entity.
+    /// </summary>
+    private Expediente MapExtractedFieldsToExpediente(ExtractedFields fields)
+    {
         var expediente = new Expediente
         {
-            NumeroExpediente = ocrResult.ExtractedFields.Expediente ?? "",
-            NumeroOficio = "", // TODO: Extract from OCR text
-            SolicitudSiara = "", // TODO: Extract from OCR text
-            Folio = 0,
-            OficioYear = DateTime.Now.Year,
+            NumeroExpediente = fields.Expediente ?? "",
+            NumeroOficio = fields.AdditionalFields?.GetValueOrDefault("NumeroOficio") ?? "",
+            SolicitudSiara = fields.AdditionalFields?.GetValueOrDefault("SolicitudSiara") ?? "",
+            Folio = 0, // TODO: Extract from additional fields
+            OficioYear = DateTime.Now.Year, // TODO: Parse from NumeroOficio
             AreaClave = 0,
-            AreaDescripcion = "",
-            FechaPublicacion = DateTime.MinValue,
-            DiasPlazo = 0,
-            AutoridadNombre = "",
+            AreaDescripcion = fields.AdditionalFields?.GetValueOrDefault("AreaDescripcion") ?? "",
+            AutoridadNombre = fields.AdditionalFields?.GetValueOrDefault("AutoridadNombre") ?? "",
             NombreSolicitante = null,
             Referencia = "",
-            Referencia1 = "",
-            Referencia2 = "",
+            Referencia1 = fields.Causa ?? "",
+            Referencia2 = fields.AccionSolicitada ?? "",
             TieneAseguramiento = false
         };
 
+        // Parse dates if available
+        if (fields.AdditionalFields?.TryGetValue("FechaPublicacion", out var fechaPubStr) == true &&
+            DateTime.TryParse(fechaPubStr, out var fechaPub))
+        {
+            expediente.FechaPublicacion = fechaPub;
+        }
+
+        if (fields.AdditionalFields?.TryGetValue("DiasPlazo", out var diasStr) == true &&
+            int.TryParse(diasStr, out var dias))
+        {
+            expediente.DiasPlazo = dias;
+        }
+
         return expediente;
+    }
+
+    /// <summary>
+    /// Counts the number of non-empty fields in an Expediente object.
+    /// </summary>
+    private int GetFieldCount(Expediente expediente)
+    {
+        if (expediente == null) return 0;
+
+        int count = 0;
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroExpediente)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroOficio)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.SolicitudSiara)) count++;
+        if (expediente.FechaPublicacion.HasValue) count++;
+        if (expediente.DiasPlazo > 0) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AreaDescripcion)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AutoridadNombre)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.NombreSolicitante)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia1)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia2)) count++;
+        if (expediente.TieneAseguramiento) count++;
+
+        return count;
     }
 
     private Color GetStatusColor(string status) => status switch

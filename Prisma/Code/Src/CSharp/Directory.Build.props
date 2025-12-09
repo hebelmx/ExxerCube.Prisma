@@ -8,6 +8,10 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+		<!-- Enable parallel builds for faster compilation -->
+		<BuildInParallel>true</BuildInParallel>
+		<ContinueOnError>false</ContinueOnError>
 		<!--
 		  NU1902: OpenTelemetry.Api vulnerability (transitive dependency, documented in SECURITY_SUPPRESSIONS.md)
 		  - Package: OpenTelemetry.Api 1.10.0 (transitive dependency via OpenTelemetry.Instrumentation.Process)
