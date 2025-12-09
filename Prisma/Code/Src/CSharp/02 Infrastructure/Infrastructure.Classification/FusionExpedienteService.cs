@@ -237,7 +237,7 @@ public class FusionExpedienteService : IFusionExpediente
         }
     }
 
-    #region Dynamic Source Reliability Calculation
+     //  Dynamic Source Reliability Calculation
 
     private Dictionary<SourceType, double> CalculateSourceReliabilities(
         ExtractionMetadata xmlMetadata,
@@ -296,9 +296,9 @@ public class FusionExpedienteService : IFusionExpediente
         return Math.Clamp(reliability, 0.0, 1.0);
     }
 
-    #endregion
+     // 
 
-    #region Field Fusion Methods
+     //  Field Fusion Methods
 
     private async Task FuseNumeroExpedienteAsync(
         Expediente? xml, Expediente? pdf, Expediente? docx,
@@ -2205,7 +2205,7 @@ public class FusionExpedienteService : IFusionExpediente
             }
         }
     }
-    #endregion
+     // 
 
     private async Task FuseTitularDomicilioAsync(
         Expediente? xml, Expediente? pdf, Expediente? docx,
@@ -2337,7 +2337,7 @@ public class FusionExpedienteService : IFusionExpediente
             }
         }
     }
-    #region Fuzzy Matching
+     //  Fuzzy Matching
 
     private async Task FuseTitularFechaNacimientoAsync(
         Expediente? xml, Expediente? pdf, Expediente? docx,
@@ -2449,9 +2449,9 @@ public class FusionExpedienteService : IFusionExpediente
         return null; // No fuzzy match found
     }
 
-    #endregion
+     // 
 
-    #region Confidence Calculation
+     //  Confidence Calculation
 
     private (double overall, double requiredFields, double optionalFields) CalculateOverallConfidence(
         Dictionary<string, FieldFusionResult> fieldResults)
@@ -2784,5 +2784,5 @@ public class FusionExpedienteService : IFusionExpediente
         return currentDate;
     }
 
-    #endregion
+     // 
 }

@@ -234,7 +234,7 @@ public sealed class SchemaEvolutionDetector : ISchemaEvolutionDetector
         return Result.Success();
     }
 
-    #region Private Helper Methods
+     //  Private Helper Methods
 
     private HashSet<string> ExtractFieldPaths(object obj, string prefix = "")
     {
@@ -536,5 +536,5 @@ public sealed class SchemaEvolutionDetector : ISchemaEvolutionDetector
         return matrix[len1, len2];
     }
 
-    #endregion
+     // 
 }

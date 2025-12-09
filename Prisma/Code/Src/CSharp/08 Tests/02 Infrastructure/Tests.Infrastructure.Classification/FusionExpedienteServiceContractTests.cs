@@ -17,7 +17,7 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
     private readonly FusionCoefficients _defaultCoefficients = new();
     private readonly ILogger<FusionExpedienteServiceContractTests> _logger = XUnitLogger.CreateLogger<FusionExpedienteServiceContractTests>(output);
 
-    #region Happy Path Tests - All Sources Agree
+    //  Happy Path Tests - All Sources Agree
 
     [Fact]
     public async Task FuseAsync_AllSourcesAgreeExactly_ReturnsHighConfidenceAllAgree()
@@ -73,9 +73,9 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
         _logger.LogInformation("=== TEST PASSED ===");
     }
 
-    #endregion Happy Path Tests - All Sources Agree
+    //  Happy Path Tests - All Sources Agree
 
-    #region Fuzzy Agreement Tests
+    //  Fuzzy Agreement Tests
 
     [Fact]
     public async Task FuseAsync_MinorTypoInName_ReturnsFuzzyAgreement()
@@ -112,9 +112,9 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
         fusion.FieldResults["AutoridadNombre"].Value.ShouldNotBeNullOrWhiteSpace();
     }
 
-    #endregion Fuzzy Agreement Tests
+    //  Fuzzy Agreement Tests
 
-    #region Weighted Voting Tests
+    //  Weighted Voting Tests
 
     [Fact]
     public async Task FuseAsync_TwoSourcesAgreeOneDisagrees_ReturnsWeightedVoting()
@@ -190,9 +190,9 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
         fusion.FieldResults["NumeroExpediente"].WinningSource.ShouldBe(SourceType.PDF_OCR_CNBV);
     }
 
-    #endregion Weighted Voting Tests
+    //  Weighted Voting Tests
 
-    #region Conflict Tests
+    //  Conflict Tests
 
     [Fact]
     public async Task FuseAsync_AllThreeSourcesDisagree_ReturnsConflict()
@@ -242,9 +242,9 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
         _logger.LogInformation("=== TEST PASSED ===");
     }
 
-    #endregion Conflict Tests
+    //  Conflict Tests
 
-    #region Null Handling Tests
+    //  Null Handling Tests
 
     [Fact]
     public async Task FuseAsync_AllSourcesNull_ReturnsFailure()
@@ -302,9 +302,9 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
         _logger.LogInformation("=== TEST PASSED ===");
     }
 
-    #endregion Null Handling Tests
+    //  Null Handling Tests
 
-    #region Field-Level Fusion Tests
+    //  Field-Level Fusion Tests
 
     [Fact]
     public async Task FuseFieldAsync_ExactMatch_ReturnsAllAgree()
@@ -365,9 +365,9 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
         result.Value.Value.ShouldBeNull();
     }
 
-    #endregion Field-Level Fusion Tests
+    //  Field-Level Fusion Tests
 
-    #region Helper Methods
+    //  Helper Methods
 
     private IFusionExpediente CreateSystemUnderTest()
     {
@@ -435,5 +435,5 @@ public class FusionExpedienteServiceContractTests(ITestOutputHelper output)
         };
     }
 
-    #endregion Helper Methods
+    //  Helper Methods
 }

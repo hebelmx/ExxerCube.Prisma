@@ -311,7 +311,7 @@ public class ExpedienteClasifierService : IExpedienteClasifier
         }
     }
 
-    #region Private Helper Methods
+     //  Private Helper Methods
 
     /// <summary>
     /// Infers document text from expediente metadata when Referencia fields are null/empty.
@@ -459,5 +459,5 @@ public class ExpedienteClasifierService : IExpedienteClasifier
         return validAreas.Contains(areaDescripcion.ToUpperInvariant());
     }
 
-    #endregion
+     // 
 }

@@ -16,7 +16,7 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
     private readonly ITestOutputHelper _output = output;
     private readonly ILogger<ExpedienteClasifierServiceContractTests> _logger = XUnitLogger.CreateLogger<ExpedienteClasifierServiceContractTests>(output);
 
-    #region Classification Tests - Requirement Types (100-104)
+     //  Classification Tests - Requirement Types (100-104)
 
     [Fact]
     public async Task ClassifyAsync_InformationRequest_Returns100()
@@ -126,9 +126,9 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
         classification.RequiredFields.ShouldContain("AccountNumber");
     }
 
-    #endregion Classification Tests - Requirement Types (100-104)
+     //  Classification Tests - Requirement Types (100-104)
 
-    #region Article 4 Validation Tests - 42 Mandatory Fields
+     //  Article 4 Validation Tests - 42 Mandatory Fields
 
     [Fact]
     public async Task ValidateArticle4Async_AllMandatoryFieldsPresent_PassesValidation()
@@ -209,9 +209,9 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
         }
     }
 
-    #endregion Article 4 Validation Tests - 42 Mandatory Fields
+     //  Article 4 Validation Tests - 42 Mandatory Fields
 
-    #region Article 17 Rejection Tests
+     //  Article 17 Rejection Tests
 
     [Fact]
     public async Task CheckArticle17RejectionAsync_MissingLegalAuthorityCitation_ReturnsRejectionReason()
@@ -298,9 +298,9 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
         rejectionReasons.ShouldBeEmpty(); // No grounds for rejection
     }
 
-    #endregion Article 17 Rejection Tests
+     //  Article 17 Rejection Tests
 
-    #region Semantic Analysis Tests - The 5 Situations
+     //  Semantic Analysis Tests - The 5 Situations
 
     [Fact]
     public async Task AnalyzeSemanticRequirementsAsync_InformationRequest_CreatesGeneralRequirement()
@@ -393,9 +393,9 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
         analysis.RequiereTransferencia.EsRequerido.ShouldBeTrue();
     }
 
-    #endregion Semantic Analysis Tests - The 5 Situations
+     //  Semantic Analysis Tests - The 5 Situations
 
-    #region Helper Methods - Test Data Builders
+     //  Helper Methods - Test Data Builders
 
     private IExpedienteClasifier CreateSystemUnderTest()
     {
@@ -607,5 +607,5 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
         };
     }
 
-    #endregion Helper Methods - Test Data Builders
+     //  Helper Methods - Test Data Builders
 }

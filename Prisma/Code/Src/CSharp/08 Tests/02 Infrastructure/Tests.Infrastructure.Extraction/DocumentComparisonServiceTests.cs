@@ -23,7 +23,7 @@ public class DocumentComparisonServiceTests
         _comparisonService = new DocumentComparisonService(_logger);
     }
 
-    #region CompareField Tests
+     //  CompareField Tests
 
     /// <summary>
     /// Tests that exact match returns status "Match" with 100% similarity.
@@ -147,9 +147,9 @@ public class DocumentComparisonServiceTests
         result.OcrConfidence.ShouldBe(ocrConfidence);
     }
 
-    #endregion CompareField Tests
+     //  CompareField Tests
 
-    #region CompareExpedientes Tests
+     //  CompareExpedientes Tests
 
     /// <summary>
     /// Tests that comparing identical expedientes returns 100% match.
@@ -220,9 +220,9 @@ public class DocumentComparisonServiceTests
         }
     }
 
-    #endregion CompareExpedientes Tests
+     //  CompareExpedientes Tests
 
-    #region Helper Methods
+     //  Helper Methods
 
     private Expediente CreateSampleExpediente()
     {
@@ -246,5 +246,5 @@ public class DocumentComparisonServiceTests
         };
     }
 
-    #endregion Helper Methods
+     //  Helper Methods
 }

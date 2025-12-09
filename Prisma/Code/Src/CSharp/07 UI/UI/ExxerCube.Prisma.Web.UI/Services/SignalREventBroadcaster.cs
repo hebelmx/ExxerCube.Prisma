@@ -7,7 +7,6 @@ using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Events;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Web.UI.Services;
 
@@ -73,6 +72,23 @@ public class SignalREventBroadcaster : BackgroundService
         // Resolve hub in a scope to avoid singleton depending on scoped services
         using var scope = _scopeFactory.CreateScope();
         var hub = scope.ServiceProvider.GetRequiredService<IExxerHub<DomainEvent>>();
+
+        // Defensive Intelligence: Check if hub resolution failed
+
+        if (hub is null)
+        {
+            _logger.LogWarning(
+                "Failed to resolve IExxerHub<DomainEvent> from service provider - cannot broadcast event {EventType} with ID {EventId}",
+                domainEvent.EventType,
+                domainEvent.EventId);
+            return; // Defensive Intelligence: Don't throw - log and continue
+        }
+
+        if (domainEvent is null)
+        {
+            _logger.LogWarning("Domain event is null - cannot broadcast");
+            return;
+        }
 
         var result = await hub.SendToAllAsync(domainEvent, cancellationToken);
 

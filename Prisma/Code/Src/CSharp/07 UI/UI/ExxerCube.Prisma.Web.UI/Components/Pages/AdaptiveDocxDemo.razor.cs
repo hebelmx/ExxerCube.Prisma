@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Web.UI.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Web.UI.Components.Pages;
 

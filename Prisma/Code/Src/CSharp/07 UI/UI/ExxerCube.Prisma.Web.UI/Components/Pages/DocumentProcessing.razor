@@ -14,6 +14,7 @@
 @inject IProcessingMetricsService MetricsService
 @inject IXmlNullableParser<Expediente> XmlParser
 @inject IDocumentComparisonService ComparisonService
+@inject IFusionExpediente FusionService
 @inject IBulkProcessingService BulkProcessingService
 @inject ILogger<DocumentProcessing> Logger
 @inject ISnackbar Snackbar
@@ -66,7 +67,7 @@
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
                         <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" Size="Size.Large"
-                                   OnClick="@(() => LoadXmlFixture("333ccc-666666662025.xml"))" Disabled="isProcessing">
+                                   OnClick="@(() => LoadXmlFixture("333ccc-6666666662025.xml"))" Disabled="isProcessing">
                             <MudIcon Icon="@Icons.Material.Filled.FileCopy" Class="mr-2" />
                             PRP1: 333ccc
                         </MudButton>
@@ -407,6 +408,36 @@
                             </MudTabPanel>
                         </MudTabs>
                     </MudPaper>
+
+                    <MudDivider Class="my-4" />
+
+                    <!-- XML Document Viewer -->
+                    <MudPaper Class="pa-4" Elevation="2">
+                        <MudText Typo="Typo.h6" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                            Document Viewer - @currentFixtureName
+                        </MudText>
+
+                        <MudPaper Class="pa-3 mud-theme-transparent" Elevation="1" Style="max-height: 600px; overflow-y: auto; border: 1px solid var(--mud-palette-divider);">
+                            <MudTextField Value="@sourceXmlContent"
+                                         Label="XML Source Content"
+                                         Variant="Variant.Outlined"
+                                         Lines="25"
+                                         ReadOnly="true"
+                                         Style="font-family: 'Courier New', monospace; font-size: 12px;" />
+                        </MudPaper>
+
+                        <MudStack Row="true" Spacing="2" Class="mt-3">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                       OnClick="@(() => CopyToClipboard(sourceXmlContent))" StartIcon="@Icons.Material.Filled.ContentCopy">
+                                Copy XML
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                                       OnClick="ClearXmlResults" StartIcon="@Icons.Material.Filled.Clear">
+                                Clear Results
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
                 }
             </MudCardContent>
         </MudCard>
@@ -441,7 +472,7 @@
                     </MudItem>
                     <MudItem xs="12" sm="6" md="3">
                         <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" Size="Size.Large"
-                                   OnClick="@(() => LoadPdfFixture("333ccc-666666662025.pdf"))" Disabled="isProcessing">
+                                   OnClick="@(() => LoadPdfFixture("333ccc-6666666662025.pdf"))" Disabled="isProcessing">
                             <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
                             PRP1: 333ccc PDF
                         </MudButton>
@@ -526,6 +557,57 @@
                             </MudGrid>
                         </MudTabPanel>
                     </MudTabs>
+
+                    <MudDivider Class="my-4" />
+
+                    <!-- PDF Document Viewer with Side-by-Side Layout -->
+                    <MudPaper Class="pa-4" Elevation="2">
+                        <MudText Typo="Typo.h6" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+                            PDF Document & Extracted OCR Text - @currentPdfFixtureName
+                        </MudText>
+
+                        <MudGrid>
+                            <!-- Left: PDF Viewer -->
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" Class="mr-1" />
+                                    Original PDF Document
+                                </MudText>
+                                <MudPaper Class="pa-2" Elevation="1" Style="height: 700px; border: 1px solid var(--mud-palette-divider); overflow: auto;">
+                                    <canvas id="pdfCanvas-@currentPdfFixtureName" style="width: 100%;"></canvas>
+                                </MudPaper>
+                            </MudItem>
+
+                            <!-- Right: Extracted OCR Text -->
+                            <MudItem xs="12" md="6">
+                                <MudText Typo="Typo.subtitle2" Class="mb-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.TextFields" Size="Size.Small" Class="mr-1" />
+                                    Extracted OCR Text
+                                </MudText>
+                                <MudPaper Class="pa-3 mud-theme-transparent" Elevation="1" Style="height: 700px; overflow-y: auto; border: 1px solid var(--mud-palette-divider);">
+                                    <MudTextField Value="@ocrProcessingResult.OCRResult.Text"
+                                                 Label="OCR Extracted Content"
+                                                 Variant="Variant.Outlined"
+                                                 Lines="30"
+                                                 ReadOnly="true"
+                                                 HelperText="@($"{ocrProcessingResult.OCRResult.Text.Length} characters | {ocrProcessingResult.OCRResult.ConfidenceAvg:F1}% confidence")"
+                                                 Style="font-family: 'Courier New', monospace; font-size: 12px;" />
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+
+                        <MudStack Row="true" Spacing="2" Class="mt-3">
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                       OnClick="@(() => CopyToClipboard(ocrProcessingResult.OCRResult.Text))" StartIcon="@Icons.Material.Filled.ContentCopy">
+                                Copy Extracted Text
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                                       OnClick="ClearPdfResults" StartIcon="@Icons.Material.Filled.Clear">
+                                Clear Results
+                            </MudButton>
+                        </MudStack>
+                    </MudPaper>
                 }
             </MudCardContent>
         </MudCard>
@@ -619,6 +701,119 @@
                             </MudTd>
                         </RowTemplate>
                     </MudTable>
+
+                    @if (fusionResult != null)
+                    {
+                        <!-- Reconciled Data for Lawyers -->
+                        <MudDivider Class="my-6" />
+
+                        <MudPaper Class="pa-4 mt-4" Elevation="2" Style="border-left: 4px solid var(--mud-palette-success);">
+                            <MudStack Spacing="3">
+                                <MudText Typo="Typo.h6" Color="Color.Success">
+                                    <MudIcon Icon="@Icons.Material.Filled.Verified" Class="mr-2" />
+                                    Reconciled Result - Single Source of Truth
+                                </MudText>
+
+                                <MudText Typo="Typo.body2" Color="Color.Default">
+                                    Intelligent 3-way fusion of XML, DOCX, and OCR sources with dynamic reliability weighting.
+                                    Fields are reconciled using pattern validation, catalog validation, and fuzzy matching.
+                                    This is the clean, structured data lawyers can copy and integrate into any bank system.
+                                </MudText>
+
+                                <!-- Overall Metrics -->
+                                <MudGrid Class="mt-2 mb-3">
+                                    <MudItem xs="4">
+                                        <MudPaper Class="pa-3" Elevation="1" Style="text-align: center;">
+                                            <MudText Typo="Typo.h4" Color="Color.Success">@($"{fusionResult.OverallConfidence:P0}")</MudText>
+                                            <MudText Typo="Typo.caption">Overall Confidence</MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="4">
+                                        <MudPaper Class="pa-3" Elevation="1" Style="text-align: center;">
+                                            <MudText Typo="Typo.h4" Color="Color.Info">@fusionResult.NextAction</MudText>
+                                            <MudText Typo="Typo.caption">Recommended Action</MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                    <MudItem xs="4">
+                                        <MudPaper Class="pa-3" Elevation="1" Style="text-align: center;">
+                                            <MudText Typo="Typo.h4" Color="@(fusionResult.ConflictingFields.Count > 0 ? Color.Warning : Color.Success)">
+                                                @fusionResult.ConflictingFields.Count
+                                            </MudText>
+                                            <MudText Typo="Typo.caption">Conflicting Fields</MudText>
+                                        </MudPaper>
+                                    </MudItem>
+                                </MudGrid>
+
+                                <!-- Field-Level Fusion Results -->
+                                <MudSimpleTable Striped="true" Dense="true" Hover="true" Style="background: var(--mud-palette-background-grey);">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 25%;"><strong>Field</strong></th>
+                                            <th style="width: 30%;"><strong>Fused Value</strong></th>
+                                            <th style="width: 15%;"><strong>Decision</strong></th>
+                                            <th style="width: 15%;"><strong>Source</strong></th>
+                                            <th style="width: 15%;"><strong>Confidence</strong></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var kvp in fusionResult.FieldResults.OrderByDescending(f => f.Value.Confidence))
+                                        {
+                                            var fieldName = kvp.Key;
+                                            var fieldResult = kvp.Value;
+                                            var confidencePercent = fieldResult.Confidence * 100.0;
+                                            var confidenceColor = fieldResult.Confidence >= 0.85 ? Color.Success :
+                                                                 fieldResult.Confidence >= 0.70 ? Color.Info :
+                                                                 fieldResult.Confidence >= 0.50 ? Color.Warning : Color.Error;
+
+                                            <tr>
+                                                <td><strong>@fieldName</strong></td>
+                                                <td>
+                                                    <code style="font-size: 0.9em; padding: 2px 6px; background: var(--mud-palette-background); border-radius: 4px;">
+                                                        @(string.IsNullOrEmpty(fieldResult.Value) ? "N/A" : fieldResult.Value)
+                                                    </code>
+                                                </td>
+                                                <td>
+                                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="@GetDecisionColor(fieldResult.Decision)">
+                                                        @GetDecisionText(fieldResult.Decision)
+                                                    </MudChip>
+                                                </td>
+                                                <td>
+                                                    @if (fieldResult.WinningSource != null)
+                                                    {
+                                                        <MudText Typo="Typo.caption">@fieldResult.WinningSource.Value.ToString()</MudText>
+                                                    }
+                                                    else if (fieldResult.ContributingSources.Any())
+                                                    {
+                                                        <MudText Typo="Typo.caption">All</MudText>
+                                                    }
+                                                    else
+                                                    {
+                                                        <MudText Typo="Typo.caption">-</MudText>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <MudText Typo="Typo.caption" Color="@confidenceColor">
+                                                        @($"{confidencePercent:F0}%")
+                                                    </MudText>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </MudSimpleTable>
+
+                                <MudStack Row="true" Spacing="2" Class="mt-3">
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success"
+                                               OnClick="@CopyReconciledDataToClipboard" StartIcon="@Icons.Material.Filled.ContentCopy">
+                                        Copy Reconciled Data (JSON)
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                               OnClick="@DownloadReconciledData" StartIcon="@Icons.Material.Filled.Download">
+                                        Download as JSON
+                                    </MudButton>
+                                </MudStack>
+                            </MudStack>
+                        </MudPaper>
+                    }
                 }
             </MudCardContent>
         </MudCard>
@@ -1074,9 +1269,11 @@
     // OCR Processing state
     private ProcessingResult? ocrProcessingResult;
     private string currentPdfFixtureName = "";
+    private byte[]? currentPdfBytes;
 
     // Comparison state
     private ComparisonResult? comparisonResult;
+    private FusionResult? fusionResult;
     private bool canCompare => xmlExpediente != null && ocrProcessingResult != null;
 
     // Bulk processing state
@@ -1496,6 +1693,7 @@
             {
                 ocrProcessingResult = result.Value;
                 currentPdfFixtureName = pdfFileName;
+                currentPdfBytes = pdfBytes; // Store PDF bytes for viewer
                 processingStatus = "Completed";
                 processingProgress = 100;
                 processingMessage = "PDF processed successfully with OCR";
@@ -1504,6 +1702,9 @@
                     $"Success! OCR confidence: {ocrProcessingResult.OCRResult.ConfidenceAvg:F1}%, extracted {ocrProcessingResult.OCRResult.Text.Length} characters from {pdfFileName}",
                     Severity.Success,
                     config => { config.VisibleStateDuration = 5000; });
+
+                // Render PDF in viewer
+                await RenderPdfAsync();
             }
             else
             {
@@ -1547,14 +1748,70 @@
             // Create Expediente from OCR processing result
             var ocrExpediente = ParseOcrToExpediente(ocrProcessingResult!);
 
-            // Perform comparison
+            // Perform simple comparison (for compatibility)
             comparisonResult = await ComparisonService.CompareExpedientesAsync(xmlExpediente!, ocrExpediente);
 
-            processingStatus = "Comparison complete";
+            // Perform intelligent 3-way fusion (XML + OCR + DOCX if available)
+            processingStatus = "Performing intelligent fusion...";
+            processingProgress = 75;
+            StateHasChanged();
+
+            // Create metadata for each source
+            var xmlMetadata = new ExtractionMetadata
+            {
+                Source = SourceType.XML_HandFilled,
+                RegexMatches = 0, // TODO: calculate from validation
+                TotalFieldsExtracted = CountExtractedFields(xmlExpediente!),
+                PatternViolations = 0,
+                CatalogValidations = 0
+            };
+
+            var ocrMetadata = new ExtractionMetadata
+            {
+                Source = SourceType.PDF_OCR_CNBV,
+                MeanConfidence = ocrProcessingResult!.OCRResult.ConfidenceAvg / 100.0,
+                QualityIndex = 0.8, // Default for demo
+                RegexMatches = 0,
+                TotalFieldsExtracted = CountExtractedFields(ocrExpediente),
+                PatternViolations = 0,
+                CatalogValidations = 0
+            };
+
+            var docxMetadata = new ExtractionMetadata
+            {
+                Source = SourceType.DOCX_OCR_Authority,
+                RegexMatches = 0,
+                TotalFieldsExtracted = 0,
+                PatternViolations = 0,
+                CatalogValidations = 0
+            };
+
+            // Call fusion service (DOCX is null for now - 2-way fusion)
+            var fusionResultResponse = await FusionService.FuseAsync(
+                xmlExpediente,
+                ocrExpediente,
+                null, // DOCX not used for these demo
+                xmlMetadata,
+                ocrMetadata,
+                docxMetadata,
+                CancellationToken.None);
+
+            if (fusionResultResponse.IsSuccess && fusionResultResponse is not null)
+            {
+                fusionResult = fusionResultResponse.Value;
+                Logger.LogInformation("Fusion complete: OverallConfidence={Conf:F2}, NextAction={Action}",
+                    fusionResult.OverallConfidence, fusionResult.NextAction);
+            }
+
+            processingStatus = "Comparison and fusion complete";
             processingProgress = 100;
 
+            var fusionMessage = fusionResult != null
+                ? $" | Fusion: {fusionResult.OverallConfidence:P0} confidence, {fusionResult.NextAction}"
+                : "";
+
             Snackbar.Add(
-                $"Comparison complete: {comparisonResult.MatchCount}/{comparisonResult.TotalFields} exact matches ({comparisonResult.MatchPercentage:F0}% match rate)",
+                $"Complete! {comparisonResult.MatchCount}/{comparisonResult.TotalFields} matches ({comparisonResult.MatchPercentage:F0}%){fusionMessage}",
                 Severity.Success,
                 config => { config.VisibleStateDuration = 5000; });
 
@@ -1575,10 +1832,10 @@
         }
     }
 
+    //these need to be changed for the real exraction service
     private Expediente ParseOcrToExpediente(ProcessingResult ocrResult)
     {
-        // For now, create a simple Expediente from extracted fields
-        // In a real implementation, this would parse the OCR text more thoroughly
+        
         var expediente = new Expediente
         {
             NumeroExpediente = ocrResult.ExtractedFields.Expediente ?? "",
@@ -1616,6 +1873,71 @@
         if (similarity >= 0.7f) return Color.Info;
         if (similarity >= 0.5f) return Color.Warning;
         return Color.Error;
+    }
+
+    private Color GetDecisionColor(FusionDecision decision)
+    {
+        if (decision == FusionDecision.AllAgree) return Color.Success;
+        if (decision == FusionDecision.FuzzyAgreement) return Color.Info;
+        if (decision == FusionDecision.WeightedVoting) return Color.Primary;
+        if (decision == FusionDecision.BestEffort) return Color.Warning;
+        if (decision == FusionDecision.Conflict) return Color.Error;
+        if (decision == FusionDecision.AllSourcesNull) return Color.Default;
+        return Color.Default;
+    }
+
+    private string GetDecisionText(FusionDecision decision)
+    {
+        if (decision == FusionDecision.AllAgree) return "✓✓✓ All Agree";
+        if (decision == FusionDecision.FuzzyAgreement) return "✓✓ Fuzzy Match";
+        if (decision == FusionDecision.WeightedVoting) return "✓ Weighted";
+        if (decision == FusionDecision.BestEffort) return "⚠ Best Effort";
+        if (decision == FusionDecision.Conflict) return "❌ Conflict";
+        if (decision == FusionDecision.AllSourcesNull) return "- No Data";
+        return decision?.Name ?? "Unknown";
+    }
+
+    private async Task CopyReconciledDataToClipboard()
+    {
+        if (fusionResult?.FusedExpediente == null)
+        {
+            Snackbar.Add("No reconciled data available", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var json = JsonSerializer.Serialize(fusionResult.FusedExpediente, new JsonSerializerOptions { WriteIndented = true });
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", json);
+            Snackbar.Add("Reconciled Expediente copied to clipboard as JSON!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to copy: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Failed to copy reconciled data to clipboard");
+        }
+    }
+
+    private async Task DownloadReconciledData()
+    {
+        if (fusionResult?.FusedExpediente == null)
+        {
+            Snackbar.Add("No reconciled data available", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var json = JsonSerializer.Serialize(fusionResult.FusedExpediente, new JsonSerializerOptions { WriteIndented = true });
+            var fileName = $"reconciled_expediente_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            await JSRuntime.InvokeVoidAsync("downloadFile", json, fileName, "application/json");
+            Snackbar.Add($"Downloaded {fileName}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to download: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Failed to download reconciled data");
+        }
     }
 
     private int CountExtractedFields(Expediente expediente)
@@ -1744,6 +2066,50 @@
         {
             Snackbar.Add($"Failed to copy: {ex.Message}", Severity.Error);
         }
+    }
+
+    private void ClearXmlResults()
+    {
+        xmlExpediente = null;
+        extractedFieldCount = 0;
+        currentFixtureName = "";
+        sourceXmlContent = "";
+        showSourceXml = false;
+        jsonResult = "";
+        comparisonResult = null;
+        errorMessage = "";
+        processingStatus = "";
+        processingMessage = "";
+        processingProgress = 0;
+
+        Snackbar.Add("XML results cleared", Severity.Info);
+        StateHasChanged();
+    }
+
+    private void ClearPdfResults()
+    {
+        ocrProcessingResult = null;
+        currentPdfFixtureName = "";
+        currentPdfBytes = null;
+        comparisonResult = null;
+        errorMessage = "";
+        processingStatus = "";
+        processingMessage = "";
+        processingProgress = 0;
+
+        Snackbar.Add("PDF results cleared", Severity.Info);
+        StateHasChanged();
+    }
+
+    private string GetPdfDataUrl()
+    {
+        if (currentPdfBytes == null || currentPdfBytes.Length == 0)
+        {
+            return "about:blank";
+        }
+
+        var base64 = Convert.ToBase64String(currentPdfBytes);
+        return $"data:application/pdf;base64,{base64}";
     }
 
     // Batch processing methods
@@ -1907,6 +2273,15 @@
         {
             isBatchProcessing = false;
             StateHasChanged();
+        }
+    }
+
+    private async Task RenderPdfAsync()
+    {
+        if (currentPdfBytes != null && currentPdfBytes.Length > 0)
+        {
+            var base64 = Convert.ToBase64String(currentPdfBytes);
+            await JSRuntime.InvokeVoidAsync("renderPdf", $"pdfCanvas-{currentPdfFixtureName}", base64);
         }
     }
 

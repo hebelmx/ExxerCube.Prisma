@@ -22,7 +22,7 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
     private readonly ILogger<FieldPatternValidatorContractTests> _logger =
         XUnitLogger.CreateLogger<FieldPatternValidatorContractTests>(output);
 
-    #region RFC Pattern Validation Tests
+     //  RFC Pattern Validation Tests
 
     [Fact]
     public void IsValidRFC_ValidPersonaFisica_ReturnsTrue()
@@ -102,9 +102,9 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
         result.ShouldBeFalse();
     }
 
-    #endregion RFC Pattern Validation Tests
+     //  RFC Pattern Validation Tests
 
-    #region CURP Pattern Validation Tests
+     //  CURP Pattern Validation Tests
 
     [Fact]
     public void IsValidCURP_ValidMale_ReturnsTrue()
@@ -168,9 +168,9 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
         result.ShouldBeFalse();
     }
 
-    #endregion CURP Pattern Validation Tests
+     //  CURP Pattern Validation Tests
 
-    #region NumeroExpediente Pattern Validation Tests
+     //  NumeroExpediente Pattern Validation Tests
 
     [Fact]
     public void IsValidNumeroExpediente_ValidAseguramiento_ReturnsTrue()
@@ -229,9 +229,9 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
         result.ShouldBeFalse();
     }
 
-    #endregion NumeroExpediente Pattern Validation Tests
+     //  NumeroExpediente Pattern Validation Tests
 
-    #region CLABE Pattern Validation Tests
+     //  CLABE Pattern Validation Tests
 
     [Fact]
     public void IsValidCLABE_Valid18Digits_ReturnsTrue()
@@ -275,9 +275,9 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
         result.ShouldBeFalse();
     }
 
-    #endregion CLABE Pattern Validation Tests
+     //  CLABE Pattern Validation Tests
 
-    #region Date Pattern Validation Tests
+     //  Date Pattern Validation Tests
 
     [Fact]
     public void IsValidDate_ValidYYYYMMDD_ReturnsTrue()
@@ -339,9 +339,9 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
         result.ShouldBeFalse();
     }
 
-    #endregion Date Pattern Validation Tests
+     //  Date Pattern Validation Tests
 
-    #region Monto Pattern Validation Tests
+     //  Monto Pattern Validation Tests
 
     [Fact]
     public void IsValidMonto_ValidInteger_ReturnsTrue()
@@ -402,9 +402,9 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
         result.ShouldBeFalse();
     }
 
-    #endregion Monto Pattern Validation Tests
+     //  Monto Pattern Validation Tests
 
-    #region NumeroOficio Pattern Validation Tests
+     //  NumeroOficio Pattern Validation Tests
 
     [Fact]
     public void IsValidNumeroOficio_ValidUnder30Chars_ReturnsTrue()
@@ -461,9 +461,9 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
         result.ShouldBeFalse();
     }
 
-    #endregion NumeroOficio Pattern Validation Tests
+     //  NumeroOficio Pattern Validation Tests
 
-    #region TextField Pattern Validation Tests
+     //  TextField Pattern Validation Tests
 
     [Fact]
     public void IsValidTextField_ValidWithinMaxLength_ReturnsTrue()
@@ -506,5 +506,5 @@ public class FieldPatternValidatorContractTests(ITestOutputHelper output)
         result.ShouldBeFalse();
     }
 
-    #endregion TextField Pattern Validation Tests
+     //  TextField Pattern Validation Tests
 }

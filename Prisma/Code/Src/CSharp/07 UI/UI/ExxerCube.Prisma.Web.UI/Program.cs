@@ -313,7 +313,9 @@ Inner Stack Trace:
         //        tags: new[] { "sla", "background", "ready" });
 
         // Add SignalR event broadcaster for real-time event streaming to UI
-        services.AddHostedService<Services.SignalREventBroadcaster>();
+        // NOTE: Disabled for demo/isolation mode - SignalR hubs cannot be resolved outside of connection context
+        // Uncomment when running with active SignalR clients
+        // services.AddHostedService<Services.SignalREventBroadcaster>();
     }
 
     /// <summary>

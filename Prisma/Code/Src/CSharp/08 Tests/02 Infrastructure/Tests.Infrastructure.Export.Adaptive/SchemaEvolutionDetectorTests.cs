@@ -45,7 +45,7 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         _dbContext.Dispose();
     }
 
-    #region DetectDriftAsync Tests (Mirror Contract Tests)
+     //  DetectDriftAsync Tests (Mirror Contract Tests)
 
     [Fact]
     public async Task DetectDriftAsync_WithNoDrift_ReturnsSuccessWithNoDrift()
@@ -245,9 +245,9 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         (result.Error ?? string.Empty).ShouldContain("Template cannot be null");
     }
 
-    #endregion
+     // 
 
-    #region DetectDriftForActiveTemplateAsync Tests
+     //  DetectDriftForActiveTemplateAsync Tests
 
     [Fact]
     public async Task DetectDriftForActiveTemplateAsync_WithActiveTemplate_ReturnsSuccess()
@@ -296,9 +296,9 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         (result.Error ?? string.Empty).ShouldContain("No active template found");
     }
 
-    #endregion
+     // 
 
-    #region SuggestFieldMappingsAsync Tests
+     //  SuggestFieldMappingsAsync Tests
 
     [Fact]
     public async Task SuggestFieldMappingsAsync_WithValidSourceObject_ReturnsSuggestedMappings()
@@ -345,9 +345,9 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         (result.Error ?? string.Empty).ShouldContain("Source object cannot be null");
     }
 
-    #endregion
+     // 
 
-    #region CalculateSimilarity Tests
+     //  CalculateSimilarity Tests
 
     [Fact]
     public void CalculateSimilarity_WithIdenticalStrings_Returns1()
@@ -390,9 +390,9 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         result.ShouldBe(0.0);
     }
 
-    #endregion
+     // 
 
-    #region ValidateTemplateCompatibilityAsync Tests
+     //  ValidateTemplateCompatibilityAsync Tests
 
     [Fact]
     public async Task ValidateTemplateCompatibilityAsync_WithCompatibleTemplate_ReturnsSuccess()
@@ -450,9 +450,9 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         (result.Error ?? string.Empty).ShouldContain("Age");
     }
 
-    #endregion
+     // 
 
-    #region Additional Real-World Scenarios
+     //  Additional Real-World Scenarios
 
     [Fact]
     public async Task DetectDriftAsync_WithNestedObjects_DetectsNestedFields()
@@ -524,5 +524,5 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         result.Value.ShouldContain(m => m.DataType == "decimal");
     }
 
-    #endregion
+     // 
 }

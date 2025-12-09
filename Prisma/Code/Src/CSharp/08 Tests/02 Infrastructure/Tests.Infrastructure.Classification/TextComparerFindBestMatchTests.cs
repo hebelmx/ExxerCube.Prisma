@@ -24,7 +24,7 @@ public class TextComparerFindBestMatchTests
         _textComparer = new LevenshteinTextComparer(_logger);
     }
 
-    #region Fuzzy Phrase Matching Tests
+     //  Fuzzy Phrase Matching Tests
 
     /// <summary>
     /// Tests that FindBestMatch finds exact phrase match with 100% similarity.
@@ -89,9 +89,9 @@ public class TextComparerFindBestMatchTests
         result.Similarity.ShouldBeGreaterThanOrEqualTo(threshold);
     }
 
-    #endregion
+     // 
 
-    #region Typo Tolerance Tests
+     //  Typo Tolerance Tests
 
     /// <summary>
     /// Tests that FindBestMatch tolerates minor typos (1-2 character differences).
@@ -132,9 +132,9 @@ public class TextComparerFindBestMatchTests
         result.ShouldBeNull("Match below threshold should return null");
     }
 
-    #endregion
+     // 
 
-    #region Sliding Window and Long Text Tests
+     //  Sliding Window and Long Text Tests
 
     /// <summary>
     /// Tests that FindBestMatch uses sliding window to find best match in long text.
@@ -186,9 +186,9 @@ public class TextComparerFindBestMatchTests
         result.Similarity.ShouldBeGreaterThan(0.90); // Best match should have high similarity
     }
 
-    #endregion
+     // 
 
-    #region Edge Cases
+     //  Edge Cases
 
     /// <summary>
     /// Tests FindBestMatch with empty text.
@@ -248,9 +248,9 @@ public class TextComparerFindBestMatchTests
         }
     }
 
-    #endregion
+     // 
 
-    #region TextMatchResult Properties Tests
+     //  TextMatchResult Properties Tests
 
     /// <summary>
     /// Tests that TextMatchResult provides correct position information.
@@ -297,5 +297,5 @@ public class TextComparerFindBestMatchTests
         result.SimilarityPercentage.ShouldBeGreaterThanOrEqualTo(threshold * 100.0);
     }
 
-    #endregion
+     // 
 }

@@ -2,7 +2,6 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Web.UI.Hubs;
 

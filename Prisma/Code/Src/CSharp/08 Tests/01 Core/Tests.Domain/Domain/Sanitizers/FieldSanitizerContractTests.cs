@@ -41,7 +41,7 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
     private readonly ILogger<FieldSanitizerContractTests> _logger =
         XUnitLogger.CreateLogger<FieldSanitizerContractTests>(output);
 
-    #region Data Quality Issue 1: Trailing Whitespace
+     //  Data Quality Issue 1: Trailing Whitespace
 
     [Fact]
     public void Sanitize_TrailingWhitespace_RemovesWhitespace()
@@ -79,9 +79,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result.ShouldBe("A/AS1-1111-222222-AAA");
     }
 
-    #endregion Data Quality Issue 1: Trailing Whitespace
+     //  Data Quality Issue 1: Trailing Whitespace
 
-    #region Data Quality Issue 2: HTML Entities (nbsp)
+     //  Data Quality Issue 2: HTML Entities (nbsp)
 
     [Fact]
     public void Sanitize_HtmlEntityNbsp_RemovesEntity()
@@ -133,9 +133,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result.ShouldBe("SUBDELEGACION 8 SAN ANGEL");
     }
 
-    #endregion Data Quality Issue 2: HTML Entities (nbsp)
+     //  Data Quality Issue 2: HTML Entities (nbsp)
 
-    #region Data Quality Issue 3: Human Annotations
+     //  Data Quality Issue 3: Human Annotations
 
     [Theory]
     [InlineData("NO SE CUENTA")]
@@ -158,9 +158,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result.ShouldBeNull();
     }
 
-    #endregion Data Quality Issue 3: Human Annotations
+     //  Data Quality Issue 3: Human Annotations
 
-    #region Data Quality Issue 4: Line Breaks
+     //  Data Quality Issue 4: Line Breaks
 
     [Fact]
     public void Sanitize_LineBreaksCRLF_ReplacesWithSpace()
@@ -211,9 +211,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result!.ShouldNotContain("\r");
     }
 
-    #endregion Data Quality Issue 4: Line Breaks
+     //  Data Quality Issue 4: Line Breaks
 
-    #region Data Quality Issue 5: Multiple Spaces
+     //  Data Quality Issue 5: Multiple Spaces
 
     [Fact]
     public void Sanitize_MultipleSpaces_CollapsesToSingleSpace()
@@ -236,9 +236,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         _logger.LogInformation("=== TEST PASSED ===");
     }
 
-    #endregion Data Quality Issue 5: Multiple Spaces
+     //  Data Quality Issue 5: Multiple Spaces
 
-    #region Data Quality Issue 6: All Spaces or Underscores
+     //  Data Quality Issue 6: All Spaces or Underscores
 
     [Theory]
     [InlineData("             ")] // 13 spaces (RFC field from spec)
@@ -258,9 +258,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result.ShouldBeNull();
     }
 
-    #endregion Data Quality Issue 6: All Spaces or Underscores
+     //  Data Quality Issue 6: All Spaces or Underscores
 
-    #region Null/Empty Handling (NEVER CRASH)
+     //  Null/Empty Handling (NEVER CRASH)
 
     [Theory]
     [InlineData(null)]
@@ -281,9 +281,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result.ShouldBeNull();
     }
 
-    #endregion Null/Empty Handling (NEVER CRASH)
+     //  Null/Empty Handling (NEVER CRASH)
 
-    #region Complex Real-World Examples
+     //  Complex Real-World Examples
 
     [Fact]
     public void Sanitize_ComplexDirtyData_CleansCorrectly()
@@ -320,9 +320,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result.ShouldBe(cleanValue);
     }
 
-    #endregion Complex Real-World Examples
+     //  Complex Real-World Examples
 
-    #region Monto Sanitization Tests
+     //  Monto Sanitization Tests
 
     [Fact]
     public void SanitizeMonto_ValidInteger_ReturnsFormatted()
@@ -450,9 +450,9 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result.ShouldBeNull();
     }
 
-    #endregion Monto Sanitization Tests
+     //  Monto Sanitization Tests
 
-    #region Idempotency Tests (Sanitize twice = same result)
+     //  Idempotency Tests (Sanitize twice = same result)
 
     [Fact]
     public void Sanitize_Idempotent_SameResultTwice()
@@ -488,5 +488,5 @@ public class FieldSanitizerContractTests(ITestOutputHelper output)
         result1.ShouldBe(result2);
     }
 
-    #endregion Idempotency Tests
+     //  Idempotency Tests
 }

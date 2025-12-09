@@ -48,3 +48,4 @@ global using ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection
 global using ExxerCube.Prisma.Infrastructure.Metrics.DependencyInjection;
 global using ExxerCube.Prisma.Web.UI.Components.Shared.Navigation;
 global using IndFusion.Ember.Extensions;
+global using Microsoft.Extensions.Logging;

@@ -31,7 +31,7 @@ public sealed class ISchemaEvolutionDetectorContractTests
         _mockRepository = Substitute.For<ITemplateRepository>();
     }
 
-    #region DetectDriftAsync Contract Tests
+     //  DetectDriftAsync Contract Tests
 
     [Fact]
     public async Task DetectDriftAsync_WithNoDrift_ReturnsSuccessWithNoDrift()
@@ -282,9 +282,9 @@ public sealed class ISchemaEvolutionDetectorContractTests
         (result.Error ?? string.Empty).ShouldContain("Template cannot be null");
     }
 
-    #endregion
+     // 
 
-    #region DetectDriftForActiveTemplateAsync Contract Tests
+     //  DetectDriftForActiveTemplateAsync Contract Tests
 
     [Fact]
     public async Task DetectDriftForActiveTemplateAsync_WithActiveTemplate_ReturnsSuccess()
@@ -331,9 +331,9 @@ public sealed class ISchemaEvolutionDetectorContractTests
         (result.Error ?? string.Empty).ShouldContain("No active template found");
     }
 
-    #endregion
+     // 
 
-    #region SuggestFieldMappingsAsync Contract Tests
+     //  SuggestFieldMappingsAsync Contract Tests
 
     [Fact]
     public async Task SuggestFieldMappingsAsync_WithValidSourceObject_ReturnsSuggestedMappings()
@@ -386,9 +386,9 @@ public sealed class ISchemaEvolutionDetectorContractTests
         (result.Error ?? string.Empty).ShouldContain("Source object cannot be null");
     }
 
-    #endregion
+     // 
 
-    #region CalculateSimilarity Contract Tests
+     //  CalculateSimilarity Contract Tests
 
     [Fact]
     public void CalculateSimilarity_WithIdenticalStrings_Returns1()
@@ -424,9 +424,9 @@ public sealed class ISchemaEvolutionDetectorContractTests
         result.ShouldBeLessThan(0.5);
     }
 
-    #endregion
+     // 
 
-    #region ValidateTemplateCompatibilityAsync Contract Tests
+     //  ValidateTemplateCompatibilityAsync Contract Tests
 
     [Fact]
     public async Task ValidateTemplateCompatibilityAsync_WithCompatibleTemplate_ReturnsSuccess()
@@ -481,5 +481,5 @@ public sealed class ISchemaEvolutionDetectorContractTests
         (result.Error ?? string.Empty).ShouldContain("incompatible");
     }
 
-    #endregion
+     // 
 }

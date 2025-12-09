@@ -124,7 +124,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03 Orchestration", "03 Orch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Tests.Orchestration", "08 Tests\03 Orchestration\ExxerCube.Prisma.Tests.Orchestration\ExxerCube.Prisma.Tests.Orchestration.csproj", "{06758EED-EFEA-4D3F-A6D1-9B3E22CD1C7F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "08-Console", "08-Console", "{56391C2E-BEF5-AB7A-DCBC-781B212667B1}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "08 Console", "08 Console", "{56391C2E-BEF5-AB7A-DCBC-781B212667B1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConsoleApp.GotOcr2Demo", "ConsoleApp.GotOcr2Demo", "{F0EA9E3F-9688-A217-9949-1FCDA22C17E3}"
 EndProject

@@ -34,7 +34,7 @@ public class LegalDirectiveClassifierDictionaryTests
         _semanticAnalyzer = new SemanticAnalyzerService(_textComparer, _logger);
     }
 
-    #region Return Type Tests (Critical Audit Gap)
+     //  Return Type Tests (Critical Audit Gap)
 
     /// <summary>
     /// CRITICAL TEST: Verifies that AnalyzeDirectivesAsync returns SemanticAnalysis (not List&lt;ComplianceAction&gt;).
@@ -58,9 +58,9 @@ public class LegalDirectiveClassifierDictionaryTests
         semanticAnalysis.ShouldBeOfType<SemanticAnalysis>();
     }
 
-    #endregion
+     // 
 
-    #region Dictionary-Based Classification Tests
+     //  Dictionary-Based Classification Tests
 
     /// <summary>
     /// Tests that the service uses dictionary for "Block" classification.
@@ -125,9 +125,9 @@ public class LegalDirectiveClassifierDictionaryTests
         semanticAnalysis.RequiereBloqueo!.EsRequerido.ShouldBeTrue();
     }
 
-    #endregion
+     // 
 
-    #region Multiple Directives Tests
+     //  Multiple Directives Tests
 
     /// <summary>
     /// Tests that a single document can have multiple directives detected.
@@ -158,9 +158,9 @@ public class LegalDirectiveClassifierDictionaryTests
         semanticAnalysis.RequiereDocumentacion!.EsRequerido.ShouldBeTrue();
     }
 
-    #endregion
+     // 
 
-    #region Unblock Directive Tests
+     //  Unblock Directive Tests
 
     /// <summary>
     /// Tests that Unblock directives populate RequiereDesbloqueo.
@@ -183,9 +183,9 @@ public class LegalDirectiveClassifierDictionaryTests
         semanticAnalysis.RequiereDesbloqueo.Confidence.ShouldBeGreaterThanOrEqualTo(0.85);
     }
 
-    #endregion
+     // 
 
-    #region Document Directive Tests
+     //  Document Directive Tests
 
     /// <summary>
     /// Tests that Document directives populate RequiereDocumentacion.
@@ -207,9 +207,9 @@ public class LegalDirectiveClassifierDictionaryTests
         semanticAnalysis.RequiereDocumentacion!.EsRequerido.ShouldBeTrue();
     }
 
-    #endregion
+     // 
 
-    #region Edge Cases
+     //  Edge Cases
 
     /// <summary>
     /// Tests that no match results in SemanticAnalysis with all nulls.
@@ -235,9 +235,9 @@ public class LegalDirectiveClassifierDictionaryTests
         semanticAnalysis.RequiereInformacionGeneral.ShouldBeNull();
     }
 
-    #endregion
+     // 
 
-    #region Integration with Expediente Context
+     //  Integration with Expediente Context
 
     /// <summary>
     /// Tests that the service can use Expediente context for better classification.
@@ -264,5 +264,5 @@ public class LegalDirectiveClassifierDictionaryTests
         semanticAnalysis.RequiereBloqueo!.Confidence.ShouldBeGreaterThanOrEqualTo(0.85);
     }
 
-    #endregion
+     // 
 }
