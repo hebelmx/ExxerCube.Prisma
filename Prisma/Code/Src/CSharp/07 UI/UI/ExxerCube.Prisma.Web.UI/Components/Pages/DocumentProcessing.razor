@@ -669,14 +669,14 @@
                                                     <MudChip T="string" Color="Color.Info" Size="Size.Small">@(pdfExpediente.SolicitudSiara ?? "Not extracted")</MudChip>
                                                 </td>
                                             </tr>
-                                            @if (pdfExpediente.FechaPublicacion.HasValue)
+                                            @if (pdfExpediente.FechaPublicacion > DateTime.MinValue)
                                             {
                                                 <tr>
                                                     <td><strong>Fecha de Publicación</strong></td>
                                                     <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
                                                     <td>
                                                         <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
-                                                        @pdfExpediente.FechaPublicacion.Value.ToString("dd/MM/yyyy")
+                                                        @pdfExpediente.FechaPublicacion.ToString("dd/MM/yyyy")
                                                     </td>
                                                 </tr>
                                             }
@@ -2051,7 +2051,6 @@
             {
                 FileContent = pdfBytes,
                 FilePath = currentPdfFixtureName,
-              //  OcrConfidence = ocrResult.Confidence
             };
 
             // Define fields to extract
@@ -2151,7 +2150,7 @@
         if (!string.IsNullOrWhiteSpace(expediente.NumeroExpediente)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.NumeroOficio)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.SolicitudSiara)) count++;
-        if (expediente.FechaPublicacion.HasValue) count++;
+        if (expediente.FechaPublicacion > DateTime.MinValue) count++;
         if (expediente.DiasPlazo > 0) count++;
         if (!string.IsNullOrWhiteSpace(expediente.AreaDescripcion)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.AutoridadNombre)) count++;
