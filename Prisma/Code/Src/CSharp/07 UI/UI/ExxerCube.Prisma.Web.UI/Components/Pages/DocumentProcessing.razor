@@ -2597,17 +2597,16 @@
             await hubConnection.DisposeAsync();
         }
     }
-}
 
-/// <summary>
-/// Summary statistics for batch processing results.
-/// </summary>
-public class BatchSummary
-{
-    public int SuccessCount { get; set; }
-    public int TotalCount { get; set; }
-    public float AvgOcrConfidence { get; set; }
-    public float AvgMatchRate { get; set; }
-    public long TotalTimeMs { get; set; }
+    /// <summary>
+    /// Summary statistics for batch processing results.
+    /// </summary>
+    public class BatchSummary
+    {
+        public int SuccessCount { get; set; }
+        public int TotalCount { get; set; }
+        public float AvgOcrConfidence { get; set; }
+        public float AvgMatchRate { get; set; }
+        public long TotalTimeMs { get; set; }
+    }
 }
-@using ExxerCube.Prisma.Domain.Enum
