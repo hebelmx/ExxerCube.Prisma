@@ -5,6 +5,7 @@ using ExxerCube.Prisma.Infrastructure.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Txt.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.FileStorage;
 using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
@@ -41,6 +42,7 @@ public static class PrismaServiceCollectionExtensions
     /// </para>
     /// <list type="number">
     /// <item><description>Infrastructure.Extraction (OCR + Field Extraction)</description></item>
+    /// <item><description>Infrastructure.Extraction.Txt (Adaptive TXT Field Extraction)</description></item>
     /// <item><description>Infrastructure.Extraction.Adaptive (5-Strategy Adaptive DOCX Extraction)</description></item>
     /// <item><description>Infrastructure.Classification (Data Fusion + CNBV Classification)</description></item>
     /// <item><description>Infrastructure.Database (EF Core + Repositories)</description></item>
@@ -68,25 +70,28 @@ public static class PrismaServiceCollectionExtensions
         // 1. Core extraction services (OCR, field extractors)
         services.AddExtractionServices();
 
-        // 2. Adaptive DOCX extraction (5 strategies)
+        // 2. Adaptive TXT extraction (OCR text field extraction)
+        services.AddTxtFieldExtraction();
+
+        // 3. Adaptive DOCX extraction (5 strategies)
         services.AddAdaptiveDocxExtraction();
 
-        // 3. Data fusion and CNBV classification
+        // 4. Data fusion and CNBV classification
         services.AddClassificationServices();
 
-        // 4. Database services (EF Core + Repositories)
+        // 5. Database services (EF Core + Repositories)
         services.AddDatabaseServices(connectionString, configuration);
 
-        // 5. File storage services (Azure Blob)
+        // 6. File storage services (Azure Blob)
         services.AddFileStorageServices(configureFileStorage);
 
-        // 6. Export services (PDF generation)
+        // 7. Export services (PDF generation)
         services.AddExportServices();
 
-        // 7. Metrics services (processing metrics)
+        // 8. Metrics services (processing metrics)
         services.AddMetricsServices(pythonConfiguration.MaxConcurrency);
 
-        // 8. Legacy OCR processing adapter
+        // 9. Legacy OCR processing adapter
         services.AddOcrProcessingServices(pythonConfiguration);
 
         return services;

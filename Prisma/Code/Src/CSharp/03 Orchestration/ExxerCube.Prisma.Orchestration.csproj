@@ -16,6 +16,7 @@
     <ProjectReference Include="..\02 Infrastructure\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\02 Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
     <ProjectReference Include="..\02 Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
+    <ProjectReference Include="..\02 Infrastructure\Infrastructure.Extraction.Txt\ExxerCube.Prisma.Infrastructure.Extraction.Txt.csproj" />
     <ProjectReference Include="..\02 Infrastructure\Infrastructure.Extraction.Adaptive\ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.csproj" />
     <ProjectReference Include="..\02 Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
     <ProjectReference Include="..\02 Infrastructure\Infrastructure.FileStorage\ExxerCube.Prisma.Infrastructure.FileStorage.csproj" />
