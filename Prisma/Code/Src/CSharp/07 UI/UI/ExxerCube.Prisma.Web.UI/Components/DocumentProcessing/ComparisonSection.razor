@@ -1,0 +1,372 @@
+@using ExxerCube.Prisma.Web.UI.Models
+@using ExxerCube.Prisma.Web.UI.Services
+@using ExxerCube.Prisma.Domain.Enum
+@using System.Text.Json
+@inject DocumentComparisonCoordinator ComparisonCoordinator
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<MudCard Class="mb-4" Style="@(CanCompare ? "" : "opacity: 0.6; pointer-events: none;")">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+            XML vs OCR Comparison
+        </MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (!CanCompare)
+        {
+            <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.Info">
+                Process both an XML and a PDF document above to enable comparison.
+            </MudAlert>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Large"
+                       OnClick="Compare" Disabled="@(IsProcessing || !CanCompare)">
+                <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+                Compare XML vs OCR
+            </MudButton>
+        }
+
+        @if (State.ComparisonResult != null)
+        {
+            <MudDivider Class="my-4" />
+
+            <!-- Summary Stats -->
+            <MudGrid Class="mt-4">
+                <MudItem xs="12" sm="4">
+                    <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 10px; right: 10px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
+                        </div>
+                        <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                            @State.ComparisonResult.MatchCount / @State.ComparisonResult.TotalFields
+                        </MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Exact Matches</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 10px; right: 10px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Percent" Color="Color.Info" Size="Size.Large" />
+                        </div>
+                        <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                            @($"{State.ComparisonResult.OverallSimilarity:P0}")
+                        </MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Overall Similarity</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 10px; right: 10px;">
+                            <MudIcon Icon="@Icons.Material.Filled.BarChart" Color="Color.Warning" Size="Size.Large" />
+                        </div>
+                        <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                            @($"{State.ComparisonResult.MatchPercentage:F0}%")
+                        </MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Match Percentage</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <!-- Detailed Field Comparison Table -->
+            <MudTable Items="@State.ComparisonResult.FieldComparisons" Class="mt-4" Dense="true" Hover="true" Striped="true" FixedHeader="true" Height="500px">
+                <HeaderContent>
+                    <MudTh>Field</MudTh>
+                    <MudTh>XML Value</MudTh>
+                    <MudTh>OCR Value</MudTh>
+                    <MudTh>Similarity</MudTh>
+                    <MudTh>Status</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Field"><strong>@context.FieldName</strong></MudTd>
+                    <MudTd DataLabel="XML"><code style="font-size: 0.85em;">@context.XmlValue</code></MudTd>
+                    <MudTd DataLabel="OCR"><code style="font-size: 0.85em;">@context.OcrValue</code></MudTd>
+                    <MudTd DataLabel="Similarity">
+                        <MudProgressLinear Value="@(context.Similarity * 100)" Color="@GetSimilarityColor(context.Similarity)" Size="Size.Small" />
+                        <MudText Typo="Typo.caption">@($"{context.Similarity:P0}")</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Color="@GetStatusColor(context.Status)" Size="Size.Small" Variant="Variant.Filled">
+                            @context.Status
+                        </MudChip>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+
+            @if (State.FusionResult != null)
+            {
+                <!-- Reconciled Data for Lawyers -->
+                <MudDivider Class="my-6" />
+
+                <MudPaper Class="pa-4 mt-4" Elevation="2" Style="border-left: 4px solid var(--mud-palette-success);">
+                    <MudStack Spacing="3">
+                        <MudText Typo="Typo.h6" Color="Color.Success">
+                            <MudIcon Icon="@Icons.Material.Filled.Verified" Class="mr-2" />
+                            Reconciled Result - Single Source of Truth
+                        </MudText>
+
+                        <MudText Typo="Typo.body2" Color="Color.Default">
+                            Intelligent 3-way fusion of XML, DOCX, and OCR sources with dynamic reliability weighting.
+                            Fields are reconciled using pattern validation, catalog validation, and fuzzy matching.
+                            This is the clean, structured data lawyers can copy and integrate into any bank system.
+                        </MudText>
+
+                        <!-- Overall Metrics -->
+                        <MudGrid Class="mt-2 mb-3">
+                            <MudItem xs="4">
+                                <MudPaper Class="pa-3" Elevation="1" Style="text-align: center;">
+                                    <MudText Typo="Typo.h4" Color="Color.Success">@($"{State.FusionResult.OverallConfidence:P0}")</MudText>
+                                    <MudText Typo="Typo.caption">Overall Confidence</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="4">
+                                <MudPaper Class="pa-3" Elevation="1" Style="text-align: center;">
+                                    <MudText Typo="Typo.h4" Color="Color.Info">@State.FusionResult.NextAction</MudText>
+                                    <MudText Typo="Typo.caption">Recommended Action</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="4">
+                                <MudPaper Class="pa-3" Elevation="1" Style="text-align: center;">
+                                    <MudText Typo="Typo.h4" Color="@(State.FusionResult.ConflictingFields.Count > 0 ? Color.Warning : Color.Success)">
+                                        @State.FusionResult.ConflictingFields.Count
+                                    </MudText>
+                                    <MudText Typo="Typo.caption">Conflicting Fields</MudText>
+                                </MudPaper>
+                            </MudItem>
+                        </MudGrid>
+
+                        <!-- Field-Level Fusion Results -->
+                        <MudSimpleTable Striped="true" Dense="true" Hover="true" Style="background: var(--mud-palette-background-grey);">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;"><strong>Field</strong></th>
+                                    <th style="width: 30%;"><strong>Fused Value</strong></th>
+                                    <th style="width: 15%;"><strong>Decision</strong></th>
+                                    <th style="width: 15%;"><strong>Source</strong></th>
+                                    <th style="width: 15%;"><strong>Confidence</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var kvp in State.FusionResult.FieldResults.OrderByDescending(f => f.Value.Confidence))
+                                {
+                                    var fieldName = kvp.Key;
+                                    var fieldResult = kvp.Value;
+                                    var confidencePercent = fieldResult.Confidence * 100.0;
+                                    var confidenceColor = fieldResult.Confidence >= 0.85 ? Color.Success :
+                                                         fieldResult.Confidence >= 0.70 ? Color.Info :
+                                                         fieldResult.Confidence >= 0.50 ? Color.Warning : Color.Error;
+
+                                    <tr>
+                                        <td><strong>@fieldName</strong></td>
+                                        <td>
+                                            <code style="font-size: 0.9em; padding: 2px 6px; background: var(--mud-palette-background); border-radius: 4px;">
+                                                @(string.IsNullOrEmpty(fieldResult.Value) ? "N/A" : fieldResult.Value)
+                                            </code>
+                                        </td>
+                                        <td>
+                                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Color="@GetDecisionColor(fieldResult.Decision)">
+                                                @GetDecisionText(fieldResult.Decision)
+                                            </MudChip>
+                                        </td>
+                                        <td>
+                                            @if (fieldResult.WinningSource != null)
+                                            {
+                                                <MudText Typo="Typo.caption">@fieldResult.WinningSource.Value.ToString()</MudText>
+                                            }
+                                            else if (fieldResult.ContributingSources.Any())
+                                            {
+                                                <MudText Typo="Typo.caption">All</MudText>
+                                            }
+                                            else
+                                            {
+                                                <MudText Typo="Typo.caption">-</MudText>
+                                            }
+                                        </td>
+                                        <td>
+                                            <MudText Typo="Typo.caption" Color="@confidenceColor">
+                                                @($"{confidencePercent:F0}%")
+                                            </MudText>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </MudSimpleTable>
+
+                        <MudStack Row="true" Spacing="2" Class="mt-3">
+                            <MudButton Variant="Variant.Filled" Color="Color.Success"
+                                       OnClick="@CopyReconciledDataToClipboard" StartIcon="@Icons.Material.Filled.ContentCopy">
+                                Copy Reconciled Data (JSON)
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Info"
+                                       OnClick="@DownloadReconciledData" StartIcon="@Icons.Material.Filled.Download">
+                                Download as JSON
+                            </MudButton>
+                        </MudStack>
+                    </MudStack>
+                </MudPaper>
+            }
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    /// <summary>
+    /// Comparison and fusion state containing results.
+    /// </summary>
+    [Parameter]
+    public ComparisonState State { get; set; } = default!;
+
+    /// <summary>
+    /// Parent view model for accessing XML and PDF states.
+    /// </summary>
+    [Parameter]
+    public DocumentProcessingViewModel ViewModel { get; set; } = default!;
+
+    /// <summary>
+    /// Callback invoked when comparison completes successfully.
+    /// </summary>
+    [Parameter]
+    public EventCallback<ComparisonAndFusionResult> OnComparisonCompleted { get; set; }
+
+    /// <summary>
+    /// Indicates if processing is currently in progress.
+    /// </summary>
+    [Parameter]
+    public bool IsProcessing { get; set; }
+
+    /// <summary>
+    /// Indicates if comparison can be performed (both XML and PDF loaded).
+    /// </summary>
+    private bool CanCompare => ViewModel.XmlState.Expediente != null && ViewModel.PdfState.OcrResult != null;
+
+    /// <summary>
+    /// Performs comparison and fusion of XML and PDF Expedientes.
+    /// </summary>
+    private async Task Compare()
+    {
+        if (!CanCompare)
+        {
+            Snackbar.Add("Cannot compare: both XML and OCR results are required.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var result = await ComparisonCoordinator.CompareAndFuseAsync(ViewModel);
+            await OnComparisonCompleted.InvokeAsync(result);
+
+            var fusionMessage = result.Fusion != null
+                ? $" | Fusion: {result.Fusion.OverallConfidence:P0} confidence, {result.Fusion.NextAction}"
+                : "";
+
+            Snackbar.Add(
+                $"Complete! {result.Comparison.MatchCount}/{result.Comparison.TotalFields} matches ({result.Comparison.MatchPercentage:F0}%){fusionMessage}",
+                Severity.Success,
+                config => { config.VisibleStateDuration = 5000; });
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Comparison failed: {ex.Message}", Severity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Gets color for comparison status.
+    /// </summary>
+    private Color GetStatusColor(string status) => status switch
+    {
+        "Match" => Color.Success,
+        "Partial" => Color.Warning,
+        "Different" => Color.Error,
+        "Missing" => Color.Default,
+        _ => Color.Default
+    };
+
+    /// <summary>
+    /// Gets color for similarity score.
+    /// </summary>
+    private Color GetSimilarityColor(float similarity)
+    {
+        if (similarity >= 0.9f) return Color.Success;
+        if (similarity >= 0.7f) return Color.Info;
+        if (similarity >= 0.5f) return Color.Warning;
+        return Color.Error;
+    }
+
+    /// <summary>
+    /// Gets color for fusion decision type.
+    /// </summary>
+    private Color GetDecisionColor(FusionDecision decision)
+    {
+        if (decision == FusionDecision.AllAgree) return Color.Success;
+        if (decision == FusionDecision.FuzzyAgreement) return Color.Info;
+        if (decision == FusionDecision.WeightedVoting) return Color.Primary;
+        if (decision == FusionDecision.BestEffort) return Color.Warning;
+        if (decision == FusionDecision.Conflict) return Color.Error;
+        if (decision == FusionDecision.AllSourcesNull) return Color.Default;
+        return Color.Default;
+    }
+
+    /// <summary>
+    /// Gets display text for fusion decision type.
+    /// </summary>
+    private string GetDecisionText(FusionDecision decision)
+    {
+        if (decision == FusionDecision.AllAgree) return "✓✓✓ All Agree";
+        if (decision == FusionDecision.FuzzyAgreement) return "✓✓ Fuzzy Match";
+        if (decision == FusionDecision.WeightedVoting) return "✓ Weighted";
+        if (decision == FusionDecision.BestEffort) return "⚠ Best Effort";
+        if (decision == FusionDecision.Conflict) return "❌ Conflict";
+        if (decision == FusionDecision.AllSourcesNull) return "- No Data";
+        return decision?.Name ?? "Unknown";
+    }
+
+    /// <summary>
+    /// Copies reconciled Expediente data to clipboard as JSON.
+    /// </summary>
+    private async Task CopyReconciledDataToClipboard()
+    {
+        if (State.FusionResult?.FusedExpediente == null)
+        {
+            Snackbar.Add("No reconciled data available", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var json = JsonSerializer.Serialize(State.FusionResult.FusedExpediente, new JsonSerializerOptions { WriteIndented = true });
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", json);
+            Snackbar.Add("Reconciled Expediente copied to clipboard as JSON!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to copy: {ex.Message}", Severity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Downloads reconciled Expediente data as JSON file.
+    /// </summary>
+    private async Task DownloadReconciledData()
+    {
+        if (State.FusionResult?.FusedExpediente == null)
+        {
+            Snackbar.Add("No reconciled data available", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var json = JsonSerializer.Serialize(State.FusionResult.FusedExpediente, new JsonSerializerOptions { WriteIndented = true });
+            var fileName = $"reconciled_expediente_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            await JSRuntime.InvokeVoidAsync("downloadFile", json, fileName, "application/json");
+            Snackbar.Add($"Downloading {fileName}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to download: {ex.Message}", Severity.Error);
+        }
+    }
+}
