@@ -137,26 +137,75 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
     //
 
     /// <summary>
-    /// Extracts core fields (Expediente, Causa, AccionSolicitada) from text.
+    /// Extracts ALL extractable fields from text automatically.
+    /// This ensures maximum field coverage regardless of fieldDefinitions passed.
     /// </summary>
     private void ExtractCoreFields(string text, ExtractedFields fields, float confidence)
     {
-        // Extract Expediente if not already set
+        // Core Expediente fields
         if (string.IsNullOrEmpty(fields.Expediente))
         {
             fields.Expediente = ExtractExpediente(text);
         }
 
-        // Extract Causa if not already set
         if (string.IsNullOrEmpty(fields.Causa))
         {
             fields.Causa = ExtractCausa(text);
         }
 
-        // Extract AccionSolicitada if not already set
         if (string.IsNullOrEmpty(fields.AccionSolicitada))
         {
             fields.AccionSolicitada = ExtractAccionSolicitada(text);
+        }
+
+        // Identification fields - Add to AdditionalFields if not already present
+        AddFieldIfNotPresent(fields, "NumeroOficio", ExtractNumeroOficio(text));
+        AddFieldIfNotPresent(fields, "SolicitudSiara", ExtractNumeroOficio(text)); // Same pattern
+
+        // Authority fields
+        AddFieldIfNotPresent(fields, "AutoridadNombre", ExtractAutoridadNombre(text));
+        AddFieldIfNotPresent(fields, "AutoridadEspecificaNombre", ExtractAutoridadEspecifica(text));
+
+        // Contact fields (NEW)
+        AddFieldIfNotPresent(fields, "NombreSolicitante", ExtractNombreSolicitante(text));
+        AddFieldIfNotPresent(fields, "Email", ExtractEmail(text));
+        AddFieldIfNotPresent(fields, "Telefono", ExtractTelefono(text));
+
+        // Address fields (NEW)
+        AddFieldIfNotPresent(fields, "Direccion", ExtractDireccion(text));
+        AddFieldIfNotPresent(fields, "CodigoPostal", ExtractCodigoPostal(text));
+
+        // Legal fields (NEW)
+        AddFieldIfNotPresent(fields, "FundamentoLegal", ExtractFundamentoLegal(text));
+
+        // Metadata fields (NEW)
+        var fechaPub = ExtractFechaPublicacion(text);
+        if (fechaPub.HasValue)
+        {
+            AddFieldIfNotPresent(fields, "FechaPublicacion", fechaPub.Value.ToString("yyyy-MM-dd"));
+        }
+
+        var diasPlazo = ExtractDiasPlazo(text);
+        if (diasPlazo.HasValue)
+        {
+            AddFieldIfNotPresent(fields, "DiasPlazo", diasPlazo.Value.ToString());
+        }
+
+        var tieneAseg = ExtractTieneAseguramiento(text);
+        if (tieneAseg.HasValue)
+        {
+            AddFieldIfNotPresent(fields, "TieneAseguramiento", tieneAseg.Value.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Helper method to add field to AdditionalFields if value is not null and not already present.
+    /// </summary>
+    private static void AddFieldIfNotPresent(ExtractedFields fields, string fieldName, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && !fields.AdditionalFields.ContainsKey(fieldName))
+        {
+            fields.AdditionalFields[fieldName] = value;
         }
     }
 
