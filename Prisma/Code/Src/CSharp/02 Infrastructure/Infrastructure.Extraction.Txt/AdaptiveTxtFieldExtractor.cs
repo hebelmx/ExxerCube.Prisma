@@ -78,9 +78,16 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
             ExtractCoreFields(text, extractedFields, source.OcrConfidence ?? 0.8f);
 
             _logger.LogInformation(
-                "AdaptiveTxtExtractor: Successfully extracted fields - Expediente: {Expediente}, Causa: {Causa}",
+                "AdaptiveTxtExtractor: Successfully extracted fields - Expediente: {Expediente}, Causa: {Causa}, AdditionalFields count: {Count}",
                 extractedFields.Expediente,
-                extractedFields.Causa);
+                extractedFields.Causa,
+                extractedFields.AdditionalFields.Count);
+
+            // Log all extracted AdditionalFields for debugging
+            foreach (var field in extractedFields.AdditionalFields)
+            {
+                _logger.LogDebug("  AdditionalField: {Key} = {Value}", field.Key, field.Value);
+            }
 
             return Task.FromResult(Result<ExtractedFields>.Success(extractedFields));
         }
