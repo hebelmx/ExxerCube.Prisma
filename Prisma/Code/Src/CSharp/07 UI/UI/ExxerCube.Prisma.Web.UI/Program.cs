@@ -308,6 +308,10 @@ Inner Stack Trace:
         // Adaptive DOCX fixtures for Mission 7 demo page
         services.AddScoped<ExxerCube.Prisma.Web.UI.Services.AdaptiveDocxFixtureService>();
 
+        // Add Document Processing page services (refactored architecture)
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DocumentProcessingStateService>();
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.FixtureLoaderService>();
+
         //// Add SLA health checks
         //services.AddHealthChecks()
         //    .AddCheck<SLAEnforcerHealthCheck>(
