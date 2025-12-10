@@ -1,0 +1,472 @@
+@using ExxerCube.Prisma.Web.UI.Models
+@using ExxerCube.Prisma.Web.UI.Services
+@using ExxerCube.Prisma.Domain.Entities
+@inject XmlProcessingService XmlService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<style>
+    @@keyframes count-up {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes checkmark-pop {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .count-up-animation {
+        animation: count-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .checkmark-animation {
+        animation: checkmark-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+</style>
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+            XML Processing - CNBV Expedientes
+        </MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body2" Class="mb-3">
+            Click any XML fixture to load and parse CNBV Expediente data:
+        </MudText>
+
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                           OnClick="@(() => LoadFixture("222AAA-44444444442025.xml"))" Disabled="@IsProcessing">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                    PRP1: 222AAA XML
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" Size="Size.Large"
+                           OnClick="@(() => LoadFixture("333BBB-44444444442025.xml"))" Disabled="@IsProcessing">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                    PRP1: 333BBB XML
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" Size="Size.Large"
+                           OnClick="@(() => LoadFixture("333ccc-6666666662025.xml"))" Disabled="@IsProcessing">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                    PRP1: 333CCC XML
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth="true" Size="Size.Large"
+                           OnClick="@(() => LoadFixture("555CCC-6666666662025.xml"))" Disabled="@IsProcessing">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                    PRP1: 555CCC XML
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+
+        @if (State.Expediente != null)
+        {
+            <MudAlert Severity="Severity.Success" Class="mt-4" Icon="@Icons.Material.Filled.CheckCircle">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <strong class="checkmark-animation">Success!</strong> Extracted <strong>@State.FieldCount fields</strong>,
+                        <strong>@State.Expediente.SolicitudPartes.Count partes</strong>,
+                        <strong>@State.Expediente.SolicitudEspecificas.Count específicas</strong>
+                        from <code>@State.FixtureName</code>
+                    </div>
+                    <MudButton Variant="Variant.Text" Color="Color.Default" Size="Size.Small"
+                               OnClick="@(() => State.ShowSource = !State.ShowSource)">
+                        @(State.ShowSource ? "Hide" : "View") Source XML
+                    </MudButton>
+                </div>
+            </MudAlert>
+
+            @if (State.ShowSource && !string.IsNullOrWhiteSpace(State.SourceXml))
+            {
+                <MudPaper Class="pa-3 mt-3" Elevation="2">
+                    <MudTextField Value="@State.SourceXml"
+                                 Label="Source XML Content"
+                                 Variant="Variant.Outlined"
+                                 Lines="15"
+                                 ReadOnly="true"
+                                 Style="font-family: 'Courier New', monospace; font-size: 11px;" />
+                </MudPaper>
+            }
+
+            <!-- Animated Stat Cards -->
+            <MudGrid Class="mt-4">
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-4 text-center count-up-animation" Elevation="3">
+                        <MudIcon Icon="@Icons.Material.Filled.DataObject" Size="Size.Large" Color="Color.Primary" />
+                        <MudText Typo="Typo.h3" Color="Color.Primary">@State.FieldCount</MudText>
+                        <MudText Typo="Typo.body2">Fields Extracted</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-4 text-center count-up-animation" Elevation="3" Style="animation-delay: 0.1s;">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Secondary" />
+                        <MudText Typo="Typo.h3" Color="Color.Secondary">@State.Expediente.SolicitudPartes.Count</MudText>
+                        <MudText Typo="Typo.body2">Partes</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="pa-4 text-center count-up-animation" Elevation="3" Style="animation-delay: 0.2s;">
+                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Large" Color="Color.Tertiary" />
+                        <MudText Typo="Typo.h3" Color="Color.Tertiary">@State.Expediente.SolicitudEspecificas.Count</MudText>
+                        <MudText Typo="Typo.body2">Específicas</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <!-- Tabs Section -->
+            <MudPaper Class="mt-4" Elevation="2">
+                <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-4">
+                    <MudTabPanel Text="Información General" Icon="@Icons.Material.Filled.Info">
+                        <MudText Typo="Typo.body2" Class="mb-3">
+                            Core fields extracted from the XML fixture:
+                        </MudText>
+                        <MudSimpleTable Dense="true" Striped="true">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Expediente</strong></td>
+                                    <td>@State.Expediente.NumeroExpediente</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Oficio</strong></td>
+                                    <td>@State.Expediente.NumeroOficio</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Solicitud SIARA</strong></td>
+                                    <td>@State.Expediente.SolicitudSiara</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Folio</strong></td>
+                                    <td>@State.Expediente.Folio</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Año Oficio</strong></td>
+                                    <td>@State.Expediente.OficioYear</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Área</strong></td>
+                                    <td>@State.Expediente.AreaClave - @State.Expediente.AreaDescripcion</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha Publicación</strong></td>
+                                    <td>@State.Expediente.FechaPublicacion.ToString("yyyy-MM-dd")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Días Plazo</strong></td>
+                                    <td>@State.Expediente.DiasPlazo días</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Autoridad</strong></td>
+                                    <td>@State.Expediente.AutoridadNombre</td>
+                                </tr>
+                                @if (!string.IsNullOrWhiteSpace(State.Expediente.AutoridadEspecificaNombre))
+                                {
+                                    <tr>
+                                        <td><strong>Autoridad Específica</strong></td>
+                                        <td>@State.Expediente.AutoridadEspecificaNombre</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(State.Expediente.NombreSolicitante))
+                                {
+                                    <tr>
+                                        <td><strong>Solicitante</strong></td>
+                                        <td>@State.Expediente.NombreSolicitante</td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td><strong>Referencia</strong></td>
+                                    <td>@State.Expediente.Referencia</td>
+                                </tr>
+                                @if (!string.IsNullOrWhiteSpace(State.Expediente.Referencia1))
+                                {
+                                    <tr>
+                                        <td><strong>Referencia 1</strong></td>
+                                        <td>@State.Expediente.Referencia1</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(State.Expediente.Referencia2))
+                                {
+                                    <tr>
+                                        <td><strong>Referencia 2</strong></td>
+                                        <td>@State.Expediente.Referencia2</td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td><strong>Tiene Aseguramiento</strong></td>
+                                    <td>
+                                        @if (State.Expediente.TieneAseguramiento)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Success">Sí</MudChip>
+                                        }
+                                        else
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Color="Color.Default">No</MudChip>
+                                        }
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </MudSimpleTable>
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Partes" Icon="@Icons.Material.Filled.People">
+                        @if (State.Expediente.SolicitudPartes.Any())
+                        {
+                            <MudText Typo="Typo.body2" Class="mb-3">
+                                Parties related to this <em>Expediente</em> (total: <strong>@State.Expediente.SolicitudPartes.Count</strong>):
+                            </MudText>
+
+                            @foreach (var (parte, index) in State.Expediente.SolicitudPartes.Select((p, i) => (p, i)))
+                            {
+                                <MudPaper Class="pa-4 mb-3" Elevation="2">
+                                    <MudText Typo="Typo.h6" Class="mb-3">
+                                        <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-2" />
+                                        Parte @(index + 1): @parte.Nombre @parte.Paterno @parte.Materno
+                                        <MudChip T="string" Size="Size.Small" Color="@(parte.PersonaTipo == "FISICA" ? Color.Info : Color.Success)" Class="ml-2">
+                                            @parte.PersonaTipo
+                                        </MudChip>
+                                    </MudText>
+
+                                    <MudSimpleTable Dense="true" Hover="true">
+                                        <tbody>
+                                            <tr>
+                                                <td style="width: 30%;"><strong>Carácter</strong></td>
+                                                <td>@parte.Caracter</td>
+                                            </tr>
+                                            @if (!string.IsNullOrWhiteSpace(parte.Rfc))
+                                            {
+                                                <tr>
+                                                    <td><strong>RFC</strong></td>
+                                                    <td>@parte.Rfc</td>
+                                                </tr>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(parte.Relacion))
+                                            {
+                                                <tr>
+                                                    <td><strong>Relación</strong></td>
+                                                    <td>@parte.Relacion</td>
+                                                </tr>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(parte.Domicilio))
+                                            {
+                                                <tr>
+                                                    <td><strong>Domicilio</strong></td>
+                                                    <td>@parte.Domicilio</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </MudSimpleTable>
+                                </MudPaper>
+                            }
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info">No hay partes en este expediente.</MudAlert>
+                        }
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Específicas" Icon="@Icons.Material.Filled.Assignment">
+                        @if (State.Expediente.SolicitudEspecificas.Any())
+                        {
+                            <MudText Typo="Typo.body2" Class="mb-3">
+                                Specific requests in this <em>Expediente</em> (total: <strong>@State.Expediente.SolicitudEspecificas.Count</strong>):
+                            </MudText>
+
+                            @foreach (var (especifica, index) in State.Expediente.SolicitudEspecificas.Select((e, i) => (e, i)))
+                            {
+                                <MudPaper Class="pa-4 mb-3" Elevation="2">
+                                    <MudText Typo="Typo.h6" Class="mb-3">
+                                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+                                        Solicitud Específica @(index + 1)
+                                    </MudText>
+
+                                    @if (!string.IsNullOrWhiteSpace(especifica.InstruccionesCuentasPorConocer))
+                                    {
+                                        <MudAlert Severity="Severity.Normal" Class="mb-3">
+                                            <strong>Instrucciones:</strong><br />
+                                            @especifica.InstruccionesCuentasPorConocer
+                                        </MudAlert>
+                                    }
+
+                                    @if (especifica.PersonasSolicitud.Any())
+                                    {
+                                        <MudText Typo="Typo.subtitle1" Class="mt-3 mb-2">
+                                            <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Small" Class="mr-1" />
+                                            Personas (@especifica.PersonasSolicitud.Count)
+                                        </MudText>
+
+                                        <MudSimpleTable Dense="true" Striped="true">
+                                            <thead>
+                                                <tr>
+                                                    <th>Nombre</th>
+                                                    <th>Tipo</th>
+                                                    <th>RFC</th>
+                                                    <th>Relación</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var persona in especifica.PersonasSolicitud)
+                                                {
+                                                    <tr>
+                                                        <td>@persona.Nombre @persona.Paterno @persona.Materno</td>
+                                                        <td>
+                                                            <MudChip T="string" Size="Size.Small" Color="@(persona.Persona == "FISICA" ? Color.Info : Color.Success)">
+                                                                @persona.Persona
+                                                            </MudChip>
+                                                        </td>
+                                                        <td>@(persona.Rfc ?? "-")</td>
+                                                        <td>@(persona.Relacion ?? "-")</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </MudSimpleTable>
+                                    }
+                                </MudPaper>
+                            }
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info">No hay solicitudes específicas en este expediente.</MudAlert>
+                        }
+                    </MudTabPanel>
+
+                    <MudTabPanel Text="Complete Object" Icon="@Icons.Material.Filled.DataObject">
+                        <MudText Typo="Typo.body2" Class="mb-3">
+                            Complete dump of the extracted <code>Expediente</code> object showing all fields and nested collections:
+                        </MudText>
+                        <MudTextField Value="@State.JsonResult"
+                                     Label="Complete Expediente Object (JSON)"
+                                     ReadOnly="true"
+                                     Variant="Variant.Outlined"
+                                     Lines="25"
+                                     Style="font-family: 'Courier New', monospace; font-size: 12px;" />
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-2"
+                                   OnClick="@(() => CopyToClipboard(State.JsonResult))">
+                            <MudIcon Icon="@Icons.Material.Filled.ContentCopy" Class="mr-2" />
+                            Copy to Clipboard
+                        </MudButton>
+                    </MudTabPanel>
+                </MudTabs>
+            </MudPaper>
+
+            <MudDivider Class="my-4" />
+
+            <!-- XML Document Viewer -->
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-3">
+                    <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
+                    Document Viewer - @State.FixtureName
+                </MudText>
+
+                <MudPaper Class="pa-3 mud-theme-transparent" Elevation="1" Style="max-height: 600px; overflow-y: auto; border: 1px solid var(--mud-palette-divider);">
+                    <MudTextField Value="@State.SourceXml"
+                                 Label="XML Source Content"
+                                 Variant="Variant.Outlined"
+                                 Lines="25"
+                                 ReadOnly="true"
+                                 Style="font-family: 'Courier New', monospace; font-size: 12px;" />
+                </MudPaper>
+
+                <MudStack Row="true" Spacing="2" Class="mt-3">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                               OnClick="@(() => CopyToClipboard(State.SourceXml))" StartIcon="@Icons.Material.Filled.ContentCopy">
+                        Copy XML
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                               OnClick="ClearResults" StartIcon="@Icons.Material.Filled.Clear">
+                        Clear Results
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    /// <summary>
+    /// XML processing state containing expediente data and metadata.
+    /// </summary>
+    [Parameter]
+    public XmlProcessingState State { get; set; } = default!;
+
+    /// <summary>
+    /// Callback invoked when XML fixture is successfully loaded.
+    /// </summary>
+    [Parameter]
+    public EventCallback<XmlProcessingResult> OnLoaded { get; set; }
+
+    /// <summary>
+    /// Callback invoked when results are cleared.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnCleared { get; set; }
+
+    /// <summary>
+    /// Indicates if processing is currently in progress.
+    /// </summary>
+    [Parameter]
+    public bool IsProcessing { get; set; }
+
+    /// <summary>
+    /// Loads an XML fixture file using the XmlProcessingService.
+    /// </summary>
+    private async Task LoadFixture(string fixtureName)
+    {
+        try
+        {
+            var result = await XmlService.LoadFixtureAsync(fixtureName);
+            await OnLoaded.InvokeAsync(result);
+            Snackbar.Add(
+                $"Success! Extracted {result.FieldCount} fields, {result.Expediente.SolicitudPartes.Count} partes, {result.Expediente.SolicitudEspecificas.Count} específicas from {fixtureName}",
+                Severity.Success,
+                config => { config.VisibleStateDuration = 5000; });
+        }
+        catch (FileNotFoundException ex)
+        {
+            Snackbar.Add($"Fixture not found: {ex.Message}", Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading fixture: {ex.Message}", Severity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Copies text to clipboard using JavaScript interop.
+    /// </summary>
+    private async Task CopyToClipboard(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            Snackbar.Add("No content to copy", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Snackbar.Add("Copied to clipboard!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to copy: {ex.Message}", Severity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Clears XML processing results.
+    /// </summary>
+    private async Task ClearResults()
+    {
+        await OnCleared.InvokeAsync();
+        Snackbar.Add("XML results cleared", Severity.Info);
+    }
+}
