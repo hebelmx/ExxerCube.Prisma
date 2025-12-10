@@ -79,7 +79,7 @@
   </ItemGroup>
   <!-- Copy Fixtures folder to output directory for golden test demo -->
   <ItemGroup>
-    <Content Include="..\..\..\..\..\Fixtures\PRP1\222AAA-44444444442025_page-1.png">
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP1\222AAA-44444444442025_page-1.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\PRP1\222AAA-44444444442025_page-1.png</Link>
     </Content>
