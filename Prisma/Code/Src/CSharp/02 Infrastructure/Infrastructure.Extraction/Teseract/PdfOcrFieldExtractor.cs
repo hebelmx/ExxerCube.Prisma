@@ -1,13 +1,30 @@
+using PDFtoImage;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
-/// PDF field extractor implementation with OCR fallback using existing OCR pipeline.
+/// PDF field extractor implementation with OCR pipeline for image-only PDFs.
 /// Implements <see cref="IFieldExtractor{T}"/> for <see cref="PdfSource"/>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// This extractor handles image-only (scanned) PDFs by:
+/// </para>
+/// <list type="number">
+///   <item><description>Converting PDF pages to images using PDFtoImage</description></item>
+///   <item><description>Preprocessing images for OCR quality</description></item>
+///   <item><description>Running OCR on each page using Tesseract</description></item>
+///   <item><description>Combining text from all pages</description></item>
+///   <item><description>Delegating to AdaptiveTxtFieldExtractor for field extraction</description></item>
+/// </list>
+/// </remarks>
 public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
 {
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IImagePreprocessor _imagePreprocessor;
+    private readonly IFieldExtractor<TxtSource> _txtFieldExtractor;
     private readonly ILogger<PdfOcrFieldExtractor> _logger;
 
     /// <summary>
@@ -15,15 +32,18 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
     /// </summary>
     /// <param name="ocrExecutor">The OCR executor for text extraction.</param>
     /// <param name="imagePreprocessor">The image preprocessor for scanned PDF preprocessing.</param>
+    /// <param name="txtFieldExtractor">The text field extractor for extracting fields from OCR output.</param>
     /// <param name="logger">The logger instance.</param>
     public PdfOcrFieldExtractor(
         IOcrExecutor ocrExecutor,
         IImagePreprocessor imagePreprocessor,
+        IFieldExtractor<TxtSource> txtFieldExtractor,
         ILogger<PdfOcrFieldExtractor> logger)
     {
-        _ocrExecutor = ocrExecutor;
-        _imagePreprocessor = imagePreprocessor;
-        _logger = logger;
+        _ocrExecutor = ocrExecutor ?? throw new ArgumentNullException(nameof(ocrExecutor));
+        _imagePreprocessor = imagePreprocessor ?? throw new ArgumentNullException(nameof(imagePreprocessor));
+        _txtFieldExtractor = txtFieldExtractor ?? throw new ArgumentNullException(nameof(txtFieldExtractor));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc />
@@ -48,30 +68,38 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
                 return Result<ExtractedFields>.WithFailure("PDF source must have either FileContent or valid FilePath");
             }
 
-            // Extract text from PDF (try direct extraction first, then OCR fallback)
-            var textResult = await ExtractTextFromPdfAsync(fileContent);
-            if (textResult.IsFailure)
+            // Convert PDF to images and run OCR to extract text
+            var ocrResult = await ExtractTextFromPdfAsync(fileContent);
+            if (ocrResult.IsFailure)
             {
-                return Result<ExtractedFields>.WithFailure($"Failed to extract text from PDF: {textResult.Error}");
+                return Result<ExtractedFields>.WithFailure($"Failed to extract text from PDF via OCR: {ocrResult.Error}");
             }
 
-            var text = textResult.Value ?? string.Empty;
-            var confidence = source.OcrConfidence ?? 0.8f; // Default confidence, or use provided value
+            var ocrText = ocrResult.Value.OcrText;
+            var confidence = ocrResult.Value.Confidence;
 
-            // Extract fields based on definitions
-            var extractedFields = new ExtractedFields();
+            _logger.LogInformation(
+                "OCR extraction completed for PDF: {FilePath} - Text length: {Length} chars, Confidence: {Confidence:F2}",
+                source.FilePath ?? "in-memory PDF",
+                ocrText?.Length ?? 0,
+                confidence);
 
-            foreach (var fieldDef in fieldDefinitions)
+            // Create TxtSource from OCR output
+            var txtSource = new TxtSource(
+                textContent: ocrText ?? string.Empty,
+                ocrConfidence: confidence,
+                sourceFilePath: source.FilePath);
+
+            // Delegate to AdaptiveTxtFieldExtractor for field extraction
+            _logger.LogDebug("Delegating field extraction to AdaptiveTxtFieldExtractor");
+            var extractionResult = await _txtFieldExtractor.ExtractFieldsAsync(txtSource, fieldDefinitions);
+
+            if (extractionResult.IsSuccess)
             {
-                var fieldResult = ExtractFieldByName(text, fieldDef.FieldName, confidence);
-                if (fieldResult.IsSuccess && fieldResult.Value != null)
-                {
-                    ApplyFieldToExtractedFields(extractedFields, fieldDef.FieldName, fieldResult.Value.Value);
-                }
+                _logger.LogDebug("Successfully extracted {Count} fields from PDF document", fieldDefinitions.Length);
             }
 
-            _logger.LogDebug("Successfully extracted {Count} fields from PDF document", fieldDefinitions.Length);
-            return Result<ExtractedFields>.Success(extractedFields);
+            return extractionResult;
         }
         catch (Exception ex)
         {
@@ -102,24 +130,32 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
                 return Result<FieldValue>.WithFailure("PDF source must have either FileContent or valid FilePath");
             }
 
-            // Extract text from PDF
-            var textResult = await ExtractTextFromPdfAsync(fileContent);
-            if (textResult.IsFailure)
+            // Convert PDF to images and run OCR to extract text
+            var ocrResult = await ExtractTextFromPdfAsync(fileContent);
+            if (ocrResult.IsFailure)
             {
-                return Result<FieldValue>.WithFailure($"Failed to extract text from PDF: {textResult.Error}");
+                return Result<FieldValue>.WithFailure($"Failed to extract text from PDF via OCR: {ocrResult.Error}");
             }
 
-            var text = textResult.Value ?? string.Empty;
-            var confidence = source.OcrConfidence ?? 0.8f; // Default confidence, or use provided value
+            var ocrText = ocrResult.Value.OcrText;
+            var confidence = ocrResult.Value.Confidence;
 
-            // Extract specific field
-            var fieldResult = ExtractFieldByName(text, fieldName, confidence);
-            if (fieldResult.IsSuccess && fieldResult.Value != null)
+            // Create TxtSource from OCR output
+            var txtSource = new TxtSource(
+                textContent: ocrText ?? string.Empty,
+                ocrConfidence: confidence,
+                sourceFilePath: source.FilePath);
+
+            // Delegate to AdaptiveTxtFieldExtractor for field extraction
+            _logger.LogDebug("Delegating field '{FieldName}' extraction to AdaptiveTxtFieldExtractor", fieldName);
+            var extractionResult = await _txtFieldExtractor.ExtractFieldAsync(txtSource, fieldName);
+
+            if (extractionResult.IsSuccess)
             {
-                return Result<FieldValue>.Success(fieldResult.Value);
+                _logger.LogDebug("Successfully extracted field '{FieldName}' from PDF document", fieldName);
             }
 
-            return Result<FieldValue>.WithFailure($"Field '{fieldName}' not found in PDF document");
+            return extractionResult;
         }
         catch (Exception ex)
         {
@@ -128,113 +164,169 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
         }
     }
 
-    private async Task<Result<string>> ExtractTextFromPdfAsync(byte[] fileContent)
+    /// <summary>
+    /// Extracts text from PDF by converting pages to images and running OCR on each page.
+    /// </summary>
+    /// <param name="pdfBytes">The PDF file bytes.</param>
+    /// <returns>Result containing OCR text and confidence score.</returns>
+    private async Task<Result<(string OcrText, float Confidence)>> ExtractTextFromPdfAsync(byte[] pdfBytes)
     {
         try
         {
-            // Try to extract text directly from PDF first (placeholder - would use PDF library)
-            // For now, assume it's a scanned PDF and use OCR
-            _logger.LogDebug("Attempting OCR extraction from PDF");
+            _logger.LogDebug("Starting PDF → Image → OCR pipeline");
 
-            // Convert PDF first page to image (placeholder - full implementation would use PDF library)
-            var imageData = new ImageData
-            {
-                Data = fileContent,
-                SourcePath = "pdf_page_1"
-            };
+            // Convert PDF to images (one per page) using PDFtoImage
+            var imagePages = ConvertPdfPagesToImages(pdfBytes);
+            _logger.LogInformation("Converted PDF to {PageCount} image pages", imagePages.Count);
 
-            // Preprocess image
-            var preprocessResult = await _imagePreprocessor.PreprocessAsync(imageData, new ProcessingConfig());
-            if (preprocessResult.IsFailure)
+            if (imagePages.Count == 0)
             {
-                return Result<string>.WithFailure(preprocessResult.Error ?? "Preprocessing failed");
+                return Result<(string, float)>.WithFailure("PDF contains no pages");
             }
 
-            var preprocessedImage = preprocessResult.Value;
-            if (preprocessedImage == null)
+            // Run OCR on each page
+            var allPageTexts = new List<string>();
+            var confidences = new List<float>();
+
+            for (int pageIndex = 0; pageIndex < imagePages.Count; pageIndex++)
             {
-                return Result<string>.WithFailure("Preprocessed image is null");
+                var imageBytes = imagePages[pageIndex];
+                _logger.LogDebug("Processing page {PageNumber}/{TotalPages} ({Size} bytes)",
+                    pageIndex + 1, imagePages.Count, imageBytes.Length);
+
+                // Create ImageData for preprocessing
+                var imageData = new ImageData
+                {
+                    Data = imageBytes,
+                    SourcePath = $"pdf_page_{pageIndex + 1}"
+                };
+
+                // Preprocess image
+                var preprocessResult = await _imagePreprocessor.PreprocessAsync(imageData, new ProcessingConfig());
+                if (preprocessResult.IsFailure)
+                {
+                    _logger.LogWarning("Preprocessing failed for page {PageNumber}: {Error}",
+                        pageIndex + 1, preprocessResult.Error);
+                    continue; // Skip this page but continue with others
+                }
+
+                var preprocessedImage = preprocessResult.Value;
+                if (preprocessedImage == null)
+                {
+                    _logger.LogWarning("Preprocessed image is null for page {PageNumber}", pageIndex + 1);
+                    continue;
+                }
+
+                // Run OCR
+                var ocrResult = await _ocrExecutor.ExecuteOcrAsync(preprocessedImage, new OCRConfig());
+                if (ocrResult.IsFailure || ocrResult.Value == null)
+                {
+                    _logger.LogWarning("OCR failed for page {PageNumber}: {Error}",
+                        pageIndex + 1, ocrResult.Error ?? "null result");
+                    continue;
+                }
+
+                var pageText = ocrResult.Value.Text;
+                var pageConfidence = ocrResult.Value.ConfidenceAvg / 100.0f; // Convert from 0-100 to 0-1 scale
+
+                allPageTexts.Add(pageText);
+                confidences.Add(pageConfidence);
+
+                _logger.LogDebug("Page {PageNumber}: Extracted {TextLength} chars, Confidence: {Confidence:F2}",
+                    pageIndex + 1, pageText?.Length ?? 0, pageConfidence);
             }
 
-            // Run OCR
-            var ocrResult = await _ocrExecutor.ExecuteOcrAsync(preprocessedImage, new OCRConfig());
-            if (ocrResult.IsFailure)
+            if (allPageTexts.Count == 0)
             {
-                return Result<string>.WithFailure(ocrResult.Error ?? "OCR execution failed");
+                return Result<(string, float)>.WithFailure("OCR failed for all pages in PDF");
             }
 
-            var ocrResultValue = ocrResult.Value;
-            if (ocrResultValue == null)
-            {
-                return Result<string>.WithFailure("OCR result is null");
-            }
+            // Combine all page texts
+            var combinedText = string.Join("\n\n", allPageTexts);
+            var averageConfidence = confidences.Average();
 
-            return Result<string>.Success(ocrResultValue.Text);
+            _logger.LogInformation(
+                "OCR extraction complete - Total text: {Length} chars, Average confidence: {Confidence:F2}",
+                combinedText.Length, averageConfidence);
+
+            return Result<(string, float)>.Success((combinedText, averageConfidence));
         }
         catch (Exception ex)
         {
-            return Result<string>.WithFailure($"PDF text extraction failed: {ex.Message}", string.Empty, ex);
+            _logger.LogError(ex, "PDF text extraction failed");
+            return Result<(string, float)>.WithFailure($"PDF text extraction failed: {ex.Message}", default, ex);
         }
     }
 
-    private Result<FieldValue> ExtractFieldByName(string text, string fieldName, float confidence)
+    /// <summary>
+    /// Converts all pages of a PDF to image bytes using PDFtoImage library.
+    /// </summary>
+    /// <param name="pdfBytes">The PDF file bytes.</param>
+    /// <returns>List of image bytes (PNG format), one per page.</returns>
+    private List<byte[]> ConvertPdfPagesToImages(byte[] pdfBytes)
     {
-        var value = fieldName.ToLowerInvariant() switch
-        {
-            "expediente" => ExtractExpediente(text),
-            "causa" => ExtractCausa(text),
-            "accionsolicitada" or "accion_solicitada" => ExtractAccionSolicitada(text),
-            _ => null
-        };
+        const int dpi = 300; // Standard DPI for high-quality OCR
+        var imagePages = new List<byte[]>();
 
-        if (value != null)
+        try
         {
-            return Result<FieldValue>.Success(new FieldValue(fieldName, value, confidence, "PDF", FieldOrigin.PdfOcr));
+            _logger.LogDebug("Converting PDF pages to images at {DPI} DPI using PDFtoImage", dpi);
+
+            using var pdfStream = new MemoryStream(pdfBytes);
+            var options = new RenderOptions(Dpi: dpi);
+
+            // Get page count (PDFtoImage doesn't provide direct page count, so we'll iterate)
+            int pageIndex = 0;
+            while (true)
+            {
+                try
+                {
+#pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
+                    using var skBitmap = Conversion.ToImage(pdfStream, pageIndex, options: options);
+#pragma warning restore CA1416
+
+                    if (skBitmap == null)
+                    {
+                        break; // No more pages
+                    }
+
+                    // Convert SKBitmap to ImageSharp Image<Rgba32>
+                    using var image = Image.LoadPixelData<Rgba32>(
+                        skBitmap.GetPixelSpan(),
+                        skBitmap.Width,
+                        skBitmap.Height);
+
+                    // Save as PNG bytes
+                    using var outputMs = new MemoryStream();
+                    image.SaveAsPng(outputMs);
+
+                    imagePages.Add(outputMs.ToArray());
+
+                    _logger.LogDebug("Page {PageNumber} converted: {Width}x{Height} pixels",
+                        pageIndex + 1, skBitmap.Width, skBitmap.Height);
+
+                    pageIndex++;
+
+                    // Reset stream position for next page
+                    pdfStream.Position = 0;
+                }
+                catch (Exception ex)
+                {
+                    // Break on error (likely no more pages)
+                    _logger.LogDebug("Stopped converting pages at index {PageIndex}: {Message}",
+                        pageIndex, ex.Message);
+                    break;
+                }
+            }
+
+            _logger.LogInformation("PDF conversion complete: {PageCount} pages converted to images", imagePages.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error converting PDF to images");
         }
 
-        return Result<FieldValue>.WithFailure($"Field '{fieldName}' not found");
+        return imagePages;
     }
 
-    private static void ApplyFieldToExtractedFields(ExtractedFields fields, string fieldName, string? value)
-    {
-        switch (fieldName.ToLowerInvariant())
-        {
-            case "expediente":
-                fields.Expediente = value;
-                break;
-
-            case "causa":
-                fields.Causa = value;
-                break;
-
-            case "accionsolicitada":
-            case "accion_solicitada":
-                fields.AccionSolicitada = value;
-                break;
-        }
-    }
-
-    private static string? ExtractExpediente(string text)
-    {
-        // Pattern: A/AS1-2505-088637-PHM or similar
-        var expedientePattern = @"[A-Z]/[A-Z]{1,2}\d+-\d+-\d+-[A-Z]+";
-        var match = System.Text.RegularExpressions.Regex.Match(text, expedientePattern);
-        return match.Success ? match.Value : null;
-    }
-
-    private static string? ExtractCausa(string text)
-    {
-        // Look for "CAUSA:" or "Causa:" followed by text
-        var causaPattern = @"(?:CAUSA|Causa)\s*:?\s*([^\n\r]+)";
-        var match = System.Text.RegularExpressions.Regex.Match(text, causaPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        return match.Success && match.Groups.Count > 1 ? match.Groups[1].Value.Trim() : null;
-    }
-
-    private static string? ExtractAccionSolicitada(string text)
-    {
-        // Look for "ACCIÓN SOLICITADA:" or "Accion Solicitada:" followed by text
-        var accionPattern = @"(?:ACCI[ÓO]N\s+SOLICITADA|Accion\s+Solicitada)\s*:?\s*([^\n\r]+)";
-        var match = System.Text.RegularExpressions.Regex.Match(text, accionPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        return match.Success && match.Groups.Count > 1 ? match.Groups[1].Value.Trim() : null;
-    }
 }
