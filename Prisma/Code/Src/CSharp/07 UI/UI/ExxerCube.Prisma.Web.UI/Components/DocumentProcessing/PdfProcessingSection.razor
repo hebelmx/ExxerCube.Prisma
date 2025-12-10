@@ -1,0 +1,440 @@
+@using ExxerCube.Prisma.Web.UI.Models
+@using ExxerCube.Prisma.Web.UI.Services
+@using ExxerCube.Prisma.Domain.Entities
+@using System.Text.Json
+@inject PdfProcessingService PdfService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<MudCard Class="mb-4">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+            OCR Processing - PDF Documents
+        </MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body2" Class="mb-3">
+            Click any PDF fixture to extract text with OCR (Tesseract):
+        </MudText>
+
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                           OnClick="@(() => LoadFixture("222AAA-44444444442025.pdf"))" Disabled="@IsProcessing">
+                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                    PRP1: 222AAA PDF
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" Size="Size.Large"
+                           OnClick="@(() => LoadFixture("333BBB-44444444442025.pdf"))" Disabled="@IsProcessing">
+                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                    PRP1: 333BBB PDF
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" Size="Size.Large"
+                           OnClick="@(() => LoadFixture("333CCC-6666666662025.pdf"))" Disabled="@IsProcessing">
+                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                    PRP1: 333CCCC PDF
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="6" md="3">
+                <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth="true" Size="Size.Large"
+                           OnClick="@(() => LoadFixture("555CCC-6666666662025.pdf"))" Disabled="@IsProcessing">
+                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
+                    PRP1: 555CCC PDF
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+
+        @if (State.OcrResult != null)
+        {
+            <MudAlert Severity="Severity.Success" Class="mt-4 mb-2" Icon="@Icons.Material.Filled.CheckCircle">
+                <strong>OCR Complete!</strong> Successfully processed <strong>@State.FixtureName</strong>
+            </MudAlert>
+
+            <MudGrid Class="mt-2">
+                <MudItem xs="12" sm="4">
+                    <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 10px; right: 10px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
+                        </div>
+                        <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                            @($"{State.OcrResult.OCRResult.ConfidenceAvg:F1}%")
+                        </MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">OCR Confidence</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 10px; right: 10px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
+                        </div>
+                        <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                            @State.OcrResult.OCRResult.Text.Length
+                        </MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Characters Extracted</MudText>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudPaper Class="pa-4" Elevation="3" Style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 10px; right: 10px;">
+                            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
+                        </div>
+                        <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
+                            @((State.OcrResult.ExtractedFields.Expediente ?? "").Length)
+                        </MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Expediente Length</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-4" />
+
+            <MudTabs Elevation="0" Rounded="true" Position="Position.Top" Color="Color.Primary">
+                <MudTabPanel Text="Extracted Text" Icon="@Icons.Material.Filled.TextFields">
+                    <MudTextField Value="@State.OcrResult.OCRResult.Text"
+                                 Label="OCR Extracted Text"
+                                 ReadOnly="true"
+                                 Variant="Variant.Outlined"
+                                 Lines="15"
+                                 Class="mud-code mt-3" />
+                </MudTabPanel>
+
+                <MudTabPanel Text="OCR Details" Icon="@Icons.Material.Filled.Info">
+                    <MudGrid Class="mt-3">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Value="@($"{State.OcrResult.OCRResult.ConfidenceAvg:F2}%")"
+                                         Label="Average Confidence"
+                                         ReadOnly="true"
+                                         Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Value="@State.OcrResult.OCRResult.Text.Length.ToString()"
+                                         Label="Characters Extracted"
+                                         ReadOnly="true"
+                                         Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                </MudTabPanel>
+            </MudTabs>
+
+            <MudDivider Class="my-4" />
+
+            <!-- PDF Document Viewer with Side-by-Side Layout -->
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-3">
+                    <MudIcon Icon="@Icons.Material.Filled.CompareArrows" Class="mr-2" />
+                    PDF Document & Extracted OCR Text - @State.FixtureName
+                </MudText>
+
+                <MudGrid>
+                    <!-- Left: PDF Viewer -->
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">
+                            <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" Class="mr-1" />
+                            Original PDF Document
+                        </MudText>
+                        <MudPaper Class="pa-2" Elevation="1" Style="height: 700px; border: 1px solid var(--mud-palette-divider); overflow: auto;">
+                            <canvas id="pdfCanvas-@State.FixtureName" style="width: 100%;"></canvas>
+                        </MudPaper>
+                    </MudItem>
+
+                    <!-- Right: Extracted OCR Text -->
+                    <MudItem xs="12" md="6">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">
+                            <MudIcon Icon="@Icons.Material.Filled.TextFields" Size="Size.Small" Class="mr-1" />
+                            Extracted OCR Text
+                        </MudText>
+                        <MudPaper Class="pa-3 mud-theme-transparent" Elevation="1" Style="height: 700px; overflow-y: auto; border: 1px solid var(--mud-palette-divider);">
+                            <MudTextField Value="@State.OcrResult.OCRResult.Text"
+                                         Label="OCR Extracted Content"
+                                         Variant="Variant.Outlined"
+                                         Lines="30"
+                                         ReadOnly="true"
+                                         HelperText="@($"{State.OcrResult.OCRResult.Text.Length} characters | {State.OcrResult.OCRResult.ConfidenceAvg:F1}% confidence")"
+                                         Style="font-family: 'Courier New', monospace; font-size: 12px;" />
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+
+                <MudStack Row="true" Spacing="2" Class="mt-3">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                               OnClick="@(() => CopyToClipboard(State.OcrResult.OCRResult.Text))" StartIcon="@Icons.Material.Filled.ContentCopy">
+                        Copy Extracted Text
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
+                               OnClick="ClearResults" StartIcon="@Icons.Material.Filled.Clear">
+                        Clear Results
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+
+            @if (State.Expediente != null)
+            {
+                <MudDivider Class="my-4" />
+
+                <!-- PDF Expediente Extracted Fields -->
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.h6" Class="mb-3">
+                        <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+                        Extracted Expediente from PDF - @State.FixtureName
+                    </MudText>
+
+                    <MudAlert Severity="Severity.Success" Class="mb-3" Icon="@Icons.Material.Filled.CheckCircle">
+                        Successfully extracted <strong>@(GetFieldCount(State.Expediente)) fields</strong> from PDF using field extraction service
+                    </MudAlert>
+
+                    <MudTabs Elevation="0" Rounded="true" Position="Position.Top" Color="Color.Primary">
+                        <MudTabPanel Text="Main Fields" Icon="@Icons.Material.Filled.Description">
+                            <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="mt-3">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30%;">Field Name</th>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 60%;">Extracted Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Número de Expediente</strong></td>
+                                        <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                        <td>
+                                            <MudIcon Icon="@(string.IsNullOrWhiteSpace(State.Expediente.NumeroExpediente) ? Icons.Material.Filled.Warning : Icons.Material.Filled.CheckCircle)"
+                                                     Color="@(string.IsNullOrWhiteSpace(State.Expediente.NumeroExpediente) ? Color.Warning : Color.Success)"
+                                                     Size="Size.Small" Class="mr-2" />
+                                            <MudChip T="string" Color="Color.Primary" Size="Size.Small">@(State.Expediente.NumeroExpediente ?? "Not extracted")</MudChip>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Número de Oficio</strong></td>
+                                        <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                        <td>
+                                            <MudIcon Icon="@(string.IsNullOrWhiteSpace(State.Expediente.NumeroOficio) ? Icons.Material.Filled.Warning : Icons.Material.Filled.CheckCircle)"
+                                                     Color="@(string.IsNullOrWhiteSpace(State.Expediente.NumeroOficio) ? Color.Warning : Color.Success)"
+                                                     Size="Size.Small" Class="mr-2" />
+                                            <MudChip T="string" Color="Color.Secondary" Size="Size.Small">@(State.Expediente.NumeroOficio ?? "Not extracted")</MudChip>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Solicitud Siara</strong></td>
+                                        <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                        <td>
+                                            <MudIcon Icon="@(string.IsNullOrWhiteSpace(State.Expediente.SolicitudSiara) ? Icons.Material.Filled.Warning : Icons.Material.Filled.CheckCircle)"
+                                                     Color="@(string.IsNullOrWhiteSpace(State.Expediente.SolicitudSiara) ? Color.Warning : Color.Success)"
+                                                     Size="Size.Small" Class="mr-2" />
+                                            <MudChip T="string" Color="Color.Info" Size="Size.Small">@(State.Expediente.SolicitudSiara ?? "Not extracted")</MudChip>
+                                        </td>
+                                    </tr>
+                                    @if (State.Expediente.FechaPublicacion > DateTime.MinValue)
+                                    {
+                                        <tr>
+                                            <td><strong>Fecha de Publicación</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.FechaPublicacion.ToString("dd/MM/yyyy")
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (State.Expediente.DiasPlazo > 0)
+                                    {
+                                        <tr>
+                                            <td><strong>Días de Plazo</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.DiasPlazo días
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(State.Expediente.AreaDescripcion))
+                                    {
+                                        <tr>
+                                            <td><strong>Área Descripción</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.AreaDescripcion
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(State.Expediente.AutoridadNombre))
+                                    {
+                                        <tr>
+                                            <td><strong>Autoridad Nombre</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.AutoridadNombre
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(State.Expediente.Referencia1))
+                                    {
+                                        <tr>
+                                            <td><strong>Causa (Referencia1)</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.Referencia1
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(State.Expediente.Referencia2))
+                                    {
+                                        <tr>
+                                            <td><strong>Acción Solicitada (Referencia2)</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.Referencia2
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </MudSimpleTable>
+                        </MudTabPanel>
+
+                        <MudTabPanel Text="Complete Object" Icon="@Icons.Material.Filled.DataObject">
+                            <MudText Typo="Typo.body2" Class="mb-3">
+                                Complete dump of the extracted <code>Expediente</code> object from PDF showing all fields:
+                            </MudText>
+                            <MudTextField Value="@JsonSerializer.Serialize(State.Expediente, new JsonSerializerOptions { WriteIndented = true })"
+                                         Label="Complete PDF Expediente Object (JSON)"
+                                         ReadOnly="true"
+                                         Variant="Variant.Outlined"
+                                         Lines="25"
+                                         Style="font-family: 'Courier New', monospace; font-size: 12px;" />
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-2"
+                                       OnClick="@(() => CopyToClipboard(JsonSerializer.Serialize(State.Expediente, new JsonSerializerOptions { WriteIndented = true })))">
+                                <MudIcon Icon="@Icons.Material.Filled.ContentCopy" Class="mr-2" />
+                                Copy to Clipboard
+                            </MudButton>
+                        </MudTabPanel>
+                    </MudTabs>
+                </MudPaper>
+            }
+            else if (State.OcrResult != null)
+            {
+                <MudDivider Class="my-4" />
+                <MudAlert Severity="Severity.Warning" Class="mt-4" Icon="@Icons.Material.Filled.Warning">
+                    <strong>Field Extraction Incomplete:</strong> PDF was processed with OCR, but field extraction failed or returned no results.
+                    Check logs for details or try a different PDF fixture.
+                </MudAlert>
+            }
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    /// <summary>
+    /// PDF processing state containing OCR results and extracted expediente data.
+    /// </summary>
+    [Parameter]
+    public PdfProcessingState State { get; set; } = default!;
+
+    /// <summary>
+    /// Callback invoked when PDF fixture is successfully loaded.
+    /// </summary>
+    [Parameter]
+    public EventCallback<PdfProcessingResult> OnLoaded { get; set; }
+
+    /// <summary>
+    /// Callback invoked when PDF results are cleared.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnCleared { get; set; }
+
+    /// <summary>
+    /// Callback invoked when PDF needs to be rendered (passes bytes and canvas ID to parent).
+    /// </summary>
+    [Parameter]
+    public EventCallback<(byte[] PdfBytes, string CanvasId)> OnPdfRenderRequested { get; set; }
+
+    /// <summary>
+    /// Indicates if processing is currently in progress.
+    /// </summary>
+    [Parameter]
+    public bool IsProcessing { get; set; }
+
+    /// <summary>
+    /// Loads a PDF fixture file using the PdfProcessingService.
+    /// </summary>
+    private async Task LoadFixture(string fixtureName)
+    {
+        try
+        {
+            var result = await PdfService.LoadFixtureAsync(fixtureName);
+            await OnLoaded.InvokeAsync(result);
+
+            // Request PDF rendering from parent (parent will call JSRuntime to render PDF)
+            if (result.PdfBytes != null)
+            {
+                var canvasId = $"pdfCanvas-{fixtureName}";
+                await OnPdfRenderRequested.InvokeAsync((result.PdfBytes, canvasId));
+            }
+
+            Snackbar.Add($"OCR Complete! Successfully processed {fixtureName}", Severity.Success);
+        }
+        catch (FileNotFoundException ex)
+        {
+            Snackbar.Add($"PDF fixture not found: {ex.Message}", Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error processing PDF: {ex.Message}", Severity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Copies text to clipboard using JavaScript interop.
+    /// </summary>
+    private async Task CopyToClipboard(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            Snackbar.Add("No content to copy", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            Snackbar.Add("Copied to clipboard!", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to copy: {ex.Message}", Severity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Clears PDF processing results.
+    /// </summary>
+    private async Task ClearResults()
+    {
+        await OnCleared.InvokeAsync();
+        Snackbar.Add("PDF results cleared", Severity.Info);
+    }
+
+    /// <summary>
+    /// Counts extracted fields in PDF Expediente.
+    /// </summary>
+    private int GetFieldCount(Expediente expediente)
+    {
+        int count = 0;
+
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroExpediente)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroOficio)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.SolicitudSiara)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AutoridadNombre)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.NombreSolicitante)) count++;
+        if (expediente.FechaPublicacion != DateTime.MinValue) count++;
+        if (expediente.DiasPlazo != 0) count++;
+
+        return count;
+    }
+}
