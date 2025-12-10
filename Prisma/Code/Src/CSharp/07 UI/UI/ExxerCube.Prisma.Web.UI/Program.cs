@@ -309,8 +309,13 @@ Inner Stack Trace:
         services.AddScoped<ExxerCube.Prisma.Web.UI.Services.AdaptiveDocxFixtureService>();
 
         // Add Document Processing page services (refactored architecture)
+        // Phase 1: State management foundation
         services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DocumentProcessingStateService>();
         services.AddScoped<ExxerCube.Prisma.Web.UI.Services.FixtureLoaderService>();
+        // Phase 2: Business logic services
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.XmlProcessingService>();
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.PdfProcessingService>();
+        services.AddScoped<ExxerCube.Prisma.Web.UI.Services.DocumentComparisonCoordinator>();
 
         //// Add SLA health checks
         //services.AddHealthChecks()
