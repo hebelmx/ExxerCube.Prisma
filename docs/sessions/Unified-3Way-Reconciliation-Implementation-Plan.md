@@ -872,10 +872,29 @@ private void ClearAllResults()  // NEW
    - Implement DOCX viewer component
    - Enable 3-way reconciliation with all sources
 
-2. **Enhance Field Extraction:**
-   - Add more field patterns (RFC, CURP, account numbers)
-   - Improve date extraction with multiple formats
-   - Add amount extraction with currency detection
+2. **Enhance Field Extraction:** ⚠️ **CRITICAL - LOW EXTRACTION RATE IDENTIFIED**
+   - **Current State**: Only 2/26 fields extracted from PDF OCR (5% coverage)
+   - **Root Cause**: AdaptiveTxtFieldExtractor has only 5 basic patterns (Expediente, Causa, AccionSolicitada, NumeroOficio, AutoridadNombre)
+   - **Target State**: Extract 12-16/26 fields (46-61% coverage)
+   - **See**: `docs/sessions/AdaptiveTxtFieldExtractor-Field-Catalog.md` for comprehensive field analysis
+
+   **Phase A Enhancement Plan** (Priority 1):
+   - ✅ NumeroOficio (working) - Pattern: `[A-Z]{4,}[A-Z0-9]{0,10}/\d{4}/\d{6}`
+   - ✅ AutoridadNombre (working) - Catalog-based matching (200+ authorities needed)
+   - 🔴 NombreSolicitante (new) - Honorific + name pattern
+   - 🔴 Email (new) - Standard email regex: `[a-z0-9._-]+@[a-z0-9.-]+`
+   - 🔴 Telefono (new) - Mexican phone: `\(?\d{2}\)?\s*\d{4}-\d{4}`
+   - 🔴 Direccion (new) - Multi-line address block extraction
+   - 🔴 CodigoPostal (new) - Pattern: `C\.?P\.?\s*(\d{5})`
+   - 🔴 FundamentoLegal (new) - Legal article references
+   - 🔴 AutoridadEspecificaNombre (new) - Department/office patterns
+   - 🔴 FechaPublicacion (new) - Labeled date pattern
+   - 🔴 DiasPlazo (new) - "plazo de X días" pattern
+   - 🔴 TieneAseguramiento (new) - Keyword detection (aseguramiento/embargo/bloqueo)
+   - 🔴 SolicitudSiara (new) - Same as NumeroOficio
+
+   **Verified**: Multi-page PDF processing IS working correctly (all pages converted and OCR'd)
+   **Blocker**: Field extraction patterns are too rigid/limited
 
 3. **Advanced Reconciliation:**
    - Implement fuzzy matching for name fields
@@ -892,14 +911,18 @@ private void ClearAllResults()  // NEW
 
 ## 📚 Related Documentation
 
+- **Field Catalog (NEW):** `docs/sessions/AdaptiveTxtFieldExtractor-Field-Catalog.md` - Comprehensive field extraction requirements
+- **AdaptiveTxtFieldExtractor Plan:** `docs/sessions/AdaptiveTxtFieldExtractor-Implementation-Plan.md` - ITDD implementation guide
 - **FusionExpedienteService API:** `Prisma/Code/Src/CSharp/02 Infrastructure/Infrastructure.Classification/FusionExpedienteService.cs`
 - **FieldMatchingService API:** `Prisma/Code/Src/CSharp/01 Core/Application/Services/FieldMatchingService.cs`
 - **PdfOcrFieldExtractor:** `Prisma/Code/Src/CSharp/02 Infrastructure/Infrastructure.Extraction/Teseract/PdfOcrFieldExtractor.cs`
+- **AdaptiveTxtFieldExtractor:** `Prisma/Code/Src/CSharp/02 Infrastructure/Infrastructure.Extraction.Txt/AdaptiveTxtFieldExtractor.cs`
 - **Session Docs:** `docs/sessions/2025-12-08-DocumentProcessing-Page-Improvements.md`
 - **Original Plan:** `docs/sessions/3-Way-Reconciliation-Implementation-Plan.md`
 
 ---
 
-**Last Updated:** 2025-12-08
-**Status:** 🟢 READY TO IMPLEMENT
-**Next Action:** Start Phase 1 - Replace ParseOcrToExpediente stub method (line 1835)
+**Last Updated:** 2025-12-10
+**Status:** 🟡 BLOCKED - Low field extraction rate (2/26 fields, 5% coverage)
+**Critical Issue:** AdaptiveTxtFieldExtractor needs 10+ new field patterns (see Field Catalog)
+**Next Action:** Phase A - Enhance AdaptiveTxtFieldExtractor with comprehensive patterns (target 46-61% coverage)

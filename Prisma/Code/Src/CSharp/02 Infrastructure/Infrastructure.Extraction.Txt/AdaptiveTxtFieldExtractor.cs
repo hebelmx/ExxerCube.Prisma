@@ -169,11 +169,36 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
 
         var value = normalizedFieldName switch
         {
-            "expediente" => ExtractExpediente(text),
+            // Core fields
+            "expediente" or "numeroexpediente" or "numero_expediente" => ExtractExpediente(text),
             "causa" => ExtractCausa(text),
             "accionsolicitada" or "accion_solicitada" => ExtractAccionSolicitada(text),
+
+            // Identification fields
             "numerooficio" or "numero_oficio" => ExtractNumeroOficio(text),
+            "solicitudsiara" or "solicitud_siara" => ExtractNumeroOficio(text), // Same as NumeroOficio in fixtures
+
+            // Authority fields
             "autoridadnombre" or "autoridad_nombre" => ExtractAutoridadNombre(text),
+            "autoridadespecificanombre" or "autoridad_especifica_nombre" => ExtractAutoridadEspecifica(text),
+
+            // Contact fields (NEW)
+            "nombresolicitante" or "nombre_solicitante" => ExtractNombreSolicitante(text),
+            "email" or "correo" or "correoelectronico" or "correo_electronico" => ExtractEmail(text),
+            "telefono" or "tel" => ExtractTelefono(text),
+
+            // Address fields (NEW)
+            "direccion" => ExtractDireccion(text),
+            "codigopostal" or "codigo_postal" or "cp" => ExtractCodigoPostal(text),
+
+            // Legal fields (NEW)
+            "fundamentolegal" or "fundamento_legal" => ExtractFundamentoLegal(text),
+
+            // Metadata fields
+            "fechapublicacion" or "fecha_publicacion" => ExtractFechaPublicacion(text)?.ToString("yyyy-MM-dd"),
+            "diasplazo" or "dias_plazo" => ExtractDiasPlazo(text)?.ToString(),
+            "tieneaseguramiento" or "tiene_aseguramiento" => ExtractTieneAseguramiento(text)?.ToString(),
+
             _ => null
         };
 
@@ -191,9 +216,14 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
     /// </summary>
     private static void ApplyFieldToExtractedFields(ExtractedFields fields, string fieldName, string? value)
     {
-        switch (fieldName.ToLowerInvariant())
+        var normalizedFieldName = fieldName.ToLowerInvariant();
+
+        switch (normalizedFieldName)
         {
+            // Core Expediente fields
             case "expediente":
+            case "numeroexpediente":
+            case "numero_expediente":
                 fields.Expediente = value;
                 break;
 
@@ -206,8 +236,9 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
                 fields.AccionSolicitada = value;
                 break;
 
+            // All other fields go to AdditionalFields (including new ones)
+            // NumeroOficio, SolicitudSiara, AutoridadNombre, Email, Telefono, etc.
             default:
-                // Store in AdditionalFields
                 fields.AdditionalFields[fieldName] = value;
                 break;
         }
@@ -344,6 +375,195 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Extracts NombreSolicitante (requester name) using honorific + name pattern.
+    /// </summary>
+    private static string? ExtractNombreSolicitante(string text)
+    {
+        // Try honorific pattern first
+        var honorificPattern = @"(?:Mtro\.|Mtra\.|Lic\.|Ing\.|Dr\.|Dra\.|C\.)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)";
+        var match = Regex.Match(text, honorificPattern);
+        if (match.Success && match.Groups.Count > 1)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+
+        // Try job title pattern
+        var titlePattern = @"(?:Vicepresidente|Director|Administrador|Secretario|Titular)\s+(?:de|del)?\s+[^\n]+\n([A-ZÁÉÍÓÚÑ].+)";
+        match = Regex.Match(text, titlePattern);
+        if (match.Success && match.Groups.Count > 1)
+        {
+            var lines = match.Groups[1].Value.Split('\n');
+            return lines[0].Trim(); // First line after title
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts email address from text.
+    /// </summary>
+    private static string? ExtractEmail(string text)
+    {
+        var emailPattern = @"[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}";
+        var match = Regex.Match(text, emailPattern, RegexOptions.IgnoreCase);
+        return match.Success ? match.Value.ToLower() : null;
+    }
+
+    /// <summary>
+    /// Extracts Mexican phone number.
+    /// </summary>
+    private static string? ExtractTelefono(string text)
+    {
+        // Try labeled pattern first
+        var labeledPattern = @"(?:Tel[ée]fono|Tel\.?)\s*[:：]?\s*(\(?\d{2}\)?\s*\d{4}-\d{4})";
+        var match = Regex.Match(text, labeledPattern, RegexOptions.IgnoreCase);
+        if (match.Success && match.Groups.Count > 1)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+
+        // Fallback: just find phone pattern
+        var phonePattern = @"\(?\d{2}\)?\s*\d{4}-\d{4}";
+        match = Regex.Match(text, phonePattern);
+        return match.Success ? match.Value : null;
+    }
+
+    /// <summary>
+    /// Extracts postal code (C.P.).
+    /// </summary>
+    private static string? ExtractCodigoPostal(string text)
+    {
+        var cpPattern = @"C\.?P\.?\s*(\d{5})";
+        var match = Regex.Match(text, cpPattern, RegexOptions.IgnoreCase);
+        return match.Success && match.Groups.Count > 1
+            ? match.Groups[1].Value
+            : null;
+    }
+
+    /// <summary>
+    /// Extracts address (multi-line block containing address keywords).
+    /// </summary>
+    private static string? ExtractDireccion(string text)
+    {
+        // Look for lines containing street, col, cp, ciudad
+        var addressPattern = @"([^\n]*(?:Av\.|Ave\.|Calle|Col\.|Colonia|C\.P\.|CP|Ciudad|Del\.|Delegaci[óo]n|Municipio)[^\n]*(?:\n[^\n]*){0,3})";
+        var match = Regex.Match(text, addressPattern, RegexOptions.IgnoreCase);
+        if (match.Success)
+        {
+            return match.Value.Trim().Replace("\n", " ");
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Extracts FundamentoLegal (legal article citations).
+    /// </summary>
+    private static string? ExtractFundamentoLegal(string text)
+    {
+        var articulos = new List<string>();
+
+        // Pattern: "artículo 142", "Art. 251", "artículos 1, 2 y 3"
+        var articuloPattern = @"art[íi]culos?\s+(\d+(?:\s*(?:y|,)\s*\d+)*(?:\s+fracci[óo]n\s+[IVXLCDM]+)?(?:\s+de\s+.+?(?:ley|reglamento|c[óo]digo))?)[,\.]?";
+        var matches = Regex.Matches(text, articuloPattern, RegexOptions.IgnoreCase);
+
+        foreach (Match match in matches)
+        {
+            if (match.Groups.Count > 1)
+            {
+                articulos.Add($"Art. {match.Groups[1].Value.Trim()}");
+            }
+        }
+
+        return articulos.Count > 0 ? string.Join("; ", articulos) : null;
+    }
+
+    /// <summary>
+    /// Extracts AutoridadEspecificaNombre (specific department/office name).
+    /// </summary>
+    private static string? ExtractAutoridadEspecifica(string text)
+    {
+        var pattern = @"(?:DIRECCI[ÓO]N|DEPARTAMENTO|MESA|TURNO|SECRETAR[ÍI]A)\s+(?:GENERAL|ESPECIAL|DE|DEL)?\s+[A-Z\s]+";
+        var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+        return match.Success ? match.Value.Trim() : null;
+    }
+
+    /// <summary>
+    /// Extracts FechaPublicacion (publication date).
+    /// </summary>
+    private static DateTime? ExtractFechaPublicacion(string text)
+    {
+        // Try labeled pattern first
+        var labeledPattern = @"(?:Fecha\s+de\s+Publicaci[óo]n|Publicado)\s*[:：]?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})";
+        var match = Regex.Match(text, labeledPattern, RegexOptions.IgnoreCase);
+
+        if (match.Success && match.Groups.Count > 1)
+        {
+            if (DateTime.TryParse(match.Groups[1].Value, out var fecha))
+            {
+                return fecha;
+            }
+        }
+
+        return null; // Don't guess - only extract if explicitly labeled
+    }
+
+    /// <summary>
+    /// Extracts DiasPlazo (deadline in days).
+    /// </summary>
+    private static int? ExtractDiasPlazo(string text)
+    {
+        // Pattern: "plazo de 7 días", "en 10 días", "dentro de 3 días"
+        var plazoPattern = @"(?:plazo\s+de|en|dentro\s+de)\s+(\d{1,3})\s+d[íi]as?";
+        var match = Regex.Match(text, plazoPattern, RegexOptions.IgnoreCase);
+
+        if (match.Success && match.Groups.Count > 1)
+        {
+            if (int.TryParse(match.Groups[1].Value, out var dias))
+            {
+                return dias;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Determines if document involves asset seizure (TieneAseguramiento).
+    /// </summary>
+    private static bool? ExtractTieneAseguramiento(string text)
+    {
+        var aseguramientoKeywords = new[]
+        {
+            "aseguramiento",
+            "embargo",
+            "bloqueo",
+            "retenci[óo]n",
+            "inmovilizaci[óo]n",
+            "congelamiento"
+        };
+
+        foreach (var keyword in aseguramientoKeywords)
+        {
+            if (Regex.IsMatch(text, keyword, RegexOptions.IgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        // Check for desbloqueo/liberación keywords (indicates removal of seizure)
+        var desbloqueoKeywords = new[] { "desbloqueo", "liberaci[óo]n", "dejar sin efectos" };
+        foreach (var keyword in desbloqueoKeywords)
+        {
+            if (Regex.IsMatch(text, keyword, RegexOptions.IgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return null; // Cannot determine
     }
 
     /// <summary>
