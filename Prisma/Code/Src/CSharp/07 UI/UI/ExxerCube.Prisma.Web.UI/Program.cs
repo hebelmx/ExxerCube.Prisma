@@ -15,6 +15,7 @@ using IndFusion.Ember.Abstractions.Hubs;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Extraction.Txt.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
 using ExxerCube.Prisma.Web.UI.Middleware;
 
@@ -269,6 +270,9 @@ Inner Stack Trace:
 
         // Add Extraction services (OCR executors, field extractors, document comparison)
         services.AddExtractionServices();
+
+        // Add Adaptive TXT Extraction (OCR text field extraction for PDF pipeline)
+        services.AddTxtFieldExtraction();
 
         // Add Adaptive DOCX Extraction (5-strategy extraction for AdaptiveDocxDemo.razor)
         services.AddAdaptiveDocxExtraction();
