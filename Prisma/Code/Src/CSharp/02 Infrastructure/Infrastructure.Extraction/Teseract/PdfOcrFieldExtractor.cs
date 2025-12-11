@@ -51,7 +51,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
     {
         try
         {
-            _logger.LogDebug("Extracting fields from PDF document: {FilePath}", source.FilePath);
+            _logger.LogInformation("Extracting fields from PDF document: {FilePath}", source.FilePath);
 
             // Get file content
             byte[] fileContent;
@@ -91,12 +91,12 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
                 sourceFilePath: source.FilePath);
 
             // Delegate to AdaptiveTxtFieldExtractor for field extraction
-            _logger.LogDebug("Delegating field extraction to AdaptiveTxtFieldExtractor");
+            _logger.LogInformation("Delegating field extraction to AdaptiveTxtFieldExtractor");
             var extractionResult = await _txtFieldExtractor.ExtractFieldsAsync(txtSource, fieldDefinitions);
 
             if (extractionResult.IsSuccess)
             {
-                _logger.LogDebug("Successfully extracted {Count} fields from PDF document", fieldDefinitions.Length);
+                _logger.LogInformation("Successfully extracted {Count} fields from PDF document", fieldDefinitions.Length);
             }
 
             return extractionResult;
@@ -113,7 +113,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
     {
         try
         {
-            _logger.LogDebug("Extracting field {FieldName} from PDF document: {FilePath}", fieldName, source.FilePath);
+            _logger.LogInformation("Extracting field {FieldName} from PDF document: {FilePath}", fieldName, source.FilePath);
 
             // Get file content
             byte[] fileContent;
@@ -147,12 +147,12 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
                 sourceFilePath: source.FilePath);
 
             // Delegate to AdaptiveTxtFieldExtractor for field extraction
-            _logger.LogDebug("Delegating field '{FieldName}' extraction to AdaptiveTxtFieldExtractor", fieldName);
+            _logger.LogInformation("Delegating field '{FieldName}' extraction to AdaptiveTxtFieldExtractor", fieldName);
             var extractionResult = await _txtFieldExtractor.ExtractFieldAsync(txtSource, fieldName);
 
             if (extractionResult.IsSuccess)
             {
-                _logger.LogDebug("Successfully extracted field '{FieldName}' from PDF document", fieldName);
+                _logger.LogInformation("Successfully extracted field '{FieldName}' from PDF document", fieldName);
             }
 
             return extractionResult;
@@ -173,7 +173,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
     {
         try
         {
-            _logger.LogDebug("Starting PDF → Image → OCR pipeline");
+            _logger.LogInformation("Starting PDF → Image → OCR pipeline");
 
             // Convert PDF to images (one per page) using PDFtoImage
             var imagePages = ConvertPdfPagesToImages(pdfBytes);
@@ -191,7 +191,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
             for (int pageIndex = 0; pageIndex < imagePages.Count; pageIndex++)
             {
                 var imageBytes = imagePages[pageIndex];
-                _logger.LogDebug("Processing page {PageNumber}/{TotalPages} ({Size} bytes)",
+                _logger.LogInformation("Processing page {PageNumber}/{TotalPages} ({Size} bytes)",
                     pageIndex + 1, imagePages.Count, imageBytes.Length);
 
                 // Create ImageData for preprocessing
@@ -232,7 +232,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
                 allPageTexts.Add(pageText);
                 confidences.Add(pageConfidence);
 
-                _logger.LogDebug("Page {PageNumber}: Extracted {TextLength} chars, Confidence: {Confidence:F2}",
+                _logger.LogInformation("Page {PageNumber}: Extracted {TextLength} chars, Confidence: {Confidence:F2}",
                     pageIndex + 1, pageText?.Length ?? 0, pageConfidence);
             }
 
@@ -270,7 +270,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
 
         try
         {
-            _logger.LogDebug("Converting PDF pages to images at {DPI} DPI using PDFtoImage", dpi);
+            _logger.LogInformation("Converting PDF pages to images at {DPI} DPI using PDFtoImage", dpi);
 
             var options = new RenderOptions(Dpi: dpi);
 
