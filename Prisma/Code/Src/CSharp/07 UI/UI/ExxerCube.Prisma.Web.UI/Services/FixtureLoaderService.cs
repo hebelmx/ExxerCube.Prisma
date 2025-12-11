@@ -37,22 +37,38 @@ public sealed class FixtureLoaderService
             var fixturesPath = GetFixturesPath();
             var filePath = Path.Combine(fixturesPath, fixtureName);
 
-            _logger.LogDebug("Loading fixture from: {FilePath}", filePath);
+            _logger.LogWarning("🔍 FIXTURE DEBUG: Requested fixture name: {RequestedFixtureName}", fixtureName);
+            _logger.LogWarning("🔍 FIXTURE DEBUG: Fixtures base path: {FixturesPath}", fixturesPath);
+            _logger.LogWarning("🔍 FIXTURE DEBUG: Combined file path: {FilePath}", filePath);
 
             if (!File.Exists(filePath))
             {
-                _logger.LogError("Fixture file not found: {FilePath}", filePath);
+                _logger.LogError("❌ FIXTURE DEBUG: File does NOT exist at path: {FilePath}", filePath);
                 throw new FileNotFoundException($"Fixture file not found: {fixtureName}", filePath);
+            }
+
+            // Get actual file info to verify the name matches
+            var fileInfo = new FileInfo(filePath);
+            var actualFileName = fileInfo.Name;
+
+            _logger.LogWarning("🔍 FIXTURE DEBUG: Actual file name on disk: {ActualFileName}", actualFileName);
+
+            // CRITICAL: Verify the actual file name matches the requested fixture name
+            if (!string.Equals(actualFileName, fixtureName, StringComparison.OrdinalIgnoreCase))
+            {
+                var errorMessage = $"FIXTURE MISMATCH! Requested: '{fixtureName}' but found: '{actualFileName}' at path: {filePath}";
+                _logger.LogError("❌❌❌ {ErrorMessage}", errorMessage);
+                throw new InvalidOperationException(errorMessage);
             }
 
             var bytes = await File.ReadAllBytesAsync(filePath, cancellationToken);
 
-            _logger.LogInformation("Successfully loaded fixture: {FixtureName} ({Size} bytes)",
-                fixtureName, bytes.Length);
+            _logger.LogWarning("✅ FIXTURE DEBUG: Successfully loaded {Size} bytes from {ActualFileName}",
+                bytes.Length, actualFileName);
 
             return bytes;
         }
-        catch (Exception ex) when (ex is not FileNotFoundException)
+        catch (Exception ex) when (ex is not FileNotFoundException and not InvalidOperationException)
         {
             _logger.LogError(ex, "Failed to load fixture: {FixtureName}", fixtureName);
             throw new IOException($"Failed to load fixture: {fixtureName}", ex);

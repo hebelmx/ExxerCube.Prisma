@@ -49,12 +49,12 @@ public sealed class PdfProcessingService
     {
         try
         {
-            _logger.LogInformation("Loading PDF fixture: {FixtureName}", fixtureName);
+            _logger.LogWarning("📄 PDF PROCESSING: START - Requested fixture: {FixtureName}", fixtureName);
 
             // Load fixture bytes
             var pdfBytes = await _fixtureLoader.LoadFixtureBytesAsync(fixtureName, cancellationToken);
 
-            _logger.LogDebug("PDF fixture loaded: {Size} bytes", pdfBytes.Length);
+            _logger.LogWarning("📄 PDF PROCESSING: Loaded {Size} bytes for fixture: {FixtureName}", pdfBytes.Length, fixtureName);
 
             // Create image data for OCR processing
             var imageData = new ImageData
@@ -64,6 +64,8 @@ public sealed class PdfProcessingService
                 PageNumber = 1,
                 TotalPages = 1
             };
+
+            _logger.LogWarning("📄 PDF PROCESSING: ImageData created with SourcePath: {SourcePath}", imageData.SourcePath);
 
             // Create processing configuration with 75% confidence threshold
             var config = new ProcessingConfig
@@ -81,7 +83,7 @@ public sealed class PdfProcessingService
             };
 
             // Process document with OCR
-            _logger.LogDebug("Processing PDF with OCR...");
+            _logger.LogWarning("📄 PDF PROCESSING: Starting OCR for fixture: {FixtureName}", fixtureName);
             var ocrResult = await _ocrService.ProcessDocumentAsync(imageData, config, cancellationToken);
 
             if (!ocrResult.IsSuccess || ocrResult.Value == null)
@@ -93,11 +95,12 @@ public sealed class PdfProcessingService
 
             var processingResult = ocrResult.Value;
 
-            _logger.LogInformation(
-                "OCR completed: {Confidence:F1}% confidence, {TextLength} characters",
-                processingResult.OCRResult.ConfidenceAvg, processingResult.OCRResult.Text.Length);
+            _logger.LogWarning(
+                "📄 PDF PROCESSING: OCR completed for {FixtureName}: {Confidence:F1}% confidence, {TextLength} characters",
+                fixtureName, processingResult.OCRResult.ConfidenceAvg, processingResult.OCRResult.Text.Length);
 
             // Extract Expediente from OCR result
+            _logger.LogWarning("📄 PDF PROCESSING: Starting field extraction for fixture: {FixtureName}", fixtureName);
             var expedienteResult = await ExtractExpedienteFromOcrAsync(
                 processingResult,
                 pdfBytes,
@@ -117,11 +120,11 @@ public sealed class PdfProcessingService
             // Create extraction metadata
             var metadata = CreateExtractionMetadata(processingResult, fixtureName, expediente);
 
-            _logger.LogInformation(
-                "Successfully processed PDF fixture {FixtureName}: Expediente={NumeroExpediente}",
-                fixtureName, expediente?.NumeroExpediente);
+            _logger.LogWarning(
+                "✅ PDF PROCESSING: COMPLETE for {FixtureName}: Expediente={NumeroExpediente}, Fields extracted: {FieldCount}",
+                fixtureName, expediente?.NumeroExpediente, metadata.TotalFieldsExtracted);
 
-            return new PdfProcessingResult
+            var result = new PdfProcessingResult
             {
                 OcrResult = processingResult,
                 Expediente = expediente,
@@ -129,6 +132,10 @@ public sealed class PdfProcessingService
                 PdfBytes = pdfBytes,
                 Metadata = metadata
             };
+
+            _logger.LogWarning("📄 PDF PROCESSING: Returning PdfProcessingResult with FixtureName: {FixtureName}", result.FixtureName);
+
+            return result;
         }
         catch (FileNotFoundException ex)
         {
@@ -153,7 +160,7 @@ public sealed class PdfProcessingService
     {
         try
         {
-            _logger.LogDebug("Extracting Expediente from OCR result using PdfOcrFieldExtractor");
+            _logger.LogWarning("🔬 FIELD EXTRACTION: Starting for source: {SourceName}", sourceName);
 
             // Create PdfSource from OCR result
             var pdfSource = new PdfSource
@@ -161,6 +168,8 @@ public sealed class PdfProcessingService
                 FileContent = pdfBytes,
                 FilePath = sourceName,
             };
+
+            _logger.LogWarning("🔬 FIELD EXTRACTION: PdfSource created with FilePath: {FilePath}", pdfSource.FilePath);
 
             // Define fields to extract
             var fieldDefinitions = new[]
@@ -175,12 +184,14 @@ public sealed class PdfProcessingService
             };
 
             // Extract fields using PdfOcrFieldExtractor
+            _logger.LogWarning("🔬 FIELD EXTRACTION: Calling PdfFieldExtractor for source: {SourceName}", sourceName);
             var extractionResult = await _pdfFieldExtractor.ExtractFieldsAsync(
                 pdfSource,
                 fieldDefinitions);
 
             if (extractionResult.IsFailure)
             {
+                _logger.LogError("🔬 FIELD EXTRACTION: Failed for {SourceName}: {Error}", sourceName, extractionResult.Error);
                 return Result<Expediente>.WithFailure(
                     $"Failed to extract fields from PDF: {extractionResult.Error}");
             }
@@ -188,15 +199,19 @@ public sealed class PdfProcessingService
             var extractedFields = extractionResult.Value;
             if (extractedFields == null)
             {
+                _logger.LogError("🔬 FIELD EXTRACTION: Extracted fields are NULL for {SourceName}", sourceName);
                 return Result<Expediente>.WithFailure("Extracted fields are null");
             }
+
+            _logger.LogWarning("🔬 FIELD EXTRACTION: ExtractedFields received - Expediente: {Expediente}, Causa: {Causa}, AdditionalFields: {Count}",
+                extractedFields.Expediente, extractedFields.Causa, extractedFields.AdditionalFields?.Count ?? 0);
 
             // Map ExtractedFields to Expediente entity
             var expediente = MapExtractedFieldsToExpediente(extractedFields);
 
-            _logger.LogDebug(
-                "Successfully extracted Expediente from PDF: {NumeroExpediente}",
-                expediente.NumeroExpediente);
+            _logger.LogWarning(
+                "✅ FIELD EXTRACTION: Successfully mapped to Expediente for {SourceName}: NumeroExpediente={NumeroExpediente}",
+                sourceName, expediente.NumeroExpediente);
 
             return Result<Expediente>.Success(expediente);
         }

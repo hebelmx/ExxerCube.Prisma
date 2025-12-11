@@ -46,15 +46,16 @@ public sealed class XmlProcessingService
     {
         try
         {
-            _logger.LogInformation("Loading XML fixture: {FixtureName}", fixtureName);
+            _logger.LogWarning("📋 XML PROCESSING: START - Requested fixture: {FixtureName}", fixtureName);
 
             // Load fixture bytes
             var xmlBytes = await _fixtureLoader.LoadFixtureBytesAsync(fixtureName, cancellationToken);
             var xmlContent = Encoding.UTF8.GetString(xmlBytes);
 
-            _logger.LogDebug("XML fixture loaded: {Size} bytes", xmlBytes.Length);
+            _logger.LogWarning("📋 XML PROCESSING: Loaded {Size} bytes for fixture: {FixtureName}", xmlBytes.Length, fixtureName);
 
             // Parse XML
+            _logger.LogWarning("📋 XML PROCESSING: Starting XML parsing for fixture: {FixtureName}", fixtureName);
             var parseResult = await _xmlParser.ParseAsync(xmlBytes, cancellationToken);
 
             if (!parseResult.IsSuccess || parseResult.Value == null)
@@ -75,11 +76,11 @@ public sealed class XmlProcessingService
             // Serialize to JSON for display
             var jsonResult = JsonSerializer.Serialize(expediente, new JsonSerializerOptions { WriteIndented = true });
 
-            _logger.LogInformation(
-                "Successfully processed XML fixture {FixtureName}: {FieldCount} fields, {PartesCount} partes, {EspecificasCount} específicas",
-                fixtureName, fieldCount, expediente.SolicitudPartes.Count, expediente.SolicitudEspecificas.Count);
+            _logger.LogWarning(
+                "✅ XML PROCESSING: COMPLETE for {FixtureName}: {FieldCount} fields, {PartesCount} partes, {EspecificasCount} específicas, NumeroExpediente={NumeroExpediente}",
+                fixtureName, fieldCount, expediente.SolicitudPartes.Count, expediente.SolicitudEspecificas.Count, expediente.NumeroExpediente);
 
-            return new XmlProcessingResult
+            var result = new XmlProcessingResult
             {
                 Expediente = expediente,
                 FixtureName = fixtureName,
@@ -88,6 +89,10 @@ public sealed class XmlProcessingService
                 Metadata = metadata,
                 JsonResult = jsonResult
             };
+
+            _logger.LogWarning("📋 XML PROCESSING: Returning XmlProcessingResult with FixtureName: {FixtureName}", result.FixtureName);
+
+            return result;
         }
         catch (FileNotFoundException ex)
         {
