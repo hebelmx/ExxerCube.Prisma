@@ -923,6 +923,56 @@ private void ClearAllResults()  // NEW
 ---
 
 **Last Updated:** 2025-12-10
-**Status:** 🟡 BLOCKED - Low field extraction rate (2/26 fields, 5% coverage)
-**Critical Issue:** AdaptiveTxtFieldExtractor needs 10+ new field patterns (see Field Catalog)
-**Next Action:** Phase A - Enhance AdaptiveTxtFieldExtractor with comprehensive patterns (target 46-61% coverage)
+**Status:** 🟡 PARTIAL PROGRESS - Multi-page PDF bug fixed, UI wiring needed
+**Recent Fix:** ✅ Multi-page PDF stream disposal bug fixed (c0bb9f0, 458c533)
+**Current Blocker:** UI wiring - extracted fields not displayed in UI
+**Next Action:** Complete UI wiring, then Phase A - Enhance field extraction patterns
+
+---
+
+## 🐛 Critical Bug Fix: Multi-Page PDF Processing (2025-12-10)
+
+### Discovery
+During user testing, discovered PDFs only processing first page:
+- **Symptom:** Only 3 fields extracted instead of 12-16
+- **Root Cause:** PDFtoImage's `Conversion.ToImage()` closes stream after reading
+- **Impact:** 80% data loss for multi-page PDFs (pages 2-5 dropped silently)
+
+### The Fix
+**File:** `PdfOcrFieldExtractor.cs:266-340`
+
+**Before (Broken):**
+```csharp
+using var pdfStream = new MemoryStream(pdfBytes);  // Created ONCE
+while (true) {
+    using var skBitmap = Conversion.ToImage(pdfStream, pageIndex);
+    // Stream gets closed by ToImage()
+    pdfStream.Position = 0;  // ❌ ObjectDisposedException!
+}
+```
+
+**After (Fixed):**
+```csharp
+while (true) {
+    using var pdfStream = new MemoryStream(pdfBytes);  // NEW each iteration
+    using var skBitmap = Conversion.ToImage(pdfStream, pageIndex);
+    // Each page gets fresh stream ✅
+}
+```
+
+### Commits
+- `c0bb9f0` - fix: Create new MemoryStream for each page
+- `458c533` - debug: Change all LogDebug to LogInformation
+
+### Lesson Learned
+- **Never assume external libraries preserve resource state**
+- **Verbose logging is critical** - bug was silent without Seq logs
+- **See:** `docs/lessons-learned/2025-12-10-Multi-Page-PDF-Stream-Disposal-Bug.md`
+
+### Verification Needed
+- [ ] Test 5-page PDF (555CCC) shows "Total pages converted: 5" in Seq
+- [ ] Verify field extraction count >= 12 (not 3)
+- [ ] Verify OCR text length > 1000 characters
+- [ ] UI displays all extracted fields
+
+---
