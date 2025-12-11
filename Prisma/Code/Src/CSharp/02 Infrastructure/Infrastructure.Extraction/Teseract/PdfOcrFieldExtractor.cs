@@ -272,16 +272,19 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
         {
             _logger.LogDebug("Converting PDF pages to images at {DPI} DPI using PDFtoImage", dpi);
 
-            using var pdfStream = new MemoryStream(pdfBytes);
             var options = new RenderOptions(Dpi: dpi);
 
             // Get page count (PDFtoImage doesn't provide direct page count, so we'll iterate)
+            // IMPORTANT: Create a NEW stream for each page because Conversion.ToImage() closes the stream!
             int pageIndex = 0;
             while (true)
             {
                 try
                 {
                     _logger.LogWarning("🔍 PDF CONVERSION: Attempting to convert page {PageIndex}", pageIndex);
+
+                    // Create a NEW stream for each page (ToImage closes the stream after use)
+                    using var pdfStream = new MemoryStream(pdfBytes);
 
 #pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
                     using var skBitmap = Conversion.ToImage(pdfStream, pageIndex, options: options);
@@ -312,10 +315,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
                         pageIndex + 1, outputMs.Length);
 
                     pageIndex++;
-
-                    // Reset stream position for next page
-                    pdfStream.Position = 0;
-                    _logger.LogWarning("🔍 PDF CONVERSION: Stream reset to position 0, continuing to page {NextPage}", pageIndex);
+                    _logger.LogWarning("🔍 PDF CONVERSION: Continuing to page {NextPage}", pageIndex);
                 }
                 catch (Exception ex)
                 {
