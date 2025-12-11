@@ -4,11 +4,9 @@ using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
-using PDFtoImage;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 /// <summary>
 /// Service for processing PDF fixture files with OCR.
@@ -16,7 +14,6 @@ using SixLabors.ImageSharp.PixelFormats;
 /// </summary>
 public sealed class PdfProcessingService
 {
-    private readonly IOcrProcessingService _ocrService;
     private readonly IFieldExtractor<PdfSource> _pdfFieldExtractor;
     private readonly FixtureLoaderService _fixtureLoader;
     private readonly ILogger<PdfProcessingService> _logger;
@@ -24,17 +21,14 @@ public sealed class PdfProcessingService
     /// <summary>
     /// Initializes a new instance of the <see cref="PdfProcessingService"/> class.
     /// </summary>
-    /// <param name="ocrService">OCR processing service</param>
-    /// <param name="pdfFieldExtractor">PDF field extractor service</param>
+    /// <param name="pdfFieldExtractor">PDF field extractor service (handles multi-page PDF → OCR → field extraction)</param>
     /// <param name="fixtureLoader">Fixture file loader service</param>
     /// <param name="logger">Logger instance</param>
     public PdfProcessingService(
-        IOcrProcessingService ocrService,
         IFieldExtractor<PdfSource> pdfFieldExtractor,
         FixtureLoaderService fixtureLoader,
         ILogger<PdfProcessingService> logger)
     {
-        _ocrService = ocrService;
         _pdfFieldExtractor = pdfFieldExtractor;
         _fixtureLoader = fixtureLoader;
         _logger = logger;
@@ -59,155 +53,43 @@ public sealed class PdfProcessingService
 
             _logger.LogWarning("📄 PDF PROCESSING: Loaded {Size} bytes for fixture: {FixtureName}", pdfBytes.Length, fixtureName);
 
-            // Convert PDF to individual page images
-            _logger.LogWarning("📄 PDF PROCESSING: Converting PDF to individual page images for: {FixtureName}", fixtureName);
-            var imagePages = ConvertPdfPagesToImages(pdfBytes);
-            _logger.LogWarning("📄 PDF PROCESSING: Converted to {PageCount} pages for: {FixtureName}", imagePages.Count, fixtureName);
-
-            if (imagePages.Count == 0)
-            {
-                _logger.LogError("PDF contains no pages: {FixtureName}", fixtureName);
-                throw new InvalidOperationException($"PDF contains no pages: {fixtureName}");
-            }
-
-            // Create processing configuration with 75% confidence threshold
-            var config = new ProcessingConfig
-            {
-                OCRConfig = new OCRConfig
-                {
-                    Language = "spa",
-                    ConfidenceThreshold = 75.0f
-                },
-                RemoveWatermark = true,
-                Deskew = true,
-                Binarize = true,
-                ExtractSections = true,
-                NormalizeText = true
-            };
-
-            // Process each page with OCR
-            _logger.LogWarning("📄 PDF PROCESSING: Starting OCR for {PageCount} pages of {FixtureName}", imagePages.Count, fixtureName);
-            var allPageTexts = new List<string>();
-            var confidences = new List<float>();
-            var totalPages = imagePages.Count;
-
-            for (int pageIndex = 0; pageIndex < imagePages.Count; pageIndex++)
-            {
-                var imageBytes = imagePages[pageIndex];
-                var pageNumber = pageIndex + 1;
-
-                _logger.LogWarning("📄 PDF PROCESSING: Processing page {PageNumber}/{TotalPages} ({Size} bytes) for {FixtureName}",
-                    pageNumber, totalPages, imageBytes.Length, fixtureName);
-
-                // Create ImageData for this page
-                var imageData = new ImageData
-                {
-                    Data = imageBytes,
-                    SourcePath = fixtureName,
-                    PageNumber = pageNumber,
-                    TotalPages = totalPages
-                };
-
-                // Process this page with OCR
-                var ocrResult = await _ocrService.ProcessDocumentAsync(imageData, config, cancellationToken);
-
-                if (!ocrResult.IsSuccess || ocrResult.Value == null)
-                {
-                    var error = ocrResult.Error ?? "OCR processing failed";
-                    _logger.LogWarning("OCR failed for page {PageNumber}/{TotalPages} of {FixtureName}: {Error}",
-                        pageNumber, totalPages, fixtureName, error);
-                    continue; // Skip this page but continue with others
-                }
-
-                var pageResult = ocrResult.Value;
-                var pageText = pageResult.OCRResult.Text;
-                allPageTexts.Add(pageText);
-                confidences.Add(pageResult.OCRResult.ConfidenceAvg);
-
-                _logger.LogWarning(
-                    "📄 PDF PROCESSING: Page {PageNumber}/{TotalPages} OCR complete for {FixtureName}: {Confidence:F1}% confidence, {TextLength} characters",
-                    pageNumber, totalPages, fixtureName, pageResult.OCRResult.ConfidenceAvg, pageText.Length);
-
-                // Log actual text content at TRACE level for debugging
-                var textPreview = pageText.Length > 500 ? pageText.Substring(0, 500) + "..." : pageText;
-                _logger.LogTrace(
-                    "📄 PDF PROCESSING: Page {PageNumber}/{TotalPages} TEXT: {TextPreview}",
-                    pageNumber, totalPages, textPreview);
-            }
-
-            if (allPageTexts.Count == 0)
-            {
-                _logger.LogError("OCR failed for all pages of {FixtureName}", fixtureName);
-                throw new InvalidOperationException($"OCR failed for all pages of {fixtureName}");
-            }
-
-            // Combine all page texts with page separators
-            var combinedText = string.Join("\n\n", allPageTexts);
-            var averageConfidence = confidences.Average();
-
-            // Log combined text details at TRACE level
-            _logger.LogTrace(
-                "📄 PDF PROCESSING: Combined text from {PageCount} pages: Total {TotalLength} characters",
-                allPageTexts.Count, combinedText.Length);
-
-            // Log breakdown of text per page
-            for (int i = 0; i < allPageTexts.Count; i++)
-            {
-                _logger.LogTrace(
-                    "📄 PDF PROCESSING: Page {PageNumber} contributed {TextLength} characters",
-                    i + 1, allPageTexts[i].Length);
-            }
-
-            var combinedPreview = combinedText.Length > 1000
-                ? combinedText.Substring(0, 1000) + "..."
-                : combinedText;
-            _logger.LogTrace(
-                "📄 PDF PROCESSING: Combined TEXT PREVIEW: {CombinedPreview}",
-                combinedPreview);
-
-            // Create combined processing result
-            var processingResult = new ProcessingResult
-            {
-                OCRResult = new OCRResult
-                {
-                    Text = combinedText,
-                    ConfidenceAvg = averageConfidence,
-                    Confidences = new List<float>(confidences),
-                    LanguageUsed = "spa"
-                },
-                PageNumber = 1, // Combined result represents all pages
-                SourcePath = fixtureName,
-                ProcessingErrors = new List<string>()
-            };
-
-            _logger.LogWarning(
-                "📄 PDF PROCESSING: OCR completed for ALL {TotalPages} pages of {FixtureName}: {Confidence:F1}% avg confidence, {TextLength} total characters",
-                totalPages, fixtureName, averageConfidence, combinedText.Length);
-
-            // Extract Expediente from OCR result
-            _logger.LogWarning("📄 PDF PROCESSING: Starting field extraction for fixture: {FixtureName}", fixtureName);
-            var expedienteResult = await ExtractExpedienteFromOcrAsync(
-                processingResult,
+            // Extract Expediente directly using PdfOcrFieldExtractor (handles multi-page PDF → OCR → field extraction)
+            _logger.LogWarning("📄 PDF PROCESSING: Starting PDF field extraction for fixture: {FixtureName}", fixtureName);
+            var expedienteResult = await ExtractExpedienteFromPdfAsync(
                 pdfBytes,
                 fixtureName,
                 cancellationToken);
 
-            if (!expedienteResult.IsSuccess || expedienteResult.Value == null)
+            if (!expedienteResult.IsSuccess)
             {
                 _logger.LogWarning(
                     "Field extraction failed for {FixtureName}: {Error}",
                     fixtureName, expedienteResult.Error);
-                // Continue - OCR succeeded even if field extraction failed
+                throw new InvalidOperationException($"Field extraction failed: {expedienteResult.Error}");
             }
 
-            var expediente = expedienteResult.Value;
+            var (expediente, ocrText, confidence) = expedienteResult.Value;
 
             // Create extraction metadata
-            var metadata = CreateExtractionMetadata(processingResult, fixtureName, expediente);
+            var metadata = CreateExtractionMetadata(fixtureName, expediente, confidence);
 
             _logger.LogWarning(
-                "✅ PDF PROCESSING: COMPLETE for {FixtureName}: Expediente={NumeroExpediente}, Fields extracted: {FieldCount}",
-                fixtureName, expediente?.NumeroExpediente, metadata.TotalFieldsExtracted);
+                "✅ PDF PROCESSING: COMPLETE for {FixtureName}: Expediente={NumeroExpediente}, Fields extracted: {FieldCount}, OCR confidence: {Confidence:F1}%",
+                fixtureName, expediente?.NumeroExpediente, metadata.TotalFieldsExtracted, confidence * 100);
+
+            // Create a mock ProcessingResult for backward compatibility
+            var processingResult = new ProcessingResult
+            {
+                OCRResult = new OCRResult
+                {
+                    Text = ocrText,
+                    ConfidenceAvg = confidence * 100,
+                    LanguageUsed = "spa"
+                },
+                PageNumber = 1,
+                SourcePath = fixtureName,
+                ProcessingErrors = new List<string>()
+            };
 
             var result = new PdfProcessingResult
             {
@@ -235,19 +117,18 @@ public sealed class PdfProcessingService
     }
 
     /// <summary>
-    /// Extracts Expediente entity from OCR processing result.
+    /// Extracts Expediente entity from PDF using PdfOcrFieldExtractor (handles multi-page OCR).
     /// </summary>
-    private async Task<Result<Expediente>> ExtractExpedienteFromOcrAsync(
-        ProcessingResult ocrResult,
+    private async Task<Result<(Expediente Expediente, string OcrText, float Confidence)>> ExtractExpedienteFromPdfAsync(
         byte[] pdfBytes,
         string sourceName,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            _logger.LogWarning("🔬 FIELD EXTRACTION: Starting for source: {SourceName}", sourceName);
+            _logger.LogWarning("🔬 FIELD EXTRACTION: Starting PDF OCR + field extraction for source: {SourceName}", sourceName);
 
-            // Create PdfSource from OCR result
+            // Create PdfSource
             var pdfSource = new PdfSource
             {
                 FileContent = pdfBytes,
@@ -268,8 +149,8 @@ public sealed class PdfProcessingService
                 new FieldDefinition { FieldName = "DiasPlazo", IsRequired = false }
             };
 
-            // Extract fields using PdfOcrFieldExtractor
-            _logger.LogWarning("🔬 FIELD EXTRACTION: Calling PdfFieldExtractor for source: {SourceName}", sourceName);
+            // Extract fields using PdfOcrFieldExtractor (handles multi-page PDF → images → OCR → field extraction)
+            _logger.LogWarning("🔬 FIELD EXTRACTION: Calling PdfOcrFieldExtractor for source: {SourceName}", sourceName);
             var extractionResult = await _pdfFieldExtractor.ExtractFieldsAsync(
                 pdfSource,
                 fieldDefinitions);
@@ -277,7 +158,7 @@ public sealed class PdfProcessingService
             if (extractionResult.IsFailure)
             {
                 _logger.LogError("🔬 FIELD EXTRACTION: Failed for {SourceName}: {Error}", sourceName, extractionResult.Error);
-                return Result<Expediente>.WithFailure(
+                return Result<(Expediente, string, float)>.WithFailure(
                     $"Failed to extract fields from PDF: {extractionResult.Error}");
             }
 
@@ -285,7 +166,7 @@ public sealed class PdfProcessingService
             if (extractedFields == null)
             {
                 _logger.LogError("🔬 FIELD EXTRACTION: Extracted fields are NULL for {SourceName}", sourceName);
-                return Result<Expediente>.WithFailure("Extracted fields are null");
+                return Result<(Expediente, string, float)>.WithFailure("Extracted fields are null");
             }
 
             _logger.LogWarning("🔬 FIELD EXTRACTION: ExtractedFields received - Expediente: {Expediente}, Causa: {Causa}, AdditionalFields: {Count}",
@@ -294,18 +175,23 @@ public sealed class PdfProcessingService
             // Map ExtractedFields to Expediente entity
             var expediente = MapExtractedFieldsToExpediente(extractedFields);
 
-            _logger.LogWarning(
-                "✅ FIELD EXTRACTION: Successfully mapped to Expediente for {SourceName}: NumeroExpediente={NumeroExpediente}",
-                sourceName, expediente.NumeroExpediente);
+            // Get OCR text and confidence from extracted fields metadata
+            var ocrText = extractedFields.AdditionalFields?.GetValueOrDefault("_OcrText") ?? "";
+            var confidence = extractedFields.AdditionalFields?.TryGetValue("_OcrConfidence", out var confStr) == true
+                && float.TryParse(confStr, out var conf) ? conf : 0.8f;
 
-            return Result<Expediente>.Success(expediente);
+            _logger.LogWarning(
+                "✅ FIELD EXTRACTION: Successfully mapped to Expediente for {SourceName}: NumeroExpediente={NumeroExpediente}, OCR text length={TextLength}",
+                sourceName, expediente.NumeroExpediente, ocrText.Length);
+
+            return Result<(Expediente, string, float)>.Success((expediente, ocrText, confidence));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error extracting Expediente from OCR result");
-            return Result<Expediente>.WithFailure(
+            _logger.LogError(ex, "Error extracting Expediente from PDF");
+            return Result<(Expediente, string, float)>.WithFailure(
                 $"Error extracting Expediente: {ex.Message}",
-                default(Expediente),
+                default,
                 ex);
         }
     }
@@ -352,14 +238,14 @@ public sealed class PdfProcessingService
     /// Creates extraction metadata for fusion service.
     /// </summary>
     private ExtractionMetadata CreateExtractionMetadata(
-        ProcessingResult ocrResult,
         string sourceName,
-        Expediente? expediente)
+        Expediente? expediente,
+        float confidence)
     {
         return new ExtractionMetadata
         {
             Source = SourceType.PDF_OCR_CNBV,
-            MeanConfidence = ocrResult.OCRResult.ConfidenceAvg / 100.0,
+            MeanConfidence = confidence,
             QualityIndex = 0.8, // Default for demo
             RegexMatches = 0,
             TotalFieldsExtracted = expediente != null ? CountExtractedFields(expediente) : 0,
@@ -384,77 +270,6 @@ public sealed class PdfProcessingService
         if (expediente.DiasPlazo != 0) count++;
 
         return count;
-    }
-
-    /// <summary>
-    /// Converts all pages of a PDF to individual image bytes using PDFtoImage library.
-    /// </summary>
-    /// <param name="pdfBytes">The PDF file bytes.</param>
-    /// <returns>List of image bytes (PNG format), one per page.</returns>
-    private List<byte[]> ConvertPdfPagesToImages(byte[] pdfBytes)
-    {
-        const int dpi = 300; // Standard DPI for high-quality OCR
-        var imagePages = new List<byte[]>();
-
-        try
-        {
-            _logger.LogDebug("Converting PDF pages to images at {DPI} DPI using PDFtoImage", dpi);
-
-            using var pdfStream = new MemoryStream(pdfBytes);
-            var options = new RenderOptions(Dpi: dpi);
-
-            // Get page count (PDFtoImage doesn't provide direct page count, so we'll iterate)
-            int pageIndex = 0;
-            while (true)
-            {
-                try
-                {
-#pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
-                    using var skBitmap = Conversion.ToImage(pdfStream, pageIndex, options: options);
-#pragma warning restore CA1416
-
-                    if (skBitmap == null)
-                    {
-                        break; // No more pages
-                    }
-
-                    // Convert SKBitmap to ImageSharp Image<Rgba32>
-                    using var image = Image.LoadPixelData<Rgba32>(
-                        skBitmap.GetPixelSpan(),
-                        skBitmap.Width,
-                        skBitmap.Height);
-
-                    // Save as PNG bytes
-                    using var outputMs = new MemoryStream();
-                    image.SaveAsPng(outputMs);
-
-                    imagePages.Add(outputMs.ToArray());
-
-                    _logger.LogDebug("Page {PageNumber} converted: {Width}x{Height} pixels",
-                        pageIndex + 1, skBitmap.Width, skBitmap.Height);
-
-                    pageIndex++;
-
-                    // Reset stream position for next page
-                    pdfStream.Position = 0;
-                }
-                catch (Exception ex)
-                {
-                    // Break on error (likely no more pages)
-                    _logger.LogDebug("Page iteration stopped at page {PageNumber}: {Error}",
-                        pageIndex + 1, ex.Message);
-                    break;
-                }
-            }
-
-            _logger.LogInformation("PDF conversion complete: {PageCount} pages extracted", imagePages.Count);
-            return imagePages;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to convert PDF to images");
-            throw new InvalidOperationException($"Failed to convert PDF to images: {ex.Message}", ex);
-        }
     }
 }
 
