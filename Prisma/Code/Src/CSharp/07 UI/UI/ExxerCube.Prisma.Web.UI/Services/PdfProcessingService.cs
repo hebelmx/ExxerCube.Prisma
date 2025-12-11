@@ -120,12 +120,19 @@ public sealed class PdfProcessingService
                 }
 
                 var pageResult = ocrResult.Value;
-                allPageTexts.Add(pageResult.OCRResult.Text);
+                var pageText = pageResult.OCRResult.Text;
+                allPageTexts.Add(pageText);
                 confidences.Add(pageResult.OCRResult.ConfidenceAvg);
 
                 _logger.LogWarning(
                     "📄 PDF PROCESSING: Page {PageNumber}/{TotalPages} OCR complete for {FixtureName}: {Confidence:F1}% confidence, {TextLength} characters",
-                    pageNumber, totalPages, fixtureName, pageResult.OCRResult.ConfidenceAvg, pageResult.OCRResult.Text.Length);
+                    pageNumber, totalPages, fixtureName, pageResult.OCRResult.ConfidenceAvg, pageText.Length);
+
+                // Log actual text content at TRACE level for debugging
+                var textPreview = pageText.Length > 500 ? pageText.Substring(0, 500) + "..." : pageText;
+                _logger.LogTrace(
+                    "📄 PDF PROCESSING: Page {PageNumber}/{TotalPages} TEXT: {TextPreview}",
+                    pageNumber, totalPages, textPreview);
             }
 
             if (allPageTexts.Count == 0)
@@ -137,6 +144,26 @@ public sealed class PdfProcessingService
             // Combine all page texts with page separators
             var combinedText = string.Join("\n\n", allPageTexts);
             var averageConfidence = confidences.Average();
+
+            // Log combined text details at TRACE level
+            _logger.LogTrace(
+                "📄 PDF PROCESSING: Combined text from {PageCount} pages: Total {TotalLength} characters",
+                allPageTexts.Count, combinedText.Length);
+
+            // Log breakdown of text per page
+            for (int i = 0; i < allPageTexts.Count; i++)
+            {
+                _logger.LogTrace(
+                    "📄 PDF PROCESSING: Page {PageNumber} contributed {TextLength} characters",
+                    i + 1, allPageTexts[i].Length);
+            }
+
+            var combinedPreview = combinedText.Length > 1000
+                ? combinedText.Substring(0, 1000) + "..."
+                : combinedText;
+            _logger.LogTrace(
+                "📄 PDF PROCESSING: Combined TEXT PREVIEW: {CombinedPreview}",
+                combinedPreview);
 
             // Create combined processing result
             var processingResult = new ProcessingResult
