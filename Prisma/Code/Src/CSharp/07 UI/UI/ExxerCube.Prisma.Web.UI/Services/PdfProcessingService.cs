@@ -6,6 +6,9 @@ using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
+using PDFtoImage;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 /// <summary>
 /// Service for processing PDF fixture files with OCR.
@@ -56,16 +59,16 @@ public sealed class PdfProcessingService
 
             _logger.LogWarning("📄 PDF PROCESSING: Loaded {Size} bytes for fixture: {FixtureName}", pdfBytes.Length, fixtureName);
 
-            // Create image data for OCR processing
-            var imageData = new ImageData
-            {
-                Data = pdfBytes,
-                SourcePath = fixtureName,
-                PageNumber = 1,
-                TotalPages = 1
-            };
+            // Convert PDF to individual page images
+            _logger.LogWarning("📄 PDF PROCESSING: Converting PDF to individual page images for: {FixtureName}", fixtureName);
+            var imagePages = ConvertPdfPagesToImages(pdfBytes);
+            _logger.LogWarning("📄 PDF PROCESSING: Converted to {PageCount} pages for: {FixtureName}", imagePages.Count, fixtureName);
 
-            _logger.LogWarning("📄 PDF PROCESSING: ImageData created with SourcePath: {SourcePath}", imageData.SourcePath);
+            if (imagePages.Count == 0)
+            {
+                _logger.LogError("PDF contains no pages: {FixtureName}", fixtureName);
+                throw new InvalidOperationException($"PDF contains no pages: {fixtureName}");
+            }
 
             // Create processing configuration with 75% confidence threshold
             var config = new ProcessingConfig
@@ -82,22 +85,77 @@ public sealed class PdfProcessingService
                 NormalizeText = true
             };
 
-            // Process document with OCR
-            _logger.LogWarning("📄 PDF PROCESSING: Starting OCR for fixture: {FixtureName}", fixtureName);
-            var ocrResult = await _ocrService.ProcessDocumentAsync(imageData, config, cancellationToken);
+            // Process each page with OCR
+            _logger.LogWarning("📄 PDF PROCESSING: Starting OCR for {PageCount} pages of {FixtureName}", imagePages.Count, fixtureName);
+            var allPageTexts = new List<string>();
+            var confidences = new List<float>();
+            var totalPages = imagePages.Count;
 
-            if (!ocrResult.IsSuccess || ocrResult.Value == null)
+            for (int pageIndex = 0; pageIndex < imagePages.Count; pageIndex++)
             {
-                var error = ocrResult.Error ?? "OCR processing failed";
-                _logger.LogError("Failed to process PDF {FixtureName}: {Error}", fixtureName, error);
-                throw new InvalidOperationException($"OCR processing failed: {error}");
+                var imageBytes = imagePages[pageIndex];
+                var pageNumber = pageIndex + 1;
+
+                _logger.LogWarning("📄 PDF PROCESSING: Processing page {PageNumber}/{TotalPages} ({Size} bytes) for {FixtureName}",
+                    pageNumber, totalPages, imageBytes.Length, fixtureName);
+
+                // Create ImageData for this page
+                var imageData = new ImageData
+                {
+                    Data = imageBytes,
+                    SourcePath = fixtureName,
+                    PageNumber = pageNumber,
+                    TotalPages = totalPages
+                };
+
+                // Process this page with OCR
+                var ocrResult = await _ocrService.ProcessDocumentAsync(imageData, config, cancellationToken);
+
+                if (!ocrResult.IsSuccess || ocrResult.Value == null)
+                {
+                    var error = ocrResult.Error ?? "OCR processing failed";
+                    _logger.LogWarning("OCR failed for page {PageNumber}/{TotalPages} of {FixtureName}: {Error}",
+                        pageNumber, totalPages, fixtureName, error);
+                    continue; // Skip this page but continue with others
+                }
+
+                var pageResult = ocrResult.Value;
+                allPageTexts.Add(pageResult.OCRResult.Text);
+                confidences.Add(pageResult.OCRResult.ConfidenceAvg);
+
+                _logger.LogWarning(
+                    "📄 PDF PROCESSING: Page {PageNumber}/{TotalPages} OCR complete for {FixtureName}: {Confidence:F1}% confidence, {TextLength} characters",
+                    pageNumber, totalPages, fixtureName, pageResult.OCRResult.ConfidenceAvg, pageResult.OCRResult.Text.Length);
             }
 
-            var processingResult = ocrResult.Value;
+            if (allPageTexts.Count == 0)
+            {
+                _logger.LogError("OCR failed for all pages of {FixtureName}", fixtureName);
+                throw new InvalidOperationException($"OCR failed for all pages of {fixtureName}");
+            }
+
+            // Combine all page texts with page separators
+            var combinedText = string.Join("\n\n", allPageTexts);
+            var averageConfidence = confidences.Average();
+
+            // Create combined processing result
+            var processingResult = new ProcessingResult
+            {
+                OCRResult = new OCRResult
+                {
+                    Text = combinedText,
+                    ConfidenceAvg = averageConfidence,
+                    Confidences = new List<float>(confidences),
+                    LanguageUsed = "spa"
+                },
+                PageNumber = 1, // Combined result represents all pages
+                SourcePath = fixtureName,
+                ProcessingErrors = new List<string>()
+            };
 
             _logger.LogWarning(
-                "📄 PDF PROCESSING: OCR completed for {FixtureName}: {Confidence:F1}% confidence, {TextLength} characters",
-                fixtureName, processingResult.OCRResult.ConfidenceAvg, processingResult.OCRResult.Text.Length);
+                "📄 PDF PROCESSING: OCR completed for ALL {TotalPages} pages of {FixtureName}: {Confidence:F1}% avg confidence, {TextLength} total characters",
+                totalPages, fixtureName, averageConfidence, combinedText.Length);
 
             // Extract Expediente from OCR result
             _logger.LogWarning("📄 PDF PROCESSING: Starting field extraction for fixture: {FixtureName}", fixtureName);
@@ -299,6 +357,77 @@ public sealed class PdfProcessingService
         if (expediente.DiasPlazo != 0) count++;
 
         return count;
+    }
+
+    /// <summary>
+    /// Converts all pages of a PDF to individual image bytes using PDFtoImage library.
+    /// </summary>
+    /// <param name="pdfBytes">The PDF file bytes.</param>
+    /// <returns>List of image bytes (PNG format), one per page.</returns>
+    private List<byte[]> ConvertPdfPagesToImages(byte[] pdfBytes)
+    {
+        const int dpi = 300; // Standard DPI for high-quality OCR
+        var imagePages = new List<byte[]>();
+
+        try
+        {
+            _logger.LogDebug("Converting PDF pages to images at {DPI} DPI using PDFtoImage", dpi);
+
+            using var pdfStream = new MemoryStream(pdfBytes);
+            var options = new RenderOptions(Dpi: dpi);
+
+            // Get page count (PDFtoImage doesn't provide direct page count, so we'll iterate)
+            int pageIndex = 0;
+            while (true)
+            {
+                try
+                {
+#pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
+                    using var skBitmap = Conversion.ToImage(pdfStream, pageIndex, options: options);
+#pragma warning restore CA1416
+
+                    if (skBitmap == null)
+                    {
+                        break; // No more pages
+                    }
+
+                    // Convert SKBitmap to ImageSharp Image<Rgba32>
+                    using var image = Image.LoadPixelData<Rgba32>(
+                        skBitmap.GetPixelSpan(),
+                        skBitmap.Width,
+                        skBitmap.Height);
+
+                    // Save as PNG bytes
+                    using var outputMs = new MemoryStream();
+                    image.SaveAsPng(outputMs);
+
+                    imagePages.Add(outputMs.ToArray());
+
+                    _logger.LogDebug("Page {PageNumber} converted: {Width}x{Height} pixels",
+                        pageIndex + 1, skBitmap.Width, skBitmap.Height);
+
+                    pageIndex++;
+
+                    // Reset stream position for next page
+                    pdfStream.Position = 0;
+                }
+                catch (Exception ex)
+                {
+                    // Break on error (likely no more pages)
+                    _logger.LogDebug("Page iteration stopped at page {PageNumber}: {Error}",
+                        pageIndex + 1, ex.Message);
+                    break;
+                }
+            }
+
+            _logger.LogInformation("PDF conversion complete: {PageCount} pages extracted", imagePages.Count);
+            return imagePages;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to convert PDF to images");
+            throw new InvalidOperationException($"Failed to convert PDF to images: {ex.Message}", ex);
+        }
     }
 }
 
