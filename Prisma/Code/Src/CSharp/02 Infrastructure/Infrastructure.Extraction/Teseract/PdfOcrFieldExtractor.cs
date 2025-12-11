@@ -281,14 +281,20 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
             {
                 try
                 {
+                    _logger.LogWarning("🔍 PDF CONVERSION: Attempting to convert page {PageIndex}", pageIndex);
+
 #pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
                     using var skBitmap = Conversion.ToImage(pdfStream, pageIndex, options: options);
 #pragma warning restore CA1416
 
                     if (skBitmap == null)
                     {
+                        _logger.LogWarning("🔍 PDF CONVERSION: Page {PageIndex} returned null bitmap - END OF PAGES", pageIndex);
                         break; // No more pages
                     }
+
+                    _logger.LogWarning("🔍 PDF CONVERSION: Page {PageIndex} bitmap created: {Width}x{Height}",
+                        pageIndex, skBitmap.Width, skBitmap.Height);
 
                     // Convert SKBitmap to ImageSharp Image<Rgba32>
                     using var image = Image.LoadPixelData<Rgba32>(
@@ -302,22 +308,26 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
 
                     imagePages.Add(outputMs.ToArray());
 
-                    _logger.LogDebug("Page {PageNumber} converted: {Width}x{Height} pixels",
-                        pageIndex + 1, skBitmap.Width, skBitmap.Height);
+                    _logger.LogWarning("✅ PDF CONVERSION: Page {PageNumber} successfully converted ({Size} bytes)",
+                        pageIndex + 1, outputMs.Length);
 
                     pageIndex++;
 
                     // Reset stream position for next page
                     pdfStream.Position = 0;
+                    _logger.LogWarning("🔍 PDF CONVERSION: Stream reset to position 0, continuing to page {NextPage}", pageIndex);
                 }
                 catch (Exception ex)
                 {
                     // Break on error (likely no more pages)
-                    _logger.LogDebug("Stopped converting pages at index {PageIndex}: {Message}",
-                        pageIndex, ex.Message);
+                    _logger.LogWarning("❌ PDF CONVERSION: Exception at page {PageIndex}: {ExceptionType} - {Message}",
+                        pageIndex, ex.GetType().Name, ex.Message);
+                    _logger.LogWarning("❌ PDF CONVERSION: Stack trace: {StackTrace}", ex.StackTrace);
                     break;
                 }
             }
+
+            _logger.LogWarning("🔍 PDF CONVERSION: Conversion loop ended. Total pages converted: {PageCount}", imagePages.Count);
 
             _logger.LogInformation("PDF conversion complete: {PageCount} pages converted to images", imagePages.Count);
         }

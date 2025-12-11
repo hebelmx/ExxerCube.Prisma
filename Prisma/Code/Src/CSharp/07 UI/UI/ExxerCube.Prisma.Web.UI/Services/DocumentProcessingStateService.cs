@@ -33,7 +33,7 @@ public sealed class DocumentProcessingStateService
     /// </summary>
     public DocumentProcessingViewModel State => _state;
 
-    #region XML State Management
+      // XML State Management
 
     /// <summary>
     /// Updates the XML processing state using a callback.
@@ -64,9 +64,9 @@ public sealed class DocumentProcessingStateService
         NotifyStateChanged();
     }
 
-    #endregion
+      // 
 
-    #region PDF State Management
+      // PDF State Management
 
     /// <summary>
     /// Updates the PDF processing state using a callback.
@@ -95,9 +95,9 @@ public sealed class DocumentProcessingStateService
         NotifyStateChanged();
     }
 
-    #endregion
+      // 
 
-    #region Comparison State Management
+      // Comparison State Management
 
     /// <summary>
     /// Updates the comparison state using a callback.
@@ -123,9 +123,9 @@ public sealed class DocumentProcessingStateService
         NotifyStateChanged();
     }
 
-    #endregion
+      // 
 
-    #region Bulk Processing State Management
+      // Bulk Processing State Management
 
     /// <summary>
     /// Updates the bulk processing state using a callback.
@@ -152,9 +152,9 @@ public sealed class DocumentProcessingStateService
         NotifyStateChanged();
     }
 
-    #endregion
+      // 
 
-    #region Shared UI State Management
+      // Shared UI State Management
 
     /// <summary>
     /// Updates the shared UI state using a callback.
@@ -185,9 +185,9 @@ public sealed class DocumentProcessingStateService
         NotifyStateChanged();
     }
 
-    #endregion
+      // 
 
-    #region Global Operations
+      // Global Operations
 
     /// <summary>
     /// Clears all state across all processing pipelines.
@@ -219,7 +219,7 @@ public sealed class DocumentProcessingStateService
         }
     }
 
-    #endregion
+      // 
 
     /// <summary>
     /// Notifies subscribers that state has changed, triggering UI re-render.
