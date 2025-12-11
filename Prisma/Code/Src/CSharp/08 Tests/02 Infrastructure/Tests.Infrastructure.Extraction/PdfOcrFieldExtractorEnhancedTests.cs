@@ -9,6 +9,7 @@ public class PdfOcrFieldExtractorEnhancedTests
 {
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IImagePreprocessor _imagePreprocessor;
+    private readonly IFieldExtractor<TxtSource> _txtFieldExtractor;
     private readonly ILogger<PdfOcrFieldExtractor> _logger;
     private readonly PdfOcrFieldExtractor _extractor;
 
@@ -16,8 +17,9 @@ public class PdfOcrFieldExtractorEnhancedTests
     {
         _ocrExecutor = Substitute.For<IOcrExecutor>();
         _imagePreprocessor = Substitute.For<IImagePreprocessor>();
+        _txtFieldExtractor = Substitute.For<IFieldExtractor<TxtSource>>();
         _logger = XUnitLogger.CreateLogger<PdfOcrFieldExtractor>(output);
-        _extractor = new PdfOcrFieldExtractor(_ocrExecutor, _imagePreprocessor, _logger);
+        _extractor = new PdfOcrFieldExtractor(_ocrExecutor, _imagePreprocessor, _txtFieldExtractor, _logger);
     }
 
     [Fact]
