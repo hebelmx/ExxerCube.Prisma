@@ -557,8 +557,9 @@ celerybeat.pid
 # Environments
 .env
 .envrc
-.venv
+.venv/
 .venv_*/
+venv_*/
 env/
 venv/
 ENV/
@@ -677,3 +678,10 @@ TestResults/
 coverage/
 # Keep coverage.xml in root for CI/CD (not ignored)
 # CI/CD tools read this file from root
+
+# Stryker mutation testing output
+**/StrykerOutput/
+stryker-output.log
+
+# Serena
+.serena/
