@@ -142,35 +142,58 @@ public sealed class InMemoryEventBus : IEventPublisher, IEventSubscriber
     }
 
     /// <summary>
-    ///  Publishes a domain event to all subscribed handlers.
+    /// Publishes a domain event. Not supported — use EventPublisher for Rx.NET-based domain events.
+    /// This class implements the string-based pub/sub pattern via <see cref="PublishAsync{TEvent}"/>.
     /// </summary>
-    /// <typeparam name="TEvent"></typeparam>
-    /// <param name="domainEvent"></param>
-    /// <exception cref="NotImplementedException"></exception>
-
+    /// <typeparam name="TEvent">The domain event type.</typeparam>
+    /// <param name="domainEvent">The domain event to publish.</param>
     public void Publish<TEvent>(TEvent domainEvent) where TEvent : DomainEvent
     {
-        throw new NotImplementedException();
+        _logger.LogWarning(
+            "InMemoryEventBus.Publish<{EventType}> called but this class only supports string-based pub/sub. Use EventPublisher for domain events.",
+            typeof(TEvent).Name);
     }
 
     /// <summary>
-    /// Gets a stream of domain events of the specified type.
+    /// Gets a stream of domain events. Not supported — use EventPublisher for Rx.NET-based streams.
     /// </summary>
-    /// <typeparam name="TEvent"></typeparam>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <typeparam name="TEvent">The domain event type.</typeparam>
+    /// <returns>An empty observable stream.</returns>
     public IObservable<TEvent> GetEventStream<TEvent>() where TEvent : DomainEvent
     {
-        throw new NotImplementedException();
+        _logger.LogWarning(
+            "InMemoryEventBus.GetEventStream<{EventType}> called but this class only supports string-based pub/sub. Use EventPublisher for domain events.",
+            typeof(TEvent).Name);
+        return new EmptyObservable<TEvent>();
     }
 
     /// <summary>
-    /// Gets a stream of all domain events.
+    /// Gets a stream of all domain events. Not supported — use EventPublisher for Rx.NET-based streams.
     /// </summary>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <returns>An empty observable stream.</returns>
     public IObservable<DomainEvent> GetAllEventsStream()
     {
-        throw new NotImplementedException();
+        _logger.LogWarning(
+            "InMemoryEventBus.GetAllEventsStream called but this class only supports string-based pub/sub. Use EventPublisher for domain events.");
+        return new EmptyObservable<DomainEvent>();
+    }
+
+    /// <summary>
+    /// Minimal IObservable that completes immediately with no items.
+    /// Avoids taking a dependency on System.Reactive just for Observable.Empty.
+    /// </summary>
+    private sealed class EmptyObservable<T> : IObservable<T>
+    {
+        public IDisposable Subscribe(IObserver<T> observer)
+        {
+            observer.OnCompleted();
+            return EmptyDisposable.Instance;
+        }
+
+        private sealed class EmptyDisposable : IDisposable
+        {
+            public static readonly EmptyDisposable Instance = new();
+            public void Dispose() { }
+        }
     }
 }

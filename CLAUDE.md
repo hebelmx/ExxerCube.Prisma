@@ -23,7 +23,7 @@ dotnet test <test-project.csproj> --filter-query "/Namespace/ClassName/MethodNam
 dotnet test <test-project.csproj> --filter-query "[category=fast]"
 ```
 
-Build artifacts go to `F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\` (configured in Directory.Build.props).
+Build artifacts go to `E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\` (configured in Directory.Build.props).
 
 ## Architecture
 
@@ -105,6 +105,15 @@ public async Task<Result<T>> ProcessAsync(..., CancellationToken cancellationTok
 - Centralized package versions via `Directory.Packages.props`
 - C#/Python interop via CSnakes.Runtime
 
+## Event Architecture
+
+The system uses **Rx.NET Observables** (not traditional IEventHandler registration):
+- `EventPublisher` (Infrastructure) — production implementation using `Subject<DomainEvent>`
+- `ProcessingOrchestrator.StartAsync()` subscribes to `GetEventStream<DocumentDownloadedEvent>()`
+- `EventPersistenceWorker` subscribes to `GetAllEventsStream()` for audit trail persistence
+- `SignalREventBroadcaster` subscribes to `GetAllEventsStream()` for UI real-time updates
+- `InMemoryEventBus` — legacy string-based pub/sub, **not used in production** (EventPublisher is the real impl)
+
 ## Services
 
 | Service | Role | Location |
@@ -112,3 +121,9 @@ public async Task<Result<T>> ProcessAsync(..., CancellationToken cancellationTok
 | **Orion** | Document ingestion & download | `04 Services/Orion/` |
 | **Athena** | Document processing pipeline | `04 Services/Athena/` |
 | **Sentinel** | System monitoring & health | `04 Services/Sentinel/` |
+
+## Release Status (as of 2026-02-18)
+
+**Production-ready:** Field extractors (PDF/DOCX/XML/TXT), FusionExpedienteService, Database/EF Core, Export services, File storage, Architecture enforcement tests, Blazor UI with full DocumentProcessing page.
+
+**Deferrable to v1.1:** CSnakes Python ML interop (placeholder), PersonIdentityResolver DB persistence, Worker dashboard real metrics (UI dashboard uses IProcessingMetricsService which works), 3 skipped TXT extractor edge cases.

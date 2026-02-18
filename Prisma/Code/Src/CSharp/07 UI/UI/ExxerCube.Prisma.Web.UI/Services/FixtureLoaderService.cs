@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 /// Service for loading fixture files from the PRP1 fixtures directory.
 /// Abstracts file I/O operations to enable testing and centralize error handling.
 /// </summary>
-public sealed class FixtureLoaderService
+public class FixtureLoaderService
 {
     private readonly ILogger<FixtureLoaderService> _logger;
 
@@ -28,7 +28,7 @@ public sealed class FixtureLoaderService
     /// <returns>Byte array containing file contents</returns>
     /// <exception cref="FileNotFoundException">Thrown when fixture file is not found</exception>
     /// <exception cref="IOException">Thrown when file cannot be read</exception>
-    public async Task<byte[]> LoadFixtureBytesAsync(
+    public virtual async Task<byte[]> LoadFixtureBytesAsync(
         string fixtureName,
         CancellationToken cancellationToken = default)
     {
