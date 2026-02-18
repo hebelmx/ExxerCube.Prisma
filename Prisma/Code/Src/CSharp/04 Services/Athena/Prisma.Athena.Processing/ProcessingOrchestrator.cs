@@ -1,9 +1,13 @@
 using System;
 using System.Diagnostics;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Athena.Processing;
@@ -23,6 +27,18 @@ public sealed class ProcessingOrchestrator
     private readonly IEventPublisher _eventPublisher;
     private readonly IExxerHub<DocumentProcessingCompletedEvent>? _eventHub;
     private readonly ILogger<ProcessingOrchestrator> _logger;
+    private IDisposable? _eventSubscription;
+
+    /// <summary>
+    /// Quality confidence threshold below which documents are rejected.
+    /// Images with quality level Q1_Poor are rejected.
+    /// </summary>
+    private const int QualityRejectionThreshold = 2; // Q1_Poor.Value = 1, anything below 2 is rejected
+
+    /// <summary>
+    /// Classification confidence threshold below which documents are flagged for review.
+    /// </summary>
+    private const int ClassificationConfidenceThreshold = 70;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessingOrchestrator"/> class.
@@ -84,6 +100,11 @@ public sealed class ProcessingOrchestrator
         var stopwatch = Stopwatch.StartNew();
         var fileId = downloadEvent.FileId;
         var correlationId = downloadEvent.CorrelationId;
+        var stagesCompleted = 0;
+        ImageData? imageData = null;
+        OCRResult? ocrResult = null;
+        FusionResult? fusionResult = null;
+        ClassificationResult? classificationResult = null;
 
         _logger.LogInformation(
             "Starting document processing pipeline. FileId: {FileId}, CorrelationId: {CorrelationId}, FileName: {FileName}",
@@ -94,187 +115,69 @@ public sealed class ProcessingOrchestrator
         try
         {
             // STAGE 1: Quality Analysis
-            if (_qualityAnalyzer != null && _fileLoader != null)
+            var qualityPassed = await ExecuteStage1QualityAnalysisAsync(
+                downloadEvent, fileId, correlationId, cancellationToken);
+
+            if (qualityPassed.imageData != null)
             {
-                _logger.LogDebug("Stage 1: Quality Analysis - FileId: {FileId}", fileId);
-
-                // TODO: Load image from storage using downloadEvent.FileName
-                // var imageData = await _fileLoader.LoadImageAsync(downloadEvent.FileName, cancellationToken);
-                // var qualityResult = await _qualityAnalyzer.AnalyzeAsync(imageData);
-
-                // For now, emit quality analysis completed event (placeholder)
-                var qualityEvent = new QualityAnalysisCompletedEvent
-                {
-                    EventId = Guid.NewGuid(),
-                    Timestamp = DateTime.UtcNow,
-                    CorrelationId = correlationId,
-                    FileId = fileId,
-                    QualityLevel = ExxerCube.Prisma.Domain.Enum.ImageQualityLevel.Pristine,
-                    BlurScore = 0.15m,
-                    NoiseScore = 0.10m,
-                    ContrastScore = 0.85m,
-                    SharpnessScore = 0.90m
-                };
-                _eventPublisher.Publish(qualityEvent);
-
-                _logger.LogDebug("Stage 1 complete: Quality analysis - FileId: {FileId}", fileId);
+                imageData = qualityPassed.imageData;
+                stagesCompleted++;
             }
-            else
+
+            if (qualityPassed.rejected)
             {
-                _logger.LogWarning("Stage 1 skipped: Quality analyzer or file loader not configured");
+                // Short-circuit: quality too low
+                stopwatch.Stop();
+                EmitCompletionEvent(fileId, correlationId, stopwatch.Elapsed, stagesCompleted, autoProcessed: false);
+                return;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // STAGE 2: OCR Execution
-            if (_ocrExecutor != null && _fileLoader != null)
+            ocrResult = await ExecuteStage2OcrAsync(imageData, fileId, correlationId, cancellationToken);
+            if (ocrResult != null)
             {
-                _logger.LogDebug("Stage 2: OCR Execution - FileId: {FileId}", fileId);
-
-                // TODO: Execute OCR on image
-                // var ocrConfig = new OCRConfig { /* configuration */ };
-                // var ocrResult = await _ocrExecutor.ExecuteOcrAsync(imageData, ocrConfig);
-
-                // For now, emit OCR completed event (placeholder)
-                var ocrEvent = new OcrCompletedEvent
-                {
-                    EventId = Guid.NewGuid(),
-                    Timestamp = DateTime.UtcNow,
-                    CorrelationId = correlationId,
-                    FileId = fileId,
-                    OcrEngine = "Tesseract",
-                    Confidence = 0.92m,
-                    ExtractedTextLength = 1500,
-                    ProcessingTime = TimeSpan.FromSeconds(2.5),
-                    FallbackTriggered = false
-                };
-                _eventPublisher.Publish(ocrEvent);
-
-                _logger.LogDebug("Stage 2 complete: OCR execution - FileId: {FileId}", fileId);
-            }
-            else
-            {
-                _logger.LogWarning("Stage 2 skipped: OCR executor or file loader not configured");
+                stagesCompleted++;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // STAGE 3: Fusion/Reconciliation
-            if (_fusionService != null)
+            fusionResult = await ExecuteStage3FusionAsync(ocrResult, fileId, correlationId, cancellationToken);
+            if (fusionResult != null)
             {
-                _logger.LogDebug("Stage 3: Fusion/Reconciliation - FileId: {FileId}", fileId);
-
-                // TODO: Extract Expediente from XML/PDF/DOCX and fuse
-                // var fusionResult = await _fusionService.FuseAsync(
-                //     xmlExpediente, pdfExpediente, docxExpediente,
-                //     xmlMetadata, pdfMetadata, docxMetadata,
-                //     cancellationToken);
-
-                // For now, emit fusion completed event (placeholder)
-                var fusionEvent = new FusionCompletedEvent
-                {
-                    EventId = Guid.NewGuid(),
-                    Timestamp = DateTime.UtcNow,
-                    CorrelationId = correlationId,
-                    FileId = fileId,
-                    ExpedienteId = Guid.NewGuid(),
-                    FieldsFused = 39,
-                    ConflictsDetected = 2
-                };
-                _eventPublisher.Publish(fusionEvent);
-
-                _logger.LogDebug("Stage 3 complete: Fusion - FileId: {FileId}, ExpedienteId: {ExpedienteId}",
-                    fileId, fusionEvent.ExpedienteId);
-            }
-            else
-            {
-                _logger.LogWarning("Stage 3 skipped: Fusion service not configured");
+                stagesCompleted++;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // STAGE 4: Classification
-            if (_classifier != null)
+            classificationResult = await ExecuteStage4ClassificationAsync(
+                ocrResult, fusionResult, fileId, correlationId, cancellationToken);
+            if (classificationResult != null)
             {
-                _logger.LogDebug("Stage 4: Classification - FileId: {FileId}", fileId);
-
-                // TODO: Classify fused expediente
-                // var classificationResult = await _classifier.ClassifyAsync(extractedMetadata, cancellationToken);
-
-                // For now, emit classification completed event (placeholder)
-                var classificationEvent = new ClassificationCompletedEvent
-                {
-                    EventId = Guid.NewGuid(),
-                    Timestamp = DateTime.UtcNow,
-                    CorrelationId = correlationId,
-                    FileId = fileId,
-                    RequirementTypeId = 1,
-                    RequirementTypeName = "Aseguramiento",
-                    Confidence = 95,
-                    Warnings = new(),
-                    RequiresManualReview = false,
-                    RelationType = "NewRequirement"
-                };
-                _eventPublisher.Publish(classificationEvent);
-
-                _logger.LogDebug("Stage 4 complete: Classification - FileId: {FileId}, Type: {Type}",
-                    fileId, classificationEvent.RequirementTypeName);
-            }
-            else
-            {
-                _logger.LogWarning("Stage 4 skipped: Classifier not configured");
+                stagesCompleted++;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // STAGE 5: Export
-            if (_exporter != null)
+            var exported = await ExecuteStage5ExportAsync(
+                fusionResult, classificationResult, fileId, correlationId, cancellationToken);
+            if (exported)
             {
-                _logger.LogDebug("Stage 5: Export - FileId: {FileId}", fileId);
-
-                // TODO: Export fused expediente to target format
-                // var exportResult = await _exporter.ExportAsync(fusedExpediente, "Excel", cancellationToken);
-
-                // For now, emit export completed event (placeholder)
-                var exportEvent = new ExportCompletedEvent
-                {
-                    EventId = Guid.NewGuid(),
-                    Timestamp = DateTime.UtcNow,
-                    CorrelationId = correlationId,
-                    FileId = fileId,
-                    Destination = $"exports/{fileId}.xlsx",
-                    Format = "Excel",
-                    ExportedSizeBytes = 45000
-                };
-                _eventPublisher.Publish(exportEvent);
-
-                _logger.LogDebug("Stage 5 complete: Export - FileId: {FileId}, Destination: {Destination}",
-                    fileId, exportEvent.Destination);
-            }
-            else
-            {
-                _logger.LogWarning("Stage 5 skipped: Exporter not configured");
+                stagesCompleted++;
             }
 
             stopwatch.Stop();
-
-            // Emit final completion event
-            var completionEvent = new DocumentProcessingCompletedEvent
-            {
-                EventId = Guid.NewGuid(),
-                Timestamp = DateTime.UtcNow,
-                CorrelationId = correlationId,
-                FileId = fileId,
-                TotalProcessingTime = stopwatch.Elapsed,
-                AutoProcessed = true
-            };
-
-            _eventPublisher.Publish(completionEvent);
+            EmitCompletionEvent(fileId, correlationId, stopwatch.Elapsed, stagesCompleted, autoProcessed: true);
 
             _logger.LogInformation(
-                "Document processing pipeline completed successfully. FileId: {FileId}, Duration: {Duration}ms, Stages: Quality→OCR→Fusion→Classification→Export",
+                "Document processing pipeline completed successfully. FileId: {FileId}, Duration: {Duration}ms, StagesCompleted: {Stages}",
                 fileId,
-                stopwatch.ElapsedMilliseconds);
+                stopwatch.ElapsedMilliseconds,
+                stagesCompleted);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -296,7 +199,6 @@ public sealed class ProcessingOrchestrator
                 stopwatch.ElapsedMilliseconds,
                 ex.Message);
 
-            // DEFENSIVE: Emit error event instead of crashing (NEVER CRASH philosophy)
             var errorEvent = new ProcessingErrorEvent
             {
                 EventId = Guid.NewGuid(),
@@ -309,8 +211,6 @@ public sealed class ProcessingOrchestrator
             };
 
             _eventPublisher.Publish(errorEvent);
-
-            // Don't re-throw - system continues (defensive intelligence)
             _logger.LogWarning("Error event published, continuing operation (defensive mode)");
         }
     }
@@ -348,9 +248,29 @@ public sealed class ProcessingOrchestrator
 
         try
         {
-            // Placeholder processing - emit completion event only
+            // ROP chain: each stage returns Result<ProcessingContext>
+            var initialContext = new ProcessingContext(fileId, correlationId, downloadEvent.FileName);
+
+            var result = await LoadImageAsync(initialContext, cancellationToken)
+                .ThenAsync(ctx => AnalyzeQualityAsync(ctx, cancellationToken))
+                .ThenAsync(ctx => ExecuteOcrRopAsync(ctx, cancellationToken))
+                .ThenAsync(ctx => FuseDataRopAsync(ctx, cancellationToken))
+                .ThenAsync(ctx => ClassifyDocumentRopAsync(ctx, cancellationToken))
+                .ThenAsync(ctx => ExportDocumentRopAsync(ctx, cancellationToken));
+
             stopwatch.Stop();
 
+            if (result.IsFailure)
+            {
+                _logger.LogWarning(
+                    "Document processing pipeline failed (ROP). FileId: {FileId}, Errors: {Errors}",
+                    fileId,
+                    string.Join(", ", result.Errors));
+
+                return Result<ProcessingResult>.WithFailure(result.Errors);
+            }
+
+            var ctx = result.Value!;
             var completionEvent = new DocumentProcessingCompletedEvent
             {
                 EventId = Guid.NewGuid(),
@@ -361,7 +281,6 @@ public sealed class ProcessingOrchestrator
                 AutoProcessed = true
             };
 
-            // Broadcast via IExxerHub if available
             if (_eventHub != null)
             {
                 var broadcastResult = await _eventHub.SendToAllAsync(completionEvent, cancellationToken);
@@ -372,15 +291,16 @@ public sealed class ProcessingOrchestrator
             }
 
             _logger.LogInformation(
-                "Document processing pipeline completed successfully (ROP). FileId: {FileId}, Duration: {Duration}ms",
+                "Document processing pipeline completed successfully (ROP). FileId: {FileId}, Duration: {Duration}ms, StagesCompleted: {Stages}",
                 fileId,
-                stopwatch.ElapsedMilliseconds);
+                stopwatch.ElapsedMilliseconds,
+                ctx.StagesCompleted);
 
             return Result<ProcessingResult>.Success(new ProcessingResult(
                 FileId: fileId,
                 CorrelationId: correlationId,
                 TotalProcessingTime: stopwatch.Elapsed,
-                StagesCompleted: 0,
+                StagesCompleted: ctx.StagesCompleted,
                 AutoProcessed: true));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -407,7 +327,7 @@ public sealed class ProcessingOrchestrator
     }
 
     /// <summary>
-    /// Starts the processing orchestrator.
+    /// Starts the processing orchestrator and subscribes to DocumentDownloadedEvent stream.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token for graceful shutdown.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
@@ -421,8 +341,620 @@ public sealed class ProcessingOrchestrator
             _classifier != null,
             _exporter != null);
 
-        // Placeholder for event subscription wiring
-        // TODO: Subscribe to DocumentDownloadedEvent and call ProcessDocumentAsync
+        // Subscribe to DocumentDownloadedEvent stream from Orion
+        _eventSubscription = _eventPublisher.GetEventStream<DocumentDownloadedEvent>()
+            .Subscribe(
+                onNext: async downloadEvent =>
+                {
+                    try
+                    {
+                        _logger.LogInformation(
+                            "Received DocumentDownloadedEvent. FileId: {FileId}, CorrelationId: {CorrelationId}",
+                            downloadEvent.FileId,
+                            downloadEvent.CorrelationId);
+
+                        await ProcessDocumentAsync(downloadEvent, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,
+                            "Error processing DocumentDownloadedEvent. FileId: {FileId}",
+                            downloadEvent.FileId);
+                    }
+                },
+                onError: ex =>
+                {
+                    _logger.LogError(ex, "Error in DocumentDownloadedEvent stream");
+                });
+
         return Task.CompletedTask;
+    }
+
+    // ========================================================================
+    // Stage 1: Quality Analysis
+    // ========================================================================
+
+    private async Task<(ImageData? imageData, bool rejected)> ExecuteStage1QualityAnalysisAsync(
+        DocumentDownloadedEvent downloadEvent,
+        Guid fileId,
+        Guid? correlationId,
+        CancellationToken cancellationToken)
+    {
+        if (_qualityAnalyzer == null || _fileLoader == null)
+        {
+            _logger.LogWarning("Stage 1 skipped: Quality analyzer or file loader not configured");
+            return (null, false);
+        }
+
+        _logger.LogInformation("Stage 1: Quality Analysis - FileId: {FileId}", fileId);
+
+        var loadResult = await _fileLoader.LoadImageAsync(downloadEvent.FileName, cancellationToken);
+        if (loadResult.IsFailure)
+        {
+            _logger.LogWarning("Stage 1: Failed to load image - {Error}", loadResult.Error);
+            EmitProcessingError(fileId, correlationId, "FileLoader", loadResult.Error ?? "Unknown error");
+            return (null, false);
+        }
+
+        var imageData = loadResult.Value!;
+        var qualityResult = await _qualityAnalyzer.AnalyzeAsync(imageData);
+        if (qualityResult.IsFailure)
+        {
+            _logger.LogWarning("Stage 1: Quality analysis failed - {Error}", qualityResult.Error);
+            EmitProcessingError(fileId, correlationId, "QualityAnalyzer", qualityResult.Error ?? "Unknown error");
+            return (imageData, false);
+        }
+
+        var assessment = qualityResult.Value!;
+
+        // Check rejection threshold
+        if ((int)assessment.QualityLevel < QualityRejectionThreshold)
+        {
+            _logger.LogWarning(
+                "Stage 1: Quality rejected. FileId: {FileId}, Level: {Level}, Confidence: {Confidence}",
+                fileId, assessment.QualityLevel.Name, assessment.Confidence);
+
+            var rejectedEvent = new QualityRejectedEvent
+            {
+                EventId = Guid.NewGuid(),
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = correlationId,
+                FileId = fileId,
+                Score = (decimal)assessment.Confidence,
+                Reason = $"Quality level {assessment.QualityLevel.Name} below threshold"
+            };
+            _eventPublisher.Publish(rejectedEvent);
+
+            return (imageData, true);
+        }
+
+        var qualityEvent = new QualityAnalysisCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = correlationId,
+            FileId = fileId,
+            QualityLevel = assessment.QualityLevel,
+            BlurScore = (decimal)assessment.BlurScore,
+            NoiseScore = (decimal)assessment.NoiseLevel,
+            ContrastScore = (decimal)assessment.ContrastLevel,
+            SharpnessScore = (decimal)assessment.SharpnessLevel
+        };
+        _eventPublisher.Publish(qualityEvent);
+
+        _logger.LogInformation("Stage 1 complete: Quality analysis - FileId: {FileId}, Level: {Level}",
+            fileId, assessment.QualityLevel.Name);
+
+        return (imageData, false);
+    }
+
+    // ========================================================================
+    // Stage 2: OCR Execution
+    // ========================================================================
+
+    private async Task<OCRResult?> ExecuteStage2OcrAsync(
+        ImageData? imageData,
+        Guid fileId,
+        Guid? correlationId,
+        CancellationToken cancellationToken)
+    {
+        if (_ocrExecutor == null || _fileLoader == null)
+        {
+            _logger.LogWarning("Stage 2 skipped: OCR executor or file loader not configured");
+            return null;
+        }
+
+        if (imageData == null)
+        {
+            _logger.LogWarning("Stage 2 skipped: No image data from Stage 1");
+            return null;
+        }
+
+        _logger.LogInformation("Stage 2: OCR Execution - FileId: {FileId}", fileId);
+
+        var ocrConfig = new OCRConfig();
+        var ocrStopwatch = Stopwatch.StartNew();
+        var ocrResult = await _ocrExecutor.ExecuteOcrAsync(imageData, ocrConfig);
+        ocrStopwatch.Stop();
+
+        if (ocrResult.IsFailure)
+        {
+            _logger.LogWarning("Stage 2: OCR failed - {Error}", ocrResult.Error);
+            EmitProcessingError(fileId, correlationId, "OCR", ocrResult.Error ?? "Unknown error");
+            return null;
+        }
+
+        var result = ocrResult.Value!;
+
+        var ocrEvent = new OcrCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = correlationId,
+            FileId = fileId,
+            OcrEngine = "Tesseract",
+            Confidence = (decimal)result.ConfidenceAvg,
+            ExtractedTextLength = result.Text.Length,
+            ProcessingTime = ocrStopwatch.Elapsed,
+            FallbackTriggered = false
+        };
+        _eventPublisher.Publish(ocrEvent);
+
+        _logger.LogInformation("Stage 2 complete: OCR execution - FileId: {FileId}, Confidence: {Confidence}",
+            fileId, result.ConfidenceAvg);
+
+        return result;
+    }
+
+    // ========================================================================
+    // Stage 3: Fusion/Reconciliation
+    // ========================================================================
+
+    private async Task<FusionResult?> ExecuteStage3FusionAsync(
+        OCRResult? ocrResult,
+        Guid fileId,
+        Guid? correlationId,
+        CancellationToken cancellationToken)
+    {
+        if (_fusionService == null)
+        {
+            _logger.LogWarning("Stage 3 skipped: Fusion service not configured");
+            return null;
+        }
+
+        _logger.LogInformation("Stage 3: Fusion/Reconciliation - FileId: {FileId}", fileId);
+
+        // Build extraction metadata from OCR result
+        var pdfMetadata = new ExtractionMetadata();
+        var xmlMetadata = new ExtractionMetadata();
+        var docxMetadata = new ExtractionMetadata();
+
+        var fusionResultObj = await _fusionService.FuseAsync(
+            null, null, null,
+            xmlMetadata, pdfMetadata, docxMetadata,
+            cancellationToken);
+
+        if (fusionResultObj.IsFailure)
+        {
+            _logger.LogWarning("Stage 3: Fusion failed - {Error}", fusionResultObj.Error);
+            EmitProcessingError(fileId, correlationId, "Fusion", fusionResultObj.Error ?? "Unknown error");
+            return null;
+        }
+
+        var result = fusionResultObj.Value!;
+
+        // Emit conflict events
+        foreach (var conflictField in result.ConflictingFields)
+        {
+            var conflictEvent = new ConflictDetectedEvent
+            {
+                EventId = Guid.NewGuid(),
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = correlationId,
+                FileId = fileId,
+                FieldName = conflictField,
+                ConflictSeverity = "Medium"
+            };
+            _eventPublisher.Publish(conflictEvent);
+        }
+
+        var fusionEvent = new FusionCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = correlationId,
+            FileId = fileId,
+            ExpedienteId = Guid.NewGuid(),
+            FieldsFused = result.FieldResults.Count,
+            ConflictsDetected = result.ConflictingFields.Count
+        };
+        _eventPublisher.Publish(fusionEvent);
+
+        _logger.LogInformation("Stage 3 complete: Fusion - FileId: {FileId}, Conflicts: {Conflicts}",
+            fileId, result.ConflictingFields.Count);
+
+        return result;
+    }
+
+    // ========================================================================
+    // Stage 4: Classification
+    // ========================================================================
+
+    private async Task<ClassificationResult?> ExecuteStage4ClassificationAsync(
+        OCRResult? ocrResult,
+        FusionResult? fusionResult,
+        Guid fileId,
+        Guid? correlationId,
+        CancellationToken cancellationToken)
+    {
+        if (_classifier == null)
+        {
+            _logger.LogWarning("Stage 4 skipped: Classifier not configured");
+            return null;
+        }
+
+        _logger.LogInformation("Stage 4: Classification - FileId: {FileId}", fileId);
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = fusionResult?.FusedExpediente
+        };
+
+        var classResult = await _classifier.ClassifyAsync(metadata, cancellationToken);
+
+        if (classResult.IsFailure)
+        {
+            _logger.LogWarning("Stage 4: Classification failed - {Error}", classResult.Error);
+            EmitProcessingError(fileId, correlationId, "Classification", classResult.Error ?? "Unknown error");
+            return null;
+        }
+
+        var result = classResult.Value!;
+
+        // Check confidence threshold
+        if (result.Confidence < ClassificationConfidenceThreshold)
+        {
+            _logger.LogWarning(
+                "Stage 4: Low confidence classification. FileId: {FileId}, Confidence: {Confidence}",
+                fileId, result.Confidence);
+
+            var flagEvent = new DocumentFlaggedForReviewEvent
+            {
+                EventId = Guid.NewGuid(),
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = correlationId,
+                FileId = fileId,
+                Reasons = new List<string> { $"Classification confidence {result.Confidence}% below threshold {ClassificationConfidenceThreshold}%" },
+                Priority = "High"
+            };
+            _eventPublisher.Publish(flagEvent);
+        }
+
+        var classificationEvent = new ClassificationCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = correlationId,
+            FileId = fileId,
+            RequirementTypeId = (int)result.Level1,
+            RequirementTypeName = result.Level1.Name,
+            Confidence = result.Confidence,
+            Warnings = new List<string>(),
+            RequiresManualReview = result.Confidence < ClassificationConfidenceThreshold,
+            RelationType = "NewRequirement"
+        };
+        _eventPublisher.Publish(classificationEvent);
+
+        _logger.LogInformation("Stage 4 complete: Classification - FileId: {FileId}, Type: {Type}, Confidence: {Confidence}",
+            fileId, result.Level1.Name, result.Confidence);
+
+        return result;
+    }
+
+    // ========================================================================
+    // Stage 5: Export
+    // ========================================================================
+
+    private async Task<bool> ExecuteStage5ExportAsync(
+        FusionResult? fusionResult,
+        ClassificationResult? classificationResult,
+        Guid fileId,
+        Guid? correlationId,
+        CancellationToken cancellationToken)
+    {
+        if (_exporter == null)
+        {
+            _logger.LogWarning("Stage 5 skipped: Exporter not configured");
+            return false;
+        }
+
+        _logger.LogInformation("Stage 5: Export - FileId: {FileId}", fileId);
+
+        var sourceObject = fusionResult?.FusedExpediente ?? (object)new { FileId = fileId };
+        var exportResult = await _exporter.ExportAsync(sourceObject, "Excel", cancellationToken);
+
+        if (exportResult.IsFailure)
+        {
+            _logger.LogWarning("Stage 5: Export failed - {Error}", exportResult.Error);
+            EmitProcessingError(fileId, correlationId, "Export", exportResult.Error ?? "Unknown error");
+            return false;
+        }
+
+        var exportBytes = exportResult.Value!;
+
+        var exportEvent = new ExportCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = correlationId,
+            FileId = fileId,
+            Destination = $"exports/{fileId}.xlsx",
+            Format = "Excel",
+            ExportedSizeBytes = exportBytes.Length
+        };
+        _eventPublisher.Publish(exportEvent);
+
+        _logger.LogInformation("Stage 5 complete: Export - FileId: {FileId}, Size: {Size} bytes",
+            fileId, exportBytes.Length);
+
+        return true;
+    }
+
+    // ========================================================================
+    // ROP Stage Methods (for ProcessDocumentWithResultAsync chain)
+    // ========================================================================
+
+    private async Task<Result<ProcessingContext>> LoadImageAsync(
+        ProcessingContext ctx,
+        CancellationToken cancellationToken)
+    {
+        if (_fileLoader == null)
+        {
+            _logger.LogWarning("ROP Stage 1: File loader not configured, skipping");
+            return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
+        }
+
+        var loadResult = await _fileLoader.LoadImageAsync(ctx.FileName, cancellationToken);
+        if (loadResult.IsFailure)
+        {
+            return Result<ProcessingContext>.WithFailure($"File load failed: {loadResult.Error}");
+        }
+
+        return Result<ProcessingContext>.Success(ctx with { ImageData = loadResult.Value });
+    }
+
+    private async Task<Result<ProcessingContext>> AnalyzeQualityAsync(
+        ProcessingContext ctx,
+        CancellationToken cancellationToken)
+    {
+        if (_qualityAnalyzer == null || ctx.ImageData == null)
+        {
+            return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
+        }
+
+        var qualityResult = await _qualityAnalyzer.AnalyzeAsync(ctx.ImageData);
+        if (qualityResult.IsFailure)
+        {
+            return Result<ProcessingContext>.WithFailure($"Quality analysis failed: {qualityResult.Error}");
+        }
+
+        var assessment = qualityResult.Value!;
+        if ((int)assessment.QualityLevel < QualityRejectionThreshold)
+        {
+            return Result<ProcessingContext>.WithFailure(
+                $"Quality rejected: level {assessment.QualityLevel.Name} below threshold");
+        }
+
+        _eventPublisher.Publish(new QualityAnalysisCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = ctx.CorrelationId,
+            FileId = ctx.FileId,
+            QualityLevel = assessment.QualityLevel,
+            BlurScore = (decimal)assessment.BlurScore,
+            NoiseScore = (decimal)assessment.NoiseLevel,
+            ContrastScore = (decimal)assessment.ContrastLevel,
+            SharpnessScore = (decimal)assessment.SharpnessLevel
+        });
+
+        return Result<ProcessingContext>.Success(ctx with
+        {
+            Assessment = assessment,
+            StagesCompleted = ctx.StagesCompleted + 1
+        });
+    }
+
+    private async Task<Result<ProcessingContext>> ExecuteOcrRopAsync(
+        ProcessingContext ctx,
+        CancellationToken cancellationToken)
+    {
+        if (_ocrExecutor == null || ctx.ImageData == null)
+        {
+            return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
+        }
+
+        var ocrConfig = new OCRConfig();
+        var ocrResult = await _ocrExecutor.ExecuteOcrAsync(ctx.ImageData, ocrConfig);
+        if (ocrResult.IsFailure)
+        {
+            return Result<ProcessingContext>.WithFailure($"OCR failed: {ocrResult.Error}");
+        }
+
+        var result = ocrResult.Value!;
+        _eventPublisher.Publish(new OcrCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = ctx.CorrelationId,
+            FileId = ctx.FileId,
+            OcrEngine = "Tesseract",
+            Confidence = (decimal)result.ConfidenceAvg,
+            ExtractedTextLength = result.Text.Length
+        });
+
+        return Result<ProcessingContext>.Success(ctx with
+        {
+            OcrResult = result,
+            StagesCompleted = ctx.StagesCompleted + 1
+        });
+    }
+
+    private async Task<Result<ProcessingContext>> FuseDataRopAsync(
+        ProcessingContext ctx,
+        CancellationToken cancellationToken)
+    {
+        if (_fusionService == null)
+        {
+            return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
+        }
+
+        var fusionResultObj = await _fusionService.FuseAsync(
+            null, null, null,
+            new ExtractionMetadata(), new ExtractionMetadata(), new ExtractionMetadata(),
+            cancellationToken);
+
+        if (fusionResultObj.IsFailure)
+        {
+            return Result<ProcessingContext>.WithFailure($"Fusion failed: {fusionResultObj.Error}");
+        }
+
+        var result = fusionResultObj.Value!;
+        _eventPublisher.Publish(new FusionCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = ctx.CorrelationId,
+            FileId = ctx.FileId,
+            ExpedienteId = Guid.NewGuid(),
+            FieldsFused = result.FieldResults.Count,
+            ConflictsDetected = result.ConflictingFields.Count
+        });
+
+        return Result<ProcessingContext>.Success(ctx with
+        {
+            FusionResult = result,
+            StagesCompleted = ctx.StagesCompleted + 1
+        });
+    }
+
+    private async Task<Result<ProcessingContext>> ClassifyDocumentRopAsync(
+        ProcessingContext ctx,
+        CancellationToken cancellationToken)
+    {
+        if (_classifier == null)
+        {
+            return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
+        }
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = ctx.FusionResult?.FusedExpediente
+        };
+
+        var classResult = await _classifier.ClassifyAsync(metadata, cancellationToken);
+        if (classResult.IsFailure)
+        {
+            return Result<ProcessingContext>.WithFailure($"Classification failed: {classResult.Error}");
+        }
+
+        var result = classResult.Value!;
+        _eventPublisher.Publish(new ClassificationCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = ctx.CorrelationId,
+            FileId = ctx.FileId,
+            RequirementTypeId = (int)result.Level1,
+            RequirementTypeName = result.Level1.Name,
+            Confidence = result.Confidence,
+            RequiresManualReview = result.Confidence < ClassificationConfidenceThreshold,
+            RelationType = "NewRequirement"
+        });
+
+        return Result<ProcessingContext>.Success(ctx with
+        {
+            ClassificationResult = result,
+            StagesCompleted = ctx.StagesCompleted + 1
+        });
+    }
+
+    private async Task<Result<ProcessingContext>> ExportDocumentRopAsync(
+        ProcessingContext ctx,
+        CancellationToken cancellationToken)
+    {
+        if (_exporter == null)
+        {
+            return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
+        }
+
+        var sourceObject = ctx.FusionResult?.FusedExpediente ?? (object)new { FileId = ctx.FileId };
+        var exportResult = await _exporter.ExportAsync(sourceObject, "Excel", cancellationToken);
+        if (exportResult.IsFailure)
+        {
+            return Result<ProcessingContext>.WithFailure($"Export failed: {exportResult.Error}");
+        }
+
+        var exportBytes = exportResult.Value!;
+        _eventPublisher.Publish(new ExportCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = ctx.CorrelationId,
+            FileId = ctx.FileId,
+            Destination = $"exports/{ctx.FileId}.xlsx",
+            Format = "Excel",
+            ExportedSizeBytes = exportBytes.Length
+        });
+
+        return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
+    }
+
+    // ========================================================================
+    // Helper methods
+    // ========================================================================
+
+    private void EmitCompletionEvent(Guid fileId, Guid? correlationId, TimeSpan elapsed, int stagesCompleted, bool autoProcessed)
+    {
+        var completionEvent = new DocumentProcessingCompletedEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = correlationId,
+            FileId = fileId,
+            TotalProcessingTime = elapsed,
+            AutoProcessed = autoProcessed
+        };
+        _eventPublisher.Publish(completionEvent);
+    }
+
+    private void EmitProcessingError(Guid fileId, Guid? correlationId, string component, string errorMessage)
+    {
+        var errorEvent = new ProcessingErrorEvent
+        {
+            EventId = Guid.NewGuid(),
+            Timestamp = DateTime.UtcNow,
+            CorrelationId = correlationId,
+            FileId = fileId,
+            ErrorMessage = errorMessage,
+            Component = component
+        };
+        _eventPublisher.Publish(errorEvent);
+    }
+
+    /// <summary>
+    /// Internal context for passing data through the Railway-Oriented Programming pipeline.
+    /// </summary>
+    private sealed record ProcessingContext(
+        Guid FileId,
+        Guid? CorrelationId,
+        string FileName)
+    {
+        public ImageData? ImageData { get; init; }
+        public ImageQualityAssessment? Assessment { get; init; }
+        public OCRResult? OcrResult { get; init; }
+        public FusionResult? FusionResult { get; init; }
+        public ClassificationResult? ClassificationResult { get; init; }
+        public int StagesCompleted { get; init; }
     }
 }

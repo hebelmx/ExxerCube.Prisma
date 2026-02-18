@@ -1,5 +1,11 @@
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.Classification;
+using ExxerCube.Prisma.Infrastructure.Events;
+using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
+using ExxerCube.Prisma.Infrastructure.FileSystem;
+using ExxerCube.Prisma.Infrastructure.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Athena.HealthChecks;
 using Prisma.Athena.Processing;
@@ -7,15 +13,38 @@ using Prisma.Athena.Worker;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register event publisher (required by ProcessingOrchestrator)
-builder.Services.AddSingleton<IEventPublisher, StubEventPublisher>();
+// Register event infrastructure
+builder.Services.AddSingleton<IEventPublisher, EventPublisher>();
 
-// Register orchestrator and worker service
+// Register pipeline services (adapters → ports)
+builder.Services.AddSingleton<IFileLoader, FileSystemLoader>();
+builder.Services.AddSingleton<IImageQualityAnalyzer, PolynomialImageQualityAnalyzer>();
+builder.Services.AddSingleton<IOcrExecutor, TesseractOcrExecutor>();
+builder.Services.AddSingleton<IFusionExpediente, FusionExpedienteService>();
+builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
+builder.Services.AddSingleton<IAdaptiveExporter, AdaptiveExporter>();
+
+// Register orchestrator with all pipeline services
 builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
 {
     var eventPublisher = sp.GetRequiredService<IEventPublisher>();
     var logger = sp.GetRequiredService<ILogger<ProcessingOrchestrator>>();
-    return new ProcessingOrchestrator(eventPublisher, logger);
+    var fileLoader = sp.GetRequiredService<IFileLoader>();
+    var qualityAnalyzer = sp.GetRequiredService<IImageQualityAnalyzer>();
+    var ocrExecutor = sp.GetRequiredService<IOcrExecutor>();
+    var fusionService = sp.GetRequiredService<IFusionExpediente>();
+    var classifier = sp.GetRequiredService<IFileClassifier>();
+    var exporter = sp.GetRequiredService<IAdaptiveExporter>();
+
+    return new ProcessingOrchestrator(
+        eventPublisher,
+        logger,
+        qualityAnalyzer: qualityAnalyzer,
+        ocrExecutor: ocrExecutor,
+        fusionService: fusionService,
+        classifier: classifier,
+        exporter: exporter,
+        fileLoader: fileLoader);
 });
 builder.Services.AddHostedService<AthenaWorkerService>();
 
