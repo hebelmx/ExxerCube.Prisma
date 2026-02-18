@@ -84,9 +84,9 @@
                             <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
                         </div>
                         <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
-                            @((State.OcrResult.ExtractedFields.Expediente ?? "").Length)
+                            @(State.Expediente != null ? GetFieldCount(State.Expediente) : 0)
                         </MudText>
-                        <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Expediente Length</MudText>
+                        <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">Fields Extracted</MudText>
                     </MudPaper>
                 </MudItem>
             </MudGrid>
@@ -272,6 +272,50 @@
                                             </td>
                                         </tr>
                                     }
+                                    @if (!string.IsNullOrWhiteSpace(State.Expediente.AutoridadEspecificaNombre))
+                                    {
+                                        <tr>
+                                            <td><strong>Autoridad Específica</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.AutoridadEspecificaNombre
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(State.Expediente.NombreSolicitante))
+                                    {
+                                        <tr>
+                                            <td><strong>Nombre Solicitante</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.NombreSolicitante
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(State.Expediente.FundamentoLegal))
+                                    {
+                                        <tr>
+                                            <td><strong>Fundamento Legal</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                @State.Expediente.FundamentoLegal
+                                            </td>
+                                        </tr>
+                                    }
+                                    @if (State.Expediente.TieneAseguramiento)
+                                    {
+                                        <tr>
+                                            <td><strong>Tiene Aseguramiento</strong></td>
+                                            <td style="text-align: center;"><MudIcon Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" /></td>
+                                            <td>
+                                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small" Class="mr-2" />
+                                                <MudChip T="string" Color="Color.Warning" Size="Size.Small">Yes</MudChip>
+                                            </td>
+                                        </tr>
+                                    }
                                     @if (!string.IsNullOrWhiteSpace(State.Expediente.Referencia1))
                                     {
                                         <tr>
@@ -423,7 +467,7 @@
     /// <summary>
     /// Counts extracted fields in PDF Expediente.
     /// </summary>
-    private int GetFieldCount(Expediente expediente)
+    private static int GetFieldCount(Expediente expediente)
     {
         int count = 0;
 
@@ -431,9 +475,14 @@
         if (!string.IsNullOrWhiteSpace(expediente.NumeroOficio)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.SolicitudSiara)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.AutoridadNombre)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AutoridadEspecificaNombre)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.NombreSolicitante)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.FundamentoLegal)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia1)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia2)) count++;
         if (expediente.FechaPublicacion != DateTime.MinValue) count++;
         if (expediente.DiasPlazo != 0) count++;
+        if (expediente.TieneAseguramiento) count++;
 
         return count;
     }

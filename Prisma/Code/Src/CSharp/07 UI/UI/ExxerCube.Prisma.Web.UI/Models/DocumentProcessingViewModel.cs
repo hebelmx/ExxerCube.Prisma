@@ -131,7 +131,7 @@ public sealed class ComparisonState
     public bool CanCompare(DocumentProcessingViewModel viewModel)
     {
         return viewModel.XmlState.Expediente != null &&
-               viewModel.PdfState.OcrResult != null;
+               viewModel.PdfState.Expediente != null;
     }
 }
 

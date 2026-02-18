@@ -239,7 +239,7 @@
     /// <summary>
     /// Indicates if comparison can be performed (both XML and PDF loaded).
     /// </summary>
-    private bool CanCompare => ViewModel.XmlState.Expediente != null && ViewModel.PdfState.OcrResult != null;
+    private bool CanCompare => ViewModel.XmlState.Expediente != null && ViewModel.PdfState.Expediente != null;
 
     /// <summary>
     /// Performs comparison and fusion of XML and PDF Expedientes.

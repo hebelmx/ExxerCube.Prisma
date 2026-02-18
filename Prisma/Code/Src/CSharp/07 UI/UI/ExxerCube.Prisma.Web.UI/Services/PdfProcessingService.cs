@@ -77,7 +77,7 @@ public sealed class PdfProcessingService
                 "✅ PDF PROCESSING: COMPLETE for {FixtureName}: Expediente={NumeroExpediente}, Fields extracted: {FieldCount}, OCR confidence: {Confidence:F1}%",
                 fixtureName, expediente?.NumeroExpediente, metadata.TotalFieldsExtracted, confidence * 100);
 
-            // Create a mock ProcessingResult for backward compatibility
+            // Create ProcessingResult with OCR and extracted field data
             var processingResult = new ProcessingResult
             {
                 OCRResult = new OCRResult
@@ -85,6 +85,12 @@ public sealed class PdfProcessingService
                     Text = ocrText,
                     ConfidenceAvg = confidence * 100,
                     LanguageUsed = "spa"
+                },
+                ExtractedFields = new ExtractedFields
+                {
+                    Expediente = expediente?.NumeroExpediente,
+                    Causa = expediente?.Referencia1,
+                    AccionSolicitada = expediente?.Referencia2
                 },
                 PageNumber = 1,
                 SourcePath = fixtureName,
@@ -201,34 +207,51 @@ public sealed class PdfProcessingService
     /// </summary>
     private Expediente MapExtractedFieldsToExpediente(ExtractedFields fields)
     {
+        var additional = fields.AdditionalFields ?? new Dictionary<string, string?>();
+
         var expediente = new Expediente
         {
             NumeroExpediente = fields.Expediente ?? "",
-            NumeroOficio = fields.AdditionalFields?.GetValueOrDefault("NumeroOficio") ?? "",
-            SolicitudSiara = fields.AdditionalFields?.GetValueOrDefault("SolicitudSiara") ?? "",
-            Folio = 0, // TODO: Extract from additional fields
-            OficioYear = DateTime.Now.Year, // TODO: Parse from NumeroOficio
-            AreaClave = 0,
-            AreaDescripcion = fields.AdditionalFields?.GetValueOrDefault("AreaDescripcion") ?? "",
-            AutoridadNombre = fields.AdditionalFields?.GetValueOrDefault("AutoridadNombre") ?? "",
-            NombreSolicitante = null,
-            Referencia = "",
+            NumeroOficio = additional.GetValueOrDefault("NumeroOficio") ?? "",
+            SolicitudSiara = additional.GetValueOrDefault("SolicitudSiara") ?? "",
+            OficioYear = DateTime.Now.Year,
+            AreaDescripcion = additional.GetValueOrDefault("AreaDescripcion") ?? "",
+            AutoridadNombre = additional.GetValueOrDefault("AutoridadNombre") ?? "",
+            AutoridadEspecificaNombre = additional.GetValueOrDefault("AutoridadEspecificaNombre"),
+            NombreSolicitante = additional.GetValueOrDefault("NombreSolicitante"),
+            FundamentoLegal = additional.GetValueOrDefault("FundamentoLegal") ?? "",
             Referencia1 = fields.Causa ?? "",
             Referencia2 = fields.AccionSolicitada ?? "",
-            TieneAseguramiento = false
         };
 
-        // Parse dates if available
-        if (fields.AdditionalFields?.TryGetValue("FechaPublicacion", out var fechaPubStr) == true &&
+        // Parse TieneAseguramiento
+        if (additional.TryGetValue("TieneAseguramiento", out var asegStr) &&
+            bool.TryParse(asegStr, out var tieneAseg))
+        {
+            expediente.TieneAseguramiento = tieneAseg;
+        }
+
+        // Parse dates
+        if (additional.TryGetValue("FechaPublicacion", out var fechaPubStr) &&
             DateTime.TryParse(fechaPubStr, out var fechaPub))
         {
             expediente.FechaPublicacion = fechaPub;
         }
 
-        if (fields.AdditionalFields?.TryGetValue("DiasPlazo", out var diasStr) == true &&
+        // Parse DiasPlazo
+        if (additional.TryGetValue("DiasPlazo", out var diasStr) &&
             int.TryParse(diasStr, out var dias))
         {
             expediente.DiasPlazo = dias;
+        }
+
+        // Carry forward any extra fields not mapped to Expediente properties
+        foreach (var kvp in additional)
+        {
+            if (kvp.Value != null && !expediente.AdditionalFields.ContainsKey(kvp.Key))
+            {
+                expediente.AdditionalFields[kvp.Key] = kvp.Value;
+            }
         }
 
         return expediente;
@@ -257,7 +280,7 @@ public sealed class PdfProcessingService
     /// <summary>
     /// Counts the number of extracted fields in an Expediente (simplified version).
     /// </summary>
-    private int CountExtractedFields(Expediente expediente)
+    private static int CountExtractedFields(Expediente expediente)
     {
         int count = 0;
 
@@ -265,9 +288,14 @@ public sealed class PdfProcessingService
         if (!string.IsNullOrWhiteSpace(expediente.NumeroOficio)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.SolicitudSiara)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.AutoridadNombre)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AutoridadEspecificaNombre)) count++;
         if (!string.IsNullOrWhiteSpace(expediente.NombreSolicitante)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.FundamentoLegal)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia1)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia2)) count++;
         if (expediente.FechaPublicacion != DateTime.MinValue) count++;
         if (expediente.DiasPlazo != 0) count++;
+        if (expediente.TieneAseguramiento) count++;
 
         return count;
     }

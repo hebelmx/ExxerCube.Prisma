@@ -27,8 +27,8 @@
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 
 		<!-- Build artifacts outside repository (keeps repo clean) -->
-		<!-- Path: F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\ -->
-		<ArtifactsBaseDir>F:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\</ArtifactsBaseDir>
+		<!-- Path: E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\ (was F:\ before restart) -->
+		<ArtifactsBaseDir>E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\</ArtifactsBaseDir>
 		<BaseOutputPath>$(ArtifactsBaseDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
 		<OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
 		<BaseIntermediateOutputPath>$(ArtifactsBaseDir)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
