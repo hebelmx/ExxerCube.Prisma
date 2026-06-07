@@ -1,7 +1,3 @@
-using PDFtoImage;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 
 /// <summary>
@@ -24,6 +20,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
 {
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IImagePreprocessor _imagePreprocessor;
+    private readonly IPdfToImageConverter _pdfToImageConverter;
     private readonly IFieldExtractor<TxtSource> _txtFieldExtractor;
     private readonly ILogger<PdfOcrFieldExtractor> _logger;
 
@@ -32,16 +29,19 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
     /// </summary>
     /// <param name="ocrExecutor">The OCR executor for text extraction.</param>
     /// <param name="imagePreprocessor">The image preprocessor for scanned PDF preprocessing.</param>
+    /// <param name="pdfToImageConverter">The PDF-to-image converter (rasterizes PDF pages for OCR).</param>
     /// <param name="txtFieldExtractor">The text field extractor for extracting fields from OCR output.</param>
     /// <param name="logger">The logger instance.</param>
     public PdfOcrFieldExtractor(
         IOcrExecutor ocrExecutor,
         IImagePreprocessor imagePreprocessor,
+        IPdfToImageConverter pdfToImageConverter,
         IFieldExtractor<TxtSource> txtFieldExtractor,
         ILogger<PdfOcrFieldExtractor> logger)
     {
         _ocrExecutor = ocrExecutor ?? throw new ArgumentNullException(nameof(ocrExecutor));
         _imagePreprocessor = imagePreprocessor ?? throw new ArgumentNullException(nameof(imagePreprocessor));
+        _pdfToImageConverter = pdfToImageConverter ?? throw new ArgumentNullException(nameof(pdfToImageConverter));
         _txtFieldExtractor = txtFieldExtractor ?? throw new ArgumentNullException(nameof(txtFieldExtractor));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -49,6 +49,14 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
     /// <inheritdoc />
     public async Task<Result<ExtractedFields>> ExtractFieldsAsync(PdfSource source, FieldDefinition[] fieldDefinitions)
     {
+        // Validate inputs up front and return a Result (never throw) per the project's
+        // Railway-Oriented Programming rule. Without this guard a null source produced an
+        // NRE that surfaced as an opaque "Object reference not set..." failure.
+        if (source is null)
+        {
+            return Result<ExtractedFields>.WithFailure("PDF source cannot be null");
+        }
+
         try
         {
             _logger.LogInformation("Extracting fields from PDF document: {FilePath}", source.FilePath);
@@ -111,6 +119,13 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
     /// <inheritdoc />
     public async Task<Result<FieldValue>> ExtractFieldAsync(PdfSource source, string fieldName)
     {
+        // Validate inputs up front and return a Result (never throw) per the project's
+        // Railway-Oriented Programming rule.
+        if (source is null)
+        {
+            return Result<FieldValue>.WithFailure("PDF source cannot be null");
+        }
+
         try
         {
             _logger.LogInformation("Extracting field {FieldName} from PDF document: {FilePath}", fieldName, source.FilePath);
@@ -175,8 +190,14 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
         {
             _logger.LogInformation("Starting PDF → Image → OCR pipeline");
 
-            // Convert PDF to images (one per page) using PDFtoImage
-            var imagePages = ConvertPdfPagesToImages(pdfBytes);
+            // Convert PDF to images (one per page) via the injected converter port.
+            var conversionResult = await _pdfToImageConverter.ConvertToImagesAsync(pdfBytes);
+            if (conversionResult.IsFailure)
+            {
+                return Result<(string, float)>.WithFailure($"PDF to image conversion failed: {conversionResult.Error}");
+            }
+
+            var imagePages = conversionResult.Value!;
             _logger.LogInformation("Converted PDF to {PageCount} image pages", imagePages.Count);
 
             if (imagePages.Count == 0)
@@ -257,86 +278,4 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
             return Result<(string, float)>.WithFailure($"PDF text extraction failed: {ex.Message}", default, ex);
         }
     }
-
-    /// <summary>
-    /// Converts all pages of a PDF to image bytes using PDFtoImage library.
-    /// </summary>
-    /// <param name="pdfBytes">The PDF file bytes.</param>
-    /// <returns>List of image bytes (PNG format), one per page.</returns>
-    private List<byte[]> ConvertPdfPagesToImages(byte[] pdfBytes)
-    {
-        const int dpi = 300; // Standard DPI for high-quality OCR
-        var imagePages = new List<byte[]>();
-
-        try
-        {
-            _logger.LogInformation("Converting PDF pages to images at {DPI} DPI using PDFtoImage", dpi);
-
-            var options = new RenderOptions(Dpi: dpi);
-
-            // Get page count (PDFtoImage doesn't provide direct page count, so we'll iterate)
-            // IMPORTANT: Create a NEW stream for each page because Conversion.ToImage() closes the stream!
-            int pageIndex = 0;
-            while (true)
-            {
-                try
-                {
-                    _logger.LogWarning("🔍 PDF CONVERSION: Attempting to convert page {PageIndex}", pageIndex);
-
-                    // Create a NEW stream for each page (ToImage closes the stream after use)
-                    using var pdfStream = new MemoryStream(pdfBytes);
-
-#pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
-                    using var skBitmap = Conversion.ToImage(pdfStream, pageIndex, options: options);
-#pragma warning restore CA1416
-
-                    if (skBitmap == null)
-                    {
-                        _logger.LogWarning("🔍 PDF CONVERSION: Page {PageIndex} returned null bitmap - END OF PAGES", pageIndex);
-                        break; // No more pages
-                    }
-
-                    _logger.LogWarning("🔍 PDF CONVERSION: Page {PageIndex} bitmap created: {Width}x{Height}",
-                        pageIndex, skBitmap.Width, skBitmap.Height);
-
-                    // Convert SKBitmap to ImageSharp Image<Rgba32>
-                    using var image = Image.LoadPixelData<Rgba32>(
-                        skBitmap.GetPixelSpan(),
-                        skBitmap.Width,
-                        skBitmap.Height);
-
-                    // Save as PNG bytes
-                    using var outputMs = new MemoryStream();
-                    image.SaveAsPng(outputMs);
-
-                    imagePages.Add(outputMs.ToArray());
-
-                    _logger.LogWarning("✅ PDF CONVERSION: Page {PageNumber} successfully converted ({Size} bytes)",
-                        pageIndex + 1, outputMs.Length);
-
-                    pageIndex++;
-                    _logger.LogWarning("🔍 PDF CONVERSION: Continuing to page {NextPage}", pageIndex);
-                }
-                catch (Exception ex)
-                {
-                    // Break on error (likely no more pages)
-                    _logger.LogWarning("❌ PDF CONVERSION: Exception at page {PageIndex}: {ExceptionType} - {Message}",
-                        pageIndex, ex.GetType().Name, ex.Message);
-                    _logger.LogWarning("❌ PDF CONVERSION: Stack trace: {StackTrace}", ex.StackTrace);
-                    break;
-                }
-            }
-
-            _logger.LogWarning("🔍 PDF CONVERSION: Conversion loop ended. Total pages converted: {PageCount}", imagePages.Count);
-
-            _logger.LogInformation("PDF conversion complete: {PageCount} pages converted to images", imagePages.Count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error converting PDF to images");
-        }
-
-        return imagePages;
-    }
-
 }

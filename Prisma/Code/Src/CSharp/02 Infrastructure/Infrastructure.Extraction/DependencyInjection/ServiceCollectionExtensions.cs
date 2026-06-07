@@ -15,6 +15,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileTypeIdentifier, FileTypeIdentifierService>();
         services.AddScoped<IXmlNullableParser<Domain.Entities.Expediente>, XmlExpedienteParser>();
 
+        // Register PDF-to-image converter port (rasterization for the PDF OCR field extractor)
+        services.AddScoped<IPdfToImageConverter, Teseract.PdfToImageConverter>();
+
         // Register format-specific extractors
         services.AddScoped<XmlMetadataExtractor>();
         services.AddScoped<DocxMetadataExtractor>();

@@ -1,14 +1,20 @@
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
+using ExxerCube.Prisma.Infrastructure.Extraction.Txt;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
 /// Enhanced unit tests for <see cref="PdfOcrFieldExtractor"/> covering edge cases, error recovery, and performance.
 /// </summary>
+/// <remarks>
+/// The PDF→image conversion and the OCR/preprocess boundaries are mocked; the real
+/// <see cref="AdaptiveTxtFieldExtractor"/> performs field parsing (no real PDF rendering required).
+/// </remarks>
 public class PdfOcrFieldExtractorEnhancedTests
 {
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IImagePreprocessor _imagePreprocessor;
+    private readonly IPdfToImageConverter _pdfToImageConverter;
     private readonly IFieldExtractor<TxtSource> _txtFieldExtractor;
     private readonly ILogger<PdfOcrFieldExtractor> _logger;
     private readonly PdfOcrFieldExtractor _extractor;
@@ -17,9 +23,18 @@ public class PdfOcrFieldExtractorEnhancedTests
     {
         _ocrExecutor = Substitute.For<IOcrExecutor>();
         _imagePreprocessor = Substitute.For<IImagePreprocessor>();
-        _txtFieldExtractor = Substitute.For<IFieldExtractor<TxtSource>>();
+        _pdfToImageConverter = Substitute.For<IPdfToImageConverter>();
+        _txtFieldExtractor = new AdaptiveTxtFieldExtractor(XUnitLogger.CreateLogger<AdaptiveTxtFieldExtractor>(output));
         _logger = XUnitLogger.CreateLogger<PdfOcrFieldExtractor>(output);
-        _extractor = new PdfOcrFieldExtractor(_ocrExecutor, _imagePreprocessor, _txtFieldExtractor, _logger);
+        _extractor = new PdfOcrFieldExtractor(_ocrExecutor, _imagePreprocessor, _pdfToImageConverter, _txtFieldExtractor, _logger);
+
+        // Default: non-empty PDF bytes render to a single page; empty/null bytes fail conversion.
+        _pdfToImageConverter
+            .ConvertToImagesAsync(Arg.Any<byte[]>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<byte[]>>.Success(new List<byte[]> { new byte[] { 1, 2, 3 } }));
+        _pdfToImageConverter
+            .ConvertToImagesAsync(Arg.Is<byte[]>(b => b == null || b.Length == 0), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<byte[]>>.WithFailure("PDF content cannot be null or empty"));
     }
 
     [Fact]
@@ -90,14 +105,13 @@ public class PdfOcrFieldExtractorEnhancedTests
     }
 
     [Fact]
-    public async Task ExtractFieldsAsync_PdfWithImagesOnly_ReturnsEmptyFields()
+    public async Task ExtractFieldsAsync_PdfWithImagesOnly_ReturnsFailure()
     {
-        // Arrange
+        // Arrange — an images-only PDF yields no OCR text.
         var pdfContent = new byte[] { 0x25, 0x50, 0x44, 0x46 };
         var source = new PdfSource(pdfContent);
         var fieldDefinitions = new[] { new FieldDefinition("Expediente") };
 
-        var imageData = new ImageData { Data = pdfContent, SourcePath = "images_only.pdf" };
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "images_only.pdf" };
         var ocrText = ""; // No text extracted
         var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.1f };
@@ -110,10 +124,10 @@ public class PdfOcrFieldExtractorEnhancedTests
         // Act
         var result = await _extractor.ExtractFieldsAsync(source, fieldDefinitions);
 
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value!.Expediente.ShouldBeNull(); // No fields extracted
+        // Assert — empty OCR text is rejected by the field extractor as a clean failure
+        // (no fields can be parsed from an empty document), not an exception.
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNullOrEmpty();
     }
 
     [Fact]

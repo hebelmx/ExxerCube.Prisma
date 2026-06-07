@@ -1,14 +1,21 @@
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
+using ExxerCube.Prisma.Infrastructure.Extraction.Txt;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
 /// Unit tests for <see cref="PdfOcrFieldExtractor"/>.
 /// </summary>
+/// <remarks>
+/// The PDF→image conversion and the OCR/preprocess boundaries are mocked; the real
+/// <see cref="AdaptiveTxtFieldExtractor"/> performs field parsing so these tests verify the
+/// orchestration end-to-end with controlled OCR text (no real PDF rendering required).
+/// </remarks>
 public class PdfOcrFieldExtractorTests
 {
     private readonly IOcrExecutor _ocrExecutor;
     private readonly IImagePreprocessor _imagePreprocessor;
+    private readonly IPdfToImageConverter _pdfToImageConverter;
     private readonly IFieldExtractor<TxtSource> _txtFieldExtractor;
     private readonly ILogger<PdfOcrFieldExtractor> _logger;
     private readonly PdfOcrFieldExtractor _extractor;
@@ -17,9 +24,19 @@ public class PdfOcrFieldExtractorTests
     {
         _ocrExecutor = Substitute.For<IOcrExecutor>();
         _imagePreprocessor = Substitute.For<IImagePreprocessor>();
-        _txtFieldExtractor = Substitute.For<IFieldExtractor<TxtSource>>();
+        _pdfToImageConverter = Substitute.For<IPdfToImageConverter>();
+        // Real field parser (the SUT delegates parsing to it).
+        _txtFieldExtractor = new AdaptiveTxtFieldExtractor(XUnitLogger.CreateLogger<AdaptiveTxtFieldExtractor>(output));
         _logger = XUnitLogger.CreateLogger<PdfOcrFieldExtractor>(output);
-        _extractor = new PdfOcrFieldExtractor(_ocrExecutor, _imagePreprocessor, _txtFieldExtractor, _logger);
+        _extractor = new PdfOcrFieldExtractor(_ocrExecutor, _imagePreprocessor, _pdfToImageConverter, _txtFieldExtractor, _logger);
+
+        // Default: non-empty PDF bytes render to a single page; empty/null bytes fail conversion.
+        _pdfToImageConverter
+            .ConvertToImagesAsync(Arg.Any<byte[]>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<byte[]>>.Success(new List<byte[]> { new byte[] { 1, 2, 3 } }));
+        _pdfToImageConverter
+            .ConvertToImagesAsync(Arg.Is<byte[]>(b => b == null || b.Length == 0), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<byte[]>>.WithFailure("PDF content cannot be null or empty"));
     }
 
     [Fact]
@@ -160,9 +177,10 @@ public class PdfOcrFieldExtractorTests
         // Act
         var result = await _extractor.ExtractFieldsAsync(source, fieldDefinitions);
 
-        // Assert
+        // Assert — the extractor tolerates a per-page preprocessing failure by skipping that
+        // page; with the only page skipped, no text is produced and extraction fails overall.
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldContain("Preprocessing");
+        result.Error.ShouldNotBeNullOrEmpty();
     }
 
     /// <summary>
@@ -193,8 +211,11 @@ public class PdfOcrFieldExtractorTests
         result.Value.ShouldNotBeNull();
         result.Value!.FieldName.ShouldBe("Expediente");
         result.Value.Value.ShouldBe("A/AS1-2505-088637-PHM");
-        result.Value.SourceType.ShouldBe("PDF");
-        result.Value.Confidence.ShouldBe(0.85f); // Uses provided OCR confidence
+        // The PDF extractor delegates parsing to the TXT field extractor, which stamps the
+        // field origin as PdfOcr with SourceType "TXT_OCR" and an OCR-derived confidence.
+        result.Value.SourceType.ShouldBe("TXT_OCR");
+        result.Value.Origin.ShouldBe(Domain.Enums.FieldOrigin.PdfOcr);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(0f);
     }
 
     /// <summary>

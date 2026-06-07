@@ -64,6 +64,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
+    <!-- Real AdaptiveTxtFieldExtractor is used in PdfOcrFieldExtractor tests so the
+         PDF→OCR orchestration is verified against genuine field parsing (boundaries mocked). -->
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Extraction.Txt\ExxerCube.Prisma.Infrastructure.Extraction.Txt.csproj" />
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
