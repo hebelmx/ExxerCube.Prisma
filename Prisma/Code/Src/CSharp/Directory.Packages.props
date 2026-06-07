@@ -21,7 +21,7 @@
 		<!-- IndQuest Results processing library -->
 		<PackageVersion Include="IndFusion.Ember" Version="0.1.0" />
 		<PackageVersion Include="IndQuestResults" Version="1.3.0" />
-		<!-- MudBlazor UI components -->
+		<!-- MudBlazor held at 8.x: 9.x is a major UI migration (ChartSeries<T> generic, ActivatorContent renamed, runtime/visual changes) needing dedicated work + visual testing. StaticInput 4.x requires MudBlazor 9. -->
 		<PackageVersion Include="MudBlazor" Version="8.11" />
 		<PackageVersion Include="Extensions.MudBlazor.StaticInput" Version="3.2.1" />
 		<!-- Serializacion Pacakges -->
@@ -31,6 +31,7 @@
 		<!-- PDF generation and processing packages -->
 		<PackageVersion Include="PdfSharp" Version="6.2.4" />
 		<PackageVersion Include="PdfPig" Version="0.1.14" />
+		<!-- Held at 3.1.12: ImageSharp 4.x requires a PAID commercial license (enforced at build via SixLaborsLicenseKey). Upgrading is a licensing/business decision. -->
 		<PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
 		<!-- Tesseract OCR engine -->
 		<PackageVersion Include="Tesseract" Version="5.2.0" />
@@ -60,9 +61,9 @@
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.8" />
 		<PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.8" />
 		<!--Microsoft driver for SQL Server-->
-		<PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.3" />
+		<PackageVersion Include="Microsoft.Data.SqlClient" Version="7.0.1" />
 		<!-- Microsoft Extensions AI packages -->
-		<PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="9.8.0" />
+		<PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.6.0" />
 		<PackageVersion Include="Microsoft.ML.Tokenizers" Version="2.0.0" />
 		<!-- Microsoft configuration packages -->
 		<PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.8" />
@@ -81,27 +82,27 @@
 		<PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.8" />
 		<PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.8" />
 		<!-- Microsof Testing packages -->
-		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
 		<PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.6.0" />
 		<PackageVersion Include="Microsoft.Playwright" Version="1.60.0" />
 		<!-- Microsoft Testisng Platform packages -->
-		<PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-		<PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="1.8.4" />
-		<PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="1.8.4" />
-		<PackageVersion Include="Microsoft.Testing.Extensions.VSTestBridge" Version="1.8.4" />
-		<PackageVersion Include="Microsoft.Testing.Platform.MSBuild" Version="1.8.4" />
-		<PackageVersion Include="Microsoft.Testing.Platform" Version="1.8.4" />
+		<PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.7.0" />
+		<PackageVersion Include="Microsoft.Testing.Extensions.HangDump" Version="2.2.3" />
+		<PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.2.3" />
+		<PackageVersion Include="Microsoft.Testing.Extensions.VSTestBridge" Version="2.2.3" />
+		<PackageVersion Include="Microsoft.Testing.Platform.MSBuild" Version="2.2.3" />
+		<PackageVersion Include="Microsoft.Testing.Platform" Version="2.2.3" />
 		<!-- Serilog logging packages -->
-		<PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
+		<PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
 		<PackageVersion Include="Serilog.Settings.Configuration" Version="10.0.0" />
 		<PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
 		<PackageVersion Include="Serilog.Sinks.File" Version="7.0.0" />
 		<PackageVersion Include="Serilog" Version="4.3.1" />
-		<PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.1-dev-02307" />
+		<PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />
 		<PackageVersion Include="Serilog.Sinks.Seq" Version="9.1.0" />
 		<!-- Testing and test related packages -->
 		<!-- Meziantou.Extensions.Logging.Xunit for logging in xUnit tests -->
-		<PackageVersion Include="Meziantou.Extensions.Logging.Xunit.v3" Version="1.1.12" />
+		<PackageVersion Include="Meziantou.Extensions.Logging.Xunit.v3" Version="2.0.1" />
 		<!-- Moq for mocking in unit tests -->
 		<PackageVersion Include="NSubstitute" Version="5.3.0" />
 		<PackageVersion Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" />
@@ -112,7 +113,7 @@
 		<!-- Stryker.NET for mutation testing -->
 		<PackageVersion Include="StrykerMutator.Core" Version="0.9.0" />
 		<!-- Coverlet for code coverage -->
-		<PackageVersion Include="coverlet.collector" Version="6.0.4" />
+		<PackageVersion Include="coverlet.collector" Version="10.0.1" />
 		<!-- Testcontainers held at 4.9.0: 4.12 obsoletes the parameterless builder ctors (CS0618-as-error); image is already set via .WithImage() -->
 		<PackageVersion Include="Testcontainers" Version="4.9.0" />
 		<PackageVersion Include="Testcontainers.MsSql" Version="4.9.0" />
@@ -123,12 +124,12 @@
 		<PackageVersion Include="Emgu.CV.runtime.windows" Version="4.12.0.5764" />
 		<PackageVersion Include="Emgu.CV.runtime.ubuntu-x64" Version="4.9.0.5494" />
 		<!-- xUnit testing framework packages -->
-		<PackageVersion Include="xunit.v3" Version="3.0.1" />
-		<PackageVersion Include="xunit.v3.core" Version="3.0.1" />
-		<PackageVersion Include="xunit.v3.extensibility.core" Version="3.0.1" />
-		<PackageVersion Include="xunit.v3.runner.inproc.console" Version="3.0.1" />
-		<PackageVersion Include="xunit.v3.runner.msbuild" Version="3.0.1" />
-		<PackageVersion Include="xunit.analyzers" Version="1.24.0" />
+		<PackageVersion Include="xunit.v3" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.core" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.extensibility.core" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.runner.inproc.console" Version="3.2.2" />
+		<PackageVersion Include="xunit.v3.runner.msbuild" Version="3.2.2" />
+		<PackageVersion Include="xunit.analyzers" Version="1.27.0" />
 		<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
 		<!-- OpenTelemetry packages for telemetry and distributed tracing -->
 		<PackageVersion Include="OpenTelemetry" Version="1.15.3" />
