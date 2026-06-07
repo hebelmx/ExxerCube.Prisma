@@ -706,7 +706,7 @@ public sealed class AdaptiveExportPipelineTests : IDisposable
 
         // Verify DOCX structure
         wordDoc.MainDocumentPart.ShouldNotBeNull();
-        var body = wordDoc.MainDocumentPart!.Document.Body;
+        var body = wordDoc.MainDocumentPart!.Document!.Body;
         body.ShouldNotBeNull();
 
         // Verify paragraphs (3 field paragraphs in order)
@@ -777,7 +777,7 @@ public sealed class AdaptiveExportPipelineTests : IDisposable
 
         using var memoryStream = new MemoryStream(exportResult.Value!);
         using var wordDoc = WordprocessingDocument.Open(memoryStream, false);
-        var body = wordDoc.MainDocumentPart!.Document.Body;
+        var body = wordDoc.MainDocumentPart!.Document!.Body;
         var paragraphs = body!.Elements<Paragraph>().ToList();
 
         // Verify transformations were applied
@@ -883,7 +883,7 @@ public sealed class AdaptiveExportPipelineTests : IDisposable
 
         using var memoryStream = new MemoryStream(exportResult.Value!);
         using var wordDoc = WordprocessingDocument.Open(memoryStream, false);
-        var body = wordDoc.MainDocumentPart!.Document.Body;
+        var body = wordDoc.MainDocumentPart!.Document!.Body;
         var paragraphs = body!.Elements<Paragraph>().ToList();
 
         paragraphs[0].InnerText.ShouldContain("John Doe");
@@ -928,7 +928,7 @@ public sealed class AdaptiveExportPipelineTests : IDisposable
 
         using var memoryStream = new MemoryStream(exportResult.Value!);
         using var wordDoc = WordprocessingDocument.Open(memoryStream, false);
-        var body = wordDoc.MainDocumentPart!.Document.Body;
+        var body = wordDoc.MainDocumentPart!.Document!.Body;
 
         // Should have at least 1 paragraph
         body.ShouldNotBeNull();
