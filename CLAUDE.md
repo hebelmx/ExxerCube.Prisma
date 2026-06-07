@@ -43,7 +43,32 @@ Prisma/Code/Src/CSharp/
 **Three Python subsystems** under `Prisma/Code/Src/Python/`:
 - `prisma-ocr-pipeline/` — Tesseract-based OCR with watermark removal, deskewing
 - `prisma-ai-extractors/` — Vision-Language Models (SmolVLM2, GOT-OCR2, PaddleOCR)
-- `prisma-document-generator/` — Synthetic test document generation
+- `Prisma-dumy-generator-AAA/` — Synthetic test document generation (the "document generator")
+
+> ⚠️ **Python tree duplication (known issue, do not blindly dedupe):** the C#
+> build is wired (via the CSnakes `SetPythonPathForCSnakes` MSBuild target and
+> `<PythonRoot>Python/python</PythonRoot>` in `02 Infrastructure/Infrastructure`)
+> to **`Prisma/Code/Src/CSharp/Python/`** — so that copy must NOT be removed. It
+> overlaps/diverges with `Src/Python/Prisma-dumy-generator-AAA/`. Reconciling the
+> two needs a focused pass. See `docs/development/archive/root-cleanup-2026-06.md`.
+
+## Repository Layout (top level)
+
+```
+ExxerCube.Prisma/            (git repo root)
+├── Prisma/                  Main product: Code/Src/{CSharp,Python}, Fixtures, scripts, Docs
+├── docs/                    Consolidated documentation (see docs/README.md)
+├── scripts/                 Operational scripts: docker/ build/ db/ generators/ data-extraction/
+├── tools/                   Standalone dev tools (e.g. tools/Siara.Simulator/ — external SIARA portal sim)
+├── CLAUDE.md, AGENTS.md     Agent instructions
+├── nuget.config, package.json, playwright.config.ts, coverage.runsettings
+└── run-coverage[-ci].ps1    Root-coupled coverage runners (CI)
+```
+
+The real-time communication / SignalR hub abstraction was **extracted out** of
+this repo into the published **`IndFusion.Ember`** NuGet package
+(`github.com/hebelmx/IndFusion.Ember`); reference that package rather than
+reviving in-repo SignalR code. See `docs/architecture/adr/ADR-009-*`.
 
 ## Critical Code Patterns
 
@@ -122,8 +147,32 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 | **Athena** | Document processing pipeline | `04 Services/Athena/` |
 | **Sentinel** | System monitoring & health | `04 Services/Sentinel/` |
 
-## Release Status (as of 2026-02-18)
+## Release Status
 
-**Production-ready:** Field extractors (PDF/DOCX/XML/TXT), FusionExpedienteService, Database/EF Core, Export services, File storage, Architecture enforcement tests, Blazor UI with full DocumentProcessing page.
+> The status below was last asserted **2026-02-18** and has **not been
+> re-verified** since the project resumed after a dormant period. Treat it as
+> historical until a fresh scope audit (build + test + feature walk) confirms it.
+
+**Claimed production-ready (2026-02-18):** Field extractors (PDF/DOCX/XML/TXT), FusionExpedienteService, Database/EF Core, Export services, File storage, Architecture enforcement tests, Blazor UI with full DocumentProcessing page.
 
 **Deferrable to v1.1:** CSnakes Python ML interop (placeholder), PersonIdentityResolver DB persistence, Worker dashboard real metrics (UI dashboard uses IProcessingMetricsService which works), 3 skipped TXT extractor edge cases.
+
+### Current build status (2026-06-07)
+
+⚠️ **`dotnet build` of the main solution currently FAILS** — 4 × `NU1903`
+errors: the transitive package **`System.Security.Cryptography.Xml 9.0.0`** has a
+known high-severity CVE, and `TreatWarningsAsErrors=true` promotes the advisory to
+an error (projects: `Infrastructure.Database`, `Orchestration`). This is a
+time-triggered dependency issue, **not** a code problem. Fix by pinning a patched
+version in `Directory.Packages.props` (add a direct `PackageVersion` for
+`System.Security.Cryptography.Xml` ≥ the patched 9.0.x) or by updating the parent
+package that pulls it in. Until then, builds will not pass the security gate.
+
+### Repo hygiene
+
+The repo was reorganized on 2026-06-07 (branch `chore/repo-reorg`): root clutter
+removed, docs/scripts/tools organized, and the superseded SignalR projects removed
+(now the `IndFusion.Ember` package). See
+`docs/development/archive/root-cleanup-2026-06.md` for the full record and the
+list of deferred follow-ups (Python tree dedupe, stale DB scripts, `Veriqan`
+clone).

@@ -61,3 +61,10 @@ Master index for all project documentation.
 - **`reference/rop-manual/`** -- Result&lt;T&gt; / ROP pattern documentation
 - **`reference/xunit-v3/`** -- xUnit v3 configuration patterns
 - **`reference/ocr-pipeline/`** -- OCR pipeline manual, filter optimization, Python API
+- **`reference/data/`** -- Extracted reference datasets (authority dictionaries, entity catalog) -- derived data, not consumed by code
+
+## Repository structure (outside docs/)
+
+- **`scripts/`** (repo root) -- Operational scripts by purpose: `docker/`, `build/`, `db/`, `generators/`, `data-extraction/`. (Project-internal tooling lives separately under `Prisma/scripts/`.)
+- **`tools/`** (repo root) -- Standalone dev tools, e.g. `tools/Siara.Simulator/` (simulates the external SIARA portal; has its own `.sln`).
+- See [`development/archive/root-cleanup-2026-06.md`](development/archive/root-cleanup-2026-06.md) for the June-2026 reorganization record (what moved/was removed and why).
