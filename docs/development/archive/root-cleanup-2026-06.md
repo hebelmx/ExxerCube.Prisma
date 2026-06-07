@@ -89,6 +89,11 @@ Build was red on a transitive CVE; packages were then updated to latest stable
   - **Emgu.CV 4.12.0.5764** — 4.13 breaks `CvInvoke.CLAHE`; Contrib/ubuntu lag.
   - **Testcontainers 4.9.0** — 4.12 obsoletes parameterless builder ctors.
   - **BouncyCastle 2.7.0-beta** — only stable (2.6.2) is older than the beta.
+  - **Testing stack held as a unit** (xunit.v3 3.0.1, Microsoft.Testing.Platform
+    1.8.4, coverlet 6.0.4, Test.Sdk 18.0.1, Meziantou 1.1.12): xunit.v3 3.x
+    targets the MTP v1 API; MTP 2.x removes `IOutputDevice.DisplayAsync`
+    (MissingMethodException at run). Verified working: `dotnet test` on
+    `Tests.Domain` → 337 passed / 0 failed after the revert.
 
 ## Veriqan local clone — deleted
 

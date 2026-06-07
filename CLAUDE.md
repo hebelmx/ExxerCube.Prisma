@@ -177,6 +177,13 @@ clear its Moderate CVEs. Packages were updated to latest stable (see
   ctors (CS0618-as-error).
 - **BouncyCastle.Cryptography** on `2.7.0-beta` — the only stable (`2.6.2`) is
   older than the pinned beta.
+- **Testing stack** (xunit.v3 `3.0.1`, Microsoft.Testing.Platform `1.8.4`,
+  coverlet `6.0.4`, Test.Sdk `18.0.1`, Meziantou `1.1.12`) — held as a unit:
+  xunit.v3 3.x targets the MTP **v1** API, and MTP 2.x removes
+  `IOutputDevice.DisplayAsync` (→ `MissingMethodException` at test run). Upgrade
+  the whole stack together in a dedicated pass. (With
+  `CentralPackageTransitivePinningEnabled` on, an MTP pin also overrides xunit's
+  transitive MTP — keep them aligned.)
 
 ### Repo hygiene
 
