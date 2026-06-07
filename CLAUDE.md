@@ -177,13 +177,28 @@ clear its Moderate CVEs. Packages were updated to latest stable (see
   ctors (CS0618-as-error).
 - **BouncyCastle.Cryptography** on `2.7.0-beta` — the only stable (`2.6.2`) is
   older than the pinned beta.
-- **Testing stack** (xunit.v3 `3.0.1`, Microsoft.Testing.Platform `1.8.4`,
-  coverlet `6.0.4`, Test.Sdk `18.0.1`, Meziantou `1.1.12`) — held as a unit:
-  xunit.v3 3.x targets the MTP **v1** API, and MTP 2.x removes
-  `IOutputDevice.DisplayAsync` (→ `MissingMethodException` at test run). Upgrade
-  the whole stack together in a dedicated pass. (With
-  `CentralPackageTransitivePinningEnabled` on, an MTP pin also overrides xunit's
-  transitive MTP — keep them aligned.)
+
+### Testing stack (xunit.v3 + Microsoft.Testing.Platform)
+
+This combination is **version-coupled and fragile** — get it wrong and tests fail
+at *run* time with `System.MissingMethodException` (e.g.
+`IOutputDevice.DisplayAsync` not found), because xunit's MTP integration is
+compiled against a specific MTP ABI. The current **working** set (verified: build
+0/0, `dotnet test` runs, Tests.Domain 337/337):
+
+- Test projects reference **`xunit.v3.mtp-v2`** `3.2.2` (NOT the default
+  `xunit.v3`, which is the `mtp-v1` variant). This is the switch that selects MTP v2.
+- `Microsoft.Testing.Platform` (+ `.MSBuild` + `Extensions.HangDump/TrxReport/VSTestBridge`) at **`2.1.0`**;
+  `Microsoft.Testing.Extensions.CodeCoverage` `18.5.2`; `xunit.analyzers` `1.27.0`;
+  `Meziantou.Extensions.Logging.Xunit.v3` `2.0.1`.
+- **`global.json`** opts `dotnet test` into MTP on the .NET 10 SDK:
+  `{ "test": { "runner": "Microsoft.Testing.Platform" } }` — without it,
+  `dotnet test` errors (VSTest target unsupported).
+- `CentralPackageTransitivePinningEnabled` is on, so an MTP `PackageVersion` pin
+  also forces xunit's transitive MTP — every `Microsoft.Testing.*` version must
+  align to the same MTP minor (here 2.1.0). Bump the whole set together.
+- CodeCoverage 18.5.2 is compiled against MTP 2.1.0, so MTP must be ≥ 2.1.0 (this
+  is why 2.0.2 — what xunit's mtp-v2 declares — wasn't enough; CS1705).
 
 ### Repo hygiene
 
