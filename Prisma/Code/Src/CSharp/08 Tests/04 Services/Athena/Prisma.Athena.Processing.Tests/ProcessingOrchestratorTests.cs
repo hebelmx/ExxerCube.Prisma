@@ -460,6 +460,59 @@ public sealed class ProcessingOrchestratorTests
                 e.FieldName == "NombreTitular"));
     }
 
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Phase", "3")]
+    public async Task Stage3_WithTxtFieldExtractor_FeedsOcrDerivedExpedienteToFusion()
+    {
+        // Arrange — wire the optional field extractor so Stage 2 OCR text becomes a PDF
+        // Expediente that Stage 3 fusion reconciles (instead of the legacy null/empty input).
+        var eventPublisher = Substitute.For<IEventPublisher>();
+        var logger = NullLogger<ProcessingOrchestrator>.Instance;
+        var fileLoader = Substitute.For<IFileLoader>();
+        var qualityAnalyzer = Substitute.For<IImageQualityAnalyzer>();
+        var ocrExecutor = Substitute.For<IOcrExecutor>();
+        var fusionService = Substitute.For<IFusionExpediente>();
+        var txtFieldExtractor = Substitute.For<IFieldExtractor<ExxerCube.Prisma.Domain.Sources.TxtSource>>();
+
+        SetupQualityAndOcr(fileLoader, qualityAnalyzer, ocrExecutor); // OCR text = "Extracted text here"
+        SetupFusion(fusionService);
+
+        txtFieldExtractor.ExtractFieldsAsync(
+                Arg.Any<ExxerCube.Prisma.Domain.Sources.TxtSource>(),
+                Arg.Any<FieldDefinition[]>())
+            .Returns(Result<ExtractedFields>.Success(
+                new ExtractedFields { Expediente = "EXP-OCR-123" }));
+
+        var orchestrator = new ProcessingOrchestrator(
+            eventPublisher, logger,
+            qualityAnalyzer: qualityAnalyzer,
+            ocrExecutor: ocrExecutor,
+            fusionService: fusionService,
+            fileLoader: fileLoader,
+            txtFieldExtractor: txtFieldExtractor);
+
+        var downloadEvent = CreateDownloadEvent(fileId: Guid.NewGuid());
+
+        // Act
+        await orchestrator.ProcessDocumentAsync(downloadEvent, TestContext.Current.CancellationToken);
+
+        // Assert — the field extractor saw the OCR text, and fusion received the OCR-derived
+        // Expediente as the PDF source (2nd argument), not null.
+        await txtFieldExtractor.Received(1).ExtractFieldsAsync(
+            Arg.Is<ExxerCube.Prisma.Domain.Sources.TxtSource>(s => s.TextContent == "Extracted text here"),
+            Arg.Any<FieldDefinition[]>());
+
+        await fusionService.Received(1).FuseAsync(
+            Arg.Is<ExxerCube.Prisma.Domain.Entities.Expediente?>(e => e == null),
+            Arg.Is<ExxerCube.Prisma.Domain.Entities.Expediente?>(e => e != null && e.NumeroExpediente == "EXP-OCR-123"),
+            Arg.Is<ExxerCube.Prisma.Domain.Entities.Expediente?>(e => e == null),
+            Arg.Any<ExtractionMetadata>(),
+            Arg.Any<ExtractionMetadata>(),
+            Arg.Any<ExtractionMetadata>(),
+            Arg.Any<CancellationToken>());
+    }
+
     // ========================================================================
     // Phase 4: Stage 4 — Classification Tests
     // ========================================================================

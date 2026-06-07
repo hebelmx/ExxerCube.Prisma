@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Extraction.Txt\ExxerCube.Prisma.Infrastructure.Extraction.Txt.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export.Adaptive\ExxerCube.Prisma.Infrastructure.Export.Adaptive.csproj" />
     <ProjectReference Include="..\Prisma.Athena.HealthChecks\ExxerCube.Prisma.Athena.HealthChecks.csproj" />

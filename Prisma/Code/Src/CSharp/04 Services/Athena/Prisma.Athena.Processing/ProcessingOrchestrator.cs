@@ -4,9 +4,11 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -24,6 +26,7 @@ public sealed class ProcessingOrchestrator
     private readonly IFileClassifier? _classifier;
     private readonly IAdaptiveExporter? _exporter;
     private readonly IFileLoader? _fileLoader;
+    private readonly IFieldExtractor<TxtSource>? _txtFieldExtractor;
     private readonly IEventPublisher _eventPublisher;
     private readonly IExxerHub<DocumentProcessingCompletedEvent>? _eventHub;
     private readonly ILogger<ProcessingOrchestrator> _logger;
@@ -52,6 +55,7 @@ public sealed class ProcessingOrchestrator
     /// <param name="classifier">Optional: Classification service for document categorization.</param>
     /// <param name="exporter">Optional: Export service for generating output files.</param>
     /// <param name="fileLoader">Optional: File loader for reading images from disk.</param>
+    /// <param name="txtFieldExtractor">Optional: Field extractor used to turn Stage 2 OCR text into an Expediente that feeds Stage 3 fusion. When null, fusion runs without OCR-derived input (legacy behavior).</param>
     /// <remarks>
     /// Pipeline services are optional to support incremental testing.
     /// When null, that pipeline stage is skipped with a warning log.
@@ -65,7 +69,8 @@ public sealed class ProcessingOrchestrator
         IFusionExpediente? fusionService = null,
         IFileClassifier? classifier = null,
         IAdaptiveExporter? exporter = null,
-        IFileLoader? fileLoader = null)
+        IFileLoader? fileLoader = null,
+        IFieldExtractor<TxtSource>? txtFieldExtractor = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -76,6 +81,7 @@ public sealed class ProcessingOrchestrator
         _classifier = classifier;
         _exporter = exporter;
         _fileLoader = fileLoader;
+        _txtFieldExtractor = txtFieldExtractor;
     }
 
     /// <summary>
@@ -524,13 +530,14 @@ public sealed class ProcessingOrchestrator
 
         _logger.LogInformation("Stage 3: Fusion/Reconciliation - FileId: {FileId}", fileId);
 
-        // Build extraction metadata from OCR result
-        var pdfMetadata = new ExtractionMetadata();
+        // Turn the Stage 2 OCR text into a PDF-source Expediente + metadata so fusion
+        // reconciles real OCR-derived data instead of empty inputs.
+        var (pdfExpediente, pdfMetadata) = await BuildPdfExpedienteFromOcrAsync(ocrResult, cancellationToken);
         var xmlMetadata = new ExtractionMetadata();
         var docxMetadata = new ExtractionMetadata();
 
         var fusionResultObj = await _fusionService.FuseAsync(
-            null, null, null,
+            null, pdfExpediente, null,
             xmlMetadata, pdfMetadata, docxMetadata,
             cancellationToken);
 
@@ -809,9 +816,10 @@ public sealed class ProcessingOrchestrator
             return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
         }
 
+        var (pdfExpediente, pdfMetadata) = await BuildPdfExpedienteFromOcrAsync(ctx.OcrResult, cancellationToken);
         var fusionResultObj = await _fusionService.FuseAsync(
-            null, null, null,
-            new ExtractionMetadata(), new ExtractionMetadata(), new ExtractionMetadata(),
+            null, pdfExpediente, null,
+            new ExtractionMetadata(), pdfMetadata, new ExtractionMetadata(),
             cancellationToken);
 
         if (fusionResultObj.IsFailure)
@@ -913,6 +921,105 @@ public sealed class ProcessingOrchestrator
     // ========================================================================
     // Helper methods
     // ========================================================================
+
+    /// <summary>
+    /// Turns Stage 2 OCR output into a PDF-source <see cref="Expediente"/> plus extraction metadata
+    /// for Stage 3 fusion. Returns (null, empty metadata) when no field extractor is configured or
+    /// no OCR text exists — preserving the legacy behavior of feeding fusion empty inputs.
+    /// </summary>
+    /// <remarks>
+    /// The ExtractedFields→Expediente mapping mirrors the UI's PdfProcessingService; consolidating
+    /// both onto one shared mapper is a tracked DRY follow-up (see gap-analysis 2026-06).
+    /// </remarks>
+    private async Task<(Expediente? Expediente, ExtractionMetadata Metadata)> BuildPdfExpedienteFromOcrAsync(
+        OCRResult? ocrResult,
+        CancellationToken cancellationToken)
+    {
+        if (_txtFieldExtractor == null || string.IsNullOrWhiteSpace(ocrResult?.Text))
+        {
+            return (null, new ExtractionMetadata());
+        }
+
+        var confidence = (float)(ocrResult!.ConfidenceAvg / 100.0);
+        var txtSource = new TxtSource(
+            textContent: ocrResult.Text,
+            ocrConfidence: confidence,
+            sourceFilePath: null);
+
+        var fieldDefinitions = new[]
+        {
+            new FieldDefinition("Expediente"),
+            new FieldDefinition("NumeroOficio"),
+            new FieldDefinition("AutoridadNombre"),
+            new FieldDefinition("Causa"),
+            new FieldDefinition("AccionSolicitada"),
+        };
+
+        var extractionResult = await _txtFieldExtractor.ExtractFieldsAsync(txtSource, fieldDefinitions);
+        if (extractionResult.IsFailure || extractionResult.Value == null)
+        {
+            _logger.LogWarning(
+                "Stage 3: OCR field extraction produced no fields ({Error}); fusion will run without PDF input",
+                extractionResult.Error);
+            return (null, new ExtractionMetadata());
+        }
+
+        var fields = extractionResult.Value;
+        var expediente = MapExtractedFieldsToExpediente(fields);
+        var metadata = new ExtractionMetadata
+        {
+            Source = SourceType.PDF_OCR_CNBV,
+            MeanConfidence = confidence,
+            TotalFieldsExtracted = CountExtractedFields(expediente),
+        };
+
+        _logger.LogInformation(
+            "Stage 3: Built PDF Expediente from OCR - NumeroExpediente: {NumeroExpediente}, FieldsExtracted: {Count}",
+            expediente.NumeroExpediente, metadata.TotalFieldsExtracted);
+
+        return (expediente, metadata);
+    }
+
+    /// <summary>
+    /// Maps OCR-derived <see cref="ExtractedFields"/> to an <see cref="Expediente"/> entity.
+    /// </summary>
+    private static Expediente MapExtractedFieldsToExpediente(ExtractedFields fields)
+    {
+        var additional = fields.AdditionalFields ?? new Dictionary<string, string?>();
+
+        var expediente = new Expediente
+        {
+            NumeroExpediente = fields.Expediente ?? string.Empty,
+            NumeroOficio = additional.GetValueOrDefault("NumeroOficio") ?? string.Empty,
+            AutoridadNombre = additional.GetValueOrDefault("AutoridadNombre") ?? string.Empty,
+            Referencia1 = fields.Causa ?? string.Empty,
+            Referencia2 = fields.AccionSolicitada ?? string.Empty,
+        };
+
+        foreach (var kvp in additional)
+        {
+            if (kvp.Value != null && !expediente.AdditionalFields.ContainsKey(kvp.Key))
+            {
+                expediente.AdditionalFields[kvp.Key] = kvp.Value;
+            }
+        }
+
+        return expediente;
+    }
+
+    /// <summary>
+    /// Counts the populated core fields on an <see cref="Expediente"/> (used for extraction metadata).
+    /// </summary>
+    private static int CountExtractedFields(Expediente expediente)
+    {
+        int count = 0;
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroExpediente)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.NumeroOficio)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.AutoridadNombre)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia1)) count++;
+        if (!string.IsNullOrWhiteSpace(expediente.Referencia2)) count++;
+        return count;
+    }
 
     private void EmitCompletionEvent(Guid fileId, Guid? correlationId, TimeSpan elapsed, int stagesCompleted, bool autoProcessed)
     {

@@ -1,9 +1,11 @@
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
+using ExxerCube.Prisma.Infrastructure.Extraction.Txt;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using ExxerCube.Prisma.Infrastructure.Imaging;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +25,8 @@ builder.Services.AddSingleton<IOcrExecutor, TesseractOcrExecutor>();
 builder.Services.AddSingleton<IFusionExpediente, FusionExpedienteService>();
 builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
 builder.Services.AddSingleton<IAdaptiveExporter, AdaptiveExporter>();
+// Field extractor that turns Stage 2 OCR text into an Expediente feeding Stage 3 fusion.
+builder.Services.AddSingleton<IFieldExtractor<TxtSource>, AdaptiveTxtFieldExtractor>();
 
 // Register orchestrator with all pipeline services
 builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
@@ -35,6 +39,7 @@ builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
     var fusionService = sp.GetRequiredService<IFusionExpediente>();
     var classifier = sp.GetRequiredService<IFileClassifier>();
     var exporter = sp.GetRequiredService<IAdaptiveExporter>();
+    var txtFieldExtractor = sp.GetRequiredService<IFieldExtractor<TxtSource>>();
 
     return new ProcessingOrchestrator(
         eventPublisher,
@@ -44,7 +49,8 @@ builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
         fusionService: fusionService,
         classifier: classifier,
         exporter: exporter,
-        fileLoader: fileLoader);
+        fileLoader: fileLoader,
+        txtFieldExtractor: txtFieldExtractor);
 });
 builder.Services.AddHostedService<AthenaWorkerService>();
 
