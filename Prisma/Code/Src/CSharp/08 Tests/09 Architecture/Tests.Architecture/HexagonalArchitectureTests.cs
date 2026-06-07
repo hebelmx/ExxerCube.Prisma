@@ -25,6 +25,26 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
     private static readonly Assembly[] InfrastructureAssemblies =
         GetInfrastructureAssemblies().ToArray();
 
+    // Broader set used ONLY by the "every domain interface has an implementation" rule:
+    // Infrastructure + Application + the Orion/Athena/Auth service assemblies that host adapters.
+    // Service assemblies are anchored by typeof so they load in the default context (with their
+    // dependencies resolved) — pattern-based Assembly.LoadFrom left their types unmaterializable.
+    // Kept separate from InfrastructureAssemblies so widening the implementation search does not
+    // change the scope of the other (stricter) layering rules.
+    private static readonly Assembly[] ImplementationAssemblies =
+        InfrastructureAssemblies
+            .Concat(new[]
+            {
+                ApplicationAssembly,
+                typeof(global::Prisma.Orion.Ingestion.FileIngestionJournal).Assembly,
+                typeof(global::Prisma.Orion.HealthChecks.OrionHealthCheckService).Assembly,
+                typeof(global::Prisma.Athena.HealthChecks.AthenaHealthCheckService).Assembly,
+                typeof(global::Prisma.Auth.Infrastructure.InMemoryIdentityProvider).Assembly,
+            })
+            .Where(a => a is not null)
+            .DistinctBy(a => a.FullName)
+            .ToArray();
+
     // Rule 1: Ports (Interfaces) → Domain Layer ONLY
 
     /// <summary>
@@ -815,58 +835,32 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             //"ExxerCube.Prisma.Domain.Interfaces.ISiaraLoginService",
             //"ExxerCube.Prisma.Domain.Interfaces.ITextComparer",
 
-            // v1.1 deferred implementations (ITTDD gaps, tracking open work):
-            // IHealthCheckService: implemented in Prisma.Orion/Athena.HealthChecks (not ExxerCube.Prisma.Infrastructure.*);
-            //   NetArchTest cannot resolve them cross-assembly via Assembly.LoadFrom so they appear missing.
-            "ExxerCube.Prisma.Domain.Interfaces.IHealthCheckService",
-            // IDashboardService: stub adapters in Orion/Athena; full impl deferred to v1.1
-            "ExxerCube.Prisma.Domain.Interfaces.IDashboardService",
-            // IDocumentDownloader: StubDocumentDownloader exists in Orion; real adapter deferred to v1.1
-            "ExxerCube.Prisma.Domain.Interfaces.IDocumentDownloader",
-            // IEventHandler<T>: generic handler consumed by InMemoryEventBus (legacy); Rx.NET observables
-            //   are the production mechanism — no Infrastructure class needs to implement this directly
+            // IEventHandler<T>: generic handler consumed by the legacy InMemoryEventBus; the production
+            //   event mechanism is Rx.NET observables (EventPublisher), so no class implements this
+            //   directly. This is an intentional, genuinely-unimplemented port — keep allowlisted.
             "ExxerCube.Prisma.Domain.Interfaces.IEventHandler`1",
-            // IFieldMatchingService: implemented in Application.Services.FieldMatchingService (orchestration service);
-            //   moving to Infrastructure would break the orchestration layer; tracked as v1.1 architecture debt
-            "ExxerCube.Prisma.Domain.Interfaces.IFieldMatchingService",
-            // IIdentityProvider: InMemoryIdentityProvider exists in Prisma.Auth.Infrastructure; not in ExxerCube.Prisma.Infrastructure.*
-            "ExxerCube.Prisma.Domain.Interfaces.IIdentityProvider",
-            // IIngestionJournal: FileIngestionJournal in Prisma.Orion.Ingestion (not in ExxerCube.Prisma.Infrastructure.*)
-            "ExxerCube.Prisma.Domain.Interfaces.IIngestionJournal",
-            // ITokenService, IUserContextAccessor: Auth/security adapters deferred to v1.1
-            "ExxerCube.Prisma.Domain.Interfaces.ITokenService",
-            "ExxerCube.Prisma.Domain.Interfaces.IUserContextAccessor",
+
+            // NOTE (2026-06): the former v1.1 allowlist (IHealthCheckService, IDashboardService,
+            // IDocumentDownloader, IFieldMatchingService, IIdentityProvider, IIngestionJournal,
+            // ITokenService, IUserContextAccessor) was RETIRED once implementation detection became
+            // name-based across Orion/Athena/Auth/Application (see HasImplementationByName +
+            // ImplementationAssemblies). Those interfaces have real adapters and are now verified
+            // directly rather than excused. Some adapters are stubs (e.g. StubDocumentDownloader) —
+            // "has an implementation" is the rule here; stub-vs-real quality is tracked in the gap matrix.
         };
 
         foreach (var domainInterface in domainInterfaces)
         {
-            // Search all Infrastructure assemblies for implementations
-            var hasImplementation = false;
+            var name = domainInterface.FullName ?? domainInterface.Name;
 
-            foreach (var infrastructureAssembly in InfrastructureAssemblies)
+            // Match by interface FULL NAME across Infrastructure + Orion/Athena + Auth + Application.
+            // Name-based matching avoids NetArchTest's cross-load-context type-identity miss that
+            // previously forced these implementations onto an allowlist.
+            var hasImplementation = HasImplementationByName(name, ImplementationAssemblies);
+
+            if (!hasImplementation && !allowlistedInterfaces.Contains(name))
             {
-                var implementations = Types.InAssembly(infrastructureAssembly)
-                    .That()
-                    .AreClasses()
-                    .And()
-                    .ImplementInterface(domainInterface)
-                    .GetTypes()
-                    .ToList();
-
-                if (implementations.Any())
-                {
-                    hasImplementation = true;
-                    break;
-                }
-            }
-
-            if (!hasImplementation)
-            {
-                var name = domainInterface.FullName ?? domainInterface.Name;
-                if (!allowlistedInterfaces.Contains(name))
-                {
-                    unimplementedInterfaces.Add(name);
-                }
+                unimplementedInterfaces.Add(name);
             }
         }
 
@@ -1083,6 +1077,54 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
     }
 
     //
+
+    /// <summary>
+    /// Determines whether any class in the given assemblies implements the interface identified by
+    /// <paramref name="interfaceFullName"/>, matching by type FULL NAME rather than CLR type identity.
+    /// This is robust across <see cref="Assembly.LoadFrom"/> contexts, where the same Domain interface
+    /// loaded twice has two distinct CLR identities and NetArchTest's ImplementInterface would miss it.
+    /// </summary>
+    private static bool HasImplementationByName(string interfaceFullName, IEnumerable<Assembly> assemblies)
+    {
+        // For generic interfaces the runtime FullName carries the arity suffix (e.g. "...IEventHandler`1").
+        foreach (var assembly in assemblies)
+        {
+            Type?[] types;
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                types = ex.Types; // keep the types that did load
+            }
+            catch
+            {
+                continue;
+            }
+
+            foreach (var type in types)
+            {
+                if (type is null || !type.IsClass || type.IsAbstract)
+                {
+                    continue;
+                }
+
+                foreach (var iface in type.GetInterfaces())
+                {
+                    var name = iface.IsGenericType
+                        ? iface.GetGenericTypeDefinition().FullName
+                        : iface.FullName;
+                    if (string.Equals(name, interfaceFullName, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
 
     private static IEnumerable<Assembly> GetInfrastructureAssemblies()
     {
