@@ -1,4 +1,4 @@
-namespace ExxerCube.Prisma.Application.Services;
+namespace ExxerCube.Prisma.Domain.Enums;
 
 /// <summary>
 /// Represents the health status of a component or system.

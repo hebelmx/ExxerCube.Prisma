@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Domain.Enums;
 using ExxerCube.Prisma.Domain.Interfaces;
 
 namespace ExxerCube.Prisma.Application.Services;
