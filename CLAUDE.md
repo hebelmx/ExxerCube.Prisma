@@ -159,14 +159,24 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 
 ### Current build status (2026-06-07)
 
-⚠️ **`dotnet build` of the main solution currently FAILS** — 4 × `NU1903`
-errors: the transitive package **`System.Security.Cryptography.Xml 9.0.0`** has a
-known high-severity CVE, and `TreatWarningsAsErrors=true` promotes the advisory to
-an error (projects: `Infrastructure.Database`, `Orchestration`). This is a
-time-triggered dependency issue, **not** a code problem. Fix by pinning a patched
-version in `Directory.Packages.props` (add a direct `PackageVersion` for
-`System.Security.Cryptography.Xml` ≥ the patched 9.0.x) or by updating the parent
-package that pulls it in. Until then, builds will not pass the security gate.
+✅ **`dotnet build` of the main solution succeeds** (0 errors, 0 warnings) and
+`dotnet list package --vulnerable` reports **no vulnerabilities**. The NU1903 CVE
+was fixed by enabling `CentralPackageTransitivePinningEnabled` and pinning
+`System.Security.Cryptography.Xml 10.0.8`; OpenTelemetry was bumped to 1.15.x to
+clear its Moderate CVEs. Packages were updated to latest stable (see
+`Directory.Packages.props`).
+
+**Held back deliberately (need a dedicated, decision-gated upgrade):**
+- **MudBlazor** at `8.11` — `9.x` is a major UI migration (`ChartSeries<T>`,
+  `ActivatorContent`, runtime/visual changes); needs visual testing.
+- **SixLabors.ImageSharp** at `3.1.12` — `4.x` requires a **paid commercial
+  license** (enforced at build). A business/legal decision.
+- **Emgu.CV** at `4.12.0.5764` — `4.13` changes the native `CvInvoke.CLAHE`
+  signature; `Contrib`/`ubuntu-x64` have no matching upstream release.
+- **Testcontainers** at `4.9.0` — `4.12` obsoletes the parameterless builder
+  ctors (CS0618-as-error).
+- **BouncyCastle.Cryptography** on `2.7.0-beta` — the only stable (`2.6.2`) is
+  older than the pinned beta.
 
 ### Repo hygiene
 
