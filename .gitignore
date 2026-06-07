@@ -685,3 +685,8 @@ stryker-output.log
 
 # Serena
 .serena/
+
+# Downloaded tooling / accidental installs (do not commit)
+git-lfs-tmp/
+# BMAD installs into the repo root, not into a literal "pwd" folder
+pwd/
