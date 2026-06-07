@@ -25,6 +25,8 @@
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<!-- Allow central PackageVersion pins to override vulnerable/outdated transitive deps (e.g. System.Security.Cryptography.Xml) -->
+		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
 		<!-- Build artifacts outside repository (keeps repo clean) -->
 		<!-- Path: E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\ (was F:\ before restart) -->

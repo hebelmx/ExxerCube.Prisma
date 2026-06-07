@@ -43,7 +43,32 @@ Prisma/Code/Src/CSharp/
 **Three Python subsystems** under `Prisma/Code/Src/Python/`:
 - `prisma-ocr-pipeline/` — Tesseract-based OCR with watermark removal, deskewing
 - `prisma-ai-extractors/` — Vision-Language Models (SmolVLM2, GOT-OCR2, PaddleOCR)
-- `prisma-document-generator/` — Synthetic test document generation
+- `Prisma-dumy-generator-AAA/` — Synthetic test document generation (the "document generator")
+
+> ⚠️ **Python tree duplication (known issue, do not blindly dedupe):** the C#
+> build is wired (via the CSnakes `SetPythonPathForCSnakes` MSBuild target and
+> `<PythonRoot>Python/python</PythonRoot>` in `02 Infrastructure/Infrastructure`)
+> to **`Prisma/Code/Src/CSharp/Python/`** — so that copy must NOT be removed. It
+> overlaps/diverges with `Src/Python/Prisma-dumy-generator-AAA/`. Reconciling the
+> two needs a focused pass. See `docs/development/archive/root-cleanup-2026-06.md`.
+
+## Repository Layout (top level)
+
+```
+ExxerCube.Prisma/            (git repo root)
+├── Prisma/                  Main product: Code/Src/{CSharp,Python}, Fixtures, scripts, Docs
+├── docs/                    Consolidated documentation (see docs/README.md)
+├── scripts/                 Operational scripts: docker/ build/ db/ generators/ data-extraction/
+├── tools/                   Standalone dev tools (e.g. tools/Siara.Simulator/ — external SIARA portal sim)
+├── CLAUDE.md, AGENTS.md     Agent instructions
+├── nuget.config, package.json, playwright.config.ts, coverage.runsettings
+└── run-coverage[-ci].ps1    Root-coupled coverage runners (CI)
+```
+
+The real-time communication / SignalR hub abstraction was **extracted out** of
+this repo into the published **`IndFusion.Ember`** NuGet package
+(`github.com/hebelmx/IndFusion.Ember`); reference that package rather than
+reviving in-repo SignalR code. See `docs/architecture/adr/ADR-009-*`.
 
 ## Critical Code Patterns
 
@@ -122,8 +147,49 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 | **Athena** | Document processing pipeline | `04 Services/Athena/` |
 | **Sentinel** | System monitoring & health | `04 Services/Sentinel/` |
 
-## Release Status (as of 2026-02-18)
+## Release Status
 
-**Production-ready:** Field extractors (PDF/DOCX/XML/TXT), FusionExpedienteService, Database/EF Core, Export services, File storage, Architecture enforcement tests, Blazor UI with full DocumentProcessing page.
+> The status below was last asserted **2026-02-18** and has **not been
+> re-verified** since the project resumed after a dormant period. Treat it as
+> historical until a fresh scope audit (build + test + feature walk) confirms it.
+
+**Claimed production-ready (2026-02-18):** Field extractors (PDF/DOCX/XML/TXT), FusionExpedienteService, Database/EF Core, Export services, File storage, Architecture enforcement tests, Blazor UI with full DocumentProcessing page.
 
 **Deferrable to v1.1:** CSnakes Python ML interop (placeholder), PersonIdentityResolver DB persistence, Worker dashboard real metrics (UI dashboard uses IProcessingMetricsService which works), 3 skipped TXT extractor edge cases.
+
+### Current build status (2026-06-07)
+
+✅ **`dotnet build` of the main solution succeeds** (0 errors, 0 warnings) and
+`dotnet list package --vulnerable` reports **no vulnerabilities**. The NU1903 CVE
+was fixed by enabling `CentralPackageTransitivePinningEnabled` and pinning
+`System.Security.Cryptography.Xml 10.0.8`; OpenTelemetry was bumped to 1.15.x to
+clear its Moderate CVEs. Packages were updated to latest stable (see
+`Directory.Packages.props`).
+
+**Held back deliberately (need a dedicated, decision-gated upgrade):**
+- **MudBlazor** at `8.11` — `9.x` is a major UI migration (`ChartSeries<T>`,
+  `ActivatorContent`, runtime/visual changes); needs visual testing.
+- **SixLabors.ImageSharp** at `3.1.12` — `4.x` requires a **paid commercial
+  license** (enforced at build). A business/legal decision.
+- **Emgu.CV** at `4.12.0.5764` — `4.13` changes the native `CvInvoke.CLAHE`
+  signature; `Contrib`/`ubuntu-x64` have no matching upstream release.
+- **Testcontainers** at `4.9.0` — `4.12` obsoletes the parameterless builder
+  ctors (CS0618-as-error).
+- **BouncyCastle.Cryptography** on `2.7.0-beta` — the only stable (`2.6.2`) is
+  older than the pinned beta.
+- **Testing stack** (xunit.v3 `3.0.1`, Microsoft.Testing.Platform `1.8.4`,
+  coverlet `6.0.4`, Test.Sdk `18.0.1`, Meziantou `1.1.12`) — held as a unit:
+  xunit.v3 3.x targets the MTP **v1** API, and MTP 2.x removes
+  `IOutputDevice.DisplayAsync` (→ `MissingMethodException` at test run). Upgrade
+  the whole stack together in a dedicated pass. (With
+  `CentralPackageTransitivePinningEnabled` on, an MTP pin also overrides xunit's
+  transitive MTP — keep them aligned.)
+
+### Repo hygiene
+
+The repo was reorganized on 2026-06-07 (branch `chore/repo-reorg`): root clutter
+removed, docs/scripts/tools organized, and the superseded SignalR projects removed
+(now the `IndFusion.Ember` package). See
+`docs/development/archive/root-cleanup-2026-06.md` for the full record and the
+list of deferred follow-ups (Python tree dedupe, stale DB scripts, `Veriqan`
+clone).
