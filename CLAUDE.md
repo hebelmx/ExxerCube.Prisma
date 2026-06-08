@@ -149,13 +149,58 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 
 ## Release Status
 
-> The status below was last asserted **2026-02-18** and has **not been
-> re-verified** since the project resumed after a dormant period. Treat it as
-> historical until a fresh scope audit (build + test + feature walk) confirms it.
+> Re-audited **2026-06-07** by tracing the DI composition roots (Web.UI / Athena
+> Worker / Orion Worker) and every pipeline stage. This is **static-wiring reality**;
+> integration/system/E2E suites were **not** run, so end-to-end behaviour is still
+> unverified. Full evidence + file:line citations:
+> `docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md`. The 2025-01-12
+> PRD and the Mission docs remain the **intended targets** — the classification below
+> describes the *distance to* those targets, it does not retire them.
 
-**Claimed production-ready (2026-02-18):** Field extractors (PDF/DOCX/XML/TXT), FusionExpedienteService, Database/EF Core, Export services, File storage, Architecture enforcement tests, Blazor UI with full DocumentProcessing page.
+**Done (real + wired + meets intent):**
+- Export pipeline — `AdaptiveExporter` (SIRO XML / Excel / PDF) wired in Athena Worker + Web.UI.
+- Database / EF Core, File storage, Field extractors (PDF/DOCX/XML/TXT — note XML extractor is a "dummy placeholder", see Partial).
+- Web UI auth — ASP.NET Core Identity (cookie-based), real.
+- Rx.NET event architecture (`EventPublisher`) — wired and accurate to the docs.
+- Health checks (`/health`, `/health/live`) — real Athena/Orion services.
+- Architecture enforcement tests (19/19), Domain (337/337), Application (157/157) — green (prior session).
 
-**Deferrable to v1.1:** CSnakes Python ML interop (placeholder), PersonIdentityResolver DB persistence, Worker dashboard real metrics (UI dashboard uses IProcessingMetricsService which works), 3 skipped TXT extractor edge cases.
+**Done (continued):**
+- **OCR** — **Tesseract** (`TesseractOcrExecutor`, real Tesseract.NET) is the engine of
+  record **by deliberate decision**. After Python.NET removal and the finding that CSnakes
+  interop was hard to operationalize, the team chose the direct-C# path and **intentionally
+  retained** the Python/CSnakes VLM scaffolding *dormant* (GOT-OCR2 registration + `AddPrismaPythonEnvironment()`
+  commented; `PrismaOcrService` unregistered) so a GitHub/VLM model can be refactored in
+  *if/when* needed. **This is optionality-by-design — do NOT treat the dormant Python as a
+  gap or delete it.** See ADR-001 (`docs/architecture/python/adr-001-csnakes-vs-pythonnet.md`).
+  (The "DocTR production-ready" mission summary is a research experiment, not the shipped engine.)
+
+**Partial (real but limited / unwired / degraded end-to-end):**
+- **Fusion** — `FusionExpedienteService` is real, and (✅ **2026-06-07**) the orchestrator now
+  threads OCR output into it: Stage 2 text → `IFieldExtractor<TxtSource>` → `Expediente` →
+  `FuseAsync` (PDF source). Remaining: XML/DOCX sources are still null in the worker path
+  (single-source OCR fusion).
+- **Adaptive/Robust extractors** — Adaptive **DOCX** (orchestrator + all 5 strategies) and
+  Adaptive **Export** are implemented and DI-wired. Adaptive **TXT** is implemented but its
+  field-extraction **robustness is incomplete**: 3 skipped edge-case tests
+  (`AdaptiveTxtFieldExtractorEnhancedTests`, `Skip="TODO"`) — CNBV-vs-SAT authority priority,
+  Expediente pattern `B/CDEF-1234-567890-ABC`, SAT detection conflict. `XmlFieldExtractor` is a
+  "dummy placeholder". So: wired and working for common cases, **not yet robust on edge cases**.
+- **Quality** — real (`PolynomialImageQualityAnalyzer` in Worker, `EmguCvImageQualityAnalyzer`
+  in UI), but trained filter-selection models are still stub coefficients.
+- **Classification** — real path; deeper semantic field extraction is TODO.
+- **Auth abstraction** (`IIdentityProvider`/`ITokenService`/`IUserContextAccessor`) — real
+  `EfCoreIdentityAdapter` with JWT exists but is **registered nowhere** (UI uses Identity directly).
+- **Readiness probes** — present but stubbed (`// TODO: orchestrator.IsStarted`).
+
+**Planned (stub / placeholder / missing):**
+- **Orion document download** — `IDocumentDownloader` is `StubDocumentDownloader` (returns
+  empty bytes); no real SIARA ingestion yet. Highest-impact gap for true end-to-end flow.
+- Worker `/dashboard` metrics — `Orion/AthenaDashboardService` return zeros (UI Dashboard uses the working `IProcessingMetricsService`).
+- PersonIdentityResolver DB persistence; PDF text extraction (returns empty pending iText/PdfSharp); CSnakes Python ML runtime interop; 3 skipped TXT extractor edge cases.
+- Sentinel monitoring service — **not yet traced; status unknown.**
+
+> Roadmap toward production: `docs/planning/path-to-production-2026-06.md`.
 
 ### Current build status (2026-06-07)
 
@@ -199,6 +244,20 @@ compiled against a specific MTP ABI. The current **working** set (verified: buil
   align to the same MTP minor (here 2.1.0). Bump the whole set together.
 - CodeCoverage 18.5.2 is compiled against MTP 2.1.0, so MTP must be ≥ 2.1.0 (this
   is why 2.0.2 — what xunit's mtp-v2 declares — wasn't enough; CS1705).
+
+### Docker integration tests (Testcontainers) — sharing & isolation (2026-06-07)
+
+SQL Server integration tests (`Tests.System.Storage`) use a **single shared container
+for the whole assembly** via the xUnit v3 **assembly fixture**
+(`[assembly: AssemblyFixture(typeof(SqlServerContainerFixture))]`). To run write-heavy
+classes **in parallel without colliding**, each test class provisions its own database on
+that shared container via `SqlServerContainerFixture.CreateIsolatedDatabaseAsync(name)` (a
+cheap `CREATE DATABASE`, dropped on disposal). One class (`DatabaseInfrastructureSmokeTests`)
+keeps the canonical `PrismaTestDb` because it deliberately exercises the shared-DB ops. The
+old serial `[CollectionDefinition(DisableParallelization = true)]` gate was removed. Pattern
+& rationale: `docs/qa/test-plans/docker-test-isolation-2026-06.md`. **Don't** reintroduce a
+shared mutable database across parallel classes — give each writer its own DB instead. Ollama
+tests share one read-only container; their first-run slowness is the model download, not sharing.
 
 ### Repo hygiene
 
