@@ -311,6 +311,61 @@ it is **backstopped** by the identical check at L91 inside `GetStrategyConfidenc
 the public API. (The `Montos` `Any`/`==` dedup mutants at L268/L321 *are* killed by the precise count/value
 assertions — they merely re-appear in `Timeout` run-to-run on this large suite.)
 
+### Unit 12: LegalDirectiveClassifierService (2026-06-08) — ✅ 79.68% → 96.02%
+
+The keyword/regex legal-directive classifier in `Infrastructure.Classification`
+(`LegalDirectiveClassifierService.cs` — the fourth Classification file; config now mutates all four). The
+existing `LegalDirectiveClassifierServiceTests` / `...EdgeCaseTests` (23 tests) drove the happy paths with
+loose assertions (`ShouldContain`, `Confidence > 60`) and only ever exercised `MapToComplianceActionAsync`
+with a **Block** directive — so the confidence ladder, the precedence ladder, `DetectDocumentRelationType`
+(never tested at all), the amount/account heuristics, product-type detection, the `Circular` instrument
+pattern, and every `ApplyEdgeCaseValidation` warning were unpinned. (Note: `LegalDirectiveClassifierDictionaryTests`
+despite its name tests `SemanticAnalyzerService`, not this class.) Added `LegalDirectiveClassifierServiceMutationKillingTests.cs`
+(**56 tests; Classification project 167 → 223 green**).
+
+```
+LegalDirectiveClassifierService.cs: Killed 170 -> 241 · Survived 6 -> 0 · Timeout 30 -> 0 · NoCoverage 45 -> 10
+Final mutation score (clean perTest run): 79.68 % -> 96.02 %
+```
+
+What the tests pin (exact-value): `CalculateConfidence` = `60 + matches*10` at 70/80/90 and the `Math.Min(100,..)`
+cap; the `DetermineActionTypeWithPrecedence` order (Unblock>Block>Transfer>Document>Information>Unknown) + the
+per-type confidence selection (incl. the Information/Unknown=30 branches); all four `DocumentRelationType`
+outcomes + the AMPLIA/ACLARA synonyms; the amount pattern-priority ($ > monto > pesos > plain-formatted), the
+`digitsOnly.Length >= 10` account-skip heuristic (with a 9-digit decimal sitting just under the boundary to pin
+**both** `digitsOnly` `Replace` calls) and the same/cross-priority tie-breaks; product-type TARJETA>CUENTA and
+the null case; `DetectLegalInstruments` Circular + exact counts; and every `ApplyEdgeCaseValidation` warning
+(Transfer→CLABE, Unblock→prior-reference, Block→missing-target, low-confidence `< 70` boundary) on **both** the
+MapTo and the `ClassifyDirectivesAsync` code paths.
+
+**Two lessons reinforced on this unit:**
+
+1. **The headline % flaps hard run-to-run (perTest attribution noise on a large/slow suite), even with no
+   regex.** Identical test sets produced 0, 5, 7, and 18 "survivors" across re-runs — almost all of them
+   **Serilog statement/string mutants** (equivalent floor) flip-flopping between Killed/Survived/Timeout because
+   perTest coverage attribution is unstable here. Trust the **Killed delta + "0 killable survivors"** from a
+   clean run, not any single headline.
+
+2. **A one-off `coverage-analysis: "off"` cross-check is worth running to separate real gaps from noise — but
+   read it with two caveats.** Running it (temporarily, then revert to `perTest`) runs every test against every
+   mutant, so attribution luck is removed. It surfaced **three genuine gaps** the noisy perTest runs hid: the
+   `ExtractActionDetails`/`ApplyEdgeCaseValidation` **calls inside the `ClassifyDirectivesAsync` branches**
+   (only the MapTo path was asserted), and a **contaminated test** — `"ordena"` embeds the substring `"ORDEN"`,
+   one of the four prior-reference terms, so a "single reference" test stayed true via a second term and the
+   `||`→`&&` mutants survived (fixed with a 4-term Theory using sentences free of `ordena`). **Caveats:** (a)
+   coverage-off **over-counts** survivors via a Stryker **static-initializer limitation** — the `*Keywords`
+   `string[]` field mutants (L296–300, 23 of them) survive in coverage-off's shared test process because the
+   static array is initialized once and the per-mutant switch never re-runs the initializer; **perTest kills
+   them**. (b) it is slower. So use coverage-off to *find* gaps, but report the score from `perTest`.
+
+**Residual / equivalent floor (10 NoCoverage in the clean run):** the three `catch (Exception)` blocks
+(`LogError` + the `$"…{ex.Message}"` failure message in all three public methods) — unreachable because valid
+string input through `ToUpperInvariant`/`Regex` can't throw; and `CalculateConfidence`'s `if (matches == 0) return 0;`
+— **dead through the public API** because every call site is gated behind the matching `Contains*Directive(text)`,
+so `matches >= 1` always. Also equivalent (when they appear): the `bestMatch == null || …` first clause (when
+`bestMatch` is null the `i < bestPatternPriority` term is always true since the priority is still `int.MaxValue`),
+and the Serilog mutants above.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
