@@ -30,34 +30,45 @@ dotnet stryker
 # HTML report -> ./StrykerOutput/<timestamp>/reports/mutation-report.html
 ```
 
-### Pilot result (2026-06-07b) — ⚠️ wired & runs, but score detection BLOCKED
+### Pilot result (2026-06-07b) — ✅ WORKING, real mutation score
 
-The toolchain runs **end-to-end**: analyze → build → discover **35 tests** → initial test run (passes) →
-generate **257 mutants** → produce an HTML report. This proves the **xunit.v3.mtp-v2 + MTP build/discovery
-integration works**. Getting here required two repo-specific accommodations (guarded, off by default):
+```
+Coverage capture complete: 272 mutations covered, 0 static
+26 mutants NoCoverage · Killed 64 · Survived 167 · Timeout 0
+Final mutation score: 24.90 %   (1m10s)
+```
 
-- `Directory.Build.props`: when `StrykerCompat=true` (env), flatten `OutputPath` **and**
-  `IntermediateOutputPath` to drop the `<Configuration>` segment, because this repo uses the non-standard
-  `bin\<project>\<config>\<tfm>` layout and Stryker reconstructs `bin\<project>\<tfm>` (and `obj\…\ref\`).
-  Run mutation testing with that env var set: `StrykerCompat=true dotnet stryker`.
+The toolchain runs end-to-end and produces a **real, trustworthy score** on the xunit.v3 + MTP +
+custom-artifacts stack. 24.90% is a meaningful first baseline: the 35 passing tests pin only ~¼ of
+`AdaptiveTxtFieldExtractor`'s behavior — the 167 survivors are concrete targets for stronger assertions.
 
-**BUT the mutation score comes back 0.00 % (Killed 0 / Survived 257), even with `coverage-analysis: off`.**
-A uniform 0% with a suite we know is meaningful (35 real assertions) is **not** a "tests are worthless"
-result — it means **Stryker is not observing test kills per mutant** on this stack. Evidence:
-`[ERR] It looks like the test coverage capture failed. Disable coverage based optimisation.` and kills stay
-0 even after disabling coverage. Leading hypothesis: under the MTP runner + the custom artifacts layout, the
-test host loads the **original (un-instrumented) assembly**, so no mutant is ever active.
+**Two settings are MANDATORY here (this is the whole story — both were the cause of an earlier 0% run):**
 
-**Status: capability is scaffolded and proven to build/discover/run, but does NOT yet produce a trustworthy
-mutation score.** Do not gate anything on it yet (`thresholds.break` stays 0).
+1. **`"test-runner": "mtp"` in `stryker-config.json`.** Without it Stryker defaults to the **VSTest bridge**,
+   which against MTP-native test projects (xunit.v3 / `xunit.v3.mtp-v2`) runs tests but **cannot observe
+   kills** → a uniform **0% score that is always broken**. This is non-negotiable for any MTP project.
+2. **Output-path accommodation for this repo's custom layout.** `Directory.Build.props` has a guarded,
+   OFF-by-default block: when `StrykerCompat=true` (env var, surfaced to MSBuild), `OutputPath` and
+   `IntermediateOutputPath` flatten to drop the `<Configuration>` segment, because this repo uses the
+   non-standard `bin\<project>\<config>\<tfm>` layout and Stryker reconstructs `bin\<project>\<tfm>`
+   (and `obj\…\ref\`). Run mutation testing with it set:
+   ```bash
+   StrykerCompat=true dotnet stryker   # from the test project dir
+   ```
+   Repos that use the **default** `bin/<config>/<tfm>` layout (e.g. IndFusion.Ember) need **only** setting #1.
 
-**Next steps to make the score real (focused follow-up):**
-1. Confirm the instrumented-assembly load path — check Stryker's sandbox vs. the flattened BuildArtifacts
-   output; the custom layout may misdirect which `Infrastructure.Extraction.Txt.dll` the MTP host loads.
-2. Try a temporary **conventional output layout** for the two projects (default `bin/Debug/net10.0`,
-   no BuildArtifacts redirect) to isolate whether the custom layout is the cause.
-3. Try the **VSTest bridge** path (`test-runner`) instead of the native MTP runner, or a newer Stryker.
-4. If unresolved, file/track upstream (Stryker + MTP + SDK custom `OutputPath`).
+## Cross-repo guideline (for restoring mutation testing org-wide)
+Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
+same MTP `global.json`):
+
+| Concern | Required | Notes |
+|---|---|---|
+| Stryker version | `dotnet-stryker` **4.x** (4.14.2 verified) | 4.x is the first line supporting xUnit v3 + MTP (~2026-03). Pin it in `.config/dotnet-tools.json`. |
+| **Test runner** | **`"test-runner": "mtp"`** | MANDATORY for MTP/xunit.v3 projects. Omitting it = silent 0% via the VSTest bridge. The single most important setting. |
+| Coverage analysis | `"perTest"` works once test-runner is `mtp` | With the VSTest default, coverage capture *fails* ("coverage capture failed"); with `mtp` it succeeds. |
+| Config location | next to the **project under test** (Ember) or the **test project** (this repo) | Both work; set `project` + `test-projects` to disambiguate. |
+| Output layout | default `bin/<config>/<tfm>` → nothing needed | Custom/redirected `OutputPath` (this repo) needs the `StrykerCompat` flatten above, or Stryker can't find the binaries / `ref` assemblies. |
+| Strict config | no unknown keys (not even `_comment`) | Stryker validates `stryker-config.json` strictly and aborts on extras. |
 
 ## How to expand
 Mutation runs are **expensive** (each mutant re-runs the suite), so scale deliberately:

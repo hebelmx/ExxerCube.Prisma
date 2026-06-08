@@ -4,10 +4,11 @@
     "test-projects": [
       "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Txt.csproj"
     ],
+    "test-runner": "mtp",
     "mutate": [
       "**/AdaptiveTxtFieldExtractor.cs"
     ],
-    "coverage-analysis": "off",
+    "coverage-analysis": "perTest",
     "reporters": [
       "html",
       "progress",
