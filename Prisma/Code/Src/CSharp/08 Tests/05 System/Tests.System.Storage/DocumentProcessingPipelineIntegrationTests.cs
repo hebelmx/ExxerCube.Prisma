@@ -19,7 +19,6 @@ namespace ExxerCube.Prisma.Tests.System.Storage;
 ///
 /// All events persisted to SQL Server for complete traceability and ML analysis.
 /// </summary>
-[Collection("DatabaseInfrastructure")]
 public class DocumentProcessingPipelineIntegrationTests : IDisposable
 {
     private readonly SqlServerContainerFixture _fixture;
@@ -54,21 +53,23 @@ public class DocumentProcessingPipelineIntegrationTests : IDisposable
         _output = output;
         _fixture.EnsureAvailable();
 
+        // Isolated database on the shared container → parallel-safe (replaces the former
+        // DisableParallelization + CleanDatabaseAsync shared-database approach).
+        var connectionString = _fixture
+            .CreateIsolatedDatabaseAsync(nameof(DocumentProcessingPipelineIntegrationTests))
+            .GetAwaiter()
+            .GetResult();
+
         _dbOptions = new DbContextOptionsBuilder<PrismaDbContext>()
-            .UseSqlServer(_fixture.ConnectionString)
+            .UseSqlServer(connectionString)
             .Options;
 
-        // Apply EF Core database creation strategy using DatabaseFacade API
-        // Strategy: Use EnsureCreatedAsync for tests (creates schema from model without migrations)
         using (var context = new PrismaDbContext(_dbOptions))
         {
-            var database = context.Database;
-            database.EnsureCreatedAsync(TestContext.Current.CancellationToken)
+            context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken)
                 .GetAwaiter()
                 .GetResult();
         }
-
-        _fixture.CleanDatabaseAsync().GetAwaiter().GetResult();
 
         // Set up dependency injection for all pipeline services
         var services = new ServiceCollection();

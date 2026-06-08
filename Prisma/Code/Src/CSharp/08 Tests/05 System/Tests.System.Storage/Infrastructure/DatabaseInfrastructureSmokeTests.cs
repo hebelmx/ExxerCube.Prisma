@@ -8,7 +8,10 @@ namespace ExxerCube.Prisma.Tests.System.Storage.Infrastructure;
 /// EF Core migrations can be applied, data can be seeded, and basic CRUD operations work.
 /// These tests validate the testing infrastructure itself, not business logic.
 /// </summary>
-[Collection("DatabaseInfrastructure")]
+// No [Collection]: shares the assembly-level SqlServerContainerFixture (one container) but runs
+// in its own implicit collection. It is the SOLE user of the canonical shared database
+// (PrismaTestDb) — the pipeline writer classes use isolated databases — so it cannot collide.
+// This class deliberately exercises the shared-DB fixture operations (ApplyMigrations/CleanDatabase).
 public sealed class DatabaseInfrastructureSmokeTests : IDisposable
 {
     private readonly SqlServerContainerFixture _fixture;

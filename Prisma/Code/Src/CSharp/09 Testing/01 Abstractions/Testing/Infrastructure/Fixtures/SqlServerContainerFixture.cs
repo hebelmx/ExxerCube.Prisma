@@ -47,6 +47,104 @@ public sealed class SqlServerContainerFixture : ContainerFixtureBase<MsSqlContai
     /// </summary>
     public string Password => DefaultPassword;
 
+    // Names of per-test isolated databases created on this shared container, dropped on disposal.
+    private readonly List<string> _isolatedDatabases = new();
+    private readonly object _isolatedDbLock = new();
+
+    /// <summary>
+    /// Creates an isolated database on this shared container for a single test class, so that
+    /// write-heavy tests can run in parallel without colliding on one shared database (which is
+    /// what previously forced <c>DisableParallelization</c>). The container is started once; each
+    /// caller gets its own cheap <c>CREATE DATABASE</c>. The database is dropped on fixture disposal.
+    /// </summary>
+    /// <param name="name">A caller identifier (typically the test class name) used to derive a stable database name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A connection string targeting the freshly-created isolated database.</returns>
+    public async Task<string> CreateIsolatedDatabaseAsync(string name, CancellationToken cancellationToken = default)
+    {
+        EnsureAvailable();
+
+        var safe = new string((name ?? "Test").Where(char.IsLetterOrDigit).ToArray());
+        if (safe.Length == 0)
+        {
+            safe = "Test";
+        }
+        if (safe.Length > 96)
+        {
+            safe = safe[..96];
+        }
+        var dbName = $"PrismaTest_{safe}";
+
+        // Connect to the container's default (master) connection to create the database.
+        var masterConnectionString = Container!.GetConnectionString();
+        await using (var connection = new SqlConnection(masterConnectionString))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = $@"
+                IF EXISTS (SELECT name FROM sys.databases WHERE name = N'{dbName}')
+                BEGIN
+                    ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                    DROP DATABASE [{dbName}];
+                END;
+                CREATE DATABASE [{dbName}];";
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        lock (_isolatedDbLock)
+        {
+            _isolatedDatabases.Add(dbName);
+        }
+
+        var isolatedConnectionString = new SqlConnectionStringBuilder(masterConnectionString)
+        {
+            InitialCatalog = dbName
+        }.ConnectionString;
+
+        LogMessage($"✅ Isolated database '{dbName}' created (parallel-safe; container shared)");
+        return isolatedConnectionString;
+    }
+
+    /// <summary>
+    /// Drops all isolated databases created via <see cref="CreateIsolatedDatabaseAsync"/>.
+    /// </summary>
+    private async Task DropIsolatedDatabasesAsync()
+    {
+        List<string> toDrop;
+        lock (_isolatedDbLock)
+        {
+            toDrop = new List<string>(_isolatedDatabases);
+            _isolatedDatabases.Clear();
+        }
+
+        if (toDrop.Count == 0 || !IsAvailable)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var connection = new SqlConnection(Container!.GetConnectionString());
+            await connection.OpenAsync();
+            foreach (var dbName in toDrop)
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = $@"
+                    IF EXISTS (SELECT name FROM sys.databases WHERE name = N'{dbName}')
+                    BEGIN
+                        ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                        DROP DATABASE [{dbName}];
+                    END;";
+                await cmd.ExecuteNonQueryAsync();
+            }
+            LogMessage($"✅ Dropped {toDrop.Count} isolated database(s)");
+        }
+        catch (Exception ex)
+        {
+            LogMessage($"⚠️ Failed to drop isolated databases (non-fatal): {ex.Message}");
+        }
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SqlServerContainerFixture"/> class.
     /// Uses TestContext.Current.SendMessage() for logging container lifecycle events.
@@ -269,6 +367,7 @@ public sealed class SqlServerContainerFixture : ContainerFixtureBase<MsSqlContai
     /// <returns>A Task representing the asynchronous cleanup operation.</returns>
     protected override async Task PerformCustomCleanupAsync()
     {
+        await DropIsolatedDatabasesAsync();
         await CleanDatabaseAsync();
     }
 }

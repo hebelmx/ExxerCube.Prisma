@@ -4,7 +4,6 @@ namespace ExxerCube.Prisma.Tests.System.Storage;
 /// Mission 1 happy-path system test: Ingestion → OCR/Extraction → Reconciliation → Storage with full telemetry.
 /// Uses real SQL Server container, real PRP1 fixtures, and persists audit trail with consistent correlation IDs.
 /// </summary>
-[Collection("DatabaseInfrastructure")]
 public class Mission1HappyPathPipelineTests : IAsyncLifetime, IDisposable
 {
     private readonly SqlServerContainerFixture _fixture;
@@ -34,16 +33,19 @@ public class Mission1HappyPathPipelineTests : IAsyncLifetime, IDisposable
     {
         _fixture.EnsureAvailable();
 
+        // Isolated database on the shared container → parallel-safe.
+        var connectionString = await _fixture.CreateIsolatedDatabaseAsync(
+            nameof(Mission1HappyPathPipelineTests),
+            TestContext.Current.CancellationToken);
+
         _dbOptions = new DbContextOptionsBuilder<PrismaDbContext>()
-            .UseSqlServer(_fixture.ConnectionString)
+            .UseSqlServer(connectionString)
             .Options;
 
         await using (var context = new PrismaDbContext(_dbOptions))
         {
             await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
         }
-
-        await _fixture.CleanDatabaseAsync();
 
         var services = new ServiceCollection();
         services.AddScoped<IPrismaDbContext>(_ => new PrismaDbContext(_dbOptions));

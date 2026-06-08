@@ -5,7 +5,6 @@ namespace ExxerCube.Prisma.Tests.System.Storage;
 /// Tests that domain events are correctly persisted to the AuditRecords table.
 /// Uses containerized SQL Server via SqlServerContainerFixture.
 /// </summary>
-[Collection("DatabaseInfrastructure")]
 public class EventPersistenceWorkerIntegrationTests : IDisposable
 {
     private readonly SqlServerContainerFixture _fixture;
@@ -40,28 +39,25 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
         // Ensure SQL Server container is available
         _fixture.EnsureAvailable();
 
-        // Set up SQL Server Container with real connection string
+        // Provision an isolated database on the shared container so this class runs in parallel
+        // with the other DB test classes without colliding on a shared database (replaces the
+        // former DisableParallelization + CleanDatabaseAsync approach).
+        var connectionString = _fixture
+            .CreateIsolatedDatabaseAsync(nameof(EventPersistenceWorkerIntegrationTests))
+            .GetAwaiter()
+            .GetResult();
+
         _dbOptions = new DbContextOptionsBuilder<PrismaDbContext>()
-            .UseSqlServer(_fixture.ConnectionString)
+            .UseSqlServer(connectionString)
             .Options;
 
-        // Apply EF Core database creation strategy using DatabaseFacade API
-        // Strategy: Use EnsureCreatedAsync for tests (creates schema from model without migrations)
-        // This is faster and doesn't require maintaining migration files for test databases
+        // EnsureCreatedAsync creates the schema from the current model on the isolated database.
         using (var context = new PrismaDbContext(_dbOptions))
         {
-            var database = context.Database;
-
-            // EnsureCreatedAsync creates the database schema from the current model
-            // Idempotent - safe to call multiple times (only creates if not exists)
-            // Better for tests than Migrate() which requires migration files
-            database.EnsureCreatedAsync(TestContext.Current.CancellationToken)
+            context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken)
                 .GetAwaiter()
                 .GetResult();
         }
-
-        // Clean database before each test to ensure isolated test state
-        _fixture.CleanDatabaseAsync().GetAwaiter().GetResult();
 
         // Set up service collection for dependency injection
         var services = new ServiceCollection();
