@@ -188,3 +188,136 @@ chosen C# OCR engine genuinely works) surfaced two issues not visible from unit 
 
 > Destination unchanged: a working CNBV/SIARA compliance pipeline. This matrix marks the
 > route — it does **not** declare arrival.
+
+---
+
+## 9. LIVE VERIFICATION RUN (2026-06-07b) — dual-track, suites actually executed
+
+Earlier sections (§1–§8) are **static-wiring** truth. This section records a **full
+verification pass** where the suites were *actually run* on a Docker- + Playwright-capable
+machine (.NET 10.0.300, Docker 29.5.2, Playwright 1.56.1), the Web.UI was **launched for
+real**, and results are organized by the two delivery tracks the product ships as:
+**Track A = the headless product** (Athena/Orion/Sentinel workers) and **Track B = the
+demo UI** (`Web.UI`, the tangible artifact for shareholders). This *upgrades* §6 from
+"largely unverified" to "verified green," and corrects two doc-level overclaims.
+
+### 9.0 Headline corrections to prior docs
+| Claim (old) | Verified reality (2026-06-07b) | Where it lived |
+|---|---|---|
+| "**195 / 200+ projects**" (enterprise scale) | **~70 projects** in the solution (**33 production + 37 test**); 73 `.csproj` on disk. The repo-wide `find` returns 217 only because it counts `scripts/*_backups/**` (old `ExxerAI.*` clone snapshots), `doc_quality/.../sample_repo`, and `Samples/GotOcr2Sample`. The product was never ~195 projects — the figure predates the housekeeping that removed the duplicated `ExxerAI` tree. | `CLAUDE.md`, `STAKEHOLDER_PRESENTATION_READINESS.md` |
+| "Adaptive DOCX — 5 strategies, **tested**" | Implementation real + built, but its **126-test project was excluded from the solution AND failed to compile** (`CS0234`: `ProjectReference` to `Testing.*` used 7 `..\` instead of 3). 126 tests were **dark**. **✅ FIXED this pass:** corrected the reference depth, re-added the project to the `.sln` → **126/126 green**, solution still builds **0/0**. | `Infrastructure/.../Tests.Infrastructure.Extraction.Adaptive` |
+| "600+ tests" | Actually an **undercount** — ~**1,670+ executed** across the run below (project count was inflated; test count was deflated). | `STAKEHOLDER_PRESENTATION_READINESS.md` |
+
+### 9.1 Build
+`dotnet build` of the full solution: **succeeded, 0 warnings / 0 errors** (4m52s); re-verified
+**0/0** after re-adding the adaptive test project (3m). `dotnet list package --vulnerable`: clean (prior).
+
+### 9.2 Verified test results (all executed this pass)
+**Core (track-agnostic):** Domain ✅, Application ✅, Architecture ✅, Domain.Interfaces ✅,
+Orchestration ✅ — all `Passed!`, 0 failed / 0 skipped.
+
+**Infrastructure:** Classification 126/126 · Export 26/26 · Export.Adaptive 75/75 · Extraction 86/86 ·
+**Extraction.Adaptive 126/126 (after fix — was 0/dark)** · Extraction.Txt 35/35 · FileStorage 10/10 ·
+FileSystem 24/24 · Imaging 44/44 · Metrics 18/18 · Events 10/10 · Auth 20/20 · System.XmlExtraction(02) 9/9 ·
+**Extraction.Teseract 154/154 (real Tesseract OCR)** · Extraction.Python 0 (dormant) · Extraction.GotOcr2 16 **skipped** (VLM dormant by design).
+
+**Services:** Athena.HealthChecks 13/13 · Athena.Processing 35/35 · Athena.Worker 9/9 (host boots) ·
+Orion.HealthChecks 19/19 · Orion.Ingestion 8/8 · Orion.Worker 9/9 (host boots) · Sentinel.Monitor 16/16 ·
+HMI 13/13.
+
+**System / Docker / E2E (the formerly-UNVERIFIED tier — now green):**
+System.Export.Adaptive 15/15 · System.XmlExtraction(05) 9/9 · System.Ocr.Pipeline 25/25 *(flaky: one
+transient live-OCR failure then 25/25 — variance, not a stable red)* · **System.Storage (Testcontainers MsSql) 39/39** ·
+**Infrastructure.Database (Testcontainers MsSql) 110/110** · **Tests.UI (Playwright + WebAppFactory) 21/21** ·
+**BrowserAutomation.E2E 18/18** · **Tests.EndToEnd 29/29**.
+
+> §6's "Playwright / full-host / Ollama-model E2E — still UNVERIFIED" and "SQL DB integration —
+> needs Docker" rows are now **superseded**: the Docker SQL + Playwright/UI + E2E suites all run **green**.
+> The only non-green outcomes are (a) the *flaky* live-OCR pipeline test and (b) the *intentionally
+> skipped* GOT-OCR2/Python VLM tests.
+
+### 9.3 Track B — Web.UI launched for real
+Booted `Web.UI` via `dotnet run` (connection strings overridden to LocalDB) on this machine:
+- `GET /` → **HTTP 200, ~82 KB**, MudBlazor markup rendered (real Blazor shell).
+- `GET /health` → **HTTP 200 "Healthy"**. `/Account/Login` (Identity) → 200.
+- The app **boots gracefully even when the DB seed fails** (`TemplateSeeder` hit SQL error 17892 — a
+  logon-trigger rejection; Program.cs catches it and continues). DB-backed pages would error until SQL
+  is reachable, but the UI starts and serves.
+
+**Track B demo-readiness notes (new):**
+- **Hardcoded DB endpoint:** `appsettings.json` pins `Server=DESKTOP-FB2ES22\SQL2022` (Integrated
+  Security). The demo **won't start on a fresh machine** without editing the connection string (or
+  pointing it at LocalDB). Externalize before any off-box demo.
+- **Template leftovers:** `Counter.razor` and `Weather.razor` (default Blazor scaffolding) are still in
+  `Components/Pages` — remove before presenting.
+- **Thin page-render coverage:** `Tests.UI` is mostly service-level (PdfProcessing 9, DocumentComparison 9);
+  only **2 navigation-smoke** tests + 1 registry test render pages — the 15 dashboards are not each render-tested.
+- ✅ The document-processing demo path runs **real OCR** on fixtures (`PdfProcessingService` →
+  `IFieldExtractor<PdfSource>`), not mocked.
+
+### 9.4 Track A — product (headless) confirmations
+- Athena.Worker wires all 5 stages **real**, incl. the OCR→Fusion `txtFieldExtractor` thread (`Program.cs:42,53`).
+- Orion.Worker wires `StubDocumentDownloader` + `StubExxerHub` (`:17,:20`) — see §9.6 for the *corrected*
+  reading of this (download capability exists elsewhere; the gap is headless-chain integration, not "no download").
+- Dashboard services still stubs (zeros); readiness probe still `TODO IsStarted`.
+- **Sentinel** library real + 16/16 tests, but **no Worker host** — built, not deployed as a running service.
+- **HMI** (`Prisma.HMI.Tests`, 13/13): its "production" types (`NotificationQueue`, `INotificationQueue`,
+  `Notification`, `NotificationSeverity`) live **inside the test project** — it's a prototype, **not a
+  wired service**. Not in the CLAUDE.md services table for good reason; track as experimental.
+
+### 9.6 Ingestion / SIARA download — CORRECTED reading (supersedes §2 Orion "nothing real enters")
+
+> **Correction (owner input, 2026-06-07b):** earlier matrix wording ("`StubDocumentDownloader` only;
+> no real SIARA ingestion; nothing real enters the pipeline") **understates reality.** Document
+> download against the SIARA simulator **works and was demonstrated to stakeholders.** The accurate
+> gap is *headless ingestion-chain integration*, not a missing download capability.
+
+- **Download works (demoed) via the browser-automation path.** `SiaraNavigationTarget.RetrieveDocumentsAsync`
+  (`Infrastructure.BrowserAutomation/NavigationTargets/SiaraNavigationTarget.cs:59`) navigates the simulator
+  and calls `IdentifyDownloadableFilesAsync(["*.pdf","*.xml","*.docx"])` → `List<DownloadableFile>`. Wired in
+  the UI via `AddBrowserAutomationServices` + `DocumentIngestionService`/`FileDownloadService`. This is the
+  Playwright/scraping mechanism (BrowserAutomation.E2E 18/18 green).
+- **The simulator is purpose-built to model SIARA.** `tools/Siara.Simulator` is a real ASP.NET app
+  (authentication, `CaseService`, `DistributionService` = Poisson case arrival, `Models/Case`) that exposes
+  cases as **download links on a page** — the shape the real portal is expected to take. There is **no SIARA
+  API/spec**, so the real connector will be **standard web-scraping**, adapted from the simulator scraper.
+- **What is NOT integrated (the real gap):**
+  1. The working browser-automation scraper is **not yet adapted into the Orion `IDocumentDownloader` port**
+     — the headless worker still wires `StubDocumentDownloader`. (Per-document ingestion ROP
+     `IngestionOrchestrator.IngestDocumentAsync` is real + tested 8/8; only the *source* is stubbed there.)
+  2. `IngestionOrchestrator.StartAsync()` is a **placeholder** (`IngestionOrchestrator.cs:268-273`,
+     "implement SIARA polling…") — the autonomous watcher/poller isn't wired.
+  3. The Orion worker still uses `StubExxerHub`; the **real Ember transport** (`AddSignalRAbstractions`) is
+     only wired in the UI (`Web.UI/Program.cs:166`).
+- **Agreed architectural direction (Three-Actors / Ember):** split ingestion into **3 separately-hosted
+  processes — Downloader, Extractor, Reconciliator — coordinated via the published `IndFusion.Ember` nuget**
+  (`IExxerHub<T>` for events/data, `IServiceHealth<T>` for health, `Dashboard<T>` for display; repo
+  `E:\Dynamic\IndFusion\IndFusion.Ember`, see ADR-009). The earlier "events vs pipeline" debate resolved to
+  this 3-process, Ember-coordinated split. Today only the **monolithic worker hosts** exist (Orion/Athena),
+  with Ember real in the UI and stubbed in the workers.
+
+**Auth & volume requirements (owner input 2026-06-07b) — these shape the Downloader process design:**
+- **No SIARA auth API; login is a basic web form.** The system must **never hold raw credentials.** Two
+  candidate approaches (both deliberate workarounds, *not* attacks): (a) **session passthrough** — the
+  downloader rides an *existing authenticated browser session* (a sanctioned "MITM-style" handoff of the
+  live session, no credential capture); or (b) **interactive one-time login** — a human authenticates once
+  and the session is kept warm/refreshed for the downloader. Decision pending; both avoid storing secrets.
+- **Volume is low/moderate: ~500–2,000 documents/day arriving at random hours.** Not a throughput concern —
+  the poll/watcher cadence can be relaxed; no high-performance ingestion needed. Idempotency (already in
+  `IngestionJournal` via SHA-256 dedup) matters more than speed.
+- **Current manual process being replaced:** staff repeatedly refresh (F5) the SIARA portal and download new
+  documents by hand when they appear. The downloader process automates exactly this watch-and-pull loop.
+
+### 9.7 Net effect on the roadmap
+P0 item 1 ("establish integration/E2E truth") is now **substantially done** — Docker SQL + Playwright/UI +
+E2E are green; only the flaky live-OCR test and the (deliberately) skipped VLM tests remain non-green.
+The **leverage gap is the ingestion-chain integration** (§9.6): adapt the working scraper into the
+`IDocumentDownloader` port + implement the watcher + replace the stub hub with real Ember, ideally as the
+agreed 3-process split — **not** "build a downloader from scratch," and **not** test infrastructure. Track B
+needs only demo config/polish (hardcoded connection string, template-page cleanup).
+
+---
+
+> Destination unchanged: a working CNBV/SIARA compliance pipeline. The route is now **walked
+> and measured end-to-end in the suites + a live UI boot**, not just traced. It still does **not**
+> declare arrival — ingestion is stubbed — but the distance left is smaller and now evidence-backed.

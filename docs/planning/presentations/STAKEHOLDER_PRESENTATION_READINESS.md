@@ -1,4 +1,15 @@
 > **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+>
+> **⚠️ Metric corrections (2026-06-07b, verified):** Two headline numbers in this doc are wrong and
+> must NOT be presented as-is:
+> 1. **"195 projects" is overstated ~3×.** The solution is **~70 projects (33 production + 37 test)**.
+>    The inflated count came from a repo-wide scan that swept backup folders (`scripts/*_backups/**`,
+>    old `ExxerAI.*` clone snapshots), sample repos, and `Samples/GotOcr2Sample`. Use **~70** — still a
+>    substantial, clean hexagonal solution. Presenting an inflated count is a credibility risk if checked.
+> 2. **"600+ tests" is an UNDERcount.** A full run executed **~1,670+ tests green** (incl. Docker SQL,
+>    Playwright/UI, E2E). The Web.UI was also launched live (HTTP 200, MudBlazor renders, `/health` Healthy).
+>    Per-suite evidence: GAP-MATRIX §9. **Demo prep:** externalize the hardcoded `DESKTOP-FB2ES22\SQL2022`
+>    connection string and delete the `Counter.razor`/`Weather.razor` Blazor template leftovers first.
 
 # STAKEHOLDER PRESENTATION READINESS REPORT
 **Report Date**: 2025-11-29

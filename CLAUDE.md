@@ -195,8 +195,15 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 - **Readiness probes** — present but stubbed (`// TODO: orchestrator.IsStarted`).
 
 **Planned (stub / placeholder / missing):**
-- **Orion document download** — `IDocumentDownloader` is `StubDocumentDownloader` (returns
-  empty bytes); no real SIARA ingestion yet. Highest-impact gap for true end-to-end flow.
+- **Orion headless ingestion chain** — *not* "download doesn't work." Document download against the
+  SIARA simulator **works and was demoed** via the browser-automation/scraping path
+  (`SiaraNavigationTarget` + `DocumentIngestionService`, wired in the UI; the simulator
+  `tools/Siara.Simulator` models SIARA's links-on-a-page shape; no SIARA API exists, so web-scraping is
+  the deliberate approach). The gap is **headless integration**: the Orion worker still wires
+  `StubDocumentDownloader` + `StubExxerHub`, the working scraper isn't yet adapted into the
+  `IDocumentDownloader` port, and `IngestionOrchestrator.StartAsync()` (the poll/watcher) is a placeholder.
+  **Agreed direction:** split into **3 Ember-coordinated processes — Downloader / Extractor / Reconciliator**
+  (`IndFusion.Ember` "Three Actors", ADR-009). Highest-leverage remaining integration work. Details: GAP-MATRIX §9.6.
 - Worker `/dashboard` metrics — `Orion/AthenaDashboardService` return zeros (UI Dashboard uses the working `IProcessingMetricsService`).
 - PersonIdentityResolver DB persistence; PDF text extraction (returns empty pending iText/PdfSharp); CSnakes Python ML runtime interop. *(2026-06-07: the "3 skipped TXT extractor edge cases" were fixed, and `XmlFieldExtractor` was confirmed real + hardened — both removed from this list.)*
 - Sentinel monitoring service — **not yet traced; status unknown.**
@@ -211,6 +218,35 @@ was fixed by enabling `CentralPackageTransitivePinningEnabled` and pinning
 `System.Security.Cryptography.Xml 10.0.8`; OpenTelemetry was bumped to 1.15.x to
 clear its Moderate CVEs. Packages were updated to latest stable (see
 `Directory.Packages.props`).
+
+#### Live verification pass (2026-06-07b) — suites actually run + UI launched
+
+A full **dual-track** verification was run on a Docker- + Playwright-capable machine (not just
+static tracing). Evidence + per-suite numbers: GAP-MATRIX §9
+(`docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md`).
+
+- **Project count corrected:** the solution is **~70 projects (33 production + 37 test)**, **not
+  the "195 / 200+" cited in this file and `STAKEHOLDER_PRESENTATION_READINESS.md`.** The repo-wide
+  217 `.csproj` count is inflated by `scripts/*_backups/**` (old `ExxerAI.*` clone snapshots),
+  `doc_quality/.../sample_repo`, and `Samples/GotOcr2Sample`. The inflated figure predates the
+  housekeeping that removed the duplicated `ExxerAI` tree. **Don't repeat 195/200.**
+- **Adaptive-DOCX tests were dark — now fixed:** `Tests.Infrastructure.Extraction.Adaptive` (126
+  tests, all 5 DOCX strategies) was **excluded from the `.sln` and failed `CS0234`** (its
+  `ProjectReference` to `Testing.*` used 7 `..\` instead of 3). Fixed the depth + re-added to the
+  solution → **126/126 green**, solution still **0/0**. So "adaptive DOCX tested" is now *actually* true.
+- **Formerly-"UNVERIFIED" tiers now green:** Docker SQL (`System.Storage` 39/39,
+  `Infrastructure.Database` 110/110 via Testcontainers), Playwright/UI (`Tests.UI` 21/21),
+  `BrowserAutomation.E2E` 18/18, `Tests.EndToEnd` 29/29. Real OCR `Extraction.Teseract` 154/154.
+  ~**1,670+ tests** executed green (the "600+ tests" claim was an undercount).
+- **Non-green (expected):** `System.Ocr.Pipeline` is **flaky** (one transient live-OCR fail then
+  25/25 — variance); `Extraction.GotOcr2` 16 tests **skipped** (VLM dormant by design);
+  `Extraction.Python` 0 (dormant). These are not defects.
+- **Web.UI launched for real:** `GET /` → HTTP 200 (MudBlazor renders), `/health` → "Healthy"; boots
+  gracefully even when DB seed fails (caught). **Demo caveats:** `appsettings.json` hardcodes
+  `Server=DESKTOP-FB2ES22\SQL2022` (won't start off-box without reconfig); `Counter.razor` /
+  `Weather.razor` template leftovers should be removed before presenting.
+- **HMI** (`Prisma.HMI.Tests` 13/13) is a notification-queue **prototype whose types live inside the
+  test project** — not a wired service; track as experimental, not in the services table.
 
 **Held back deliberately (need a dedicated, decision-gated upgrade):**
 - **MudBlazor** at `8.11` — `9.x` is a major UI migration (`ChartSeries<T>`,
