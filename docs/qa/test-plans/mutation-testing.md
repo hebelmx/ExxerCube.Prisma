@@ -89,6 +89,39 @@ Killing those would require log-output inspection or contrived inputs that don't
    ```
    Repos that use the **default** `bin/<config>/<tfm>` layout (e.g. IndFusion.Ember) need **only** setting #1.
 
+### Second unit: EnhancedFieldMergeStrategy (2026-06-08) — ✅ 66.22% → 87.16%
+
+Widened the same survivor-driven approach to a second deterministic unit in the Adaptive-DOCX project
+(`Infrastructure.Extraction.Adaptive` → `EnhancedFieldMergeStrategy.cs`, driven by the 126-test
+`Tests.Infrastructure.Extraction.Adaptive`). Config: a second `stryker-config.json` next to that test
+project with `mutate: ["**/EnhancedFieldMergeStrategy.cs"]`.
+
+Baseline survivor analysis (Killed 61 / Survived 10 / Timeout 37 / **NoCoverage 40**) showed the existing
+`*LiskovTests` verify the `IFieldMergeStrategy` contract on happy paths but **only ever exercise an
+Expediente conflict**, never assert conflict details, and never merge `AdditionalFields` or feed duplicate
+`Montos`/`Fechas`. Added `EnhancedFieldMergeStrategyMutationKillingTests.cs` (18 tests; 126+18=144 green)
+pinning: per-field conflict details (`ResolvedValue` / `ResolutionStrategy` strings `"First non-null value"`
+and `"Primary source preference"` / exact `ConflictingValues`) for both overloads, no-conflict-on-identical-
+values, the `MergedFieldNames` bookkeeping, secondary-fill branches, and the collection-dedup rules
+(`AdditionalFields` first-key-wins, `Montos` unique-by-`(Currency,Value)`, `Fechas` exact-dedup).
+
+```
+296 mutations covered · Killed 61 -> 124 · Survived 10 -> 7 · NoCoverage 40 -> 12 · Timeout 37 -> 5
+Final mutation score: 66.22 % -> 87.16 %
+```
+
+Two notes for future expansion:
+- **Score formula (confirmed here):** `(Killed + Timeout) / (Killed + Timeout + Survived + NoCoverage)`.
+  `NoCoverage` counts against you (so adding *any* covering test helps); `Timeout` counts as detected.
+- **Timeouts were runner overhead, not hangs:** the 37 baseline timeouts (spread across logging / `SourceCount++`
+  lines that can't loop) collapsed to 5 once the NoCoverage lines got real tests — they were MTP per-mutant
+  session overhead tripping a short timeout, not infinite loops. Adding coverage stabilizes them.
+
+The residual 7 survivors + 12 NoCoverage are the equivalent-mutant floor: redundant
+`ThrowIfCancellationRequested` checkpoints (removing the first is masked by the second), the defensive
+`catch (OperationCanceledException)` / `catch (Exception)` logging blocks (unreachable without a contrived
+mid-merge cancellation — the token check throws *before* the `try`), and Serilog statements.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
