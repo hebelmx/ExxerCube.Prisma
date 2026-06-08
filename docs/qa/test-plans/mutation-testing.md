@@ -204,6 +204,66 @@ tests.
 > **Two open conflict-detection findings now exist** (this one and the FieldMatcher `CollectAdditional` one).
 > Both are paths that silently never fire; consider tackling them together in a dedicated session.
 
+### Units 6–10: the five Adaptive-DOCX strategies (2026-06-08)
+
+The five `IAdaptiveDocxStrategy` implementations in `Infrastructure.Extraction.Adaptive/Strategies/`
+(`TableBased`, `StructuredDocx`, `ContextualDocx`, `SearchExtraction`, `ComplementExtraction`), driven by the
+same `Tests.Infrastructure.Extraction.Adaptive` project. Each had a `*LiskovTests` that verifies the
+interface contract on one rich sample document but with **loose assertions** — `if (AdditionalFields.ContainsKey(...))`
+guards, `ShouldContain`, `ShouldBeGreaterThan(0)`, confidence *ranges* (`>= 70/85`) — so the field mappings,
+the confidence ladders, the currency-normalization switches, the per-branch `hasAnyData` bookkeeping and the
+cleanup regexes were never pinned to exact values. The project's `stryker-config.json` now mutates all six
+hardened files (the five strategies + `EnhancedFieldMergeStrategy`). Adaptive project **126 → 282 tests**, all green.
+
+| Unit | New tests | Killed (Δ) | Outcome |
+|---|---|---|---|
+| TableBasedDocxStrategy | 26 | 99 → 157 | 63.19% → **96.32%**, 0 survivors |
+| StructuredDocxStrategy | 25 | 101 → 132 | every observable mutant killed |
+| ContextualDocxStrategy | 29 | 41 → 103 | 84.62% → **96.45%**, 0 survivors |
+| SearchExtractionStrategy | 29 | 54 → 138 | every observable mutant killed |
+| ComplementExtractionStrategy | 29 | 49 → 120 | 93.58% → **97.25%**, 0 survivors |
+
+What the new tests pin (per unit, exact-value): the confidence ladders at their exact rungs/boundaries
+(pipe-count 95/85/60/0 for TableBased; label-count 90/75/50/0 for StructuredDocx; keyword-count 80/70/50/0
+for ContextualDocx; and the `(keywordCount, extractionScore)` **2-tuple** switches 75/65/50/0 and 85/75/60/0
+for Search/Complement — each crafted to sit on its boundary), the `CanExtract` thresholds (whitespace + the
+`>= 2` keyword boundary), the shared currency switch (`M.N.`/`pesos` → MXN, USD, EUR prefix, default MXN), the
+`amount > 0` zero-rejection (Search), single-core-field non-null results + the no-data null return, the
+Causa/Accion cleanup regexes, and the exact extended-field/account values (NumeroOficio, AutoridadNombre, RFC,
+CLABE incl. standalone-no-keyword, Banco) the Liskov tests only checked behind `ContainsKey` guards.
+
+**The dominant lesson — timeout-inflated baselines (READ THIS before trusting a regex-heavy unit's score).**
+StructuredDocx/Search/Complement (and to a lesser degree the others) are **regex-heavy**, and Stryker counts a
+**`Timeout` as killed** (a mutation that hangs the suite is "detected"). When a mutated regex pattern triggers
+catastrophic backtracking it times out — so on a cold/high-variance run dozens-to-hundreds of mutants land in
+`Timeout` and inflate the headline score. Examples observed: StructuredDocx **baseline 94.97% with 92 timeouts**
+that, once real coverage was added, collapsed to ~11–22 timeouts and exposed the true survivors (the score then
+read 67–86% **across identical re-runs** purely on timeout count); Search baseline 129 timeouts; Complement 155.
+**Consequences for the loop:**
+- **Do not trust a high baseline on a regex-heavy unit** — it is probably timeout masking. Add coverage and
+  re-run; the timeouts collapse and the real survivors appear.
+- **The headline % is noisy** for these units (swings ~30 points run-to-run). Report the **stable** signal
+  instead: the `Killed` count delta and **"0 (killable) survivors / residual is the equivalent floor."**
+- Adding exact-value coverage is still the right move — it converts ambiguous timeouts into deterministic
+  kills and surfaces the genuine survivors to pin.
+
+**Residual / equivalent floor (consistent across all five):** Serilog format-string statements; the
+`match.Success && match.Groups.Count > 1` capture-group guards (a *failed* `Regex.Match` has `Groups.Count == 1`
+and a *successful* capture has `> 1`, so the comparison can never change behaviour); the **redundant alternate
+regex patterns** — every extractor tries several patterns where the first (optional-prefix / overlapping
+char-class) subsumes the rest, so the later patterns are unreachable; the `\d{18}` CLABE `== 18 && All(IsDigit)`
+validation (the regex guarantees both); post-`break` re-match no-ops; the two defensive `catch` blocks
+(cancellation rethrows *before* the `try`; a `Regex` exception can't be forced with valid text); and one perTest
+coverage-attribution artifact on the currency ternary. None are killable through the public API.
+
+**Minor findings surfaced (not fixed — behaviour pinned as-is):** (1) the `Fecha`/date case in several strategies
+sets neither `hasAnyData` nor a guard-counted collection, so a *date-only* document returns null. (2)
+`StructuredDocxStrategy.ExtractMexicanNames` assigns captured groups **positionally** (`nombre=Groups[1]`,
+`paterno=Groups[2]`, `materno=Groups[3]`) for *both* name patterns, so pattern[1]
+(`PATERNO MATERNO Nombre`) mislabels the parts. (3) the Accion `(?:identificada|con|en).*$` cleanup matches the
+substring `en` **inside** words like "aseguram**ien**to", truncating legitimate values. All three are documented
+in the test comments.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
