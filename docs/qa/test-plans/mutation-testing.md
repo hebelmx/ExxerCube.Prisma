@@ -264,6 +264,53 @@ sets neither `hasAnyData` nor a guard-counted collection, so a *date-only* docum
 substring `en` **inside** words like "aseguram**ien**to", truncating legitimate values. All three are documented
 in the test comments.
 
+### Unit 11: AdaptiveDocxExtractor — the orchestrator (2026-06-08)
+
+The `AdaptiveDocxExtractor` (`Infrastructure.Extraction.Adaptive/AdaptiveDocxExtractor.cs`) that **selects among /
+merges / complements** the five (now-hardened) strategies — finishing the Adaptive-DOCX project. Driven by the same
+`Tests.Infrastructure.Extraction.Adaptive`; the project's `stryker-config.json` now mutates **all seven** files
+(orchestrator + the six strategy/merge files). The existing `AdaptiveDocxExtractorLiskovTests` exercise the
+orchestrator through the *real* strategies on a couple of happy-path documents, so the merge/complement internals,
+the strategy-selection ladder, the confidence ordering, and the two `catch` blocks were never pinned to exact
+values. Added `AdaptiveDocxExtractorMutationKillingTests.cs` (**31 tests; Adaptive project 282 → 313 green**),
+driving the orchestrator with **NSubstitute mocks of `IAdaptiveDocxStrategy`** so per-strategy confidence/extraction
+results are controlled precisely and the orchestrator's own logic is observable in isolation.
+
+```
+AdaptiveDocxExtractor.cs: Killed 28 -> 80 · Survived 0 -> 0 · NoCoverage 25 -> 0 · Timeout 77 -> 50
+```
+
+What the tests pin (exact-value): the `ExtractionMode` dispatch (BestStrategy ignores `existingFields` vs Complement
+preserves them; invalid mode → `null` via the generic catch); the `OrderByDescending` confidence sort + exact
+per-strategy values/names; the empty-input all-zero confidences; `BestStrategy` highest-confidence selection +
+`Confidence == 0` → null guard; `MergeAll`'s `Confidence > 0` capable filter, all-null → null guard, the first-non-null
+core-field merge, `AdditionalFields` first-key-wins, and `Montos` unique-by-`(Currency,Value)` / `Fechas` dedup; and
+the `Complement` preserve-then-fill core `??` logic plus the copy-existing + add-unique collection rules.
+
+**Cancellation-coverage lesson:** the `*LiskovTests` cancellation tests pass an **already-cancelled** token, which
+trips `ThrowIfCancellationRequested()` **before** the `try` — so neither `catch (OperationCanceledException)` block is
+ever entered (both were `NoCoverage`). A mock strategy that throws the `OperationCanceledException` from **inside** the
+try (with a *live* token) is the only way to reach and pin the rethrows. Likewise the generic `catch` → `null` /
+→ all-zero are reached via a strategy that throws a *plain* exception (from `ExtractAsync` for the orchestrator catch;
+from `GetConfidenceAsync` for the confidences catch).
+
+**Timeout-noise lesson (the non-regex variant of Units 6–10):** this unit has **no regex**, yet ~58 mutants still
+landed in `Timeout` — here from **MTP per-mutant session overhead** on the large (313-test) suite, not catastrophic
+backtracking. `Timeout` counts as detected, so the headline read **100%** — but parsing the `Timeout` bucket exposed a
+handful of **functional** mutants the first test pass did *not genuinely* kill (they only "passed" via timeout): the
+Causa/Accion `&&` merge guards, the `ComplementFields` core `??`, and the copy-existing `Montos`/`Fechas` `Add`
+statements. Strengthened those to **deterministic kills** (both-set core fields for the `&&`; a mirror existing/new
+split for the `??`; an existing-only `Monto`/`Fecha` so removing the copy line changes the count) — Killed 72 → 80,
+Timeout 58 → 50. **So trust the Killed delta + "0 killable survivors", not the 100% headline.**
+
+**Residual / equivalent floor:** Serilog `LogDebug`/`LogError`/`LogInformation` statement+string mutants and the
+`string.Join` log interpolation (L111); the discarded `ArgumentOutOfRangeException` message (invalid mode is swallowed
+by the generic catch → `null`, so the message is never observable); the L53 `ThrowIfCancellationRequested()` (removing
+it is **backstopped** by the identical check at L91 inside `GetStrategyConfidencesAsync`); and `First` /
+`FirstOrDefault` / `Single` / `Last`-equivalent Linq on guaranteed-single (unique-name) matches. None killable through
+the public API. (The `Montos` `Any`/`==` dedup mutants at L268/L321 *are* killed by the precise count/value
+assertions — they merely re-appear in `Timeout` run-to-run on this large suite.)
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
