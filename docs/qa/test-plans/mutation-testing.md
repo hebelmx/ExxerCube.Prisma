@@ -421,9 +421,10 @@ same MTP `global.json`):
 
 ## How to expand
 
-> **Next-agent roadmap:** `docs/development/sessions/HANDOFF-2026-06-08-mutation-testing-continuation.md`
-> — ordered next units, the CI-gate option, the per-unit loop, and the **two conflict-detection findings
-> reserved for their own dedicated session** (do not bundle with test-hardening).
+> **Next-agent roadmap & checklist:** `docs/qa/test-plans/mutation-testing-roadmap.md` — the goal, the
+> deterministic-surface denominator, a tick-box path (Export → Imaging → Extraction base → Metrics/FileStorage
+> → Core), the reserved bug-fix session, and the condensed loop + lessons. (Older roadmaps:
+> `HANDOFF-2026-06-08-mutation-classification-done.md`, `…-continuation.md`.)
 
 Mutation runs are **expensive** (each mutant re-runs the suite), so scale deliberately:
 

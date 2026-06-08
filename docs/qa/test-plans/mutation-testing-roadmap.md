@@ -1,0 +1,174 @@
+# Mutation Testing — Roadmap & Checklist (for the next agents)
+
+**Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
+per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
+
+**Last updated:** 2026-06-08 (after Units 12–13; Classification deterministic surface complete).
+**Branch:** `Kt2`.
+
+---
+
+## 0. The goal (and what "done" is *not*)
+
+> **Mutation-harden the deterministic business-logic surface (~55–70 files) to ≥ 85 % killed with
+> 0 *killable* survivors, and fix the defects mutation surfaces along the way.**
+
+- **Not** 100 %: every unit has a 5–15 % *equivalent-mutant floor* (Serilog statements, unreachable `catch`
+  blocks, `First`→`FirstOrDefault` on never-empty collections, correlated guards, dead branches). Report
+  **"Killed delta + 0 killable survivors,"** never chase the headline %.
+- **Not** everywhere: do **not** mutate non-deterministic code (OCR/Tesseract, dormant Python/VLM, Browser
+  automation, Database/Testcontainers, UI/Playwright, worker orchestration). Mutants there are ambiguous.
+
+**Where we are:** 13 files hardened across **3 projects** (Extraction.Txt, Extraction.Adaptive, Classification).
+That's roughly **20–25 % of the worthy surface** — high quality where done, breadth is the remaining work.
+Estimate ~8–12 more focused sessions at ~1–2 units each.
+
+---
+
+## 1. Status at a glance
+
+| Project | Mutation status |
+|---|---|
+| `Infrastructure.Extraction.Txt` | ✅ done (AdaptiveTxtFieldExtractor 82 %) |
+| `Infrastructure.Extraction.Adaptive` | ✅ **complete** (7 files: 5 strategies + merge + orchestrator, 96–97 %) |
+| `Infrastructure.Classification` (deterministic) | ✅ **complete** (5 files; LegalDirective 96 %, FileClassifier 89 %, the 3 matching policies 37–61 %*) |
+| `Infrastructure.Export` | ⬜ **TODO — highest value** (see §2.1) |
+| `Infrastructure.Imaging` | ⬜ TODO (see §2.3) |
+| `Infrastructure.Extraction` (base) | ⬜ TODO — several deterministic extractors (see §2.4) |
+| `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
+| `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) |
+| OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
+
+\* The two low matching-policy scores are capped by **real bugs**, not weak tests — see §3.
+
+---
+
+## 2. The checklist (priority order — tick as you go)
+
+For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … (Killed X -> Y, 0 survivors)`).
+
+### 2.1 Export — regulatory, highest value ⬅ start here
+> `Tests.Infrastructure.Export` **already exists** (no scaffolding needed) but today only tests
+> `DigitalPdfSigner`. Add a `stryker-config.json` next to it.
+
+- [ ] `SiroXmlExporter.cs` — **the SIRO-XML deliverable, currently ZERO test coverage.** Top priority.
+- [ ] `ExcelLayoutGenerator.cs`
+- [ ] `CriterionMapperService.cs`
+- [ ] `CompositeResponseExporter.cs`
+- ⛔ avoid `DigitalPdfSigner.cs` (crypto), `PdfRequirementSummarizerService.cs` (PDF rendering).
+
+### 2.2 Export.Adaptive
+> `Tests.Infrastructure.Export.Adaptive` exists.
+- [ ] `AdaptiveExporter.cs`
+- [ ] `SchemaEvolutionDetector.cs`
+- [ ] `TemplateFieldMapper.cs`
+- [ ] `AdaptiveResponseExporterAdapter.cs`
+- ⛔ skip EF artifacts (`InitialCreate*`, `TemplateDbContext*`, `*ModelSnapshot`), `TemplateRepository`,
+  `TemplateSeeder` (DB-bound).
+
+### 2.3 Imaging — deterministic math
+> `Tests.Infrastructure.Imaging` exists.
+- [ ] `PolynomialImageQualityAnalyzer.cs` (production analyzer)
+- [ ] `AnalyticalFilterSelectionStrategy.cs` (note: a ≥10 % threshold task #11 is deferred here — see GAP matrix)
+- [ ] `DefaultFilterSelectionStrategy.cs` / `PolynomialFilterSelectionStrategy.cs`
+- [ ] `FeatureNormalizer.cs`, `PolynomialModel.cs`, `TrainedPolynomialModel.cs`
+- [ ] `AdaptiveEnhancementFilter.cs`, `PolynomialEnhancementFilter.cs`
+- [ ] `LevenshteinTextComparer.cs` (pure string distance — also used by Classification; high-value, easy)
+- ⛔ avoid native-bound: `EmguCvImageQualityAnalyzer`, `OpenCvAdvancedEnhancementFilter`,
+  `PilSimpleEnhancementFilter`; trivial `NoOp*`/`Stub*`.
+
+### 2.4 Extraction (base project) — deterministic extractors/sanitizers
+> `Tests.Infrastructure.Extraction` exists. **First check for duplication:** `ComplementExtractionStrategy.cs`,
+> `SearchExtractionStrategy.cs`, `StructuredDocxStrategy.cs` appear here AND (already hardened) under
+> `Extraction.Adaptive/Strategies/` — confirm whether the base copies are live or dead before testing.
+- [ ] `XmlFieldExtractor.cs` (already has 16 tests from a prior session — add a mutation config, likely a quick win)
+- [ ] `XmlExpedienteParser.cs`, `XmlMetadataExtractor.cs`
+- [ ] `AdditionalFieldsReconciler.cs`
+- [ ] `DocxStructureAnalyzer.cs`, `DocxFieldExtractor.cs`, `DocxMetadataExtractor.cs`
+- [ ] `MexicanNameFuzzyMatcher.cs`
+- [ ] `OcrSanitizationService.cs`, `TextSanitizer.cs` (pure string cleanup)
+- [ ] `FileTypeIdentifierService.cs`
+- [ ] `PdfMetadataExtractor.cs`, `CompositeMetadataExtractor.cs`, `DocumentComparisonService.cs`
+- ⛔ avoid OCR/render/DB-coupled: `TesseractOcrExecutor`, `GotOcr2OcrExecutor`, `OcrProcessingService`,
+  `PdfOcrFieldExtractor`, `PdfToImageConverter`, `OcrSessionRepository`, `BulkProcessingService`.
+
+### 2.5 Metrics / FileStorage — small, deterministic
+- [ ] `Infrastructure.Metrics/ProcessingMetricsService.cs`
+- [ ] `Infrastructure.FileStorage/SafeFileNamerService.cs` (pure naming logic — easy)
+- [ ] `Infrastructure.FileStorage/FileMoverService.cs`
+- ⛔ `Infrastructure.Events/InMemoryEventBus.cs` is legacy/never-registered (CLAUDE.md) — low value, skip unless idle.
+
+### 2.6 Core / Application services
+> Broadens beyond Infrastructure. Survey `01 Core/Application` for concrete `*Service.cs` with real logic
+> (skip interfaces, DTOs, events, validators that just guard nulls). Add per-test-project configs.
+- [ ] (survey first, then list) — e.g. fusion/reconciliation/pipeline-coordination services that are pure.
+
+### 2.7 Optional — deterministic Classification leftover
+- [ ] `SemanticAnalyzerService.cs` — deterministic (Levenshtein + in-repo `ClassificationDictionary`, **not**
+  Ollama); already driven by `LegalDirectiveClassifierDictionaryTests` + `TextComparerFindBestMatchTests`.
+  (Reminder: that "DictionaryTests" file tests *this* class, not `LegalDirectiveClassifierService`.)
+
+---
+
+## 3. RESERVED — bug-fix session (do NOT bundle with test hardening)
+
+Two real conflict-detection defects mutation testing surfaced in the matching policies. Fixing them lifts
+FieldMatcher (61 %) and NameMatching (37 %) by unblocking ~75 currently-dead mutants. Do them **together**:
+- [ ] `docs/qa/findings/2026-06-08-fieldmatcher-additionalfields-dead-conflict-detection.md`
+- [ ] `docs/qa/findings/2026-06-08-namematchingpolicy-self-pairing-defeats-fuzzy-matching.md` (HIGH)
+- [ ] minor: delete unused private `MatchingPolicyService.GetConflictThreshold(string)`.
+After fixing, re-run Stryker on those files and add the cross-value tests the existing tests were written to allow.
+
+---
+
+## 4. The per-unit loop (condensed — full version in the continuation handoff §5)
+
+1. `dotnet tool restore` (once). Confirm the test project is green: `dotnet test <test.csproj>`.
+2. Create/extend `stryker-config.json` next to the test project: `project`, `test-projects`,
+   **`"test-runner": "mtp"`**, `"coverage-analysis": "perTest"`, `mutate: ["**/<File>.cs"]` (scope to ONE file
+   for the baseline). Strict JSON — **no unknown keys, not even comments**.
+3. Baseline from the test-project dir: **`StrykerCompat=true dotnet stryker`** (both settings mandatory — see guide).
+4. Parse the HTML report: `app.report = {...}` JSON in a `<script>`; `json.JSONDecoder().raw_decode` (trailing JS).
+   Bucket by **Survived / NoCoverage / Timeout**, group by line.
+5. Write **exact-value** tests (Shouldly; `TestContext.Current.CancellationToken`; NSubstitute; no Moq/FluentAssertions).
+   Prioritize NoCoverage (counts against score) then weak survivors. For orchestrators, **mock the dependency interface**.
+6. Re-run; classify residual honestly. **If a cluster is unkillable because the code is dead/broken → that's a
+   FINDING** (`docs/qa/findings/`), don't contort tests.
+7. **Re-add ALL hardened files to the config's `mutate` list** before committing. Commit test+config (Killed delta
+   in subject) separately from the guide doc update. Update `mutation-testing.md` + this checklist. Push.
+
+---
+
+## 5. Lessons that will save you time (full detail in the guide)
+
+- **Score formula:** `(Killed + Timeout) / (Killed + Timeout + Survived + NoCoverage)`. NoCoverage counts against
+  you; Timeout counts as detected.
+- **Timeout inflation:** Stryker counts `Timeout` as killed. On regex-heavy *and* large suites, mutants land in
+  Timeout and inflate the headline. **Always parse the Timeout bucket** for functional mutants that only "passed"
+  via timeout; convert them to deterministic kills.
+- **perTest attribution noise:** on large/slow suites the headline flaps run-to-run (identical code gave
+  0/5/7/18 "survivors" — almost all equivalent Serilog mutants). **Trust the Killed delta from a clean run.**
+- **`coverage-analysis: "off"` cross-check:** temporarily set it (then revert to `perTest`) to find real gaps vs
+  noise — it runs every test on every mutant. **Caveats:** it *over-counts* survivors because `static readonly`
+  array initializers can't be mutated in its shared process (perTest kills them); and it's slower. Find gaps with
+  it, report the score from perTest.
+- **Covering a `catch (OperationCanceledException)`:** an already-cancelled token trips the pre-`try` guard, so
+  the catch is never entered. Throw OCE from a mock dependency *inside* the try with a *live* token.
+- **Contaminated test inputs:** Spanish keywords embed substrings (`"ordena"` contains `"ORDEN"`;
+  `"DESBLOQUEO"` contains `"BLOQUEO"`; `"alcance del oficio"` triggers Alcance). Craft inputs that isolate ONE term.
+- **Dead branches are findings:** e.g. FileClassifier's `Min(85)` middle confidence tier is unreachable because
+  discrete scores {10,70,90} only ever differ by {0,20,60,80}. Pin as floor, note it, move on.
+
+---
+
+## 6. Housekeeping done this session
+- ✅ Deleted the stale orphaned root config `Prisma/Code/Src/CSharp/stryker-config.json` (camelCase keys,
+  `testRunner: dotnet`, non-existent `testProjects` path — drift from when mutation was broken). The **3 valid**
+  configs live next to their test projects (Classification, Extraction.Adaptive, Extraction.Txt).
+
+## 7. Pointers
+- Reference / per-unit detail / all lessons: `docs/qa/test-plans/mutation-testing.md`
+- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-08-mutation-classification-done.md`
+- Reserved findings: `docs/qa/findings/2026-06-08-*.md`
+- Per-unit loop, CI-gate option: `docs/development/sessions/HANDOFF-2026-06-08-mutation-testing-continuation.md`
+- Testing-stack constraints (xunit.v3.mtp-v2 + MTP 2.1.0): `CLAUDE.md` → "Testing stack"
