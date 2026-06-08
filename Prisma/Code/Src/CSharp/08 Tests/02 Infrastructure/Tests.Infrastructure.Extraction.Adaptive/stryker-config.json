@@ -6,7 +6,8 @@
     ],
     "test-runner": "mtp",
     "mutate": [
-      "**/EnhancedFieldMergeStrategy.cs"
+      "**/EnhancedFieldMergeStrategy.cs",
+      "**/TableBasedDocxStrategy.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
