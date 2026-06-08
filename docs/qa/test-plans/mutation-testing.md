@@ -218,6 +218,11 @@ same MTP `global.json`):
 | Strict config | no unknown keys (not even `_comment`) | Stryker validates `stryker-config.json` strictly and aborts on extras. |
 
 ## How to expand
+
+> **Next-agent roadmap:** `docs/development/sessions/HANDOFF-2026-06-08-mutation-testing-continuation.md`
+> — ordered next units, the CI-gate option, the per-unit loop, and the **two conflict-detection findings
+> reserved for their own dedicated session** (do not bundle with test-hardening).
+
 Mutation runs are **expensive** (each mutant re-runs the suite), so scale deliberately:
 
 1. **Widen within a project** — drop the `mutate` filter (or add globs) to cover the whole project, not
