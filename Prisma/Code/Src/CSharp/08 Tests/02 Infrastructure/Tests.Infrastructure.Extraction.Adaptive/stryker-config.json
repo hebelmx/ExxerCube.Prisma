@@ -10,7 +10,8 @@
       "**/TableBasedDocxStrategy.cs",
       "**/StructuredDocxStrategy.cs",
       "**/ContextualDocxStrategy.cs",
-      "**/SearchExtractionStrategy.cs"
+      "**/SearchExtractionStrategy.cs",
+      "**/ComplementExtractionStrategy.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
