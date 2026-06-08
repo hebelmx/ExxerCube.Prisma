@@ -1,0 +1,23 @@
+{
+  "stryker-config": {
+    "project": "ExxerCube.Prisma.Infrastructure.Extraction.Txt.csproj",
+    "test-projects": [
+      "ExxerCube.Prisma.Tests.Infrastructure.Extraction.Txt.csproj"
+    ],
+    "mutate": [
+      "**/AdaptiveTxtFieldExtractor.cs"
+    ],
+    "coverage-analysis": "off",
+    "reporters": [
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "concurrency": 4
+  }
+}

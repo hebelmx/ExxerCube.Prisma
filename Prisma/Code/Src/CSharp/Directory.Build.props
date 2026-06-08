@@ -33,7 +33,16 @@
 		<ArtifactsBaseDir>E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\</ArtifactsBaseDir>
 		<BaseOutputPath>$(ArtifactsBaseDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
 		<OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
+		<!-- Mutation-testing (Stryker.NET) accommodation. Stryker reconstructs the test-binary path as
+		     bin\<project>\<tfm>, dropping the <Configuration> segment this repo inserts, so runs fail with
+		     "test project binaries could not be found". When the StrykerCompat env var is set (MSBuild
+		     surfaces env vars as properties), flatten OutputPath to match. OFF by default — normal builds
+		     keep the bin\<project>\<config>\<tfm> layout. See docs/qa/test-plans/mutation-testing.md. -->
+		<OutputPath Condition="'$(StrykerCompat)' == 'true'">$(BaseOutputPath)</OutputPath>
 		<BaseIntermediateOutputPath>$(ArtifactsBaseDir)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
 		<IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+		<!-- Stryker accommodation (see OutputPath note above): also flatten the obj/ path so reference
+		     assemblies resolve at obj\<project>\<tfm>\ref\ instead of obj\<project>\<config>\<tfm>\ref\. -->
+		<IntermediateOutputPath Condition="'$(StrykerCompat)' == 'true'">$(BaseIntermediateOutputPath)</IntermediateOutputPath>
 	</PropertyGroup>
 </Project>
