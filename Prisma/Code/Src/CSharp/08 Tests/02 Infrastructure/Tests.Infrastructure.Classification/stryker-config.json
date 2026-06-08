@@ -6,7 +6,8 @@
     ],
     "test-runner": "mtp",
     "mutate": [
-      "**/FieldMatcherService.cs"
+      "**/FieldMatcherService.cs",
+      "**/MatchingPolicyService.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
