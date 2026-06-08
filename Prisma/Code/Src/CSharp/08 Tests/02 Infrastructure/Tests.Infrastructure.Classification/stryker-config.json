@@ -8,7 +8,8 @@
     "mutate": [
       "**/FieldMatcherService.cs",
       "**/MatchingPolicyService.cs",
-      "**/NameMatchingPolicy.cs"
+      "**/NameMatchingPolicy.cs",
+      "**/LegalDirectiveClassifierService.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
