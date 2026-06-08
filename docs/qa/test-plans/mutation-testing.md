@@ -366,6 +366,46 @@ so `matches >= 1` always. Also equivalent (when they appear): the `bestMatch == 
 `bestMatch` is null the `i < bestPatternPriority` term is always true since the priority is still `int.MaxValue`),
 and the Serilog mutants above.
 
+### Unit 13: FileClassifierService (2026-06-08) — ✅ 38.79% → 88.79%
+
+The rule-based regulatory classifier in `Infrastructure.Classification` (`FileClassifierService.cs` — the
+fifth and last Classification file; config now mutates all five). Fully deterministic: each Level-1 category
+gets a 90/70/10 score from keyword presence, a confidence is derived from the score spread, and a Level-2
+subcategory is picked by priority. The existing `FileClassifierServiceTests` (8 tests) asserted only
+`Level1`/`Level2` with `Score > 70` and never touched the Informacion/Transferencia/OperacionesIlicitas
+categories, the 70/10 rungs, the confidence ladder, the `/AS` shortcut, the `string.Join` separator, or the
+Level-2 order. Added `FileClassifierServiceMutationKillingTests.cs` (**35 tests; Classification project 223 → 258 green**).
+
+```
+FileClassifierService.cs: Killed 45 -> 103 · Survived 56 -> 7 · NoCoverage 15 -> 6 · Timeout 0
+Final mutation score: 38.79 % -> 88.79 %
+```
+
+What the tests pin (exact-value): every Level-1 high keyword → score **90** (a Theory with the keyword in
+`AreaDescripcion`, so each row also pins the L41 `?? string.Empty` source) asserting `Confidence == 90` as a
+sentinel (any stray keyword mutation that lights a second category collapses the score-spread and drops
+confidence below 90); every secondary keyword → **70**; the no-keyword document → **all six scores = 10** (pins
+the six `else` blocks — a removed block leaves the score at its `0` default); the `/AS` expediente shortcut
+(Aseguramiento + Especial); the **space-join** multi-word keyword (`["OPERACIONES","ILICITAS"]` → matches only
+when joined with a space, killing the `string.Join("", …)` mutant); each Level-2 keyword + the
+Especial>Judicial>Hacendario priority + the null default; and the confidence ladder's `Min(100, max)`
+high-clarity branch and `Min(70, average)` close-scores branch (which kills the `Average()`→`Min()`,
+`Min()`→`Max()`, and difference-arithmetic mutants).
+
+**Dead-branch finding (minor — pinned as floor, not fixed):** the **middle confidence tier**
+(`scoreDifference >= 40` → `Min(85, maxScore)`, L228/L230) is **unreachable**. Because every category resolves
+to one of three discrete scores {10, 70, 90}, the difference between the top score and the next is *always* one
+of {0, 20, 60, 80} — never in [40, 60). So that `else if` body never executes (its `Min(85)` is `NoCoverage`)
+and, at the boundary `diff == 60`, `>=60` and `>60` both cap at 70, making the L224 `>=`→`>` mutant equivalent
+too. Documented in the test file; a fix (continuous scoring, or collapsing the tier) is out of scope for test
+hardening.
+
+**Residual / equivalent floor:** the dead middle tier above (L224/L228/L230); the Serilog `LogDebug` statements
+(L37/L66); the `catch (Exception)` block (L71/L72 — unreachable, `ExtractedMetadata` access can't throw);
+`OrderByDescending(...).First()`→`FirstOrDefault()` (L250 — the scores dictionary always has six entries, never
+empty); and the `?? string.Empty` fallback strings (L41/L42 — only reached when `Expediente` is null, and the
+fallback value is never a keyword, so the mutation is equivalent). **0 killable survivors.**
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
