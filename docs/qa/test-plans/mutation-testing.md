@@ -176,6 +176,34 @@ which can only change tie-break order, not the selected value** — so its `Orde
 unobservable through the result. Minor finding: **`GetConflictThreshold(string)` is an unused private method**
 (`HasConflictAsync` reads `_options.ConflictThreshold` directly) — dead code; safe to delete.
 
+### Fifth unit: NameMatchingPolicy (2026-06-08) — ✅ 3.08% → 36.92% (+ a high-severity finding)
+
+Fifth deterministic unit, the third in `Infrastructure.Classification` (`NameMatchingPolicy.cs` — fuzzy,
+alias-aware person/authority-name matching; the policy `FieldMatcherService` routes `*NOMBRE*` fields to).
+It had **no direct tests at all** (baseline 3.08%). The project's `stryker-config.json` now mutates all three
+matching files. Added `NameMatchingPolicyMutationKillingTests.cs` (12 tests; project now 167 green).
+
+```
+NameMatchingPolicy.cs: Killed 2 -> 24 · score 3.08 % -> 36.92 %
+```
+
+**The low ceiling is itself the finding (high severity).** `SelectBestValueAsync` and
+`CalculateAgreementLevelAsync` both score every value **against itself**, and `ScorePair(x, x) == 1.0`, so the
+maximum score is always 1.0: the winner is always the first value, the score/agreement is always 1.0, and a
+conflict is **never** reported — for any inputs. That makes the fuzzy / alias / accent-normalization logic
+(~70% of the file: `Normalize`, `ScorePair`'s fuzzy+alias branches, `IsAlias`, `BuildAliasMap`) **unobservable
+through the public API**, so those mutants can't be killed until the defect is fixed. The fuzzy name matching
+does not actually function. **Full finding + suggested fix:**
+`docs/qa/findings/2026-06-08-namematchingpolicy-self-pairing-defeats-fuzzy-matching.md`.
+
+The 12 tests deliberately pin only behavior that stays correct after a fix (input guards, result
+construction, identical-name → 1.0 / no-conflict, the `Math.Max` aggregation, `HasConflict` threshold
+comparison) — they will keep passing once the diagonal is excluded, and be joined then by real cross-name
+tests.
+
+> **Two open conflict-detection findings now exist** (this one and the FieldMatcher `CollectAdditional` one).
+> Both are paths that silently never fire; consider tackling them together in a dedicated session.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
