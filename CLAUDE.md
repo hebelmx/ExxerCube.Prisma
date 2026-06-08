@@ -181,11 +181,11 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
   `FuseAsync` (PDF source). Remaining: XML/DOCX sources are still null in the worker path
   (single-source OCR fusion).
 - **Adaptive/Robust extractors** — Adaptive **DOCX** (orchestrator + all 5 strategies) and
-  Adaptive **Export** are implemented and DI-wired. Adaptive **TXT** is implemented but its
-  field-extraction **robustness is incomplete**: 3 skipped edge-case tests
-  (`AdaptiveTxtFieldExtractorEnhancedTests`, `Skip="TODO"`) — CNBV-vs-SAT authority priority,
-  Expediente pattern `B/CDEF-1234-567890-ABC`, SAT detection conflict. `XmlFieldExtractor` is a
-  "dummy placeholder". So: wired and working for common cases, **not yet robust on edge cases**.
+  Adaptive **Export** are implemented and DI-wired. Adaptive **TXT** is implemented and (✅
+  **2026-06-07**) its 3 previously-skipped robustness edge cases are now fixed + unskipped
+  (CNBV-vs-SAT authority priority, Expediente pattern `B/CDEF-1234-567890-ABC`, SAT detection
+  conflict) — `Tests.Infrastructure.Extraction.Txt` 35/35, 0 skipped. Remaining gap:
+  `XmlFieldExtractor` is still a "dummy placeholder" (XML source extraction).
 - **Quality** — real (`PolynomialImageQualityAnalyzer` in Worker, `EmguCvImageQualityAnalyzer`
   in UI), but trained filter-selection models are still stub coefficients.
 - **Classification** — real path; deeper semantic field extraction is TODO.
@@ -197,7 +197,7 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 - **Orion document download** — `IDocumentDownloader` is `StubDocumentDownloader` (returns
   empty bytes); no real SIARA ingestion yet. Highest-impact gap for true end-to-end flow.
 - Worker `/dashboard` metrics — `Orion/AthenaDashboardService` return zeros (UI Dashboard uses the working `IProcessingMetricsService`).
-- PersonIdentityResolver DB persistence; PDF text extraction (returns empty pending iText/PdfSharp); CSnakes Python ML runtime interop; 3 skipped TXT extractor edge cases.
+- PersonIdentityResolver DB persistence; PDF text extraction (returns empty pending iText/PdfSharp); CSnakes Python ML runtime interop; `XmlFieldExtractor` dummy placeholder (real XML-source extraction). *(The former "3 skipped TXT extractor edge cases" were fixed 2026-06-07.)*
 - Sentinel monitoring service — **not yet traced; status unknown.**
 
 > Roadmap toward production: `docs/planning/path-to-production-2026-06.md`.
