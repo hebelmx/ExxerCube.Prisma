@@ -148,8 +148,33 @@ identical, which makes `MergeAdditionalFields`' XML-vs-OCR conflict detection (a
 there) **unreachable** — no mutant in it can be killed through the public API. **The XML-vs-OCR additional-
 field conflict detection does not actually work.** This is a genuine code smell surfaced by mutation testing;
 fixing it (make `CollectAdditional` filter by the field's real origin) is a separate change, out of scope for
-this test-hardening pass. The other ~19 residual are Serilog/`catch`-block statements and equivalent
+this test-hardening pass. **Full finding + suggested fixes (for a dedicated session):**
+`docs/qa/findings/2026-06-08-fieldmatcher-additionalfields-dead-conflict-detection.md`. The other ~19 residual are Serilog/`catch`-block statements and equivalent
 comparison mutants (`Count > 0` → `>= 0` where the collection is only populated when non-empty).
+
+### Fourth unit: MatchingPolicyService (2026-06-08) — ✅ 41.05% → 56.76%
+
+Fourth deterministic unit, also in `Infrastructure.Classification` (`MatchingPolicyService.cs` — the
+value-selection / agreement / conflict policy that `FieldMatcherService` delegates to). The project's
+`stryker-config.json` now mutates **both** `FieldMatcherService.cs` and `MatchingPolicyService.cs`. Added
+`MatchingPolicyServiceMutationKillingTests.cs` (13 tests; the project is now 155 green) pinning: the
+all-blank `"NONE"` sentinel result, `finalConfidence = agreementLevel * average(confidences)` (kills the
+`Average`→`Min` and `*`→`/` mutants), the null / all-blank / single-value edges of
+`CalculateAgreementLevelAsync` and `HasConflictAsync`, the custom-vs-default `HasConflictAsync` threshold
+ternary (incl. a service whose `ConflictThreshold` is non-default so the default branch is observable), and
+source-type resolution (options-level fallback to highest confidence + per-field-rule priority override).
+
+```
+MatchingPolicyService.cs: Killed 39 -> 54 · score 41.05 % -> 56.76 %
+```
+
+Residual is the equivalent/dead/defensive floor: `bestGroup.First()` → `FirstOrDefault()` on always-non-empty
+groups; the `hasConflict` formula `Count > 1 && best < total` (its two clauses are logically equivalent, so
+`&&`/`||`/`>=`/`<=` variants don't change the result); the `?? string.Empty` group-key fallback (unreachable
+because values are pre-filtered non-blank); the `catch` blocks; and **`ApplySourcePriority`'s reordering,
+which can only change tie-break order, not the selected value** — so its `OrderBy`/ternary mutants are
+unobservable through the result. Minor finding: **`GetConflictThreshold(string)` is an unused private method**
+(`HasConflictAsync` reads `_options.ConflictThreshold` directly) — dead code; safe to delete.
 
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
