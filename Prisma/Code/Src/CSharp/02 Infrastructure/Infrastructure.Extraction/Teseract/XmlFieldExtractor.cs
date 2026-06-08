@@ -15,6 +15,11 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
     /// <inheritdoc />
     public Task<Result<ExtractedFields>> ExtractFieldsAsync(XmlSource source, FieldDefinition[] fieldDefinitions)
     {
+        if (source is null)
+        {
+            return Task.FromResult(Result<ExtractedFields>.WithFailure("XML source cannot be null"));
+        }
+
         try
         {
             var doc = LoadXml(source);
@@ -98,6 +103,11 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
     /// <inheritdoc />
     public async Task<Result<FieldValue>> ExtractFieldAsync(XmlSource source, string fieldName)
     {
+        if (source is null)
+        {
+            return Result<FieldValue>.WithFailure("XML source cannot be null");
+        }
+
         var fieldsResult = await ExtractFieldsAsync(source, Array.Empty<FieldDefinition>()).ConfigureAwait(false);
         if (fieldsResult.IsFailure || fieldsResult.Value == null)
         {

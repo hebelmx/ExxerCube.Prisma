@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
         // Register generic field extractors for Story 1.3
         // OLD (replaced by adaptive extraction): services.AddScoped<IFieldExtractor<DocxSource>, DocxFieldExtractor>();
         services.AddScoped<IFieldExtractor<PdfSource>, PdfOcrFieldExtractor>();
-        // Register dummy XML field extractor (temporary placeholder until full implementation is added)
+        // Register XML field extractor for CNBV/PRP1 structured XML documents
         services.AddScoped<IFieldExtractor<XmlSource>, XmlFieldExtractor>();
 
         // Register OCR executors with keyed services for runtime selection
