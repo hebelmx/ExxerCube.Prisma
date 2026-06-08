@@ -122,6 +122,35 @@ The residual 7 survivors + 12 NoCoverage are the equivalent-mutant floor: redund
 `catch (OperationCanceledException)` / `catch (Exception)` logging blocks (unreachable without a contrived
 mid-merge cancellation — the token check throws *before* the `try`), and Serilog statements.
 
+### Third unit: FieldMatcherService<T> (2026-06-08) — ✅ 30.71% → 61.43% (+ a dead-code finding)
+
+Third deterministic unit, in `Infrastructure.Classification` (`FieldMatcherService.cs`, driven by the
+126-test `Tests.Infrastructure.Classification`; config mutates only that file). The existing
+`FieldMatcherServiceTests` cover the public happy paths but only with a single **DOCX** source type, never
+populate `AdditionalFields`, never exercise `AccionSolicitada`, and assert the unified record / completeness
+shallowly. Added `FieldMatcherServiceMutationKillingTests.cs` (16 tests; 126+16=142 green) pinning: the
+`AdditionalFields` merge pipeline (non-empty merged, whitespace skipped, `"Origin"` key excluded); the
+`GetSourceType`/`ToOrigin` switches for DOCX/PDF/XML/unknown source types (via `FieldMatcherService<PdfSource>`
+etc. + two-agreeing-sources so the policy preserves `SourceType`+`Origin`); `AccionSolicitada` + alias;
+`OverallAgreement` = **average** (not min) of per-field agreements; `GenerateUnifiedRecord` actually applying
+core fields; and `ValidateCompleteness` null/empty/multi-missing branches.
+
+```
+Killed 43 -> 84 · Survived 29 -> 32 · NoCoverage 68 -> 22 · Timeout 0 -> 2
+Final mutation score: 30.71 % -> 61.43 %
+```
+
+**Why the ceiling is lower than the other two units (and a real finding):** ~35 of the ~54 residual mutants
+live in **dead-equivalent code** — `CollectAdditional` is called once with `FieldOrigin.Xml` and once with
+`FieldOrigin.PdfOcr`, but **both branches do identical work** (the origin param only gates excluding the
+`"Origin"` key, which both branches exclude the same way). So `xmlFields` and `ocrFields` are always
+identical, which makes `MergeAdditionalFields`' XML-vs-OCR conflict detection (and `Normalize`, used only
+there) **unreachable** — no mutant in it can be killed through the public API. **The XML-vs-OCR additional-
+field conflict detection does not actually work.** This is a genuine code smell surfaced by mutation testing;
+fixing it (make `CollectAdditional` filter by the field's real origin) is a separate change, out of scope for
+this test-hardening pass. The other ~19 residual are Serilog/`catch`-block statements and equivalent
+comparison mutants (`Count > 0` → `>= 0` where the collection is only populated when non-empty).
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
