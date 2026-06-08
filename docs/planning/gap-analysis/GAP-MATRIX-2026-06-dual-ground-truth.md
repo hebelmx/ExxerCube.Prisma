@@ -123,7 +123,7 @@ Counts confirmed roughly in line with the handoff (≈27 TODO, ≈18 placeholder
 | PersonIdentityResolver DB | `PersonIdentityResolverService.cs:188` | DB persistence deferred (v1.1 per CLAUDE.md) | Planned |
 | Template store persistence | `TemplateDbContext.cs:57,67` | SQLite/in-memory → SQL Server JSON | Cleanup |
 | Orchestrator `IsStarted` | `*HealthCheckService.cs:55` | readiness probe stub | Cleanup |
-| Dummy XML field extractor | `Infrastructure.Extraction/.../ServiceCollectionExtensions.cs:33` | "temporary placeholder" | Planned |
+| ~~Dummy XML field extractor~~ | `Infrastructure.Extraction/.../ServiceCollectionExtensions.cs:33` | The "temporary placeholder" was a **stale DI comment only** — the extractor is real CNBV/PRP1 XML extraction. | **✅ Resolved 2026-06-07** (comment dropped; null-guards + 16 tests added; Extraction 86/86) |
 
 **Stubs (4, confirmed):** `StubDocumentDownloader` (wired, Orion), `StubExxerHub` (wired,
 Orion), `StubEventPublisher` (Athena — **not** in production root; `EventPublisher` is),

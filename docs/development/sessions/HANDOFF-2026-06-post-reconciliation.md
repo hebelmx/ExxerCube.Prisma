@@ -45,12 +45,13 @@ Supersedes the action items in `HANDOFF-2026-06-dual-ground-truth.md` (that miss
 
 ## 3. Open items / next priorities (roughly in order)
 
-1. **Adaptive/Robust extractors** — adaptive DOCX (5 strategies) + adaptive export complete & wired.
-   Adaptive **TXT**: ✅ **2026-06-07** the 3 skipped robustness edge cases (CNBV-vs-SAT authority
-   priority, Expediente `B/CDEF-1234-567890-ABC`, SAT detection conflict) are now **fixed + unskipped**
-   (`Tests.Infrastructure.Extraction.Txt` 35/35, 0 skipped). **Remaining:** `XmlFieldExtractor` is
-   still a "dummy placeholder" — implement real XML-source field extraction (currently the XML path
-   yields nothing meaningful).
+1. **Adaptive/Robust extractors — ✅ DONE 2026-06-07.** Adaptive DOCX (5 strategies) + adaptive
+   export complete & wired. Adaptive **TXT**: the 3 skipped robustness edge cases (CNBV-vs-SAT
+   authority priority, Expediente `B/CDEF-1234-567890-ABC`, SAT detection conflict) fixed + unskipped
+   (`Tests.Infrastructure.Extraction.Txt` 35/35, 0 skipped). **XML**: `XmlFieldExtractor` was found to
+   already be real CNBV/PRP1 extraction (its "dummy placeholder" tag was a stale DI comment); now
+   hardened with null-guards + 16 tests (Extraction suite 86/86). The field-extraction layer is in
+   good shape — no extractor item remains open here.
 2. **Real SIARA `IDocumentDownloader`** — Orion still uses `StubDocumentDownloader` (empty bytes);
    nothing real enters the pipeline. `tools/Siara.Simulator` can back integration tests. (Gap §2.)
 3. **Run the remaining suites with Docker/Playwright up:** `Tests.EndToEnd` (full host),

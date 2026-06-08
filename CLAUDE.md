@@ -159,7 +159,7 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 
 **Done (real + wired + meets intent):**
 - Export pipeline — `AdaptiveExporter` (SIRO XML / Excel / PDF) wired in Athena Worker + Web.UI.
-- Database / EF Core, File storage, Field extractors (PDF/DOCX/XML/TXT — note XML extractor is a "dummy placeholder", see Partial).
+- Database / EF Core, File storage, Field extractors (PDF/DOCX/XML/TXT — XML extractor is real CNBV/PRP1 extraction, hardened + 16 tests 2026-06-07; the prior "dummy placeholder" label was a stale DI comment, not the code).
 - Web UI auth — ASP.NET Core Identity (cookie-based), real.
 - Rx.NET event architecture (`EventPublisher`) — wired and accurate to the docs.
 - Health checks (`/health`, `/health/live`) — real Athena/Orion services.
@@ -184,8 +184,9 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
   Adaptive **Export** are implemented and DI-wired. Adaptive **TXT** is implemented and (✅
   **2026-06-07**) its 3 previously-skipped robustness edge cases are now fixed + unskipped
   (CNBV-vs-SAT authority priority, Expediente pattern `B/CDEF-1234-567890-ABC`, SAT detection
-  conflict) — `Tests.Infrastructure.Extraction.Txt` 35/35, 0 skipped. Remaining gap:
-  `XmlFieldExtractor` is still a "dummy placeholder" (XML source extraction).
+  conflict) — `Tests.Infrastructure.Extraction.Txt` 35/35, 0 skipped. `XmlFieldExtractor` is
+  also real CNBV/PRP1 XML extraction (hardened + 16 tests 2026-06-07; its former "dummy
+  placeholder" tag was just a stale DI comment). So the field extractors are now in good shape.
 - **Quality** — real (`PolynomialImageQualityAnalyzer` in Worker, `EmguCvImageQualityAnalyzer`
   in UI), but trained filter-selection models are still stub coefficients.
 - **Classification** — real path; deeper semantic field extraction is TODO.
@@ -197,7 +198,7 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 - **Orion document download** — `IDocumentDownloader` is `StubDocumentDownloader` (returns
   empty bytes); no real SIARA ingestion yet. Highest-impact gap for true end-to-end flow.
 - Worker `/dashboard` metrics — `Orion/AthenaDashboardService` return zeros (UI Dashboard uses the working `IProcessingMetricsService`).
-- PersonIdentityResolver DB persistence; PDF text extraction (returns empty pending iText/PdfSharp); CSnakes Python ML runtime interop; `XmlFieldExtractor` dummy placeholder (real XML-source extraction). *(The former "3 skipped TXT extractor edge cases" were fixed 2026-06-07.)*
+- PersonIdentityResolver DB persistence; PDF text extraction (returns empty pending iText/PdfSharp); CSnakes Python ML runtime interop. *(2026-06-07: the "3 skipped TXT extractor edge cases" were fixed, and `XmlFieldExtractor` was confirmed real + hardened — both removed from this list.)*
 - Sentinel monitoring service — **not yet traced; status unknown.**
 
 > Roadmap toward production: `docs/planning/path-to-production-2026-06.md`.
