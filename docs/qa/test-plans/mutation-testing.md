@@ -39,8 +39,40 @@ Final mutation score: 24.90 %   (1m10s)
 ```
 
 The toolchain runs end-to-end and produces a **real, trustworthy score** on the xunit.v3 + MTP +
-custom-artifacts stack. 24.90% is a meaningful first baseline: the 35 passing tests pin only ~¼ of
-`AdaptiveTxtFieldExtractor`'s behavior — the 167 survivors are concrete targets for stronger assertions.
+custom-artifacts stack. 24.90% was a meaningful first baseline: the 35 passing tests pinned only ~¼ of
+`AdaptiveTxtFieldExtractor`'s behavior — the 167 survivors were concrete targets for stronger assertions.
+
+### Survivor-driven hardening (2026-06-08) — ✅ 24.90% → 82.10%
+
+The 167 survivors were parsed out of the HTML report and grouped by extractor method. The bulk were
+**ten extraction helpers with no value-asserting coverage** (Email, Telefono, CodigoPostal, Direccion,
+FundamentoLegal, AutoridadEspecifica, FechaPublicacion, DiasPlazo, TieneAseguramiento, NombreSolicitante),
+plus weak (`ShouldNotBeNull`-only) assertions on the `ExtractFieldByName` alias switch, the produced
+`FieldValue` metadata, the authority-priority ladder, and the labeled-NumeroOficio / OCR-fuzzy-expediente
+branches. Added `AdaptiveTxtFieldExtractorMutationKillingTests.cs` (88 tests, every one pinning an **exact**
+value so a string/equality/boolean/block mutation is observable).
+
+```
+35 (orig) + 88 (new) = 123 tests, all green
+296 mutations covered · Killed 211 · Survived 40 · NoCoverage 6 · Timeout 0
+Final mutation score: 82.10 %   (~2m)
+```
+
+The remaining **40 survivors are the equivalent-mutant floor** and were deliberately left:
+- `match.Success || match.Groups.Count > 1` (`&&`→`||`) and `Count > 1`→`>= 1` — a capture-group match
+  always has `Groups.Count ≥ 2`, and `Success`/`Count>1` are perfectly correlated, so these don't change
+  behavior (≈22 mutants).
+- Serilog format-string / statement mutations and the inner "not found" failure message that the public
+  method discards (it re-wraps with its own message); plus the defensive `catch` blocks (NoCoverage) that
+  can't be entered without forcing a `Regex` exception.
+- `source.OcrConfidence ?? 0.8f` "remove-left" — the confidence is discarded in the `ExtractFieldsAsync`
+  output path (`ExtractedFields` stores strings, not `FieldValue`); it is pinned where it *is* observable,
+  via `ExtractFieldAsync`.
+- `RegexOptions.Multiline | IgnoreCase` (`|`→`&`) where neither flag changes matching for that pattern
+  (no `^`/`$`; case handled by explicit alternations).
+
+Killing those would require log-output inspection or contrived inputs that don't reflect real OCR text.
+**82.10% is the honest ceiling for this unit** given the equivalent mutants.
 
 **Two settings are MANDATORY here (this is the whole story — both were the cause of an earlier 0% run):**
 
