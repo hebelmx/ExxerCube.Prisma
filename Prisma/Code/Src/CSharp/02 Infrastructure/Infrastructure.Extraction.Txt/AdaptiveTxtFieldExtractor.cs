@@ -311,8 +311,9 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
     private static string? ExtractExpediente(string text)
     {
         // Primary pattern: A/AS1-2505-088637-PHM or B/CDEF-1234-567890-ABC
-        // Format: Letter/Letters+Numbers-Numbers-Numbers-Letters
-        var expedientePattern = @"[A-Z]/[A-Z]{1,4}\d+[-–]\d+[-–]\d+[-–][A-Z]+";
+        // Format: Letter / Letters(optional digits) - Numbers - Numbers - Letters
+        // The segment after "/" may be pure letters (e.g. CDEF) or letters+digits (e.g. AS1, Y1).
+        var expedientePattern = @"[A-Z]/[A-Z]{1,4}\d*[-–]\d+[-–]\d+[-–][A-Z]+";
         var match = Regex.Match(text, expedientePattern, RegexOptions.Multiline);
         if (match.Success)
         {
@@ -320,7 +321,7 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
         }
 
         // Alternative pattern (with OCR errors): handle O→0, I→1 substitutions
-        var fuzzyPattern = @"[A-Z]/[A-Z]{1,4}[0-9O]+[-–][0-9O]+[-–][0-9O]+[-–][A-Z]+";
+        var fuzzyPattern = @"[A-Z]/[A-Z]{1,4}[0-9O]*[-–][0-9O]+[-–][0-9O]+[-–][A-Z]+";
         match = Regex.Match(text, fuzzyPattern, RegexOptions.Multiline);
         if (match.Success)
         {
@@ -396,37 +397,49 @@ public sealed class AdaptiveTxtFieldExtractor : IFieldExtractor<TxtSource>
     /// <summary>
     /// Extracts AutoridadNombre (authority name).
     /// </summary>
+    /// <remarks>
+    /// Priority rules:
+    /// 1. SAT wins when explicitly self-identified as "SAT - Servicio de Administración Tributaria"
+    ///    (a composite label that unambiguously names the authority as SAT).
+    /// 2. CNBV wins over AGAFF: in CNBV/SIARA documents the CNBV is the recipient authority
+    ///    while AGAFF may appear as the sender; CNBV is the governing regulator in this system.
+    /// 3. Acronyms (SAT bare, CNBV, AGAFF) are checked last using word-boundary guards to
+    ///    avoid false matches inside email addresses (@sat.gob.mx) or URLs.
+    /// </remarks>
     private static string? ExtractAutoridadNombre(string text)
     {
-        // Look for common authority names - check full names FIRST to avoid matching acronyms in emails/URLs
-        var authorities = new[]
+        // Priority 1: SAT explicitly self-identified with its full description.
+        // "SAT - Servicio de Administración Tributaria" is an unambiguous SAT label;
+        // return the canonical acronym used across the system.
+        var satExplicitPattern = @"SAT\s*[-–]\s*Servicio\s+de\s+Administraci[oó]n\s+Tributaria";
+        if (Regex.IsMatch(text, satExplicitPattern, RegexOptions.IgnoreCase))
         {
-            "Comisión Nacional Bancaria y de Valores",
-            "Administración General de Auditoría Fiscal Federal",
-            "AGAFF",
-            "CNBV",
-            "SAT" // Check acronyms last to avoid false matches in emails
-        };
+            return "SAT";
+        }
 
-        foreach (var authority in authorities)
+        // Priority 2: CNBV full name — the primary regulatory authority for SIARA documents.
+        // Check before AGAFF because CNBV is the recipient in CNBV-issued letters even when
+        // AGAFF appears as the sending body.
+        if (text.Contains("Comisión Nacional Bancaria y de Valores", StringComparison.OrdinalIgnoreCase))
         {
-            // For short acronyms (<=5 chars), use word boundary to avoid false matches in emails
-            if (authority.Length <= 5)
+            return "Comisión Nacional Bancaria y de Valores";
+        }
+
+        // Priority 3: AGAFF full name.
+        if (text.Contains("Administración General de Auditoría Fiscal Federal", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Administración General de Auditoría Fiscal Federal";
+        }
+
+        // Priority 4: Bare acronyms — use word boundaries to avoid false matches in
+        // email addresses like "@sat.gob.mx" or domain names.
+        var acronyms = new[] { "AGAFF", "CNBV", "SAT" };
+        foreach (var acronym in acronyms)
+        {
+            var pattern = @"(?<![@.])\b" + Regex.Escape(acronym) + @"\b(?!\.gob\.mx)";
+            if (Regex.IsMatch(text, pattern, RegexOptions.IgnoreCase))
             {
-                // Don't match SAT in email addresses like "@sat.gob.mx"
-                var pattern = @"(?<![@.])\b" + Regex.Escape(authority) + @"\b(?!\.gob\.mx)";
-                if (Regex.IsMatch(text, pattern, RegexOptions.IgnoreCase))
-                {
-                    return authority;
-                }
-            }
-            else
-            {
-                // For full names, case-insensitive match
-                if (text.Contains(authority, StringComparison.OrdinalIgnoreCase))
-                {
-                    return authority;
-                }
+                return acronym;
             }
         }
 

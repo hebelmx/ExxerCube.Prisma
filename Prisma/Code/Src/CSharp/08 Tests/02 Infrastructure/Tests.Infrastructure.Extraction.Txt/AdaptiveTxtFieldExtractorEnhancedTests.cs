@@ -14,7 +14,7 @@ public class AdaptiveTxtFieldExtractorEnhancedTests
         _extractor = new AdaptiveTxtFieldExtractor(_logger);
     }
 
-    [Fact(Skip = "TODO: Authority extraction priority needs refinement - CNBV vs SAT in same document")]
+    [Fact]
     public async Task ExtractFieldsAsync_RealOcrFixture222AAA_ExtractsAllFields()
     {
         // Arrange - Load real OCR fixture
@@ -144,7 +144,7 @@ Expediente relacionado: B/BS2-3606-099748-XYZ
         result.Value!.Value.ShouldBe("AGAFADAFSON2/2025/000084");
     }
 
-    [Fact(Skip = "TODO: Expediente pattern needs enhancement for edge case B/CDEF-1234-567890-ABC")]
+    [Fact]
     public async Task ExtractFieldsAsync_ExpedienteVariations_HandlesCorrectly()
     {
         // Arrange - Various expediente formats
@@ -207,7 +207,7 @@ ACCIÓN SOLICITADA: Another field
         result.Value!.Value.ShouldBe("Test with extra spaces");
     }
 
-    [Fact(Skip = "TODO: SAT detection priority - conflicts with full authority name")]
+    [Fact]
     public async Task ExtractFieldsAsync_SAT_Authority_DetectsCorrectly()
     {
         // Arrange
