@@ -29,7 +29,7 @@ This document summarizes the QA review status and observations for stories 1.6, 
 - ✅ **All ACs Met:** 7/7 (100%)
 - ✅ **Test Coverage:** 58 tests
 - ✅ **No Blocking Issues**
-- ✅ **Production Ready**
+- ⚠️ **Beta-test stage** (almost ready, not yet production-ready)
 
 **Status:** ✅ **COMPLETE** - No action required
 
@@ -139,7 +139,7 @@ This document summarizes the QA review status and observations for stories 1.6, 
 - ✅ **ACs Met:** 6.5/7 (93%) - AC5 partial (configuration exists)
 - ✅ **Test Coverage:** 24 tests
 - ✅ **No Blocking Issues**
-- ✅ **Production Ready**
+- ⚠️ **Beta-test stage** (almost ready, not yet production-ready)
 
 **Status:** ✅ **COMPLETE** - No action required (enhancements documented)
 

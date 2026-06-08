@@ -5,7 +5,7 @@
 
 ## 📋 Executive Summary
 
-**Goal:** Implement complete 3-way document reconciliation in DocumentProcessing.razor using production-grade services
+**Goal:** Implement complete 3-way document reconciliation in DocumentProcessing.razor using the existing (beta-test-stage, not yet production-ready) services
 
 **Key Services:**
 - `IFusionExpediente` / `FusionExpedienteService` - Multi-source data fusion with confidence scoring

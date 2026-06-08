@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # VEC Statement PDF Processing - Feasibility Assessment
 
 **Project:** ExxerCube.Prisma VEC Statement Extraction & Validation System
@@ -255,7 +257,7 @@ The VEC Statement PDF Extraction & Validation System requires:
 - ✅ CorrelationId for distributed tracing
 - ✅ Queryable audit records
 
-**Gap:** None - Audit trail is production-ready
+**Gap:** Audit trail is beta-test stage (substantial, but not yet production-hardened)
 
 ---
 
@@ -680,7 +682,7 @@ public async Task<Result<FiscalVerificationReport>> VerifyPostTimbradoAsync(
 1. **Architecture Compatibility:** Hexagonal architecture is perfect for adding VEC domain
 2. **PDF Infrastructure:** Mature PDF processing pipeline (PdfSharp, PdfPig, OCR)
 3. **Validation Framework:** Extensible validation engine with non-blocking warnings
-4. **Audit Trail:** Production-ready audit trail with 7-year retention
+4. **Audit Trail:** Beta-test-stage audit trail with 7-year retention (not yet production-hardened)
 5. **Testing Infrastructure:** Comprehensive test suites (xUnit, FluentAssertions, 32% coverage)
 6. **Technology Stack:** Modern .NET 10, Azure services, SQL Server 2022
 7. **Recent Work:** Commit 6236553 already documented VEC requirements!
@@ -838,7 +840,7 @@ public async Task<Result<FiscalVerificationReport>> VerifyPostTimbradoAsync(
 | **Architecture Quality** | Excellent (Hexagonal, DDD) | Unknown | ✅ Extend (already validated) |
 | **Testing Infrastructure** | Comprehensive (32% coverage) | From scratch | ✅ Extend (ready to use) |
 | **PDF Processing** | Mature (PdfSharp, PdfPig, OCR) | From scratch | ✅ Extend (proven pipeline) |
-| **Audit Trail** | Production-ready (7-year retention) | From scratch | ✅ Extend (CNBV compliant) |
+| **Audit Trail** | Beta-test stage (7-year retention; not yet production-hardened) | From scratch | ✅ Extend (CNBV compliant) |
 | **Team Learning Curve** | Low (existing codebase) | None (greenfield) | ✅ Extend (faster onboarding) |
 | **Flexibility** | High (Hexagonal allows extensions) | High (greenfield) | 🟡 Tie |
 | **Technical Debt** | Low (clean architecture) | None | 🟡 Tie |

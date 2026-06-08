@@ -55,7 +55,7 @@ if (similarity >= _coefficients.FuzzyMatchThreshold) // Default 0.85
 
 | Component | Implementation Quality | Matching Strategy |
 |-----------|----------------------|-------------------|
-| **FusionExpedienteService** | ✅ Production-grade | FuzzySharp (Fuzz.Ratio) with 0.85 threshold |
+| **FusionExpedienteService** | ✅ Beta-test stage (almost ready, not yet production-ready) | FuzzySharp (Fuzz.Ratio) with 0.85 threshold |
 | **LegalDirectiveClassifierService** | ❌ Naive placeholder | Simple `Contains()` keyword matching |
 
 **Root Cause**: Development proceeded on parallel paths. Robust engine built for data reconciliation, but directive classification remained a placeholder.
@@ -874,7 +874,7 @@ public async Task<Result<ExpedienteComparisonResult>> CompareExpedientesAsync(
 **Business**:
 - ✅ Reduced false positives in manual review queue
 - ✅ Fundability score: 7.5 → 8.5/10
-- ✅ Production-ready quality
+- ✅ Beta-test-stage quality (almost ready, not yet production-ready)
 
 ---
 

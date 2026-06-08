@@ -1,4 +1,6 @@
-# 🏆 PRODUCTION-READY OCR SOLUTION
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
+# 🏆 OCR SOLUTION — BETA-TEST STAGE (almost ready, important gaps remaining)
 
 ## DocTR: Validated for Spanish Legal Document Processing
 
@@ -11,7 +13,7 @@
 ### **Large-Scale Batch Testing**
 - ✅ **50 Documents Processed**: Comprehensive real-world testing
 - ✅ **100% Success Rate**: No failures across diverse document types
-- ✅ **3.65s Average Processing**: Production-ready speed
+- ✅ **3.65s Average Processing**: fast processing speed (benchmark, not production-validated)
 - ✅ **74.8% Average OCR Confidence**: High quality extraction
 - ✅ **86,819 Total Characters Extracted**: Substantial text processing capability
 
@@ -53,7 +55,7 @@ Text Output: 1,736 characters, 262 words, 62 lines per document
 
 ---
 
-## 🚀 **Production Deployment Ready**
+## 🚀 **Deployment Readiness (beta-test stage — not yet production-ready)**
 
 ### **Immediate Deployment Capabilities**
 1. **✅ Proven Reliability**: 100% success rate across 75 tested documents
@@ -163,7 +165,7 @@ Priority candidates for additional evaluation:
 
 ## 🏆 **Final Recommendation**
 
-**DocTR is PRODUCTION-READY for immediate deployment** in the Spanish legal document processing pipeline.
+**DocTR benchmarks well and is a strong candidate** for the Spanish legal document processing pipeline, but the overall system is at **beta-test stage with important gaps remaining** — not yet production-ready.
 
 ### **Confidence Level: HIGHEST** 🟢
 

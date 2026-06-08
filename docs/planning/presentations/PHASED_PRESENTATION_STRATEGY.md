@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # PHASED PRESENTATION STRATEGY - HYBRID APPROACH
 **ExxerCube.Prisma - Progressive Stakeholder Engagement**
 
@@ -13,7 +15,7 @@
 
 | Phase | Timeline | Objective | Status |
 |-------|----------|-----------|--------|
-| **Phase 1** | TODAY (20 min demo) | Demonstrate production-ready business logic | ✅ **READY NOW** |
+| **Phase 1** | TODAY (20 min demo) | Demonstrate beta-test-stage business logic | ✅ **READY NOW** |
 | **Phase 2** | NEXT WEEK (3-5 days) | Complete MVP with visual layer | ⏰ **PLANNED** |
 | **Phase 3** | 6 WEEKS | VEC Statement Processing integration | 📋 **ARCHITECTED** |
 
@@ -28,7 +30,7 @@
 ## PHASE 1: DOCUMENT PROCESSING PIPELINE DEMO (TODAY)
 
 ### **Objective**
-Demonstrate production-ready business logic with complete traceability, defensive intelligence, and ML-readiness.
+Demonstrate beta-test-stage business logic (almost ready, important gaps remaining) with complete traceability, defensive intelligence, and ML-readiness.
 
 ### **Duration**
 - **Prep**: 5 minutes
@@ -132,7 +134,7 @@ WHERE CorrelationId = '<CORRELATION_ID>'
 **Talking Points**:
 > "Good [morning/afternoon]. Today we're demonstrating our complete document processing pipeline for CNBV regulatory compliance.
 >
-> **This is NOT a prototype** - this is production-ready code running on real SQL Server with complete traceability.
+> **This is NOT a prototype** - this is beta-test-stage code (almost ready, not yet production-ready) running on real SQL Server with complete traceability.
 >
 > We'll show you 3 real-world scenarios based on actual SIARA documents:
 > 1. **Happy Path** - Clean processing with full automation
@@ -904,7 +906,7 @@ Integrate VEC Statement Processing capabilities, reusing 60% of existing Prisma 
 
 **This phased strategy balances immediate value demonstration with realistic timeline commitments.**
 
-**Phase 1 (TODAY)** proves we have production-ready business logic.
+**Phase 1 (TODAY)** proves we have beta-test-stage business logic (almost ready, on the path to production).
 **Phase 2 (NEXT WEEK)** completes the MVP with visual wow-factor.
 **Phase 3 (6 WEEKS)** extends to VEC Statement Processing, reusing proven infrastructure.
 

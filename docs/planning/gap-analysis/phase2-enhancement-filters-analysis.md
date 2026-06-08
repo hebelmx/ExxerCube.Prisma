@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # Phase 2: Enhancement Filters Testing - Analysis Report
 
 **Date:** 2025-11-26

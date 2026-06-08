@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. (Mission 4/5 "production-grade" objectives below describe the *target* state, not current status.) See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # Mission Statements 3, 4, 5 - Advanced OCR Pipeline Development
 
 Based on the context from Mission 1 (Document Generation) and analysis of Mission 2 (SmolVLM Extraction), here are the comprehensive mission statements for the remaining phases:

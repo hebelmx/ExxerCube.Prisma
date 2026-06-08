@@ -38,7 +38,7 @@ This work makes the following contributions:
 
 3. **Reproducible methodology**: We provide a complete pipeline from dataset generation through validation, including all scripts and trained model coefficients.
 
-4. **Production-ready implementation**: We deliver both Python inference code and C# implementation guidelines for integration into enterprise document processing systems.
+4. **Beta-test-stage implementation** (almost ready, not yet production-ready): We deliver both Python inference code and C# implementation guidelines for integration into enterprise document processing systems.
 
 ---
 
@@ -263,7 +263,7 @@ We presented a methodology for adaptive OCR enhancement that:
 2. **Optimizes filters per cluster** using genetic algorithms
 3. **Interpolates continuously** using polynomial regression
 
-This approach achieves 18.4% OCR improvement on degraded documents, outperforming both universal filters and discrete lookup tables. The methodology is reproducible, and we provide production-ready implementations in both Python and C#.
+This approach achieves 18.4% OCR improvement on degraded documents, outperforming both universal filters and discrete lookup tables. The methodology is reproducible, and we provide beta-test-stage implementations (almost ready, not yet production-ready) in both Python and C#.
 
 ---
 

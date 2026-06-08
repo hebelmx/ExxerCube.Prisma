@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # FINAL REALISTIC GAP ASSESSMENT
 **Date**: 2025-11-29
 **Based On**: Actual system flow (SYSTEM_FLOW_DIAGRAM.md) vs Legal theory (ClassificationRules.md)
@@ -45,7 +47,7 @@
 - **Completion**: 95%+ for intelligent document processing
 - **Build Status**: ✅ All projects build successfully
 - **Database**: ✅ All migrations applied
-- **Ready**: ✅ Production-ready for stakeholder demo
+- **Ready**: ✅ Beta-test stage — ready for stakeholder demo (not yet production-ready)
 
 ---
 

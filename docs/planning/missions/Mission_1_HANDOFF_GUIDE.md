@@ -1,8 +1,10 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # Agent Handoff Guide - Document Generation Pipeline
 
 ## 🎯 Mission Status: COMPLETE ✅
 
-**Current Agent has successfully delivered a production-ready document generation pipeline.**
+**Current Agent has delivered a beta-test-stage document generation pipeline (almost ready, important gaps remaining — not yet production-ready).**
 
 ## 📋 Handoff Summary
 
@@ -11,7 +13,7 @@
 2. ✅ **999 test documents generated** with 30-hash watermarking system
 3. ✅ **Comprehensive documentation** in Mission.md
 4. ✅ **Inline code comments** for easy refinement
-5. ✅ **Production-ready scripts** with error handling
+5. ✅ **Beta-test-stage scripts** with error handling (not yet production-hardened)
 
 ### What's Currently Running
 - **999 document batch generation** running in background (Fixtures999/)

@@ -69,8 +69,22 @@ distance; they don't redefine the goal.
 13. MudBlazor 8→9 (UI migration + visual testing); SixLabors.ImageSharp 3→4 (paid license
     business decision); Emgu.CV / Testcontainers / BouncyCastle holds.
 
-## Definition of "production-ready" (none asserted yet)
-A document downloaded from SIARA flows through all five stages with real data, produces a
-valid compliance export, with integration/E2E suites green and observability live. Today:
-Tesseract OCR + real export exist, but ingestion is stubbed and OCR→Fusion is not threaded —
-so end-to-end is **not** yet demonstrable.
+## Definitions of "done" — two milestones (none asserted yet)
+
+The system today is at **almost-ready, beta-test stage with important gaps remaining**. Two
+distinct milestones lie ahead; neither is asserted as reached.
+
+### Milestone A — "beta-test readiness" (near-term target)
+A document downloaded from SIARA (or the `tools/Siara.Simulator`) flows through all five
+stages with real data and produces a valid compliance export at least on the happy path,
+with the integration/system suites green and basic observability in place — good enough for
+controlled beta testing with real users and known caveats. Today: Tesseract OCR + real export
+exist, but ingestion is stubbed and OCR→Fusion is not threaded — so even this is **not** yet
+demonstrable end-to-end.
+
+### Milestone B — "production readiness" (longer-term target)
+Everything in Milestone A, plus: a real SIARA downloader (not the stub), the auth abstraction
+decision wired, full integration/E2E suites green (including Docker/Playwright/Python paths),
+real `/dashboard` metrics + readiness probes, hardened error handling across the unhappy
+paths, and live observability/operability. This is the destination the PRD/epics describe —
+**none of it is asserted as complete yet.**

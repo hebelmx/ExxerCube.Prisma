@@ -1,6 +1,8 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # Adaptive Bank Template Detection - Gap Analysis & Implementation Roadmap
 **Date**: 2025-11-30
-**Last Updated**: 2025-11-30 (PHASE 7+8 COMPLETE - PRODUCTION READY!)
+**Last Updated**: 2025-11-30 (PHASE 7+8 COMPLETE - beta-test stage, not yet production-ready)
 **Status**: 🚀 **PHASE 7+8 COMPLETE** - Adaptive Templates LIVE | 162/162 Tests GREEN
 **Priority**: HIGH - Critical for "No Code Changes" Promise
 
@@ -10,7 +12,7 @@
 
 **Overall Status**: Phase 1-8 COMPLETE ✅ | Phase 9 PENDING ⏳
 **Test Coverage**: 162/162 tests GREEN (100%)
-**Production Status**: ✅ READY FOR DEPLOYMENT
+**Status**: ⚠️ Beta-test stage — almost ready, important gaps remaining (not yet production-ready)
 
 ### ✅ COMPLETED PHASES
 
@@ -1027,7 +1029,7 @@ public static async Task Main(string[] args)
 - Zero-downtime migration path
 - Admin UI deferred (templates work without it)
 
-**Deliverable**: ✅ Production-ready adaptive template system (Admin UI deferred)
+**Deliverable**: ✅ Beta-test-stage adaptive template system (almost ready, not yet production-ready; Admin UI deferred)
 
 ### Phase 9: E2E Tests & Production Rollout (Week 11)
 **Goal**: Validate complete system and deploy to production

@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # GAP CLOSURE ACTION PLAN - 100%+ MVP COMPLETION
 **Target**: Close ALL gaps for stakeholder presentation
 **Current Status**: 90% → **Target**: 100%+
@@ -876,9 +878,9 @@ After completing gaps:
 
 **Estimated effort**: 3-5 days intensive work
 
-**Expected outcome**: Flawless demo that demonstrates production-ready system with no visible gaps.
+**Expected outcome**: Polished demo that showcases a beta-test-stage system (almost ready, not yet production-ready) with no visible gaps during the demo.
 
-**Stakeholder impact**: "This isn't a prototype - this is production-ready software."
+**Stakeholder impact**: "This isn't a prototype - this is almost-ready, beta-test-stage software (important gaps remaining, on a clear path to production)."
 
 ---
 

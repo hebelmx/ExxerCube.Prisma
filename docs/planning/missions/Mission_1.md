@@ -1,9 +1,11 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # Complete Document Generation Pipeline for OCR Testing
 
 ## Project Overview
 **Automated Preprocessing Pipeline for Spanish Legal Documents**
 
-This document describes a complete, production-ready pipeline for generating synthetic Spanish legal documents with watermarking and realistic degradation for OCR testing. The system creates challenging test datasets for document extraction systems like SmolVLM.
+This document describes a substantially complete, beta-test-stage pipeline (almost ready, important gaps remaining — not yet production-ready) for generating synthetic Spanish legal documents with watermarking and realistic degradation for OCR testing. The system creates challenging test datasets for document extraction systems like SmolVLM.
 
 ## 🎯 Mission Accomplished - Full Pipeline
 
@@ -266,4 +268,4 @@ The system is designed for easy adaptation to real documents:
 - ✅ Comprehensive documentation for handoff
 
 **Next Agent Instructions:**
-Use this pipeline as foundation. Focus refinement on watermarking density and degradation realism using real document samples. All core systems are production-ready.
+Use this pipeline as foundation. Focus refinement on watermarking density and degradation realism using real document samples. All core systems are at beta-test stage (almost ready, not yet production-ready).

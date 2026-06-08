@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # STAKEHOLDER PRESENTATION READINESS REPORT
 **Report Date**: 2025-11-29
 **Project**: Prisma RegTech - CNBV Compliance Automation
@@ -10,7 +12,7 @@
 
 ### 🎯 MVP STATUS: **READY FOR DEMO** (90% Complete)
 
-Your Prisma MVP is substantially complete and demonstrates production-grade architecture. The system successfully automates the complete CNBV regulatory compliance pipeline from document acquisition to export, with robust OCR processing, classification, and audit capabilities.
+Your Prisma MVP is substantially complete and demonstrates a clean hexagonal architecture. The system is at **beta-test stage with important gaps remaining** (not yet production-ready); it exercises the CNBV regulatory compliance pipeline from document acquisition to export, with OCR processing, classification, and audit capabilities.
 
 **Key Strengths**:
 - ✅ **195 projects** in solution with hexagonal architecture
@@ -358,7 +360,7 @@ Your Prisma MVP is substantially complete and demonstrates production-grade arch
 - **110+ test files** across 6 test categories (comprehensive coverage)
 - **4 real + 200+ synthetic fixtures** (validated on real data)
 - **3-6 second OCR** vs. 140 second fallback (performance + accuracy)
-- **15+ dashboards** (production-ready UI, not prototype)
+- **15+ dashboards** (substantial UI, beyond prototype — still beta-test quality)
 
 **Business Metrics** (Prepare for Q&A):
 - **Manual process**: 6-20 days per CNBV request (lawyer time)
@@ -585,7 +587,7 @@ Your Prisma MVP is substantially complete and demonstrates production-grade arch
 
 ### 🎉 ACHIEVEMENTS TO CELEBRATE
 
-Your team has built a **production-grade MVP** that far exceeds typical proof-of-concept quality:
+Your team has built an **almost-ready, beta-test-stage MVP** (important gaps remaining, not yet production-ready) that far exceeds typical proof-of-concept quality:
 
 1. ✅ **Enterprise Architecture**: 195 projects, hexagonal design, dependency inversion
 2. ✅ **Comprehensive Testing**: 600+ tests, 95% pass rate, real + synthetic fixtures

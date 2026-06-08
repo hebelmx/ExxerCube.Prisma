@@ -9,7 +9,7 @@
 **Key Messages**:
 1. **Complete Traceability**: Every document tracked from download → storage with full audit trail
 2. **Defensive Intelligence**: System handles errors gracefully, continues processing, flags for review
-3. **Production-Ready**: Real SQL Server database, real event persistence, real business logic
+3. **Real infrastructure (beta-test stage, not yet production-ready)**: Real SQL Server database, real event persistence, real business logic
 4. **Machine Learning Ready**: Complete event data captured for future ML model training
 
 ---
@@ -82,7 +82,7 @@ dotnet run
 
 **Talking Points**:
 - "Today we're demonstrating the complete document processing pipeline"
-- "This is NOT a prototype - this is production-ready code running on real SQL Server"
+- "This is NOT a prototype - this is beta-test-stage code (almost ready, not yet production-ready) running on real SQL Server"
 - "Every document is tracked from download to storage with complete traceability"
 - "We'll show you 3 real-world scenarios based on actual SIARA documents"
 
@@ -167,7 +167,7 @@ WHERE CorrelationId = '<CORRELATION_ID>'
 ### Key Takeaways (Scenario 1)
 ✅ **Complete traceability** - Every step tracked in database
 ✅ **Real persistence** - Data survives application restarts
-✅ **Production-ready** - Real SQL Server, FK constraints enforced
+✅ **Real infrastructure (beta-test stage, not yet production-ready)** - Real SQL Server, FK constraints enforced
 ✅ **High confidence** - 92.5% OCR, 95% classification confidence
 ✅ **Fully automated** - No manual review required
 

@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # MVP PRESENTATION CHECKLIST
 **Incremental Implementation & Testing Strategy**
 
@@ -488,7 +490,7 @@ Step 4: Report Generation → Step 5: Search (database query)
   - [ ] **Total**: 11 minutes + 4 minutes Q&A = 15-minute presentation
 
 ### Talking Points ⏳
-- [ ] **Architecture**: Hexagonal, 600+ tests, production-ready patterns
+- [ ] **Architecture**: Hexagonal, 600+ tests, clean patterns (beta-test stage, not yet production-ready)
 - [ ] **Compliance**: Legal requirements from CNBV regulations
 - [ ] **ROI**: Developer cost vs Mexican lawyer time savings
 - [ ] **Resilience**: Failover storage, graceful error handling

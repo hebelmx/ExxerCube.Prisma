@@ -1,3 +1,5 @@
+> **⚠️ Status correction (2026-06-07):** This document's "production-ready" claims are aspirational / MVP-demo framing. The system is at **almost-ready, beta-test stage with important gaps remaining** — not production-ready. See docs/planning/gap-analysis/GAP-MATRIX-2026-06-dual-ground-truth.md.
+
 # ITDD/TDD Implementation Plan — Orion/Athena/Sentinel/Auth/HMI
 
 ## Purpose
@@ -543,7 +545,7 @@ Actionable, test-first plan to deliver the dual-worker topology (Orion ingestion
 - Exit Criteria:
   - ✅ All 20 tests passing
   - ✅ Comprehensive ROP pattern coverage
-  - ✅ Production-ready auth abstraction
+  - ✅ Beta-test-stage auth abstraction (not yet production-ready)
 
 ---
 

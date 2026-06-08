@@ -299,7 +299,7 @@ This section defines the exact patterns for component creation based on Blazor S
 
 ### Component Template
 
-The following template represents a complete, production-ready Blazor Server component following project conventions:
+The following template represents a complete, beta-test-stage (almost ready, not yet production-ready) Blazor Server component following project conventions:
 
 ```razor
 @page "/feature/component-name"
