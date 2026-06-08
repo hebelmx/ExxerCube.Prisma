@@ -296,6 +296,19 @@ Booted `Web.UI` via `dotnet run` (connection strings overridden to LocalDB) on t
   this 3-process, Ember-coordinated split. Today only the **monolithic worker hosts** exist (Orion/Athena),
   with Ember real in the UI and stubbed in the workers.
 
+**Security / separation-of-duties (owner input 2026-06-07b) — a PRIMARY driver of the 3-process split:**
+- The documents are **highly confidential**: intended only for the lawyer initially, then disclosed on a
+  strict **need-to-know basis** to other bank staff. **No single person (and no single process) handles a
+  document end-to-end** — some staff *only download*, others *only read/extract*, others *reconcile*; all are
+  cleared, but access is **compartmentalized per stage**.
+- This makes the **Downloader / Extractor / Reconciliator** split a **security boundary**, not just a
+  scaling/coordination choice: each process runs with its own role, clearance, and least-privilege access to
+  document content, and they exchange **events/handoffs (via Ember), not shared raw access**. A monolithic
+  worker that touches the whole document at once would violate the separation-of-duties model.
+- Implications to design in: per-stage authorization (role/clearance), data minimization between stages
+  (pass references/derived data, not full content where a stage doesn't need it), and a complete **audit
+  trail of who/which-process accessed what** (the existing `AuditReportingService` is the seed for this).
+
 **Auth & volume requirements (owner input 2026-06-07b) — these shape the Downloader process design:**
 - **No SIARA auth API; login is a basic web form.** The system must **never hold raw credentials.** Two
   candidate approaches (both deliberate workarounds, *not* attacks): (a) **session passthrough** — the
