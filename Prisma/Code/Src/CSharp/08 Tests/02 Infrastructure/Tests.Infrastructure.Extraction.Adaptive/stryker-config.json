@@ -6,6 +6,7 @@
     ],
     "test-runner": "mtp",
     "mutate": [
+      "**/AdaptiveDocxExtractor.cs",
       "**/EnhancedFieldMergeStrategy.cs",
       "**/TableBasedDocxStrategy.cs",
       "**/StructuredDocxStrategy.cs",
