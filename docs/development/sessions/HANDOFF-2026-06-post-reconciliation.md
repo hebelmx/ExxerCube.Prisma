@@ -1,3 +1,9 @@
+> **⏭️ SUPERSEDED (2026-06-08):** newer entry point is
+> `HANDOFF-2026-06-08-audit-verification-mutation.md` — it carries forward + **corrects** the open items
+> below (esp. the ingestion/SIARA framing: download works/was demoed; the gap is headless-chain
+> integration) and adds the live-verification results + mutation testing. Read that first; this file
+> remains for history.
+
 # Handoff — Post-Reconciliation Fixes (2026-06-07)
 
 **Prepared:** 2026-06-07, end of the dual-ground-truth reconciliation + fix session
