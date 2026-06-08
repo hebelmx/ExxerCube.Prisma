@@ -9,7 +9,8 @@
       "**/EnhancedFieldMergeStrategy.cs",
       "**/TableBasedDocxStrategy.cs",
       "**/StructuredDocxStrategy.cs",
-      "**/ContextualDocxStrategy.cs"
+      "**/ContextualDocxStrategy.cs",
+      "**/SearchExtractionStrategy.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
