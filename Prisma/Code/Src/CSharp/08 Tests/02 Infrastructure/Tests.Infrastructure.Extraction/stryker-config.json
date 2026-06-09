@@ -12,7 +12,9 @@
       "**/Teseract/FileTypeIdentifierService.cs",
       "**/Matching/MexicanNameFuzzyMatcher.cs",
       "**/Teseract/XmlExpedienteParser.cs",
-      "**/Teseract/XmlMetadataExtractor.cs"
+      "**/Teseract/XmlMetadataExtractor.cs",
+      "**/DocumentComparisonService.cs",
+      "**/AdditionalFieldsReconciler.cs"
     ],
     "additional-timeout": 30000,
     "coverage-analysis": "perTest",
