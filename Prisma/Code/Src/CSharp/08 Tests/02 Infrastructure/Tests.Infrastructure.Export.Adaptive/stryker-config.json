@@ -8,7 +8,8 @@
     "mutate": [
       "**/TemplateFieldMapper.cs",
       "**/SchemaEvolutionDetector.cs",
-      "**/AdaptiveExporter.cs"
+      "**/AdaptiveExporter.cs",
+      "**/AdaptiveResponseExporterAdapter.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
