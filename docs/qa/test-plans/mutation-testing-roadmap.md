@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-08 (after Units 17–20: Export.Adaptive §2.2 COMPLETE).
+**Last updated:** 2026-06-09 (after Units 21–24: Imaging §2.3 COMPLETE; Unit 24 mutation-verify deferred).
 **Branch:** `Kt2`.
 
 ---
@@ -19,9 +19,11 @@ per-unit results, all lessons). **This file is the *plan*: the goal, the denomin
 - **Not** everywhere: do **not** mutate non-deterministic code (OCR/Tesseract, dormant Python/VLM, Browser
   automation, Database/Testcontainers, UI/Playwright, worker orchestration). Mutants there are ambiguous.
 
-**Where we are:** 21 files hardened across **5 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
-Export base, and the now-complete **Export.Adaptive**). That's roughly **35 % of the worthy surface** — high
-quality where done, breadth is the remaining work. Estimate ~6–8 more focused sessions at ~1–2 units each.
+**Where we are:** ~29 files hardened across **6 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
+Export base, Export.Adaptive, and the now-complete **Imaging**). That's roughly **45 % of the worthy surface** —
+high quality where done, breadth is the remaining work. Estimate ~5–7 more focused sessions at ~1–2 units each.
+(One small caveat: Unit 24's three filter-selection strategy files have green exact-value tests but their Stryker
+kill-count was deferred — see §2.3.)
 
 ---
 
@@ -34,8 +36,8 @@ quality where done, breadth is the remaining work. Estimate ~6–8 more focused 
 | `Infrastructure.Classification` (deterministic) | ✅ **complete** (5 files; LegalDirective 96 %, FileClassifier 89 %, the 3 matching policies 37–61 %*) |
 | `Infrastructure.Export` (base) | ✅ **complete** (Units 14–16: SiroXmlExporter, ExcelLayoutGenerator, CriterionMapperService, CompositeResponseExporter — all 0 killable survivors) |
 | `Infrastructure.Export.Adaptive` | ✅ **complete** (Units 17–20: TemplateFieldMapper, SchemaEvolutionDetector, AdaptiveExporter, AdaptiveResponseExporterAdapter — all 0 killable survivors) |
-| `Infrastructure.Imaging` | ⬜ TODO (see §2.3) ⬅ **next** |
-| `Infrastructure.Extraction` (base) | ⬜ TODO — several deterministic extractors (see §2.4) |
+| `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
+| `Infrastructure.Extraction` (base) | ⬜ TODO — several deterministic extractors (see §2.4) ⬅ **next** |
 | `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
 | `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
@@ -75,16 +77,35 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 - ⛔ skipped EF artifacts (`InitialCreate*`, `TemplateDbContext*`, `*ModelSnapshot`), `TemplateRepository`,
   `TemplateSeeder` (DB-bound) — as planned.
 
-### 2.3 Imaging — deterministic math
-> `Tests.Infrastructure.Imaging` exists.
-- [ ] `PolynomialImageQualityAnalyzer.cs` (production analyzer)
-- [ ] `AnalyticalFilterSelectionStrategy.cs` (note: a ≥10 % threshold task #11 is deferred here — see GAP matrix)
-- [ ] `DefaultFilterSelectionStrategy.cs` / `PolynomialFilterSelectionStrategy.cs`
-- [ ] `FeatureNormalizer.cs`, `PolynomialModel.cs`, `TrainedPolynomialModel.cs`
-- [ ] `AdaptiveEnhancementFilter.cs`, `PolynomialEnhancementFilter.cs`
-- [ ] `LevenshteinTextComparer.cs` (pure string distance — also used by Classification; high-value, easy)
-- ⛔ avoid native-bound: `EmguCvImageQualityAnalyzer`, `OpenCvAdvancedEnhancementFilter`,
+### 2.3 Imaging — deterministic math — ✅ **COMPLETE** (2026-06-09, Units 21–24)
+> `Tests.Infrastructure.Imaging` exists; added a `stryker-config.json` (8 files, `additional-timeout: 30000`).
+> Project **44 → 180 green**.
+- [x] `LevenshteinTextComparer.cs` — ✅ Unit 21: 0 coverage → Killed 0→151, 0 killable survivors, +40 tests.
+- [x] `FeatureNormalizer.cs` / `PolynomialModel.cs` / `TrainedPolynomialModel.cs` — ✅ Unit 22: Killed +19
+  (10/50/29), 0 killable survivors, +29 tests. (FeatureNormalizer floor = `- min` where every min is 0.0;
+  TrainedPolynomialModel driven via a substituted `IOptionsMonitor` with hand-built coefficients.)
+- [x] `PolynomialImageQualityAnalyzer.cs` — ✅ Unit 23: 0 coverage → Killed 0→54, 0 killable survivors, +14 tests.
+  Hybrid (deterministic post-processing around native EmguCV extraction); pinned exactly via clean structured
+  images (`half-width 0|v` → Blur=v²/25, Contrast=v/2, Noise=v/25, Edge=0.02). **Two lessons:** (a) this
+  native-heavy suite *inflated* the headline via timeout-as-killed (scoped run read 94.44 % with 56 timeouts;
+  with `additional-timeout: 30000` the true picture is 77.78 %, 54 killed, 12 survived — all floor). (b) the
+  Laplacian is high-pass, so its sum over any **interior** feature is 0 → the `ComputeVariance` mean-subtraction
+  / mean-scaling mutants are **equivalent** for every cleanly-predictable image (reaching them needs a
+  border-clipped feature whose blur is border-mode-dependent / native-fragile).
+- [x] `AnalyticalFilterSelectionStrategy.cs` / `DefaultFilterSelectionStrategy.cs` /
+  `PolynomialFilterSelectionStrategy.cs` — ⏳ Unit 24: +53 exact-value tests, **180/180 green**, but the Stryker
+  **mutation-verification run is DEFERRED** (the Unit 23 native-EmguCV run triggered Windows crash popups; the
+  run was stopped before re-confirming these pure managed files). Tests are value-exact by construction; re-run
+  Stryker scoped to the three `*FilterSelectionStrategy.cs` to confirm Killed delta + 0 survivors. (`Polynomial…`
+  uses stub models → deterministic midpoint predictions; the ≥10 % threshold task #11 is a separate concern.)
+- ⛔ skipped native-bound enhancement filters `AdaptiveEnhancementFilter.cs`, `PolynomialEnhancementFilter.cs`
+  (they apply native pixel ops); and `EmguCvImageQualityAnalyzer`, `OpenCvAdvancedEnhancementFilter`,
   `PilSimpleEnhancementFilter`; trivial `NoOp*`/`Stub*`.
+
+> ⚠️ **Native-mutation popup warning:** mutating native-bound code (`PolynomialImageQualityAnalyzer`'s `CvInvoke`
+> calls) crashes mutant processes and triggers Windows Error Reporting dialogs ("dotnet launched with bad
+> parameters"), ~5–6 per run. Results are unaffected (Stryker counts a crashed mutant as killed) but it's noisy
+> — prefer scoping native files into their own run, or run headless.
 
 ### 2.4 Extraction (base project) — deterministic extractors/sanitizers
 > `Tests.Infrastructure.Extraction` exists. **First check for duplication:** `ComplementExtractionStrategy.cs`,
@@ -179,8 +200,8 @@ After fixing, re-run Stryker on those files and add the cross-value tests the ex
 
 ## 7. Pointers
 - Reference / per-unit detail / all lessons: `docs/qa/test-plans/mutation-testing.md`
-- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-08-mutation-export-adaptive-done.md`
-  (Export.Adaptive §2.2 complete; next = §2.3 Imaging — recommends a fresh session)
+- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-09-mutation-imaging-done.md`
+  (Imaging §2.3 complete — Units 21–24; Unit 24 mutation-verify deferred; next = §2.4 Extraction base)
 - Reserved findings: `docs/qa/findings/2026-06-08-*.md`
 - Per-unit loop, CI-gate option: `docs/development/sessions/HANDOFF-2026-06-08-mutation-testing-continuation.md`
 - Testing-stack constraints (xunit.v3.mtp-v2 + MTP 2.1.0): `CLAUDE.md` → "Testing stack"

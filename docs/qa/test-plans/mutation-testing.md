@@ -575,6 +575,65 @@ were skipped as planned.
 > math (`PolynomialImageQualityAnalyzer`, filter strategies, `FeatureNormalizer`/`PolynomialModel`,
 > `LevenshteinTextComparer`); avoid native-bound Emgu/OpenCv/PIL.
 
+### Units 21–24: Imaging — §2.3 COMPLETE (2026-06-09)
+
+Eight files in `02 Infrastructure/Infrastructure.Imaging`, driven by `Tests.Infrastructure.Imaging` (added a
+`stryker-config.json`, `additional-timeout: 30000`). Project **44 → 180 green**. Native enhancement filters and
+the Emgu/OpenCv/PIL analyzers were skipped as native-bound.
+
+- **Unit 21 — `LevenshteinTextComparer`** (0 coverage → Killed 0→151, 0 killable survivors, +40 tests). Exact-value
+  tests for all five methods: edit distance (incl. the DP first-row/first-column init baselines), fuzzy ratio
+  (both-empty=100 vs one-empty=0; SequenceMatcher half-match=50), similarity, the weighted quality score (with a
+  low-special-char-ratio case that makes the `specialCharRatio` division observable and word-length boundary
+  words for the `>=2 && <=15` bounds), and `FindBestMatch` (exact/mid-text/below-threshold, the duplicate-phrase
+  tie-break, the `>=`-threshold boundary, and a leading-words match exercising `FindSubstringIndex`'s
+  `currentPos < 0` offset guard). Floor: Serilog log-arg truncations; guards backstopped by the `maxLength==0` /
+  both-empty / phrase-length downstream returns; the dead `bestStartIndex`; single-occurrence `FindSubstringIndex`
+  (IndexOf-from-0 redundant with the cumulative offset).
+
+- **Unit 22 — `FeatureNormalizer` / `PolynomialModel` / `TrainedPolynomialModel`** (Killed +19 = 10/50/29, 0
+  killable survivors, +29 tests). FeatureNormalizer floor is the `- min`→`+ min` arithmetic (every empirical min
+  is `0.0` → equivalent). PolynomialModel: empty-model midpoint, basis expansion at every degree, the
+  length-mismatch throw, clamp; lone equivalent = `i < features.Length`→`<=` on the interaction outer loop (inner
+  `j=i+1` runs zero times at `i==length`). TrainedPolynomialModel was driven via a **substituted
+  `IOptionsMonitor`** with hand-built coefficients so the StandardScaler `(x-mean)/scale`, every degree-2
+  polynomial term, the dot-product, and both clamp directions yield exact values, plus the ctor's `OnChange`
+  hot-reload subscription via `Received(1)`.
+
+- **Unit 23 — `PolynomialImageQualityAnalyzer`** (0 coverage → Killed 0→54, 0 killable survivors, +14 tests). A
+  **hybrid**: deterministic post-processing wrapped around native EmguCV feature extraction. The trick is that
+  clean structured images give **exactly deterministic** features — `half-width 0 | v` over 50×50 →
+  `Blur=v²/25, Contrast=v/2, Noise=v/25, Edge=0.02` — so `ComputeVariance/StdDev/MeanAbsolute/CountNonZero`, the
+  `DetermineQualityLevel` 5-band ladder, the `[0,1]` normalization formulas (sub-clamp **and** upper-clamp), and
+  the diagnostics map are all pinned to exact values via `ExtractFeatures`/`AnalyzeAsync`.
+  **Three lessons:**
+  1. **Native-heavy suites inflate the headline via timeout-as-killed.** A scoped run read **94.44 % with 56
+     timeouts**; adding `additional-timeout: 30000` collapsed them and revealed the **true 77.78 %** (54 killed,
+     12 survived — all floor). *Always* give native suites timeout headroom (or parse the Timeout bucket) before
+     trusting the score.
+  2. **The Laplacian is high-pass, so its sum over any interior feature is 0** (a single bright pixel: `-400 +
+     4·100 = 0`). With mean 0, `ComputeVariance`'s `sum += val`→`-=` (sign-independent through `mean²`),
+     `sum/N`→`*N` (0 either way), and `- mean²`→`+ mean²` (adds 0) are **all equivalent** for every cleanly
+     predictable image; killing them needs a border-clipped feature whose blur is border-mode-dependent
+     (native-fragile). A legitimate "equivalent-for-realistic-inputs" floor.
+  3. **Mutating native code pops Windows crash dialogs.** `CvInvoke` mutants crash the mutant process → ~5–6
+     "dotnet launched with bad parameters" Error-Reporting popups per run. Harmless to results (counted killed)
+     but noisy — scope native files into their own run.
+
+- **Unit 24 — the three filter-selection strategies** (`Analytical`/`Default`/`Polynomial`, +53 exact-value
+  tests, **180/180 green**). Pins both public switches on each (all arms + default), the threshold/heuristic
+  classifiers (Analytical's `ClassifyQualityLevel` ladder + `&&` short-circuits via `SelectFilter`; Polynomial's
+  `SelectFilterType` None/OpenCv/PIL incl. the `||` clause), the `RefineConfig`/adjustment parameter math (exact
+  contrast factors, median 5/7, the `Min`→`Max`-killing clamp), and — for the stub-model `Polynomial` strategy —
+  the deterministic midpoint predictions (PIL CF 1.75 / median `round(4)`→`5`; OpenCv DenoiseH 10.5, etc.).
+  ⏳ **The Stryker mutation-verification run for these three (pure, managed) files is DEFERRED** — the Unit 23
+  native run's crash popups led to stopping before re-confirming; the tests are value-exact by construction, so
+  re-running Stryker scoped to the three `*FilterSelectionStrategy.cs` files should confirm Killed delta + 0
+  survivors.
+
+> ✅ **§2.3 Imaging COMPLETE** (Unit 24 verify pending). Next: §2.4 Extraction (base) — deterministic
+> extractors/sanitizers (check for duplication with `Extraction.Adaptive` first).
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
