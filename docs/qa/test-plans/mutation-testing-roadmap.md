@@ -123,7 +123,11 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 - [ ] `AdditionalFieldsReconciler.cs`
 - [ ] `DocxStructureAnalyzer.cs`, `DocxFieldExtractor.cs`, `DocxMetadataExtractor.cs`
 - [ ] `MexicanNameFuzzyMatcher.cs`
-- [ ] `OcrSanitizationService.cs`, `TextSanitizer.cs` (pure string cleanup)
+- [x] `OcrSanitizationService.cs`, `TextSanitizer.cs` — ✅ **Unit 26 (2026-06-09): both 100.00%, 0 survivors,
+  +29 tests** (TextSanitizer 70 killed, OcrSanitizationService 21 killed). They were only covered by the flaky
+  OCR/Teseract suite (out of scope); tested fresh in the deterministic project. Pinned the account/SWIFT/generic
+  cleaners (incl. the SWIFT 9→11 padding conditions + length boundaries) and the orchestrator's first-line
+  discovery + cross-field normalization merge.
 - [ ] `FileTypeIdentifierService.cs`
 - [ ] `PdfMetadataExtractor.cs`, `CompositeMetadataExtractor.cs`, `DocumentComparisonService.cs`
 - ⛔ avoid OCR/render/DB-coupled: `TesseractOcrExecutor`, `GotOcr2OcrExecutor`, `OcrProcessingService`,

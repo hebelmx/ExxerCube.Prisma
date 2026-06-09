@@ -660,6 +660,19 @@ vs strict CURP paths, `ExtractFieldAsync` routing/aliases/failure, and file-base
    failure; the defensive no-root / dead `?? "Extraction failed"` / unreachable `"Desconocido"` default; and the
    `NormalizeCurp` blank-guard + `>18` truncation the regex caps make unreachable.)
 
+### Unit 26: TextSanitizer + OcrSanitizationService (Infrastructure.Extraction.Ocr) — §2.4 (2026-06-09)
+
+Two pure OCR-cleanup classes; added both to the Extraction-base `stryker-config` mutate list. **Both reached
+100.00% (0 survivors / 0 NoCoverage), Killed: TextSanitizer 70, OcrSanitizationService 21; +29 tests.**
+`TextSanitizer` was previously covered *only* by the flaky OCR/Teseract suite (out of scope for mutation runs),
+so it was effectively dark in the deterministic project — a reminder to **check which test project actually
+drives a class before assuming it's covered**. The tests pin the account/SWIFT/generic cleaners (the
+label-strip-vs-digit-change normalization distinction, the `[6,20]` length-suspect boundaries via a Theory at
+5/6/20/21, and the SWIFT `9→11` `PadRight('X')` padding with its full `normalized && len==9 && !hadWhitespace`
+guard set) and the orchestrator's first-CUENTA/first-SWIFT line discovery + the cross-field merge (a normalized
+SWIFT bumps a clean account) with its `Count == 0` no-double-add guard. A clean 100% is achievable on small pure
+string-logic units with no equivalent floor.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
