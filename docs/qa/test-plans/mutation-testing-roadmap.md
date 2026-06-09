@@ -167,14 +167,17 @@ After fixing, re-run Stryker on those files and add the cross-value tests the ex
 
 ---
 
-## 6. Housekeeping done this session
+## 6. Housekeeping
 - ✅ Deleted the stale orphaned root config `Prisma/Code/Src/CSharp/stryker-config.json` (camelCase keys,
-  `testRunner: dotnet`, non-existent `testProjects` path — drift from when mutation was broken). The **3 valid**
-  configs live next to their test projects (Classification, Extraction.Adaptive, Extraction.Txt).
+  `testRunner: dotnet`, non-existent `testProjects` path — drift from when mutation was broken).
+- The valid `stryker-config.json` files live next to their test projects. As of 2026-06-08 (after Units 14–16)
+  there are **4**: Classification, Extraction.Adaptive, Extraction.Txt, and **Export** (mutates all four
+  hardened Export files). Export.Adaptive still needs one (see §2.2).
 
 ## 7. Pointers
 - Reference / per-unit detail / all lessons: `docs/qa/test-plans/mutation-testing.md`
-- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-08-mutation-classification-done.md`
+- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-08-mutation-export-done.md`
+  (Export base complete; next = §2.2 Export.Adaptive — recommends a fresh session)
 - Reserved findings: `docs/qa/findings/2026-06-08-*.md`
 - Per-unit loop, CI-gate option: `docs/development/sessions/HANDOFF-2026-06-08-mutation-testing-continuation.md`
 - Testing-stack constraints (xunit.v3.mtp-v2 + MTP 2.1.0): `CLAUDE.md` → "Testing stack"
