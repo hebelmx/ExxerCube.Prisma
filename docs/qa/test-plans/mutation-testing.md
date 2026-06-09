@@ -634,6 +634,32 @@ the Emgu/OpenCv/PIL analyzers were skipped as native-bound.
 > ✅ **§2.3 Imaging COMPLETE** (Unit 24 verify pending). Next: §2.4 Extraction (base) — deterministic
 > extractors/sanitizers (check for duplication with `Extraction.Adaptive` first).
 
+### Unit 25: XmlFieldExtractor (Infrastructure.Extraction.Ocr) — §2.4 started (2026-06-09)
+
+First unit in the Extraction base project (`ExxerCube.Prisma.Infrastructure.Extraction.Ocr`, the classes under
+`Teseract/`). Added the project's `stryker-config.json` next to `Tests.Infrastructure.Extraction`
+(`mutate: ["**/Teseract/XmlFieldExtractor.cs"]`). **70.41% → 95.41%, Killed 138→187, +39 tests** (39 new +
+the existing 16). Baseline had **48 NoCoverage** — almost entirely the **measure-inference chain**
+(`InferMeasure → ParseActionKind → ToSpanishMeasureName`) which the existing tests never reached. The new
+`XmlFieldExtractorMutationTests` pin every measure outcome (a `[Theory]` over the InferMeasure keyword branches
+AND the ParseActionKind fallback, each mapped to its exact Spanish name), the authority/area keys, the
+CuentasRaw/RfcList present-vs-absent guards (`>0`→`>=0`), both RFC sources + the whitespace skip, the
+subdivision accent/space normalization (one InlineData per accent so each `Replace` is observable), the loose
+vs strict CURP paths, `ExtractFieldAsync` routing/aliases/failure, and file-based loading via a real temp file.
+
+**Two lessons:**
+1. **A more-specific regex guarded by a broader fallback is an equivalent mutant.** The `StrictCurpRegex` block
+   is unkillable: the `LooseCurpRegex` matches any valid strict CURP and `NormalizeCurp` maps both to the same
+   18-char uppercase value, so removing the strict branch (or flipping its `RegexOptions |`→`&`) yields identical
+   output. Pin via the loose path, mark the strict block as floor.
+2. **perTest attribution noise is loud on this larger suite.** Across re-runs the headline flapped 94.39–95.41%
+   and a rotating handful of *deterministically-covered* string-key/regex-pattern mutants (the RfcList key, the
+   loose-regex pattern) drifted between Killed and Survived. Trust the **Killed delta (+49) and "residual is
+   equivalent floor"**, not any single run's survivor list. (Equivalent floor here: the strict-regex block above;
+   the `"causa"` switch label — `fields.Causa` is always null so the default lookup gives the same not-found
+   failure; the defensive no-root / dead `?? "Extraction failed"` / unreachable `"Desconocido"` default; and the
+   `NormalizeCurp` blank-guard + `>18` truncation the regex caps make unreachable.)
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):

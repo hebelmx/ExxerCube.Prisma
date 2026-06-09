@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Units 21–24: Imaging §2.3 COMPLETE; Unit 24 mutation-verify deferred).
+**Last updated:** 2026-06-09 (after Unit 25: XmlFieldExtractor §2.4 started; Units 21–24 Imaging §2.3 complete).
 **Branch:** `Kt2`.
 
 ---
@@ -37,7 +37,7 @@ kill-count was deferred — see §2.3.)
 | `Infrastructure.Export` (base) | ✅ **complete** (Units 14–16: SiroXmlExporter, ExcelLayoutGenerator, CriterionMapperService, CompositeResponseExporter — all 0 killable survivors) |
 | `Infrastructure.Export.Adaptive` | ✅ **complete** (Units 17–20: TemplateFieldMapper, SchemaEvolutionDetector, AdaptiveExporter, AdaptiveResponseExporterAdapter — all 0 killable survivors) |
 | `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
-| `Infrastructure.Extraction` (base) | ⬜ TODO — several deterministic extractors (see §2.4) ⬅ **next** |
+| `Infrastructure.Extraction` (base) | 🟦 in progress (Unit 25: `XmlFieldExtractor` 95.41% done; §2.4 has more — sanitizers, Docx/Pdf metadata, FileTypeIdentifier, MexicanNameFuzzyMatcher) ⬅ **next** |
 | `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
 | `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
@@ -111,7 +111,14 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 > `Tests.Infrastructure.Extraction` exists. **First check for duplication:** `ComplementExtractionStrategy.cs`,
 > `SearchExtractionStrategy.cs`, `StructuredDocxStrategy.cs` appear here AND (already hardened) under
 > `Extraction.Adaptive/Strategies/` — confirm whether the base copies are live or dead before testing.
-- [ ] `XmlFieldExtractor.cs` (already has 16 tests from a prior session — add a mutation config, likely a quick win)
+- [x] `XmlFieldExtractor.cs` — ✅ **Unit 25 (2026-06-09): 70.41% → 95.41%, Killed 138→187, 0 killable survivors,
+  +39 tests.** Added the project's `stryker-config.json` (project = `Infrastructure.Extraction.Ocr.csproj`,
+  mutate = `Teseract/XmlFieldExtractor.cs`). The 48 NoCoverage were the untested measure-inference chain
+  (InferMeasure→ParseActionKind→ToSpanishMeasureName — every keyword + fallback mapped to its exact Spanish
+  measure) plus collection guards/authority/CURP/file-loading. Residual = equivalent floor (StrictCurp `|`→`&`
+  equivalent since strict & loose normalize identically; `"causa"` label equiv since Causa is always null) +
+  perTest attribution noise. **Lesson: the CURP strict-regex block is an equivalent mutant — the loose regex
+  subsumes any valid strict CURP, so removing the strict branch yields the same normalized value.**
 - [ ] `XmlExpedienteParser.cs`, `XmlMetadataExtractor.cs`
 - [ ] `AdditionalFieldsReconciler.cs`
 - [ ] `DocxStructureAnalyzer.cs`, `DocxFieldExtractor.cs`, `DocxMetadataExtractor.cs`
