@@ -6,7 +6,10 @@
     ],
     "test-runner": "mtp",
     "mutate": [
-      "**/LevenshteinTextComparer.cs"
+      "**/LevenshteinTextComparer.cs",
+      "**/FeatureNormalizer.cs",
+      "**/PolynomialModel.cs",
+      "**/TrainedPolynomialModel.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
