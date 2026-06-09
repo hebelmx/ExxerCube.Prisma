@@ -820,6 +820,8 @@ same MTP `global.json`):
 
 ## How to expand
 
+> **Latest handoff (Units 28–30):** `docs/development/sessions/HANDOFF-2026-06-09-mutation-extraction-base-units28-30.md`.
+>
 > **Next-agent roadmap & checklist:** `docs/qa/test-plans/mutation-testing-roadmap.md` — the goal, the
 > deterministic-surface denominator, a tick-box path (Export → Imaging → Extraction base → Metrics/FileStorage
 > → Core), the reserved bug-fix session, and the condensed loop + lessons. (Older roadmaps:

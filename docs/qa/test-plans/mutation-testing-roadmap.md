@@ -266,9 +266,10 @@ After fixing, re-run Stryker on those files and add the cross-value tests the ex
 
 ## 7. Pointers
 - Reference / per-unit detail / all lessons: `docs/qa/test-plans/mutation-testing.md`
-- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-09-mutation-extraction-base.md`
-  (§2.4 Extraction base progressing — Units 25–27; next = MexicanNameFuzzyMatcher [port tests first] + Docx/Pdf
-  metadata. Supersedes `HANDOFF-2026-06-09-mutation-imaging-done.md`, which still holds the two deferred items.)
+- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-09-mutation-extraction-base-units28-30.md`
+  (§2.4 Extraction base — Units 28–30 done; next = Docx/Pdf metadata extractors [determinism check first] →
+  §2.5 Metrics/FileStorage → survey §2.6 Core/Application. Supersedes the Units 25–27 handoff;
+  `HANDOFF-2026-06-09-mutation-imaging-done.md` still holds the two deferred items.)
 - Reserved findings: `docs/qa/findings/2026-06-08-*.md`
 - Per-unit loop, CI-gate option: `docs/development/sessions/HANDOFF-2026-06-08-mutation-testing-continuation.md`
 - Testing-stack constraints (xunit.v3.mtp-v2 + MTP 2.1.0): `CLAUDE.md` → "Testing stack"
