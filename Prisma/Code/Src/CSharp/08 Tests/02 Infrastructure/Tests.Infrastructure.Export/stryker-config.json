@@ -6,7 +6,8 @@
     ],
     "test-runner": "mtp",
     "mutate": [
-      "**/SiroXmlExporter.cs"
+      "**/SiroXmlExporter.cs",
+      "**/ExcelLayoutGenerator.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
