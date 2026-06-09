@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-08 (after Units 14–16: Export §2.1 base project COMPLETE).
+**Last updated:** 2026-06-08 (after Units 17–20: Export.Adaptive §2.2 COMPLETE).
 **Branch:** `Kt2`.
 
 ---
@@ -19,9 +19,9 @@ per-unit results, all lessons). **This file is the *plan*: the goal, the denomin
 - **Not** everywhere: do **not** mutate non-deterministic code (OCR/Tesseract, dormant Python/VLM, Browser
   automation, Database/Testcontainers, UI/Playwright, worker orchestration). Mutants there are ambiguous.
 
-**Where we are:** 17 files hardened across **4 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
-and the now-complete Export base). That's roughly **30 % of the worthy surface** — high quality where done,
-breadth is the remaining work. Estimate ~7–9 more focused sessions at ~1–2 units each.
+**Where we are:** 21 files hardened across **5 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
+Export base, and the now-complete **Export.Adaptive**). That's roughly **35 % of the worthy surface** — high
+quality where done, breadth is the remaining work. Estimate ~6–8 more focused sessions at ~1–2 units each.
 
 ---
 
@@ -33,7 +33,8 @@ breadth is the remaining work. Estimate ~7–9 more focused sessions at ~1–2 u
 | `Infrastructure.Extraction.Adaptive` | ✅ **complete** (7 files: 5 strategies + merge + orchestrator, 96–97 %) |
 | `Infrastructure.Classification` (deterministic) | ✅ **complete** (5 files; LegalDirective 96 %, FileClassifier 89 %, the 3 matching policies 37–61 %*) |
 | `Infrastructure.Export` (base) | ✅ **complete** (Units 14–16: SiroXmlExporter, ExcelLayoutGenerator, CriterionMapperService, CompositeResponseExporter — all 0 killable survivors) |
-| `Infrastructure.Imaging` | ⬜ TODO (see §2.3) |
+| `Infrastructure.Export.Adaptive` | ✅ **complete** (Units 17–20: TemplateFieldMapper, SchemaEvolutionDetector, AdaptiveExporter, AdaptiveResponseExporterAdapter — all 0 killable survivors) |
+| `Infrastructure.Imaging` | ⬜ TODO (see §2.3) ⬅ **next** |
 | `Infrastructure.Extraction` (base) | ⬜ TODO — several deterministic extractors (see §2.4) |
 | `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
 | `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) |
@@ -63,14 +64,16 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 > CriterionMapperService, CompositeResponseExporter — all 0 killable survivors). Next: §2.2 Export.Adaptive,
 > then §2.3 Imaging.
 
-### 2.2 Export.Adaptive
-> `Tests.Infrastructure.Export.Adaptive` exists.
-- [ ] `AdaptiveExporter.cs`
-- [ ] `SchemaEvolutionDetector.cs`
-- [ ] `TemplateFieldMapper.cs`
-- [ ] `AdaptiveResponseExporterAdapter.cs`
-- ⛔ skip EF artifacts (`InitialCreate*`, `TemplateDbContext*`, `*ModelSnapshot`), `TemplateRepository`,
-  `TemplateSeeder` (DB-bound).
+### 2.2 Export.Adaptive — ✅ **COMPLETE** (2026-06-08, Units 17–20)
+> `Tests.Infrastructure.Export.Adaptive` exists; added a `stryker-config.json` (all 4 files). Project 75 → 173 green.
+- [x] `TemplateFieldMapper.cs` — ✅ Unit 17: 44.89% → **85.23%**, Killed 79→150, 0 killable survivors, +45 tests.
+- [x] `SchemaEvolutionDetector.cs` — ✅ Unit 18: 53.55% → **84.15%**, Killed 97→154, 0 killable survivors, +22 tests.
+- [x] `AdaptiveExporter.cs` — ✅ Unit 19: 47.86% → **82.05%**, Killed 56→96, 0 killable survivors, +25 tests
+  (Excel/XML/DOCX round-trip read-back, caching via mock repo, error paths via throwing mocks).
+- [x] `AdaptiveResponseExporterAdapter.cs` — ✅ Unit 20: 0 coverage → Killed 0→8, 0 killable survivors, +6 tests.
+  Headline 28.57% is the small-file floor (logging-dominated delegator).
+- ⛔ skipped EF artifacts (`InitialCreate*`, `TemplateDbContext*`, `*ModelSnapshot`), `TemplateRepository`,
+  `TemplateSeeder` (DB-bound) — as planned.
 
 ### 2.3 Imaging — deterministic math
 > `Tests.Infrastructure.Imaging` exists.
@@ -170,14 +173,14 @@ After fixing, re-run Stryker on those files and add the cross-value tests the ex
 ## 6. Housekeeping
 - ✅ Deleted the stale orphaned root config `Prisma/Code/Src/CSharp/stryker-config.json` (camelCase keys,
   `testRunner: dotnet`, non-existent `testProjects` path — drift from when mutation was broken).
-- The valid `stryker-config.json` files live next to their test projects. As of 2026-06-08 (after Units 14–16)
-  there are **4**: Classification, Extraction.Adaptive, Extraction.Txt, and **Export** (mutates all four
-  hardened Export files). Export.Adaptive still needs one (see §2.2).
+- The valid `stryker-config.json` files live next to their test projects. As of 2026-06-08 (after Units 17–20)
+  there are **5**: Classification, Extraction.Adaptive, Extraction.Txt, **Export** (4 files), and
+  **Export.Adaptive** (mutates all 4 hardened Adaptive files).
 
 ## 7. Pointers
 - Reference / per-unit detail / all lessons: `docs/qa/test-plans/mutation-testing.md`
-- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-08-mutation-export-done.md`
-  (Export base complete; next = §2.2 Export.Adaptive — recommends a fresh session)
+- Latest session handoff: `docs/development/sessions/HANDOFF-2026-06-08-mutation-export-adaptive-done.md`
+  (Export.Adaptive §2.2 complete; next = §2.3 Imaging — recommends a fresh session)
 - Reserved findings: `docs/qa/findings/2026-06-08-*.md`
 - Per-unit loop, CI-gate option: `docs/development/sessions/HANDOFF-2026-06-08-mutation-testing-continuation.md`
 - Testing-stack constraints (xunit.v3.mtp-v2 + MTP 2.1.0): `CLAUDE.md` → "Testing stack"

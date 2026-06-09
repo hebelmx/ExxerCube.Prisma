@@ -522,6 +522,59 @@ The last two deterministic `Infrastructure.Export` units; the project's `stryker
 real ones and assert a collaborator-specific side effect (the XML shape; the signer's certificate error). With
 no operators/literals/booleans of its own, every one of its handful of mutants dies.
 
+### Units 17–20: Export.Adaptive — §2.2 COMPLETE (2026-06-08)
+
+The four deterministic files in `02 Infrastructure/Infrastructure.Export.Adaptive`, driven by the
+already-existing `Tests.Infrastructure.Export.Adaptive` (added a `stryker-config.json`). Project **75 → 173 green**.
+EF/DB artifacts (`TemplateRepository`, `TemplateSeeder`, `TemplateDbContext*`, `InitialCreate*`, `*ModelSnapshot`)
+were skipped as planned.
+
+- **Unit 17 — `TemplateFieldMapper`** (44.89% → **85.23%**, Killed 79→150, +45 tests). The richest file:
+  reflection-based field extraction, value formatting, a pipe-chained transformation mini-language, and a
+  string-rule validator. `TemplateFieldMapperMutationTests.cs` covers every transformation
+  (ToUpper/ToLower/Trim/Substring/Replace/PadLeft/PadRight + chaining) and every validation rule
+  (Regex/Range/MinLength/MaxLength/EmailAddress/Required) with **boundary** cases (value length == min/max,
+  numeric == range edge — all must *pass*), `FormatValue` branches, the required/optional × default/null matrix,
+  and `DisplayOrder` last-write-wins. **Two lessons:** (1) to kill a wrapped `throw new ArgumentException("…")`
+  inside a caught block, **assert the inner exception text** (`"Invalid transformation format"`), not just the
+  outer `"Transformation error"` wrapper — the wrapper survives a blanked inner literal. (2) The case labels in
+  `GetDataTypeName`-style switches are **equivalent** when the explicit arm equals the lowercased default
+  (`"decimal" => "decimal"`); only labels whose mapping *differs* from `Name.ToLowerInvariant()` (e.g.
+  `"Int64" => "long"`) are killable.
+
+- **Unit 18 — `SchemaEvolutionDetector`** (53.55% → **84.15%**, Killed 97→154, +22 tests). Reflection schema-drift
+  + a public `CalculateSimilarity` (substring-containment ratio **or** Levenshtein, over a prefix/suffix-stripping
+  normalizer). `SchemaEvolutionDetectorMutationTests.cs` pins exact similarity values (a `[Theory]` per
+  prefix/suffix; hand-computed Levenshtein for `cat`/`car`=0.67, `cats`/`car`=0.5), data-type/nullability mapping,
+  nested-path recursion **and** collection-non-recursion, severity, and the **equal-score rename tie-break**
+  (assert the first-encountered candidate wins → kills `>` → `>=`). **Lesson — correlated guards make whole
+  helpers equivalent:** `ComputeLevenshteinDistance` is only reached *after* the containment check
+  short-circuits, so its empty-string guards and first-column deletion-baseline init (`matrix[len1,0]=len1`) are
+  **unreachable** — any input where they'd matter is a substring relationship caught upstream. Pin as floor.
+
+- **Unit 19 — `AdaptiveExporter`** (47.86% → **82.05%**, Killed 56→96, +25 tests across 3 classes). Orchestrator +
+  Excel/XML/DOCX byte generation. **Round-trip the binary artifacts** (`AdaptiveExporterMutationTests`): read the
+  xlsx back with ClosedXML, the XML with `XDocument`, the docx with OpenXml, and assert exact cell/element/paragraph
+  positions + `DisplayOrder` ordering + the `"Label: value"` docx text — the existing `Length > 0` assertions left
+  all of this dark, and XML/DOCX paths were **never exercised** (only Excel). A **mock-repository** class makes the
+  template cache observable as call counts (`Received(1)` after two reads kills `TryAdd`; `Received(2)` across a
+  `ClearTemplateCache` kills the clear; per-type keys vs a constant key). A **throwing-mock** class reaches the
+  `ExportWithVersion` mapping-failure path and every per-method exception catch. **Lesson:** OpenXml's
+  `WordprocessingDocument` saves all parts on `Dispose`, so the explicit `mainPart.Document.Save()` is an
+  **equivalent** mutant (the round-trip still sees the paragraphs).
+
+- **Unit 20 — `AdaptiveResponseExporterAdapter`** (0 coverage → Killed 0→8, +6 tests). A tiny IResponseExporter →
+  IAdaptiveExporter delegator. Headline **28.57%** is the **small-file floor** — the file is logging-dominated.
+  All functional mutants die (both ctor guards, the `"XML"` template type via `Received`, error propagation
+  asserting `Error` survives the `?? "Unknown error"` fallback, the null-bytes guard, the exact stream write via
+  **byte-equality** on the `MemoryStream`, the PDF stub message). The 20 residual are pure floor: Serilog `Log*`
+  statements (NullLogger), the `?? "Unknown"` expediente value *inside* those log args, `ConfigureAwait(false)`
+  booleans, and `FlushAsync` on a MemoryStream (a no-op once `WriteAsync` has written). **0 killable survivors.**
+
+> ✅ **§2.2 Export.Adaptive COMPLETE.** Next: §2.3 Imaging (`Tests.Infrastructure.Imaging` exists) — deterministic
+> math (`PolynomialImageQualityAnalyzer`, filter strategies, `FeatureNormalizer`/`PolynomialModel`,
+> `LevenshteinTextComparer`); avoid native-bound Emgu/OpenCv/PIL.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
