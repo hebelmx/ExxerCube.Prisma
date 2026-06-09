@@ -10,7 +10,10 @@
       "**/FeatureNormalizer.cs",
       "**/PolynomialModel.cs",
       "**/TrainedPolynomialModel.cs",
-      "**/PolynomialImageQualityAnalyzer.cs"
+      "**/PolynomialImageQualityAnalyzer.cs",
+      "**/AnalyticalFilterSelectionStrategy.cs",
+      "**/DefaultFilterSelectionStrategy.cs",
+      "**/PolynomialFilterSelectionStrategy.cs"
     ],
     "additional-timeout": 30000,
     "coverage-analysis": "perTest",
