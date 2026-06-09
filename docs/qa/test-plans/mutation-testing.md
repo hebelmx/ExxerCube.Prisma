@@ -457,6 +457,45 @@ the remaining open elements on `Flush`/`Dispose`, so the output is byte-identica
 the defensive `catch` in `ValidateXmlSchema` (can't force a validation exception with valid input). **0
 killable survivors.**
 
+### Unit 15: ExcelLayoutGenerator (2026-06-08) — ✅ 0 coverage → 0 killable survivors (second Export unit)
+
+The **SIRO Excel-registration layout (FR18)** in `Infrastructure.Export` (`ExcelLayoutGenerator.cs`) —
+roadmap **§2.1**, no dedicated tests before. The project's `stryker-config.json` now mutates **both** Export
+files (`SiroXmlExporter` + `ExcelLayoutGenerator`). Added `ExcelLayoutGeneratorTests.cs` (**17 tests; Export
+project 52 → 69 green**). The generator uses **ClosedXML** (`XLWorkbook`), so the tests **round-trip the
+produced `.xlsx` back through `XLWorkbook`** and assert exact cell values.
+
+```
+ExcelLayoutGenerator.cs (combined run): Killed 40 · Survived 11 · Timeout 2 · NoCoverage 0
+Combined Export run (both files): Killed 209 / Survived 35 / Timeout 2 / NoCoverage 3 = 84.74 %
+```
+
+What the tests pin (exact-value): the worksheet name (`"SIRO Registration"`); all **12 header labels** at
+their exact columns; the **bold + light-gray header styling** (`Cell(1,1).Style.Font.Bold` true and
+`Fill.BackgroundColor.Color.ToArgb()` == `XLColor.LightGray`'s ARGB — round-trips reliably); every core data
+cell at its column (text via `GetString()`, numbers via `GetValue<int>()`); the `yyyy-MM-dd` FechaPublicacion
+string; the first-party RFC + the composed `"Nombre Paterno Materno"` name **including** the null-surname
+`Trim()` case (→ `"Carlos"`) and the empty-RFC `?? string.Empty` fallback; the **party-row gate** (an empty
+`SolicitudPartes` list leaves the RFC/name cells blank and still **succeeds** — the `Count > 0` → `>= 0`
+mutant would do `SolicitudPartes[0]` on an empty list and throw, so asserting success kills it); **column
+auto-fit** (`Column(1).Width > 12` — `AdjustToContents()` widens the "NumeroExpediente" column well past the
+~8.43 default, and ClosedXML persists the explicit width on save, so the statement-removal mutant is killed);
+every validation message; and the Exception / OperationCanceledException catch paths (the OCE filter reached
+via a `Stream` whose **synchronous** `Write` cancels its own CTS and throws OCE — ClosedXML `SaveAs` writes
+synchronously inside the `Task.Run`).
+
+**Lesson — round-trip the artifact to pin a binary writer's output.** For ClosedXML/OpenXML (and any binary
+exporter) the cell-name / cell-value / style-flag mutants are only observable by **reading the produced file
+back** with the same library; string-in-the-bytes greps are brittle. Numbers come back typed, so use
+`GetValue<int>()` (not `GetString()`) for numeric cells, and compare colors by **ARGB** (`XLColor.LightGray`
+as a named color may not survive a round-trip by reference equality, but its ARGB does).
+
+**Residual / equivalent floor (all 13 non-killed):** Serilog statement/string/`?? "Unknown"` mutants on the
+`Log*` calls (12 of them — two landed in `Timeout` on this run, which Stryker counts as detected; the rest
+Survived) and the single `ConfigureAwait(false)` boolean. The file is small (53 testable mutants) and
+logging-dominated, so the headline reads lower than the larger units even though **0 killable survivors**
+remain — report the Killed delta + "0 killable survivors", not the %.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
