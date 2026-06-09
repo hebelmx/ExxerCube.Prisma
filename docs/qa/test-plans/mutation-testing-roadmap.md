@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-08 (after Units 14–15: SiroXmlExporter + ExcelLayoutGenerator — Export §2.1 half done).
+**Last updated:** 2026-06-08 (after Units 14–16: Export §2.1 base project COMPLETE).
 **Branch:** `Kt2`.
 
 ---
@@ -19,9 +19,9 @@ per-unit results, all lessons). **This file is the *plan*: the goal, the denomin
 - **Not** everywhere: do **not** mutate non-deterministic code (OCR/Tesseract, dormant Python/VLM, Browser
   automation, Database/Testcontainers, UI/Playwright, worker orchestration). Mutants there are ambiguous.
 
-**Where we are:** 15 files hardened across **4 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
-Export). That's roughly **27 % of the worthy surface** — high quality where done, breadth is the remaining work.
-Estimate ~8–10 more focused sessions at ~1–2 units each.
+**Where we are:** 17 files hardened across **4 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
+and the now-complete Export base). That's roughly **30 % of the worthy surface** — high quality where done,
+breadth is the remaining work. Estimate ~7–9 more focused sessions at ~1–2 units each.
 
 ---
 
@@ -32,7 +32,7 @@ Estimate ~8–10 more focused sessions at ~1–2 units each.
 | `Infrastructure.Extraction.Txt` | ✅ done (AdaptiveTxtFieldExtractor 82 %) |
 | `Infrastructure.Extraction.Adaptive` | ✅ **complete** (7 files: 5 strategies + merge + orchestrator, 96–97 %) |
 | `Infrastructure.Classification` (deterministic) | ✅ **complete** (5 files; LegalDirective 96 %, FileClassifier 89 %, the 3 matching policies 37–61 %*) |
-| `Infrastructure.Export` | 🟡 **in progress** — `SiroXmlExporter` ✅ (Unit 14) + `ExcelLayoutGenerator` ✅ (Unit 15); Criterion/Composite remain (§2.1) |
+| `Infrastructure.Export` (base) | ✅ **complete** (Units 14–16: SiroXmlExporter, ExcelLayoutGenerator, CriterionMapperService, CompositeResponseExporter — all 0 killable survivors) |
 | `Infrastructure.Imaging` | ⬜ TODO (see §2.3) |
 | `Infrastructure.Extraction` (base) | ⬜ TODO — several deterministic extractors (see §2.4) |
 | `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
@@ -55,9 +55,13 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   26 tests, Export project 26→52 green.** Was the SIRO-XML deliverable with ZERO coverage. See guide Unit 14.
 - [x] `ExcelLayoutGenerator.cs` — ✅ **done (2026-06-08): 0 coverage → 0 killable survivors (combined Export run
   84.74 %), 17 tests, project 52→69 green.** ClosedXML round-trip to assert cells/styles. See guide Unit 15.
-- [ ] `CriterionMapperService.cs`
-- [ ] `CompositeResponseExporter.cs`
+- [x] `CriterionMapperService.cs` — ✅ **done (2026-06-08): 14 killed, 0 killable survivors, 9 tests.** Unit 16.
+- [x] `CompositeResponseExporter.cs` — ✅ **done (2026-06-08): 3 killed, 0 survivors, 2 delegation tests.** Unit 16.
 - ⛔ avoid `DigitalPdfSigner.cs` (crypto), `PdfRequirementSummarizerService.cs` (PDF rendering).
+
+> ✅ **§2.1 Export base project COMPLETE** (Units 14–16: SiroXmlExporter, ExcelLayoutGenerator,
+> CriterionMapperService, CompositeResponseExporter — all 0 killable survivors). Next: §2.2 Export.Adaptive,
+> then §2.3 Imaging.
 
 ### 2.2 Export.Adaptive
 > `Tests.Infrastructure.Export.Adaptive` exists.

@@ -496,6 +496,32 @@ Survived) and the single `ConfigureAwait(false)` boolean. The file is small (53 
 logging-dominated, so the headline reads lower than the larger units even though **0 killable survivors**
 remain — report the Killed delta + "0 killable survivors", not the %.
 
+### Unit 16: CriterionMapperService + CompositeResponseExporter (2026-06-08) — ✅ Export §2.1 complete
+
+The last two deterministic `Infrastructure.Export` units; the project's `stryker-config.json` now mutates
+**all four** hardened Export files. Export test project **69 → 80 green**.
+
+- **`CriterionMapperService`** (maps `List<ComplianceRequirement>` → the SIRO criteria dictionary).
+  `CriterionMapperServiceTests.cs` (9 tests). Pins the cancellation/null guards; the `"Criterion_{RequerimientoId}"`
+  key; the nested field map (`RequerimientoId`/`Descripcion`/`Tipo`/`EsObligatorio`, incl. the `false` case so
+  the bool isn't coerced); the summary entries (`TotalRequirements` == count, `MappedAt` matched against the
+  `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$` ISO-UTC regex since the value is `DateTime.UtcNow`); and the **generic
+  catch** via a **null list element** (`requirement.RequerimientoId` → NRE → failure, not thrown). Stryker:
+  **14 killed; 9 non-killed are all floor** — Serilog statements/strings, the `ConfigureAwait(false)` boolean,
+  and the **unreachable OCE-catch logging** (NoCoverage — the `try` body has no token-aware operation, so an
+  `OperationCanceledException` with a cancelled token can never originate inside it; the entity properties are
+  non-virtual, so it can't be injected either). **0 killable survivors.**
+
+- **`CompositeResponseExporter`** (a pure delegator — two methods forwarding to `SiroXmlExporter` /
+  `DigitalPdfSigner`). `CompositeResponseExporterTests.cs` (2 tests) construct it with the **real** exporters
+  (its ctor takes concrete types, not interfaces) and prove `ExportSiroXmlAsync` delegates to the XML exporter
+  (a valid `<SiroResponse>` lands in the stream) and `ExportSignedPdfAsync` delegates to the PDF signer (its
+  certificate failure surfaces). Stryker: **3 killed, 0 survivors** — a delegator has almost no mutable surface.
+
+**Lesson — a pure delegator is cheap to fully cover.** No need to mock its concrete collaborators: drive the
+real ones and assert a collaborator-specific side effect (the XML shape; the signer's certificate error). With
+no operators/literals/booleans of its own, every one of its handful of mutants dies.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
