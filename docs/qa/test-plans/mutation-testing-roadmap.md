@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Unit 27: FileTypeIdentifierService; §2.4 Extraction base progressing — Units 25 XmlFieldExtractor / 26 sanitizers / 27 FileTypeIdentifier done; Units 21–24 Imaging §2.3 complete).
+**Last updated:** 2026-06-09 (after Unit 28: MexicanNameFuzzyMatcher; §2.4 Extraction base progressing — Units 25 XmlFieldExtractor / 26 sanitizers / 27 FileTypeIdentifier / 28 MexicanNameFuzzyMatcher done; Units 21–24 Imaging §2.3 complete).
 **Branch:** `Kt2`.
 
 ---
@@ -37,7 +37,7 @@ kill-count was deferred — see §2.3.)
 | `Infrastructure.Export` (base) | ✅ **complete** (Units 14–16: SiroXmlExporter, ExcelLayoutGenerator, CriterionMapperService, CompositeResponseExporter — all 0 killable survivors) |
 | `Infrastructure.Export.Adaptive` | ✅ **complete** (Units 17–20: TemplateFieldMapper, SchemaEvolutionDetector, AdaptiveExporter, AdaptiveResponseExporterAdapter — all 0 killable survivors) |
 | `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
-| `Infrastructure.Extraction` (base) | 🟦 in progress (Units 25 `XmlFieldExtractor` 95.41% / 26 sanitizers 100% / 27 `FileTypeIdentifierService` done; §2.4 remaining — Docx/Pdf metadata, `MexicanNameFuzzyMatcher`, `DocumentComparisonService`) ⬅ **next** |
+| `Infrastructure.Extraction` (base) | 🟦 in progress (Units 25 `XmlFieldExtractor` 95.41% / 26 sanitizers 100% / 27 `FileTypeIdentifierService` / 28 `MexicanNameFuzzyMatcher` done; §2.4 remaining — Docx/Pdf metadata, `DocumentComparisonService`, Xml parsers, `AdditionalFieldsReconciler`) ⬅ **next** |
 | `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
 | `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
@@ -122,7 +122,14 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 - [ ] `XmlExpedienteParser.cs`, `XmlMetadataExtractor.cs`
 - [ ] `AdditionalFieldsReconciler.cs`
 - [ ] `DocxStructureAnalyzer.cs`, `DocxFieldExtractor.cs`, `DocxMetadataExtractor.cs`
-- [ ] `MexicanNameFuzzyMatcher.cs`
+- [x] `MexicanNameFuzzyMatcher.cs` — ✅ **Unit 28 (2026-06-09): Killed 0→75, Survived 52, 0 killable survivors,
+  +58 tests.** Ported fresh (was only in the flaky Teseract suite). Low 57.69% headline is **all floor, verified**:
+  42 = static-field-initializer limitation (the two name `HashSet`s + six `Regex` fields — *proven* killable-in-
+  principle: hand-editing `"cristian"→""` fails a test); 6 = Stryker MTP `Boolean→true` artifact on L123–128 (the
+  same lines' `Negate` mutants are killed; forcing the condition always-true by hand fails 19 tests); the rest are
+  genuine equivalents/dead code (all-digits `return false` is **dead** — AmountPattern subsumes every pure-digit
+  string; `NormalizeForComparison` null-guard unreachable; split-options equiv after normalize; `||`→`&&` &
+  block-removal equiv on empties; `>=`→`>` fuzzy-threshold boundary). See guide Unit 28.
 - [x] `OcrSanitizationService.cs`, `TextSanitizer.cs` — ✅ **Unit 26 (2026-06-09): both 100.00%, 0 survivors,
   +29 tests** (TextSanitizer 70 killed, OcrSanitizationService 21 killed). They were only covered by the flaky
   OCR/Teseract suite (out of scope); tested fresh in the deterministic project. Pinned the account/SWIFT/generic

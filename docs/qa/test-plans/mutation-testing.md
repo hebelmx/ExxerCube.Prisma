@@ -691,6 +691,55 @@ conflicting-extension ordering, and the `!IsNullOrEmpty(fileName)` empty-string 
 `try/catch` wrapping only non-throwing operations is an uncoverable block — don't contort the SUT to reach it;
 log it as the floor.**
 
+### Unit 28: MexicanNameFuzzyMatcher (Infrastructure.Extraction.Ocr) — §2.4 (2026-06-09)
+
+Fuzzy name matcher (FuzzySharp `Fuzz.Ratio`, 85% threshold) that exact-matches non-name fields and only
+fuzzy-matches Mexican/Spanish names. Ported fresh into the deterministic `Tests.Infrastructure.Extraction`
+(it was previously covered only by the flaky `Tests.Infrastructure.Extraction.Teseract` suite, out of scope).
+Added to the Extraction-base `stryker-config` mutate list. **Killed 75 / Survived 52 / Timeout 0 (57.69%
+headline), 0 killable survivors; +58 tests.** The low headline is **entirely** a lookup-table + tooling floor —
+verified, not assumed:
+
+- **42 survivors (L24–44) are the static-field-initializer limitation.** The two `static readonly HashSet`
+  name tables (`SpanishGivenNames`/`SpanishSurnames`) and the six `static readonly Regex` pattern fields:
+  Stryker's per-element string mutants survive because the static initializer runs **once** in the reused MTP
+  test host, so the mutation switch can't be re-evaluated per mutant. **Proven killable-in-principle:** manually
+  editing `"cristian" → ""` in the set makes `IsMatch_MexicanViaNameSetOnly_ReturnsTrue` **fail**. Not a test gap.
+- **6 survivors (L123–128) are a Stryker MTP *boolean-literal* artifact.** On each `if (XxxPattern.IsMatch(..))
+  return false;` the **`Negate expression`** mutant on the same line **is killed** by the IsNameField positives,
+  yet the runtime-identical **`Boolean → true`** mutant survives. **Proven artifact:** forcing the L123 condition
+  always-true by hand fails **19** tests. (`if (true)` itself won't even compile here — CS0162 unreachable-code
+  under TreatWarningsAsErrors — which is likely why Stryker's literal-true mutant is mis-handled.)
+- **The rest are genuine equivalent mutants / dead code:** `L143` (`return false` inside the all-digits guard) is
+  **dead code** — `AmountPattern` (`^\$?\s*[\d,]+\.?\d*$`) matches *every* pure-digit string first, so the
+  all-digits branch is unreachable (minor finding, like FileClassifier's `Min(85)` tier); `L189`
+  (`return string.Empty` guard in `NormalizeForComparison`) is an unreachable defensive guard (all call sites
+  pre-guard null/whitespace); `L156` `|`→`&` on `StringSplitOptions` is equivalent because `NormalizeForComparison`
+  already collapses+trims whitespace so the split options never matter; `L59`/`L97` `||`→`&&` and `L98` block-removal
+  are equivalent because empty/whitespace inputs fall through to `string.Equals`/`Fuzz.Ratio` of empty strings →
+  `false`/`0` anyway; `L86` `>=`→`>` is the fuzzy-threshold boundary (can't be deterministically pinned to a pair
+  scoring *exactly* 85 across FuzzySharp versions).
+
+The 58 tests pin the real surface: the null/whitespace guards; the **non-name exact-ordinal** path (identical RFCs
+match, near-miss RFC/account/expediente/amount/date don't); the **non-Mexican normalized-exact** path
+(Smith/smith match, Smith/Smyth & John/Jon don't); the **both-Mexican fuzzy** path with above- and below-threshold
+pairs; the `||`-routing operators (a name vs a `/`-bearing string stays exact; González/Gonzalex stays
+normalized-exact); `IsLikelyMexicanName` isolated per branch with **near-but-different** pairs so the fuzzy result
+(true) flips to normalized-exact (false) when the branch is removed — accent-only (Cárdenas/Cárdenaz),
+leading-accent-at-index-0 (Ávila/Ávilas, kills `>=`→`>` on `IndexOfAny`), ñ-only (Peña/Peñas), name-set-only
+(Cristian/Christian), ez/es-ending-only (Gutierrez/Gutierres); `GetSimilarityScore` exact-100s that pin
+diacritic-removal, lower-casing, whitespace-collapse and Trim, plus a space-vs-no-space `< 100`; `IsNameField`'s
+`$`/`/` exclusion at high letter ratio, the `0.80` boundary (`abcd.` = exactly 0.80 true, `abc..` = 0.60 false,
+kills the cast/`/`→`*`/`0.80`→`0` mutants), the `All`→`Any` all-digits mutant (`Juan2`), and `MatchThreshold`.
+
+**Lessons added this unit:** (1) **A class dominated by `static readonly` lookup tables will show a low Stryker
+headline that is mostly the static-initializer limitation, not weak tests** — confirm by manually editing one table
+entry and watching a test fail, then report "0 killable survivors". (2) **Stryker's `Boolean → true` mutant on an
+`if`-condition is an MTP artifact when the same line's `Negate expression` mutant is killed** — verify by forcing
+the condition always-true by hand (a non-constant always-true expression avoids the CS0162 that a literal `true`
+triggers under warnings-as-errors). (3) Re-confirmed: `coverage-analysis: "off"` does **not** rescue
+static-initializer or boolean-literal survivors here (same 52), so don't chase them — prove killability by hand.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
