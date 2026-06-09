@@ -1,0 +1,24 @@
+{
+  "stryker-config": {
+    "project": "ExxerCube.Prisma.Infrastructure.Imaging.csproj",
+    "test-projects": [
+      "ExxerCube.Prisma.Tests.Infrastructure.Imaging.csproj"
+    ],
+    "test-runner": "mtp",
+    "mutate": [
+      "**/LevenshteinTextComparer.cs"
+    ],
+    "coverage-analysis": "perTest",
+    "reporters": [
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "concurrency": 4
+  }
+}
