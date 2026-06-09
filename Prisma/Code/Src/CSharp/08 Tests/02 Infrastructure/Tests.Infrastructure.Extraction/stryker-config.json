@@ -6,7 +6,9 @@
     ],
     "test-runner": "mtp",
     "mutate": [
-      "**/Teseract/XmlFieldExtractor.cs"
+      "**/Teseract/XmlFieldExtractor.cs",
+      "**/TextSanitizer.cs",
+      "**/OcrSanitizationService.cs"
     ],
     "additional-timeout": 30000,
     "coverage-analysis": "perTest",
