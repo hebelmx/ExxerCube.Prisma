@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Unit 28: MexicanNameFuzzyMatcher; §2.4 Extraction base progressing — Units 25 XmlFieldExtractor / 26 sanitizers / 27 FileTypeIdentifier / 28 MexicanNameFuzzyMatcher done; Units 21–24 Imaging §2.3 complete).
+**Last updated:** 2026-06-09 (after Unit 29: XmlExpedienteParser + XmlMetadataExtractor; §2.4 Extraction base progressing — Units 25 XmlFieldExtractor / 26 sanitizers / 27 FileTypeIdentifier / 28 MexicanNameFuzzyMatcher / 29 XML parser+metadata done; Units 21–24 Imaging §2.3 complete).
 **Branch:** `Kt2`.
 
 ---
@@ -108,9 +108,13 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 > — prefer scoping native files into their own run, or run headless.
 
 ### 2.4 Extraction (base project) — deterministic extractors/sanitizers
-> `Tests.Infrastructure.Extraction` exists. **First check for duplication:** `ComplementExtractionStrategy.cs`,
-> `SearchExtractionStrategy.cs`, `StructuredDocxStrategy.cs` appear here AND (already hardened) under
-> `Extraction.Adaptive/Strategies/` — confirm whether the base copies are live or dead before testing.
+> `Tests.Infrastructure.Extraction` exists. **Duplication RESOLVED (2026-06-09, Unit 28 follow-up):** the base
+> `Ocr.Strategies/{ComplementExtractionStrategy,SearchExtractionStrategy,StructuredDocxStrategy}.cs` are **DEAD
+> CODE — skip them.** They implement `IDocxExtractionStrategy`/`IComplementDocxExtractionStrategy`, which have
+> **zero production consumers or DI registrations** anywhere in the solution; the only references are the flaky
+> `Tests.Infrastructure.Extraction.Teseract` suite. The LIVE copies are `Extraction.Adaptive/Strategies/*`
+> (implement `IAdaptiveDocxStrategy`, wired in DI, already hardened Units 6–10). Cleanup = delete the 3 dead base
+> files + their dead interfaces (out of scope for hardening; note for a tidy-up pass).
 - [x] `XmlFieldExtractor.cs` — ✅ **Unit 25 (2026-06-09): 70.41% → 95.41%, Killed 138→187, 0 killable survivors,
   +39 tests.** Added the project's `stryker-config.json` (project = `Infrastructure.Extraction.Ocr.csproj`,
   mutate = `Teseract/XmlFieldExtractor.cs`). The 48 NoCoverage were the untested measure-inference chain
@@ -119,7 +123,14 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   equivalent since strict & loose normalize identically; `"causa"` label equiv since Causa is always null) +
   perTest attribution noise. **Lesson: the CURP strict-regex block is an equivalent mutant — the loose regex
   subsumes any valid strict CURP, so removing the strict branch yields the same normalized value.**
-- [ ] `XmlExpedienteParser.cs`, `XmlMetadataExtractor.cs`
+- [x] `XmlExpedienteParser.cs`, `XmlMetadataExtractor.cs` — ✅ **Unit 29 (2026-06-09): project 15.03% → 93.32%,
+  0 killable survivors, +43 tests.** Parser Killed 69→462, extractor Killed 12→41. Drove the parser purely
+  through `ParseAsync` + read the attached counters via `result.GetMetadata<Expediente, ExtractionMetadata>()`;
+  the extractor via a substituted `IXmlNullableParser`. A programmatic all-known-names-at-root fixture kills every
+  `CaptureUnknownFields.knownFields` entry at once. Residual = equivalent floor (Serilog; dead-defensive root-null
+  /never-null-parent/`Value ?? ""`/BOM-detect/object-init-default) + **proven** perTest attribution noise (4
+  element-name strings + the hasData logical — manual L72/L145/L200 mutation failed 11 tests; survivor set shrank
+  run-to-run). See guide Unit 29.
 - [ ] `AdditionalFieldsReconciler.cs`
 - [ ] `DocxStructureAnalyzer.cs`, `DocxFieldExtractor.cs`, `DocxMetadataExtractor.cs`
 - [x] `MexicanNameFuzzyMatcher.cs` — ✅ **Unit 28 (2026-06-09): Killed 0→75, Survived 52, 0 killable survivors,

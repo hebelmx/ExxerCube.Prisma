@@ -740,6 +740,46 @@ the condition always-true by hand (a non-constant always-true expression avoids 
 triggers under warnings-as-errors). (3) Re-confirmed: `coverage-analysis: "off"` does **not** rescue
 static-initializer or boolean-literal survivors here (same 52), so don't chase them — prove killability by hand.
 
+### Unit 29: XmlExpedienteParser + XmlMetadataExtractor (Infrastructure.Extraction.Ocr) — §2.4 (2026-06-09)
+
+The two pure XML parsers (`XmlExpedienteParser` is the big one — 528 lines of CNBV/PRP1 element mapping +
+metadata scoring; `XmlMetadataExtractor` is the `IMetadataExtractor` adapter over it). Both already had a few
+happy-path tests in the deterministic project. Added to the Extraction-base `stryker-config` mutate list (now
+7 files). **Project headline 15.03% → 93.32%; parser Killed 69 → 462, extractor Killed 12 → 41; +43 tests;
+0 killable survivors.**
+
+Approach: drive the parser **only through the public `ParseAsync`** and read the attached scoring counters via
+`result.GetMetadata<Expediente, ExtractionMetadata>()` (the IndQuestResults metadata extension) — this makes the
+whole ~150-line `BuildExtractionMetadata` counting surface killable with exact-value assertions
+(`TotalFieldsExtracted`/`RegexMatches`/`CatalogValidations`/`PatternViolations` on full / minimal / zero-id /
+invalid-RFC / per-catalog-value / fecha-boundary fixtures). The extractor is driven via a substituted
+`IXmlNullableParser<Expediente>`. **One efficient fixture trick:** a *programmatically built* XML placing every
+`knownFields` name (plain AND `Cnbv_`-prefixed) as a root element with a value, then asserting
+`AdditionalFields.Count == 0`, kills **every** `CaptureUnknownFields.knownFields` string in one shot (blanking any
+entry would make that name "unknown" → captured → Count > 0). Other pins: GetElementValue `Cnbv_` fallback /
+`xsi:nil="true"` / empty-to-null; every parse default (`int/bool/DateTime.TryParse` fallbacks, `OficioYear`'s
+`DateTime.Now.Year` default, the `?? string.Empty` arms, `&& tieneAseg`); `ExtractLawMandatedFields` hasData
+combinations + per-field null-when-blank ternaries; UTF-8 BOM handling; multiple `SolicitudPartes`.
+
+**Residual = 0 killable.** Genuine equivalent floor: Serilog statements/strings; dead-defensive code (the
+`root == null` failure return is unreachable — `XDocument.Load` throws on a rootless doc first; the
+`GetElementValue` `parent == null` guard is never hit — all call sites pass non-null; `element.Value ?? string.Empty`
+— `XElement.Value` is never null; the `StreamReader` BOM-detect flag — the BOM is handled either way; the
+`new ExtractionMetadata { Source = SourceType.XML_HandFilled }` object-initializer — `Source`'s property default is
+the *same* value, so removing the initializer is equivalent). The unused `curpPattern`/`datePattern` regexes in
+`BuildExtractionMetadata` are dead (only `rfcPattern` is used) — minor finding, pinned as floor.
+
+**Lessons:** (1) **`result.GetMetadata<T, TMeta>()` turns "attached" scoring metadata into a killable surface** —
+when a parser logs/attaches an analysis object rather than returning it, read it back through the Result metadata
+extension instead of writing the counters off as a Serilog-only floor. (2) **Build exhaustive "every-name" fixtures
+programmatically** — a `StringBuilder` loop over the known-field list kills a whole local lookup-table
+(`knownFields`) far more cheaply and completely than hand-written XML. (3) **perTest attribution noise is severe on
+large parser suites** — at ~290 tests the run reported ~30 string/equality "survivors" on lines the tests clearly
+assert, and the set *shrank run-to-run* (95→93 survivors on identical code). **Proven noise, not real:** manually
+applying three of them (an element-name string at L72/L145, the `!IsNullOrWhiteSpace(areaDescripcion)` → `(x!=null)`
+hasData mutant at L200) **failed 11 tests**. Trust the Killed delta + a manual spot-check; don't chase the rotating
+string survivors.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
