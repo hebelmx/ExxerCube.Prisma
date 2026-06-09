@@ -9,8 +9,10 @@
       "**/LevenshteinTextComparer.cs",
       "**/FeatureNormalizer.cs",
       "**/PolynomialModel.cs",
-      "**/TrainedPolynomialModel.cs"
+      "**/TrainedPolynomialModel.cs",
+      "**/PolynomialImageQualityAnalyzer.cs"
     ],
+    "additional-timeout": 30000,
     "coverage-analysis": "perTest",
     "reporters": [
       "html",
