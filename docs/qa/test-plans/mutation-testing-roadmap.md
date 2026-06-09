@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Unit 29: XmlExpedienteParser + XmlMetadataExtractor; §2.4 Extraction base progressing — Units 25 XmlFieldExtractor / 26 sanitizers / 27 FileTypeIdentifier / 28 MexicanNameFuzzyMatcher / 29 XML parser+metadata done; Units 21–24 Imaging §2.3 complete).
+**Last updated:** 2026-06-09 (after Unit 30: DocumentComparisonService + AdditionalFieldsReconciler; §2.4 Extraction base progressing — Units 25 XmlFieldExtractor / 26 sanitizers / 27 FileTypeIdentifier / 28 MexicanNameFuzzyMatcher / 29 XML parser+metadata / 30 comparison+reconciler done; Units 21–24 Imaging §2.3 complete).
 **Branch:** `Kt2`.
 
 ---
@@ -131,7 +131,10 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   /never-null-parent/`Value ?? ""`/BOM-detect/object-init-default) + **proven** perTest attribution noise (4
   element-name strings + the hasData logical — manual L72/L145/L200 mutation failed 11 tests; survivor set shrank
   run-to-run). See guide Unit 29.
-- [ ] `AdditionalFieldsReconciler.cs`
+- [x] `AdditionalFieldsReconciler.cs` — ✅ **Unit 30 (2026-06-09): Killed 30, 0 killable survivors, +9 tests.**
+  (bundled with DocumentComparisonService). Residual: L31 `continue` removal is equivalent (fall-through
+  re-reaches the same merged state); L51 killed by a null-value test (Normalize must short-circuit null before
+  `.Trim()`). See guide Unit 30.
 - [ ] `DocxStructureAnalyzer.cs`, `DocxFieldExtractor.cs`, `DocxMetadataExtractor.cs`
 - [x] `MexicanNameFuzzyMatcher.cs` — ✅ **Unit 28 (2026-06-09): Killed 0→75, Survived 52, 0 killable survivors,
   +58 tests.** Ported fresh (was only in the flaky Teseract suite). Low 57.69% headline is **all floor, verified**:
@@ -153,7 +156,11 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   PDF/ZIP magic numbers, the XML `<?xml`-vs-`TrimStart("<")` alternatives, the DOCX `word/` vs generic-ZIP
   `else` vs `xl/`-only fall-through, every extension-switch arm + `ToLowerInvariant`, content-wins ordering,
   and the empty-fileName guard.
-- [ ] `PdfMetadataExtractor.cs`, `CompositeMetadataExtractor.cs`, `DocumentComparisonService.cs`
+- [x] `DocumentComparisonService.cs` — ✅ **Unit 30 (2026-06-09): Killed 73, 0 killable survivors, +24 tests**
+  (combined run 92.79%). Exact-value status ladder + 16-field aggregation. Residual = Serilog floor. Guide Unit 30.
+- [ ] `PdfMetadataExtractor.cs`, `CompositeMetadataExtractor.cs` — ⚠️ `CompositeMetadataExtractor` takes the
+  CONCRETE `XmlMetadataExtractor`/`DocxMetadataExtractor`/`PdfMetadataExtractor` (not interfaces); verify
+  `PdfMetadataExtractor`/`DocxMetadataExtractor` are deterministic (no OCR/render deps) before bundling.
 - ⛔ avoid OCR/render/DB-coupled: `TesseractOcrExecutor`, `GotOcr2OcrExecutor`, `OcrProcessingService`,
   `PdfOcrFieldExtractor`, `PdfToImageConverter`, `OcrSessionRepository`, `BulkProcessingService`.
 

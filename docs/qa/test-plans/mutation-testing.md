@@ -780,6 +780,31 @@ applying three of them (an element-name string at L72/L145, the `!IsNullOrWhiteS
 hasData mutant at L200) **failed 11 tests**. Trust the Killed delta + a manual spot-check; don't chase the rotating
 string survivors.
 
+### Unit 30: DocumentComparisonService + AdditionalFieldsReconciler (Infrastructure.Extraction.Ocr) — §2.4 (2026-06-09)
+
+Two pure deterministic classes (XML-vs-OCR field comparison with FuzzySharp fallback; XML-over-OCR additional-field
+merge). Added to the Extraction-base `stryker-config` (now 9 files). **Combined 92.79%; DocumentComparisonService
+Killed 73, AdditionalFieldsReconciler Killed 30; +33 tests; 0 killable survivors.** The existing
+`DocumentComparisonServiceTests` used loose `ShouldBeOneOf`/`ShouldBeGreaterThan` assertions (mutation-weak) —
+replaced with exact values.
+
+`DocumentComparisonService` pins: the CompareField status ladder with **exact** similarity — both-empty=Match(1.0),
+one-empty=Missing(0.0), **Ordinal case-sensitive** exact (`ABC` vs `abc` → fuzzy 0 → Different, kills
+Ordinal→OrdinalIgnoreCase), fuzzy ratio **exactly 80** (`abcde`/`abcdX`) → 0.8 `>=` 0.80 → Partial (kills `>=`→`>`
+and the 0.8 constant), 60 → Different, the `.Trim()` normalization, OcrConfidence passthrough; plus
+CompareExpedientes aggregation — exactly **16** fields, MatchCount, an **exact 0.9375 average** (15×1.0 + one
+Missing 0.0)/16, numeric `ToString`, the date `"yyyy-MM-dd"` format (same calendar day / different time-of-day still
+Match — kills mutating the format), bool formatting, and null-arg `ArgumentNullException`. Residual = Serilog floor.
+
+`AdditionalFieldsReconciler` pins: XML seeds the merge, OCR fills missing keys, same-key different-non-blank →
+Conflict, case-insensitive/whitespace-only equality → no Conflict, blank-XML/non-blank-OCR → OCR override,
+non-blank-XML/blank-OCR → keep XML. **Two lessons:** (1) the `continue` after adding a brand-new OCR key is an
+**equivalent** mutant — removing it falls through, but `existing` is `null` so the conflict guard is skipped and the
+else-if re-assigns the *same* value, reaching identical state. (2) `Normalize`'s `IsNullOrWhiteSpace(v) ? "" :
+v.Trim()` ternary is only killable with a **null** input — the always-false mutant becomes `null.Trim()` → NRE;
+none of the empty-string/whitespace tests reach it, so add an explicit null-value case at *both* Normalize call
+sites (a null OCR value and a null XML value re-read as `existing`).
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
