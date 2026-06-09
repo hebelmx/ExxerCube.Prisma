@@ -6,7 +6,8 @@
     ],
     "test-runner": "mtp",
     "mutate": [
-      "**/TemplateFieldMapper.cs"
+      "**/TemplateFieldMapper.cs",
+      "**/SchemaEvolutionDetector.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
