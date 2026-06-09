@@ -140,6 +140,30 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 
 ---
 
+## 2b. DEFERRED — batch these at the END of the mutation campaign (owner decision, 2026-06-09)
+
+Two operational loose ends are **deliberately deferred to a single clean-up pass at the end of the whole
+mutation effort**, rather than interrupting unit-by-unit progress:
+
+1. **Unit 24 mutation-verification re-run.** The three Imaging filter-selection strategy files
+   (`AnalyticalFilterSelectionStrategy`, `DefaultFilterSelectionStrategy`, `PolynomialFilterSelectionStrategy`)
+   have green, value-exact tests (180/180) but their Stryker kill-count was not captured. Finish by scoping the
+   `Tests.Infrastructure.Imaging` mutate list to **only** the three `*FilterSelectionStrategy.cs` files
+   (pure managed → no native popups), running `StrykerCompat=true dotnet stryker`, confirming Killed delta + 0
+   killable survivors, then restoring the full 8-file mutate list and recording the numbers.
+
+2. **Native-mutation Windows popups (root cause + permanent fix).** Mutating native-bound code (EmguCV
+   `CvInvoke.*` in `PolynomialImageQualityAnalyzer`, and any future Emgu/OpenCv/PIL file) crashes the mutant
+   process → Windows Error Reporting dialogs ("dotnet was launched with bad parameters"), ~5–6 per run. Results
+   are unaffected (a crashed mutant counts as killed) but it's disruptive on an interactive desktop. **Interim
+   workaround (use now):** keep native files in their own scoped run, or run Stryker headless/CI. **Permanent fix
+   (do at end of campaign):** disable WER UI for the mutation run — e.g. set `HKCU\Software\Microsoft\Windows\
+   Windows Error Reporting\DontShowUI=1` (or `Disabled=1`) for the run, or launch Stryker in a session/job that
+   suppresses crash dialogs (`SetErrorMode`/`SEM_NOGPFAULTERRORBOX`), then revert. Decide whether to keep mutating
+   native files at all or formally exclude them (they yield ambiguous mutants anyway — see the ⛔ list in §2.3).
+
+---
+
 ## 3. RESERVED — bug-fix session (do NOT bundle with test hardening)
 
 Two real conflict-detection defects mutation testing surfaced in the matching policies. Fixing them lifts
