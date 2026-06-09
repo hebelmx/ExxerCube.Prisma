@@ -9,7 +9,8 @@
       "**/Teseract/XmlFieldExtractor.cs",
       "**/TextSanitizer.cs",
       "**/OcrSanitizationService.cs",
-      "**/Teseract/FileTypeIdentifierService.cs"
+      "**/Teseract/FileTypeIdentifierService.cs",
+      "**/Matching/MexicanNameFuzzyMatcher.cs"
     ],
     "additional-timeout": 30000,
     "coverage-analysis": "perTest",
