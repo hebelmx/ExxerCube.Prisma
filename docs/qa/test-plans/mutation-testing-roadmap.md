@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-08 (after Units 12–13; Classification deterministic surface complete).
+**Last updated:** 2026-06-08 (after Unit 14: SiroXmlExporter — first Export unit done).
 **Branch:** `Kt2`.
 
 ---
@@ -19,9 +19,9 @@ per-unit results, all lessons). **This file is the *plan*: the goal, the denomin
 - **Not** everywhere: do **not** mutate non-deterministic code (OCR/Tesseract, dormant Python/VLM, Browser
   automation, Database/Testcontainers, UI/Playwright, worker orchestration). Mutants there are ambiguous.
 
-**Where we are:** 13 files hardened across **3 projects** (Extraction.Txt, Extraction.Adaptive, Classification).
-That's roughly **20–25 % of the worthy surface** — high quality where done, breadth is the remaining work.
-Estimate ~8–12 more focused sessions at ~1–2 units each.
+**Where we are:** 14 files hardened across **4 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
+Export). That's roughly **25 % of the worthy surface** — high quality where done, breadth is the remaining work.
+Estimate ~8–11 more focused sessions at ~1–2 units each.
 
 ---
 
@@ -32,7 +32,7 @@ Estimate ~8–12 more focused sessions at ~1–2 units each.
 | `Infrastructure.Extraction.Txt` | ✅ done (AdaptiveTxtFieldExtractor 82 %) |
 | `Infrastructure.Extraction.Adaptive` | ✅ **complete** (7 files: 5 strategies + merge + orchestrator, 96–97 %) |
 | `Infrastructure.Classification` (deterministic) | ✅ **complete** (5 files; LegalDirective 96 %, FileClassifier 89 %, the 3 matching policies 37–61 %*) |
-| `Infrastructure.Export` | ⬜ **TODO — highest value** (see §2.1) |
+| `Infrastructure.Export` | 🟡 **in progress** — `SiroXmlExporter` ✅ done (86.22 %, Unit 14); Excel/Criterion/Composite remain (§2.1) |
 | `Infrastructure.Imaging` | ⬜ TODO (see §2.3) |
 | `Infrastructure.Extraction` (base) | ⬜ TODO — several deterministic extractors (see §2.4) |
 | `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
@@ -51,7 +51,8 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 > `Tests.Infrastructure.Export` **already exists** (no scaffolding needed) but today only tests
 > `DigitalPdfSigner`. Add a `stryker-config.json` next to it.
 
-- [ ] `SiroXmlExporter.cs` — **the SIRO-XML deliverable, currently ZERO test coverage.** Top priority.
+- [x] `SiroXmlExporter.cs` — ✅ **done (2026-06-08): 0 coverage → 86.22 %, Killed 0→169, 0 killable survivors,
+  26 tests, Export project 26→52 green.** Was the SIRO-XML deliverable with ZERO coverage. See guide Unit 14.
 - [ ] `ExcelLayoutGenerator.cs`
 - [ ] `CriterionMapperService.cs`
 - [ ] `CompositeResponseExporter.cs`

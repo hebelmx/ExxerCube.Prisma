@@ -406,6 +406,57 @@ hardening.
 empty); and the `?? string.Empty` fallback strings (L41/L42 — only reached when `Expediente` is null, and the
 fallback value is never a keyword, so the mutation is equivalent). **0 killable survivors.**
 
+### Unit 14: SiroXmlExporter (2026-06-08) — ✅ 0 coverage → 86.22% (first Export unit)
+
+The **SIRO-XML regulatory deliverable** in `Infrastructure.Export` (`SiroXmlExporter.cs`) — roadmap
+**§2.1, top priority** because it had **ZERO test coverage** (the Export test project only tested
+`DigitalPdfSigner`). First unit in the Export project; added a `stryker-config.json` next to
+`Tests.Infrastructure.Export` (`mutate: ["**/SiroXmlExporter.cs"]`). Added `SiroXmlExporterTests.cs`
+(**26 tests; Export project 26 → 52 green**).
+
+```
+SiroXmlExporter.cs: Killed 0 -> 169 · Survived 24 · NoCoverage 3 · Timeout 0
+Final mutation score: 86.22 %
+```
+
+What the tests pin (exact-value): the pre-start cancellation guard; every input guard message
+(null metadata / null stream / non-writable stream) and every `ValidateMetadata` message (null Expediente,
+blank NumeroExpediente, blank NumeroOficio); the XML declaration, root element name and the
+`http://siro.regulatory.namespace` namespace (parsed via `XDocument` local-name queries, robust to the
+child `xmlns`); all required elements with exact values; the `yyyy-MM-dd` FechaPublicacion format; every
+optional top-level element on **both** the present-when-set and absent-when-blank sides; the
+SolicitudPartes/SolicitudEspecificas wrappers, the per-parte optional fields (present/absent), and
+**multi-element sibling rendering** (two partes / two especificas + SolicitudEspecificas-is-root-child,
+which kill the per-`WriteEndElement` removals — with a single element the removal is masked by
+`WriteEndDocument` auto-close); the indentation settings (line count + `"\n  <"`); the schema branch
+both ways — an empty `XmlSchemaSet` still succeeds (no Error-severity events), and an empty-content-model
+schema fails with the `"SIRO schema validation failed: …"` message; and the Exception / OCE catch paths.
+
+**Two lessons reinforced:**
+
+1. **Reach the OCE catch by cancelling mid-write, not before.** An already-cancelled token trips the
+   pre-`try` guard, so the `catch (OperationCanceledException) when (token.IsCancellationRequested)` filter
+   is never entered. A custom `Stream` whose `WriteAsync` **cancels its own `CancellationTokenSource` and
+   throws OCE** (with a *live* token passed in) is what reaches it; a separate stream that throws `IOException`
+   on write reaches the generic catch.
+2. **A "String mutation → \"\"" survivor can be a `Join` *separator*, not the whole message.** L327's
+   `Result.WithFailure($"SIRO schema validation failed: {string.Join("; ", errors)}")` survived even under
+   `coverage-analysis: "off"` (every test vs every mutant) despite a test asserting the literal — because the
+   mutated string was the **`"; "` separator**, not the message; the content (and "SIRO schema validation
+   failed" / "Position") still passed. The empty-content-model schema raises **exactly two** errors, so
+   asserting the joined `"; "` is present pins it. (A throwaway diagnostic test printing the real `result.Error`
+   is the fastest way to see which literal a string mutant actually hit.)
+
+**Residual / equivalent floor (24 Survived + 3 NoCoverage):** Serilog statement/string/`?? "Unknown"`
+mutants (the `Log*` calls); the `ConfigureAwait(false)` booleans + the `FlushAsync` no-op on a
+`MemoryStream`; `WriteStartDocument()` removal (XmlWriter auto-emits the declaration when
+`OmitXmlDeclaration=false`, so the decl is present with or without it); the **trailing**
+`WriteEndElement`(SolicitudEspecificas/SiroResponse) + `WriteEndDocument` removals (the writer auto-closes
+the remaining open elements on `Flush`/`Dispose`, so the output is byte-identical); the unreachable defensive
+`if (_siroSchemaSet == null) return Success` **inside** `ValidateXmlSchema` (only called when non-null); and
+the defensive `catch` in `ValidateXmlSchema` (can't force a validation exception with valid input). **0
+killable survivors.**
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
