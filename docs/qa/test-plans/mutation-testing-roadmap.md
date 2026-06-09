@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Unit 25: XmlFieldExtractor §2.4 started; Units 21–24 Imaging §2.3 complete).
+**Last updated:** 2026-06-09 (after Unit 27: FileTypeIdentifierService; §2.4 Extraction base progressing — Units 25 XmlFieldExtractor / 26 sanitizers / 27 FileTypeIdentifier done; Units 21–24 Imaging §2.3 complete).
 **Branch:** `Kt2`.
 
 ---
@@ -37,7 +37,7 @@ kill-count was deferred — see §2.3.)
 | `Infrastructure.Export` (base) | ✅ **complete** (Units 14–16: SiroXmlExporter, ExcelLayoutGenerator, CriterionMapperService, CompositeResponseExporter — all 0 killable survivors) |
 | `Infrastructure.Export.Adaptive` | ✅ **complete** (Units 17–20: TemplateFieldMapper, SchemaEvolutionDetector, AdaptiveExporter, AdaptiveResponseExporterAdapter — all 0 killable survivors) |
 | `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
-| `Infrastructure.Extraction` (base) | 🟦 in progress (Unit 25: `XmlFieldExtractor` 95.41% done; §2.4 has more — sanitizers, Docx/Pdf metadata, FileTypeIdentifier, MexicanNameFuzzyMatcher) ⬅ **next** |
+| `Infrastructure.Extraction` (base) | 🟦 in progress (Units 25 `XmlFieldExtractor` 95.41% / 26 sanitizers 100% / 27 `FileTypeIdentifierService` done; §2.4 remaining — Docx/Pdf metadata, `MexicanNameFuzzyMatcher`, `DocumentComparisonService`) ⬅ **next** |
 | `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
 | `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
@@ -128,7 +128,13 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   OCR/Teseract suite (out of scope); tested fresh in the deterministic project. Pinned the account/SWIFT/generic
   cleaners (incl. the SWIFT 9→11 padding conditions + length boundaries) and the orchestrator's first-line
   discovery + cross-field normalization merge.
-- [ ] `FileTypeIdentifierService.cs`
+- [x] `FileTypeIdentifierService.cs` — ✅ **Unit 27 (2026-06-09): Killed 58 / Survived 8 / NoCoverage 5
+  (81.69% headline), 0 killable survivors, +25 tests.** All 13 non-kills are the equivalent floor (Serilog
+  log statements/text/`?? "unknown"` + the dead defensive `catch`, unreachable: guarded indexing, safe
+  `GetString`, modern `Path.GetExtension` never throws). Pinned the `<4`/`>=5` length boundaries, per-byte
+  PDF/ZIP magic numbers, the XML `<?xml`-vs-`TrimStart("<")` alternatives, the DOCX `word/` vs generic-ZIP
+  `else` vs `xl/`-only fall-through, every extension-switch arm + `ToLowerInvariant`, content-wins ordering,
+  and the empty-fileName guard.
 - [ ] `PdfMetadataExtractor.cs`, `CompositeMetadataExtractor.cs`, `DocumentComparisonService.cs`
 - ⛔ avoid OCR/render/DB-coupled: `TesseractOcrExecutor`, `GotOcr2OcrExecutor`, `OcrProcessingService`,
   `PdfOcrFieldExtractor`, `PdfToImageConverter`, `OcrSessionRepository`, `BulkProcessingService`.

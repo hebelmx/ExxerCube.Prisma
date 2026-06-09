@@ -673,6 +673,24 @@ guard set) and the orchestrator's first-CUENTA/first-SWIFT line discovery + the 
 SWIFT bumps a clean account) with its `Count == 0` no-double-add guard. A clean 100% is achievable on small pure
 string-logic units with no equivalent floor.
 
+### Unit 27: FileTypeIdentifierService (Infrastructure.Extraction.Ocr) — §2.4 (2026-06-09)
+
+Content-based file-type detection (magic numbers + extension fallback); added to the Extraction-base
+`stryker-config` mutate list. **Killed 58 / Survived 8 / NoCoverage 5 (81.69% headline), 0 killable survivors;
++25 tests.** All 13 non-kills are the documented equivalent floor — Serilog `LogWarning`/`LogDebug`/`LogError`
+statement + message-text + `?? "unknown"` mutants (L43/L47/L52), and the **dead defensive `catch` block**
+(L52-53), which is unreachable from the public API: `IdentifyByContent` guards its indexing (`length < 4`) and
+its `Encoding.UTF8.GetString(...Math.Min(...))` can't overrun, and modern `Path.GetExtension` no longer throws
+on invalid chars, so nothing inside the `try` can throw. The tests pin the real surface: the `< 4` and XML
+`>= 5` length boundaries (exact-4-byte PDF id'd vs 3-byte fallback; exact-5-byte `<?xml` vs 4-byte `<?xm`
+below boundary), per-byte PDF/ZIP magic-number discrimination (one-byte-wrong Theories), the XML
+`StartsWith("<?xml")` vs `TrimStart().StartsWith("<")` alternatives, the DOCX `word/` return vs generic-ZIP
+`else` (Zip) vs `xl/`-only fall-through-to-null (a subtle third path that returns neither Docx nor Zip),
+both-markers-prefers-Docx, every extension-switch arm incl. `ToLowerInvariant` (`.PDF`), content-wins-over-a-
+conflicting-extension ordering, and the `!IsNullOrEmpty(fileName)` empty-string guard. **Lesson: a defensive
+`try/catch` wrapping only non-throwing operations is an uncoverable block — don't contort the SUT to reach it;
+log it as the floor.**
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
