@@ -3,9 +3,11 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-10 (Units 38–42: **§2.6 Core/Application COMPLETE** [SLATracking, AuditReporting,
-FieldMatching, DecisionLogic] + **§2.7 SemanticAnalyzerService COMPLETE** — all 0 killable survivors).
-**Branch:** `Kt2`.
+**Last updated:** 2026-06-10 (**audit correction — Units 43–48**: the prior "COMPLETE" claim undercounted the
+deterministic surface. Added Application pure parsers + `LegalSubdivisionMapper` + `ExportService`, the
+`SemanticAnalyzerAdapter` + `ExpedienteClasifierService` Classification adapters [mock-driven, NOT Ollama], and
+the 2789-line `FusionExpedienteService` — all 0 killable survivors. Plus §3 minor findings all fixed.)
+Earlier: Units 38–42 (§2.6 Core/Application + §2.7 SemanticAnalyzerService). **Branch:** `Kt2`.
 
 ---
 
@@ -40,8 +42,9 @@ strategy files have green exact-value tests but their Stryker kill-count was def
 | `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
 | `Infrastructure.Extraction` (base) | ✅ **COMPLETE** (Units 25–33, 14 files: XmlFieldExtractor, sanitizers, FileTypeIdentifier, MexicanNameFuzzyMatcher, XML parser+metadata, DocumentComparison+AdditionalFieldsReconciler, Docx/Pdf/Composite metadata extractors — all 0 killable survivors). Dead `Ocr.Strategies/*` skipped. |
 | `Infrastructure.Metrics` / `FileStorage` | ✅ **COMPLETE** (Units 34–36: SafeFileNamer, FileMover, ProcessingMetrics — all 0 killable survivors) |
-| `01 Core` Application services | ✅ **COMPLETE** (Units 37–41: ConfigurationValidation, SLATracking, AuditReporting, FieldMatching, DecisionLogic — all 0 killable survivors. I/O orchestrators skipped by design) |
+| `01 Core` Application services | ✅ **COMPLETE** (Units 37–41 + **43–44**: ConfigurationValidation, SLATracking, AuditReporting, FieldMatching, DecisionLogic, **the pure Parsing/* + Mapping/* + ExportService** — all 0 killable survivors. Remaining I/O orchestrators skipped by design) |
 | `Infrastructure.Classification` SemanticAnalyzerService (§2.7) | ✅ **COMPLETE** (Unit 42, mocked ITextComparer, 0 killable survivors) |
+| `Infrastructure.Classification` adapters + fusion (audit, §2.8) | ✅ **COMPLETE** (Units 45–48: SemanticAnalyzerAdapter, ExpedienteClasifierService [mock-driven, NOT Ollama], FusionExpedienteService [2789-line Stage-3 fusion] — all 0 killable survivors) |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
 
 \* The two low matching-policy scores are capped by **real bugs**, not weak tests — see §3.
@@ -276,9 +279,12 @@ Two real conflict-detection defects mutation testing surfaced. Both fixed (ITDD)
   policy → `AdditionalMerged`/`AdditionalConflicts`; name-field routing via new `INameMatchingPolicy`; revived
   `DeriveSlaFromAdditional`). +8 reconciliation tests. `FieldMatcherService<T>` left as documented dead/legacy
   (deletion candidate).
-- [ ] still open (minor): delete unused private `MatchingPolicyService.GetConflictThreshold(string)`; the
-  inverted `FechaEstimadaConclusion` `WarnIf` (`docs/qa/findings/2026-06-09-fieldmatching-fechaestimada-warning-inverted.md`);
-  and (optional cleanup) delete the dead `FieldMatcherService<T>` + `IFieldMatcher<T>`.
+- [x] minor findings — ✅ **ALL DONE (2026-06-10, commit 3abfd26):** deleted unused private
+  `MatchingPolicyService.GetConflictThreshold(string)`; fixed the inverted `FechaEstimadaConclusion` `WarnIf`
+  (`!= default` + flipped the two pinning tests); deleted the dead `FieldMatcherService<T>` + `IFieldMatcher<T>`
+  (Web.UI registration + 2 E2E DI assertions removed, DependencyValidation 10→9 / DependencyInjectionContainer
+  9→8, both green); added a homonym integration test through the wired `FieldMatchingService` with the REAL
+  `NameMatchingPolicy` + `MatchingPolicyService`.
 
 ---
 

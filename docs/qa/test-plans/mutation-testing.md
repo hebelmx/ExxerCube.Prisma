@@ -1041,6 +1041,100 @@ which only feeds a log).
 
 > ✅ **§2.7 COMPLETE.** The deterministic business-logic surface is mutation-hardened — **campaign COMPLETE.**
 
+### Units 43–48: audit correction — deterministic surface the "COMPLETE" claim MISSED (2026-06-10)
+
+**Why this section exists.** An audit cross-checking every deterministic `*Service`/`*Parser`/`*Mapper`/`*Adapter`
+against the files already in the stryker configs found a batch of **uncovered deterministic classes** — several
+wrongly excluded earlier as "I/O orchestrator"/"Ollama" that are actually all-interface (mock-drivable) or pure.
+So the prior "marathon COMPLETE" undercounted. These units close that gap; the campaign is **genuinely** complete
+once they land.
+
+- **Unit 43 — Application pure parsers + mapper** (`01 Core/Application/Parsing/{Measure,Identity,Account}Parser.cs`
+  + `Mapping/LegalSubdivisionMapper.cs`). All pure static methods; added to `Tests.Application/stryker-config.json`.
+  **MeasureParser Killed 33 / IdentityParser 16 / AccountParser 9 / LegalSubdivisionMapper 53 — all 0 survivors / 0
+  NoCoverage.** Exact-value tests pin every `ComplianceActionKind` keyword branch (incl. the `ToUpperInvariant`),
+  the account length-`< 6` boundary + space-strip, the RFC/CURP regex + uppercase + distinct-dedup, and every
+  numeric area-code switch arm + each `MapByText` `Contains` ladder branch. A genuinely clean 0/0 — small pure
+  units have no equivalent floor.
+
+- **Unit 44 — `ExportService`** (`01 Core/Application/Services`, all-interface deps — `IResponseExporter`/
+  `ILayoutGenerator`/`ICriterionMapper`/`IPdfRequirementSummarizer`/`IAuditLogger`, all mocked). **Killed 186;
+  residual = the Serilog log-statement floor** (cancel/catch/info `Log*` calls + the `?? "Unknown"` *inside* log
+  args). Pinned: each method's pre-start cancel + exact null-guard strings; every `ValidateMetadataCompleteness`
+  `Require` branch (one-field-missing → exact `"Validation failed: <field>"`, where blank `NumeroExpediente` maps
+  to field name **"Expediente"**); the Block/Unblock/Transfer account requirement vs Document not requiring one;
+  cancel/failure propagation + the exact wrapped error strings; the **exact audit-detail JSON** (pin every literal
+  segment of the interpolated string — a `Contains` only kills the one segment it names); and the additional-field
+  **`WarnIf` advisory warnings** (Subdivision/MeasureHint sentinel literals + the `Conflict:` prefix) read back via
+  `metadata.Validation.Warnings`. **Lesson: NSubstitute `Received` needs matchers for ALL args of a shared type —
+  mixing a literal `true`/`null` with `Arg.Is<string?>(…)` throws `AmbiguousArgumentsException`; use
+  `Arg.Is<bool>(b => b)` / `Arg.Is<string?>(e => e == null)`.** Also: perTest mis-reports the audit-detail strings
+  as `NoCoverage` on this large suite (the documented attribution noise) — pin the exact detail to make the kill
+  certain rather than chase the bucket.
+
+- **Unit 45 — `SemanticAnalyzerAdapter`** (`Infrastructure.Classification`, thin adapter over a mocked
+  `ISemanticAnalyzer`). **Killed 75, 0 killable survivors** (13 survived + 6 NoCoverage, all the documented
+  floor — `Log*` statements/strings, the `?? "N/A"`/`?? "Unknown"` *inside* log args, the unreachable `catch`
+  blocks, the `if (actions.Count > 1)` guard which only gates a *log*, and `First()`↔`FirstOrDefault()` on the
+  guaranteed-non-empty `actions`/`ProductosEspecificos` — all equivalent; the one genuine gap,
+  `MapToComplianceActionAsync`'s inner-classification-failure propagation, was covered). Pins guards +
+  exact error strings, the
+  `SemanticAnalysis → List<ComplianceAction>` conversion (every requirement mapping; the `ConvertConfidence` =
+  `round(×100)` via two distinct values; the Block extras — first-account, `CuentasEspecificas.Count > 1`
+  `AdditionalData` key, `ProductosEspecificos.Any()` + `ProductType`), `DetectLegalInstruments` empty-list, and
+  `MapToComplianceAction`'s no-actions failure + `OrderByDescending(Confidence).First()` selection.
+
+- **Unit 46 — `ExpedienteClasifierService`** (`Infrastructure.Classification`, driven through a **mocked
+  `ISemanticAnalyzer`** — NOT Ollama; the earlier "Ollama" exclusion was wrong). **Killed 199, 0 survived, 0
+  killable survivors** (18 NoCoverage = the four `catch`-block `LogError`/error-strings — unreachable, valid string/
+  reflection input can't throw — the `?? string.Empty` field fallbacks, the dead `IsFieldPopulated` `property == null`
+  reflection guard, and the analyzer-returns-`Success(null)` guard which was then covered). Pins the
+  `ClassifyRequirementType` ladder + exact confidences (0.95/0.90/0.85/0.80) incl.
+  the Aseguramiento→Transfer/SituacionFondos sub-overrides, the `DetermineAuthorityKind` switch (Juzgado/Hacienda/
+  UIF/CNBV/Other), the per-type required-field map, `ValidateArticle4` (reflection `IsFieldPopulated`, null-lawFields,
+  whitespace-counts-missing, one-field-missing), every `CheckArticle17` rejection ground (and the `!hasAccount &&
+  !hasRfcOrCurp` short-circuit), the semantic enrichment (Bloqueo `EsParcial`/`Monto`/`Moneda ?? "MXN"`,
+  Transferencia `Monto`, Desbloqueo original), and `InferDocumentTextFromMetadata` (captured analyzer input across
+  TieneAseguramiento / area-ASEGURAMIENTO / area-DESBLOQUEO / default + the non-empty-referencias bypass).
+
+- **Units 47–48 — `FusionExpedienteService`** (`Infrastructure.Classification`, the **2789-line** Stage-3 fusion;
+  deps `ILogger` + `FusionCoefficients`, **no HTTP/DB/file → fully deterministic**). **Killed 1217, 0 survived, 0
+  killable survivors** (15 residual NoCoverage = Serilog statements; the two top-level `catch` blocks (L151/L236) +
+  the `Subdivision` `FromName` `catch` (L1946) — unreachable with valid input; the **dead**
+  `conflicts.Add("TieneAseguramiento")` (the bool fuser only ever emits `"true"`, so it can never disagree →
+  never `WeightedVoting`/`Conflict`); the **write-only `MatchesPattern` booleans** (`FuseFieldAsync` never reads
+  `MatchesPattern`, so every `MatchesPattern = …` mutant is equivalent); and the entire **DOCX source path**,
+  which the first run left NoCoverage because the tests only used xml+pdf — then covered by a single-DOCX sweep).
+  Only loose contract tests existed before. Coverage:
+  - **The `FuseFieldAsync` engine** (public): all-null → `AllSourcesNull`/null/0.0; exact agreement → `AllAgree`,
+    Value = first, Confidence = **max** reliability (not avg); the `IsTextField` fuzzy branch → `FuzzyAgreement`
+    with Confidence = `reliability × similarity`; non-text similar values do NOT fuzzy-match; the weighted-voting
+    winner = highest reliability; and the **3-way decision boundary** `conflictingValues.Count >= validCandidates.Count - 1`
+    (2-disagree → Conflict; 3-with-2-agree → WeightedVoting; 3-all-different → Conflict) + `RequiresManualReview`/
+    `SuggestReview`/`ConflictingValues`.
+  - **`CalculateSourceReliability`** (via `FuseAsync.SourceReliabilities`): flat metadata → exact base values
+    (XML 0.60 / PDF 0.85 / DOCX 0.70); the OCR/image adjustments `(x − 0.75) × weight`; the extraction
+    success/violation boost; the `Math.Clamp(…, 0, 1)` upper clamp; and the `sourceType != XML` guard (XML ignores
+    OCR/image adjustments).
+  - **`CalculateOverallConfidence`** (required×0.70 + optional×0.30, the required-field set, `DefaultIfEmpty(0.0)`
+    when no optional has data), **`DetermineNextAction`** (AutoProcess ≥0.85+no-conflict / ManualReviewRequired on
+    conflict or <0.70 / ReviewRecommended between — injected via custom `FusionCoefficients`),
+    **`GetMissingRequiredFields`**, and **`CalculateBusinessDays`** (weekend-skipping, pinned by exact dates).
+  - **A full per-field sweep across ALL ~38 fusers** (single-source copy → every fused property equals input;
+    every-field-disagree, PDF outranks XML → PDF wins each + every field name recorded in `ConflictingFields`).
+    `TieneAseguramiento` is correctly excluded from the conflict set (only `"true"` is ever emitted, so it can
+    never disagree). **Lesson: the titular name fusers use the key `"Titular_Nombre"` etc., which is NOT in
+    `IsTextField`'s set (`"Nombre"`), so they go through weighted voting, not fuzzy — only `AutoridadNombre` and
+    `NombreSolicitante` are fuzzy, so a full-disagreement sweep must give those two DISSIMILAR values to force a
+    conflict.**
+
+  Added all three Classification files to its `stryker-config.json` (and dropped the now-deleted
+  `FieldMatcherService.cs`). Classification suite **283 → 367 green**; Tests.Application **464 → 572 green**.
+
+> ✅ **CAMPAIGN GENUINELY COMPLETE (audit-corrected 2026-06-10).** The earlier "COMPLETE" claim undercounted the
+> deterministic surface; Units 43–48 close the audited gap (Application parsers/mapper/ExportService + the two
+> Classification adapters + the big FusionExpedienteService). Minor mutation-surfaced findings (§3) are all fixed.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):

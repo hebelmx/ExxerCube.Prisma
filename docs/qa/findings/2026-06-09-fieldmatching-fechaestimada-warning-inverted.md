@@ -3,7 +3,9 @@
 **Date:** 2026-06-09
 **Severity:** Low (advisory warning only — does not affect `IsValid` / processing outcome)
 **Surfaced by:** mutation testing, Unit 40 (`FieldMatchingService`), §2.6 Core/Application.
-**Status:** documented; behavior pinned by tests (not "fixed" — owner decision).
+**Status:** ✅ **RESOLVED (2026-06-10, commit 3abfd26).** Changed to `WarnIf(... != default, ...)` so the
+warning fires when the date is MISSING (matching the sibling `Require` fields); the two pinning tests were
+flipped + renamed (`...Set_NoWarning`, `...Default_AddsWarning`). The rest of this doc is the original finding.
 
 ## What
 
