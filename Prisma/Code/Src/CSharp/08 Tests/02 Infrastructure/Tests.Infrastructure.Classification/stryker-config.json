@@ -13,7 +13,8 @@
       "**/SemanticAnalyzerService.cs",
       "**/SemanticAnalyzerAdapter.cs",
       "**/ExpedienteClasifierService.cs",
-      "**/FusionExpedienteService.cs"
+      "**/FusionExpedienteService.cs",
+      "**/PersonIdentityResolverService.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [
