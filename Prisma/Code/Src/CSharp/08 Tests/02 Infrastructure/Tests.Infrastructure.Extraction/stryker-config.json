@@ -14,7 +14,12 @@
       "**/Teseract/XmlExpedienteParser.cs",
       "**/Teseract/XmlMetadataExtractor.cs",
       "**/DocumentComparisonService.cs",
-      "**/AdditionalFieldsReconciler.cs"
+      "**/AdditionalFieldsReconciler.cs",
+      "**/Teseract/DocxMetadataExtractor.cs",
+      "**/Teseract/DocxFieldExtractor.cs",
+      "**/Analysis/DocxStructureAnalyzer.cs",
+      "**/Teseract/PdfMetadataExtractor.cs",
+      "**/Teseract/CompositeMetadataExtractor.cs"
     ],
     "additional-timeout": 30000,
     "coverage-analysis": "perTest",
