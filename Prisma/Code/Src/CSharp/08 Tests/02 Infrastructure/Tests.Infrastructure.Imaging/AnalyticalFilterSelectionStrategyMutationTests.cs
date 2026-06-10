@@ -209,4 +209,110 @@ public class AnalyticalFilterSelectionStrategyMutationTests
         c.PilParams.ContrastFactor.ShouldBe(2.5f, 1e-5f); // Min(2.6, 2.5)
         c.PilParams.MedianSize.ShouldBe(7);
     }
+
+    // ---- ClassifyQualityLevel threshold BOUNDARIES (kill the `>=`/`<=` relational mutants) ----
+    // Each test sits a metric EXACTLY on a threshold T where the real `>`/`<` is false but the
+    // mutated `>=`/`<=` would be true, flipping the classification. The opposite (`<`/`>`) mutants
+    // are already killed by the far-from-boundary tests above. FilterType / ContrastFactor isolates the flip.
+
+    [Fact]
+    public void Boundary_PristineBlur_AtThreshold_NotPristine() =>
+        // Blur 3500 == PristineBlurThreshold -> `>` false -> Q1 (OpenCv), not Pristine (None).
+        _strategy.SelectFilter(A(3500f, 0f, 40f)).FilterType.ShouldBe(ImageFilterType.OpenCvAdvanced);
+
+    [Fact]
+    public void Boundary_PristineNoise_AtThreshold_NotPristine() =>
+        // Noise 0.6 == PristineNoiseThreshold -> `<` false -> Q1 (OpenCv).
+        _strategy.SelectFilter(A(4000f, 0.6f, 40f)).FilterType.ShouldBe(ImageFilterType.OpenCvAdvanced);
+
+    [Fact]
+    public void Boundary_PristineContrast_AtThreshold_NotPristine() =>
+        // Contrast 35 == GoodContrastThreshold -> `>` false -> Q1 (OpenCv).
+        _strategy.SelectFilter(A(4000f, 0f, 35f)).FilterType.ShouldBe(ImageFilterType.OpenCvAdvanced);
+
+    [Fact]
+    public void Boundary_Q1Noise_AtThreshold_FallsToQ2() =>
+        // Noise 4.5 == LightNoiseThreshold -> Q1 `<` false -> Q2 (Pil).
+        _strategy.SelectFilter(A(2000f, 4.5f, 40f)).FilterType.ShouldBe(ImageFilterType.PilSimple);
+
+    [Fact]
+    public void Boundary_Q1Blur_AtThreshold_FallsToQ2() =>
+        // Blur 1500 == GoodBlurThreshold -> Q1 `>` false -> Q2 (Pil).
+        _strategy.SelectFilter(A(1500f, 0f, 40f)).FilterType.ShouldBe(ImageFilterType.PilSimple);
+
+    [Fact]
+    public void Boundary_Q1Contrast_AtThreshold_FallsToQ2() =>
+        // Contrast 28 == PoorContrastThreshold -> Q1 `>` false -> Q2 (Pil).
+        _strategy.SelectFilter(A(2000f, 0f, 28f)).FilterType.ShouldBe(ImageFilterType.PilSimple);
+
+    [Fact]
+    public void Boundary_Q2Noise_AtThreshold_FallsToQ3()
+    {
+        // Noise 8 == ModerateNoiseThreshold -> Q2 `<` false -> Q3 (Pil, base CF 1.5; contrast 30 -> no adjust).
+        var c = _strategy.SelectFilter(A(1200f, 8f, 30f));
+        c.FilterType.ShouldBe(ImageFilterType.PilSimple);
+        c.PilParams.ContrastFactor.ShouldBe(1.5f, 1e-5f); // Q3 base, distinguishes from Q2's 1.157
+    }
+
+    [Fact]
+    public void Boundary_Q2Blur_AtThreshold_FallsToQ3()
+    {
+        // Blur 1000 == the Q2 blur literal -> Q2 `>` false -> Q3 (CF 1.5).
+        var c = _strategy.SelectFilter(A(1000f, 0f, 30f));
+        c.FilterType.ShouldBe(ImageFilterType.PilSimple);
+        c.PilParams.ContrastFactor.ShouldBe(1.5f, 1e-5f);
+    }
+
+    [Fact]
+    public void Boundary_Q3Noise_AtThreshold_FallsToQ4()
+    {
+        // Noise 12 == the Q3 noise literal -> Q3 `<` false -> Q4 (CF 2.0).
+        var c = _strategy.SelectFilter(A(500f, 12f, 30f));
+        c.FilterType.ShouldBe(ImageFilterType.PilSimple);
+        c.PilParams.ContrastFactor.ShouldBe(2.0f, 1e-5f); // Q4 base, distinguishes from Q3's 1.5
+    }
+
+    // ---- RefineConfig threshold BOUNDARIES ----
+
+    [Fact]
+    public void Boundary_RefineContrastLow_AtThreshold_NoIncrease()
+    {
+        // Contrast 25 == 25 -> `< 25` false -> NO contrast increase (CF stays Q2 base).
+        var c = _strategy.SelectFilter(A(1200f, 6f, 25f));
+        c.PilParams.ContrastFactor.ShouldBe(1.1573620712395511f, 1e-5f);
+    }
+
+    [Fact]
+    public void Boundary_RefineContrastHigh_AtThreshold_NoDecrease()
+    {
+        // Contrast 35 == 35 -> `> 35` false -> NO contrast decrease (CF stays Q2 base).
+        var c = _strategy.SelectFilter(A(1200f, 6f, 35f));
+        c.PilParams.ContrastFactor.ShouldBe(1.1573620712395511f, 1e-5f);
+    }
+
+    [Fact]
+    public void Boundary_RefineNoiseHigh_AtThreshold_MedianFiveNotSeven()
+    {
+        // Noise 8 -> Q3 (CF 1.5, base Median 5); RefineConfig `> 8` false -> stays Median 5 (not 7).
+        var c = _strategy.SelectFilter(A(1200f, 8f, 30f));
+        c.PilParams.MedianSize.ShouldBe(5);
+    }
+
+    [Fact]
+    public void Boundary_RefineNoiseMid_AtThreshold_MedianThreeNotFive()
+    {
+        // Noise 5 -> Q2 (base Median 3); RefineConfig `> 5` false -> stays Median 3 (not 5).
+        var c = _strategy.SelectFilter(A(1200f, 5f, 30f));
+        c.FilterType.ShouldBe(ImageFilterType.PilSimple);
+        c.PilParams.MedianSize.ShouldBe(3);
+    }
+
+    [Fact]
+    public void Boundary_RefineOpenCvNoise_AtThreshold_DenoiseUnchanged()
+    {
+        // Noise 3 -> Q1 (OpenCv); RefineConfig `> 3` false -> DenoiseH stays 5 (not 10).
+        var c = _strategy.SelectFilter(A(2000f, 3f, 40f));
+        c.FilterType.ShouldBe(ImageFilterType.OpenCvAdvanced);
+        c.OpenCvParams.DenoiseH.ShouldBe(5f);
+    }
 }

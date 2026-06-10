@@ -141,4 +141,32 @@ public class DefaultFilterSelectionStrategyMutationTests
         var c = _strategy.SelectFilter(A(ImageFilterType.PilSimple, noise: 0f, contrast: 0.5f));
         c.PilParams.ContrastFactor.ShouldBe(1.157f);
     }
+
+    // ---- EnableEnhancement bools (kill `true`->`false`) ----
+
+    [Fact]
+    public void SelectFilterByQuality_Q3_EnhancementEnabled() =>
+        _strategy.SelectFilterByQuality(ImageQualityLevel.Q3_Low).EnableEnhancement.ShouldBeTrue();
+
+    [Fact]
+    public void SelectFilterByQuality_Q4_EnhancementEnabled() =>
+        _strategy.SelectFilterByQuality(ImageQualityLevel.Q4_VeryLow).EnableEnhancement.ShouldBeTrue();
+
+    // ---- Adjustment threshold BOUNDARIES (kill `>`->`>=` and `<`->`<=`) ----
+
+    [Fact]
+    public void SelectFilter_NoiseExactlyThreshold_MedianUnchanged()
+    {
+        // NoiseLevel 0.7 == 0.7 -> `> 0.7` false -> Median stays 3 (mutant `>=` would set 5).
+        var c = _strategy.SelectFilter(A(ImageFilterType.PilSimple, noise: 0.7f, contrast: 1.0f));
+        c.PilParams.MedianSize.ShouldBe(3);
+    }
+
+    [Fact]
+    public void SelectFilter_ContrastExactlyThreshold_ContrastFactorUnchanged()
+    {
+        // ContrastLevel 0.3 == 0.3 -> `< 0.3` false -> CF stays 1.157 (mutant `<=` would scale *1.2).
+        var c = _strategy.SelectFilter(A(ImageFilterType.PilSimple, noise: 0f, contrast: 0.3f));
+        c.PilParams.ContrastFactor.ShouldBe(1.157f);
+    }
 }

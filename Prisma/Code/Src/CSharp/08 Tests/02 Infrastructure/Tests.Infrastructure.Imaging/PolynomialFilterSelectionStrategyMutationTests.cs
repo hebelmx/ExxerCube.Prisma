@@ -171,4 +171,13 @@ public class PolynomialFilterSelectionStrategyMutationTests
         c.FilterType.ShouldBe(ImageFilterType.PilSimple);
         c.PilParams.ContrastFactor.ShouldBe(1.157f);
     }
+
+    [Fact]
+    public void GetFilterConfig_OpenCv_EnhancementEnabled() =>
+        // CreateOpenCvConfigDefault: kills `EnableEnhancement = true` -> false.
+        _strategy.GetFilterConfig(ImageFilterType.OpenCvAdvanced).EnableEnhancement.ShouldBeTrue();
+
+    [Fact]
+    public void SelectFilterByQuality_Q1_OpenCvEnhancementEnabled() =>
+        _strategy.SelectFilterByQuality(ImageQualityLevel.Q1_Poor).EnableEnhancement.ShouldBeTrue();
 }
