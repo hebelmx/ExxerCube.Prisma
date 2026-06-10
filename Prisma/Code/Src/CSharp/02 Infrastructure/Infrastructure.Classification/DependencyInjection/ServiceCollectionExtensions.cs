@@ -22,6 +22,9 @@ public static class ServiceCollectionExtensions
         // Register matching policy service (general) and name-specific policy
         services.AddScoped<IMatchingPolicy, MatchingPolicyService>();
         services.AddScoped<NameMatchingPolicy>();
+        // Expose the name-aware policy through its Domain abstraction so the Application orchestrator can route
+        // name fields to it (homonym disambiguation) without referencing Infrastructure. Same scoped instance.
+        services.AddScoped<INameMatchingPolicy>(sp => sp.GetRequiredService<NameMatchingPolicy>());
 
         // Register identity resolution service
         services.AddScoped<IPersonIdentityResolver, PersonIdentityResolverService>();

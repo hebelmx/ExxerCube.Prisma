@@ -17,7 +17,7 @@ namespace ExxerCube.Prisma.Infrastructure.Classification;
 /// <summary>
 /// Matching policy for names that uses fuzzy metrics with conservative thresholds and alias awareness.
 /// </summary>
-public sealed class NameMatchingPolicy : IMatchingPolicy
+public sealed class NameMatchingPolicy : INameMatchingPolicy
 {
     private readonly NameMatchingOptions _options;
     private readonly ILogger<NameMatchingPolicy> _logger;
@@ -56,33 +56,62 @@ public sealed class NameMatchingPolicy : IMatchingPolicy
             return Task.FromResult(Result<FieldMatchResult>.WithFailure("No non-empty values to match"));
         }
 
-        var best = normalized
-            .SelectMany(a => normalized.Select(b => (A: a, B: b, Score: ScorePair(a.Normalized, b.Normalized))))
-            .OrderByDescending(p => p.Score)
-            .First();
+        // Overall agreement is the WEAKEST score among DISTINCT pairs (the most disagreement); a value is never
+        // compared with itself (that diagonal always scores 1.0 and would mask every real conflict). A single
+        // comparable value trivially agrees.
+        var overallAgreement = 1.0;
+        for (var i = 0; i < normalized.Count; i++)
+        {
+            for (var j = i + 1; j < normalized.Count; j++)
+            {
+                overallAgreement = Math.Min(overallAgreement, ScorePair(normalized[i].Normalized, normalized[j].Normalized));
+            }
+        }
 
-        var bestScore = best.Score;
-        var winner = best.A;
-        var conflict = bestScore < _options.ConflictThreshold;
-        var review = !conflict && bestScore < _options.AcceptThreshold;
+        // Winner is the medoid: the value with the highest total agreement with the OTHERS (excluding itself),
+        // so the consensus value wins over an outlier rather than blindly taking the first.
+        var winnerIndex = 0;
+        var bestAffinity = double.NegativeInfinity;
+        for (var i = 0; i < normalized.Count; i++)
+        {
+            var affinity = 0.0;
+            for (var j = 0; j < normalized.Count; j++)
+            {
+                if (i == j)
+                {
+                    continue;
+                }
+                affinity += ScorePair(normalized[i].Normalized, normalized[j].Normalized);
+            }
+            if (affinity > bestAffinity)
+            {
+                bestAffinity = affinity;
+                winnerIndex = i;
+            }
+        }
 
-        var result = new FieldMatchResult(fieldName, winner.Original.Value, (float)bestScore, winner.Original.SourceType, winner.Original.Origin, winner.Raw)
+        var winner = normalized[winnerIndex];
+        var conflict = overallAgreement < _options.ConflictThreshold;
+        var review = !conflict && overallAgreement < _options.AcceptThreshold;
+
+        var result = new FieldMatchResult(fieldName, winner.Original.Value, (float)overallAgreement, winner.Original.SourceType, winner.Original.Origin, winner.Raw)
         {
             AllValues = values,
             HasConflict = conflict,
-            AgreementLevel = (float)bestScore
+            AgreementLevel = (float)overallAgreement
         };
 
         if (review || conflict)
         {
-            _logger.LogInformation("Name match for {Field} requires review/conflict (score {Score:F2})", fieldName, bestScore);
+            _logger.LogInformation("Name match for {Field} requires review/conflict (score {Score:F2})", fieldName, overallAgreement);
         }
 
         return Task.FromResult(Result<FieldMatchResult>.Success(result));
     }
 
     /// <summary>
-    /// Calculates the strongest agreement score among provided values.
+    /// Calculates the overall agreement among provided values as the WEAKEST score across distinct pairs
+    /// (so a single disagreeing value among otherwise-agreeing ones is surfaced as low agreement / a conflict).
     /// </summary>
     public Task<Result<float>> CalculateAgreementLevelAsync(List<FieldValue> values)
     {
@@ -101,14 +130,17 @@ public sealed class NameMatchingPolicy : IMatchingPolicy
             return Task.FromResult(Result<float>.WithFailure("Not enough comparable values"));
         }
 
-        double best = 0;
-        foreach (var a in normalized)
-        foreach (var b in normalized)
+        // Weakest DISTINCT pair (exclude the diagonal: a value compared with itself always scores 1.0).
+        double worst = 1.0;
+        for (var i = 0; i < normalized.Count; i++)
         {
-            best = Math.Max(best, ScorePair(a, b));
+            for (var j = i + 1; j < normalized.Count; j++)
+            {
+                worst = Math.Min(worst, ScorePair(normalized[i], normalized[j]));
+            }
         }
 
-        return Task.FromResult(Result<float>.Success((float)best));
+        return Task.FromResult(Result<float>.Success((float)worst));
     }
 
     /// <summary>
