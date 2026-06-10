@@ -938,7 +938,11 @@ Two new test projects, two new `stryker-config.json` files. Both at **0 killable
 
 First Core/Application unit — `01 Core/Application/Services/ConfigurationValidationService.cs`, a fully pure
 validation service (only an `ILogger`). Added `Tests.Application/stryker-config.json` (the project's first).
-**Killed 209 / Survived 11 / Timeout 2 (95.05 %) → 0 killable survivors.** Project 260/260 green (+~80 cases).
+First run **Killed 209 / Survived 11 / Timeout 2 (95.05 %)**; after the factory-bool fix below the confirming
+run is **Killed 217 / Survived 5 / Timeout 0 (97.75 %) → 0 killable survivors.** Project 260/260 green (+~80 cases).
+The 5 residual survivors are all floor: the three `LogInformation`/`LogError` Serilog statements (L27/L59/L71)
+and `if (result.IsValid)` (L57) — a **`Negate` that only swaps the success-vs-warning *log* path**, no observable
+effect. (perTest flapped *which* log mutants surfaced between the two runs; both sets are pure floor.)
 
 The pre-existing 28 tests covered one example per rule with far-from-boundary values; the new tests pin the
 **exact comparison boundaries** for all 14 numeric rules (valid AT the boundary, error/warning one past it —

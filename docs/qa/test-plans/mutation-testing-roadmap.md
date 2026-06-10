@@ -195,9 +195,10 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 ### 2.6 Core / Application services — ⏳ **STARTED** (2026-06-09, Unit 37)
 > Broadens beyond Infrastructure. Survey done — `01 Core/Application/Services` has 11 `*Service.cs`. Added
 > `Tests.Application/stryker-config.json` (the project's first). Pure/worthy vs I/O-orchestrator split below.
-- [x] `ConfigurationValidationService.cs` — ✅ **Unit 37: Killed 209 / Survived 11 / Timeout 2 (95.05%),
-  0 killable survivors, +~80 tests, project 260/260 green.** Pure validation; boundary `[Theory]`s for all 14
-  numeric rules + all 35 OCR languages + the 3 sub-validator aggregations + factories. Floor = L27 Serilog.
+- [x] `ConfigurationValidationService.cs` — ✅ **Unit 37: confirming run Killed 217 / Survived 5 / Timeout 0
+  (97.75%), 0 killable survivors, +~80 tests, project 260/260 green.** Pure validation; boundary `[Theory]`s for
+  all 14 numeric rules + all 35 OCR languages + the 3 sub-validator aggregations + factories. Floor = Serilog
+  (L27/59/71) + the `if (result.IsValid)` negate (L57, gates only the success-vs-warning log).
   Lesson: un-validated factory literals (the 9 preset bool flags) die only via **direct field assertion**, not
   via "validates clean". Guide Unit 37.
 - [ ] **pure candidates (next):** `DecisionLogicService`, `SLATrackingService`, `AuditReportingService`,
