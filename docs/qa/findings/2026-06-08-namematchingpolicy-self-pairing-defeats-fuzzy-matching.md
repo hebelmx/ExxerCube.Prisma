@@ -4,8 +4,12 @@
 `docs/qa/test-plans/mutation-testing.md`, "Fifth unit").
 **Severity:** High — the entire purpose of this class (fuzzy, alias-aware name matching with conservative
 thresholds) does not function. It always reports a perfect match and never a conflict, for *any* inputs.
-**Status:** OPEN. Intentionally **not fixed** in the mutation-testing pass. **Recommended as its own focused
-session** (it is a real logic/behavior change with identity-matching and possibly security implications).
+**Status:** ✅ **RESOLVED (2026-06-10, commit 153fc87).** Diagonal excluded (distinct-pair comparison),
+overall agreement is now the weakest distinct pair, and the winner is the medoid (consensus over outlier).
+Added `INameMatchingPolicy` (Domain) and wired name-field routing into the *used* orchestrator (Application
+`FieldMatchingService`) — see the companion finding's resolution. Tests:
+`NameMatchingPolicyConflictTests` (+9) and the existing pinning tests stay green.
+(Originally: OPEN, recommended as its own focused session.)
 
 ---
 

@@ -263,14 +263,22 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 
 ---
 
-## 3. RESERVED — bug-fix session (do NOT bundle with test hardening)
+## 3. RESERVED — bug-fix session — ✅ DONE (2026-06-10, commits 153fc87 + fd0afd1)
 
-Two real conflict-detection defects mutation testing surfaced in the matching policies. Fixing them lifts
-FieldMatcher (61 %) and NameMatching (37 %) by unblocking ~75 currently-dead mutants. Do them **together**:
-- [ ] `docs/qa/findings/2026-06-08-fieldmatcher-additionalfields-dead-conflict-detection.md`
-- [ ] `docs/qa/findings/2026-06-08-namematchingpolicy-self-pairing-defeats-fuzzy-matching.md` (HIGH)
-- [ ] minor: delete unused private `MatchingPolicyService.GetConflictThreshold(string)`.
-After fixing, re-run Stryker on those files and add the cross-value tests the existing tests were written to allow.
+Two real conflict-detection defects mutation testing surfaced. Both fixed (ITDD); handoff:
+`docs/development/sessions/HANDOFF-2026-06-10-conflict-detection-bugfix.md`.
+- [x] `2026-06-08-namematchingpolicy-self-pairing-defeats-fuzzy-matching.md` (HIGH) — diagonal excluded
+  (distinct-pair comparison, weakest-pair agreement, medoid winner). **NameMatchingPolicy 36.9% → 95.29%,
+  0 killable survivors.** +9 cross-name tests.
+- [x] `2026-06-08-fieldmatcher-additionalfields-dead-conflict-detection.md` — **resolved in the USED path:**
+  the named class `FieldMatcherService<T>` is registered-but-never-invoked + single-source-type (can't span
+  origins), so the real fix landed in the Application `FieldMatchingService` (per-source origin collection →
+  policy → `AdditionalMerged`/`AdditionalConflicts`; name-field routing via new `INameMatchingPolicy`; revived
+  `DeriveSlaFromAdditional`). +8 reconciliation tests. `FieldMatcherService<T>` left as documented dead/legacy
+  (deletion candidate).
+- [ ] still open (minor): delete unused private `MatchingPolicyService.GetConflictThreshold(string)`; the
+  inverted `FechaEstimadaConclusion` `WarnIf` (`docs/qa/findings/2026-06-09-fieldmatching-fechaestimada-warning-inverted.md`);
+  and (optional cleanup) delete the dead `FieldMatcherService<T>` + `IFieldMatcher<T>`.
 
 ---
 

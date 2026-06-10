@@ -3,9 +3,18 @@
 **Found:** 2026-06-08, via Stryker.NET mutation testing of `FieldMatcherService<T>` (see
 `docs/qa/test-plans/mutation-testing.md`, "Third unit").
 **Severity:** Medium — a real reconciliation feature silently does nothing. Not a crash; a *missing behavior*.
-**Status:** OPEN. Intentionally **not fixed** in the mutation-testing pass (that pass only adds tests; this is
-a behavior change). **Recommended as its own focused session** — it is self-contained but touches merge
-semantics, needs new tests, and may have downstream consumers. Avoid bundling it with unrelated work.
+**Status:** ✅ **RESOLVED (2026-06-10, commit fd0afd1) — but in a DIFFERENT class than this finding named.**
+Tracing the wiring revealed that `FieldMatcherService<T>` (this finding's subject) is **registered but never
+invoked in production**, and being parameterized by a single source type T (`List<T> sources`) it **cannot**
+compare across XML/OCR within a call anyway. The real, production-wired multi-source orchestrator is the
+**Application `FieldMatchingService`** (receives Docx+Pdf+Xml together) — which previously never populated
+`AdditionalMerged`/`AdditionalConflicts` either. The reconciliation was therefore implemented **there** (the
+owner chose "derive origin from the source list"): additional fields are collected per source (origin-tagged),
+run through the matching policy, and `AdditionalMerged` + `AdditionalConflicts` are populated; name keys route
+to the name-aware `INameMatchingPolicy`; this also revived `DeriveSlaFromAdditional`. Tests:
+`FieldMatchingServiceReconciliationTests` (+8).
+**`FieldMatcherService<T>` itself is left as documented dead/legacy** (superseded by the Application path) — a
+candidate for deletion in a future cleanup. (Originally: OPEN, recommended as its own focused session.)
 
 ---
 
