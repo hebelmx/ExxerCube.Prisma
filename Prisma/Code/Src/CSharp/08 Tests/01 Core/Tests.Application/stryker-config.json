@@ -6,7 +6,11 @@
     ],
     "test-runner": "mtp",
     "mutate": [
-      "**/Services/ConfigurationValidationService.cs"
+      "**/Services/ConfigurationValidationService.cs",
+      "**/Services/SLATrackingService.cs",
+      "**/Services/AuditReportingService.cs",
+      "**/Services/FieldMatchingService.cs",
+      "**/Services/DecisionLogicService.cs"
     ],
     "additional-timeout": 30000,
     "coverage-analysis": "perTest",
