@@ -298,4 +298,18 @@ public class SemanticAnalyzerAdapterMutationTests
 
         result.Value!.ActionType.ShouldBe(ComplianceActionKind.Transfer);
     }
+
+    [Fact]
+    public async Task Map_InnerClassificationFails_PropagatesError()
+    {
+        // MapToComplianceActionAsync delegates to ClassifyDirectivesAsync; when the analyzer fails the inner
+        // classification fails and Map must surface that failure (covers the !IsSuccess propagation branch).
+        _analyzer.AnalyzeDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente?>(), Arg.Any<CancellationToken>())
+            .Returns(Result<SemanticAnalysis>.WithFailure("inner-broke"));
+
+        var result = await _adapter.MapToComplianceActionAsync("x", cancellationToken: TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe("inner-broke");
+    }
 }

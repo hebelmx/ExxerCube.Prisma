@@ -692,6 +692,59 @@ public class FusionExpedienteServiceMutationTests
     }
 
     [Fact]
+    public async Task FuseAsync_EveryField_SingleDocxSource_CopiedToFused()
+    {
+        // Exercises the DOCX candidate-build path of every fuser (the xml/pdf paths are covered above; without a
+        // DOCX-source test the docx `if (docx != null)` candidate blocks + sanitize guards are all NoCoverage).
+        var docx = FullExpediente("D", new DateTime(2026, 4, 1), 4, new DateOnly(1985, 3, 9),
+            MeasureKind.TransferFunds, LegalSubdivisionKind.A_IN);
+
+        var fused = (await _service.FuseAsync(null, null, docx, FlatMeta(), FlatMeta(), FlatMeta(), Ct)).Value!.FusedExpediente;
+
+        fused.NumeroExpediente.ShouldBe("NEXD");
+        fused.NumeroOficio.ShouldBe("NOFD");
+        fused.AreaDescripcion.ShouldBe("ADESCD");
+        fused.AutoridadNombre.ShouldBe("AUTNOMBRED");
+        fused.SolicitudSiara.ShouldBe("SIARAD");
+        fused.FundamentoLegal.ShouldBe("FLEGD");
+        fused.MedioEnvio.ShouldBe("MEDIOD");
+        fused.OficioOrigen.ShouldBe("OORIGD");
+        fused.AcuerdoReferencia.ShouldBe("AREFD");
+        fused.EvidenciaFirma.ShouldBe("EFIRMAD");
+        fused.Referencia.ShouldBe("REF0D");
+        fused.Referencia1.ShouldBe("REF1D");
+        fused.Referencia2.ShouldBe("REF2D");
+        fused.NombreSolicitante.ShouldBe("SOLICITANTED");
+        fused.AutoridadEspecificaNombre.ShouldBe("AESPD");
+        fused.FechaRecepcion.ShouldBe(new DateTime(2026, 4, 1));
+        fused.FechaPublicacion.ShouldBe(new DateTime(2026, 4, 2));
+        fused.FechaRegistro.ShouldBe(new DateTime(2026, 4, 3));
+        fused.DiasPlazo.ShouldBe(4);
+        fused.Folio.ShouldBe(5);
+        fused.OficioYear.ShouldBe(2024);
+        fused.AreaClave.ShouldBe(4);
+        fused.Subdivision.ShouldBe(LegalSubdivisionKind.A_IN);
+
+        var t = fused.SolicitudPartes[0];
+        t.Rfc.ShouldBe("RFCD");
+        t.Curp.ShouldBe("CURPD");
+        t.Nombre.ShouldBe("NOMBD");
+        t.Paterno.ShouldBe("PATD");
+        t.Materno.ShouldBe("MATD");
+        t.PersonaTipo.ShouldBe("PTD");
+        t.Caracter.ShouldBe("CARD");
+        t.Relacion.ShouldBe("RELD");
+        t.Domicilio.ShouldBe("DOMD");
+        t.Complementarios.ShouldBe("COMPD");
+        t.FechaNacimiento.ShouldBe(new DateOnly(1985, 3, 9));
+
+        var esp = fused.SolicitudEspecificas![0];
+        esp.SolicitudEspecificaId.ShouldBe(14);
+        esp.Measure.ShouldBe(MeasureKind.TransferFunds);
+        esp.InstruccionesCuentasPorConocer.ShouldBe("INSTRD");
+    }
+
+    [Fact]
     public async Task FuseAsync_TieneAseguramiento_AgreesWhenBothTrue_NoConflict()
     {
         var xml = new Expediente { NumeroExpediente = "E", NumeroOficio = "O", AreaDescripcion = "A", TieneAseguramiento = true };

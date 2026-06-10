@@ -357,6 +357,19 @@ public class ExpedienteClasifierServiceMutationTests
     }
 
     [Fact]
+    public async Task Analyze_AnalyzerReturnsSuccessWithNullValue_ReturnsExactFailure()
+    {
+        // IsFailure is false but Value is null → the explicit null guard fires.
+        _analyzer.AnalyzeDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente?>(), Arg.Any<CancellationToken>())
+            .Returns(Result<SemanticAnalysis>.Success(null!));
+
+        var result = await _service.AnalyzeSemanticRequirementsAsync(new Expediente { Referencia = "x" }, Ct);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe("Semantic analysis returned null");
+    }
+
+    [Fact]
     public async Task Analyze_EnrichesBloqueoFromExpedienteMetadata()
     {
         _analyzer.AnalyzeDirectivesAsync(Arg.Any<string>(), Arg.Any<Expediente?>(), Arg.Any<CancellationToken>())
