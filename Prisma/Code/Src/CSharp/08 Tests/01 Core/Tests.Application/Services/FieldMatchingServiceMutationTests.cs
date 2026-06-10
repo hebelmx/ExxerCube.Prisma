@@ -10,11 +10,11 @@ namespace ExxerCube.Prisma.Tests.Application.Services;
 /// <c>CreateExtractedFieldsFromMatchedFields</c> switch, and <c>AggregateValidation</c>.
 /// </summary>
 /// <remarks>
-/// Out of scope (documented dead/unreachable surface, NOT contorted into "kills"):
-/// <c>DeriveSlaFromAdditional</c>'s inner branches and the persona/compliance loops in
-/// <c>AggregateValidation</c> are unreachable through this method — <c>AdditionalMerged</c>, <c>Personas</c>
-/// and <c>ComplianceActions</c> are never populated by <c>MatchFieldsAndGenerateUnifiedRecordAsync</c>. The
-/// AdditionalFields conflict-detection is the subject of a reserved finding and is left as documented.
+/// Note (updated 2026-06-10): the additional-field reconciliation finding has since been RESOLVED —
+/// <c>MatchFieldsAndGenerateUnifiedRecordAsync</c> now populates <c>AdditionalMerged</c>/<c>AdditionalConflicts</c>
+/// and <c>DeriveSlaFromAdditional</c> therefore fires (covered by <see cref="FieldMatchingServiceReconciliationTests"/>).
+/// Still genuinely dead through this method: the persona/compliance loops in <c>AggregateValidation</c>
+/// (<c>Personas</c>/<c>ComplianceActions</c> are never populated here).
 /// </remarks>
 public class FieldMatchingServiceMutationTests
 {
