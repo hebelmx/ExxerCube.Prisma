@@ -1,6 +1,6 @@
 # Interface-Driven Test-Driven Development (ITDD)
 
-> **This is the plain-language primer.** The **canonical reference** is `ARCHITECTURE_AND_SOLUTION_GUIDELINES.md` §6.5; the **mandatory contract-test shape** (and its rationale) is fixed by **ADR-005** (`docs/architecture/adr/ADR-005-itdd-contract-tests-injected-sut.md` — to be authored in Phase 0 of the refactor; until then this primer plus the master plan govern). Where this primer and ADR-005 differ on the exact mechanism, **ADR-005 governs** — it makes the constructor-injected, interface-typed `Sut` member the default and `CreateSut()` the sanctioned fallback. First authoring story: 1.3b. Refactor plan & tracker: `docs/planning/itdd-test-suite-refactor-plan-2026-06.md`.
+> **This is the plain-language primer.** The **canonical reference** is `ARCHITECTURE_AND_SOLUTION_GUIDELINES.md` §6.5; the **mandatory contract-test shape** (and its rationale) is fixed by **ADR-005** (`docs/architecture/adr/ADR-005-itdd-contract-tests-injected-sut.md` — to be authored in Phase 0 of the refactor; until then this primer plus the master plan govern). Where this primer and ADR-005 differ on the exact mechanism, **ADR-005 governs** — it makes the constructor-injected, interface-typed `Sut` member the default and `CreateSut()` the sanctioned fallback. Refactor plan & tracker: `docs/planning/itdd-test-suite-refactor-plan-2026-06.md`.
 
 ## Purpose
 
@@ -256,11 +256,26 @@ Contract tests use constructor injection or factory methods.
 
 A dependency injection container is not required.
 
-Preferred:
+Default (per ADR-005) — constructor-injected, interface-typed `Sut`:
+
+```csharp
+public abstract class IRuntimeDataSourceContract
+{
+    protected IRuntimeDataSourceContract(IRuntimeDataSource sut) => Sut = sut;
+
+    protected IRuntimeDataSource Sut { get; }
+}
+```
+
+Sanctioned fallback — a factory method, for implementations whose construction
+needs per-implementation fixtures (databases, files):
 
 ```csharp
 protected abstract IRuntimeDataSource CreateSut();
 ```
+
+(The examples in this primer use the `CreateSut()` form for brevity; ADR-005
+governs which form a given contract should use.)
 
 Avoid:
 
