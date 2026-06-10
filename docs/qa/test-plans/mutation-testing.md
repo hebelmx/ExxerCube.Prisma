@@ -805,6 +805,61 @@ v.Trim()` ternary is only killable with a **null** input — the always-false mu
 none of the empty-string/whitespace tests reach it, so add an explicit null-value case at *both* Normalize call
 sites (a null OCR value and a null XML value re-read as `existing`).
 
+### Units 31–33: Docx/Pdf/Composite metadata extractors (Infrastructure.Extraction.Ocr) — §2.4 COMPLETE (2026-06-09)
+
+The remaining §2.4 files: the three OpenXml-deterministic Docx classes, the regex-deterministic
+`PdfMetadataExtractor` (driven through substituted OCR ports), and the `CompositeMetadataExtractor`
+delegator. Added all 5 to the Extraction-base `stryker-config` (now **14 files**). Combined scoped run:
+**Killed 488, Survived 0, Timeout 0, 38 NoCoverage (all floor); 0 killable survivors.** Project
+`Tests.Infrastructure.Extraction` 312 → **405 green** (+93 tests). Per file: DocxStructureAnalyzer 61
+killed/100% (was entirely untested in the deterministic project), CompositeMetadataExtractor 5 killed/100%,
+DocxFieldExtractor 72 killed/97.3%, DocxMetadataExtractor 136 killed/95.8%, PdfMetadataExtractor 214
+killed/87.7%.
+
+- **DocxStructureAnalyzer** — pins every structural flag/count/boundary (HasTables, ParagraphCount,
+  HasBoldLabels `&&`, HasKeyValuePairs/MatchesCNBVTemplate `>= 3` boundaries, table dimensions + bold-header
+  detection, StyledElementCount = styleId + bold + italic, cross-reference `ToLowerInvariant` Contains). Two
+  reachable edge branches that the happy-path tests missed: the **valid-package-missing-Body** guard (build a
+  docx with a `MainDocumentPart.Document` but no `Body` → `InvalidOperationException`) and the
+  **empty-table → null** guard (`new Table()` with zero rows round-trips and hits `rows.Count == 0`).
+- **DocxMetadataExtractor / DocxFieldExtractor / PdfMetadataExtractor** share the regex field surface
+  (Expediente/Area/RFC/Names/Dates/LegalReferences + the SUBDELEGACION/ADMINISTRACION/UNIDAD authority patterns
+  + `BuildExtractionMetadata` counters). Pdf additionally has Causa/Motivo, Acción/SOLICITA + the first-200-char
+  fallback, and `ExtractMontos` (DistinctBy Value, MXN).
+- **Lessons:**
+  1. **Dates are culture-parsed (`DateTime.TryParse`).** Use ISO `yyyy-MM-dd` and `DD/DD` values that read
+     identically in every locale (e.g. `12/12/2025`, `12-12-2025`) so the per-pattern kills are deterministic
+     across machines. Isolate each of the three date patterns with a value only it matches.
+  2. **`[^\n\r]+` / `[^\n]+` captures run to end-of-text.** OpenXml joins paragraph `<w:t>` runs with a single
+     space (no newlines), so to assert an exact Causa/Acción value make it the **trailing** text. For the Pdf
+     extractor, OCR text is supplied directly as a string, so real `\n` line breaks make the captures exact.
+  3. **`patternViolations++` is a dead branch in all three** (Docx L352/L369, Pdf L554/L571): every value the
+     loose RFC scan captures is by construction a full match of the same pattern, so the anchored `^…$` re-test
+     always passes; and `ExtractAreaDescripcion` only ever emits a catalogued area or `""` (skipped by the
+     `IsNullOrWhiteSpace` guard). Pinned as floor — note as a minor dead-branch finding.
+  4. **PdfMetadataExtractor's direct-text path is a placeholder** (`TryExtractTextFromPdfAsync` always returns
+     `Success("")`), so `usedDirectExtraction` is always false → the `BuildExtractionMetadata` `else` block
+     (L604) and the `extractedText.Length < 50` right operand (the `||` short-circuits on the always-true
+     `IsNullOrWhiteSpace("")`) are **dead**. That's most of Pdf's 30-mutant floor. The OCR-helper
+     (`ExtractWithOcrAsync`) has its own try/catch, so `ExtractFromPdfAsync`/`ExtractTextAsync`'s generic+OCE
+     catches are also unreachable. The genuinely reachable error branches **were** covered after a first pass:
+     OCR-yields-empty → "No text extracted", preprocess/ocr `Success(null)` → "…is null" (NB: `Result<T>.Success(null!)`
+     is accepted by IndQuestResults), and `ExtractTextAsync` OCR-failure.
+  5. **perTest NoCoverage on demonstrably-covered lines** (Pdf L58/L174 — the `"Failed to extract text from PDF:"`
+     prefix): the failure tests assert the interpolated error, which is only produced on those exact lines, yet
+     Stryker marked them NoCoverage (the large-suite perTest attribution noise from Unit 29, now at 405 tests).
+     Strengthened the two assertions to pin the literal prefix; did **not** re-run Stryker for two string mutants
+     (the no-chasing rule).
+- **CompositeMetadataExtractor** (pure delegator over the **concrete** Xml/Docx/Pdf extractors) actually yields
+  5 mutants, all killed: drive each real collaborator to emit a uniquely identifiable expediente/text and assert
+  the composite surfaced **that** collaborator's output (plus `ExtractTextAsync` routes to the PDF extractor,
+  verified via the OCR mock's `Received()`).
+
+> ✅ **§2.4 Extraction base COMPLETE** (Units 25–33): XmlFieldExtractor, sanitizers, FileTypeIdentifier,
+> MexicanNameFuzzyMatcher, XML parser+metadata, DocumentComparison+AdditionalFieldsReconciler, and now the
+> Docx/Pdf/Composite metadata extractors — all 0 killable survivors. The base `Ocr.Strategies/*` remain DEAD
+> CODE (skip). Next: §2.5 Metrics/FileStorage, then survey §2.6 Core/Application.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):

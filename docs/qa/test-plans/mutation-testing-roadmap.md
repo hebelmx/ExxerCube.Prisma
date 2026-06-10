@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Unit 30: DocumentComparisonService + AdditionalFieldsReconciler; §2.4 Extraction base progressing — Units 25 XmlFieldExtractor / 26 sanitizers / 27 FileTypeIdentifier / 28 MexicanNameFuzzyMatcher / 29 XML parser+metadata / 30 comparison+reconciler done; Units 21–24 Imaging §2.3 complete).
+**Last updated:** 2026-06-09 (after Units 31–33: Docx/Pdf/Composite metadata extractors — **§2.4 Extraction base COMPLETE**, Units 25–33 all 0 killable survivors; Units 21–24 Imaging §2.3 complete).
 **Branch:** `Kt2`.
 
 ---
@@ -37,8 +37,8 @@ kill-count was deferred — see §2.3.)
 | `Infrastructure.Export` (base) | ✅ **complete** (Units 14–16: SiroXmlExporter, ExcelLayoutGenerator, CriterionMapperService, CompositeResponseExporter — all 0 killable survivors) |
 | `Infrastructure.Export.Adaptive` | ✅ **complete** (Units 17–20: TemplateFieldMapper, SchemaEvolutionDetector, AdaptiveExporter, AdaptiveResponseExporterAdapter — all 0 killable survivors) |
 | `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
-| `Infrastructure.Extraction` (base) | 🟦 in progress (Units 25 `XmlFieldExtractor` 95.41% / 26 sanitizers 100% / 27 `FileTypeIdentifierService` / 28 `MexicanNameFuzzyMatcher` done; §2.4 remaining — Docx/Pdf metadata, `DocumentComparisonService`, Xml parsers, `AdditionalFieldsReconciler`) ⬅ **next** |
-| `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) |
+| `Infrastructure.Extraction` (base) | ✅ **COMPLETE** (Units 25–33, 14 files: XmlFieldExtractor, sanitizers, FileTypeIdentifier, MexicanNameFuzzyMatcher, XML parser+metadata, DocumentComparison+AdditionalFieldsReconciler, Docx/Pdf/Composite metadata extractors — all 0 killable survivors). Dead `Ocr.Strategies/*` skipped. |
+| `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) ⬅ **next** |
 | `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
 
@@ -135,7 +135,9 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   (bundled with DocumentComparisonService). Residual: L31 `continue` removal is equivalent (fall-through
   re-reaches the same merged state); L51 killed by a null-value test (Normalize must short-circuit null before
   `.Trim()`). See guide Unit 30.
-- [ ] `DocxStructureAnalyzer.cs`, `DocxFieldExtractor.cs`, `DocxMetadataExtractor.cs`
+- [x] `DocxStructureAnalyzer.cs`, `DocxFieldExtractor.cs`, `DocxMetadataExtractor.cs` — ✅ **Units 31 (2026-06-09):
+  DocxStructureAnalyzer 61 killed/100% (was untested), DocxFieldExtractor 72 killed/97.3%, DocxMetadataExtractor
+  136 killed/95.8%, 0 killable survivors.** OpenXml-deterministic; build .docx bytes in-test. See guide Units 31–33.
 - [x] `MexicanNameFuzzyMatcher.cs` — ✅ **Unit 28 (2026-06-09): Killed 0→75, Survived 52, 0 killable survivors,
   +58 tests.** Ported fresh (was only in the flaky Teseract suite). Low 57.69% headline is **all floor, verified**:
   42 = static-field-initializer limitation (the two name `HashSet`s + six `Regex` fields — *proven* killable-in-
@@ -158,9 +160,14 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   and the empty-fileName guard.
 - [x] `DocumentComparisonService.cs` — ✅ **Unit 30 (2026-06-09): Killed 73, 0 killable survivors, +24 tests**
   (combined run 92.79%). Exact-value status ladder + 16-field aggregation. Residual = Serilog floor. Guide Unit 30.
-- [ ] `PdfMetadataExtractor.cs`, `CompositeMetadataExtractor.cs` — ⚠️ `CompositeMetadataExtractor` takes the
-  CONCRETE `XmlMetadataExtractor`/`DocxMetadataExtractor`/`PdfMetadataExtractor` (not interfaces); verify
-  `PdfMetadataExtractor`/`DocxMetadataExtractor` are deterministic (no OCR/render deps) before bundling.
+- [x] `PdfMetadataExtractor.cs`, `CompositeMetadataExtractor.cs` — ✅ **Units 32–33 (2026-06-09): Pdf 214
+  killed/87.7% (30 floor = dead placeholder direct-extraction path + dead `patternViolations++` + unreachable
+  catches the OCR helper pre-catches), Composite 5 killed/100%, 0 killable survivors.** Pdf is deterministic via
+  substituted `IOcrExecutor`/`IImagePreprocessor` (its direct-text path is a placeholder, so OCR+regex parsing is
+  the whole surface); Composite drives the real concrete collaborators with distinct routes. See guide Units 31–33.
+
+> ✅ **§2.4 Extraction base COMPLETE** (Units 25–33, all 0 killable survivors). The base `Ocr.Strategies/*` are
+> DEAD CODE (skip). Next: §2.5 Metrics/FileStorage, then survey §2.6 Core/Application.
 - ⛔ avoid OCR/render/DB-coupled: `TesseractOcrExecutor`, `GotOcr2OcrExecutor`, `OcrProcessingService`,
   `PdfOcrFieldExtractor`, `PdfToImageConverter`, `OcrSessionRepository`, `BulkProcessingService`.
 
