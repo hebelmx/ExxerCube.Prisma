@@ -238,14 +238,5 @@ public class MatchingPolicyService : IMatchingPolicy
         // Fallback to highest confidence
         return valueGroup.OrderByDescending(v => v.Confidence).First().SourceType;
     }
-
-    private float GetConflictThreshold(string fieldName)
-    {
-        if (_options.FieldRules.TryGetValue(fieldName, out var fieldRule) && fieldRule.ConflictThreshold.HasValue)
-        {
-            return fieldRule.ConflictThreshold.Value;
-        }
-        return _options.ConflictThreshold;
-    }
 }
 

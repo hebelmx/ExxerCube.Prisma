@@ -186,29 +186,6 @@ public class DependencyInjectionContainerTests
     }
 
     /// <summary>
-    /// Tests that all field matcher services are registered correctly.
-    /// </summary>
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Category", "DI")]
-    public void FieldMatchers_ShouldBeRegistered()
-    {
-        // Arrange
-        var services = BuildServiceCollection();
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Act & Assert
-        using var scope = serviceProvider.CreateScope();
-        var scopedProvider = scope.ServiceProvider;
-
-        var docxMatcher = scopedProvider.GetService<IFieldMatcher<DocxSource>>();
-        docxMatcher.ShouldNotBeNull();
-
-        var pdfMatcher = scopedProvider.GetService<IFieldMatcher<PdfSource>>();
-        pdfMatcher.ShouldNotBeNull();
-    }
-
-    /// <summary>
     /// Tests that the service provider can be built without errors.
     /// </summary>
     [Fact]

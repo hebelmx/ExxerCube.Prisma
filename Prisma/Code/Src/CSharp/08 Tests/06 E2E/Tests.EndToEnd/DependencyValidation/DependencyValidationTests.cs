@@ -120,20 +120,6 @@ public class DependencyValidationTests : IClassFixture<TestWebApplicationFactory
         _ = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
     }
 
-    [Fact]
-    [Trait("Category", "E2E")]
-    [Trait("Category", "DI")]
-    [Trait("Category", "WebApplicationFactory")]
-    public void FieldMatchers_ShouldBeRegistered()
-    {
-        using var client = _factory.CreateClient();
-
-        using var scope = _factory.Services.CreateScope();
-        var scopedProvider = scope.ServiceProvider;
-
-        scopedProvider.GetService<IFieldMatcher<DocxSource>>().ShouldNotBeNull();
-        scopedProvider.GetService<IFieldMatcher<PdfSource>>().ShouldNotBeNull();
-    }
 
     [Fact]
     [Trait("Category", "E2E")]

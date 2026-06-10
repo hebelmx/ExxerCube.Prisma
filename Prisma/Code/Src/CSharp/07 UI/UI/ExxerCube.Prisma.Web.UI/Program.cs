@@ -283,9 +283,6 @@ Inner Stack Trace:
         // Add Story 1.3 services: Field Matching and Unified Metadata Generation
         services.AddScoped<FieldMatchingService>();
         services.AddScoped<IFieldMatchingService, FieldMatchingService>(); // Register interface for DI injection
-        // Register FieldMatcherService instances for each source type
-        services.AddScoped(typeof(IFieldMatcher<DocxSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<DocxSource>));
-        services.AddScoped(typeof(IFieldMatcher<PdfSource>), typeof(ExxerCube.Prisma.Infrastructure.Classification.FieldMatcherService<PdfSource>));
 
         // Add Story 1.4 services: Decision Logic (Identity Resolution and Legal Classification)
         services.AddScoped<DecisionLogicService>();

@@ -466,7 +466,9 @@ namespace ExxerCube.Prisma.Application.Services
                 validation.Require(!string.IsNullOrWhiteSpace(record.Expediente.NumeroOficio), "NumeroOficio");
                 validation.Require(record.Expediente.Subdivision != LegalSubdivisionKind.Unknown, "Subdivision");
                 validation.Require(record.Expediente.FechaRecepcion != default, "FechaRecepcion");
-                validation.WarnIf(record.Expediente.FechaEstimadaConclusion == default, "FechaEstimadaConclusion");
+                // WarnIf warns when the condition is false; pass the presence condition so the warning
+                // fires when FechaEstimadaConclusion is MISSING (matching the Require(...) fields above).
+                validation.WarnIf(record.Expediente.FechaEstimadaConclusion != default, "FechaEstimadaConclusion");
             }
             else
             {

@@ -566,30 +566,32 @@ public class FieldMatchingServiceMutationTests
         result.Value!.Validation!.Missing.ShouldContain("FechaRecepcion");
     }
 
-    // NOTE (documented finding): the SUT calls `WarnIf(FechaEstimadaConclusion == default, "FechaEstimadaConclusion")`,
-    // but ValidationState.WarnIf warns when the *condition is false*. So the warning fires when the estimated-
-    // conclusion date IS present and stays SILENT when it is missing — the warning is inverted vs. intent.
-    // These two tests pin the ACTUAL behavior (and kill the WarnIf/`== default` mutants); see the session findings doc.
+    // The SUT now calls `WarnIf(FechaEstimadaConclusion != default, "FechaEstimadaConclusion")` (the inverted-
+    // warning finding is FIXED). ValidationState.WarnIf warns when the *condition is false*, so the warning
+    // fires when the estimated-conclusion date is MISSING and stays silent when it is present — matching the
+    // Require(...) presence checks above. These two tests pin the corrected behavior and kill the WarnIf/
+    // `!= default` mutants.
 
     [Fact]
-    public async Task AggregateValidation_FechaEstimadaConclusionSet_AddsWarning_InvertedBehavior()
+    public async Task AggregateValidation_FechaEstimadaConclusionSet_NoWarning()
     {
         var e = ValidExpediente(); // FechaEstimadaConclusion is set (non-default)
         DocxReturns(new ExtractedFields { Expediente = "E" });
         var result = await Run(_service, docx: new DocxSource("d.docx"), defs: Defs("Expediente"), expediente: e);
 
-        result.Value!.Validation!.Warnings.ShouldContain("FechaEstimadaConclusion"); // inverted: warns when present
-        result.Value!.Validation.IsValid.ShouldBeTrue(); // warning, not a missing requirement
+        result.Value!.Validation!.Warnings.ShouldNotContain("FechaEstimadaConclusion"); // present → silent
+        result.Value!.Validation.IsValid.ShouldBeTrue();
     }
 
     [Fact]
-    public async Task AggregateValidation_DefaultFechaEstimadaConclusion_NoWarning_InvertedBehavior()
+    public async Task AggregateValidation_DefaultFechaEstimadaConclusion_AddsWarning()
     {
         var e = ValidExpediente();
         e.FechaEstimadaConclusion = default;
         DocxReturns(new ExtractedFields { Expediente = "E" });
         var result = await Run(_service, docx: new DocxSource("d.docx"), defs: Defs("Expediente"), expediente: e);
 
-        result.Value!.Validation!.Warnings.ShouldNotContain("FechaEstimadaConclusion"); // inverted: silent when missing
+        result.Value!.Validation!.Warnings.ShouldContain("FechaEstimadaConclusion"); // missing → warns
+        result.Value!.Validation.IsValid.ShouldBeTrue(); // warning, not a missing requirement
     }
 }
