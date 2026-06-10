@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Units 31–33: Docx/Pdf/Composite metadata extractors — **§2.4 Extraction base COMPLETE**, Units 25–33 all 0 killable survivors; Units 21–24 Imaging §2.3 complete).
+**Last updated:** 2026-06-09 (after Units 34–36: SafeFileNamerService/FileMoverService/ProcessingMetricsService — **§2.5 Metrics/FileStorage COMPLETE**, all 0 killable survivors; §2.4 Extraction base COMPLETE Units 25–33).
 **Branch:** `Kt2`.
 
 ---
@@ -19,11 +19,11 @@ per-unit results, all lessons). **This file is the *plan*: the goal, the denomin
 - **Not** everywhere: do **not** mutate non-deterministic code (OCR/Tesseract, dormant Python/VLM, Browser
   automation, Database/Testcontainers, UI/Playwright, worker orchestration). Mutants there are ambiguous.
 
-**Where we are:** ~29 files hardened across **6 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
-Export base, Export.Adaptive, and the now-complete **Imaging**). That's roughly **45 % of the worthy surface** —
-high quality where done, breadth is the remaining work. Estimate ~5–7 more focused sessions at ~1–2 units each.
-(One small caveat: Unit 24's three filter-selection strategy files have green exact-value tests but their Stryker
-kill-count was deferred — see §2.3.)
+**Where we are:** ~46 files hardened across **9 projects** (Extraction.Txt, Extraction.Adaptive, Classification,
+Export base, Export.Adaptive, Imaging, Extraction base, and the now-complete **FileStorage** + **Metrics**).
+That's roughly **75–80 % of the worthy deterministic surface** — the largest remaining piece is **§2.6
+Core/Application**. Estimate ~2–4 more focused sessions. (One small caveat: Unit 24's three filter-selection
+strategy files have green exact-value tests but their Stryker kill-count was deferred — see §2.3.)
 
 ---
 
@@ -38,8 +38,8 @@ kill-count was deferred — see §2.3.)
 | `Infrastructure.Export.Adaptive` | ✅ **complete** (Units 17–20: TemplateFieldMapper, SchemaEvolutionDetector, AdaptiveExporter, AdaptiveResponseExporterAdapter — all 0 killable survivors) |
 | `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
 | `Infrastructure.Extraction` (base) | ✅ **COMPLETE** (Units 25–33, 14 files: XmlFieldExtractor, sanitizers, FileTypeIdentifier, MexicanNameFuzzyMatcher, XML parser+metadata, DocumentComparison+AdditionalFieldsReconciler, Docx/Pdf/Composite metadata extractors — all 0 killable survivors). Dead `Ocr.Strategies/*` skipped. |
-| `Infrastructure.Metrics` / `FileStorage` | ⬜ TODO — small (see §2.5) ⬅ **next** |
-| `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) |
+| `Infrastructure.Metrics` / `FileStorage` | ✅ **COMPLETE** (Units 34–36: SafeFileNamer, FileMover, ProcessingMetrics — all 0 killable survivors) |
+| `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) ⬅ **next** |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
 
 \* The two low matching-policy scores are capped by **real bugs**, not weak tests — see §3.
@@ -171,11 +171,26 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 - ⛔ avoid OCR/render/DB-coupled: `TesseractOcrExecutor`, `GotOcr2OcrExecutor`, `OcrProcessingService`,
   `PdfOcrFieldExtractor`, `PdfToImageConverter`, `OcrSessionRepository`, `BulkProcessingService`.
 
-### 2.5 Metrics / FileStorage — small, deterministic
-- [ ] `Infrastructure.Metrics/ProcessingMetricsService.cs`
-- [ ] `Infrastructure.FileStorage/SafeFileNamerService.cs` (pure naming logic — easy)
-- [ ] `Infrastructure.FileStorage/FileMoverService.cs`
+### 2.5 Metrics / FileStorage — ✅ **COMPLETE** (2026-06-09, Units 34–36)
+> Added `stryker-config.json` to `Tests.Infrastructure.FileStorage` (2 files) and `Tests.Infrastructure.Metrics`
+> (1 file). FileStorage project 10 → 32 green; Metrics project 18 → 40 green. All **0 killable survivors**.
+- [x] `Infrastructure.FileStorage/SafeFileNamerService.cs` — ✅ Unit 34: Killed 51 / Survived 18 / Timeout 1,
+  0 killable survivors, +17 tests. Structure-regex pins + ordinal casing checks + sanitizer branches +
+  200-char truncation + catch. Floor = Serilog + `>200` boundary + dead `IsNullOrEmpty` branch. Guide Unit 34.
+- [x] `Infrastructure.FileStorage/FileMoverService.cs` — ✅ Unit 35: bundled run, 0 killable survivors, +8 tests.
+  Exact `Path.Combine` classification dir + uniqueness counter `_2` + constructor guards + locked-source catch.
+  Floor = Serilog + `overwrite:false` equiv + 1000-cap boundary/throw + `?? ""` dead fallback. The L35 throw is
+  **proven killable under `coverage-analysis: off`** (perTest exception-path attribution noise). Guide Unit 35.
+- [x] `Infrastructure.Metrics/ProcessingMetricsService.cs` — ✅ Unit 36: Killed 88 / Survived 34 / Timeout 3,
+  0 killable survivors, +22 tests. Reflection-driven `AggregateMetrics` + `ValidatePerformance` (inject events
+  into the private `_processingEvents` queue + set `CurrentStatistics`) isolate every threshold branch; boundary
+  kills at avg-time 30 / success-rate 0.99; `Average→Min` killed on confidence (not timing); Dispose→
+  ObjectDisposed. Floor = Serilog + ConfigureAwait/lock primitives + timing `Average→Min` + guarded ternaries +
+  Dispose-pattern + dead unused `recentFailed`. **perTest flapped 88↔89.** Guide Unit 36.
+- ⛔ skipped `FileSystemDownloadStorageAdapter` + options DTOs (I/O-bound), as planned.
 - ⛔ `Infrastructure.Events/InMemoryEventBus.cs` is legacy/never-registered (CLAUDE.md) — low value, skip unless idle.
+
+> ✅ **§2.5 Metrics/FileStorage COMPLETE.** Next: survey **§2.6 Core/Application**.
 
 ### 2.6 Core / Application services
 > Broadens beyond Infrastructure. Survey `01 Core/Application` for concrete `*Service.cs` with real logic
@@ -267,9 +282,10 @@ After fixing, re-run Stryker on those files and add the cross-value tests the ex
 ## 6. Housekeeping
 - ✅ Deleted the stale orphaned root config `Prisma/Code/Src/CSharp/stryker-config.json` (camelCase keys,
   `testRunner: dotnet`, non-existent `testProjects` path — drift from when mutation was broken).
-- The valid `stryker-config.json` files live next to their test projects. As of 2026-06-08 (after Units 17–20)
-  there are **5**: Classification, Extraction.Adaptive, Extraction.Txt, **Export** (4 files), and
-  **Export.Adaptive** (mutates all 4 hardened Adaptive files).
+- The valid `stryker-config.json` files live next to their test projects. As of 2026-06-09 (after Units 34–36)
+  there are **9**: Classification, Extraction.Adaptive, Extraction.Txt, **Export** (4 files), **Export.Adaptive**
+  (4 files), **Imaging** (8 files), **Extraction** base (14 files), **FileStorage** (SafeFileNamer + FileMover),
+  and **Metrics** (ProcessingMetricsService).
 
 ## 7. Pointers
 - Reference / per-unit detail / all lessons: `docs/qa/test-plans/mutation-testing.md`

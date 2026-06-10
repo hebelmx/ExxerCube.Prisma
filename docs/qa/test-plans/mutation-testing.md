@@ -860,6 +860,80 @@ killed/87.7%.
 > Docx/Pdf/Composite metadata extractors — all 0 killable survivors. The base `Ocr.Strategies/*` remain DEAD
 > CODE (skip). Next: §2.5 Metrics/FileStorage, then survey §2.6 Core/Application.
 
+### Units 34–36: FileStorage + Metrics — §2.5 COMPLETE (2026-06-09)
+
+Two new test projects, two new `stryker-config.json` files. Both at **0 killable survivors**.
+
+| Unit | File (project) | Result | Tests |
+|---|---|---|---|
+| 34 | `SafeFileNamerService.cs` (`Infrastructure.FileStorage`) | Killed 51 / Survived 18 / Timeout 1, 0 killable survivors | 4 → 21 |
+| 35 | `FileMoverService.cs` (`Infrastructure.FileStorage`) | bundled in the same run (FileStorage project 10 → **32 green**) | 3 → 11 |
+| 36 | `ProcessingMetricsService.cs` (`Infrastructure.Metrics`) | Killed 88 / Survived 34 / Timeout 3, 0 killable survivors | 18 → **40 green** |
+
+- **SafeFileNamerService (Unit 34)** — pure naming. Exact-structure **regexes** pin component order and the
+  `_` separators (`^ASEGURAMIENTO_JUDICIAL_\d{8}-\d{6}\.pdf$`), kill the Level1/Level2 `ToUpperInvariant`
+  (ordinal `Contains(..)` for casing — **Shouldly string `ShouldContain`/`ShouldNotContain` are
+  case-INSENSITIVE by default**, so use `value.Contains(x, StringComparison.Ordinal).ShouldBeFalse()` to
+  assert casing), and isolate the expediente-sanitizer branches (invalid char `:`→`_`, whitespace→`_`, valid
+  chars preserved). The 200-char truncation is pinned by a 300-char expediente → exact `Length == 204` and a
+  short-name "not truncated" test. The catch is covered by a `Level1 = null!` input (NRE inside the try).
+  Floor: Serilog (L40/L76/L81), the `> 200`→`>= 200` boundary (length 200 unreachable given the timestamp),
+  and the **dead `SanitizeForFileName` `IsNullOrEmpty` branch** (L88–90) — the only caller guards
+  `!IsNullOrEmpty(NumeroExpediente)` first, so input is never empty.
+- **FileMoverService (Unit 35)** — `result.Value.ShouldBe(Path.Combine(base, "Aseguramiento", "Especial",
+  year, name))` pins the exact classification directory build; a `Level2 = null` case omits the subcategory
+  (NB `Level1.ToString()` is the **DisplayName**, so `Documentacion` → accented `"Documentación"`). The
+  uniqueness counter is pinned with a no-conflict (exact name) and a two-conflict (`_2`) case; the constructor
+  guard throws on empty/whitespace `BaseStoragePath`; the catch is covered by holding the source file with an
+  **exclusive `FileStream(..., FileShare.None)`** so `File.Move` throws. Floor: Serilog; `overwrite: false`→
+  `true` (equivalent — `EnsureUniqueFileName` guarantees the destination doesn't exist); the `< 1000`/`>= 1000`
+  loop-cap boundaries and the cap throw (unreachable without 1000 colliding files); `?? string.Empty`
+  (`GetDirectoryName` of a full path is never null); `counter++` removal is Timeout=killed (infinite loop).
+  - **Lesson — coverage-off cross-check vs the `Directory.CreateDirectory` fallthrough:** the L35
+    `ArgumentException` throw **survives perTest** but is **killed under `coverage-analysis: off`** — proven
+    killable. The empty-path test executes L35 in the baseline (the guard is true), but its coverage is
+    attributed via the *exception* path and perTest misses it. Don't chase it; record it as proven-killable
+    perTest noise. (Caveat re-confirmed here: **`coverage-analysis: off` under MTP is itself unreliable** — it
+    flipped `counter++` from Timeout-killed to "Survived" and surfaced phantom survivors on
+    `Directory.CreateDirectory`/the truncation block — so keep the committed config on `perTest` and treat the
+    off-run only as a one-shot killability oracle.)
+- **ProcessingMetricsService (Unit 36)** — the richest §2.5 surface (timer callback, `SemaphoreSlim`, throughput
+  maths, statistics roll-ups, performance thresholds). Deterministic techniques that mattered:
+  1. **Reflection to drive the timer + inject validation state.** `AggregateMetrics` is a private `Timer`
+     callback (fires at `TimeSpan.Zero` on an empty set → early-returns, then every 30 s) — invoke it directly
+     (`GetMethod("AggregateMetrics", NonPublic|Instance).Invoke(svc, [null])`) after seeding `_documentMetrics`
+     to roll up totals/split/success-rate/avg-confidence/avg-fields exactly. For `ValidatePerformanceAsync`,
+     set `CurrentStatistics` via its (private-setter) property and **enqueue events into the private
+     `_processingEvents` `ConcurrentQueue`** — this builds a 100-docs/hour throughput and an exact statistics
+     snapshot **without** a real 100-doc loop, so each of the four threshold branches can be isolated to a
+     *single* failing requirement and its `IsMeetingRequirements = false` flip killed (with both branches
+     covered, the `= false`→`= true` mutants die). The `> 30` / `< 0.99` thresholds are killed at the exact
+     boundary (avg-time 30 and success-rate 0.99 both *meet* the requirement) and the
+     `successfulMetrics.Any() ? avg : 0` guard via an all-failures aggregate (forcing `true ?` averages an
+     empty sequence → throws → caught → statistics un-updated → `Total == 0` ≠ 2).
+  2. **Control only what's deterministic.** `Average → Min/Max` on **confidence** is killable (two successful
+     events at 0.9/0.5 → mean 0.7); on **processing time** it is **not** (real `Stopwatch` elapsed) → floor.
+  3. **`Average(0.8f, 0.6f)` float precision** — assert with a tolerance: `ShouldBe(0.7f, 0.0001f)`.
+  4. **Dispose semantics are testable:** after `Dispose()`, `StartProcessingAsync` throws
+     `ObjectDisposedException` (the disposed `SemaphoreSlim`), which kills `Dispose(true)`→`Dispose(false)`,
+     the `_metricsLock.Dispose()` removal, and the `!_disposed && disposing` negate/un-not mutants.
+  - **Floor:** Serilog (L51/67/74/127/179/366/371); `ConfigureAwait(false)`→`(true)` and the `WaitAsync`/
+    `Release` lock-primitive statement mutants (single-threaded tests can't observe them deterministically —
+    treat as the concurrency-primitive floor); the `ActiveProcessingCount >= MaxConcurrency` check (gates only
+    a warning log → equivalent); `confidence * 100` inside a log arg; the timestamp `>=`→`>` filter boundary;
+    processing-time `Average→Min`; the guarded ternaries (`totalDocuments > 0 ? …` always true past the
+    `Any()` early-returns); the `!allMetrics.Any() return` removal (the catch swallows the empty-`Average`
+    throw → same defaults); and the Dispose-pattern leftovers (`SuppressFinalize`, `&&`→`||`, timer-dispose,
+    `_disposed = true`). **perTest flapped 89↔88 killed run-to-run** with phantom survivors appearing on the
+    `WaitAsync` lines — trust the Killed delta + 0 killable survivors, not the 70 % headline.
+  - **Minor finding (dead code, not a defect):** in `UpdateCurrentStatistics`, the local `recentFailed`
+    (`recentEvents.Where(e => !e.IsSuccess)`) is **computed but never used** — its mutant is necessarily
+    equivalent. Safe to delete in a tidy-up pass.
+
+> ✅ **§2.5 Metrics/FileStorage COMPLETE** (Units 34–36, all 0 killable survivors). `FileSystemDownloadStorageAdapter`
+> and the options DTOs remain skipped (I/O-bound). Next: survey **§2.6 Core/Application** (`01 Core/Application`,
+> the pure `*Service.cs`), then optional `SemanticAnalyzerService`.
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):
