@@ -273,6 +273,42 @@ public class DecisionLogicServiceMutationTests
     }
 
     [Fact]
+    public async Task Resolve_DedupCancelled_PartialResolve_KillsConfidenceRatioArithmetic()
+    {
+        // P2 fails to resolve (continue), P1 & P3 succeed -> completed(2) < total(3); dedup then cancelled.
+        // completed<total is required to kill the confidence `/`->`*` mutant (clamping makes completed==total equivalent).
+        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+            .Returns(Result<Persona>.WithFailure("p2 bad"));
+        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId != 2), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
+        _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<List<Persona>>());
+
+        var result = await _service.ResolvePersonIdentitiesAsync(Persons(3), cancellationToken: TestContext.Current.CancellationToken);
+
+        result.HasWarnings.ShouldBeTrue();
+        result.Confidence.ShouldBe(2.0 / 3.0, 0.0001);     // completed/total = 2/3
+        result.MissingDataRatio.ShouldBe(1.0 / 3.0, 0.0001); // (total-completed)/total = 1/3
+        result.Value!.Count.ShouldBe(2);
+        result.Warnings.ShouldContain("Operation was cancelled during deduplication. Resolved 2 of 3 persons (deduplication incomplete).");
+    }
+
+    [Fact]
+    public async Task Resolve_AllFailThenDedupCancelled_NoWorkReturnsCancelled()
+    {
+        // Every person fails to resolve -> resolvedPersons empty -> dedup(empty) cancelled -> Count==0 path.
+        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(Result<Persona>.WithFailure("all bad"));
+        _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<List<Persona>>());
+
+        var result = await _service.ResolvePersonIdentitiesAsync(Persons(2), cancellationToken: TestContext.Current.CancellationToken);
+
+        result.IsCancelled().ShouldBeTrue();   // Count==0 -> "no work" -> plain Cancelled (not warnings)
+        result.HasWarnings.ShouldBeFalse();
+    }
+
+    [Fact]
     public async Task Resolve_BetweenIterationCancel_DedupCancelled_CancelledSuffix()
     {
         using var cts = new CancellationTokenSource();
