@@ -964,6 +964,83 @@ output-format table, **one isolated error/warning from each of the three sub-val
 > `MetadataExtractionService`. Skip the I/O orchestrators (`DocumentIngestionService`, `FileDownloadService`,
 > `HealthCheckService`).
 
+### Units 38–41: SLATracking / AuditReporting / FieldMatching / DecisionLogic — §2.6 Core/Application COMPLETE (2026-06-10)
+
+The four remaining pure Application services. A single **combined confirming Stryker run over all 5 hardened
+Application files** read **Killed 612 / Survived 245** (ConfigurationValidation 215, SLATracking 65,
+AuditReporting 103, FieldMatching 129, DecisionLogic 100), and a scoped DecisionLogic+Audit reconfirm verified
+the gap closures below. **All four units: 0 killable survivors.** `MetadataExtractionService` was **skipped** —
+it does real `File.Exists` / `File.ReadAllBytesAsync` I/O (orchestrator, out of scope).
+
+- **Unit 38 `SLATrackingService` (+50 tests).** Pure delegator over `ISLAEnforcer` — every method is mock-driven.
+  Pinned every guard (cancel / blank-fileId / `daysPlazo <= 0` boundary), the exact wrapped error strings
+  (`"Failed to track SLA: …"`, `"SLA status update returned null value"`, etc.), the success/failure/cancel
+  propagation, the `?? new List<>()` fallbacks, and the catch (`"Error …: {msg}"` via a throwing mock). Residual
+  floor: Serilog statement/string, `ConfigureAwait(false)→true`, and the L131 `&&`→`||` **correlated-equivalent**
+  (after the `IsFailure`/`IsCancelled` guards the only reachable states are success-with-value and success-null,
+  so `IsSuccess ≡ (Value is not null)` always). **GOTCHA — this `IndQuestResults` build's `IsSuccess` is STRICT:
+  `Result.Success(null)` returns IsSuccess=FALSE yet is neither a failure nor cancelled.** Assert the null-value
+  path via `IsFailure.ShouldBeFalse()` + `Value.ShouldBeNull()`, not `IsSuccess`.
+
+- **Unit 39 `AuditReportingService` (+59 tests).** Deterministic CSV/JSON over a mocked `IAuditLogger`. **Lessons:**
+  (1) **assert EXACT LINES, not substrings, for the trailing field** — a substring like `"…,False,,"` still
+  matches even when the *last* field's `?? string.Empty` fallback is mutated to junk; use
+  `Lines(csv).ShouldContain("2026-01-02 13:04:05,,C1,Extraction,False,,")` (exact element equality). (2) the
+  `endDate < startDate` guard and the `OrderBy(r => r.Timestamp)` exist in **all four** methods — write the
+  equal-date boundary test and the ascending-order test for **each** (the first pass missed ExportCsv/Json `<`→`<=`
+  and ExportJson's OrderBy). (3) kill the `CamelCase` policy via ordinal `ShouldNotContain("\"PascalCase\"")` and
+  `WriteIndented=true` via `Contains("\n")`. (4) **the classification JSON serializes `r.Stage` as the raw
+  SmartEnum object** (System.Text.Json emits its properties, not the name), whereas export JSON uses
+  `r.Stage.ToString()` → pin string fields + counts, not the raw enum. `EnumModel.ToString()` returns
+  `displayName ?? Name` → `DecisionLogic`'s display name is `"Decision Logic"` (with a space). Floor:
+  Serilog + ConfigureAwait only.
+
+- **Unit 40 `FieldMatchingService` (+44 tests).** Driven through a **mocked `IMatchingPolicy`** (the existing tests
+  even recommend this over the concrete `MatchingPolicyService`). Capture the policy's `values` argument with
+  `Arg.Is<List<FieldValue>>(…)` to pin `ToOrigin` (DOCX→Docx, PDF→PdfOcr, XML→Xml), the `1.0f` confidence and the
+  source string. **A `Result.WithFailure(error, value)` (failure carrying a non-null value) kills the four
+  `if (IsSuccess && Value != null)` → `||` mutants** (per-source collection + the match loop) — they're only
+  observable when IsSuccess ≠ (Value≠null), i.e. failure-with-value. `AggregateValidation` is pinned via a passed
+  `Expediente` + the returned `record.Validation`. **Documented dead/unreachable surface (left as floor, NOT
+  contorted):** `DeriveSlaFromAdditional`'s inner branches and the persona/compliance/conflict loops in
+  `AggregateValidation` are unreachable through this method — `AdditionalMerged`, `Personas`, `ComplianceActions`
+  and `AdditionalFieldConflicts` are never populated by `MatchFieldsAndGenerateUnifiedRecordAsync`. **FINDING:**
+  the `FechaEstimadaConclusion` warning is **inverted** (`WarnIf(cond)` warns when `cond` is false, so
+  `WarnIf(== default, …)` warns when the date is *present*) — `docs/qa/findings/2026-06-09-fieldmatching-
+  fechaestimada-warning-inverted.md`; tests pin the actual behavior.
+
+- **Unit 41 `DecisionLogicService` (+46 tests).** The biggest unit (775 lines, 4 public methods + heavy partial-
+  result logic). Pinned the exact failure/validation strings for all four methods, the resolver-failure `continue`
+  and null-value-skip, and — the high-value part — the **partial-result paths whose warnings / confidence /
+  missing-data-ratio appear in the returned Result**: resolver-returned-cancelled (± dedup success / "(deduplication
+  failed)" / "(deduplication cancelled)" suffix), dedup-cancelled-after-full ("…(deduplication incomplete)."),
+  between-iteration cancel, and `ProcessDecisionLogic`'s classify-cancelled-with-partial branch. **Trigger these by
+  making the resolver mock RETURN `Cancelled` (not throw), or cancel a `CancellationTokenSource` from inside the
+  resolver mock's first call** (the next iteration's top-of-loop check fires). **Two big floor categories,
+  documented (not chased): (a) audit-trail `LogAuditAsync` side-effects** — a mocked dependency whose calls/detail-
+  JSON strings/`success` bool args are **not observable in the returned Result**, so treated as logging floor (like
+  Serilog); **(b) unreachable `ProcessDecisionLogic` sub-branches** — the only way `ResolvePersonIdentitiesAsync`
+  returns partial-warnings is a cancelled token, which then makes the subsequent `ClassifyLegalDirectivesAsync`
+  return Cancelled, so the classify-**failure**-with-partial and **success**-with-partial branches are dead.
+
+> ✅ **§2.6 Core/Application COMPLETE** (Units 37–41). Skipped the I/O orchestrators (DocumentIngestion /
+> FileDownload / HealthCheck / Export / FileMetadataQuery / MetadataExtraction).
+
+### Unit 42: SemanticAnalyzerService — §2.7 (deterministic Classification leftover) COMPLETE (2026-06-10)
+
+`Infrastructure.Classification/SemanticAnalyzerService.cs` — fuzzy phrase matching over the in-repo
+`ClassificationDictionary` (Levenshtein, **not** Ollama). The existing `LegalDirectiveClassifierDictionaryTests`
+drive it with the *real* `LevenshteinTextComparer` (integration coverage), but can't force individual branches; the
+new `SemanticAnalyzerServiceMutationTests.cs` (+16) drive it through a **mocked `ITextComparer`** so each of the
+five directive detectors is isolated (`FindBestMatch("<exact dictionary phrase>", …)` returns a match, all other
+phrases return null → only that requirement is set), and pin the `>= DefaultThreshold` (0.85) boundary (0.85
+detected / 0.84 not), the best-match **max** selection across phrases, exact confidence propagation, the guards,
+and the exception path. Added `SemanticAnalyzerService.cs` to the Classification `stryker-config.json` (now 6
+files). 0 killable survivors (floor = the five `LogDebug`/`LogTrace` statements + `CountDetectedRequirements`
+which only feeds a log).
+
+> ✅ **§2.7 COMPLETE.** The deterministic business-logic surface is mutation-hardened — **campaign COMPLETE.**
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):

@@ -3,7 +3,8 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Unit 37: ConfigurationValidationService — **§2.6 Core/Application STARTED**, 95.05%, 0 killable survivors; §2.5 Metrics/FileStorage COMPLETE Units 34–36).
+**Last updated:** 2026-06-10 (Units 38–42: **§2.6 Core/Application COMPLETE** [SLATracking, AuditReporting,
+FieldMatching, DecisionLogic] + **§2.7 SemanticAnalyzerService COMPLETE** — all 0 killable survivors).
 **Branch:** `Kt2`.
 
 ---
@@ -39,7 +40,8 @@ strategy files have green exact-value tests but their Stryker kill-count was def
 | `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
 | `Infrastructure.Extraction` (base) | ✅ **COMPLETE** (Units 25–33, 14 files: XmlFieldExtractor, sanitizers, FileTypeIdentifier, MexicanNameFuzzyMatcher, XML parser+metadata, DocumentComparison+AdditionalFieldsReconciler, Docx/Pdf/Composite metadata extractors — all 0 killable survivors). Dead `Ocr.Strategies/*` skipped. |
 | `Infrastructure.Metrics` / `FileStorage` | ✅ **COMPLETE** (Units 34–36: SafeFileNamer, FileMover, ProcessingMetrics — all 0 killable survivors) |
-| `01 Core` Application services | ⏳ **STARTED** (Unit 37 ConfigurationValidationService 95.05%, 0 killable survivors; 5 pure candidates remain) ⬅ **in progress** |
+| `01 Core` Application services | ✅ **COMPLETE** (Units 37–41: ConfigurationValidation, SLATracking, AuditReporting, FieldMatching, DecisionLogic — all 0 killable survivors. I/O orchestrators skipped by design) |
+| `Infrastructure.Classification` SemanticAnalyzerService (§2.7) | ✅ **COMPLETE** (Unit 42, mocked ITextComparer, 0 killable survivors) |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
 
 \* The two low matching-policy scores are capped by **real bugs**, not weak tests — see §3.
@@ -93,11 +95,20 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   / mean-scaling mutants are **equivalent** for every cleanly-predictable image (reaching them needs a
   border-clipped feature whose blur is border-mode-dependent / native-fragile).
 - [x] `AnalyticalFilterSelectionStrategy.cs` / `DefaultFilterSelectionStrategy.cs` /
-  `PolynomialFilterSelectionStrategy.cs` — ⏳ Unit 24: +53 exact-value tests, **180/180 green**, but the Stryker
-  **mutation-verification run is DEFERRED** (the Unit 23 native-EmguCV run triggered Windows crash popups; the
-  run was stopped before re-confirming these pure managed files). Tests are value-exact by construction; re-run
-  Stryker scoped to the three `*FilterSelectionStrategy.cs` to confirm Killed delta + 0 survivors. (`Polynomial…`
-  uses stub models → deterministic midpoint predictions; the ≥10 % threshold task #11 is a separate concern.)
+  `PolynomialFilterSelectionStrategy.cs` — ✅ **Unit 24 mutation-verify DONE (2026-06-10):** scoped Stryker re-run
+  (no native popups — pure managed). First run: Analytical 59 killed/22 surv, Default 21/4, Polynomial 30/32.
+  Added **boundary-exact tests** — Analytical +16 (every `ClassifyQualityLevel` + `RefineConfig` threshold at its
+  exact value, killing the `>=`/`<=` mutants the far-from-boundary tests missed) and Default +4 (Q3/Q4
+  `EnableEnhancement` bools + the 0.7/0.3 adjustment boundaries) → Analytical & Default **0 killable survivors**.
+  **Analytical residual floor:** `RefineConfig` OpenCv `BlurScore < 1500` block is **dead** (a Q1/OpenCv config
+  always has blur>1500, so `<1500` is unreachable) and the `FilterType==X && EnableEnhancement` `&&`→`||` mutants
+  are param-default equivalent (PilParams/OpenCvParams are non-null defaults, so entering the wrong block mutates
+  an unused object). **`PolynomialFilterSelectionStrategy` is an explicit STUB/placeholder** ("uses stub models…
+  TODO: train models") — its residual survivors are floor/low-value: stub-model **name strings** (don't affect
+  predictions), Serilog, the unused-`features` adaptive array (`CreateAdaptiveConfig` ignores its param), the
+  dead `bilateralD` odd-branch (stub midpoint 9 is already odd → NoCoverage), and the normalized-heuristic
+  `SelectFilterType` boundaries (hardening placeholder stub logic to exact normalized boundaries is deferred until
+  real trained models replace the stubs — see the file TODOs / task #11). (≥10 % threshold task #11 is separate.)
 - ⛔ skipped native-bound enhancement filters `AdaptiveEnhancementFilter.cs`, `PolynomialEnhancementFilter.cs`
   (they apply native pixel ops); and `EmguCvImageQualityAnalyzer`, `OpenCvAdvancedEnhancementFilter`,
   `PilSimpleEnhancementFilter`; trivial `NoOp*`/`Stub*`.
@@ -201,39 +212,54 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
   (L27/59/71) + the `if (result.IsValid)` negate (L57, gates only the success-vs-warning log).
   Lesson: un-validated factory literals (the 9 preset bool flags) die only via **direct field assertion**, not
   via "validates clean". Guide Unit 37.
-- [ ] **pure candidates (next):** `DecisionLogicService`, `SLATrackingService`, `AuditReportingService`,
-  `FieldMatchingService`, `MetadataExtractionService`.
-- ⛔ skip the I/O orchestrators: `DocumentIngestionService`, `FileDownloadService`, `HealthCheckService`,
-  `ExportService`, `FileMetadataQueryService` (DB/port-bound).
+- [x] `SLATrackingService.cs` — ✅ **Unit 38: Killed 65/66, 0 killable survivors, +50 tests.** Pure delegator
+  over `ISLAEnforcer`; all survivors floor (Serilog/ConfigureAwait + the L131 `&&`→`||` correlated-equivalent).
+- [x] `AuditReportingService.cs` — ✅ **Unit 39: Killed ~104, 0 killable survivors, +59 tests.** Exact CSV/JSON
+  output (headers, row format, ordering — incl. ExportJson OrderBy, escaping, camelCase+indentation), all
+  guard/failure/null/cancel branches. Floor = Serilog + ConfigureAwait.
+- [x] `FieldMatchingService.cs` — ✅ **Unit 40: Killed 129, 0 killable survivors, +44 tests** (mocked
+  `IMatchingPolicy`). Guards, per-source extraction, value collection (origin/confidence/source), match/conflict/
+  missing, agreement averaging, the `CreateExtractedFields` switch, `AggregateValidation`, and failure-with-value
+  not-collected (kills the 4 `IsSuccess && Value != null`→`||`). Floor = Serilog/ConfigureAwait + always-true
+  Count guards + log-only requiredFields block + **dead** `DeriveSlaFromAdditional`/`AdditionalMerged` surface +
+  unreachable persona/compliance/conflict loops. Surfaced an inverted `FechaEstimadaConclusion` warning (finding).
+- [x] `DecisionLogicService.cs` — ✅ **Unit 41: Killed ~120, 0 killable survivors, +46 tests.** Exact failure/
+  validation strings for all four public methods; the partial-result paths (resolver-cancelled, dedup-cancelled,
+  between-iteration, ProcessDecisionLogic classify-cancelled-with-partial) with confidence/missing-ratio
+  arithmetic + warning composition. Floor = Serilog + **audit-trail `LogAuditAsync` side-effects** (mocked dep,
+  not observable in the Result — treated as logging floor) + the unreachable ProcessDecisionLogic classify-
+  failure/success-with-partial sub-branches (a cancelled token always makes classify cancelled).
+- ⛔ skipped the I/O orchestrators: `DocumentIngestionService`, `FileDownloadService`, `HealthCheckService`,
+  `ExportService`, `FileMetadataQueryService` (DB/port/`File.*`-bound), and `MetadataExtractionService`
+  (real `File.Exists`/`File.ReadAllBytesAsync` I/O).
 
-### 2.7 Optional — deterministic Classification leftover
-- [ ] `SemanticAnalyzerService.cs` — deterministic (Levenshtein + in-repo `ClassificationDictionary`, **not**
-  Ollama); already driven by `LegalDirectiveClassifierDictionaryTests` + `TextComparerFindBestMatchTests`.
-  (Reminder: that "DictionaryTests" file tests *this* class, not `LegalDirectiveClassifierService`.)
+> ✅ **§2.6 Core/Application COMPLETE** (Units 37–41, all 0 killable survivors).
+
+### 2.7 — deterministic Classification leftover — ✅ **COMPLETE** (2026-06-10, Unit 42)
+- [x] `SemanticAnalyzerService.cs` — ✅ **Unit 42: 0 killable survivors, +16 tests.** Deterministic (fuzzy phrase
+  matching over the in-repo `ClassificationDictionary`, **not** Ollama). Driven through a **mocked
+  `ITextComparer`** so each directive detector, the best-match (max) selection, the exact confidence propagation,
+  and the `>= DefaultThreshold` (0.85) boundary are isolated; guards + exception covered. Added to the
+  Classification `stryker-config.json`. (The existing `LegalDirectiveClassifierDictionaryTests` exercise the real
+  Levenshtein comparer — kept as integration coverage.)
 
 ---
 
-## 2b. DEFERRED — batch these at the END of the mutation campaign (owner decision, 2026-06-09)
+## 2b. DEFERRED items — ✅ BOTH DONE (2026-06-10, end-of-campaign clean-up)
 
-Two operational loose ends are **deliberately deferred to a single clean-up pass at the end of the whole
-mutation effort**, rather than interrupting unit-by-unit progress:
+1. ✅ **Unit 24 mutation-verification re-run — DONE.** Scoped `Tests.Infrastructure.Imaging` to the three
+   `*FilterSelectionStrategy.cs`, ran `StrykerCompat=true dotnet stryker` (no popups — pure managed, confirmed).
+   First run: Analytical 59 killed/22 surv, Default 21/4, Polynomial 30/32. Added boundary-exact tests
+   (Analytical +16, Default +4) → **Analytical & Default 0 killable survivors**; Polynomial's residual is
+   stub-placeholder floor (see §2.3 entry). Restored the full 8-file mutate list.
 
-1. **Unit 24 mutation-verification re-run.** The three Imaging filter-selection strategy files
-   (`AnalyticalFilterSelectionStrategy`, `DefaultFilterSelectionStrategy`, `PolynomialFilterSelectionStrategy`)
-   have green, value-exact tests (180/180) but their Stryker kill-count was not captured. Finish by scoping the
-   `Tests.Infrastructure.Imaging` mutate list to **only** the three `*FilterSelectionStrategy.cs` files
-   (pure managed → no native popups), running `StrykerCompat=true dotnet stryker`, confirming Killed delta + 0
-   killable survivors, then restoring the full 8-file mutate list and recording the numbers.
-
-2. **Native-mutation Windows popups (root cause + permanent fix).** Mutating native-bound code (EmguCV
-   `CvInvoke.*` in `PolynomialImageQualityAnalyzer`, and any future Emgu/OpenCv/PIL file) crashes the mutant
-   process → Windows Error Reporting dialogs ("dotnet was launched with bad parameters"), ~5–6 per run. Results
-   are unaffected (a crashed mutant counts as killed) but it's disruptive on an interactive desktop. **Interim
-   workaround (use now):** keep native files in their own scoped run, or run Stryker headless/CI. **Permanent fix
-   (do at end of campaign):** disable WER UI for the mutation run — e.g. set `HKCU\Software\Microsoft\Windows\
-   Windows Error Reporting\DontShowUI=1` (or `Disabled=1`) for the run, or launch Stryker in a session/job that
-   suppresses crash dialogs (`SetErrorMode`/`SEM_NOGPFAULTERRORBOX`), then revert. Decide whether to keep mutating
-   native files at all or formally exclude them (they yield ambiguous mutants anyway — see the ⛔ list in §2.3).
+2. ✅ **Native-mutation Windows popups — RESOLVED (decision: formally exclude native files).** The permanent fix
+   was demonstrated (set `HKCU\Software\Microsoft\Windows\Windows Error Reporting\DontShowUI=1` for the run, then
+   revert — done programmatically around the Unit 24 run). **Decision: native-bound files
+   (`PolynomialImageQualityAnalyzer`'s `CvInvoke.*`, `EmguCvImageQualityAnalyzer`, `OpenCvAdvancedEnhancementFilter`,
+   `PilSimpleEnhancementFilter`, the native enhancement filters) are formally EXCLUDED from the mutation target** —
+   they yield ambiguous mutants (a crashed native mutant counts as "killed" regardless) and aren't deterministic
+   business logic. When one must be run, apply the `DontShowUI=1` suppression for the run and revert after.
 
 ---
 
