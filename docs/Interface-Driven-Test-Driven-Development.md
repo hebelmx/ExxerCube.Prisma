@@ -1,6 +1,6 @@
 # Interface-Driven Test-Driven Development (ITDD)
 
-> **This is the plain-language primer.** The **canonical reference** is `ARCHITECTURE_AND_SOLUTION_GUIDELINES.md` §6.5; the **mandatory contract-test shape** (and its rationale) is fixed by **ADR-005** (`docs/architecture/adr/ADR-005-itdd-contract-tests-injected-sut.md` — to be authored in Phase 0 of the refactor; until then this primer plus the master plan govern). Where this primer and ADR-005 differ on the exact mechanism, **ADR-005 governs** — it makes the constructor-injected, interface-typed `Sut` member the default and `CreateSut()` the sanctioned fallback. Refactor plan & tracker: `docs/planning/itdd-test-suite-refactor-plan-2026-06.md`.
+> **This is the plain-language primer.** The **canonical reference** is `ARCHITECTURE_AND_SOLUTION_GUIDELINES.md` §6.5; the **mandatory contract-test shape** (and its rationale) is fixed by **ADR-005** (`docs/architecture/adr/ADR-005-itdd-contract-tests-injected-sut.md`). Where this primer and ADR-005 differ on the exact mechanism, **ADR-005 governs** — it makes the constructor-injected, interface-typed `Sut` member the default and `CreateSut()` the sanctioned fallback. Refactor plan & tracker: `docs/planning/itdd-test-suite-refactor-plan-2026-06.md`.
 
 ## Purpose
 

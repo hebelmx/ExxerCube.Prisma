@@ -290,7 +290,7 @@ exists today).
 | Phase | Scope | Status | Session/commit |
 |-------|-------|--------|----------------|
 | — | Plan adversarial-review gate | ✅ GO WITH CONDITIONS (2026-06-10) — all 6 conditions applied to plan + primer same day | |
-| 0 | ADR + template + playbook | ☐ Not started | |
+| 0 | ADR + template + playbook | ✅ Done (2026-06-10) — ADR-005 authored; primer "to be authored" note removed; NSubstitute added to Testing.Contracts; worked example `FileTypeIdentifierContract` + `FileTypeIdentifierMockFactory` (Testing.Contracts) + Mock/Reference instances (Tests.Domain.Interfaces). **Proof gate passed:** (a) facts compile via extensibility.core, library stays non-runnable; (b) abstract base not discovered (`--list-tests`: 12 entries, 6 per deriving class, 0 for the base); (c) Tests.Domain.Interfaces 19 → 31 = 19 + 6×2, all green. Arch guardrail deferred to Phase 6 (as allowed). | |
 | 1 | Pilot: IFieldMergeStrategy | ☐ Not started | |
 | 2 | Export.Adaptive ×4 | ☐ Not started | |
 | 3 | Adaptive DOCX ×6 | ☐ Not started | |
