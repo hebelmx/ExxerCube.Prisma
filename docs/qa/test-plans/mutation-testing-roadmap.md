@@ -45,6 +45,7 @@ strategy files have green exact-value tests but their Stryker kill-count was def
 | `01 Core` Application services | ✅ **COMPLETE** (Units 37–41 + **43–44**: ConfigurationValidation, SLATracking, AuditReporting, FieldMatching, DecisionLogic, **the pure Parsing/* + Mapping/* + ExportService** — all 0 killable survivors. Remaining I/O orchestrators skipped by design) |
 | `Infrastructure.Classification` SemanticAnalyzerService (§2.7) | ✅ **COMPLETE** (Unit 42, mocked ITextComparer, 0 killable survivors) |
 | `Infrastructure.Classification` adapters + fusion (audit, §2.8) | ✅ **COMPLETE** (Units 45–48: SemanticAnalyzerAdapter, ExpedienteClasifierService [mock-driven, NOT Ollama], FusionExpedienteService [2789-line Stage-3 fusion] — all 0 killable survivors) |
+| `Infrastructure.Classification` PersonIdentityResolverService (2nd-pass audit) | ✅ **COMPLETE** (Unit 49 — wrongly excluded as "DB/stub"; only FindByRfcAsync is a stub, the RFC-variant/dedup/normalization logic is pure. 0 killable survivors; surfaced a dead normalized-RFC dedup branch [variant loop subsumes it]) |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
 
 \* The two low matching-policy scores are capped by **real bugs**, not weak tests — see §3.

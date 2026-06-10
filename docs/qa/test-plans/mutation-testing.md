@@ -1131,9 +1131,33 @@ once they land.
   Added all three Classification files to its `stryker-config.json` (and dropped the now-deleted
   `FieldMatcherService.cs`). Classification suite **283 → 367 green**; Tests.Application **464 → 572 green**.
 
-> ✅ **CAMPAIGN GENUINELY COMPLETE (audit-corrected 2026-06-10).** The earlier "COMPLETE" claim undercounted the
-> deterministic surface; Units 43–48 close the audited gap (Application parsers/mapper/ExportService + the two
-> Classification adapters + the big FusionExpedienteService). Minor mutation-surfaced findings (§3) are all fixed.
+### Unit 49: PersonIdentityResolverService — second-pass audit catch (2026-06-10)
+
+A re-audit (cross-checking every deterministic `*Service` against the configs, **distrusting the just-declared
+"COMPLETE"**) caught one more wrongly-excluded class: `Infrastructure.Classification/PersonIdentityResolverService.cs`
+was skipped as *"DB/stub"*, but only its `FindByRfcAsync` is a stub — `GenerateRfcVariants` (substring math, the
+12/13-length boundaries, the `char.IsLetter(cleaned[3])` middle-letter guard, hyphen/space formats),
+`NormalizeName`, `GetNormalizedName`, and `DeduplicatePersonsAsync` (RFC-variant + name-fallback dedup) are pure
+logic over an `ILogger`. **Killed 93 → 107, 0 killable survivors** (+30 tests; the first pass read 50 survivors —
+14 were genuinely killable and now die, the rest are the floor below). Pins the variant formats,
+the separator-strip `Replace(" "/"."/"-")` (a hyphen-only test left the space/dot Replaces alive — add
+space-separated and dot-separated inputs), name normalization, the stub `FindByRfcAsync` (`Success(null)`), and —
+the subtle one — `GetNormalizedName`'s per-part inclusion: two persons differing in **only one** name part must
+stay distinct (a same-name dedup test affects both persons identically, so negating each
+`if (!IsNullOrWhiteSpace(part))` guard is *equivalent* — only a differs-in-one-part pair kills it).
+
+**NEW dead-code finding (defensive floor, left as-is):** the **normalized-RFC dedup branch** (the
+`processedRfcs.Contains(normalizedRfc)` check) and `NormalizeRfcForComparison`'s 13-char middle-letter drop are
+**unreachable** — `GenerateRfcVariants` already emits the hyphenated/spaced (middle-letter-dropped) forms and adds
+them to `processedRfcs`, so the variant loop catches every duplicate *before* the normalized-RFC check can fire.
+Their mutants survive no matter what (equivalent), like the FieldMatcher `CollectAdditional` finding. Plus the
+usual Serilog + unreachable-`catch` floor.
+
+> ✅ **CAMPAIGN GENUINELY COMPLETE (audit-corrected 2026-06-10, two passes).** Units 43–48 closed the first audit
+> gap (Application parsers/mapper/ExportService + the Classification adapters + FusionExpedienteService); Unit 49
+> closed the one the *second* pass caught (PersonIdentityResolverService). All three behavioral findings (§3) are
+> fixed; the dead-code/equivalent observations are documented-as-floor by design. The deterministic surface
+> (~55 files / 11 configs) is now mutation-hardened with 0 killable survivors throughout.
 
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
