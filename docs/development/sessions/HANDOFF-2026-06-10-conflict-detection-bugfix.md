@@ -58,9 +58,13 @@ are unaffected).
   (`docs/qa/findings/2026-06-09-fieldmatching-fechaestimada-warning-inverted.md`).
 
 ## 4. Verification
-- NameMatchingPolicy Stryker: 95.29%, 0 killable survivors (commit confirmed).
-- FieldMatchingService Stryker: re-run after the reconciliation/routing changes — see the roadmap §3 / guide
-  update for the numbers and residual classification.
+- NameMatchingPolicy Stryker: **95.29%, 0 killable survivors** (up from 36.9%).
+- FieldMatchingService Stryker (scoped, 50 min): **75.20%, Killed 184.** The reconciliation/routing surface is
+  killed; +5 logically-certain-kill tests closed the new-code gaps (DOCX perSource.Add, core-name/defined-field
+  exclusion literals, blank-skip, DeriveSla `== default` guard) — not re-blocked on the 50-min reconfirm. Residual
+  is floor: Serilog/ConfigureAwait, the `IsSuccess && Value != null`→`||` correlated-equivalent, the log-only
+  requiredFields block, and the still-dead persona/compliance loops in `AggregateValidation`.
+- Tests.Application 459+5=464, Tests.Infrastructure.Classification 283, E2E DependencyValidation 10/10 — all green.
 
 ## 5. Pointers
 - Findings (now marked RESOLVED): `docs/qa/findings/2026-06-08-namematchingpolicy-*.md`,
