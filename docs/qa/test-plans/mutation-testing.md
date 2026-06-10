@@ -934,6 +934,32 @@ Two new test projects, two new `stryker-config.json` files. Both at **0 killable
 > and the options DTOs remain skipped (I/O-bound). Next: survey **§2.6 Core/Application** (`01 Core/Application`,
 > the pure `*Service.cs`), then optional `SemanticAnalyzerService`.
 
+### Unit 37: ConfigurationValidationService — §2.6 Core/Application started (2026-06-09)
+
+First Core/Application unit — `01 Core/Application/Services/ConfigurationValidationService.cs`, a fully pure
+validation service (only an `ILogger`). Added `Tests.Application/stryker-config.json` (the project's first).
+**Killed 209 / Survived 11 / Timeout 2 (95.05 %) → 0 killable survivors.** Project 260/260 green (+~80 cases).
+
+The pre-existing 28 tests covered one example per rule with far-from-boundary values; the new tests pin the
+**exact comparison boundaries** for all 14 numeric rules (valid AT the boundary, error/warning one past it —
+done as 2–4-point `[Theory]` per field, which kills the whole relational set `< → <=/>/>=` plus the `||`), a
+`[Theory]` over **all 35 cataloged OCR languages** (the `validLanguages` array is a *local* `var`, not a static
+field, so each element string IS killable when a test uses that code) + the `ToLowerInvariant` normalization, the
+output-format table, **one isolated error/warning from each of the three sub-validators** (kills the six
+`AddRange` aggregations), `IsValid = !validationErrors.Any()` both directions, the **catch** (null `OCRConfig`
+→ NRE in the try), and the three factory presets.
+- **Lesson — un-validated literals only die via direct assertion.** The first run's 11 survivors were the L27
+  Serilog statement (floor) + the **9 factory boolean flags** (`RemoveWatermark/Deskew/Binarize/ExtractSections/
+  NormalizeText = true`) in the HighPerformance/Conservative presets. They have **no validation rule**, so
+  asserting each preset "validates clean" doesn't touch them — only `c.RemoveWatermark.ShouldBeTrue()` kills the
+  `true`→`false` mutant. Default's bools were already asserted (killed); the other two presets weren't. Lesson:
+  for factory/preset methods, assert **every** field, not just the ones the SUT later reads.
+
+> ✅ **§2.6 STARTED** (Unit 37 ConfigurationValidationService). Remaining pure Core/Application candidates:
+> `DecisionLogicService`, `SLATrackingService`, `AuditReportingService`, `FieldMatchingService`,
+> `MetadataExtractionService`. Skip the I/O orchestrators (`DocumentIngestionService`, `FileDownloadService`,
+> `HealthCheckService`).
+
 ## Cross-repo guideline (for restoring mutation testing org-wide)
 Confirmed by diffing this repo against the known-working **IndFusion.Ember** setup (same Stryker 4.14.2,
 same MTP `global.json`):

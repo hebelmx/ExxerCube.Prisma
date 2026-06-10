@@ -3,7 +3,7 @@
 **Companion to** `docs/qa/test-plans/mutation-testing.md` (the *reference*: setup, the two mandatory settings,
 per-unit results, all lessons). **This file is the *plan*: the goal, the denominator, and a tick-box path.**
 
-**Last updated:** 2026-06-09 (after Units 34–36: SafeFileNamerService/FileMoverService/ProcessingMetricsService — **§2.5 Metrics/FileStorage COMPLETE**, all 0 killable survivors; §2.4 Extraction base COMPLETE Units 25–33).
+**Last updated:** 2026-06-09 (after Unit 37: ConfigurationValidationService — **§2.6 Core/Application STARTED**, 95.05%, 0 killable survivors; §2.5 Metrics/FileStorage COMPLETE Units 34–36).
 **Branch:** `Kt2`.
 
 ---
@@ -39,7 +39,7 @@ strategy files have green exact-value tests but their Stryker kill-count was def
 | `Infrastructure.Imaging` | ✅ **complete** (Units 21–24: Levenshtein, FeatureNormalizer, Polynomial(Model/Analyzer/Trained), 3 filter-selection strategies — Unit 24 mutation-verify deferred but tests green). Native filters/analyzers excluded. |
 | `Infrastructure.Extraction` (base) | ✅ **COMPLETE** (Units 25–33, 14 files: XmlFieldExtractor, sanitizers, FileTypeIdentifier, MexicanNameFuzzyMatcher, XML parser+metadata, DocumentComparison+AdditionalFieldsReconciler, Docx/Pdf/Composite metadata extractors — all 0 killable survivors). Dead `Ocr.Strategies/*` skipped. |
 | `Infrastructure.Metrics` / `FileStorage` | ✅ **COMPLETE** (Units 34–36: SafeFileNamer, FileMover, ProcessingMetrics — all 0 killable survivors) |
-| `01 Core` Application services | ⬜ TODO — broadens beyond Infrastructure (see §2.6) ⬅ **next** |
+| `01 Core` Application services | ⏳ **STARTED** (Unit 37 ConfigurationValidationService 95.05%, 0 killable survivors; 5 pure candidates remain) ⬅ **in progress** |
 | OCR / Python / Browser / Database / UI / Events(legacy) | ⛔ excluded by design (non-deterministic / dormant / legacy) |
 
 \* The two low matching-policy scores are capped by **real bugs**, not weak tests — see §3.
@@ -192,10 +192,18 @@ For **each** unit follow the loop in §4. Each box = one commit (`test(qa): … 
 
 > ✅ **§2.5 Metrics/FileStorage COMPLETE.** Next: survey **§2.6 Core/Application**.
 
-### 2.6 Core / Application services
-> Broadens beyond Infrastructure. Survey `01 Core/Application` for concrete `*Service.cs` with real logic
-> (skip interfaces, DTOs, events, validators that just guard nulls). Add per-test-project configs.
-- [ ] (survey first, then list) — e.g. fusion/reconciliation/pipeline-coordination services that are pure.
+### 2.6 Core / Application services — ⏳ **STARTED** (2026-06-09, Unit 37)
+> Broadens beyond Infrastructure. Survey done — `01 Core/Application/Services` has 11 `*Service.cs`. Added
+> `Tests.Application/stryker-config.json` (the project's first). Pure/worthy vs I/O-orchestrator split below.
+- [x] `ConfigurationValidationService.cs` — ✅ **Unit 37: Killed 209 / Survived 11 / Timeout 2 (95.05%),
+  0 killable survivors, +~80 tests, project 260/260 green.** Pure validation; boundary `[Theory]`s for all 14
+  numeric rules + all 35 OCR languages + the 3 sub-validator aggregations + factories. Floor = L27 Serilog.
+  Lesson: un-validated factory literals (the 9 preset bool flags) die only via **direct field assertion**, not
+  via "validates clean". Guide Unit 37.
+- [ ] **pure candidates (next):** `DecisionLogicService`, `SLATrackingService`, `AuditReportingService`,
+  `FieldMatchingService`, `MetadataExtractionService`.
+- ⛔ skip the I/O orchestrators: `DocumentIngestionService`, `FileDownloadService`, `HealthCheckService`,
+  `ExportService`, `FileMetadataQueryService` (DB/port-bound).
 
 ### 2.7 Optional — deterministic Classification leftover
 - [ ] `SemanticAnalyzerService.cs` — deterministic (Levenshtein + in-repo `ClassificationDictionary`, **not**
@@ -283,9 +291,9 @@ After fixing, re-run Stryker on those files and add the cross-value tests the ex
 - ✅ Deleted the stale orphaned root config `Prisma/Code/Src/CSharp/stryker-config.json` (camelCase keys,
   `testRunner: dotnet`, non-existent `testProjects` path — drift from when mutation was broken).
 - The valid `stryker-config.json` files live next to their test projects. As of 2026-06-09 (after Units 34–36)
-  there are **9**: Classification, Extraction.Adaptive, Extraction.Txt, **Export** (4 files), **Export.Adaptive**
+  there are **10**: Classification, Extraction.Adaptive, Extraction.Txt, **Export** (4 files), **Export.Adaptive**
   (4 files), **Imaging** (8 files), **Extraction** base (14 files), **FileStorage** (SafeFileNamer + FileMover),
-  and **Metrics** (ProcessingMetricsService).
+  **Metrics** (ProcessingMetricsService), and **Application** (ConfigurationValidationService).
 
 ## 7. Pointers
 - Reference / per-unit detail / all lessons: `docs/qa/test-plans/mutation-testing.md`
