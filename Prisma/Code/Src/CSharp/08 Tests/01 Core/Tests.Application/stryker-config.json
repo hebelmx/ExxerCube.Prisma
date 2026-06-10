@@ -10,7 +10,12 @@
       "**/Services/SLATrackingService.cs",
       "**/Services/AuditReportingService.cs",
       "**/Services/FieldMatchingService.cs",
-      "**/Services/DecisionLogicService.cs"
+      "**/Services/DecisionLogicService.cs",
+      "**/Services/ExportService.cs",
+      "**/Parsing/MeasureParser.cs",
+      "**/Parsing/IdentityParser.cs",
+      "**/Parsing/AccountParser.cs",
+      "**/Mapping/LegalSubdivisionMapper.cs"
     ],
     "additional-timeout": 30000,
     "coverage-analysis": "perTest",
