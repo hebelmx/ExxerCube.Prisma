@@ -173,6 +173,88 @@ public class FieldMatchingServiceReconciliationTests
         result.Value.Expediente.FechaEstimadaConclusion.ShouldBe(new DateTime(2026, 1, 25)); // +10 days
     }
 
+    private Task<Result<UnifiedMetadataRecord>> RunWith(FieldDefinition[] defs, Expediente? expediente = null) =>
+        _service.MatchFieldsAndGenerateUnifiedRecordAsync(
+            new DocxSource("d.docx"), new PdfSource("p.pdf"), new XmlSource("x.xml"),
+            defs, expediente: expediente, classification: null, requiredFields: null,
+            TestContext.Current.CancellationToken);
+
+    [Fact]
+    public async Task DocxOnlyAdditionalField_IsReconciled()
+    {
+        // Pins that DOCX-origin additional fields are collected too (kills the DOCX perSource.Add removal).
+        DocxReturns(Fields(("Telefono", "5551234")));
+        PdfReturns(new ExtractedFields());
+        XmlReturns(new ExtractedFields());
+
+        var result = await Run();
+
+        result.Value!.AdditionalFields.ShouldContainKey("Telefono");
+        result.Value.AdditionalFields["Telefono"].ShouldBe("5551234");
+    }
+
+    [Fact]
+    public async Task CoreFieldNamesInAdditional_AreExcluded()
+    {
+        // A core field NAME appearing as an additional key is handled by the core path, not double-counted
+        // (kills the hardcoded "Causa"/"AccionSolicitada" exclusion literals).
+        XmlReturns(Fields(("Causa", "x"), ("AccionSolicitada", "y"), ("Telefono", "5551234")));
+        DocxReturns(new ExtractedFields());
+        PdfReturns(new ExtractedFields());
+
+        var result = await RunWith(new[] { new FieldDefinition("Expediente") });
+
+        result.Value!.AdditionalFields.ShouldNotContainKey("Causa");
+        result.Value.AdditionalFields.ShouldNotContainKey("AccionSolicitada");
+        result.Value.AdditionalFields.ShouldContainKey("Telefono");
+    }
+
+    [Fact]
+    public async Task DefinedField_NotDoubleCountedAsAdditional()
+    {
+        // A requested (defined) field that also appears in AdditionalFields is matched as a defined field and
+        // excluded from additional reconciliation (kills the definedNames.Add(fieldDef.FieldName) removal).
+        XmlReturns(Fields(("Telefono", "5551234")));
+        DocxReturns(new ExtractedFields());
+        PdfReturns(new ExtractedFields());
+
+        var result = await RunWith(new[] { new FieldDefinition("Expediente"), new FieldDefinition("Telefono") });
+
+        result.Value!.MatchedFields!.FieldMatches.ShouldContainKey("Telefono"); // handled as a defined field
+        result.Value.AdditionalFields.ShouldNotContainKey("Telefono");          // not also additional
+    }
+
+    [Fact]
+    public async Task BlankAdditionalValue_IsSkipped()
+    {
+        XmlReturns(Fields(("Telefono", "   ")));
+        DocxReturns(new ExtractedFields());
+        PdfReturns(new ExtractedFields());
+
+        var result = await Run();
+
+        result.Value!.AdditionalFields.ShouldNotContainKey("Telefono");
+    }
+
+    [Fact]
+    public async Task DeriveSla_DoesNotOverwriteExistingFechaEstimada()
+    {
+        // FechaEstimadaConclusion already set => the `== default` guard skips derivation (kills the &&->|| mutant
+        // that would overwrite it).
+        var expediente = new Expediente
+        {
+            FechaRecepcion = new DateTime(2026, 1, 1),
+            FechaEstimadaConclusion = new DateTime(2026, 1, 20),
+        };
+        XmlReturns(Fields(("DiasPlazo", "10")));
+        DocxReturns(new ExtractedFields());
+        PdfReturns(new ExtractedFields());
+
+        var result = await Run(expediente);
+
+        result.Value!.Expediente!.FechaEstimadaConclusion.ShouldBe(new DateTime(2026, 1, 20)); // unchanged
+    }
+
     [Fact]
     public async Task NoAdditionalFields_LeavesMergedAndConflictsEmpty()
     {
