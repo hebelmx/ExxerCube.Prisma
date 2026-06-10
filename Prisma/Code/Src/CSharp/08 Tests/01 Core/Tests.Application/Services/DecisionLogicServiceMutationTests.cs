@@ -189,6 +189,104 @@ public class DecisionLogicServiceMutationTests
         result.Warnings.ShouldContain("Operation was cancelled. Resolved 1 of 2 persons (deduplication failed).");
     }
 
+    [Fact]
+    public async Task Resolve_ResolverReturnsCancelledMidway_PartialDedupSuccess()
+    {
+        // P1 resolves, P2's resolver RETURNS cancelled -> partial path with dedup success.
+        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
+        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<Persona>());
+        var deduped = new List<Persona> { P(1, "P1") };
+        _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(Result<List<Persona>>.Success(deduped));
+
+        var result = await _service.ResolvePersonIdentitiesAsync(Persons(2), cancellationToken: TestContext.Current.CancellationToken);
+
+        result.HasWarnings.ShouldBeTrue();
+        result.Confidence.ShouldBe(0.5, 0.0001);
+        result.MissingDataRatio.ShouldBe(0.5, 0.0001);
+        result.Value.ShouldBeSameAs(deduped);
+        result.Warnings.ShouldContain("Operation was cancelled by resolver. Resolved 1 of 2 persons.");
+    }
+
+    [Fact]
+    public async Task Resolve_ResolverReturnsCancelledNoWork_ReturnsCancelled()
+    {
+        // First person's resolver returns cancelled, nothing resolved yet -> Count==0 -> plain Cancelled.
+        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<Persona>());
+
+        var result = await _service.ResolvePersonIdentitiesAsync(Persons(2), cancellationToken: TestContext.Current.CancellationToken);
+
+        result.IsCancelled().ShouldBeTrue();
+        result.HasWarnings.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Resolve_ResolverCancelledMidway_DedupFailure_FailedSuffix()
+    {
+        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
+        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<Persona>());
+        _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(Result<List<Persona>>.WithFailure("dedup down"));
+
+        var result = await _service.ResolvePersonIdentitiesAsync(Persons(2), cancellationToken: TestContext.Current.CancellationToken);
+
+        result.HasWarnings.ShouldBeTrue();
+        result.Warnings.ShouldContain("Operation was cancelled by resolver. Resolved 1 of 2 persons (deduplication failed).");
+    }
+
+    [Fact]
+    public async Task Resolve_ResolverCancelledMidway_DedupCancelled_CancelledSuffix()
+    {
+        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
+        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<Persona>());
+        _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<List<Persona>>());
+
+        var result = await _service.ResolvePersonIdentitiesAsync(Persons(2), cancellationToken: TestContext.Current.CancellationToken);
+
+        result.HasWarnings.ShouldBeTrue();
+        result.Warnings.ShouldContain("Operation was cancelled by resolver. Resolved 1 of 2 persons (deduplication cancelled).");
+    }
+
+    [Fact]
+    public async Task Resolve_DedupCancelledAfterFullResolve_WarnsIncomplete()
+    {
+        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
+        _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<List<Persona>>());
+
+        var result = await _service.ResolvePersonIdentitiesAsync(Persons(2), cancellationToken: TestContext.Current.CancellationToken);
+
+        result.HasWarnings.ShouldBeTrue();
+        result.Confidence.ShouldBe(1.0, 0.0001);          // completed==total
+        result.MissingDataRatio.ShouldBe(0.0, 0.0001);
+        result.Value!.Count.ShouldBe(2);                   // un-deduplicated resolved persons preserved
+        result.Warnings.ShouldContain("Operation was cancelled during deduplication. Resolved 2 of 2 persons (deduplication incomplete).");
+    }
+
+    [Fact]
+    public async Task Resolve_BetweenIterationCancel_DedupCancelled_CancelledSuffix()
+    {
+        using var cts = new CancellationTokenSource();
+        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(ci => { cts.Cancel(); return Result<Persona>.Success((Persona)ci[0]); });
+        _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(ResultExtensions.Cancelled<List<Persona>>());
+
+        var result = await _service.ResolvePersonIdentitiesAsync(Persons(2), cancellationToken: cts.Token);
+
+        result.HasWarnings.ShouldBeTrue();
+        result.Warnings.ShouldContain("Operation was cancelled. Resolved 1 of 2 persons (deduplication cancelled).");
+    }
+
     // ===================== ClassifyLegalDirectivesAsync =====================
 
     [Fact]
@@ -368,6 +466,29 @@ public class DecisionLogicServiceMutationTests
         result.IsSuccess.ShouldBeTrue();
         result.Value!.ResolvedPersons.Count.ShouldBe(2);
         result.Value.ComplianceActions.Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Process_PartialIdentity_ClassifyCancelled_PreservesPartialWithWarnings()
+    {
+        // Cancel during identity resolution (shared token) -> resolve returns partial WithWarnings;
+        // the now-cancelled token makes classify return Cancelled -> the partial-preservation branch.
+        using var cts = new CancellationTokenSource();
+        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(ci => { cts.Cancel(); return Result<Persona>.Success((Persona)ci[0]); });
+        var deduped = new List<Persona> { P(1, "P1") };
+        _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
+            .Returns(Result<List<Persona>>.Success(deduped));
+
+        var result = await _service.ProcessDecisionLogicAsync(Persons(2), "text", null, cts.Token);
+
+        result.HasWarnings.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.ResolvedPersons.Count.ShouldBe(1);
+        result.Value.ComplianceActions.Count.ShouldBe(0);
+        result.Confidence.ShouldBe(0.5, 0.0001);
+        result.Warnings.ShouldContain("Operation was cancelled. Resolved 1 of 2 persons.");
+        result.Warnings.ShouldContain("Legal classification was cancelled.");
     }
 
     // ===================== IdentifyAndQueueReviewCasesAsync =====================

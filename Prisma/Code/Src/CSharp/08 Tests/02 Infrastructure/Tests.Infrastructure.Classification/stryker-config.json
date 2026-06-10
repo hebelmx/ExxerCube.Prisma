@@ -10,7 +10,8 @@
       "**/MatchingPolicyService.cs",
       "**/NameMatchingPolicy.cs",
       "**/LegalDirectiveClassifierService.cs",
-      "**/FileClassifierService.cs"
+      "**/FileClassifierService.cs",
+      "**/SemanticAnalyzerService.cs"
     ],
     "coverage-analysis": "perTest",
     "reporters": [

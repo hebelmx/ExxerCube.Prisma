@@ -635,6 +635,19 @@ public class AuditReportingServiceMutationTests
     }
 
     [Fact]
+    public async Task ExportJson_OrdersByTimestampAscending()
+    {
+        var later = Record(auditId: "LATER", timestamp: new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc));
+        var earlier = Record(auditId: "EARLIER", timestamp: new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc));
+        ReturnRecords(later, earlier);
+
+        var result = await _service.ExportAuditLogJsonAsync(Start, End, null, null, TestContext.Current.CancellationToken);
+        result.Value.ShouldNotBeNull();
+        result.Value!.IndexOf("EARLIER", StringComparison.Ordinal)
+            .ShouldBeLessThan(result.Value!.IndexOf("LATER", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task ExportJson_UsesCamelCaseNotPascalCase()
     {
         ReturnRecords(Record());
