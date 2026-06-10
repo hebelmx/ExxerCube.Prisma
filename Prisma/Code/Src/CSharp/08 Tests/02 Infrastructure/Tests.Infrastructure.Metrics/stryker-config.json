@@ -1,0 +1,25 @@
+{
+  "stryker-config": {
+    "project": "ExxerCube.Prisma.Infrastructure.Metrics.csproj",
+    "test-projects": [
+      "ExxerCube.Prisma.Tests.Infrastructure.Metrics.csproj"
+    ],
+    "test-runner": "mtp",
+    "mutate": [
+      "**/ProcessingMetricsService.cs"
+    ],
+    "additional-timeout": 30000,
+    "coverage-analysis": "perTest",
+    "reporters": [
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "concurrency": 4
+  }
+}
