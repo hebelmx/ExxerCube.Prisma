@@ -285,13 +285,57 @@ exists today).
 - Update `ARCHITECTURE_AND_SOLUTION_GUIDELINES.md` §6.5 + primer + supersede
   `iitdd-contract-test-tasks.md`. Full solution test run.
 
+## 4.1 Playbook — the per-interface recipe (recorded after Phase 1)
+
+Order of operations that worked for the pilot; repeat per interface:
+
+1. **Baselines first, edits second.** Run every affected test project *before*
+   touching anything and record exact totals (new `.cs` files are auto-globbed into
+   builds, so write nothing until baselines are captured). Phase 1: Tests.Domain 337,
+   Tests.Domain.Interfaces 31, Extraction.Adaptive 313.
+2. **Read all three sources before writing the base:** the mock blueprint (design
+   checklist), the Liskov/impl twin (executable truth), and the production class
+   (what restored checklist behaviors will actually meet). Diff blueprint vs twin
+   *per method* — the §2 "ZERO drift" ratings are count-based and hide real gaps
+   (pilot: collection-dedup, empty-list, conflict `ResolvedValue` and 3-source
+   `AdditionalFields` merge were blueprint-only, never executed against the SUT).
+3. **Lift twin bodies verbatim** — names preserved *including the `_Liskov` suffix*
+   (Stryker history is keyed to them; renaming is gate-findable). The only edit:
+   the SUT construction line becomes `var strategy = Sut;` so the rest of the body
+   stays byte-identical.
+4. **Restore blueprint-only behaviors as unsuffixed tests** in the base, bodies taken
+   from the mock class minus its inline stubbing. Verify each against the production
+   code first (read it — don't guess); failures at first execution are findings to
+   triage, not blind fixes.
+5. **Factory = reference fake, not canned stubs.** Contract tests assert real
+   outcomes (combination, dedup, conflict detail), so
+   `{Name}MockFactory.CreateContractConformingMock()` implements the documented
+   semantics behind `Arg.Any` + callback. Configure EVERY interface overload.
+6. **Deriving classes:** blueprint in Tests.Domain.Interfaces (parameterless ctor →
+   factory); impl instance in the impl test project (xUnit injects
+   `ITestOutputHelper`; build the logger inline in the `base(...)` call via
+   `XUnitLogger.CreateLogger<T>(output)`).
+7. **Delete superseded files via `git rm`** only after the base exists: the twin
+   (deleted) and the standalone mock class (converted — its identity moves to the
+   blueprint instance; say "converted" in the commit message).
+8. **Verify the N+1 math exactly**, not approximately: every affected project's new
+   total must equal `old − lifted + baseFacts` (impl project), `old + baseFacts`
+   (blueprint home), `old − mockTests` (old mock home). Pilot: 318 = 313−16+21,
+   52 = 31+21, 321 = 337−16.
+9. **Scoped Stryker re-run** (`StrykerCompat=true dotnet stryker --mutate
+   "**/{Class}.cs"` from the test project dir) and compare against the recorded
+   baseline in `docs/qa/test-plans/mutation-testing.md` — parse the Timeout bucket,
+   trust Killed-delta + killable-survivor analysis, not the headline %.
+10. Solution build 0/0 → commit → `/itdd-adversarial-review phase-N` → record verdict
+    in the tracker.
+
 ## 5. Progress tracker
 
 | Phase | Scope | Status | Session/commit |
 |-------|-------|--------|----------------|
 | — | Plan adversarial-review gate | ✅ GO WITH CONDITIONS (2026-06-10) — all 6 conditions applied to plan + primer same day | |
 | 0 | ADR + template + playbook | ✅ Done (2026-06-10) — ADR-005 authored; primer "to be authored" note removed; NSubstitute added to Testing.Contracts; worked example `FileTypeIdentifierContract` + `FileTypeIdentifierMockFactory` (Testing.Contracts) + Mock/Reference instances (Tests.Domain.Interfaces). **Proof gate passed:** (a) facts compile via extensibility.core, library stays non-runnable; (b) abstract base not discovered (`--list-tests`: 12 entries, 6 per deriving class, 0 for the base); (c) Tests.Domain.Interfaces 19 → 31 = 19 + 6×2, all green. Arch guardrail deferred to Phase 6 (as allowed). **Gate: GO** (`/itdd-adversarial-review phase-0`, 2026-06-10) — 0 Blocker/Major; 2 Minors carried to Phase 6 (promote-or-justify XML/DOCX content tests when converting `FileTypeIdentifierService`; optional explicit IndQuestResults PackageReference in Testing.Contracts). | Kt2 `e49f145` |
-| 1 | Pilot: IFieldMergeStrategy | ☐ Not started | |
+| 1 | Pilot: IFieldMergeStrategy | ✅ Done (2026-06-10) — `FieldMergeStrategyContract` (16 Liskov bodies lifted verbatim, `_Liskov` names preserved + 5 restored blueprint-only tests: dedup, empty-list, conflict ResolvedValue, 3-source AdditionalFields, empty-Conflicts) + `FieldMergeStrategyMockFactory` (reference-fake semantics); blueprint `MockFieldMergeStrategyContractTests` (Tests.Domain.Interfaces), impl `EnhancedFieldMergeStrategyContractTests` (Extraction.Adaptive, +Testing.Contracts ProjectReference); superseded twin + standalone mock removed (converted). Counts exact: Tests.Domain 337→321, Tests.Domain.Interfaces 31→52, Extraction.Adaptive 313→318 (net +10). **Scoped Stryker (§6.1 empirical gate) PASSED: same 148-mutant population, detected 129→136, Survived 7→0, NoCoverage 12 (floor), 87.16%→91.89% — Stryker+MTP resolves cross-assembly inherited [Fact]s, config untouched.** MutationKilling class untouched. Playbook recorded (§4.1). | |
 | 2 | Export.Adaptive ×4 | ☐ Not started | |
 | 3 | Adaptive DOCX ×6 | ☐ Not started | |
 | 4 | Classification split ×2 | ☐ Not started | |

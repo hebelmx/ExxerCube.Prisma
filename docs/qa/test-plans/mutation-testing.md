@@ -122,6 +122,19 @@ The residual 7 survivors + 12 NoCoverage are the equivalent-mutant floor: redund
 `catch (OperationCanceledException)` / `catch (Exception)` logging blocks (unreachable without a contrived
 mid-merge cancellation — the token check throws *before* the `try`), and Serilog statements.
 
+> **ITDD Phase 1 re-verification (2026-06-10):** after the contract-base refactor
+> (the 16 `*LiskovTests` bodies lifted verbatim into `FieldMergeStrategyContract` in
+> `Testing.Contracts`, run via the inherited `EnhancedFieldMergeStrategyContractTests`,
+> plus 5 restored blueprint-only tests: dedup, empty-list, conflict `ResolvedValue`,
+> 3-source `AdditionalFields`, empty-Conflicts), the scoped re-run
+> (`--mutate "**/EnhancedFieldMergeStrategy.cs"`, same 148-mutant population) gives
+> **Killed 101 / Timeout 35 / Survived 0 / NoCoverage 12 → 91.89%** vs the baseline
+> 124/5/7/12 → 87.16%. Detected rose 129→136 (the Killed→Timeout shift is the known
+> MTP per-mutant overhead flap; Timeout = detected), survivors dropped 7→0, NoCoverage
+> floor unchanged. **Empirical proof: Stryker + MTP resolves inherited cross-assembly
+> `[Fact]`s with the per-project config untouched** — contract-base refactors don't
+> need Stryker config changes.
+
 ### Third unit: FieldMatcherService<T> (2026-06-08) — ✅ 30.71% → 61.43% (+ a dead-code finding)
 
 Third deterministic unit, in `Infrastructure.Classification` (`FieldMatcherService.cs`, driven by the
