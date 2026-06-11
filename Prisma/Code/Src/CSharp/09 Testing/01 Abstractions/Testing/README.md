@@ -37,9 +37,12 @@ Interface contract test methods (IITDD pattern).
 - Shouldly
 - `xunit.v3.extensibility.core`
 
-**Contents**:
-- `IPersonIdentityResolverContractTests` - Contract tests for IPersonIdentityResolver
-- Additional contract test classes (to be added)
+**Contents** (ADR-005 abstract contract bases + their mock factories):
+- `FileTypeIdentifierContract` / `FieldMergeStrategyContract` / Export.Adaptive + Adaptive-DOCX +
+  Classification contracts / `RepositoryContract<T,TId>` / `PersonIdentityResolverContract` — each an
+  abstract base inherited by a `Mock{Name}ContractTests` blueprint + one `{Impl}ContractTests` per
+  implementation, with a `{Name}MockFactory` reference fake.
+- See `docs/architecture/adr/ADR-005-itdd-contract-tests-injected-sut.md`.
 
 ### 4. **ExxerCube.Prisma.Testing.Python**
 Python/CSnakes-specific test utilities.
@@ -73,15 +76,11 @@ public class DatabaseTestFixture : TestFixtureBase, IAsyncLifetime
 var logger = TestLoggerFactory.Create(_output); // _output is ITestOutputHelper
 logger.Log("Test message");
 
-// Use contract tests
-[Fact]
-public async Task MyService_SatisfiesContract()
+// Use contract tests (ADR-005): inherit the abstract contract base — every [Fact] runs against your SUT
+public sealed class MyServiceContractTests : PersonIdentityResolverContract
 {
-    var service = new MyService();
-    await IPersonIdentityResolverContractTests
-        .VerifyFindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue(
-            service, 
-            TestContext.Current.CancellationToken);
+    public MyServiceContractTests(ITestOutputHelper output)
+        : base(new MyService(XUnitLogger.CreateLogger<MyService>(output))) { }
 }
 ```
 
@@ -90,5 +89,5 @@ public async Task MyService_SatisfiesContract()
 1. **No test project dependencies** - Test projects reference library projects, not each other
 2. **Library projects use `xunit.v3.extensibility.core`** - Not `xunit.v3` (which is for test projects)
 3. **Deferred execution** - Loggers use no-op pattern in libraries, test projects provide ITestOutputHelper
-4. **Contract tests as methods** - Not test classes, reusable across Infrastructure test projects
+4. **Contract tests as abstract base classes** (ADR-005) - inherited per implementation (`Mock{Name}ContractTests` blueprint + one `{Impl}ContractTests` each); the older static-helper shape is superseded
 
