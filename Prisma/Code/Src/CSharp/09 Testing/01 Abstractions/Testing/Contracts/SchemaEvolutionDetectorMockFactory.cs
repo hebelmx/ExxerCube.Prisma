@@ -8,6 +8,7 @@ using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Testing.Contracts;
@@ -45,20 +46,27 @@ public static class SchemaEvolutionDetectorMockFactory
         var mock = Substitute.For<ISchemaEvolutionDetector>();
 
         mock.DetectDriftAsync(Arg.Any<object>(), Arg.Any<TemplateDefinition>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(DetectDrift(call.ArgAt<object>(0), call.ArgAt<TemplateDefinition>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled<SchemaDriftReport>()
+                : DetectDrift(call.ArgAt<object>(0), call.ArgAt<TemplateDefinition>(1))));
 
         mock.DetectDriftForActiveTemplateAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(DetectDriftForActive(
-                templateStore, call.ArgAt<object>(0), call.ArgAt<string>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled<SchemaDriftReport>()
+                : DetectDriftForActive(templateStore, call.ArgAt<object>(0), call.ArgAt<string>(1))));
 
         mock.SuggestFieldMappingsAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(SuggestFieldMappings(call.ArgAt<object>(0))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled<FieldMapping[]>()
+                : SuggestFieldMappings(call.ArgAt<object>(0))));
 
         mock.CalculateSimilarity(Arg.Any<string>(), Arg.Any<string>())
             .Returns(call => CalculateSimilarity(call.ArgAt<string>(0), call.ArgAt<string>(1)));
 
         mock.ValidateTemplateCompatibilityAsync(Arg.Any<object>(), Arg.Any<TemplateDefinition>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(ValidateCompatibility(call.ArgAt<object>(0), call.ArgAt<TemplateDefinition>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled()
+                : ValidateCompatibility(call.ArgAt<object>(0), call.ArgAt<TemplateDefinition>(1))));
 
         return mock;
     }

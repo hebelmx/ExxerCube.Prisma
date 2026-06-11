@@ -68,6 +68,11 @@ public class ExpedienteClasifierService : IExpedienteClasifier
         Expediente expediente,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<ExpedienteClassificationResult>();
+        }
+
         try
         {
             _logger.LogDebug("Classifying Expediente: {NumeroExpediente}", expediente.NumeroExpediente);
@@ -121,6 +126,11 @@ public class ExpedienteClasifierService : IExpedienteClasifier
         RequirementType requirementType,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<ArticleValidationResult>());
+        }
+
         try
         {
             _logger.LogDebug("Validating Article 4 compliance for {NumeroExpediente}", expediente.NumeroExpediente);
@@ -169,6 +179,11 @@ public class ExpedienteClasifierService : IExpedienteClasifier
         Expediente expediente,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<List<RejectionReason>>());
+        }
+
         try
         {
             _logger.LogDebug("Checking Article 17 rejection grounds for {NumeroExpediente}", expediente.NumeroExpediente);
@@ -232,6 +247,11 @@ public class ExpedienteClasifierService : IExpedienteClasifier
         Expediente expediente,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<SemanticAnalysis>();
+        }
+
         try
         {
             _logger.LogDebug("Analyzing semantic requirements for {NumeroExpediente}", expediente.NumeroExpediente);

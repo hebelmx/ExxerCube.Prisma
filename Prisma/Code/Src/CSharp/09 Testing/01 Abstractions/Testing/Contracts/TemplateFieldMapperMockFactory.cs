@@ -10,6 +10,7 @@ using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Testing.Contracts;
@@ -40,24 +41,29 @@ public static class TemplateFieldMapperMockFactory
         var mock = Substitute.For<ITemplateFieldMapper>();
 
         mock.MapFieldAsync(Arg.Any<object>(), Arg.Any<FieldMapping>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(MapField(
-                call.ArgAt<object>(0), call.ArgAt<FieldMapping>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled<string>()
+                : MapField(call.ArgAt<object>(0), call.ArgAt<FieldMapping>(1))));
 
         mock.MapAllFieldsAsync(Arg.Any<object>(), Arg.Any<TemplateDefinition>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(MapAllFields(
-                call.ArgAt<object>(0), call.ArgAt<TemplateDefinition>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled<Dictionary<string, string>>()
+                : MapAllFields(call.ArgAt<object>(0), call.ArgAt<TemplateDefinition>(1))));
 
         mock.ValidateMappingAsync(Arg.Any<Type>(), Arg.Any<FieldMapping>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(ValidateMapping(
-                call.ArgAt<Type>(0), call.ArgAt<FieldMapping>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled()
+                : ValidateMapping(call.ArgAt<Type>(0), call.ArgAt<FieldMapping>(1))));
 
         mock.ApplyTransformationAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(ApplyTransformation(
-                call.ArgAt<string>(0), call.ArgAt<string>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled<string>()
+                : ApplyTransformation(call.ArgAt<string>(0), call.ArgAt<string>(1))));
 
         mock.ValidateFieldValueAsync(Arg.Any<string>(), Arg.Any<FieldMapping>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(ValidateFieldValue(
-                call.ArgAt<string>(0), call.ArgAt<FieldMapping>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled()
+                : ValidateFieldValue(call.ArgAt<string>(0), call.ArgAt<FieldMapping>(1))));
 
         return mock;
     }

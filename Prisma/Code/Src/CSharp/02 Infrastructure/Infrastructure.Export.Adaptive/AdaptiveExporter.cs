@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Infrastructure.Export.Adaptive;
@@ -45,6 +46,11 @@ public class AdaptiveExporter : IAdaptiveExporter
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<byte[]>();
+        }
+
         if (sourceObject == null)
         {
             return Result<byte[]>.Failure("Source object cannot be null");
@@ -94,6 +100,11 @@ public class AdaptiveExporter : IAdaptiveExporter
         string version,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<byte[]>();
+        }
+
         if (sourceObject == null)
         {
             return Result<byte[]>.Failure("Source object cannot be null");
@@ -145,6 +156,11 @@ public class AdaptiveExporter : IAdaptiveExporter
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<TemplateDefinition>();
+        }
+
         if (string.IsNullOrWhiteSpace(templateType))
         {
             return Result<TemplateDefinition>.Failure("Template type cannot be null or empty");
@@ -186,6 +202,11 @@ public class AdaptiveExporter : IAdaptiveExporter
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled();
+        }
+
         if (sourceObject == null)
         {
             return Result.Failure("Source object cannot be null");
@@ -234,6 +255,11 @@ public class AdaptiveExporter : IAdaptiveExporter
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<Dictionary<string, string>>();
+        }
+
         if (sourceObject == null)
         {
             return Result<Dictionary<string, string>>.Failure("Source object cannot be null");
@@ -285,6 +311,11 @@ public class AdaptiveExporter : IAdaptiveExporter
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<bool>();
+        }
+
         if (string.IsNullOrWhiteSpace(templateType))
         {
             return Result<bool>.Success(false);

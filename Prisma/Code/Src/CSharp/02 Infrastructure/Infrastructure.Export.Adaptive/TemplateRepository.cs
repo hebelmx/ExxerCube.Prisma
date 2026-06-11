@@ -7,6 +7,7 @@ using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -37,6 +38,12 @@ public class TemplateRepository : ITemplateRepository
         string version,
         CancellationToken cancellationToken = default)
     {
+        // Non-Result return: honor cancellation pragmatically (return null rather than throw OCE).
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
+
         _logger.LogDebug("Getting template: {TemplateType} v{Version}", templateType, version);
 
         return await _dbContext.Templates
@@ -52,6 +59,12 @@ public class TemplateRepository : ITemplateRepository
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        // Non-Result return: honor cancellation pragmatically (return null rather than throw OCE).
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
+
         _logger.LogDebug("Getting latest active template for: {TemplateType}", templateType);
 
         var now = DateTime.UtcNow;
@@ -72,6 +85,12 @@ public class TemplateRepository : ITemplateRepository
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        // Non-Result return: honor cancellation pragmatically (return empty rather than throw OCE).
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Array.Empty<TemplateDefinition>();
+        }
+
         _logger.LogDebug("Getting all versions for template: {TemplateType}", templateType);
 
         var templates = await _dbContext.Templates
@@ -88,6 +107,11 @@ public class TemplateRepository : ITemplateRepository
         TemplateDefinition template,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled();
+        }
+
         if (template == null)
         {
             return Result.Failure("Template cannot be null");
@@ -162,6 +186,11 @@ public class TemplateRepository : ITemplateRepository
         string version,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled();
+        }
+
         if (string.IsNullOrWhiteSpace(templateType))
         {
             return Result.Failure("TemplateType is required");
@@ -214,6 +243,11 @@ public class TemplateRepository : ITemplateRepository
         string version,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled();
+        }
+
         if (string.IsNullOrWhiteSpace(templateType))
         {
             return Result.Failure("TemplateType is required");

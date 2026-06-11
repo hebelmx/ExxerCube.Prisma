@@ -22,6 +22,11 @@ public class FileTypeIdentifierService : IFileTypeIdentifier
         string? fileName = null,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<FileFormat>());
+        }
+
         if (fileContent == null || fileContent.Length == 0)
         {
             return Task.FromResult(Result<FileFormat>.WithFailure("File content is null or empty"));

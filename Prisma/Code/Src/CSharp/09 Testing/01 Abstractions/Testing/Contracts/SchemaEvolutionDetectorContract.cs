@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using IndQuestResults.Operations;
 using Shouldly;
 using Xunit;
 
@@ -487,5 +488,71 @@ public abstract class SchemaEvolutionDetectorContract
         result.IsFailure.ShouldBeTrue();
         (result.Error ?? string.Empty).ShouldContain("incompatible");
         (result.Error ?? string.Empty).ShouldContain("Age");
+    }
+
+    //
+    // Cancellation Tests (Phase 6 — repository-wide CancellationToken mandate, ADR-005 §5)
+    //
+    // CalculateSimilarity is a synchronous pure function with no CancellationToken, so it has no cancel test.
+    //
+
+    private static TemplateDefinition CompatibleTemplate()
+    {
+        var template = new TemplateDefinition
+        {
+            TemplateId = Guid.NewGuid().ToString(),
+            TemplateType = "Excel",
+            Version = "1.0.0",
+            IsActive = true,
+            EffectiveDate = DateTime.UtcNow.AddDays(-1),
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = "Test"
+        };
+        template.FieldMappings.Add(new FieldMapping("Name", "TargetName", isRequired: true));
+        return template;
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits DetectDriftAsync to Cancelled (never a throw).</summary>
+    [Fact]
+    public async Task DetectDriftAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var detector = CreateSut();
+
+        var result = await detector.DetectDriftAsync(new { Name = "John" }, CompatibleTemplate(), new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits DetectDriftForActiveTemplateAsync to Cancelled.</summary>
+    [Fact]
+    public async Task DetectDriftForActiveTemplateAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var detector = CreateSut();
+
+        var result = await detector.DetectDriftForActiveTemplateAsync(new { Name = "John" }, "Excel", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits SuggestFieldMappingsAsync to Cancelled.</summary>
+    [Fact]
+    public async Task SuggestFieldMappingsAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var detector = CreateSut();
+
+        var result = await detector.SuggestFieldMappingsAsync(new { Name = "John" }, "Excel", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ValidateTemplateCompatibilityAsync to Cancelled.</summary>
+    [Fact]
+    public async Task ValidateTemplateCompatibilityAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var detector = CreateSut();
+
+        var result = await detector.ValidateTemplateCompatibilityAsync(new { Name = "John" }, CompatibleTemplate(), new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
     }
 }

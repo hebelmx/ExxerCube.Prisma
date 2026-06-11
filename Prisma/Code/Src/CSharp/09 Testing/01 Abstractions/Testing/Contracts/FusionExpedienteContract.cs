@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using Shouldly;
 using Xunit;
 
@@ -33,8 +34,9 @@ namespace ExxerCube.Prisma.Testing.Contracts;
 /// </para>
 /// <para>
 /// The scenario inputs (agreeing/disagreeing values, source quality) are plain data the contract
-/// owns directly — there are no implementation-specific fixtures here. No cancellation test exists
-/// (neither did the original — carried to Phase 6).
+/// owns directly — there are no implementation-specific fixtures here. Cancellation tests (one per
+/// method) were added in Phase 6 once the impl was fixed to honor the token (carried from the Phase 4
+/// gate).
 /// </para>
 /// </remarks>
 public abstract class FusionExpedienteContract
@@ -303,6 +305,42 @@ public abstract class FusionExpedienteContract
         result.Value.ShouldNotBeNull();
         result.Value.Decision.ShouldBe(FusionDecision.AllSourcesNull);
         result.Value.Value.ShouldBeNull();
+    }
+
+    //
+    // Cancellation Tests (Phase 6 — repository-wide CancellationToken mandate, ADR-005 §5)
+    //
+
+    /// <summary>Contract: a pre-cancelled token short-circuits FuseAsync to Cancelled (never a throw).</summary>
+    [Fact]
+    public async Task FuseAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var sut = CreateSut();
+        var xml = CreateTestExpediente("A/AS1-1111-222222-AAA", "ASEGURAMIENTO");
+
+        var result = await sut.FuseAsync(
+            xml, null, null,
+            CreateHighQualityMetadata(SourceType.XML_HandFilled),
+            CreateEmptyMetadata(SourceType.PDF_OCR_CNBV),
+            CreateEmptyMetadata(SourceType.DOCX_OCR_Authority),
+            new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits FuseFieldAsync to Cancelled.</summary>
+    [Fact]
+    public async Task FuseFieldAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var sut = CreateSut();
+        var candidates = new List<FieldCandidate>
+        {
+            new() { Value = "ASEGURAMIENTO", Source = SourceType.XML_HandFilled, SourceReliability = 0.75 }
+        };
+
+        var result = await sut.FuseFieldAsync("AreaDescripcion", candidates, new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
     }
 
     //

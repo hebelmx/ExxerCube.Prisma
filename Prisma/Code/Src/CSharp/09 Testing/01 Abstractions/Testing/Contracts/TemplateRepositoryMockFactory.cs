@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Testing.Contracts;
@@ -36,23 +37,37 @@ public static class TemplateRepositoryMockFactory
         var store = new List<TemplateDefinition>();
         var mock = Substitute.For<ITemplateRepository>();
 
+        // Non-Result getters mirror the production impl's pragmatic cancellation (null / empty, no throw);
+        // the Result-returning commands return a Cancelled Result.
         mock.GetTemplateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(GetTemplate(store, call.ArgAt<string>(0), call.ArgAt<string>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? null
+                : GetTemplate(store, call.ArgAt<string>(0), call.ArgAt<string>(1))));
 
         mock.GetLatestTemplateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(GetLatest(store, call.ArgAt<string>(0))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? null
+                : GetLatest(store, call.ArgAt<string>(0))));
 
         mock.GetAllTemplateVersionsAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(GetAllVersions(store, call.ArgAt<string>(0))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? (IReadOnlyList<TemplateDefinition>)Array.Empty<TemplateDefinition>()
+                : GetAllVersions(store, call.ArgAt<string>(0))));
 
         mock.SaveTemplateAsync(Arg.Any<TemplateDefinition>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(Save(store, call.ArgAt<TemplateDefinition>(0))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? ResultExtensions.Cancelled()
+                : Save(store, call.ArgAt<TemplateDefinition>(0))));
 
         mock.DeleteTemplateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(Delete(store, call.ArgAt<string>(0), call.ArgAt<string>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled()
+                : Delete(store, call.ArgAt<string>(0), call.ArgAt<string>(1))));
 
         mock.ActivateTemplateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(Activate(store, call.ArgAt<string>(0), call.ArgAt<string>(1))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled()
+                : Activate(store, call.ArgAt<string>(0), call.ArgAt<string>(1))));
 
         return mock;
     }

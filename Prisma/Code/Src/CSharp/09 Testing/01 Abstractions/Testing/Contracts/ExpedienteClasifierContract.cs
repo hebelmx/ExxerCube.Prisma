@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using Shouldly;
 using Xunit;
 
@@ -35,8 +36,8 @@ namespace ExxerCube.Prisma.Testing.Contracts;
 /// <para>
 /// Inputs are supplied through abstract fixture hooks so each implementation (and the blueprint)
 /// provides a representative Expediente it considers e.g. "an aseguramiento request"; the base then
-/// asserts the behavioural outcome. No cancellation test exists (neither did the original — carried
-/// to Phase 6, per the ADR-005 §7 / Phase 2-3 precedent).
+/// asserts the behavioural outcome. Cancellation tests (one per method) were added in Phase 6 once the
+/// impl was fixed to honor the token (carried from the Phase 4 gate, per the ADR-005 §7 precedent).
 /// </para>
 /// </remarks>
 public abstract class ExpedienteClasifierContract
@@ -349,5 +350,56 @@ public abstract class ExpedienteClasifierContract
         result.Value.ShouldNotBeNull();
         result.Value.RequiereTransferencia.ShouldNotBeNull();
         result.Value.RequiereTransferencia.EsRequerido.ShouldBeTrue();
+    }
+
+    //
+    // Cancellation Tests (Phase 6 — repository-wide CancellationToken mandate, ADR-005 §5)
+    //
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ClassifyAsync to Cancelled (never a throw).</summary>
+    [Fact]
+    public async Task ClassifyAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ClassifyAsync(CreateCompleteExpediente(), new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ValidateArticle4Async to Cancelled.</summary>
+    [Fact]
+    public async Task ValidateArticle4Async_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ValidateArticle4Async(
+            CreateCompleteExpediente(),
+            RequirementType.InformationRequest,
+            new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits CheckArticle17RejectionAsync to Cancelled.</summary>
+    [Fact]
+    public async Task CheckArticle17RejectionAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.CheckArticle17RejectionAsync(CreateCompleteExpediente(), new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits AnalyzeSemanticRequirementsAsync to Cancelled.</summary>
+    [Fact]
+    public async Task AnalyzeSemanticRequirementsAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.AnalyzeSemanticRequirementsAsync(CreateCompleteExpediente(), new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
     }
 }

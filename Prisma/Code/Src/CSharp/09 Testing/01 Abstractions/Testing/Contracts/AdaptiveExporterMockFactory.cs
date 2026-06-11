@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Testing.Contracts;
@@ -47,7 +48,9 @@ public static class AdaptiveExporterMockFactory
                 templateStore, fieldMapper, call.ArgAt<object>(0), call.ArgAt<string>(1), call.ArgAt<string>(2), call.ArgAt<CancellationToken>(3)));
 
         mock.GetActiveTemplateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(GetActiveTemplate(templateStore, call.ArgAt<string>(0))));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? ResultExtensions.Cancelled<TemplateDefinition>()
+                : GetActiveTemplate(templateStore, call.ArgAt<string>(0))));
 
         mock.ValidateExportAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(call => ValidateExportAsync(
@@ -58,7 +61,9 @@ public static class AdaptiveExporterMockFactory
                 templateStore, fieldMapper, call.ArgAt<object>(0), call.ArgAt<string>(1), call.ArgAt<CancellationToken>(2)));
 
         mock.IsTemplateAvailableAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(call => Task.FromResult(Result<bool>.Success(GetLatest(templateStore, call.ArgAt<string>(0)) != null)));
+            .Returns(call => Task.FromResult(call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? ResultExtensions.Cancelled<bool>()
+                : Result<bool>.Success(GetLatest(templateStore, call.ArgAt<string>(0)) != null)));
 
         return mock;
     }
@@ -66,6 +71,11 @@ public static class AdaptiveExporterMockFactory
     private static async Task<Result<byte[]>> ExportAsync(
         List<TemplateDefinition> store, ITemplateFieldMapper fieldMapper, object sourceObject, string templateType, CancellationToken ct)
     {
+        if (ct.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<byte[]>();
+        }
+
         if (sourceObject == null)
         {
             return Result<byte[]>.Failure("Source object cannot be null");
@@ -90,6 +100,11 @@ public static class AdaptiveExporterMockFactory
     private static async Task<Result<byte[]>> ExportWithVersionAsync(
         List<TemplateDefinition> store, ITemplateFieldMapper fieldMapper, object sourceObject, string templateType, string version, CancellationToken ct)
     {
+        if (ct.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<byte[]>();
+        }
+
         if (sourceObject == null)
         {
             return Result<byte[]>.Failure("Source object cannot be null");
@@ -125,6 +140,11 @@ public static class AdaptiveExporterMockFactory
     private static async Task<Result> ValidateExportAsync(
         List<TemplateDefinition> store, ITemplateFieldMapper fieldMapper, object sourceObject, string templateType, CancellationToken ct)
     {
+        if (ct.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled();
+        }
+
         if (sourceObject == null)
         {
             return Result.Failure("Source object cannot be null");
@@ -154,6 +174,11 @@ public static class AdaptiveExporterMockFactory
     private static async Task<Result<Dictionary<string, string>>> PreviewMappingAsync(
         List<TemplateDefinition> store, ITemplateFieldMapper fieldMapper, object sourceObject, string templateType, CancellationToken ct)
     {
+        if (ct.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<Dictionary<string, string>>();
+        }
+
         if (sourceObject == null)
         {
             return Result<Dictionary<string, string>>.Failure("Source object cannot be null");

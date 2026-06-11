@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Testing.Contracts;
@@ -31,16 +32,24 @@ public static class ExpedienteClasifierMockFactory
         var mock = Substitute.For<IExpedienteClasifier>();
 
         mock.ClassifyAsync(Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
-            .Returns(call => Result<ExpedienteClassificationResult>.WithSuccess(Classify(call.ArgAt<Expediente>(0))));
+            .Returns(call => call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? ResultExtensions.Cancelled<ExpedienteClassificationResult>()
+                : Result<ExpedienteClassificationResult>.WithSuccess(Classify(call.ArgAt<Expediente>(0))));
 
         mock.ValidateArticle4Async(Arg.Any<Expediente>(), Arg.Any<RequirementType>(), Arg.Any<CancellationToken>())
-            .Returns(call => Result<ArticleValidationResult>.WithSuccess(ValidateArticle4(call.ArgAt<Expediente>(0))));
+            .Returns(call => call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled<ArticleValidationResult>()
+                : Result<ArticleValidationResult>.WithSuccess(ValidateArticle4(call.ArgAt<Expediente>(0))));
 
         mock.CheckArticle17RejectionAsync(Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
-            .Returns(call => Result<List<RejectionReason>>.WithSuccess(CheckArticle17(call.ArgAt<Expediente>(0))));
+            .Returns(call => call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? ResultExtensions.Cancelled<List<RejectionReason>>()
+                : Result<List<RejectionReason>>.WithSuccess(CheckArticle17(call.ArgAt<Expediente>(0))));
 
         mock.AnalyzeSemanticRequirementsAsync(Arg.Any<Expediente>(), Arg.Any<CancellationToken>())
-            .Returns(call => Result<SemanticAnalysis>.WithSuccess(AnalyzeSemantic(call.ArgAt<Expediente>(0))));
+            .Returns(call => call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? ResultExtensions.Cancelled<SemanticAnalysis>()
+                : Result<SemanticAnalysis>.WithSuccess(AnalyzeSemantic(call.ArgAt<Expediente>(0))));
 
         return mock;
     }

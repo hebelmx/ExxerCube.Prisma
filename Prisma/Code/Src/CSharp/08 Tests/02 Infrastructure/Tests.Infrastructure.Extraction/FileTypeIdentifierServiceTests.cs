@@ -4,8 +4,16 @@ using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 namespace ExxerCube.Prisma.Tests.Infrastructure.Extraction;
 
 /// <summary>
-/// Unit tests for <see cref="FileTypeIdentifierService"/>.
+/// Implementation-specific tests for <see cref="FileTypeIdentifierService"/>.
 /// </summary>
+/// <remarks>
+/// The universal contract behaviours (PDF magic-number identification, extension fallback, null/empty
+/// failure, pre-cancelled-token Cancelled) live in <see cref="FileTypeIdentifierServiceContractTests"/>
+/// (the ADR-005 §7 contract instance, Phase 6). What remains here is implementation-specific:
+/// XML/DOCX/ZIP signature detection (beyond the contract's scope, per its remarks) and the exact
+/// "null or empty" error-message pins. The redundant PdfContent / UnknownContentWithExtension tests were
+/// removed (now run against this service via the contract instance + the mutation suite).
+/// </remarks>
 public class FileTypeIdentifierServiceTests
 {
     private readonly ILogger<FileTypeIdentifierService> _logger;
@@ -18,23 +26,6 @@ public class FileTypeIdentifierServiceTests
     {
         _logger = Substitute.For<ILogger<FileTypeIdentifierService>>();
         _service = new FileTypeIdentifierService(_logger);
-    }
-
-    /// <summary>
-    /// Tests that PDF files are identified correctly by content signature.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyFileTypeAsync_PdfContent_ReturnsPdf()
-    {
-        // Arrange
-        var pdfContent = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34 }; // %PDF-1.4
-
-        // Act
-        var result = await _service.IdentifyFileTypeAsync(pdfContent, "test.pdf", TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(FileFormat.Pdf);
     }
 
     /// <summary>
@@ -74,23 +65,6 @@ public class FileTypeIdentifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldBe(FileFormat.Docx);
-    }
-
-    /// <summary>
-    /// Tests that file type identification falls back to extension when content identification fails.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyFileTypeAsync_UnknownContentWithExtension_ReturnsFormatFromExtension()
-    {
-        // Arrange
-        var unknownContent = new byte[] { 0x00, 0x01, 0x02, 0x03 };
-
-        // Act
-        var result = await _service.IdentifyFileTypeAsync(unknownContent, "test.pdf", TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldBe(FileFormat.Pdf);
     }
 
     /// <summary>

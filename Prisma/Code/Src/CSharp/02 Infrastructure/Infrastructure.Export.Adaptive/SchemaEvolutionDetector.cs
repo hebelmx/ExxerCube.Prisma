@@ -8,6 +8,7 @@ using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Infrastructure.Export.Adaptive;
@@ -46,6 +47,9 @@ public sealed class SchemaEvolutionDetector : ISchemaEvolutionDetector
         TemplateDefinition template,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return ResultExtensions.Cancelled<SchemaDriftReport>();
+
         if (sourceObject == null)
             return Result<SchemaDriftReport>.Failure("Source object cannot be null");
 
@@ -108,6 +112,9 @@ public sealed class SchemaEvolutionDetector : ISchemaEvolutionDetector
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return ResultExtensions.Cancelled<SchemaDriftReport>();
+
         if (sourceObject == null)
             return Result<SchemaDriftReport>.Failure("Source object cannot be null");
 
@@ -127,6 +134,9 @@ public sealed class SchemaEvolutionDetector : ISchemaEvolutionDetector
         string templateType,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return ResultExtensions.Cancelled<FieldMapping[]>();
+
         if (sourceObject == null)
             return Result<FieldMapping[]>.Failure("Source object cannot be null");
 
@@ -215,6 +225,9 @@ public sealed class SchemaEvolutionDetector : ISchemaEvolutionDetector
         TemplateDefinition template,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return ResultExtensions.Cancelled();
+
         var driftResult = await DetectDriftAsync(sourceObject, template, cancellationToken);
 
         if (driftResult.IsFailure)

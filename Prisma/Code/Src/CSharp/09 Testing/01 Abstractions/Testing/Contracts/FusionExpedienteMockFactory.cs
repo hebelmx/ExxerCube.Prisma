@@ -5,6 +5,7 @@ using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Testing.Contracts;
@@ -37,12 +38,16 @@ public static class FusionExpedienteMockFactory
                 Arg.Any<Expediente?>(), Arg.Any<Expediente?>(), Arg.Any<Expediente?>(),
                 Arg.Any<ExtractionMetadata>(), Arg.Any<ExtractionMetadata>(), Arg.Any<ExtractionMetadata>(),
                 Arg.Any<CancellationToken>())
-            .Returns(call => Fuse(
-                call.ArgAt<Expediente?>(0), call.ArgAt<Expediente?>(1), call.ArgAt<Expediente?>(2),
-                call.ArgAt<ExtractionMetadata>(3), call.ArgAt<ExtractionMetadata>(4), call.ArgAt<ExtractionMetadata>(5)));
+            .Returns(call => call.ArgAt<CancellationToken>(6).IsCancellationRequested
+                ? ResultExtensions.Cancelled<FusionResult>()
+                : Fuse(
+                    call.ArgAt<Expediente?>(0), call.ArgAt<Expediente?>(1), call.ArgAt<Expediente?>(2),
+                    call.ArgAt<ExtractionMetadata>(3), call.ArgAt<ExtractionMetadata>(4), call.ArgAt<ExtractionMetadata>(5)));
 
         mock.FuseFieldAsync(Arg.Any<string>(), Arg.Any<List<FieldCandidate>>(), Arg.Any<CancellationToken>())
-            .Returns(call => FuseField(call.ArgAt<List<FieldCandidate>>(1)));
+            .Returns(call => call.ArgAt<CancellationToken>(2).IsCancellationRequested
+                ? ResultExtensions.Cancelled<FieldFusionResult>()
+                : FuseField(call.ArgAt<List<FieldCandidate>>(1)));
 
         return mock;
     }

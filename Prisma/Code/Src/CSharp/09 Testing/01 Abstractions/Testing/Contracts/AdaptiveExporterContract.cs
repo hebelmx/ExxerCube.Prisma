@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using IndQuestResults.Operations;
 using Shouldly;
 using Xunit;
 
@@ -439,5 +440,77 @@ public abstract class AdaptiveExporterContract
 
         // Assert: SAME expectation (Liskov!)
         exception.ShouldBeNull();
+    }
+
+    //
+    // Cancellation Tests (Phase 6 — repository-wide CancellationToken mandate, ADR-005 §5)
+    //
+    // ClearTemplateCache is a synchronous void with no CancellationToken, so it has no cancel test.
+    //
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ExportAsync to Cancelled (never a throw).</summary>
+    [Fact]
+    public async Task ExportAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var exporter = CreateSut();
+
+        var result = await exporter.ExportAsync(new { Name = "Test" }, "Excel", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ExportWithVersionAsync to Cancelled.</summary>
+    [Fact]
+    public async Task ExportWithVersionAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var exporter = CreateSut();
+
+        var result = await exporter.ExportWithVersionAsync(new { Name = "Test" }, "Excel", "1.0.0", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits GetActiveTemplateAsync to Cancelled.</summary>
+    [Fact]
+    public async Task GetActiveTemplateAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var exporter = CreateSut();
+
+        var result = await exporter.GetActiveTemplateAsync("Excel", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ValidateExportAsync to Cancelled.</summary>
+    [Fact]
+    public async Task ValidateExportAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var exporter = CreateSut();
+
+        var result = await exporter.ValidateExportAsync(new { Name = "Test" }, "Excel", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits PreviewMappingAsync to Cancelled.</summary>
+    [Fact]
+    public async Task PreviewMappingAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var exporter = CreateSut();
+
+        var result = await exporter.PreviewMappingAsync(new { Name = "Test" }, "Excel", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits IsTemplateAvailableAsync to Cancelled.</summary>
+    [Fact]
+    public async Task IsTemplateAvailableAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var exporter = CreateSut();
+
+        var result = await exporter.IsTemplateAvailableAsync("Excel", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
     }
 }

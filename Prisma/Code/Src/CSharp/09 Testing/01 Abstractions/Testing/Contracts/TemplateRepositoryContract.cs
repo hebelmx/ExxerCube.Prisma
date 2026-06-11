@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using IndQuestResults.Operations;
 using Shouldly;
 using Xunit;
 
@@ -656,5 +658,56 @@ public abstract class TemplateRepositoryContract
         var oldTemplate = await repository.GetTemplateAsync("XML", "1.0.0", TestContext.Current.CancellationToken);
         oldTemplate.ShouldNotBeNull();
         oldTemplate.IsActive.ShouldBeFalse();
+    }
+
+    //
+    // Cancellation Tests (Phase 6 — repository-wide CancellationToken mandate, ADR-005 §5)
+    //
+    // NB: only the Result-returning commands (Save/Delete/Activate) can express a Cancelled Result.
+    // The three getters (GetTemplateAsync/GetLatestTemplateAsync/GetAllTemplateVersionsAsync) return a
+    // bare TemplateDefinition?/list, so they honor cancellation pragmatically (null/empty, no throw) in
+    // both the impl and the reference fake but cannot be asserted as IsCancelled here.
+    //
+
+    /// <summary>Contract: a pre-cancelled token short-circuits SaveTemplateAsync to Cancelled (never a throw).</summary>
+    [Fact]
+    public async Task SaveTemplateAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var repository = CreateSut();
+        var template = new TemplateDefinition
+        {
+            TemplateId = "excel-1.0.0",
+            TemplateType = "Excel",
+            Version = "1.0.0",
+            FieldMappings = new List<FieldMapping> { new FieldMapping("Name", "A1", true) },
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = "TestUser"
+        };
+
+        var result = await repository.SaveTemplateAsync(template, new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits DeleteTemplateAsync to Cancelled.</summary>
+    [Fact]
+    public async Task DeleteTemplateAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var repository = CreateSut();
+
+        var result = await repository.DeleteTemplateAsync("Excel", "1.0.0", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ActivateTemplateAsync to Cancelled.</summary>
+    [Fact]
+    public async Task ActivateTemplateAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var repository = CreateSut();
+
+        var result = await repository.ActivateTemplateAsync("Excel", "1.0.0", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
     }
 }

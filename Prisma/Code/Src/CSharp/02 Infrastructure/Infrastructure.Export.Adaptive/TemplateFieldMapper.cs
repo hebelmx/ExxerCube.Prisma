@@ -10,6 +10,7 @@ using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
 
 namespace ExxerCube.Prisma.Infrastructure.Export.Adaptive;
@@ -36,6 +37,11 @@ public class TemplateFieldMapper : ITemplateFieldMapper
         FieldMapping mapping,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<string>();
+        }
+
         if (sourceObject == null)
         {
             return Result<string>.Failure("Source object cannot be null");
@@ -129,6 +135,11 @@ public class TemplateFieldMapper : ITemplateFieldMapper
         TemplateDefinition template,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<Dictionary<string, string>>();
+        }
+
         if (sourceObject == null)
         {
             return Result<Dictionary<string, string>>.Failure("Source object cannot be null");
@@ -176,6 +187,11 @@ public class TemplateFieldMapper : ITemplateFieldMapper
         FieldMapping mapping,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled());
+        }
+
         if (sourceType == null)
         {
             return Task.FromResult(Result.Failure("Source type cannot be null"));
@@ -235,6 +251,11 @@ public class TemplateFieldMapper : ITemplateFieldMapper
         string transformExpression,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<string>());
+        }
+
         if (string.IsNullOrEmpty(value))
         {
             return Task.FromResult(Result<string>.Success(value ?? string.Empty));
@@ -275,6 +296,11 @@ public class TemplateFieldMapper : ITemplateFieldMapper
         FieldMapping mapping,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled());
+        }
+
         if (mapping.ValidationRules == null || mapping.ValidationRules.Count == 0)
         {
             return Task.FromResult(Result.Success());

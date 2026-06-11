@@ -50,6 +50,11 @@ public class FusionExpedienteService : IFusionExpediente
         ExtractionMetadata docxMetadata,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<FusionResult>();
+        }
+
         try
         {
             _logger.LogDebug("Starting multi-source Expediente fusion");
@@ -158,6 +163,11 @@ public class FusionExpedienteService : IFusionExpediente
         List<FieldCandidate> candidates,
         CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<FieldFusionResult>();
+        }
+
         try
         {
             _logger.LogDebug("Fusing field: {FieldName} with {CandidateCount} candidates", fieldName, candidates.Count);

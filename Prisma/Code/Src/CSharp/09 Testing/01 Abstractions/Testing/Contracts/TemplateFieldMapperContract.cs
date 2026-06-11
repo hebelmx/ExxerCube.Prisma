@@ -2,6 +2,7 @@ using System;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using IndQuestResults.Operations;
 using Shouldly;
 using Xunit;
 
@@ -553,6 +554,77 @@ public abstract class TemplateFieldMapperContract
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldNotBeNull();
         result.Error.ShouldContain("minimum length");
+    }
+
+    //
+    // Cancellation Tests (Phase 6 — repository-wide CancellationToken mandate, ADR-005 §5)
+    //
+
+    /// <summary>Contract: a pre-cancelled token short-circuits MapFieldAsync to Cancelled (never a throw).</summary>
+    [Fact]
+    public async Task MapFieldAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var sourceObject = new TestSourceObject { Name = "John Doe" };
+        var mapping = new FieldMapping("Name", "TargetName", isRequired: true);
+
+        var result = await Sut.MapFieldAsync(sourceObject, mapping, new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits MapAllFieldsAsync to Cancelled.</summary>
+    [Fact]
+    public async Task MapAllFieldsAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var sourceObject = new TestSourceObject { Name = "John", Age = 30 };
+        var template = new TemplateDefinition
+        {
+            TemplateId = "test-1.0.0",
+            TemplateType = "Test",
+            Version = "1.0.0",
+            FieldMappings = new List<FieldMapping> { new FieldMapping("Name", "TargetName", true) },
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = "Test"
+        };
+
+        var result = await Sut.MapAllFieldsAsync(sourceObject, template, new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ValidateMappingAsync to Cancelled.</summary>
+    [Fact]
+    public async Task ValidateMappingAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var result = await Sut.ValidateMappingAsync(
+            typeof(TestSourceObject),
+            new FieldMapping("Name", "TargetName", true),
+            new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ApplyTransformationAsync to Cancelled.</summary>
+    [Fact]
+    public async Task ApplyTransformationAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var result = await Sut.ApplyTransformationAsync("hello", "ToUpper()", new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>Contract: a pre-cancelled token short-circuits ValidateFieldValueAsync to Cancelled.</summary>
+    [Fact]
+    public async Task ValidateFieldValueAsync_WhenCancellationRequested_ReturnsCancelled()
+    {
+        var mapping = new FieldMapping("Code", "TargetCode", true)
+        {
+            ValidationRules = new List<string> { "Regex:^[A-Z0-9-]+$" }
+        };
+
+        var result = await Sut.ValidateFieldValueAsync("ABC-123", mapping, new CancellationToken(canceled: true));
+
+        result.IsCancelled().ShouldBeTrue();
     }
 
     //
