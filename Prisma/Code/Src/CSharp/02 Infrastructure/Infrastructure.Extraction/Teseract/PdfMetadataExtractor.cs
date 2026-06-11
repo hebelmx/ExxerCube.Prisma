@@ -204,15 +204,47 @@ public class PdfMetadataExtractor : IMetadataExtractor
     {
         try
         {
-            // Basic PDF text extraction using iTextSharp or similar
-            // For now, return empty string - full implementation would use a PDF library
-            // This is a placeholder - in production, use iTextSharp or PdfSharp
-            await Task.CompletedTask;
-            return Result<string>.Success(string.Empty);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return ResultExtensions.Cancelled<string>();
+            }
+
+            if (fileContent is null || fileContent.Length == 0)
+            {
+                return Result<string>.Success(string.Empty);
+            }
+
+            // Extract embedded (searchable) text with PdfPig. Image-only/scanned PDFs yield (near-)empty
+            // text, which makes the callers fall back to the OCR path. PdfPig is synchronous, so the
+            // page loop runs off-thread and honours cancellation between pages.
+            var text = await Task.Run(() =>
+            {
+                var pages = new List<string>();
+                using var document = UglyToad.PdfPig.PdfDocument.Open(fileContent);
+                foreach (var page in document.GetPages())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var pageText = UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor.ContentOrderTextExtractor.GetText(page);
+                    if (!string.IsNullOrWhiteSpace(pageText))
+                    {
+                        pages.Add(pageText);
+                    }
+                }
+
+                return string.Join(Environment.NewLine, pages);
+            }, cancellationToken).ConfigureAwait(false);
+
+            return Result<string>.Success(text);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return Result<string>.WithFailure($"Failed to extract text from PDF: {ex.Message}", default(string), ex);
+            return ResultExtensions.Cancelled<string>();
+        }
+        catch (Exception)
+        {
+            // A malformed/encrypted embedded-text layer must not break extraction — return empty so
+            // the callers fall back to OCR (best-effort, tolerant-parsing philosophy).
+            return Result<string>.Success(string.Empty);
         }
     }
 

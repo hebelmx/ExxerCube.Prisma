@@ -27,6 +27,7 @@
     <PackageReference Include="Tesseract" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="PDFtoImage" />
+    <PackageReference Include="PdfPig" />
     <PackageReference Include="FuzzySharp" />
   </ItemGroup>
   <ItemGroup>
