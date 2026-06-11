@@ -6,6 +6,20 @@
 
 ---
 
+> ## ⚠️ SUPERSEDED (2026-06-11) — see ADR-005
+> The **shape** these stories prescribe — standalone `II{InterfaceName}Tests.cs` mock-SUT classes
+> in an `Interfaces/` folder — is **superseded by
+> [ADR-005](../../architecture/adr/ADR-005-itdd-contract-tests-injected-sut.md)** and the ITDD
+> primer (`docs/Interface-Driven-Test-Driven-Development.md`). The current mandatory shape is an
+> **`abstract {Name}Contract` base** in `ExxerCube.Prisma.Testing.Contracts`, inherited by a
+> **mock/blueprint instance** (`Tests.Domain.Interfaces`) plus one instance per implementation —
+> with the mock setup centralised in a `{Name}MockFactory` (the executable design spec). See also
+> guidelines §6.5. **What remains valid and encouraged** is this doc's *mock-first design step*:
+> author the contract (now as base + factory + blueprint instance) before the implementations.
+> Do not create new standalone `II{Name}Tests.cs` classes.
+
+---
+
 ## Story 1.3: Field Matching and Unified Metadata Generation
 
 ### Task 1.3.1A: Create IITDD Contract Tests for Field Matching Interfaces

@@ -407,16 +407,36 @@ services.AddScoped<IAdaptiveStrategy, TableStrategy>();
 
 Register all implementations; use a factory or composite to select at runtime.
 
-### 6.5 ITTDD — Interface-Test-Driven Development
+### 6.5 ITDD — Interface-Driven Test-Driven Development
 
-Define port contracts in tests **before or alongside** implementations:
+Define a port's behavioural **contract** as an `abstract` base test class, then inherit it once per
+implementation (and once for a mock/blueprint instance). The mandatory shape is **ADR-005**
+(`docs/architecture/adr/ADR-005-itdd-contract-tests-injected-sut.md`) — it supersedes the older
+standalone `I*ContractTests.cs` shape:
 
 ```
-Tests.Domain.Interfaces/
-  ISchemaEvolutionDetectorContractTests.cs   // shared behavior all adapters must pass
+Testing.Contracts/                  (non-runnable lib: Shouldly + xunit.v3.extensibility.core + NSubstitute)
+  {Name}Contract.cs                 // abstract base — NOT discovered by xUnit
+  {Name}MockFactory.cs              // reference-fake SUT (the executable design spec)
+Tests.Domain.Interfaces/            (runnable)
+  Mock{Name}ContractTests.cs        // blueprint instance (SUT from the mock factory)
+Tests.Infrastructure.<Adapter>/     (runnable)
+  {ImplName}ContractTests.cs        // one instance per implementation
 ```
 
-Architecture tests then verify every `I*` in Domain has a non-stub implementation (IL body size analysis).
+- **N + 1 inheritors:** 1 blueprint (mock) + N real implementations, all running the identical
+  `[Fact]`/`[Theory]` bodies once per deriving class (xunit.v3 + MTP discover inherited facts natively).
+- **SUT mechanism:** constructor-injected interface-typed `Sut` by default; `protected abstract T
+  CreateSut()` only where construction needs a per-implementation fixture (EF context, files).
+- **Scope rule:** a test belongs in the base iff *any* correct implementation must pass it (Result
+  semantics, null/empty handling, **cancellation**, ordering, XML-doc'd behaviour). Implementation
+  richness (fixtures, regex/format specifics, confidence tiers, and **all `*MutationTests`**) stays in
+  the implementation's test project — alongside, never inside, the contract.
+- The mock/blueprint class is the **design spec, authored first** and **never deleted** — it becomes
+  the first instance of its base; only superseded copy-paste twins are removed.
+
+Architecture tests verify every `I*` in Domain has a non-stub implementation (IL body size), and that
+every `*Contract` in `Testing.Contracts` is `abstract` with ≥ 1 inheriting test class (ADR-005 guardrail).
 
 ### 6.6 ADR Discipline
 

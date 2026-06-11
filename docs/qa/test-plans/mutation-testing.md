@@ -15,6 +15,29 @@ tests. A mutant **killed** = a test failed (good — the suite caught the fault)
 all tests still passed (a blind spot — code a test should pin but doesn't). The **mutation score** =
 killed / (total non-error mutants).
 
+## Excluded from mutation testing (explicit list)
+
+These production types are **deliberately not mutated** — kept off the `mutate` globs (and not added to
+new ones). The reasons are I/O-bound (no deterministic in-process behaviour to kill), native-bound, or
+dormant-by-design. Previously these were only noted inline / in code comments (Phase-5 ITDD gate Minor) —
+this is the canonical list:
+
+- **EF Core / database repositories & contexts** — `EfCoreRepository<T,TId>` (Infrastructure.Database),
+  `TemplateRepository` + `TemplateDbContext*` + `TemplateSeeder` (Infrastructure.Export.Adaptive), the
+  `*DbContext`, `InitialCreate*` migrations and `*ModelSnapshot` classes. EF/DB I/O has no in-process
+  killable surface; their behaviour is verified by Testcontainers/EF-InMemory integration + contract tests.
+- **`ManualReviewerService`** (Infrastructure.Database) — DB-backed review panel; same EF/DB rationale.
+  Verified via `ManualReviewerPanelContract` (EF-InMemory) + the impl twin, not Stryker.
+- **I/O orchestrators** — `MetadataExtractionService`, `DocumentIngestionService`, `FileDownloadService`,
+  and similar `File.*` / network orchestrators (real filesystem/network I/O).
+- **Native-bound imaging** — the Emgu/OpenCv/PIL analyzers and native enhancement filters.
+- **Dormant-by-design Python/VLM** — `Extraction.GotOcr2` / `Extraction.Python` (CSnakes/VLM, intentionally
+  dormant — see CLAUDE.md / ADR-001).
+
+> Adding a CancellationToken guard or a contract-test instance to an excluded type is safe (no kill-power
+> to preserve). When such a type *also* has a deterministic, pure surface (e.g. `PersonIdentityResolverService`'s
+> name/RFC helpers vs its `FindByRfcAsync` DB stub), mutate **only** the pure part — see Units 42-48 below.
+
 ## Pilot (intentionally tiny — proves the toolchain)
 Scoped to one deterministic, well-tested unit so the first run is fast and the MTP compatibility is proven:
 
