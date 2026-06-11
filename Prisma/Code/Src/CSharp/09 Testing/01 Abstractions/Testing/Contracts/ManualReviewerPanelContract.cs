@@ -47,6 +47,16 @@ public abstract class ManualReviewerPanelContract
     /// <returns>The <see cref="IManualReviewerPanel"/> implementation to verify.</returns>
     protected abstract IManualReviewerPanel CreateSut();
 
+    /// <summary>
+    /// The classification confidence at or above which a document is NOT flagged as low-confidence.
+    /// The exact value is an implementation choice (the interface does not fix it), so it is a virtual
+    /// contract property (owner threshold-property pattern, ADR-005 / plan §4.1 Phase 4): the behavioural
+    /// tests pin "below the threshold ⇒ low-confidence case", and an implementation with a different
+    /// threshold overrides this. The reference fake and the production <c>ManualReviewerService</c> both
+    /// use 80, so the default matches them.
+    /// </summary>
+    protected virtual int LowConfidenceThreshold => 80;
+
     private static UnifiedMetadataRecord MetadataWith(ClassificationResult classification, MatchedFields? matchedFields = null)
         => new() { Classification = classification, MatchedFields = matchedFields! };
 
@@ -167,9 +177,10 @@ public abstract class ManualReviewerPanelContract
     {
         var sut = CreateSut();
         var fileId = "FILE-" + Guid.NewGuid().ToString("N");
+        var lowConf = Classification(LowConfidenceThreshold - 5);
 
         var identify = await sut.IdentifyReviewCasesAsync(
-            fileId, MetadataWith(Classification(75)), Classification(75), TestContext.Current.CancellationToken);
+            fileId, MetadataWith(lowConf), lowConf, TestContext.Current.CancellationToken);
         identify.IsSuccess.ShouldBeTrue();
         identify.Value.ShouldNotBeNull();
         identify.Value!.ShouldNotBeEmpty();
@@ -255,9 +266,10 @@ public abstract class ManualReviewerPanelContract
     {
         var sut = CreateSut();
         var fileId = "FILE-" + Guid.NewGuid().ToString("N");
+        var classification = Classification(LowConfidenceThreshold - 5);
 
         var result = await sut.IdentifyReviewCasesAsync(
-            fileId, MetadataWith(Classification(75)), Classification(75), TestContext.Current.CancellationToken);
+            fileId, MetadataWith(classification), classification, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -302,7 +314,7 @@ public abstract class ManualReviewerPanelContract
     {
         var sut = CreateSut();
         var fileId = "FILE-" + Guid.NewGuid().ToString("N");
-        var classification = Classification(95, ClassificationLevel2.Judicial);
+        var classification = Classification(LowConfidenceThreshold + 15, ClassificationLevel2.Judicial);
         var metadata = MetadataWith(classification, new MatchedFields { ConflictingFields = new List<string>() });
 
         var result = await sut.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);

@@ -198,6 +198,28 @@ public class ManualReviewerServiceTests : IDisposable
         page2Result.Value.Count.ShouldBe(5);
     }
 
+    /// <summary>
+    /// Tests that GetReviewCasesAsync validates pagination parameters with implementation-specific error
+    /// messages (the base contract pins the failure behaviour; the exact strings are impl detail, ADR-005 §5).
+    /// </summary>
+    [Fact]
+    public async Task GetReviewCasesAsync_WithInvalidPagination_ReturnsFailure()
+    {
+        // Act - Invalid page number
+        var result1 = await _service.GetReviewCasesAsync(null, 0, 50, TestContext.Current.CancellationToken);
+
+        // Assert
+        result1.IsFailure.ShouldBeTrue();
+        result1.Error.ShouldContain("Page number must be greater than 0");
+
+        // Act - Invalid page size
+        var result2 = await _service.GetReviewCasesAsync(null, 1, 0, TestContext.Current.CancellationToken);
+
+        // Assert
+        result2.IsFailure.ShouldBeTrue();
+        result2.Error.ShouldContain("Page size must be between 1 and 1000");
+    }
+
      //  GetReviewCasesAsync Tests
 
      // SubmitReviewDecisionAsync Tests
@@ -382,6 +404,33 @@ public class ManualReviewerServiceTests : IDisposable
         result.Error.ShouldContain("Notes are required when overriding");
     }
 
+    /// <summary>
+    /// Tests that SubmitReviewDecisionAsync returns failure for a non-existent case with the
+    /// implementation-specific "not found" message (the base contract pins the failure behaviour).
+    /// </summary>
+    [Fact]
+    public async Task SubmitReviewDecisionAsync_WithInvalidCaseId_ReturnsFailure()
+    {
+        // Arrange
+        var decision = new ReviewDecision
+        {
+            DecisionId = "DEC-001",
+            CaseId = "INVALID-CASE",
+            DecisionType = DecisionType.Approve,
+            ReviewerId = "REVIEWER-001",
+            ReviewedAt = DateTime.UtcNow,
+            Notes = "Approved"
+        };
+
+        // Act
+        var result = await _service.SubmitReviewDecisionAsync("INVALID-CASE", decision, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNull();
+        result.Error.ShouldContain("not found");
+    }
+
      //  SubmitReviewDecisionAsync Tests
 
      // GetFieldAnnotationsAsync Tests
@@ -427,6 +476,21 @@ public class ManualReviewerServiceTests : IDisposable
         result.Value.ShouldNotBeNull();
         result.Value.CaseId.ShouldBe("CASE-001");
         result.Value.FieldAnnotationsDict.ShouldNotBeNull();
+    }
+
+    /// <summary>
+    /// Tests that GetFieldAnnotationsAsync returns failure for a non-existent case with the
+    /// implementation-specific "not found" message (the base contract pins the failure behaviour).
+    /// </summary>
+    [Fact]
+    public async Task GetFieldAnnotationsAsync_WithInvalidCaseId_ReturnsFailure()
+    {
+        // Act
+        var result = await _service.GetFieldAnnotationsAsync("INVALID-CASE", TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldContain("not found");
     }
 
      //  GetFieldAnnotationsAsync Tests
