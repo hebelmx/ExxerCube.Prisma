@@ -387,6 +387,57 @@ Order of operations that worked for the pilot; repeat per interface:
   for Phase 6 (fix impls → then add the base test). Don't add it mid-lift; it surfaces
   implementation bugs and reds the phase.
 
+**Phase 3 addenda (first true multi-implementation contract — N>1 real inheritors):**
+
+- **The twins are NOT byte-identical here — split shared vs divergent per-`[Fact]`, not
+  per-file.** The 5 strategy twins shared a 17-test skeleton but diverged in three axes:
+  the sample document, the asserted detail (`ShouldBe` vs `ShouldContain`, exact field
+  values), and the `StrategyName`/confidence threshold. Only the bodies that are
+  **byte-identical across all N modulo the doc constant** go in the base (13 here);
+  parameterise those two axes with **abstract hooks** (`CreateSut()` + `ValidDocxText` /
+  `IncompatibleDocxText` / `ExpectedStrategyName`; keep a base `const EmptyDocx = ""`).
+- **Keep divergent tests impl-side VERBATIM, do not unify them.** The 4 per-strategy
+  divergent tests (rich-field `ExtractedFields`, the strategy-specific `ExtractFrom*`,
+  account-info, and the high-confidence threshold incl. an exact `==90`) stay in each
+  deriving class with their original `_Liskov` names and bodies unchanged — zero
+  kill-power risk, and ADR-005 §5 says exact field values / confidence tiers are
+  implementation richness, not contract-grade. **Adversarial-review trap:** a reviewer
+  will read the base's loose `ExtractMonetaryAmountsWithCurrency_Liskov` and claim the
+  exact-field assertions were "weakened away" — they weren't; they live in the impl-side
+  `ExtractedFields_Liskov` test. Defuse it by citing the per-method map (the base test and
+  the rich test are *different tests* that happen to both touch Montos).
+- **Blueprint-only tests stay ON the blueprint instance, not in the base.** Tests the
+  blueprint documents but no real impl can satisfy uniformly (perf/timing, confidence
+  *tiers* that describe different strategies, Liskov *meta*-tests using two mocks) are
+  kept as self-contained `[Fact]`s on the `Mock{Name}ContractTests` class (each builds its
+  own local `Substitute.For<T>`). They are preserved (never deleted), just not promoted.
+- **Triage a blueprint assumption that contradicts the executable truth as a contract
+  decision, in writing.** The strategy blueprint asserted empty-doc → *non-null empty
+  fields*; all 5 twins (executable truth) assert empty-doc → *null*. The twin wins — the
+  base pins null and the blueprint's wrong version is dropped (risk 2). The extractor
+  blueprint's `confidences.ShouldBeEmpty()` for a no-strategy doc likewise contradicts the
+  orchestrator (it returns one zero-entry *per strategy*); restore the genuine cross-method
+  invariant **adapted** (`ShouldAllBe(c => c.Confidence == 0)`) and document the adaptation
+  in the test's remarks. Record both in the commit message — reviewers (correctly) demand
+  the explicit ratification.
+- **Reference fakes can mirror the production orchestrator.** The extractor `MockFactory`
+  re-implements the same mode dispatch (BestStrategy/MergeAll/Complement) and the
+  one-zero-entry-per-strategy confidence behaviour, keyed on a document marker
+  (`Contains("Expediente")`) — so the *same* base bodies pass against both the fake and the
+  real SUT. For a SUT that ignores the cancellation token only at the boundary, throw
+  `ThrowIfCancellationRequested()` inside the fake's returns-lambda (NSubstitute invokes it
+  synchronously at call time, so `Should.ThrowAsync` catches it).
+- **Relocate shared test helpers BEFORE `git rm` of the file that defined them.** The
+  extractor twin defined `TestHelpers.CreateAllStrategies`, used by the integration test —
+  move it to its own file first or the integration test stops compiling.
+- **Stryker cross-assembly result (mutation-hardened, regex-heavy):** a clean combined re-run
+  reports the **same score as the per-unit baseline (97.25 %) with 0 killable survivors** —
+  the lone `Survived` is the documented Serilog-format-string floor (`String → ""` on a
+  `LogTrace`), which perTest attribution flaps between Survived/Timeout run-to-run. Trust
+  "score == baseline + only-floor survivors", not the raw Killed/Timeout split (regex
+  timeouts inflate both). Confirm the contract tests are discovered (`Number of tests found:
+  321`) so the inherited `[Fact]`s actually run under Stryker.
+
 ## 5. Progress tracker
 
 | Phase | Scope | Status | Session/commit |
@@ -395,7 +446,7 @@ Order of operations that worked for the pilot; repeat per interface:
 | 0 | ADR + template + playbook | ✅ Done (2026-06-10) — ADR-005 authored; primer "to be authored" note removed; NSubstitute added to Testing.Contracts; worked example `FileTypeIdentifierContract` + `FileTypeIdentifierMockFactory` (Testing.Contracts) + Mock/Reference instances (Tests.Domain.Interfaces). **Proof gate passed:** (a) facts compile via extensibility.core, library stays non-runnable; (b) abstract base not discovered (`--list-tests`: 12 entries, 6 per deriving class, 0 for the base); (c) Tests.Domain.Interfaces 19 → 31 = 19 + 6×2, all green. Arch guardrail deferred to Phase 6 (as allowed). **Gate: GO** (`/itdd-adversarial-review phase-0`, 2026-06-10) — 0 Blocker/Major; 2 Minors carried to Phase 6 (promote-or-justify XML/DOCX content tests when converting `FileTypeIdentifierService`; optional explicit IndQuestResults PackageReference in Testing.Contracts). | Kt2 `e49f145` |
 | 1 | Pilot: IFieldMergeStrategy | ✅ Done (2026-06-10) — `FieldMergeStrategyContract` (16 Liskov bodies lifted verbatim, `_Liskov` names preserved + 5 restored blueprint-only tests: dedup, empty-list, conflict ResolvedValue, 3-source AdditionalFields, empty-Conflicts) + `FieldMergeStrategyMockFactory` (reference-fake semantics); blueprint `MockFieldMergeStrategyContractTests` (Tests.Domain.Interfaces), impl `EnhancedFieldMergeStrategyContractTests` (Extraction.Adaptive, +Testing.Contracts ProjectReference); superseded twin + standalone mock removed (converted). Counts exact: Tests.Domain 337→321, Tests.Domain.Interfaces 31→52, Extraction.Adaptive 313→318 (net +10). **Scoped Stryker (§6.1 empirical gate) PASSED: same 148-mutant population, detected 129→136, Survived 7→0, NoCoverage 12 (floor), 87.16%→91.89% — Stryker+MTP resolves cross-assembly inherited [Fact]s, config untouched.** MutationKilling class untouched. Playbook recorded (§4.1). **Gate: GO** (`/itdd-adversarial-review phase-1`, 2026-06-10, 2 independent reviewer agents + cross-check) — 0 Blocker/Major; 1 Minor (single-source SourceCount assertion from the mock checklist not pinned in base — optional later); 2 reviewer findings discarded on reproduction (count-only assertion was original behavior; arch-test 18/19 not reproducible — caused by reviewer's StrykerCompat-flattened build state, fresh run 19/19). | Kt2 `0b4197a` |
 | 2 | Export.Adaptive ×4 | ✅ Done (2026-06-10) — `TemplateFieldMapperContract` (22, injected-Sut) + `TemplateRepositoryContract` (18, `CreateSut()` EF-InMemory; seed/verify re-expressed through the interface since the twin used `DbContext`-direct calls a mock blueprint can't) + `SchemaEvolutionDetectorContract` (16 = 15 shared + promoted boundary `CalculateSimilarity_WithEmptyStrings`; 2 "real-world scenario" tests kept impl-side per ADR-005 §5; `CreateSut()` + seed hook) + `AdaptiveExporterContract` (17, `CreateSut()` + seed hook). Four reference-fake `*MockFactory` classes in Testing.Contracts (Domain-only); the AdaptiveExporter fake composes the TemplateFieldMapper fake over an in-memory store. Blueprints in Tests.Domain.Interfaces, impl instances in Export.Adaptive (+Testing.Contracts ProjectReference); superseded twins + standalone mocks removed (converted). **Counts exact: Tests.Domain 321→249, Tests.Domain.Interfaces 52→125, Export.Adaptive 173→173 (net 0).** **Scoped Stryker (config untouched): Killed 408 = baseline sum (Units 17-20: 150+154+96+8), Survived 64 (floor), Timeout 0 — cross-assembly inherited [Fact] kill power preserved.** Solution build 0/0; Tests.Architecture 19/19 (clean rebuild; one reviewer's 18/19 was the StrykerOutput-flatten flap, §4.1 step 11). **Gate: GO WITH CONDITIONS** (`/itdd-adversarial-review phase-2`, 2026-06-10, 3 reviewer agents + cross-check) — 0 reproduced Blocker/Major. Reviewer's "missing-cancellation Blocker" downgraded to Minor-carried on cross-check: neither source had a cancellation test and all 4 impls ignore the CancellationToken, so adding one is net-new, exceeds the zero-drift lift scope, and surfaces 4 implementation bugs (defer per §6.2 / ADR-005 §7 precedent). Reviewer's 0.7→0.5 similarity "weakening" discarded: twin is executable truth, fake returns 0.7 (not loosened-to-pass), 0.5 is the correct contract floor. | Kt2 `1df7735` |
-| 3 | Adaptive DOCX ×6 | ☐ Not started | |
+| 3 | Adaptive DOCX (1 extractor + 5 strategies) | ✅ Done (2026-06-10) — **first true multi-implementation contract.** `AdaptiveDocxStrategyContract` (13 shared `_Liskov` bodies, parameterised by abstract hooks `CreateSut`/`ValidDocxText`/`IncompatibleDocxText`/`ExpectedStrategyName` + base `EmptyDocx` const) inherited by **6** classes (5 real strategies + blueprint); each strategy keeps **4 divergent tests impl-side** (ExtractedFields exact-detail, the strategy-specific `ExtractFrom*`/MexicanNames, AccountInfo CLABE-vs-NumeroCuenta, the per-strategy HighConfidence threshold incl. Structured's exact `==90`) per ADR-005 §5. `AdaptiveDocxExtractorContract` (12 twin bodies verbatim + 3 restored: default-mode + 2 cross-method meta) for the single orchestrator. Two reference-fake `*MockFactory` (the extractor fake mirrors `AdaptiveDocxExtractor`'s mode dispatch). Blueprints converted → `MockAdaptiveDocxStrategyContractTests` (keeps perf + medium/low confidence-tier + 2 Liskov-meta = 5 non-contract-grade tests) + `MockAdaptiveDocxExtractorContractTests` (keeps dedup + empty-list design notes = 2), both in Tests.Domain.Interfaces; superseded twins + 2 standalone blueprints removed (converted). `TestHelpers.CreateAllStrategies` relocated (still shared with the integration test). **Counts exact: Tests.Domain 249→212 (−22−15); Tests.Domain.Interfaces 125→160 (+18+17); Extraction.Adaptive 318→321 (+3 restored extractor tests) — all green.** **Scoped Stryker (config untouched, 6 files): 321 tests discovered cross-assembly; Killed 635, Timeout 427, Survived 1, score 97.25% = historical baseline. The 1 survivor is `TableBasedDocxStrategy.cs:283` String→"" on a Serilog `LogTrace` format string — the documented equivalent floor (perTest-flapping Serilog noise); 0 killable survivors, kill power preserved.** Solution build 0/0; Tests.Architecture 19/19 (clean rebuild, pre-Stryker). **Gate: GO WITH CONDITIONS** (`/itdd-adversarial-review phase-3`, 2026-06-10, 3 reviewer agents + cross-check) — 0 reproduced Blocker/Major. Reviewer-1 "weakened base Blocker" DISCARDED on reproduction: it conflated the base's loose `ExtractMonetaryAmountsWithCurrency_Liskov` (byte-identical to the twin's same test) with the exact-field `ExtractedFields_Liskov` test, which is kept impl-side verbatim (Reviewer-2's 1:1 map confirms). Two doc-conditions carried into this entry + commit msg: (1) empty-doc→null is an **explicit contract decision** (the blueprint's never-validated empty→non-null-fields assumption was dropped; all 5 twins assert null — risk 2); (2) the 2 standalone blueprints are **converted** (identity moved to Mock* in Tests.Domain.Interfaces), only the 6 copy-paste twins are deleted. | Kt2 (pending commit) |
 | 4 | Classification split ×2 | ☐ Not started | |
 | 5 | IRepository / IManualReviewerPanel / IPersonIdentityResolver | ☐ Not started | |
 | 6 | Sweep + guardrails + docs | ☐ Not started | |
