@@ -1,8 +1,18 @@
 namespace ExxerCube.Prisma.Tests.Infrastructure.Database;
 
 /// <summary>
-/// Unit tests for <see cref="ManualReviewerService"/>.
+/// Implementation-specific tests for <see cref="ManualReviewerService"/> that need direct fixture
+/// seeding or verify implementation details.
 /// </summary>
+/// <remarks>
+/// The cross-implementation contract behaviours (validation, cancellation, the identify rules, the
+/// identify→submit flow) live in <see cref="ManualReviewerServiceContractTests"/> (inherited from
+/// <c>ManualReviewerPanelContract</c>, Phase 5 of the ITDD refactor). The tests retained here seed the
+/// <c>PrismaDbContext</c> directly and/or assert implementation specifics that are not contract-grade:
+/// arbitrary status/confidence filtering, pagination counts, status-mapping verification,
+/// duplicate-decision prevention, the notes-required-on-override rule, and field-annotation retrieval
+/// (which needs seeded <c>FileMetadata</c>).
+/// </remarks>
 public class ManualReviewerServiceTests : IDisposable
 {
     private readonly PrismaDbContext _dbContext;
@@ -147,23 +157,6 @@ public class ManualReviewerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Tests that GetReviewCasesAsync handles cancellation correctly.
-    /// </summary>
-    [Fact]
-    public async Task GetReviewCasesAsync_WhenCancelled_ReturnsCancelledResult()
-    {
-        // Arrange
-        var cancellationTokenSource = new CancellationTokenSource();
-        cancellationTokenSource.Cancel();
-
-        // Act
-        var result = await _service.GetReviewCasesAsync(null, 1, 50, cancellationTokenSource.Token);
-
-        // Assert
-        result.IsCancelled().ShouldBeTrue();
-    }
-
-    /// <summary>
     /// Tests that GetReviewCasesAsync supports pagination correctly.
     /// </summary>
     [Fact]
@@ -203,27 +196,6 @@ public class ManualReviewerServiceTests : IDisposable
         page2Result.IsSuccess.ShouldBeTrue();
         page2Result.Value.ShouldNotBeNull();
         page2Result.Value.Count.ShouldBe(5);
-    }
-
-    /// <summary>
-    /// Tests that GetReviewCasesAsync validates pagination parameters.
-    /// </summary>
-    [Fact]
-    public async Task GetReviewCasesAsync_WithInvalidPagination_ReturnsFailure()
-    {
-        // Act - Invalid page number
-        var result1 = await _service.GetReviewCasesAsync(null, 0, 50, TestContext.Current.CancellationToken);
-
-        // Assert
-        result1.IsFailure.ShouldBeTrue();
-        result1.Error.ShouldContain("Page number must be greater than 0");
-
-        // Act - Invalid page size
-        var result2 = await _service.GetReviewCasesAsync(null, 1, 0, TestContext.Current.CancellationToken);
-
-        // Assert
-        result2.IsFailure.ShouldBeTrue();
-        result2.Error.ShouldContain("Page size must be between 1 and 1000");
     }
 
      //  GetReviewCasesAsync Tests
@@ -274,59 +246,6 @@ public class ManualReviewerServiceTests : IDisposable
         var savedDecision = await _dbContext.ReviewDecisions.FirstOrDefaultAsync(d => d.DecisionId == "DEC-001", TestContext.Current.CancellationToken);
         savedDecision.ShouldNotBeNull();
         savedDecision.DecisionType.ShouldBe(DecisionType.Approve);
-    }
-
-    /// <summary>
-    /// Tests that SubmitReviewDecisionAsync returns failure for invalid case ID.
-    /// </summary>
-    [Fact]
-    public async Task SubmitReviewDecisionAsync_WithInvalidCaseId_ReturnsFailure()
-    {
-        // Arrange
-        var decision = new ReviewDecision
-        {
-            DecisionId = "DEC-001",
-            CaseId = "INVALID-CASE",
-            DecisionType = DecisionType.Approve,
-            ReviewerId = "REVIEWER-001",
-            ReviewedAt = DateTime.UtcNow,
-            Notes = "Approved"
-        };
-
-        // Act
-        var result = await _service.SubmitReviewDecisionAsync("INVALID-CASE", decision, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldNotBeNull();
-        result.Error.ShouldContain("not found");
-    }
-
-    /// <summary>
-    /// Tests that SubmitReviewDecisionAsync handles cancellation correctly.
-    /// </summary>
-    [Fact]
-    public async Task SubmitReviewDecisionAsync_WhenCancelled_ReturnsCancelledResult()
-    {
-        // Arrange
-        var decision = new ReviewDecision
-        {
-            DecisionId = "DEC-001",
-            CaseId = "CASE-001",
-            DecisionType = DecisionType.Approve,
-            ReviewerId = "REVIEWER-001",
-            ReviewedAt = DateTime.UtcNow,
-            Notes = "Approved"
-        };
-
-        var cancellationTokenSource = new CancellationTokenSource();
-        cancellationTokenSource.Cancel();
-
-        // Act
-        var result = await _service.SubmitReviewDecisionAsync("CASE-001", decision, cancellationTokenSource.Token);
-
-        // Assert
-        result.IsCancelled().ShouldBeTrue();
     }
 
     /// <summary>
@@ -510,241 +429,7 @@ public class ManualReviewerServiceTests : IDisposable
         result.Value.FieldAnnotationsDict.ShouldNotBeNull();
     }
 
-    /// <summary>
-    /// Tests that GetFieldAnnotationsAsync returns failure for invalid case ID.
-    /// </summary>
-    [Fact]
-    public async Task GetFieldAnnotationsAsync_WithInvalidCaseId_ReturnsFailure()
-    {
-        // Act
-        var result = await _service.GetFieldAnnotationsAsync("INVALID-CASE", TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldContain("not found");
-    }
-
-    /// <summary>
-    /// Tests that GetFieldAnnotationsAsync handles cancellation correctly.
-    /// </summary>
-    [Fact]
-    public async Task GetFieldAnnotationsAsync_WhenCancelled_ReturnsCancelledResult()
-    {
-        // Arrange
-        var cancellationTokenSource = new CancellationTokenSource();
-        cancellationTokenSource.Cancel();
-
-        // Act
-        var result = await _service.GetFieldAnnotationsAsync("CASE-001", cancellationTokenSource.Token);
-
-        // Assert
-        result.IsCancelled().ShouldBeTrue();
-    }
-
      //  GetFieldAnnotationsAsync Tests
-
-     // IdentifyReviewCasesAsync Tests
-
-    /// <summary>
-    /// Tests that IdentifyReviewCasesAsync identifies low confidence cases.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyReviewCasesAsync_WithLowConfidence_IdentifiesCase()
-    {
-        // Arrange
-        var fileId = "FILE-001";
-        var metadata = new UnifiedMetadataRecord
-        {
-            Classification = new ClassificationResult
-            {
-                Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 75
-            }
-        };
-
-        var classification = new ClassificationResult
-        {
-            Level1 = ClassificationLevel1.Aseguramiento,
-            Confidence = 75
-        };
-
-        // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value.Count.ShouldBeGreaterThan(0);
-        result.Value.Any(c => c.RequiresReviewReason == ReviewReason.LowConfidence).ShouldBeTrue();
-    }
-
-    /// <summary>
-    /// Tests that IdentifyReviewCasesAsync identifies ambiguous classification cases.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyReviewCasesAsync_WithAmbiguousClassification_IdentifiesCase()
-    {
-        // Arrange
-        var fileId = "FILE-001";
-        var metadata = new UnifiedMetadataRecord
-        {
-            Classification = new ClassificationResult
-            {
-                Level1 = ClassificationLevel1.Aseguramiento,
-                Level2 = null,
-                Confidence = 85
-            }
-        };
-
-        var classification = new ClassificationResult
-        {
-            Level1 = ClassificationLevel1.Aseguramiento,
-            Level2 = null,
-            Confidence = 85
-        };
-
-        // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value.Any(c => c.RequiresReviewReason == ReviewReason.AmbiguousClassification && c.ClassificationAmbiguity).ShouldBeTrue();
-    }
-
-    /// <summary>
-    /// Tests that IdentifyReviewCasesAsync identifies extraction error cases.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyReviewCasesAsync_WithExtractionErrors_IdentifiesCase()
-    {
-        // Arrange
-        var fileId = "FILE-001";
-        var metadata = new UnifiedMetadataRecord
-        {
-            MatchedFields = new MatchedFields
-            {
-                ConflictingFields = new List<string> { "Expediente", "Causa" }
-            },
-            Classification = new ClassificationResult
-            {
-                Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 90
-            }
-        };
-
-        var classification = new ClassificationResult
-        {
-            Level1 = ClassificationLevel1.Aseguramiento,
-            Confidence = 90
-        };
-
-        // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value.Any(c => c.RequiresReviewReason == ReviewReason.ExtractionError).ShouldBeTrue();
-    }
-
-    /// <summary>
-    /// Tests that IdentifyReviewCasesAsync returns empty list for high confidence cases.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyReviewCasesAsync_WithHighConfidenceNoIssues_ReturnsEmptyList()
-    {
-        // Arrange
-        var fileId = "FILE-001";
-        var metadata = new UnifiedMetadataRecord
-        {
-            Classification = new ClassificationResult
-            {
-                Level1 = ClassificationLevel1.Aseguramiento,
-                Level2 = ClassificationLevel2.Judicial,
-                Confidence = 95
-            },
-            MatchedFields = new MatchedFields
-            {
-                ConflictingFields = new List<string>()
-            }
-        };
-
-        var classification = new ClassificationResult
-        {
-            Level1 = ClassificationLevel1.Aseguramiento,
-            Level2 = ClassificationLevel2.Judicial,
-            Confidence = 95
-        };
-
-        // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value.Count.ShouldBe(0);
-    }
-
-    /// <summary>
-    /// Tests that IdentifyReviewCasesAsync handles cancellation correctly.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyReviewCasesAsync_WhenCancelled_ReturnsCancelledResult()
-    {
-        // Arrange
-        var fileId = "FILE-001";
-        var metadata = new UnifiedMetadataRecord();
-        var classification = new ClassificationResult();
-        var cancellationTokenSource = new CancellationTokenSource();
-        cancellationTokenSource.Cancel();
-
-        // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationTokenSource.Token);
-
-        // Assert
-        result.IsCancelled().ShouldBeTrue();
-    }
-
-    /// <summary>
-    /// Tests that IdentifyReviewCasesAsync returns failure for null metadata.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyReviewCasesAsync_WithNullMetadata_ReturnsFailure()
-    {
-        // Arrange
-        var fileId = "FILE-001";
-        UnifiedMetadataRecord? metadata = null;
-        var classification = new ClassificationResult();
-
-        // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata!, classification, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldContain("Metadata cannot be null");
-    }
-
-    /// <summary>
-    /// Tests that IdentifyReviewCasesAsync returns failure for null classification.
-    /// </summary>
-    [Fact]
-    public async Task IdentifyReviewCasesAsync_WithNullClassification_ReturnsFailure()
-    {
-        // Arrange
-        var fileId = "FILE-001";
-        var metadata = new UnifiedMetadataRecord();
-        ClassificationResult? classification = null;
-
-        // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification!, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldContain("Classification cannot be null");
-    }
-
-     //  IdentifyReviewCasesAsync Tests
 
     /// <inheritdoc />
     public void Dispose()
