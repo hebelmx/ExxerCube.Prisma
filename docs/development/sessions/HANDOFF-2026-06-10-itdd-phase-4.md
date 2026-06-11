@@ -1,9 +1,10 @@
 # HANDOFF — ITDD Test-Suite Refactor: Phase 4 (Classification split) — FINALIZATION
 
-> **For the next agent.** Branch **Kt2**. Phase 4's **build is DONE, green, and committed
-> as WIP** (`97f9a0e`, unpushed). What remains is **verification + gate + docs + push** —
-> the context-heavy adversarial gate is deliberately left for you with a fresh budget.
-> Phases 0–3 are DONE and pushed (origin/Kt2 @ `e7153b0`).
+> **For the next agent.** Branch **Kt2**. Phase 4's **build is DONE + green + pushed**
+> (origin/Kt2 @ `9d13026`); **Stryker PASSED (Survived 0)** and **arch is 19/19**. The ONLY
+> remaining DoD item is the **`/itdd-adversarial-review phase-4` gate** (deliberately left for
+> you with a fresh budget — it spawns large reviewer outputs), then flip the tracker + final
+> commit/push. Phases 0–3 are DONE and pushed.
 
 ## Prompt
 
@@ -17,7 +18,11 @@ mutation kill power, run the gate, record it, and push.
    Phase 3 record (`docs/development/sessions/HANDOFF-2026-06-10-itdd-phase-3.md`) shows
    the gate/commit cadence. Auto-memory `itdd-test-refactor-plan.md` has the running state.
 
-2. **Check the Stryker run (it was running at handoff).** A scoped re-run was launched from
+2. **Stryker — ✅ ALREADY RUN AND PASSED** (no re-run needed; spot-check only if you wish). Result:
+   1416 mutants tested, **Survived 0**, Killed 358 + Timeout 1058 (all covered mutants detected),
+   NoCoverage 33 = the exact documented floor (18 + 15), score 97.72%. Kill-power preserved with 0
+   killable survivors. The report is at `Tests.Infrastructure.Classification/StrykerOutput/2026-06-10.21-39-27/`.
+   For reference, the original launch command (from the Classification test-project dir) was:
    `08 Tests/02 Infrastructure/Tests.Infrastructure.Classification/` via
    `StrykerCompat=true dotnet stryker --mutate "**/ExpedienteClasifierService.cs" --mutate "**/FusionExpedienteService.cs"`.
    Background task id `b2vcc00r9`; its output file is under the session tasks dir
@@ -34,9 +39,9 @@ mutation kill power, run the gate, record it, and push.
    split that the impl-side tests don't re-pin — triage it (add the assertion back impl-side or to
    the base) before proceeding; do NOT weaken to pass.
 
-3. **Tests.Architecture** — run `08 Tests/09 Architecture/Tests.Architecture/...csproj` **after a
-   normal (non-StrykerCompat) `dotnet build` of the solution** (the IL stub-detection rule flaps
-   18/19 against StrykerCompat-flattened artifacts — §4.1 step 11). Expect **19/19**.
+3. **Tests.Architecture — ✅ ALREADY 19/19** (run after a clean non-StrykerCompat solution rebuild,
+   0 errors). Re-run only if you rebuild under StrykerCompat for any reason (the IL stub-detection
+   rule flaps 18/19 against flattened artifacts — §4.1 step 11).
 
 4. **Gate:** run `/itdd-adversarial-review phase-4`. Fan out the 3 reviewer lenses, then
    **cross-check every Blocker/Major by reproducing from the cited evidence before accepting**
@@ -56,9 +61,9 @@ mutation kill power, run the gate, record it, and push.
 | Phase 4 commit | `97f9a0e` (build WIP — contracts + factories + blueprints + reparented impls + csproj/GlobalUsings) |
 | Counts (exact, green) | Tests.Domain.Interfaces 160→**186** (+17 ExpedienteClasifier, +9 Fusion); Classification 400→**405** (ExpedienteClasifier 18→23, Fusion 9→9); Tests.Domain unchanged (212) |
 | Solution build | **0 warnings / 0 errors** |
-| Stryker | **launched, result pending** (task `b2vcc00r9`) — verify Killed≈199/1217, 0 killable survivors |
-| Arch | not yet re-run (do after clean rebuild) |
-| Gate | not yet run |
+| Stryker | ✅ **PASSED** (45m): 405 tests discovered, 1416 mutants tested, **Survived 0**, Killed 358 + Timeout 1058 (all detected), NoCoverage 33 = **exact baseline floor** (18 ExpedienteClasifier catch-blocks + 15 Fusion Serilog/catch), score 97.72%. Kill-power preserved, **0 killable survivors** (cleaner than Phase 3's 1 Serilog survivor). The Killed/Timeout split shifted toward Timeout vs the 199/1217 baseline — documented regex/compute timeout-inflation; the stable signal Survived=0 holds. |
+| Arch | ✅ **19/19** (confirmed after a clean non-StrykerCompat solution rebuild, 0 errors) |
+| Gate | not yet run — **your task** (the one remaining DoD item; context-heavy → left for a fresh agent) |
 
 ## What was built (the shape — shape #3 "conflated", different from Phases 1–3)
 
