@@ -1,192 +1,288 @@
 namespace ExxerCube.Prisma.Tests.Infrastructure.Classification;
 
 /// <summary>
-/// ITDD contract tests for <see cref="IExpedienteClasifier"/> interface.
-/// These tests define the expected behavior that ANY implementation must satisfy.
+/// Implementation instance of <see cref="ExpedienteClasifierContract"/> for
+/// <see cref="ExpedienteClasifierService"/> (ADR-005).
 /// </summary>
 /// <remarks>
-/// Contract Test Philosophy:
-/// - Validates CNBV requirement classification (types 100-104)
-/// - Validates Article 4 compliance (42 mandatory fields)
-/// - Validates Article 17 rejection grounds
-/// - Tests semantic analysis of "The 5 Situations"
+/// <para>
+/// Phase 4 of the ITDD refactor split the previously-conflated real-SUT class: the interface-generic
+/// behaviour (CNBV type classification, Article 4 pass/fail, the six Article 17 grounds, the 5
+/// Situations) moved into <see cref="ExpedienteClasifierContract"/> and runs here through inheritance
+/// against the real <see cref="ExpedienteClasifierService"/> (built with a real
+/// <c>SemanticAnalyzerService</c> + <c>LevenshteinTextComparer</c>).
+/// </para>
+/// <para>
+/// The tests below stay implementation-side because they pin implementation details, not contract
+/// behaviour (ADR-005 §5): the exact internal required-field name strings per requirement type, the
+/// exact missing-field reported for an incomplete Expediente, and the R29 A-2911 42-field
+/// enumeration. The exact high-confidence bound is pinned via the
+/// <see cref="MinHighClassificationConfidence"/> override (0.80). Mutation-pinning lives in
+/// <c>ExpedienteClasifierServiceMutationTests</c> (untouched).
+/// </para>
 /// </remarks>
-public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
+public sealed class ExpedienteClasifierServiceContractTests(ITestOutputHelper output) : ExpedienteClasifierContract
 {
     private readonly ITestOutputHelper _output = output;
-    private readonly ILogger<ExpedienteClasifierServiceContractTests> _logger = XUnitLogger.CreateLogger<ExpedienteClasifierServiceContractTests>(output);
 
-     //  Classification Tests - Requirement Types (100-104)
-
-    [Fact]
-    public async Task ClassifyAsync_InformationRequest_Returns100()
+    /// <inheritdoc />
+    protected override IExpedienteClasifier CreateSut()
     {
-        // Arrange - Expediente requesting information only
+        // Use real implementations for integration-style testing.
+        var logger = XUnitLogger.CreateLogger<ExpedienteClasifierService>(_output);
+        var textComparerLogger = Substitute.For<ILogger<LevenshteinTextComparer>>();
+        var semanticAnalyzerLogger = Substitute.For<ILogger<SemanticAnalyzerService>>();
+
+        var textComparer = new LevenshteinTextComparer(textComparerLogger);
+        var semanticAnalyzer = new SemanticAnalyzerService(textComparer, semanticAnalyzerLogger);
+
+        return new ExpedienteClasifierService(semanticAnalyzer, logger);
+    }
+
+    /// <inheritdoc />
+    protected override double MinHighClassificationConfidence => 0.80;
+
+    //
+    // Fixture hooks — the real CNBV test data this implementation classifies.
+    //
+
+    /// <inheritdoc />
+    protected override Expediente CreateInformationRequestExpediente() => new()
+    {
+        NumeroExpediente = "H/IN1-1111-222222-AAA",
+        AreaDescripcion = "HACENDARIO",
+        TieneAseguramiento = false,
+        SolicitudPartes = new List<SolicitudParte>
+        {
+            new() { Rfc = "XAXX010101000", Curp = "XAXX010101HDFXXX00", Nombre = "JUAN", Paterno = "PEREZ", Materno = "GARCIA" }
+        },
+        LawMandatedFields = new LawMandatedFields
+        {
+            InternalCaseId = Guid.NewGuid(),
+            SourceAuthorityCode = "SAT",
+            RequirementType = "INFORMACION"
+        }
+    };
+
+    /// <inheritdoc />
+    protected override Expediente CreateDocumentationRequestExpediente()
+    {
         var expediente = CreateInformationRequestExpediente();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.ClassifyAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var classification = result.Value;
-
-        classification.RequirementType.ShouldBe(RequirementType.InformationRequest);
-        classification.ClassificationConfidence.ShouldBeGreaterThanOrEqualTo(0.80);
-        classification.AuthorityType.ShouldNotBeNull();
+        expediente.Referencia = "SOLICITO ESTADOS DE CUENTA";
+        return expediente;
     }
 
-    [Fact]
-    public async Task ClassifyAsync_AseguramientoRequest_Returns101()
+    /// <inheritdoc />
+    protected override Expediente CreateAseguramientoExpediente() => new()
     {
-        _logger.LogInformation("=== TEST START: AseguramientoRequest_Returns101 ===");
+        NumeroExpediente = "A/AS1-1111-222222-AAA",
+        AreaDescripcion = "ASEGURAMIENTO",
+        TieneAseguramiento = true,
+        SolicitudPartes = new List<SolicitudParte>
+        {
+            new() { Rfc = "XAXX010101000", Curp = "XAXX010101HDFXXX00", Nombre = "JUAN", Paterno = "PEREZ", Materno = "GARCIA" }
+        },
+        LawMandatedFields = new LawMandatedFields
+        {
+            InternalCaseId = Guid.NewGuid(),
+            SourceAuthorityCode = "SAT",
+            RequirementType = "ASEGURAMIENTO",
+            AccountNumber = "1234567890",
+            BranchCode = "001",
+            ProductType = 101,
+            InitialBlockedAmount = 100000.00m
+        }
+    };
 
-        // Arrange - Expediente ordering asset seizure
-        var expediente = CreateAseguramientoExpediente();
-        var sut = CreateSystemUnderTest();
-
-        _logger.LogInformation("Test data: Aseguramiento expediente with TieneAseguramiento=true");
-
-        // Act
-        var result = await sut.ClassifyAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var classification = result.Value;
-
-        _logger.LogInformation("Classification result:");
-        _logger.LogInformation("  RequirementType: {Type} (expected: Aseguramiento)", classification.RequirementType);
-        _logger.LogInformation("  RequiredFields count: {Count}", classification.RequiredFields.Count);
-        _logger.LogInformation("  RequiredFields: {Fields}", string.Join(", ", classification.RequiredFields));
-        _logger.LogInformation("  PassesArticle4: {Passes}", classification.ArticleValidation.PassesArticle4);
-
-        classification.RequirementType.ShouldBe(RequirementType.Aseguramiento);
-        classification.RequiredFields.ShouldContain("InitialBlockedAmount");
-        classification.RequiredFields.ShouldContain("AccountNumber");
-        classification.ArticleValidation.PassesArticle4.ShouldBeTrue(); // Must have all required fields
-
-        _logger.LogInformation("=== TEST PASSED ===");
-    }
-
-    [Fact]
-    public async Task ClassifyAsync_DesbloqueoRequest_Returns102()
+    /// <inheritdoc />
+    protected override Expediente CreateDesbloqueoExpediente() => new()
     {
-        // Arrange - Expediente ordering unblocking
-        var expediente = CreateDesbloqueoExpediente();
-        var sut = CreateSystemUnderTest();
+        NumeroExpediente = "A/DS1-1111-222222-AAA",
+        AreaDescripcion = "ASEGURAMIENTO",
+        TieneAseguramiento = false,
+        Referencia = "DESBLOQUEO DE CUENTAS",
+        OficioOrigen = "A/AS1-1111-222222-AAA",
+        LawMandatedFields = new LawMandatedFields
+        {
+            InternalCaseId = Guid.NewGuid(),
+            SourceAuthorityCode = "JUZGADO"
+        }
+    };
 
-        // Act
-        var result = await sut.ClassifyAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var classification = result.Value;
-
-        classification.RequirementType.ShouldBe(RequirementType.Desbloqueo);
-        classification.RequiredFields.ShouldContain("InternalCaseId");
-        classification.RequiredFields.ShouldContain("SourceAuthorityCode");
-    }
-
-    [Fact]
-    public async Task ClassifyAsync_TransferenciaElectronica_Returns103()
+    /// <inheritdoc />
+    protected override Expediente CreateTransferenciaExpediente() => new()
     {
-        // Arrange - Expediente ordering electronic transfer
-        var expediente = CreateTransferenciaElectronicaExpediente();
-        var sut = CreateSystemUnderTest();
+        NumeroExpediente = "A/TR1-1111-222222-AAA",
+        AreaDescripcion = "ASEGURAMIENTO",
+        TieneAseguramiento = true,
+        Referencia = "TRANSFERIR FONDOS A CLABE",
+        LawMandatedFields = new LawMandatedFields
+        {
+            InternalCaseId = Guid.NewGuid(),
+            AccountNumber = "1234567890",
+            SourceAuthorityCode = "SAT",
+            OperationAmount = 50000.00m
+        }
+    };
 
-        // Act
-        var result = await sut.ClassifyAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var classification = result.Value;
-
-        classification.RequirementType.ShouldBe(RequirementType.Transferencia);
-        classification.RequiredFields.ShouldContain("OperationAmount");
-        classification.RequiredFields.ShouldContain("AccountNumber");
-    }
-
-    [Fact]
-    public async Task ClassifyAsync_SituacionFondos_Returns104()
+    /// <inheritdoc />
+    protected override Expediente CreateSituacionFondosExpediente() => new()
     {
-        // Arrange - Expediente ordering physical delivery of funds
-        var expediente = CreateSituacionFondosExpediente();
-        var sut = CreateSystemUnderTest();
+        NumeroExpediente = "A/SF1-1111-222222-AAA",
+        AreaDescripcion = "ASEGURAMIENTO",
+        TieneAseguramiento = true,
+        Referencia = "CHEQUE DE CAJA SITUAR FONDOS",
+        LawMandatedFields = new LawMandatedFields
+        {
+            InternalCaseId = Guid.NewGuid(),
+            AccountNumber = "1234567890",
+            SourceAuthorityCode = "SAT",
+            OperationAmount = 75000.00m
+        }
+    };
 
-        // Act
-        var result = await sut.ClassifyAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var classification = result.Value;
-
-        classification.RequirementType.ShouldBe(RequirementType.SituacionFondos);
-        classification.RequiredFields.ShouldContain("OperationAmount");
-        classification.RequiredFields.ShouldContain("AccountNumber");
-    }
-
-     //  Classification Tests - Requirement Types (100-104)
-
-     //  Article 4 Validation Tests - 42 Mandatory Fields
-
-    [Fact]
-    public async Task ValidateArticle4Async_AllMandatoryFieldsPresent_PassesValidation()
+    /// <inheritdoc />
+    protected override Expediente CreateCompleteExpediente() => new()
     {
-        // Arrange - Expediente with all 42 mandatory fields populated
+        NumeroExpediente = "A/AS1-1111-222222-AAA",
+        NumeroOficio = "123/ABC/-4444444444/2025",
+        AreaDescripcion = "ASEGURAMIENTO",
+        AutoridadNombre = "SUBDELEGACION 8 SAN ANGEL",
+        FundamentoLegal = "Artículo 42 Código Fiscal de la Federación",
+        EvidenciaFirma = "SHA256:abc123def456",
+        TieneAseguramiento = true,
+        SolicitudPartes = new List<SolicitudParte>
+        {
+            new() { Rfc = "XAXX010101000", Curp = "XAXX010101HDFXXX00", Nombre = "JUAN", Paterno = "PEREZ", Materno = "GARCIA" }
+        },
+        LawMandatedFields = new LawMandatedFields
+        {
+            InternalCaseId = Guid.NewGuid(),
+            SourceAuthorityCode = "SAT",
+            RequirementType = "ASEGURAMIENTO",
+            BranchCode = "001",
+            AccountNumber = "1234567890",
+            ProductType = 101,
+            InitialBlockedAmount = 100000.00m
+        }
+    };
+
+    /// <inheritdoc />
+    protected override Expediente CreateIncompleteExpediente() => new()
+    {
+        NumeroExpediente = "A/AS1-1111-222222-AAA",
+        AreaDescripcion = "ASEGURAMIENTO"
+        // Missing most mandatory fields
+    };
+
+    /// <inheritdoc />
+    protected override Expediente CreateExpedienteWithoutLegalCitation()
+    {
         var expediente = CreateCompleteExpediente();
-        var sut = CreateSystemUnderTest();
+        expediente.FundamentoLegal = string.Empty;
+        return expediente;
+    }
 
-        // Act
-        var result = await sut.ValidateArticle4Async(
-            expediente,
-            RequirementType.Aseguramiento,
-            TestContext.Current.CancellationToken);
+    /// <inheritdoc />
+    protected override Expediente CreateExpedienteWithoutSignature()
+    {
+        var expediente = CreateCompleteExpediente();
+        expediente.EvidenciaFirma = string.Empty;
+        return expediente;
+    }
 
-        // Assert
+    /// <inheritdoc />
+    protected override Expediente CreateVagueExpediente() => new()
+    {
+        NumeroExpediente = "H/IN1-1111-222222-AAA",
+        AreaDescripcion = "HACENDARIO"
+        // Missing specific account details
+    };
+
+    /// <inheritdoc />
+    protected override Expediente CreateOutOfJurisdictionExpediente() => new()
+    {
+        NumeroExpediente = "X/XX1-1111-222222-AAA",
+        AreaDescripcion = "OUTSIDE_CNBV_SCOPE"
+    };
+
+    //
+    // Implementation-side: exact required-field strings + R29 enumeration (ADR-005 §5)
+    //
+
+    [Fact]
+    public async Task ClassifyAsync_AseguramientoRequest_RequiresAseguramientoFields()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ClassifyAsync(CreateAseguramientoExpediente(), TestContext.Current.CancellationToken);
+
         result.IsSuccess.ShouldBeTrue();
-        var validation = result.Value;
-
-        validation.PassesArticle4.ShouldBeTrue();
-        validation.MissingRequiredFields.ShouldBeEmpty();
+        result.Value.RequiredFields.ShouldContain("InitialBlockedAmount");
+        result.Value.RequiredFields.ShouldContain("AccountNumber");
+        result.Value.ArticleValidation.PassesArticle4.ShouldBeTrue();
     }
 
     [Fact]
-    public async Task ValidateArticle4Async_MissingMandatoryFields_FailsValidation()
+    public async Task ClassifyAsync_DesbloqueoRequest_RequiresDesbloqueoFields()
     {
-        // Arrange - Expediente missing critical fields
-        var expediente = CreateIncompleteExpediente();
-        var sut = CreateSystemUnderTest();
+        var sut = CreateSut();
 
-        // Act
+        var result = await sut.ClassifyAsync(CreateDesbloqueoExpediente(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.RequiredFields.ShouldContain("InternalCaseId");
+        result.Value.RequiredFields.ShouldContain("SourceAuthorityCode");
+    }
+
+    [Fact]
+    public async Task ClassifyAsync_TransferenciaElectronica_RequiresTransferenciaFields()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ClassifyAsync(CreateTransferenciaExpediente(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.RequiredFields.ShouldContain("OperationAmount");
+        result.Value.RequiredFields.ShouldContain("AccountNumber");
+    }
+
+    [Fact]
+    public async Task ClassifyAsync_SituacionFondos_RequiresSituacionFondosFields()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.ClassifyAsync(CreateSituacionFondosExpediente(), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.RequiredFields.ShouldContain("OperationAmount");
+        result.Value.RequiredFields.ShouldContain("AccountNumber");
+    }
+
+    [Fact]
+    public async Task ValidateArticle4Async_MissingMandatoryFields_ReportsInternalCaseId()
+    {
+        var sut = CreateSut();
+
         var result = await sut.ValidateArticle4Async(
-            expediente,
+            CreateIncompleteExpediente(),
             RequirementType.Aseguramiento,
             TestContext.Current.CancellationToken);
 
-        // Assert
         result.IsSuccess.ShouldBeTrue();
-        var validation = result.Value;
-
-        validation.PassesArticle4.ShouldBeFalse();
-        validation.MissingRequiredFields.ShouldNotBeEmpty();
-        validation.MissingRequiredFields.ShouldContain("InternalCaseId"); // Example mandatory field
+        result.Value.MissingRequiredFields.ShouldContain("InternalCaseId");
     }
 
     [Fact]
     public async Task ValidateArticle4Async_R29Compliance_Validates42Fields()
     {
-        // Arrange - Test all 42 fields from R29 A-2911
-        var expediente = CreateR29CompliantExpediente();
-        var sut = CreateSystemUnderTest();
+        var sut = CreateSut();
 
-        // Act
         var result = await sut.ValidateArticle4Async(
-            expediente,
+            CreateCompleteExpediente(),
             RequirementType.InformationRequest,
             TestContext.Current.CancellationToken);
 
-        // Assert
         result.IsSuccess.ShouldBeTrue();
         var validation = result.Value;
 
@@ -199,413 +295,13 @@ public class ExpedienteClasifierServiceContractTests(ITestOutputHelper output)
         validation.MissingRequiredFields.ShouldNotContain("RequirementType");
         validation.MissingRequiredFields.ShouldNotContain("ReceptionDate");
 
-        // R29 Section 2.4: Financial Information (Fields 16-42)
-        // NO NULLS PERMITTED per R29 specification
+        // R29 Section 2.4: Financial Information (Fields 16-42) — NO NULLS PERMITTED
         if (validation.PassesArticle4)
         {
-            expediente.LawMandatedFields.ShouldNotBeNull();
-            expediente.LawMandatedFields.BranchCode.ShouldNotBeNullOrWhiteSpace();
-            expediente.LawMandatedFields.AccountNumber.ShouldNotBeNullOrWhiteSpace();
+            var complete = CreateCompleteExpediente();
+            complete.LawMandatedFields.ShouldNotBeNull();
+            complete.LawMandatedFields.BranchCode.ShouldNotBeNullOrWhiteSpace();
+            complete.LawMandatedFields.AccountNumber.ShouldNotBeNullOrWhiteSpace();
         }
     }
-
-     //  Article 4 Validation Tests - 42 Mandatory Fields
-
-     //  Article 17 Rejection Tests
-
-    [Fact]
-    public async Task CheckArticle17RejectionAsync_MissingLegalAuthorityCitation_ReturnsRejectionReason()
-    {
-        // Arrange - Expediente without legal authority citation
-        var expediente = CreateExpedienteWithoutLegalCitation();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.CheckArticle17RejectionAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var rejectionReasons = result.Value;
-
-        rejectionReasons.ShouldContain(RejectionReason.NoLegalAuthorityCitation);
-    }
-
-    [Fact]
-    public async Task CheckArticle17RejectionAsync_MissingSignature_ReturnsRejectionReason()
-    {
-        // Arrange - Expediente without signature
-        var expediente = CreateExpedienteWithoutSignature();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.CheckArticle17RejectionAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var rejectionReasons = result.Value;
-
-        rejectionReasons.ShouldContain(RejectionReason.MissingSignature);
-    }
-
-    [Fact]
-    public async Task CheckArticle17RejectionAsync_LackOfSpecificity_ReturnsRejectionReason()
-    {
-        // Arrange - Vague request without specific account details
-        var expediente = CreateVagueExpediente();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.CheckArticle17RejectionAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var rejectionReasons = result.Value;
-
-        rejectionReasons.ShouldContain(RejectionReason.LackOfSpecificity);
-    }
-
-    [Fact]
-    public async Task CheckArticle17RejectionAsync_ExceedsJurisdiction_ReturnsRejectionReason()
-    {
-        // Arrange - Request outside CNBV competence
-        var expediente = CreateOutOfJurisdictionExpediente();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.CheckArticle17RejectionAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var rejectionReasons = result.Value;
-
-        rejectionReasons.ShouldContain(RejectionReason.ExceedsJurisdiction);
-    }
-
-    [Fact]
-    public async Task CheckArticle17RejectionAsync_ValidExpediente_ReturnsEmptyList()
-    {
-        // Arrange - Properly formed, legally compliant expediente
-        var expediente = CreateCompleteExpediente();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.CheckArticle17RejectionAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var rejectionReasons = result.Value;
-
-        rejectionReasons.ShouldBeEmpty(); // No grounds for rejection
-    }
-
-     //  Article 17 Rejection Tests
-
-     //  Semantic Analysis Tests - The 5 Situations
-
-    [Fact]
-    public async Task AnalyzeSemanticRequirementsAsync_InformationRequest_CreatesGeneralRequirement()
-    {
-        // Arrange - General information request
-        var expediente = CreateInformationRequestExpediente();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.AnalyzeSemanticRequirementsAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var analysis = result.Value;
-
-        analysis.RequiereInformacionGeneral.ShouldNotBeNull();
-        analysis.RequiereInformacionGeneral.EsRequerido.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task AnalyzeSemanticRequirementsAsync_DocumentRequest_CreatesDocumentationRequirement()
-    {
-        // Arrange - Documentation request
-        var expediente = CreateInformationRequestExpediente();
-        expediente.Referencia = "SOLICITO ESTADOS DE CUENTA";
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.AnalyzeSemanticRequirementsAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var analysis = result.Value;
-
-        analysis.RequiereDocumentacion.ShouldNotBeNull();
-        analysis.RequiereDocumentacion.EsRequerido.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task AnalyzeSemanticRequirementsAsync_Aseguramiento_CreatesBloqueoRequirement()
-    {
-        // Arrange - Asset seizure order
-        var expediente = CreateAseguramientoExpediente();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.AnalyzeSemanticRequirementsAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var analysis = result.Value;
-
-        analysis.RequiereBloqueo.ShouldNotBeNull();
-        analysis.RequiereBloqueo.EsRequerido.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task AnalyzeSemanticRequirementsAsync_Desbloqueo_CreatesDesbloqueoRequirement()
-    {
-        // Arrange - Unblocking order
-        var expediente = CreateDesbloqueoExpediente();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.AnalyzeSemanticRequirementsAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var analysis = result.Value;
-
-        analysis.RequiereDesbloqueo.ShouldNotBeNull();
-        analysis.RequiereDesbloqueo.EsRequerido.ShouldBeTrue();
-    }
-
-    [Fact]
-    public async Task AnalyzeSemanticRequirementsAsync_Transferencia_CreatesTransferenciaRequirement()
-    {
-        // Arrange - Transfer order
-        var expediente = CreateTransferenciaElectronicaExpediente();
-        var sut = CreateSystemUnderTest();
-
-        // Act
-        var result = await sut.AnalyzeSemanticRequirementsAsync(expediente, TestContext.Current.CancellationToken);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var analysis = result.Value;
-
-        analysis.RequiereTransferencia.ShouldNotBeNull();
-        analysis.RequiereTransferencia.EsRequerido.ShouldBeTrue();
-    }
-
-     //  Semantic Analysis Tests - The 5 Situations
-
-     //  Helper Methods - Test Data Builders
-
-    private IExpedienteClasifier CreateSystemUnderTest()
-    {
-        // Use real implementations for integration-style testing
-        var logger = XUnitLogger.CreateLogger<ExpedienteClasifierService>(_output);
-
-        // Create real ISemanticAnalyzer with fuzzy matching
-        var textComparerLogger = Substitute.For<ILogger<LevenshteinTextComparer>>();
-        var semanticAnalyzerLogger = Substitute.For<ILogger<SemanticAnalyzerService>>();
-
-        var textComparer = new LevenshteinTextComparer(textComparerLogger);
-        var semanticAnalyzer = new SemanticAnalyzerService(textComparer, semanticAnalyzerLogger);
-
-        return new ExpedienteClasifierService(semanticAnalyzer, logger);
-    }
-
-    private static Expediente CreateInformationRequestExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "H/IN1-1111-222222-AAA",
-            AreaDescripcion = "HACENDARIO",
-            TieneAseguramiento = false,
-            SolicitudPartes = new List<SolicitudParte>
-            {
-                new SolicitudParte
-                {
-                    Rfc = "XAXX010101000",
-                    Curp = "XAXX010101HDFXXX00",
-                    Nombre = "JUAN",
-                    Paterno = "PEREZ",
-                    Materno = "GARCIA"
-                }
-            },
-            LawMandatedFields = new LawMandatedFields
-            {
-                InternalCaseId = Guid.NewGuid(),
-                SourceAuthorityCode = "SAT",
-                RequirementType = "INFORMACION"
-            }
-        };
-    }
-
-    private static Expediente CreateAseguramientoExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "A/AS1-1111-222222-AAA",
-            AreaDescripcion = "ASEGURAMIENTO",
-            TieneAseguramiento = true,
-            SolicitudPartes = new List<SolicitudParte>
-            {
-                new SolicitudParte
-                {
-                    Rfc = "XAXX010101000",
-                    Curp = "XAXX010101HDFXXX00",
-                    Nombre = "JUAN",
-                    Paterno = "PEREZ",
-                    Materno = "GARCIA"
-                }
-            },
-            LawMandatedFields = new LawMandatedFields
-            {
-                InternalCaseId = Guid.NewGuid(),
-                SourceAuthorityCode = "SAT",
-                RequirementType = "ASEGURAMIENTO",
-                AccountNumber = "1234567890",
-                BranchCode = "001",
-                ProductType = 101,
-                InitialBlockedAmount = 100000.00m
-            }
-        };
-    }
-
-    private static Expediente CreateDesbloqueoExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "A/DS1-1111-222222-AAA",
-            AreaDescripcion = "ASEGURAMIENTO",
-            TieneAseguramiento = false,
-            Referencia = "DESBLOQUEO DE CUENTAS",
-            OficioOrigen = "A/AS1-1111-222222-AAA",
-            LawMandatedFields = new LawMandatedFields
-            {
-                InternalCaseId = Guid.NewGuid(),
-                SourceAuthorityCode = "JUZGADO"
-            }
-        };
-    }
-
-    private static Expediente CreateTransferenciaElectronicaExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "A/TR1-1111-222222-AAA",
-            AreaDescripcion = "ASEGURAMIENTO",
-            TieneAseguramiento = true,
-            Referencia = "TRANSFERIR FONDOS A CLABE",
-            LawMandatedFields = new LawMandatedFields
-            {
-                InternalCaseId = Guid.NewGuid(),
-                AccountNumber = "1234567890",
-                SourceAuthorityCode = "SAT",
-                OperationAmount = 50000.00m
-            }
-        };
-    }
-
-    private static Expediente CreateSituacionFondosExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "A/SF1-1111-222222-AAA",
-            AreaDescripcion = "ASEGURAMIENTO",
-            TieneAseguramiento = true,
-            Referencia = "CHEQUE DE CAJA SITUAR FONDOS",
-            LawMandatedFields = new LawMandatedFields
-            {
-                InternalCaseId = Guid.NewGuid(),
-                AccountNumber = "1234567890",
-                SourceAuthorityCode = "SAT",
-                OperationAmount = 75000.00m
-            }
-        };
-    }
-
-    private static Expediente CreateCompleteExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "A/AS1-1111-222222-AAA",
-            NumeroOficio = "123/ABC/-4444444444/2025",
-            AreaDescripcion = "ASEGURAMIENTO",
-            AutoridadNombre = "SUBDELEGACION 8 SAN ANGEL",
-            FundamentoLegal = "Artículo 42 Código Fiscal de la Federación",
-            EvidenciaFirma = "SHA256:abc123def456",
-            TieneAseguramiento = true,
-            SolicitudPartes = new List<SolicitudParte>
-            {
-                new SolicitudParte
-                {
-                    Rfc = "XAXX010101000",
-                    Curp = "XAXX010101HDFXXX00",
-                    Nombre = "JUAN",
-                    Paterno = "PEREZ",
-                    Materno = "GARCIA"
-                }
-            },
-            LawMandatedFields = new LawMandatedFields
-            {
-                InternalCaseId = Guid.NewGuid(),
-                SourceAuthorityCode = "SAT",
-                RequirementType = "ASEGURAMIENTO",
-                BranchCode = "001",
-                AccountNumber = "1234567890",
-                ProductType = 101, // Depósito a la Vista
-                InitialBlockedAmount = 100000.00m
-            }
-        };
-    }
-
-    private static Expediente CreateIncompleteExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "A/AS1-1111-222222-AAA",
-            AreaDescripcion = "ASEGURAMIENTO"
-            // Missing most mandatory fields
-        };
-    }
-
-    private static Expediente CreateR29CompliantExpediente()
-    {
-        // Full R29 A-2911 compliant expediente with all 42 mandatory fields
-        return CreateCompleteExpediente();
-    }
-
-    private static Expediente CreateExpedienteWithoutLegalCitation()
-    {
-        var expediente = CreateCompleteExpediente();
-        expediente.FundamentoLegal = string.Empty;
-        return expediente;
-    }
-
-    private static Expediente CreateExpedienteWithoutSignature()
-    {
-        var expediente = CreateCompleteExpediente();
-        expediente.EvidenciaFirma = string.Empty; // Clear signature to test missing signature detection
-        return expediente;
-    }
-
-    private static Expediente CreateVagueExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "H/IN1-1111-222222-AAA",
-            AreaDescripcion = "HACENDARIO",
-            // Missing specific account details
-        };
-    }
-
-    private static Expediente CreateOutOfJurisdictionExpediente()
-    {
-        return new Expediente
-        {
-            NumeroExpediente = "X/XX1-1111-222222-AAA",
-            AreaDescripcion = "OUTSIDE_CNBV_SCOPE"
-        };
-    }
-
-     //  Helper Methods - Test Data Builders
 }

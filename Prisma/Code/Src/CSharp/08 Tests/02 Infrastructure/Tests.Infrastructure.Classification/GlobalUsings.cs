@@ -16,6 +16,7 @@ global using ExxerCube.Prisma.Infrastructure.Classification;
 global using ExxerCube.Prisma.Infrastructure.Imaging;
 global using Microsoft.Extensions.Configuration;
 global using ExxerCube.Prisma.Testing.Abstractions;
+global using ExxerCube.Prisma.Testing.Contracts;
 global using IndQuestResults;
 global using IndQuestResults.Async;
 global using IndQuestResults.Operations;
