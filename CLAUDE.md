@@ -149,6 +149,21 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 
 ## Release Status
 
+> **MVP audit refreshed 2026-06-11** (post test-suite hardening). The PRD was reconciled
+> against discovery, an explicit MVP bar was agreed with the owner, and the gaps were
+> re-traced + adversarially verified. **Canonical now:**
+> `docs/planning/gap-analysis/GAP-MATRIX-2026-06-11.md` (refreshed matrix) +
+> `MVP-PATH-2026-06-11.md` (ordered work plan) +
+> `MVP-DEFINITION-2026-06.md` / `PRD-RECONCILIATION-2026-06.md` (scope) +
+> `SIARA-AUTH-DESIGN-2026-06.md` (Workstream-1 feature design).
+> **Headline:** the core processing + manual-review + SLA surfaces are built; MVP is gated
+> almost entirely by **Workstream 1 = ingestion + the security-mandated 3-process split
+> (A1–A6)**, plus a short tail of partials. **Owner MVP rulings:** 3-process split IN,
+> signed-PDF OUT (P2), full review dashboard IN, multi-source fusion + SLA dashboard +
+> native-PDF-text IN, persisted identity OUT. **Quick wins landed 2026-06-11:** native PDF
+> text (PdfPig, B2) + config/template cleanup (E2). The 2026-06-07 matrix below remains the
+> prior baseline; the 06-11 docs supersede it for *current* state.
+
 > Re-audited **2026-06-07** by tracing the DI composition roots (Web.UI / Athena
 > Worker / Orion Worker) and every pipeline stage. This is **static-wiring reality**;
 > integration/system/E2E suites were **not** run, so end-to-end behaviour is still
