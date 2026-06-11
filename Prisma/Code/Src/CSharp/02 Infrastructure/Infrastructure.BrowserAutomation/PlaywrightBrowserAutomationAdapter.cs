@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
+using IndQuestResults.Operations;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -15,10 +16,11 @@ namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation;
 /// <summary>
 /// Playwright-based implementation of browser automation agent for downloading regulatory documents.
 /// </summary>
-public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent
+public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrowserSessionContext
 {
     private readonly ILogger<PlaywrightBrowserAutomationAdapter> _logger;
     private readonly BrowserAutomationOptions _options;
+    private IPlaywright? _playwright;
     private IBrowser? _browser;
     private IPage? _page;
 
@@ -42,8 +44,8 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent
         {
             _logger.LogInformation("Launching browser session");
 
-            var playwright = await Playwright.CreateAsync();
-            _browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            _playwright ??= await Playwright.CreateAsync();
+            _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
             {
                 Headless = _options.Headless,
                 Timeout = _options.BrowserLaunchTimeoutMs
@@ -198,6 +200,9 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent
                 _browser = null;
             }
 
+            _playwright?.Dispose();
+            _playwright = null;
+
             _logger.LogInformation("Browser session closed successfully");
             return Result.Success();
         }
@@ -274,6 +279,134 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent
         {
             _logger.LogError(ex, "Failed to find selector: {Selector}", selector);
             return Result.WithFailure($"Failed to find selector {selector}: {ex.Message}", ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<string>> ExportStorageStateAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<string>();
+        }
+
+        if (_page is null)
+        {
+            return Result<string>.WithFailure("No browser session established. Call LaunchBrowserAsync first.");
+        }
+
+        try
+        {
+            var storageState = await _page.Context.StorageStateAsync();
+            _logger.LogInformation("Captured browser storage-state ({Length} chars)", storageState.Length);
+            return Result<string>.Success(storageState);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to export browser storage-state");
+            return Result<string>.WithFailure($"Failed to export storage-state: {ex.Message}");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> LoadStorageStateAsync(string storageStateRef, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled();
+        }
+
+        if (string.IsNullOrWhiteSpace(storageStateRef))
+        {
+            return Result.WithFailure("Storage-state reference cannot be null or empty.");
+        }
+
+        if (_browser is null)
+        {
+            return Result.WithFailure("No browser launched. Call LaunchBrowserAsync first.");
+        }
+
+        try
+        {
+            var context = await _browser.NewContextAsync(new BrowserNewContextOptions
+            {
+                StorageState = storageStateRef
+            });
+            var page = await context.NewPageAsync();
+            page.SetDefaultTimeout(_options.PageTimeoutMs);
+            _page = page;
+
+            _logger.LogInformation("Restored browser storage-state into a new context");
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load browser storage-state");
+            return Result.WithFailure($"Failed to load storage-state: {ex.Message}", ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> ConnectToExistingContextAsync(string endpoint, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled();
+        }
+
+        if (string.IsNullOrWhiteSpace(endpoint))
+        {
+            return Result.WithFailure("Connect endpoint cannot be null or empty.");
+        }
+
+        try
+        {
+            _playwright ??= await Playwright.CreateAsync();
+            _browser = await _playwright.Chromium.ConnectOverCDPAsync(endpoint);
+
+            var context = _browser.Contexts.FirstOrDefault() ?? await _browser.NewContextAsync();
+            _page = context.Pages.FirstOrDefault() ?? await context.NewPageAsync();
+            _page.SetDefaultTimeout(_options.PageTimeoutMs);
+
+            _logger.LogInformation("Attached to existing browser context via CDP endpoint");
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to attach to existing browser context");
+            return Result.WithFailure($"Failed to connect to existing context: {ex.Message}", ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<bool>> IsAuthenticatedAsync(string postLoginSelector, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<bool>();
+        }
+
+        if (string.IsNullOrWhiteSpace(postLoginSelector))
+        {
+            return Result<bool>.WithFailure("Post-login selector cannot be null or empty.");
+        }
+
+        if (_page is null)
+        {
+            return Result<bool>.WithFailure("No browser session established. Call LaunchBrowserAsync first.");
+        }
+
+        try
+        {
+            var element = await _page.QuerySelectorAsync(postLoginSelector);
+            var authenticated = element is not null;
+            _logger.LogInformation("Authentication probe returned {Authenticated}", authenticated);
+            return Result<bool>.Success(authenticated);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to probe authentication state");
+            return Result<bool>.WithFailure($"Failed to probe authentication: {ex.Message}");
         }
     }
 

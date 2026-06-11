@@ -65,6 +65,7 @@
     <ProjectReference Include="..\..\..\04 Services\CrossConcerns\ExxerCube.Prisma.CrossConcerns\ExxerCube.Prisma.CrossConcerns.csproj" />
     <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />

@@ -26,6 +26,11 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IBrowserAutomationAgent, PlaywrightBrowserAutomationAdapter>();
 
+        // The session-context capability is the SAME live adapter instance (same scope), so session
+        // capture/restore/attach operate on the browser the navigation agent is driving.
+        services.AddScoped<IBrowserSessionContext>(sp =>
+            (IBrowserSessionContext)sp.GetRequiredService<IBrowserAutomationAgent>());
+
         // Register navigation targets with keyed services for runtime selection
         services.Configure<NavigationTargetOptions>(options =>
         {
