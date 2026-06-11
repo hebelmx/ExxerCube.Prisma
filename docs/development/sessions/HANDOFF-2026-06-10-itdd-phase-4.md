@@ -1,5 +1,15 @@
 # HANDOFF — ITDD Test-Suite Refactor: Phase 4 (Classification split) — FINALIZATION
 
+> **✅ PHASE 4 COMPLETE (2026-06-10).** The gate ran: `/itdd-adversarial-review phase-4`
+> → **GO WITH CONDITIONS** (3 reviewer agents + cross-check; **0 reproduced Blocker/Major**).
+> Every "weakening" finding died on reproduction (exact-field/`PassesArticle4`/R29 assertions
+> RELOCATED impl-side per ADR-005 §5, not deleted; thresholds are virtual properties the real
+> impl overrides to the exact original bound). One genuine deviation — 5 ExpedienteClasifier
+> test renames `_ReturnsNNN`→`_ClassifiesAs{Type}` — downgraded Blocker→Minor (kill-power-safe:
+> MutationTests untouched + Stryker Survived 0; the `NNN` is an impl-specific CNBV literal).
+> Verdict + discarded findings recorded in plan §5 tracker row 4; playbook addenda in §4.1.
+> **NEXT: Phase 5.** The rest of this doc is the original finalization handoff (now satisfied).
+
 > **For the next agent.** Branch **Kt2**. Phase 4's **build is DONE + green + pushed**
 > (origin/Kt2 @ `9d13026`); **Stryker PASSED (Survived 0)** and **arch is 19/19**. The ONLY
 > remaining DoD item is the **`/itdd-adversarial-review phase-4` gate** (deliberately left for
