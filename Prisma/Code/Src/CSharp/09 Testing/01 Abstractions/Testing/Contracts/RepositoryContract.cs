@@ -467,7 +467,11 @@ public abstract class RepositoryContract<T, TId>
     // RemoveAsync Contract Tests
     //
 
-    /// <summary>Contract: an existing entity can be marked for removal.</summary>
+    /// <summary>
+    /// Contract: an existing entity can be marked for removal, and once the change is persisted the
+    /// entity is no longer retrievable (observable removal — Phase-5 strengthening over the blueprint's
+    /// IsSuccess-only assertion, since severe drift is the coverage-adding phase).
+    /// </summary>
     [Fact]
     public async Task RemoveAsync_ShouldReturnSuccess_WhenEntityRemoved()
     {
@@ -481,6 +485,11 @@ public abstract class RepositoryContract<T, TId>
 
         // Assert - Contract: Must return Success when entity is marked for removal
         result.IsSuccess.ShouldBeTrue();
+
+        // Assert - Contract: after persisting, the removed entity is no longer retrievable
+        (await repository.SaveChangesAsync(TestContext.Current.CancellationToken)).IsSuccess.ShouldBeTrue();
+        var afterRemoval = await repository.GetByIdAsync(IdOf(entity), TestContext.Current.CancellationToken);
+        afterRemoval.IsSuccess.ShouldBeFalse();
     }
 
     //
