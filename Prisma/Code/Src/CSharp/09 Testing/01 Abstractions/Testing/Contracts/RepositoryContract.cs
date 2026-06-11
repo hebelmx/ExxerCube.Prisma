@@ -39,21 +39,17 @@ namespace ExxerCube.Prisma.Testing.Contracts;
 /// mutation testing, so verbatim body preservation is not a kill-power concern here.
 /// </para>
 /// <para>
-/// <strong>Phase-5 triage finding (recorded, not silently fixed):</strong> the two "not found" tests
-/// assert <c>IsSuccess.ShouldBeFalse()</c> rather than the blueprint's original
-/// <c>IsFailure.ShouldBeTrue()</c>. First execution against the real <c>EfCoreRepository</c> proved the
-/// production impl returns a result that is <em>neither</em> success nor failure on not-found
-/// (<c>IsSuccess=false, IsFailure=false, Value=null</c>). Root cause: IndQuestResults treats a null
-/// value as not-<c>IsSuccess</c> (a separate <c>IsSuccessMayBeNull</c> exists), so the impl's
-/// not-found guard <c>if (result.IsSuccess &amp;&amp; result.Value is null)</c> is unreachable — the
-/// intended <c>WithFailure</c> conversion never fires. The interface XML doc promises a failure on
-/// not-found, so this is a <strong>latent implementation defect</strong> (carried to Phase 6 — fixing
-/// it touches generic <c>IRepository</c> consumers, so it is out of scope for this test-refactor phase;
-/// cf. the ADR-005 §7 FileTypeIdentifier-cancellation deferral). The contract pins the strongest
-/// invariant true across both the real impl and the (ideal) blueprint: <strong>a not-found lookup never
-/// reports success</strong> (so no implementation can return a bogus entity or claim success). The
-/// reference fake (<see cref="RepositoryMockFactory"/>) keeps the correct <c>WithFailure</c> behaviour —
-/// the spec is ahead of the impl; when the impl is fixed these tests can tighten back to <c>IsFailure</c>.
+/// <strong>Phase-5 triage finding — FIXED in Phase 6 (2026-06-11).</strong> The two "not found" tests
+/// now assert the original <c>IsFailure.ShouldBeTrue()</c>. First execution (Phase 5) had proved the
+/// production <c>EfCoreRepository</c> returned a result that was <em>neither</em> success nor failure on
+/// not-found (<c>IsSuccess=false, IsFailure=false, Value=null</c>): IndQuestResults treats a null value
+/// as not-<c>IsSuccess</c> (a separate <c>IsSuccessMayBeNull</c> exists), so the impl's not-found guard
+/// <c>if (result.IsSuccess &amp;&amp; result.Value is null)</c> was unreachable dead code and the intended
+/// <c>WithFailure</c> conversion never fired, contradicting the interface XML doc. Phase 6 fixed the guard
+/// to test <c>IsSuccessMayBeNull</c> (owner-gated; the only generic consumer
+/// <c>FileMetadataQueryService</c> already routes not-found through its failure branch), so the real impl
+/// now returns a proper failure on not-found, matching the reference fake
+/// (<see cref="RepositoryMockFactory"/>) which always behaved correctly.
 /// </para>
 /// </remarks>
 public abstract class RepositoryContract<T, TId>
@@ -140,9 +136,9 @@ public abstract class RepositoryContract<T, TId>
     }
 
     /// <summary>
-    /// Contract: a missing entity never reports success (ROP "not found" is not a successful retrieval).
-    /// Asserts <c>IsSuccess == false</c> — see the class remarks for the Phase-5 triage (the production
-    /// impl currently returns a neither-success-nor-failure result; the ideal is a failure).
+    /// Contract: a missing entity is surfaced as a failure Result (ROP "not found" is not a successful
+    /// retrieval). Asserts <c>IsFailure == true</c> — the Phase-5 triage defect that made the real impl
+    /// return a neither-success-nor-failure result was fixed in Phase 6 (see the class remarks).
     /// </summary>
     [Fact]
     public async Task GetByIdAsync_ShouldReturnFailure_WhenEntityNotFound()
@@ -154,8 +150,8 @@ public abstract class RepositoryContract<T, TId>
         // Act
         var result = await repository.GetByIdAsync(absentId, TestContext.Current.CancellationToken);
 
-        // Assert - Contract: a not-found lookup must NOT report success (no bogus entity, no false success)
-        result.IsSuccess.ShouldBeFalse();
+        // Assert - Contract: a not-found lookup is a failure (no bogus entity, no false success)
+        result.IsFailure.ShouldBeTrue();
     }
 
     /// <summary>Contract: a pre-cancelled token yields a cancelled result (never a throw).</summary>
@@ -366,9 +362,9 @@ public abstract class RepositoryContract<T, TId>
     }
 
     /// <summary>
-    /// Contract: no match never reports success (ROP "no match" is not a successful retrieval).
-    /// Asserts <c>IsSuccess == false</c> — see the class remarks for the Phase-5 triage (same latent
-    /// not-found defect as <see cref="GetByIdAsync_ShouldReturnFailure_WhenEntityNotFound"/>).
+    /// Contract: no match is surfaced as a failure Result (ROP "no match" is not a successful retrieval).
+    /// Asserts <c>IsFailure == true</c> — same Phase-6-fixed not-found path as
+    /// <see cref="GetByIdAsync_ShouldReturnFailure_WhenEntityNotFound"/> (see the class remarks).
     /// </summary>
     [Fact]
     public async Task FirstOrDefaultAsync_ShouldReturnFailure_WhenNoMatchFound()
@@ -380,8 +376,8 @@ public abstract class RepositoryContract<T, TId>
         // Act
         var result = await repository.FirstOrDefaultAsync(NeverMatchingSpecification(), TestContext.Current.CancellationToken);
 
-        // Assert - Contract: a no-match lookup must NOT report success (no bogus entity, no false success)
-        result.IsSuccess.ShouldBeFalse();
+        // Assert - Contract: a no-match lookup is a failure (no bogus entity, no false success)
+        result.IsFailure.ShouldBeTrue();
     }
 
     //

@@ -49,7 +49,7 @@ public sealed class EfCoreRepositoryIntegrationTests : IDisposable
     }
 
     [Fact]
-    public async Task FileMetadataRepository_GetByIdAsync_ShouldReturnNull_WhenNotExists()
+    public async Task FileMetadataRepository_GetByIdAsync_ShouldReturnFailure_WhenNotExists()
     {
         // Arrange
         var repository = new EfCoreRepository<FileMetadata, string>(_dbContext);
@@ -57,9 +57,10 @@ public sealed class EfCoreRepositoryIntegrationTests : IDisposable
         // Act
         var result = await repository.GetByIdAsync("non-existent", TestContext.Current.CancellationToken);
 
-        // Assert
-        // For nullable Result<T?>, use IsSuccessMayBeNull to check success (null is valid)
-        result.IsSuccessMayBeNull.ShouldBeTrue($"Expected success (may be null) but got failure. Error: {result.Error}");
+        // Assert - Phase 6: "not found" is a failure Result (ROP), per IRepository's XML doc.
+        // The prior assertion (IsSuccessMayBeNull + null value) encoded the latent dead-guard defect;
+        // the guard was fixed to test IsSuccessMayBeNull so the WithFailure conversion now fires.
+        result.IsFailure.ShouldBeTrue($"Expected a not-found failure. Error: {result.Error}");
         result.Value.ShouldBeNull();
     }
 

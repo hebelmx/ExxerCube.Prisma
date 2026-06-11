@@ -52,8 +52,12 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
             },
             ex => $"Failed to retrieve {typeof(T).Name} by id: {ex.Message}");
 
-        // ROP-compliant: "not found" is a failure case, not success with null
-        if (result.IsSuccess && result.Value is null)
+        // ROP-compliant: "not found" is a failure case, not success with null.
+        // NOTE: a successful lookup of a null value reports IsSuccessMayBeNull (NOT IsSuccess —
+        // IndQuestResults treats a null value as not-IsSuccess), so the guard must test
+        // IsSuccessMayBeNull or it is dead code and the not-found→failure conversion never fires
+        // (Phase 6 fix of the Phase-5 triage finding).
+        if (result.IsSuccessMayBeNull && result.Value is null)
         {
             return Result<T?>.WithFailure($"Entity of type {typeof(T).Name} with id {id} not found");
         }
@@ -209,8 +213,9 @@ public sealed class EfCoreRepository<T, TId> : IRepository<T, TId>
                 .FirstOrDefaultAsync(cancellationToken),
             ex => $"Failed to retrieve {typeof(T).Name} by specification: {ex.Message}");
 
-        // ROP-compliant: "not found" is a failure case, not success with null
-        if (result.IsSuccess && result.Value is null)
+        // ROP-compliant: "not found" is a failure case, not success with null.
+        // See GetByIdAsync for why this must test IsSuccessMayBeNull, not IsSuccess (Phase 6 fix).
+        if (result.IsSuccessMayBeNull && result.Value is null)
         {
             return Result<T?>.WithFailure($"No entity of type {typeof(T).Name} matching the specification was found");
         }
