@@ -248,22 +248,6 @@ internal static class NavigationRegistry
     public static IReadOnlyList<NavigationLink> ExampleLinks { get; } =
     [
         new NavigationLink(
-            "Counter",
-            "/counter",
-            Icons.Material.Filled.Add,
-            "Simple counter example for quick shell tests.",
-            Match: NavLinkMatch.All,
-            Tags: new[] { "example", "demo" },
-            IsExample: true),
-        new NavigationLink(
-            "Weather",
-            "/weather",
-            Icons.Material.Filled.List,
-            "Sample forecast data feed.",
-            Match: NavLinkMatch.All,
-            Tags: new[] { "example", "data" },
-            IsExample: true),
-        new NavigationLink(
             "Auth Required",
             "/auth",
             Icons.Material.Filled.Lock,
