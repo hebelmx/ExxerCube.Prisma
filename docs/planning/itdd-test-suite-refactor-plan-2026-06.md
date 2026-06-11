@@ -276,6 +276,16 @@ exists today).
   scope contract to current behavior, note gaps.)
 
 ### Phase 6 — Sweep, guardrails, docs
+- **Carried finding (Phase 2 gate, 2026-06-10):** the four Export.Adaptive
+  implementations (`TemplateFieldMapper`, `TemplateRepository`,
+  `SchemaEvolutionDetector`, `AdaptiveExporter`) **ignore the `CancellationToken`**
+  (no `IsCancellationRequested`/`Cancelled` handling), violating the repo-wide
+  CancellationToken mandate. ADR-005 §5 makes cancellation contract-grade, so each
+  of the four contract bases should eventually gain a pre-cancelled-token test — but
+  adding it requires **fixing the implementations first** (it would otherwise surface
+  4 implementation bugs and is out of scope for a zero-drift lift phase, per §6.2 and
+  the ADR-005 §7 FileTypeIdentifierService precedent). Fix the impls to honor
+  cancellation, then add the contract test to each base.
 - Repo-wide sweep for unpaired candidates (multi-adapter ports like
   `IFieldExtractor<T>` family; `FieldPatternValidator`/`FieldSanitizer` naming).
 - Convert any remaining standalone mock-SUT classes into blueprint instances of
@@ -331,7 +341,51 @@ Order of operations that worked for the pilot; repeat per interface:
 11. **Run Tests.Architecture only after a normal (non-StrykerCompat) rebuild.** The
     IL-scanning stub-detection rule can flap (phantom 18/19) when the scanned output
     dirs contain StrykerCompat-flattened build artifacts from a mutation run; a fresh
-    `dotnet build` of the solution clears it (observed at the Phase 1 gate).
+    `dotnet build` of the solution clears it (observed at the Phase 1 gate, and again
+    when a Phase 2 reviewer subagent rebuilt in Release atop lingering StrykerOutput
+    and read 18/19 — the clean run is 19/19).
+
+**Phase 2 addenda (multi-interface cluster, EF-backed + composed fakes):**
+
+- **Persistence-backed contracts: seed/verify through the INTERFACE, not the twin's
+  fixture.** `TemplateRepository`'s twin seeded via `DbContext.Add` and verified via
+  `DbContext.FirstOrDefault` — neither exists for a mock blueprint. Re-express seeding
+  as `Sut.SaveTemplateAsync(...)` and side-effect checks as `Sut.GetTemplateAsync(...)`;
+  the asserted behavior is identical and the contract becomes implementation-agnostic.
+  This is a *body rewrite*, justified only because the repository is **excluded from
+  mutation testing** (EF/DB) so there is no kill-power to preserve verbatim. For a
+  mutation-hardened unit, prefer an abstract seed/read-back hook over rewriting bodies.
+- **SUT that reads a collaborator's state needs `CreateSut()` + a seed hook.**
+  `SchemaEvolutionDetector` and `AdaptiveExporter` read templates from a repository.
+  Pattern: `protected abstract T CreateSut();` + `protected abstract Task SeedXAsync(...)`.
+  The impl instance builds dbContext+repo+sut in its ctor (seed → `repo.SaveTemplateAsync`,
+  `CreateSut()` → the prebuilt sut). The blueprint holds a `List<TemplateDefinition>`
+  the factory closes over; seed → `_list.Add`. The SUT reads the store lazily at call
+  time, so seed-before-call ordering works for both.
+- **Reference fakes compose.** `AdaptiveExporterMockFactory` reuses
+  `TemplateFieldMapperMockFactory.CreateContractConformingMock()` as its field mapper
+  and an in-memory template store — don't re-port mapping logic. For stateful fakes
+  (repository, exporter), back the NSubstitute mock with a captured `List<>`/closure
+  and configure each method via `.Returns(call => ...)`; `Arg.Any<>()` per parameter.
+- **Promote-or-keep triage (the §2 "promote ~3" rule, concretely).** Promote pure
+  null/boundary tests into the base (e.g. `CalculateSimilarity_WithEmptyStrings`).
+  Keep impl-specific *richness* tests alongside the deriving class — recursive nested
+  detection and exact `dataType`-string assertions are implementation choices, not
+  behaviors every correct impl must exhibit (ADR-005 §5). Recount per-`[Fact]`: base
+  facts × inheritors + impl-side facts.
+- **Diverging shared-name assertions: the twin wins (executable truth).**
+  `CalculateSimilarity_WithSimilarStrings` was `≥ 0.7` in the mock blueprint but `≥ 0.5`
+  in the twin; lift the twin's `≥ 0.5` (the mock's stricter bound was never validated
+  against a real SUT and over-constrains the contract). Make the factory's fake return
+  the *real* value (0.7) so the bound isn't "loosened to make the mock pass".
+- **Stryker cross-assembly result to expect:** a clean re-run reports **Killed ==
+  baseline sum exactly, Timeout 0** — the inherited `[Fact]`s in the deriving impl
+  assembly kill the same mutants the deleted twin did. Trust the Killed-delta (0), not
+  the headline % (the combined-run % shifts because NoCoverage counts in the denominator).
+- **Cancellation is a known carried gap here:** the lift faithfully produced no
+  cancellation test (neither source had one) and the impls ignore the token — recorded
+  for Phase 6 (fix impls → then add the base test). Don't add it mid-lift; it surfaces
+  implementation bugs and reds the phase.
 
 ## 5. Progress tracker
 
@@ -340,7 +394,7 @@ Order of operations that worked for the pilot; repeat per interface:
 | — | Plan adversarial-review gate | ✅ GO WITH CONDITIONS (2026-06-10) — all 6 conditions applied to plan + primer same day | |
 | 0 | ADR + template + playbook | ✅ Done (2026-06-10) — ADR-005 authored; primer "to be authored" note removed; NSubstitute added to Testing.Contracts; worked example `FileTypeIdentifierContract` + `FileTypeIdentifierMockFactory` (Testing.Contracts) + Mock/Reference instances (Tests.Domain.Interfaces). **Proof gate passed:** (a) facts compile via extensibility.core, library stays non-runnable; (b) abstract base not discovered (`--list-tests`: 12 entries, 6 per deriving class, 0 for the base); (c) Tests.Domain.Interfaces 19 → 31 = 19 + 6×2, all green. Arch guardrail deferred to Phase 6 (as allowed). **Gate: GO** (`/itdd-adversarial-review phase-0`, 2026-06-10) — 0 Blocker/Major; 2 Minors carried to Phase 6 (promote-or-justify XML/DOCX content tests when converting `FileTypeIdentifierService`; optional explicit IndQuestResults PackageReference in Testing.Contracts). | Kt2 `e49f145` |
 | 1 | Pilot: IFieldMergeStrategy | ✅ Done (2026-06-10) — `FieldMergeStrategyContract` (16 Liskov bodies lifted verbatim, `_Liskov` names preserved + 5 restored blueprint-only tests: dedup, empty-list, conflict ResolvedValue, 3-source AdditionalFields, empty-Conflicts) + `FieldMergeStrategyMockFactory` (reference-fake semantics); blueprint `MockFieldMergeStrategyContractTests` (Tests.Domain.Interfaces), impl `EnhancedFieldMergeStrategyContractTests` (Extraction.Adaptive, +Testing.Contracts ProjectReference); superseded twin + standalone mock removed (converted). Counts exact: Tests.Domain 337→321, Tests.Domain.Interfaces 31→52, Extraction.Adaptive 313→318 (net +10). **Scoped Stryker (§6.1 empirical gate) PASSED: same 148-mutant population, detected 129→136, Survived 7→0, NoCoverage 12 (floor), 87.16%→91.89% — Stryker+MTP resolves cross-assembly inherited [Fact]s, config untouched.** MutationKilling class untouched. Playbook recorded (§4.1). **Gate: GO** (`/itdd-adversarial-review phase-1`, 2026-06-10, 2 independent reviewer agents + cross-check) — 0 Blocker/Major; 1 Minor (single-source SourceCount assertion from the mock checklist not pinned in base — optional later); 2 reviewer findings discarded on reproduction (count-only assertion was original behavior; arch-test 18/19 not reproducible — caused by reviewer's StrykerCompat-flattened build state, fresh run 19/19). | Kt2 `0b4197a` |
-| 2 | Export.Adaptive ×4 | ☐ Not started | |
+| 2 | Export.Adaptive ×4 | ✅ Done (2026-06-10) — `TemplateFieldMapperContract` (22, injected-Sut) + `TemplateRepositoryContract` (18, `CreateSut()` EF-InMemory; seed/verify re-expressed through the interface since the twin used `DbContext`-direct calls a mock blueprint can't) + `SchemaEvolutionDetectorContract` (16 = 15 shared + promoted boundary `CalculateSimilarity_WithEmptyStrings`; 2 "real-world scenario" tests kept impl-side per ADR-005 §5; `CreateSut()` + seed hook) + `AdaptiveExporterContract` (17, `CreateSut()` + seed hook). Four reference-fake `*MockFactory` classes in Testing.Contracts (Domain-only); the AdaptiveExporter fake composes the TemplateFieldMapper fake over an in-memory store. Blueprints in Tests.Domain.Interfaces, impl instances in Export.Adaptive (+Testing.Contracts ProjectReference); superseded twins + standalone mocks removed (converted). **Counts exact: Tests.Domain 321→249, Tests.Domain.Interfaces 52→125, Export.Adaptive 173→173 (net 0).** **Scoped Stryker (config untouched): Killed 408 = baseline sum (Units 17-20: 150+154+96+8), Survived 64 (floor), Timeout 0 — cross-assembly inherited [Fact] kill power preserved.** Solution build 0/0; Tests.Architecture 19/19 (clean rebuild; one reviewer's 18/19 was the StrykerOutput-flatten flap, §4.1 step 11). **Gate: GO WITH CONDITIONS** (`/itdd-adversarial-review phase-2`, 2026-06-10, 3 reviewer agents + cross-check) — 0 reproduced Blocker/Major. Reviewer's "missing-cancellation Blocker" downgraded to Minor-carried on cross-check: neither source had a cancellation test and all 4 impls ignore the CancellationToken, so adding one is net-new, exceeds the zero-drift lift scope, and surfaces 4 implementation bugs (defer per §6.2 / ADR-005 §7 precedent). Reviewer's 0.7→0.5 similarity "weakening" discarded: twin is executable truth, fake returns 0.7 (not loosened-to-pass), 0.5 is the correct contract floor. | Kt2 `1df7735` |
 | 3 | Adaptive DOCX ×6 | ☐ Not started | |
 | 4 | Classification split ×2 | ☐ Not started | |
 | 5 | IRepository / IManualReviewerPanel / IPersonIdentityResolver | ☐ Not started | |
