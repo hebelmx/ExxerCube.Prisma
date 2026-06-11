@@ -1,56 +1,65 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
-using ExxerCube.Prisma.Infrastructure.Export.Adaptive.Data;
-using IndQuestResults;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
 using Xunit;
 
-namespace ExxerCube.Prisma.Tests.Infrastructure.Export.Adaptive;
+namespace ExxerCube.Prisma.Testing.Contracts;
 
 /// <summary>
-/// Implementation tests for SchemaEvolutionDetector using REAL dependencies.
-/// These tests have IDENTICAL names to ISchemaEvolutionDetectorContractTests to verify Liskov Substitution Principle.
-/// ITDD Step 4: Test real implementation with same contract (Verify Liskov).
+/// Behavioral contract for <see cref="ISchemaEvolutionDetector"/> — every implementation
+/// (and the mock blueprint) must pass these tests unchanged (ADR-005).
 /// </summary>
-public sealed class SchemaEvolutionDetectorTests : IDisposable
+/// <remarks>
+/// <para>
+/// 16 tests: the 15 shared (zero-named-drift) bodies lifted from <c>SchemaEvolutionDetectorTests</c>
+/// plus the promoted boundary case <see cref="CalculateSimilarity_WithEmptyStrings_Returns0"/>
+/// (master plan §2 "promote the ~3 contract-grade null/boundary tests" — recounted
+/// per-method). Where the shared bodies diverged, the twin's looser assertion is the
+/// executable truth (e.g. <see cref="CalculateSimilarity_WithSimilarStrings_ReturnsHighScore"/>
+/// asserts ≥ 0.5, not the mock's ≥ 0.7).
+/// </para>
+/// <para>
+/// The two "Additional Real-World Scenarios" twin tests (recursive nested-field detection;
+/// exact <c>dataType</c> strings for the complex-object suggestion) stay implementation-side
+/// in the deriving class — their specifics are implementation richness, not behavior every
+/// correct implementation must exhibit (ADR-005 §5).
+/// </para>
+/// <para>
+/// Uses the <c>CreateSut()</c> fallback plus a <see cref="SeedActiveTemplateAsync"/> hook:
+/// <see cref="ISchemaEvolutionDetector.DetectDriftForActiveTemplateAsync"/> reads the
+/// active template from a backing repository the implementation owns, which the contract
+/// seeds implementation-agnostically.
+/// </para>
+/// </remarks>
+public abstract class SchemaEvolutionDetectorContract
 {
-    private readonly TemplateDbContext _dbContext;
-    private readonly ITemplateRepository _templateRepository;
-    private readonly ISchemaEvolutionDetector _detector;
+    /// <summary>Creates the implementation under test. Called once per test.</summary>
+    /// <returns>The <see cref="ISchemaEvolutionDetector"/> implementation to verify.</returns>
+    protected abstract ISchemaEvolutionDetector CreateSut();
 
-    public SchemaEvolutionDetectorTests()
-    {
-        // Setup REAL database (InMemory for tests)
-        var options = new DbContextOptionsBuilder<TemplateDbContext>()
-            .UseInMemoryDatabase(databaseName: $"SchemaDetectorTestDb_{Guid.NewGuid()}")
-            .Options;
+    /// <summary>
+    /// Seeds an active template into the repository backing the SUT, so
+    /// <see cref="ISchemaEvolutionDetector.DetectDriftForActiveTemplateAsync"/> can find it.
+    /// </summary>
+    /// <param name="template">The active template to seed.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    protected abstract Task SeedActiveTemplateAsync(TemplateDefinition template, CancellationToken cancellationToken);
 
-        _dbContext = new TemplateDbContext(options);
+    //
+    // DetectDriftAsync Tests
+    //
 
-        // Create REAL dependencies (NO MOCKS)
-        _templateRepository = new TemplateRepository(_dbContext, NullLogger<TemplateRepository>.Instance);
-        _detector = new SchemaEvolutionDetector(_templateRepository, NullLogger<SchemaEvolutionDetector>.Instance);
-    }
-
-    public void Dispose()
-    {
-        _dbContext.Database.EnsureDeleted();
-        _dbContext.Dispose();
-    }
-
-     //  DetectDriftAsync Tests (Mirror Contract Tests)
-
+    /// <summary>Contract: a source matching the template exactly reports no drift.</summary>
     [Fact]
     public async Task DetectDriftAsync_WithNoDrift_ReturnsSuccessWithNoDrift()
     {
         // Arrange: Source has exactly the fields template expects
+        var detector = CreateSut();
         var sourceObject = new
         {
             Name = "John Doe",
@@ -72,7 +81,7 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         template.FieldMappings.Add(new FieldMapping("Age", "TargetAge", isRequired: true));
 
         // Act
-        var result = await _detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
+        var result = await detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
 
         // Assert: SAME expectations as contract test (Liskov!)
         result.IsSuccess.ShouldBeTrue();
@@ -86,10 +95,12 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         result.Value.TemplateType.ShouldBe(template.TemplateType);
     }
 
+    /// <summary>Contract: source fields absent from the template are reported as new (Low severity).</summary>
     [Fact]
     public async Task DetectDriftAsync_WithNewFields_ReturnsSuccessWithNewFieldsDrift()
     {
         // Arrange: Source has extra fields not in template
+        var detector = CreateSut();
         var sourceObject = new
         {
             Name = "John Doe",
@@ -113,7 +124,7 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         template.FieldMappings.Add(new FieldMapping("Age", "TargetAge", isRequired: true));
 
         // Act
-        var result = await _detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
+        var result = await detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
 
         // Assert: SAME expectations as contract test (Liskov!)
         result.IsSuccess.ShouldBeTrue();
@@ -129,10 +140,12 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         result.Value.NewFields.ShouldContain(nf => nf.FieldPath == "Phone");
     }
 
+    /// <summary>Contract: a missing required template field yields High severity.</summary>
     [Fact]
     public async Task DetectDriftAsync_WithMissingRequiredFields_ReturnsSuccessWithHighSeverity()
     {
         // Arrange: Source is missing required template fields
+        var detector = CreateSut();
         var sourceObject = new
         {
             Name = "John Doe"
@@ -154,7 +167,7 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         template.FieldMappings.Add(new FieldMapping("Age", "TargetAge", isRequired: true));  // REQUIRED
 
         // Act
-        var result = await _detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
+        var result = await detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
 
         // Assert: SAME expectations as contract test (Liskov!)
         result.IsSuccess.ShouldBeTrue();
@@ -168,10 +181,12 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         result.Value.RenamedFields.ShouldBeEmpty();
     }
 
+    /// <summary>Contract: fields resembling renamed template fields are detected via fuzzy match (Medium).</summary>
     [Fact]
     public async Task DetectDriftAsync_WithRenamedFields_ReturnsSuccessWithRenamedFieldsDrift()
     {
         // Arrange: Source has fields that look like renamed versions of template fields
+        var detector = CreateSut();
         var sourceObject = new
         {
             FullName = "John Doe",      // Similar to "Name"
@@ -193,7 +208,7 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         template.FieldMappings.Add(new FieldMapping("Age", "TargetAge", isRequired: true));
 
         // Act
-        var result = await _detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
+        var result = await detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
 
         // Assert: SAME expectations as contract test (Liskov!)
         result.IsSuccess.ShouldBeTrue();
@@ -212,10 +227,12 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         }
     }
 
+    /// <summary>Contract: a null source object yields a failure.</summary>
     [Fact]
     public async Task DetectDriftAsync_WithNullSourceObject_ReturnsFailure()
     {
         // Arrange
+        var detector = CreateSut();
         var template = new TemplateDefinition
         {
             TemplateId = Guid.NewGuid().ToString(),
@@ -224,35 +241,39 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         };
 
         // Act
-        var result = await _detector.DetectDriftAsync(null!, template, CancellationToken.None);
+        var result = await detector.DetectDriftAsync(null!, template, CancellationToken.None);
 
         // Assert: SAME expectation (Liskov!)
         result.IsFailure.ShouldBeTrue();
         (result.Error ?? string.Empty).ShouldContain("Source object cannot be null");
     }
 
+    /// <summary>Contract: a null template yields a failure.</summary>
     [Fact]
     public async Task DetectDriftAsync_WithNullTemplate_ReturnsFailure()
     {
         // Arrange
+        var detector = CreateSut();
         var sourceObject = new { Name = "Test" };
 
         // Act
-        var result = await _detector.DetectDriftAsync(sourceObject, null!, CancellationToken.None);
+        var result = await detector.DetectDriftAsync(sourceObject, null!, CancellationToken.None);
 
         // Assert: SAME expectation (Liskov!)
         result.IsFailure.ShouldBeTrue();
         (result.Error ?? string.Empty).ShouldContain("Template cannot be null");
     }
 
-     // 
+    //
+    // DetectDriftForActiveTemplateAsync Tests
+    //
 
-     //  DetectDriftForActiveTemplateAsync Tests
-
+    /// <summary>Contract: drift is detected against the active template for a type.</summary>
     [Fact]
     public async Task DetectDriftForActiveTemplateAsync_WithActiveTemplate_ReturnsSuccess()
     {
-        // Arrange: Create and save active template
+        // Arrange: Create and seed active template
+        var detector = CreateSut();
         var template = new TemplateDefinition
         {
             TemplateId = Guid.NewGuid().ToString(),
@@ -267,12 +288,12 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         template.FieldMappings.Add(new FieldMapping("Name", "TargetName", isRequired: true));
         template.FieldMappings.Add(new FieldMapping("Age", "TargetAge", isRequired: true));
 
-        await _templateRepository.SaveTemplateAsync(template, CancellationToken.None);
+        await SeedActiveTemplateAsync(template, CancellationToken.None);
 
         var sourceObject = new { Name = "John Doe", Age = 30 };
 
         // Act
-        var result = await _detector.DetectDriftForActiveTemplateAsync(sourceObject, "Excel", CancellationToken.None);
+        var result = await detector.DetectDriftForActiveTemplateAsync(sourceObject, "Excel", CancellationToken.None);
 
         // Assert: SAME expectations (Liskov!)
         result.IsSuccess.ShouldBeTrue();
@@ -281,29 +302,33 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         result.Value.HasDrift.ShouldBeFalse();
     }
 
+    /// <summary>Contract: no active template for the type yields a failure.</summary>
     [Fact]
     public async Task DetectDriftForActiveTemplateAsync_WithNoActiveTemplate_ReturnsFailure()
     {
-        // Arrange: No active template in database
+        // Arrange: No active template in repository
+        var detector = CreateSut();
         var sourceObject = new { Name = "Test" };
         var templateType = "InvalidType";
 
         // Act
-        var result = await _detector.DetectDriftForActiveTemplateAsync(sourceObject, templateType, CancellationToken.None);
+        var result = await detector.DetectDriftForActiveTemplateAsync(sourceObject, templateType, CancellationToken.None);
 
         // Assert: SAME expectation (Liskov!)
         result.IsFailure.ShouldBeTrue();
         (result.Error ?? string.Empty).ShouldContain("No active template found");
     }
 
-     // 
+    //
+    // SuggestFieldMappingsAsync Tests
+    //
 
-     //  SuggestFieldMappingsAsync Tests
-
+    /// <summary>Contract: a source object yields one suggested mapping per field, with detected types.</summary>
     [Fact]
     public async Task SuggestFieldMappingsAsync_WithValidSourceObject_ReturnsSuggestedMappings()
     {
         // Arrange
+        var detector = CreateSut();
         var sourceObject = new
         {
             Name = "John Doe",
@@ -314,7 +339,7 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         var templateType = "Excel";
 
         // Act
-        var result = await _detector.SuggestFieldMappingsAsync(sourceObject, templateType, CancellationToken.None);
+        var result = await detector.SuggestFieldMappingsAsync(sourceObject, templateType, CancellationToken.None);
 
         // Assert: SAME expectations (Liskov!)
         result.IsSuccess.ShouldBeTrue();
@@ -331,73 +356,85 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         nameMapping.DataType.ShouldBe("string");
     }
 
+    /// <summary>Contract: a null source object yields a failure.</summary>
     [Fact]
     public async Task SuggestFieldMappingsAsync_WithNullSourceObject_ReturnsFailure()
     {
         // Arrange
+        var detector = CreateSut();
         var templateType = "Excel";
 
         // Act
-        var result = await _detector.SuggestFieldMappingsAsync(null!, templateType, CancellationToken.None);
+        var result = await detector.SuggestFieldMappingsAsync(null!, templateType, CancellationToken.None);
 
         // Assert: SAME expectation (Liskov!)
         result.IsFailure.ShouldBeTrue();
         (result.Error ?? string.Empty).ShouldContain("Source object cannot be null");
     }
 
-     // 
+    //
+    // CalculateSimilarity Tests
+    //
 
-     //  CalculateSimilarity Tests
-
+    /// <summary>Contract: identical strings score 1.0.</summary>
     [Fact]
     public void CalculateSimilarity_WithIdenticalStrings_Returns1()
     {
         // Arrange & Act
-        var result = _detector.CalculateSimilarity("Name", "Name");
+        var detector = CreateSut();
+        var result = detector.CalculateSimilarity("Name", "Name");
 
         // Assert: SAME expectation (Liskov!)
         result.ShouldBe(1.0);
     }
 
+    /// <summary>Contract: similar strings score in the upper range (≥ 0.5).</summary>
     [Fact]
     public void CalculateSimilarity_WithSimilarStrings_ReturnsHighScore()
     {
         // Arrange & Act
-        var result = _detector.CalculateSimilarity("Name", "FullName");
+        var detector = CreateSut();
+        var result = detector.CalculateSimilarity("Name", "FullName");
 
         // Assert: SAME expectations (Liskov!)
         result.ShouldBeGreaterThanOrEqualTo(0.5);
         result.ShouldBeLessThanOrEqualTo(1.0);
     }
 
+    /// <summary>Contract: dissimilar strings score low (&lt; 0.5).</summary>
     [Fact]
     public void CalculateSimilarity_WithCompletelyDifferentStrings_ReturnsLowScore()
     {
         // Arrange & Act
-        var result = _detector.CalculateSimilarity("Name", "XYZ");
+        var detector = CreateSut();
+        var result = detector.CalculateSimilarity("Name", "XYZ");
 
         // Assert: SAME expectation (Liskov!)
         result.ShouldBeLessThan(0.5);
     }
 
+    /// <summary>Contract (boundary, promoted): an empty input scores 0.0.</summary>
     [Fact]
     public void CalculateSimilarity_WithEmptyStrings_Returns0()
     {
         // Arrange & Act
-        var result = _detector.CalculateSimilarity("", "Name");
+        var detector = CreateSut();
+        var result = detector.CalculateSimilarity("", "Name");
 
         // Assert
         result.ShouldBe(0.0);
     }
 
-     // 
+    //
+    // ValidateTemplateCompatibilityAsync Tests
+    //
 
-     //  ValidateTemplateCompatibilityAsync Tests
-
+    /// <summary>Contract: a compatible template validates successfully.</summary>
     [Fact]
     public async Task ValidateTemplateCompatibilityAsync_WithCompatibleTemplate_ReturnsSuccess()
     {
         // Arrange
+        var detector = CreateSut();
         var sourceObject = new { Name = "John Doe", Age = 30 };
 
         var template = new TemplateDefinition
@@ -415,16 +452,18 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         template.FieldMappings.Add(new FieldMapping("Age", "TargetAge", isRequired: true));
 
         // Act
-        var result = await _detector.ValidateTemplateCompatibilityAsync(sourceObject, template, CancellationToken.None);
+        var result = await detector.ValidateTemplateCompatibilityAsync(sourceObject, template, CancellationToken.None);
 
         // Assert: SAME expectation (Liskov!)
         result.IsSuccess.ShouldBeTrue();
     }
 
+    /// <summary>Contract: a template requiring a missing field is incompatible.</summary>
     [Fact]
     public async Task ValidateTemplateCompatibilityAsync_WithIncompatibleTemplate_ReturnsFailure()
     {
         // Arrange
+        var detector = CreateSut();
         var sourceObject = new { Name = "John Doe" };  // Missing Age
 
         var template = new TemplateDefinition
@@ -442,87 +481,11 @@ public sealed class SchemaEvolutionDetectorTests : IDisposable
         template.FieldMappings.Add(new FieldMapping("Age", "TargetAge", isRequired: true));  // REQUIRED but missing
 
         // Act
-        var result = await _detector.ValidateTemplateCompatibilityAsync(sourceObject, template, CancellationToken.None);
+        var result = await detector.ValidateTemplateCompatibilityAsync(sourceObject, template, CancellationToken.None);
 
         // Assert: SAME expectation (Liskov!)
         result.IsFailure.ShouldBeTrue();
         (result.Error ?? string.Empty).ShouldContain("incompatible");
         (result.Error ?? string.Empty).ShouldContain("Age");
     }
-
-     // 
-
-     //  Additional Real-World Scenarios
-
-    [Fact]
-    public async Task DetectDriftAsync_WithNestedObjects_DetectsNestedFields()
-    {
-        // Arrange: Source with nested object
-        var sourceObject = new
-        {
-            Name = "John Doe",
-            Address = new
-            {
-                Street = "123 Main St",
-                City = "Springfield"
-            }
-        };
-
-        var template = new TemplateDefinition
-        {
-            TemplateId = Guid.NewGuid().ToString(),
-            TemplateType = "Excel",
-            Version = "1.0.0",
-            IsActive = true,
-            EffectiveDate = DateTime.UtcNow.AddDays(-1),
-            CreatedAt = DateTime.UtcNow,
-            CreatedBy = "Test"
-        };
-
-        template.FieldMappings.Add(new FieldMapping("Name", "TargetName", isRequired: true));
-        // Missing nested Address fields
-
-        // Act
-        var result = await _detector.DetectDriftAsync(sourceObject, template, CancellationToken.None);
-
-        // Assert: Should detect nested fields as new
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value.HasDrift.ShouldBeTrue();
-        result.Value.NewFields.Count.ShouldBeGreaterThan(0);
-
-        // Should find Address.Street and Address.City
-        result.Value.NewFields.ShouldContain(nf => nf.FieldPath.Contains("Address"));
-    }
-
-    [Fact]
-    public async Task SuggestFieldMappingsAsync_WithComplexObject_SuggestsAllFields()
-    {
-        // Arrange
-        var sourceObject = new
-        {
-            Id = 123,
-            Name = "Test",
-            IsActive = true,
-            CreatedDate = DateTime.Now,
-            Amount = 99.99m
-        };
-
-        // Act
-        var result = await _detector.SuggestFieldMappingsAsync(sourceObject, "Excel", CancellationToken.None);
-
-        // Assert: Should suggest mappings for all primitive fields
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value.Length.ShouldBe(5);
-
-        // Verify different data types detected
-        result.Value.ShouldContain(m => m.DataType == "int");
-        result.Value.ShouldContain(m => m.DataType == "string");
-        result.Value.ShouldContain(m => m.DataType == "bool");
-        result.Value.ShouldContain(m => m.DataType == "datetime");
-        result.Value.ShouldContain(m => m.DataType == "decimal");
-    }
-
-     // 
 }

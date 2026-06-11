@@ -1,32 +1,50 @@
+using System;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
-using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
-using Microsoft.Extensions.Logging.Abstractions;
+using Shouldly;
+using Xunit;
 
-namespace ExxerCube.Prisma.Tests.Infrastructure.Export.Adaptive;
+namespace ExxerCube.Prisma.Testing.Contracts;
 
 /// <summary>
-/// Implementation tests for TemplateFieldMapper using REAL implementation.
-/// These tests have IDENTICAL names to ITemplateFieldMapperContractTests to prove Liskov Substitution Principle.
+/// Behavioral contract for <see cref="ITemplateFieldMapper"/> — every implementation
+/// (and the mock blueprint) must pass these tests unchanged (ADR-005).
 /// </summary>
 /// <remarks>
-/// ITDD Step 3.0: These tests start in RED phase (implementation not yet written).
-/// Test names MUST match contract tests exactly - this proves LSP when both pass.
+/// <para>
+/// The 22 test bodies are lifted VERBATIM from <c>TemplateFieldMapperTests</c>
+/// (Tests.Infrastructure.Export.Adaptive, the executable truth before this refactor) —
+/// names preserved; the only edit is the SUT-construction line
+/// (<c>_mapper</c> → <see cref="Sut"/>). The mock blueprint and
+/// <c>TemplateFieldMapper</c> are zero-drift twins (master plan §2), so all 22 are
+/// contract-grade.
+/// </para>
+/// <para>
+/// Uses the default ADR-005 SUT mechanism: a constructor-injected, interface-typed
+/// <see cref="Sut"/> (the mapper has only a logger dependency).
+/// </para>
 /// </remarks>
-public sealed class TemplateFieldMapperTests
+public abstract class TemplateFieldMapperContract
 {
-    private readonly TemplateFieldMapper _mapper;
-
-    public TemplateFieldMapperTests()
+    /// <summary>
+    /// Initializes the contract with the implementation under test.
+    /// </summary>
+    /// <param name="sut">The <see cref="ITemplateFieldMapper"/> implementation to verify.</param>
+    protected TemplateFieldMapperContract(ITemplateFieldMapper sut)
     {
-        // Use REAL implementation (not mocks)
-        _mapper = new TemplateFieldMapper(NullLogger<TemplateFieldMapper>.Instance);
+        ArgumentNullException.ThrowIfNull(sut);
+        Sut = sut;
     }
 
+    /// <summary>Gets the implementation under test.</summary>
+    protected ITemplateFieldMapper Sut { get; }
+
     //
-    // MapFieldAsync Tests - IDENTICAL names to contract tests
+    // MapFieldAsync Tests
     //
 
+    /// <summary>Contract: a present field maps to its value.</summary>
     [Fact]
     public async Task MapFieldAsync_WhenValidField_ReturnsSuccess()
     {
@@ -35,7 +53,7 @@ public sealed class TemplateFieldMapperTests
         var mapping = new FieldMapping("Name", "TargetName", isRequired: true);
 
         // Act: REAL mapper call
-        var result = await _mapper.MapFieldAsync(
+        var result = await Sut.MapFieldAsync(
             sourceObject,
             mapping,
             TestContext.Current.CancellationToken);
@@ -45,6 +63,7 @@ public sealed class TemplateFieldMapperTests
         result.Value.ShouldBe("John Doe");
     }
 
+    /// <summary>Contract: a missing required field fails.</summary>
     [Fact]
     public async Task MapFieldAsync_WhenRequiredFieldMissing_ReturnsFailure()
     {
@@ -53,7 +72,7 @@ public sealed class TemplateFieldMapperTests
         var mapping = new FieldMapping("Email", "TargetEmail", isRequired: true);
 
         // Act: REAL mapper call
-        var result = await _mapper.MapFieldAsync(
+        var result = await Sut.MapFieldAsync(
             sourceObject,
             mapping,
             TestContext.Current.CancellationToken);
@@ -64,6 +83,7 @@ public sealed class TemplateFieldMapperTests
         result.Error.ShouldContain("Email");
     }
 
+    /// <summary>Contract: a missing optional field with a default returns the default.</summary>
     [Fact]
     public async Task MapFieldAsync_WhenOptionalFieldMissing_ReturnsDefaultValue()
     {
@@ -75,7 +95,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.MapFieldAsync(
+        var result = await Sut.MapFieldAsync(
             sourceObject,
             mapping,
             TestContext.Current.CancellationToken);
@@ -85,6 +105,7 @@ public sealed class TemplateFieldMapperTests
         result.Value.ShouldBe("N/A");
     }
 
+    /// <summary>Contract: a transformation expression is applied.</summary>
     [Fact]
     public async Task MapFieldAsync_WithTransformation_ReturnsTransformedValue()
     {
@@ -96,7 +117,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.MapFieldAsync(
+        var result = await Sut.MapFieldAsync(
             sourceObject,
             mapping,
             TestContext.Current.CancellationToken);
@@ -106,6 +127,7 @@ public sealed class TemplateFieldMapperTests
         result.Value.ShouldBe("USER@EXAMPLE.COM");
     }
 
+    /// <summary>Contract: a format string is applied (DateTime → yyyy-MM-dd).</summary>
     [Fact]
     public async Task MapFieldAsync_WithFormatting_ReturnsFormattedValue()
     {
@@ -118,7 +140,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.MapFieldAsync(
+        var result = await Sut.MapFieldAsync(
             sourceObject,
             mapping,
             TestContext.Current.CancellationToken);
@@ -128,6 +150,7 @@ public sealed class TemplateFieldMapperTests
         result.Value.ShouldBe("1990-05-15");
     }
 
+    /// <summary>Contract: a dotted path resolves a nested property.</summary>
     [Fact]
     public async Task MapFieldAsync_WithNestedProperty_ReturnsNestedValue()
     {
@@ -139,7 +162,7 @@ public sealed class TemplateFieldMapperTests
         var mapping = new FieldMapping("Expediente.NumeroExpediente", "NumExp", isRequired: true);
 
         // Act: REAL mapper call
-        var result = await _mapper.MapFieldAsync(
+        var result = await Sut.MapFieldAsync(
             sourceObject,
             mapping,
             TestContext.Current.CancellationToken);
@@ -150,9 +173,10 @@ public sealed class TemplateFieldMapperTests
     }
 
     //
-    // MapAllFieldsAsync Tests - IDENTICAL names to contract tests
+    // MapAllFieldsAsync Tests
     //
 
+    /// <summary>Contract: all valid fields map into the target dictionary.</summary>
     [Fact]
     public async Task MapAllFieldsAsync_WhenAllFieldsValid_ReturnsAllMappedFields()
     {
@@ -173,7 +197,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.MapAllFieldsAsync(
+        var result = await Sut.MapAllFieldsAsync(
             sourceObject,
             template,
             TestContext.Current.CancellationToken);
@@ -186,6 +210,7 @@ public sealed class TemplateFieldMapperTests
         result.Value["TargetAge"].ShouldBe("30");
     }
 
+    /// <summary>Contract: a missing required field aborts the whole mapping with failure.</summary>
     [Fact]
     public async Task MapAllFieldsAsync_WhenRequiredFieldMissing_ReturnsFailure()
     {
@@ -206,7 +231,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.MapAllFieldsAsync(
+        var result = await Sut.MapAllFieldsAsync(
             sourceObject,
             template,
             TestContext.Current.CancellationToken);
@@ -217,6 +242,7 @@ public sealed class TemplateFieldMapperTests
         result.Error.ShouldContain("Age");
     }
 
+    /// <summary>Contract: a missing optional field does not abort mapping.</summary>
     [Fact]
     public async Task MapAllFieldsAsync_WhenOptionalFieldMissing_ContinuesMapping()
     {
@@ -237,7 +263,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.MapAllFieldsAsync(
+        var result = await Sut.MapAllFieldsAsync(
             sourceObject,
             template,
             TestContext.Current.CancellationToken);
@@ -249,9 +275,10 @@ public sealed class TemplateFieldMapperTests
     }
 
     //
-    // ValidateMappingAsync Tests - IDENTICAL names to contract tests
+    // ValidateMappingAsync Tests
     //
 
+    /// <summary>Contract: a valid mapping against a known type succeeds.</summary>
     [Fact]
     public async Task ValidateMappingAsync_WhenMappingValid_ReturnsSuccess()
     {
@@ -260,7 +287,7 @@ public sealed class TemplateFieldMapperTests
         var mapping = new FieldMapping("Name", "TargetName", true);
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateMappingAsync(
+        var result = await Sut.ValidateMappingAsync(
             sourceType,
             mapping,
             TestContext.Current.CancellationToken);
@@ -269,6 +296,7 @@ public sealed class TemplateFieldMapperTests
         result.IsSuccess.ShouldBeTrue();
     }
 
+    /// <summary>Contract: a field path absent on the source type fails validation.</summary>
     [Fact]
     public async Task ValidateMappingAsync_WhenFieldPathInvalid_ReturnsFailure()
     {
@@ -277,7 +305,7 @@ public sealed class TemplateFieldMapperTests
         var mapping = new FieldMapping("NonExistentField", "Target", true);
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateMappingAsync(
+        var result = await Sut.ValidateMappingAsync(
             sourceType,
             mapping,
             TestContext.Current.CancellationToken);
@@ -288,6 +316,7 @@ public sealed class TemplateFieldMapperTests
         result.Error.ShouldContain("NonExistentField");
     }
 
+    /// <summary>Contract: an unsupported transformation expression fails validation.</summary>
     [Fact]
     public async Task ValidateMappingAsync_WhenTransformationInvalid_ReturnsFailure()
     {
@@ -299,7 +328,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateMappingAsync(
+        var result = await Sut.ValidateMappingAsync(
             sourceType,
             mapping,
             TestContext.Current.CancellationToken);
@@ -311,9 +340,10 @@ public sealed class TemplateFieldMapperTests
     }
 
     //
-    // ApplyTransformationAsync Tests - IDENTICAL names to contract tests
+    // ApplyTransformationAsync Tests
     //
 
+    /// <summary>Contract: ToUpper() uppercases the value.</summary>
     [Fact]
     public async Task ApplyTransformationAsync_ToUpper_ReturnsUppercase()
     {
@@ -322,7 +352,7 @@ public sealed class TemplateFieldMapperTests
         var transformExpression = "ToUpper()";
 
         // Act: REAL mapper call
-        var result = await _mapper.ApplyTransformationAsync(
+        var result = await Sut.ApplyTransformationAsync(
             value,
             transformExpression,
             TestContext.Current.CancellationToken);
@@ -332,6 +362,7 @@ public sealed class TemplateFieldMapperTests
         result.Value.ShouldBe("HELLO WORLD");
     }
 
+    /// <summary>Contract: Trim() removes surrounding whitespace.</summary>
     [Fact]
     public async Task ApplyTransformationAsync_Trim_RemovesWhitespace()
     {
@@ -340,7 +371,7 @@ public sealed class TemplateFieldMapperTests
         var transformExpression = "Trim()";
 
         // Act: REAL mapper call
-        var result = await _mapper.ApplyTransformationAsync(
+        var result = await Sut.ApplyTransformationAsync(
             value,
             transformExpression,
             TestContext.Current.CancellationToken);
@@ -350,6 +381,7 @@ public sealed class TemplateFieldMapperTests
         result.Value.ShouldBe("hello world");
     }
 
+    /// <summary>Contract: chained transformations apply left to right.</summary>
     [Fact]
     public async Task ApplyTransformationAsync_ChainedTransformations_AppliesInOrder()
     {
@@ -358,7 +390,7 @@ public sealed class TemplateFieldMapperTests
         var transformExpression = "Trim() | ToUpper()";
 
         // Act: REAL mapper call
-        var result = await _mapper.ApplyTransformationAsync(
+        var result = await Sut.ApplyTransformationAsync(
             value,
             transformExpression,
             TestContext.Current.CancellationToken);
@@ -368,6 +400,7 @@ public sealed class TemplateFieldMapperTests
         result.Value.ShouldBe("HELLO WORLD");
     }
 
+    /// <summary>Contract: Substring(start, length) extracts the substring.</summary>
     [Fact]
     public async Task ApplyTransformationAsync_Substring_ExtractsSubstring()
     {
@@ -376,7 +409,7 @@ public sealed class TemplateFieldMapperTests
         var transformExpression = "Substring(0, 5)";
 
         // Act: REAL mapper call
-        var result = await _mapper.ApplyTransformationAsync(
+        var result = await Sut.ApplyTransformationAsync(
             value,
             transformExpression,
             TestContext.Current.CancellationToken);
@@ -387,9 +420,10 @@ public sealed class TemplateFieldMapperTests
     }
 
     //
-    // ValidateFieldValueAsync Tests - IDENTICAL names to contract tests
+    // ValidateFieldValueAsync Tests
     //
 
+    /// <summary>Contract: a value matching a Regex rule passes.</summary>
     [Fact]
     public async Task ValidateFieldValueAsync_WhenValuePassesRegex_ReturnsSuccess()
     {
@@ -401,7 +435,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateFieldValueAsync(
+        var result = await Sut.ValidateFieldValueAsync(
             value,
             mapping,
             TestContext.Current.CancellationToken);
@@ -410,6 +444,7 @@ public sealed class TemplateFieldMapperTests
         result.IsSuccess.ShouldBeTrue();
     }
 
+    /// <summary>Contract: a value failing a Regex rule fails.</summary>
     [Fact]
     public async Task ValidateFieldValueAsync_WhenValueFailsRegex_ReturnsFailure()
     {
@@ -421,7 +456,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateFieldValueAsync(
+        var result = await Sut.ValidateFieldValueAsync(
             value,
             mapping,
             TestContext.Current.CancellationToken);
@@ -432,6 +467,7 @@ public sealed class TemplateFieldMapperTests
         result.Error.ShouldContain("regex");
     }
 
+    /// <summary>Contract: a value within a Range rule passes.</summary>
     [Fact]
     public async Task ValidateFieldValueAsync_WhenValueInRange_ReturnsSuccess()
     {
@@ -443,7 +479,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateFieldValueAsync(
+        var result = await Sut.ValidateFieldValueAsync(
             value,
             mapping,
             TestContext.Current.CancellationToken);
@@ -452,6 +488,7 @@ public sealed class TemplateFieldMapperTests
         result.IsSuccess.ShouldBeTrue();
     }
 
+    /// <summary>Contract: a value outside a Range rule fails.</summary>
     [Fact]
     public async Task ValidateFieldValueAsync_WhenValueOutOfRange_ReturnsFailure()
     {
@@ -463,7 +500,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateFieldValueAsync(
+        var result = await Sut.ValidateFieldValueAsync(
             value,
             mapping,
             TestContext.Current.CancellationToken);
@@ -474,6 +511,7 @@ public sealed class TemplateFieldMapperTests
         result.Error.ShouldContain("range");
     }
 
+    /// <summary>Contract: a value meeting a MinLength rule passes.</summary>
     [Fact]
     public async Task ValidateFieldValueAsync_WhenValueMeetsMinLength_ReturnsSuccess()
     {
@@ -485,7 +523,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateFieldValueAsync(
+        var result = await Sut.ValidateFieldValueAsync(
             value,
             mapping,
             TestContext.Current.CancellationToken);
@@ -494,6 +532,7 @@ public sealed class TemplateFieldMapperTests
         result.IsSuccess.ShouldBeTrue();
     }
 
+    /// <summary>Contract: a value below a MinLength rule fails.</summary>
     [Fact]
     public async Task ValidateFieldValueAsync_WhenValueBelowMinLength_ReturnsFailure()
     {
@@ -505,7 +544,7 @@ public sealed class TemplateFieldMapperTests
         };
 
         // Act: REAL mapper call
-        var result = await _mapper.ValidateFieldValueAsync(
+        var result = await Sut.ValidateFieldValueAsync(
             value,
             mapping,
             TestContext.Current.CancellationToken);
@@ -517,10 +556,10 @@ public sealed class TemplateFieldMapperTests
     }
 
     //
-    // Helper classes for testing (REAL test objects)
+    // Helper classes for testing (lifted with the bodies)
     //
 
-    private class TestSourceObject
+    private sealed class TestSourceObject
     {
         public string Name { get; set; } = string.Empty;
         public int Age { get; set; }
@@ -529,7 +568,7 @@ public sealed class TemplateFieldMapperTests
         public TestExpediente? Expediente { get; set; }
     }
 
-    private class TestExpediente
+    private sealed class TestExpediente
     {
         public string NumeroExpediente { get; set; } = string.Empty;
     }
