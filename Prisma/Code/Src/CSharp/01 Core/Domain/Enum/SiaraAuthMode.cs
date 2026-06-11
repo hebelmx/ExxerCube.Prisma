@@ -23,4 +23,13 @@ public enum SiaraAuthMode
     /// Credentials are typed into SIARA's own page, never into Prisma.
     /// </summary>
     InteractiveLogin = 1,
+
+    /// <summary>
+    /// Prisma drives SIARA's login form unattended with credentials sourced at runtime from a
+    /// client-owned secret store (Key Vault / environment / secrets manager) — used transiently and
+    /// <strong>never persisted</strong> by Prisma. Enables 24/7 operation without a human; the
+    /// resulting session is captured as a credential-free handle (the no-raw-credential-storage rule
+    /// is preserved). See ADR-010.
+    /// </summary>
+    AutomatedLogin = 2,
 }
