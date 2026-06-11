@@ -1078,6 +1078,112 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
 
     //
 
+    // Rule 9: ITDD Contract-Base Guardrail (ADR-005)
+
+    /// <summary>
+    /// ADR-005 guardrail: every contract base class named <c>*Contract</c> in
+    /// <c>ExxerCube.Prisma.Testing.Contracts</c> must be <c>abstract</c> (so xUnit does not discover it
+    /// directly) AND have at least one inheriting test class — the blueprint instance and/or an
+    /// implementation instance — in a runnable <c>ExxerCube.Prisma.Tests.*</c> assembly. This stops a
+    /// contract base from rotting unpaired (authored but never run against any implementation).
+    /// </summary>
+    [Fact]
+    public void Contract_Bases_Must_Be_Abstract_With_At_Least_One_Inheritor()
+    {
+        var contractsAssembly = FindAssembliesByPattern("ExxerCube.Prisma.Testing.Contracts.dll").FirstOrDefault();
+        contractsAssembly.ShouldNotBeNull("Testing.Contracts assembly must be discoverable under the build output.");
+
+        // Contract base classes: top-level classes whose name (ignoring any generic-arity suffix) ends
+        // with 'Contract' — e.g. FieldMergeStrategyContract, RepositoryContract`2.
+        var contractBases = SafeGetTypes(contractsAssembly!)
+            .Where(t => t is { IsClass: true, IsNested: false })
+            .Where(t => t!.Name.Split('`')[0].EndsWith("Contract", StringComparison.Ordinal))
+            .Select(t => t!)
+            .ToList();
+
+        contractBases.ShouldNotBeEmpty("Expected at least one '*Contract' base class in Testing.Contracts.");
+
+        // (a) every contract base must be abstract.
+        var notAbstract = contractBases.Where(t => !t.IsAbstract).Select(t => t.FullName).ToList();
+        notAbstract.ShouldBeEmpty(
+            $"Every '*Contract' in Testing.Contracts must be abstract (ADR-005). Non-abstract: {string.Join(", ", notAbstract)}");
+
+        // (b) every contract base must have >= 1 inheriting test class in a runnable test assembly.
+        // Match by base-type FULL NAME (generic bases by their open generic definition) so it is robust
+        // across the multiple Testing.Contracts.dll copies the per-project build output produces.
+        var inheritorBaseDefinitions = FindAssembliesByPattern("ExxerCube.Prisma.Tests.*.dll")
+            .SelectMany(SafeGetTypes)
+            .Where(t => t is { IsClass: true } && t!.BaseType is not null && t.BaseType != typeof(object))
+            .Select(t => t!.BaseType!.IsGenericType ? t.BaseType.GetGenericTypeDefinition().FullName : t.BaseType.FullName)
+            .Where(n => n is not null)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var orphans = contractBases
+            .Select(t => t.FullName)
+            .Where(name => name is not null && !inheritorBaseDefinitions.Contains(name!))
+            .ToList();
+
+        orphans.ShouldBeEmpty(
+            $"Every '*Contract' in Testing.Contracts must have >=1 inheriting test class (ADR-005). " +
+            $"Orphaned contract bases: {string.Join(", ", orphans)}");
+    }
+
+    //
+
+    /// <summary>Reflects an assembly's types, tolerating partial type-load failures.</summary>
+    private static Type?[] SafeGetTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            return ex.Types;
+        }
+        catch
+        {
+            return Array.Empty<Type?>();
+        }
+    }
+
+    /// <summary>
+    /// Finds (and loads) every assembly matching <paramref name="pattern"/> across the build-output roots,
+    /// newest-first, de-duplicated by full name — mirrors <see cref="GetInfrastructureAssemblies"/> so the
+    /// custom flattened BuildArtifacts layout is searched consistently.
+    /// </summary>
+    private static IReadOnlyList<Assembly> FindAssembliesByPattern(string pattern)
+    {
+        var roots = new[]
+        {
+            AppContext.BaseDirectory,
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..")),
+            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", ".."))
+        }.Distinct(StringComparer.OrdinalIgnoreCase);
+
+        return roots
+            .Where(Directory.Exists)
+            .SelectMany(root => Directory.GetFiles(root, pattern, SearchOption.AllDirectories))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(path => new FileInfo(path))
+            .OrderByDescending(fi => fi.LastWriteTimeUtc)
+            .Select(fi =>
+            {
+                try
+                {
+                    return Assembly.LoadFrom(fi.FullName);
+                }
+                catch
+                {
+                    return null;
+                }
+            })
+            .Where(a => a is not null)
+            .DistinctBy(a => a!.FullName)
+            .Select(a => a!)
+            .ToList();
+    }
+
     /// <summary>
     /// Determines whether any class in the given assemblies implements the interface identified by
     /// <paramref name="interfaceFullName"/>, matching by type FULL NAME rather than CLR type identity.
