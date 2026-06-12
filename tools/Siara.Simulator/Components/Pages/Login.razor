@@ -1,5 +1,8 @@
 @page "/login"
-@inject Siara.Simulator.Services.AuthenticationService AuthService
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@inject Siara.Simulator.Services.SiaraCredentialValidator Validator
 @inject NavigationManager NavManager
 @inject ILogger<Login> Logger
 
@@ -37,7 +40,7 @@
             </div>
 
             <div class="card-body">
-                <EditForm Model="@_model" OnSubmit="HandleLogin" FormName="loginForm">
+                <EditForm Model="Model" OnValidSubmit="HandleLoginAsync" FormName="loginForm" method="post">
                     <DataAnnotationsValidator />
 
                     <div class="form-group">
@@ -47,7 +50,7 @@
                         <InputText
                             id="username"
                             class="form-input"
-                            @bind-Value="_model.Username"
+                            @bind-Value="Model.Username"
                             placeholder="Ingrese su usuario"
                             autocomplete="username" />
                     </div>
@@ -60,10 +63,10 @@
                             id="password"
                             type="password"
                             class="form-input"
-                            @bind-Value="_model.Password"
+                            @bind-Value="Model.Password"
                             placeholder="Ingrese su contraseña"
                             autocomplete="current-password" />
-                        <ValidationMessage For="@(() => _model.Password)" />
+                        <ValidationMessage For="@(() => Model.Password)" />
                     </div>
 
                     @if (!string.IsNullOrEmpty(_errorMessage))
@@ -79,7 +82,7 @@
                 </EditForm>
 
                 <div class="help-text">
-                    <p><small>💡 <strong>Nota de Simulación:</strong> Cualquier usuario y contraseña son válidos para acceder al sistema de pruebas.</small></p>
+                    <p><small>💡 <strong>Nota de Simulación:</strong> credenciales de prueba — Usuario: <strong>BANAMEX</strong> · Contraseña: <strong>password123</strong>. Tras varios intentos fallidos la cuenta se bloquea temporalmente, como en el SIARA real.</small></p>
                 </div>
             </div>
         </div>
@@ -367,18 +370,37 @@
 </style>
 
 @code {
-    private readonly LoginModel _model = new();
+    // Static SSR cookie sign-in: HttpContext is available during the form POST, so SignInAsync can
+    // write the Set-Cookie header. (Interactive components run over the SignalR circuit, where there
+    // is no HttpContext to sign into — which is why this page stays static SSR.)
+    [CascadingParameter]
+    public HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    public LoginModel Model { get; set; } = new();
+
     private string? _errorMessage;
 
-    private void HandleLogin()
+    private async Task HandleLoginAsync()
     {
-        Logger.LogInformation("HandleLogin called - Demo mode, auto-login");
+        var result = Validator.Validate(Model.Username, Model.Password);
+        if (!result.Success)
+        {
+            _errorMessage = result.ErrorMessage;
+            Logger.LogInformation("Login rejected for {User}: {Reason}", Model.Username, _errorMessage);
+            return;
+        }
 
-        // DEMO: Just hardcode login success
-        AuthService.Login("password123");
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, Model.Username),
+            new("siara:institution", Model.Username),
+        };
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
-        Logger.LogInformation("Auto-login successful, navigating to /");
-        NavManager.NavigateTo("/", forceLoad: true);
+        Logger.LogInformation("Login successful for {User}; SIARA session cookie issued", Model.Username);
+        NavManager.NavigateTo("/");
     }
 
     public class LoginModel

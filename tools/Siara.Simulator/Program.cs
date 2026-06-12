@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using Siara.Simulator.Components;
@@ -22,44 +24,36 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton<CaseService>();
 
 // ============================================================================
-// SIARA AUTHENTICATION FLOW - SOURCE OF TRUTH
+// SIARA AUTHENTICATION — cookie-based session (models the real SIARA)
 // ============================================================================
-// This is a DEMO/SIMULATOR - Authentication is intentionally simplified.
+// The real siara.cnbv.gob.mx is a username/password web form that issues a
+// SESSION COOKIE and locks the account after too many failed attempts. The
+// simulator now mirrors that with ASP.NET Core cookie authentication so that a
+// browser-automation scraper's exported storage-state (which captures cookies)
+// actually carries the authenticated session — the behaviour the Prisma SIARA
+// auth providers (ADR-010) depend on. The previous demo auto-login used Blazor
+// *circuit* state, which storage-state cannot capture.
 //
-// USER STORY:
-// 1. User opens the application
-// 2. App starts in NOT AUTHENTICATED state (CaseService created but NOT started)
-// 3. Routes.razor detects unauthenticated user and redirects to /login
-// 4. User sees login form (username and password fields for appearance only)
-// 5. User enters ANY credentials (validation is cosmetic only)
-// 6. User clicks "Ingresar" (submit button)
-// 7. Login ALWAYS succeeds (AuthenticationService.Login() always returns true)
-// 8. User is redirected to Dashboard (/)
-// 9. Dashboard.OnInitialized() calls CaseService.Start() - simulation begins
-// 10. User sees case arrivals with documents (PDF, DOCX, XML) in real-time
-//
-// TECHNICAL IMPLEMENTATION:
-// - AuthenticationService is registered as SINGLETON (not Scoped)
-// - Singleton ensures authentication state survives Blazor circuit resets
-// - Login() method accepts any password and always sets IsAuthenticated = true
-// - Routes.razor checks IsAuthenticated on every navigation
-// - forceLoad: true on navigation ensures clean page reload
-//
-// WHY SINGLETON (normally anti-pattern for auth):
-// - This is a single-user demo simulator, not a multi-user application
-// - Avoids Blazor Server circuit lifecycle issues (Scoped gets recreated)
-// - State persists across page reloads and reconnections
-//
-// WARNING: DO NOT USE THIS PATTERN IN PRODUCTION
-// Real applications need:
-// - Proper authentication (ASP.NET Core Identity, JWT, OAuth)
-// - Per-user state management (Scoped services with session storage)
-// - Secure password hashing and validation
-// - CSRF protection, rate limiting, etc.
+// Credentials are PUBLIC FAKE values for the simulator only (Auth section /
+// SiaraAuthOptions defaults). This is NOT real authentication — no hashing,
+// CSRF-on-login only, in-memory lockout. Do not use this pattern in production.
 // ============================================================================
+builder.Services.Configure<SiaraAuthOptions>(builder.Configuration.GetSection("Auth"));
+builder.Services.AddSingleton<SiaraCredentialValidator>();
 
-// Register authentication service (always - this is a simulator/demo)
-builder.Services.AddSingleton<AuthenticationService>();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "siara_session";
+        options.LoginPath = "/login";
+        options.AccessDeniedPath = "/login";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
 
 // Log warning if not in development mode
 if (!builder.Environment.IsDevelopment())
@@ -76,20 +70,6 @@ if (!builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
-// ============================================================================
-// FORCE LOGOUT AT STARTUP - Ensure app always starts in logged-out state
-// ============================================================================
-// This allows tests to demonstrate the complete login flow from the beginning.
-// Without this, the AuthenticationService singleton might retain logged-in state
-// from previous runs (especially during development/hot reload scenarios).
-// ============================================================================
-using (var scope = app.Services.CreateScope())
-{
-    var authService = scope.ServiceProvider.GetRequiredService<AuthenticationService>();
-    authService.Logout();
-    Log.Information("Application startup: User logged out - ready for login demonstration");
-}
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -104,10 +84,28 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
-// Serve static files from wwwroot (like css, js)
+// Serve static files from wwwroot (like css, js) — anonymous.
 app.UseStaticFiles();
 
-// Serve static files from the document store
+// Authentication must run before any gated resource so HttpContext.User is populated from the cookie.
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Gate the document store on an authenticated SIARA session — a scraper must hold the session cookie
+// to download documents, exactly as it would against the real SIARA.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/document_store") &&
+        context.User.Identity?.IsAuthenticated != true)
+    {
+        context.Response.Redirect("/login");
+        return;
+    }
+
+    await next();
+});
+
+// Serve static files from the document store (now gated by the middleware above).
 var documentStorePath = Path.Combine(builder.Environment.ContentRootPath, "..", "bulk_generated_documents_all_formats");
 if (Directory.Exists(documentStorePath))
 {
@@ -120,10 +118,17 @@ if (Directory.Exists(documentStorePath))
 
 app.UseAntiforgery();
 
+// Logout endpoint — clears the session cookie and returns to the login page.
+app.MapPost("/auth/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Redirect("/login");
+}).DisableAntiforgery();
+
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// CaseService will be started when Dashboard page loads (deferred initialization)
+// CaseService is started when the (authenticated) Dashboard page loads.
 
 app.Run();

@@ -1,20 +1,11 @@
-@inject Siara.Simulator.Services.AuthenticationService AuthService
-@inject NavigationManager NavManager
-
 <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        @{
-            var isLoginPage = routeData.PageType == typeof(Components.Pages.Login);
-        }
-        @if (AuthService.IsAuthenticated || isLoginPage)
-        {
-            <RouteView RouteData="routeData" DefaultLayout="typeof(Components.Layout.MainLayout)" />
-            <FocusOnNavigate RouteData="routeData" Selector="h1" />
-        }
-        else
-        {
-            <NavigateToLogin />
-        }
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Components.Layout.MainLayout)">
+            <NotAuthorized>
+                <NavigateToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
     <NotFound>
         <PageTitle>Not found</PageTitle>
@@ -25,6 +16,6 @@
 </Router>
 
 @code {
-    // Routes component handles authentication-based navigation.
-    // Unauthenticated users are redirected to /login via NavigateToLogin component.
+    // Cookie-authenticated routing: pages marked [Authorize] redirect anonymous users to /login via
+    // NavigateToLogin; the login page is anonymous. Auth state comes from the SIARA session cookie.
 }
