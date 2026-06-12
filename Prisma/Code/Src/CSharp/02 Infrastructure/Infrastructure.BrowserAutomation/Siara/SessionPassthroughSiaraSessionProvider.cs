@@ -25,23 +25,28 @@ namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
 public sealed class SessionPassthroughSiaraSessionProvider : ISiaraSessionProvider
 {
     private readonly IBrowserSessionContext _sessionContext;
+    private readonly ISiaraActorIdentityProvider _actorIdentity;
     private readonly SiaraPassthroughOptions _options;
     private readonly ILogger<SessionPassthroughSiaraSessionProvider> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="SessionPassthroughSiaraSessionProvider"/> class.</summary>
     /// <param name="sessionContext">The browser session capability used to attach/probe/capture.</param>
+    /// <param name="actorIdentity">The provider that resolves the trustworthy acquiring actor (ADR-010 P2).</param>
     /// <param name="options">The SIARA auth options (the passthrough section is read).</param>
     /// <param name="logger">The logger instance.</param>
     public SessionPassthroughSiaraSessionProvider(
         IBrowserSessionContext sessionContext,
+        ISiaraActorIdentityProvider actorIdentity,
         IOptions<SiaraAuthOptions> options,
         ILogger<SessionPassthroughSiaraSessionProvider> logger)
     {
         ArgumentNullException.ThrowIfNull(sessionContext);
+        ArgumentNullException.ThrowIfNull(actorIdentity);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
 
         _sessionContext = sessionContext;
+        _actorIdentity = actorIdentity;
         _options = options.Value.Passthrough;
         _logger = logger;
     }
@@ -62,6 +67,19 @@ public sealed class SessionPassthroughSiaraSessionProvider : ISiaraSessionProvid
         if (request is null)
         {
             return Result<SiaraSession>.WithFailure("Session request cannot be null");
+        }
+
+        // Resolve the trustworthy acquiring actor before touching the browser (ADR-010 P2, fail-closed).
+        var actor = await _actorIdentity.GetCurrentActorAsync(cancellationToken).ConfigureAwait(false);
+        if (actor.IsCancelled())
+        {
+            return ResultExtensions.Cancelled<SiaraSession>();
+        }
+
+        if (actor.IsFailure)
+        {
+            return Result<SiaraSession>.WithFailure(
+                $"Cannot acquire a SIARA session without a trustworthy actor identity: {actor.Error}");
         }
 
         // The external context reference comes from the request, falling back to a configured default.
@@ -128,13 +146,14 @@ public sealed class SessionPassthroughSiaraSessionProvider : ISiaraSessionProvid
             Mode = Mode,
             StorageStateRef = storageStateRef,
             ExpiresAt = null, // unknown — valid until proven invalid by a probe
-            AcquiredBy = request.RequestedBy,
+            AcquiredBy = actor.Value!,
         };
 
         _logger.LogInformation(
-            "Acquired passthrough SIARA session {SessionId} via {Transport}",
+            "Acquired passthrough SIARA session {SessionId} via {Transport} for actor {ActorId}",
             session.SessionId,
-            _options.Transport);
+            _options.Transport,
+            actor.Value!.ActorId);
 
         return Result<SiaraSession>.Success(session);
     }

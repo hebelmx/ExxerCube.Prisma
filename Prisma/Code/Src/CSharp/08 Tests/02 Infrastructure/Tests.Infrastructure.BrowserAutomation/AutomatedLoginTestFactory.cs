@@ -82,13 +82,21 @@ internal static class AutomatedLoginTestFactory
     }
 
     /// <summary>Wraps the supplied collaborators in a provider.</summary>
+    /// <param name="agent">The browser agent mock to use.</param>
+    /// <param name="sessionContext">The browser session context mock to use.</param>
+    /// <param name="loginService">The login service mock to use.</param>
+    /// <param name="credentialSource">The credential source to use.</param>
+    /// <param name="circuitBreaker">The circuit breaker to use.</param>
+    /// <param name="automated">Optional automated options; defaults to a sensible test setup.</param>
+    /// <param name="actorIdentity">Optional actor identity provider; defaults to a fresh fake.</param>
     public static AutomatedLoginSiaraSessionProvider CreateProvider(
         IBrowserAutomationAgent agent,
         IBrowserSessionContext sessionContext,
         ISiaraLoginService loginService,
         ISiaraCredentialSource credentialSource,
         SiaraLoginCircuitBreaker circuitBreaker,
-        SiaraAutomatedOptions? automated = null)
+        SiaraAutomatedOptions? automated = null,
+        ISiaraActorIdentityProvider? actorIdentity = null)
     {
         var options = Options.Create(new SiaraAuthOptions
         {
@@ -99,6 +107,7 @@ internal static class AutomatedLoginTestFactory
         return new AutomatedLoginSiaraSessionProvider(
             agent,
             sessionContext,
+            actorIdentity ?? new FakeSiaraActorIdentityProvider(),
             loginService,
             credentialSource,
             circuitBreaker,

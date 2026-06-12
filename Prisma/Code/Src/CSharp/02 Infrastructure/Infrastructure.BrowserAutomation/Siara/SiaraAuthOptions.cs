@@ -30,6 +30,37 @@ public sealed class SiaraAuthOptions
 
     /// <summary>Gets or sets the <see cref="SiaraAuthMode.AutomatedLogin"/> parameters.</summary>
     public SiaraAutomatedOptions Automated { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the deployment-configured service-account identity used by all acquisition modes to
+    /// stamp the acquiring actor on every session for audit and non-repudiation (ADR-010 P2). Consumed by
+    /// ConfiguredSiaraActorIdentityProvider.
+    /// </summary>
+    public SiaraActorOptions Actor { get; set; } = new();
+}
+
+/// <summary>
+/// Deployment-configured identity of the service account that acquires SIARA sessions in unattended
+/// modes. Consumed by ConfiguredSiaraActorIdentityProvider (ADR-010 P2).
+/// </summary>
+/// <remarks>
+/// Set these values at deployment time (appsettings / Key Vault config provider). The ActorId is
+/// recorded in audit trails — it must be a stable, recognizable identifier (for example, a service
+/// principal name or a process identity string), not a credential.
+/// </remarks>
+public sealed class SiaraActorOptions
+{
+    /// <summary>
+    /// Gets or sets the stable service-account identifier recorded in audit trails. Must be non-empty
+    /// for actor resolution to succeed. Never a credential.
+    /// </summary>
+    public string ActorId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets an optional human-readable label for the actor (for example, a display name or team
+    /// name). Informational only; the canonical audit identity is ActorId.
+    /// </summary>
+    public string? DisplayName { get; set; }
 }
 
 /// <summary>

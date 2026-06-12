@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -51,11 +52,13 @@ public static class SiaraAuthenticationServiceCollectionExtensions
             optionsBuilder.Configure(configure);
         }
 
-        // Singletons: the clock, the lockout-safety state (P3 must persist across attempts), and the
-        // credential source (stateless, reads the secret store per call).
+        // Singletons: the clock, the lockout-safety state (P3 must persist across attempts), the
+        // credential source (stateless, reads the secret store per call), and the actor identity provider
+        // (stateless, reads deployment config per call — ADR-010 P2).
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<SiaraLoginCircuitBreaker>();
         services.TryAddSingleton<ISiaraCredentialSource, ConfiguredSiaraCredentialSource>();
+        services.TryAddSingleton<ISiaraActorIdentityProvider, ConfiguredSiaraActorIdentityProvider>();
 
         // The three strategies, keyed by mode so only the configured one is constructed by the resolver.
         services.AddKeyedScoped<ISiaraSessionProvider, SessionPassthroughSiaraSessionProvider>(

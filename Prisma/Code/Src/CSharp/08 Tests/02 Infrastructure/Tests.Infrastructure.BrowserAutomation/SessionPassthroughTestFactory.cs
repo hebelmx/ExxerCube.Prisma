@@ -41,9 +41,13 @@ internal static class SessionPassthroughTestFactory
     }
 
     /// <summary>Wraps a session-context in a provider with the given passthrough options.</summary>
+    /// <param name="sessionContext">The browser session context to use.</param>
+    /// <param name="passthrough">Optional passthrough options; defaults to a sensible test setup.</param>
+    /// <param name="actorIdentity">Optional actor identity provider; defaults to a fresh fake.</param>
     public static SessionPassthroughSiaraSessionProvider CreateProvider(
         IBrowserSessionContext sessionContext,
-        SiaraPassthroughOptions? passthrough = null)
+        SiaraPassthroughOptions? passthrough = null,
+        ISiaraActorIdentityProvider? actorIdentity = null)
     {
         var options = Options.Create(new SiaraAuthOptions
         {
@@ -53,6 +57,7 @@ internal static class SessionPassthroughTestFactory
 
         return new SessionPassthroughSiaraSessionProvider(
             sessionContext,
+            actorIdentity ?? new FakeSiaraActorIdentityProvider(),
             options,
             Substitute.For<ILogger<SessionPassthroughSiaraSessionProvider>>());
     }

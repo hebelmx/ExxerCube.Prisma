@@ -135,15 +135,18 @@ public sealed class SessionPassthroughSiaraSessionProviderTests
     }
 
     [Fact]
-    public async Task AcquireAsync_RecordsAcquiringActorFromRequest()
+    public async Task AcquireAsync_RecordsTrustworthyAcquiringActor()
     {
+        // The actor comes from the identity provider (the fake), not from the request's RequestedBy.
+        var actorIdentity = new FakeSiaraActorIdentityProvider(actorId: "passthrough-service-account");
         var sut = SessionPassthroughTestFactory.CreateProvider(
-            SessionPassthroughTestFactory.CreateAuthenticatedContextMock());
+            SessionPassthroughTestFactory.CreateAuthenticatedContextMock(),
+            actorIdentity: actorIdentity);
 
         var result = await sut.AcquireAsync(RequestWith("imported-ref", requestedBy: "orion-watcher"), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.AcquiredBy.ShouldBe("orion-watcher");
+        result.Value!.AcquiredBy.ActorId.ShouldBe("passthrough-service-account");
         result.Value.Mode.ShouldBe(SiaraAuthMode.SessionPassthrough);
     }
 

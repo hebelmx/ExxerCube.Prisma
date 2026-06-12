@@ -40,8 +40,10 @@ public sealed record SiaraSession
     public DateTimeOffset? ExpiresAt { get; init; }
 
     /// <summary>
-    /// Gets the identity or process that acquired the session, recorded for the per-process
-    /// access audit (ties to MVP-PATH A6). Optional.
+    /// Gets the trustworthy actor that acquired this session, recorded for per-document non-repudiation
+    /// and the per-process access audit (ADR-010 P2). Mandatory: a session cannot be issued without a
+    /// resolved, policy-verified actor identity. The actor is set by ISiaraActorIdentityProvider, never
+    /// supplied by the caller, so it cannot be spoofed by passing an arbitrary string.
     /// </summary>
-    public string? AcquiredBy { get; init; }
+    public required SiaraActor AcquiredBy { get; init; }
 }

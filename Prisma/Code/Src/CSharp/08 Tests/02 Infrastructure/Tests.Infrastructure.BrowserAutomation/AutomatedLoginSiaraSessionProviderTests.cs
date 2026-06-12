@@ -175,14 +175,22 @@ public sealed class AutomatedLoginSiaraSessionProviderTests
     }
 
     [Fact]
-    public async Task AcquireAsync_RecordsAcquiringActorFromRequest()
+    public async Task AcquireAsync_RecordsTrustworthyAcquiringActor()
     {
-        var sut = AutomatedLoginTestFactory.CreateProvider();
+        // The actor comes from the identity provider (the fake), not from the request's RequestedBy.
+        var actorIdentity = new FakeSiaraActorIdentityProvider(actorId: "automated-service-account");
+        var sut = AutomatedLoginTestFactory.CreateProvider(
+            AutomatedLoginTestFactory.CreateSuccessfulAgentMock(),
+            AutomatedLoginTestFactory.CreateAuthenticatedContextMock(),
+            AutomatedLoginTestFactory.CreateAcceptingLoginServiceMock(),
+            new FakeSiaraCredentialSource(),
+            AutomatedLoginTestFactory.CreateCircuitBreaker(),
+            actorIdentity: actorIdentity);
 
         var result = await sut.AcquireAsync(RequestBy("scheduler-7"), TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.AcquiredBy.ShouldBe("scheduler-7");
+        result.Value!.AcquiredBy.ActorId.ShouldBe("automated-service-account");
     }
 
     [Fact]
@@ -195,6 +203,7 @@ public sealed class AutomatedLoginSiaraSessionProviderTests
             Mode = SiaraAuthMode.AutomatedLogin,
             StorageStateRef = "expired-ref",
             ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1),
+            AcquiredBy = new SiaraActor { ActorId = "test-actor", ActorType = SiaraActorType.ServiceAccount },
         };
 
         var result = await sut.EnsureValidAsync(expired, TestContext.Current.CancellationToken);

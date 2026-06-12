@@ -77,7 +77,11 @@ public sealed class FakeSiaraSessionProvider : ISiaraSessionProvider
                 Mode = Mode,
                 StorageStateRef = $"fake-storage-state-{n}",
                 ExpiresAt = null, // valid until proven invalid
-                AcquiredBy = request.RequestedBy,
+                AcquiredBy = new SiaraActor
+                {
+                    ActorId = request.RequestedBy ?? "fake-actor",
+                    ActorType = SiaraActorType.ServiceAccount,
+                },
             };
             _acquired[session.SessionId] = session;
         }

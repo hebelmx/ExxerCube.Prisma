@@ -29,6 +29,7 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
 {
     private readonly IBrowserAutomationAgent _agent;
     private readonly IBrowserSessionContext _sessionContext;
+    private readonly ISiaraActorIdentityProvider _actorIdentity;
     private readonly ISiaraLoginService _loginService;
     private readonly ISiaraCredentialSource _credentialSource;
     private readonly SiaraLoginCircuitBreaker _circuitBreaker;
@@ -38,6 +39,7 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
     /// <summary>Initializes a new instance of the <see cref="AutomatedLoginSiaraSessionProvider"/> class.</summary>
     /// <param name="agent">The browser agent used to launch and navigate.</param>
     /// <param name="sessionContext">The browser session capability used to probe/capture/re-hydrate.</param>
+    /// <param name="actorIdentity">The provider that resolves the trustworthy acquiring actor (ADR-010 P2).</param>
     /// <param name="loginService">The form driver that fills and submits the login form.</param>
     /// <param name="credentialSource">The transient secret-store source for the credentials.</param>
     /// <param name="circuitBreaker">The P3 lockout-safety control gating each attempt.</param>
@@ -46,6 +48,7 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
     public AutomatedLoginSiaraSessionProvider(
         IBrowserAutomationAgent agent,
         IBrowserSessionContext sessionContext,
+        ISiaraActorIdentityProvider actorIdentity,
         ISiaraLoginService loginService,
         ISiaraCredentialSource credentialSource,
         SiaraLoginCircuitBreaker circuitBreaker,
@@ -54,6 +57,7 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
     {
         ArgumentNullException.ThrowIfNull(agent);
         ArgumentNullException.ThrowIfNull(sessionContext);
+        ArgumentNullException.ThrowIfNull(actorIdentity);
         ArgumentNullException.ThrowIfNull(loginService);
         ArgumentNullException.ThrowIfNull(credentialSource);
         ArgumentNullException.ThrowIfNull(circuitBreaker);
@@ -62,6 +66,7 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
 
         _agent = agent;
         _sessionContext = sessionContext;
+        _actorIdentity = actorIdentity;
         _loginService = loginService;
         _credentialSource = credentialSource;
         _circuitBreaker = circuitBreaker;
@@ -93,6 +98,24 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
         {
             return Result<SiaraSession>.WithFailure($"SIARA automated login is not permitted right now: {gate.Error}");
         }
+
+        // Resolve the trustworthy acquiring actor before touching credentials or the browser (ADR-010 P2, fail-closed).
+        var actor = await _actorIdentity.GetCurrentActorAsync(cancellationToken).ConfigureAwait(false);
+        if (actor.IsCancelled())
+        {
+            return ResultExtensions.Cancelled<SiaraSession>();
+        }
+
+        if (actor.IsFailure)
+        {
+            return Result<SiaraSession>.WithFailure(
+                $"Cannot acquire a SIARA session without a trustworthy actor identity: {actor.Error}");
+        }
+
+        // Audit the credential read, recording only the actor (never the credential values).
+        _logger.LogInformation(
+            "Reading SIARA credentials for actor {ActorId}",
+            actor.Value!.ActorId);
 
         // Source the credentials transiently from the client secret store. A missing secret is a
         // configuration fault, not a SIARA rejection, so it fails closed without tripping the breaker.
@@ -196,10 +219,13 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
             Mode = Mode,
             StorageStateRef = export.Value!,
             ExpiresAt = null, // unknown — valid until proven invalid by a probe
-            AcquiredBy = request.RequestedBy,
+            AcquiredBy = actor.Value!,
         };
 
-        _logger.LogInformation("Acquired automated-login SIARA session {SessionId}", session.SessionId);
+        _logger.LogInformation(
+            "Acquired automated-login SIARA session {SessionId} for actor {ActorId}",
+            session.SessionId,
+            actor.Value!.ActorId);
 
         return Result<SiaraSession>.Success(session);
     }

@@ -6,6 +6,7 @@ using IndQuestResults.Operations;
 using Shouldly;
 using Xunit;
 
+
 namespace ExxerCube.Prisma.Testing.Contracts;
 
 /// <summary>
@@ -30,6 +31,17 @@ namespace ExxerCube.Prisma.Testing.Contracts;
 /// </remarks>
 public abstract class SiaraSessionProviderContract
 {
+    /// <summary>
+    /// A shared trustworthy actor used when the contract needs to construct a SiaraSession directly
+    /// (for example, for the expired-session test). All contract-created sessions use this actor so that
+    /// the required AcquiredBy field is always satisfied.
+    /// </summary>
+    protected static readonly SiaraActor ContractActor = new()
+    {
+        ActorId = "contract-actor",
+        ActorType = SiaraActorType.ServiceAccount,
+    };
+
     /// <summary>Initializes the contract with the provider under test.</summary>
     /// <param name="sut">The <see cref="ISiaraSessionProvider"/> implementation to verify.</param>
     protected SiaraSessionProviderContract(ISiaraSessionProvider sut)
@@ -161,6 +173,7 @@ public abstract class SiaraSessionProviderContract
             Mode = Sut.Mode,
             StorageStateRef = "contract-expired-ref",
             ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-5),
+            AcquiredBy = ContractActor,
         };
 
         var result = await Sut.EnsureValidAsync(expired, TestContext.Current.CancellationToken);

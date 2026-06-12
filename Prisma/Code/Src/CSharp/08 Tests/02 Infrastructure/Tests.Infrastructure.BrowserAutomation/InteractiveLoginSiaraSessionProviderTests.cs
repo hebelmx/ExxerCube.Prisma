@@ -138,16 +138,18 @@ public sealed class InteractiveLoginSiaraSessionProviderTests
     }
 
     [Fact]
-    public async Task AcquireAsync_RecordsAcquiringActorFromRequest()
+    public async Task AcquireAsync_RecordsTrustworthyAcquiringActor()
     {
-        var sut = InteractiveLoginTestFactory.CreateProvider();
+        // The actor comes from the identity provider (the fake), not from the request's RequestedBy.
+        var actorIdentity = new FakeSiaraActorIdentityProvider(actorId: "interactive-service-account");
+        var sut = InteractiveLoginTestFactory.CreateProvider(actorIdentity: actorIdentity);
 
         var result = await sut.AcquireAsync(
             RequestWith(TimeSpan.FromSeconds(1), requestedBy: "reviewer-3"),
             TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.AcquiredBy.ShouldBe("reviewer-3");
+        result.Value!.AcquiredBy.ActorId.ShouldBe("interactive-service-account");
         result.Value.Mode.ShouldBe(SiaraAuthMode.InteractiveLogin);
     }
 
@@ -161,6 +163,7 @@ public sealed class InteractiveLoginSiaraSessionProviderTests
             Mode = SiaraAuthMode.InteractiveLogin,
             StorageStateRef = "expired-ref",
             ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1),
+            AcquiredBy = new SiaraActor { ActorId = "test-actor", ActorType = SiaraActorType.ServiceAccount },
         };
 
         var result = await sut.EnsureValidAsync(expired, TestContext.Current.CancellationToken);

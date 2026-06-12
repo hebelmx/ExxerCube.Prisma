@@ -79,7 +79,11 @@ public static class SiaraSessionProviderMockFactory
             Mode = mode,
             StorageStateRef = $"mock-storage-state-{n}",
             ExpiresAt = null, // unknown / valid-until-proven-invalid
-            AcquiredBy = request.RequestedBy,
+            AcquiredBy = new SiaraActor
+            {
+                ActorId = request.RequestedBy ?? "mock-actor",
+                ActorType = SiaraActorType.ServiceAccount,
+            },
         };
 
         return Result<SiaraSession>.Success(session);

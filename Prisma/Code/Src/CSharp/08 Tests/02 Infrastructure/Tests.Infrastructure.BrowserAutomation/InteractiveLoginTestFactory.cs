@@ -65,10 +65,15 @@ internal static class InteractiveLoginTestFactory
     }
 
     /// <summary>Wraps an agent + session-context in a provider with the given interactive options.</summary>
+    /// <param name="agent">The browser agent mock to use.</param>
+    /// <param name="sessionContext">The browser session context mock to use.</param>
+    /// <param name="interactive">Optional interactive options; defaults to a sensible test setup.</param>
+    /// <param name="actorIdentity">Optional actor identity provider; defaults to a fresh fake.</param>
     public static InteractiveLoginSiaraSessionProvider CreateProvider(
         IBrowserAutomationAgent agent,
         IBrowserSessionContext sessionContext,
-        SiaraInteractiveOptions? interactive = null)
+        SiaraInteractiveOptions? interactive = null,
+        ISiaraActorIdentityProvider? actorIdentity = null)
     {
         var options = Options.Create(new SiaraAuthOptions
         {
@@ -83,11 +88,16 @@ internal static class InteractiveLoginTestFactory
         return new InteractiveLoginSiaraSessionProvider(
             agent,
             sessionContext,
+            actorIdentity ?? new FakeSiaraActorIdentityProvider(),
             options,
             Substitute.For<ILogger<InteractiveLoginSiaraSessionProvider>>());
     }
 
     /// <summary>Builds a provider over the default successful agent + authenticated context mocks.</summary>
-    public static InteractiveLoginSiaraSessionProvider CreateProvider(SiaraInteractiveOptions? interactive = null) =>
-        CreateProvider(CreateSuccessfulAgentMock(), CreateAuthenticatedContextMock(), interactive);
+    /// <param name="interactive">Optional interactive options.</param>
+    /// <param name="actorIdentity">Optional actor identity provider; defaults to a fresh fake.</param>
+    public static InteractiveLoginSiaraSessionProvider CreateProvider(
+        SiaraInteractiveOptions? interactive = null,
+        ISiaraActorIdentityProvider? actorIdentity = null) =>
+        CreateProvider(CreateSuccessfulAgentMock(), CreateAuthenticatedContextMock(), interactive, actorIdentity);
 }

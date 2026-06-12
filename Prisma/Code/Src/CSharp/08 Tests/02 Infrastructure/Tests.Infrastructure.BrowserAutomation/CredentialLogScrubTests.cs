@@ -40,6 +40,7 @@ public sealed class CredentialLogScrubTests
         var sut = new AutomatedLoginSiaraSessionProvider(
             agent,
             context,
+            new FakeSiaraActorIdentityProvider(),
             loginService,
             source,
             breaker,
