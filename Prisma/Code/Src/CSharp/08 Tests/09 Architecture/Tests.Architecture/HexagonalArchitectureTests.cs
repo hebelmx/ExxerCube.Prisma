@@ -840,13 +840,12 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             //   directly. This is an intentional, genuinely-unimplemented port — keep allowlisted.
             "ExxerCube.Prisma.Domain.Interfaces.IEventHandler`1",
 
-            // SIARA authentication ports (ADR-010): the Domain seam ships ITDD-first (port + contract
-            //   base + reference fake) ahead of its production adapters. ISiaraSessionProvider is now
-            //   implemented by SessionPassthroughSiaraSessionProvider (S5, landed) in
-            //   Infrastructure.BrowserAutomation — REMOVED from the allowlist. The InteractiveLogin /
-            //   AutomatedLogin providers (S6/S6b) and the resolver (S7) are the remaining pending
-            //   adapters; remove the resolver below when S7 lands.
-            "ExxerCube.Prisma.Domain.Interfaces.ISiaraSessionProviderResolver",
+            // SIARA authentication ports (ADR-010): the Domain seam shipped ITDD-first (ports + contract
+            //   bases + reference fakes) ahead of its production adapters, which have now all landed in
+            //   Infrastructure.BrowserAutomation: ISiaraSessionProvider (S5 passthrough / S6 interactive /
+            //   S6b automated), ISiaraCredentialSource (S6b ConfiguredSiaraCredentialSource), and
+            //   ISiaraSessionProviderResolver (S7 SiaraSessionProviderResolver). All REMOVED from the
+            //   allowlist — they are now verified directly.
 
             // NOTE (2026-06): the former v1.1 allowlist (IHealthCheckService, IDashboardService,
             // IDocumentDownloader, IFieldMatchingService, IIdentityProvider, IIngestionJournal,
