@@ -24,6 +24,7 @@ public sealed class SiaraHostPolicyTests
         var result = policy.Validate(url);
 
         result.IsSuccess.ShouldBeFalse("the real SIARA production host must be barred unless explicitly opted in");
+        result.Error!.ShouldContain("production host");
     }
 
     [Theory]
@@ -65,6 +66,7 @@ public sealed class SiaraHostPolicyTests
         var result = policy.Validate(url);
 
         result.IsSuccess.ShouldBeFalse("an unparseable target URL must fail closed, never default to allowed");
+        result.Error!.ShouldContain("could not parse");
     }
 
     [Fact]

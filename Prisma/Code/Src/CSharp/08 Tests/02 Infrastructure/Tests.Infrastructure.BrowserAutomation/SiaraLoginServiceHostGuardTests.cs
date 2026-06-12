@@ -21,6 +21,7 @@ public sealed class SiaraLoginServiceHostGuardTests
         var result = await sut.LoginAsync(agent, "user", "pass", TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeFalse("the production host must be barred when AllowProductionHost is false");
+        result.Error!.ShouldContain("production host");
 
         await agent.DidNotReceive().FillInputAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await agent.DidNotReceive().ClickElementAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -61,7 +62,91 @@ public sealed class SiaraLoginServiceHostGuardTests
         var result = await sut.LoginAsync(agent, "user", "pass", TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeFalse("if the host cannot be confirmed, the login must fail closed");
+        result.Error!.ShouldContain("Cannot confirm");
         await agent.DidNotReceive().FillInputAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenPreCancelled_FailsWithoutTouchingTheAgent()
+    {
+        var agent = BuildLoginCapableAgentMock(currentUrl: SimulatorLoginUrl);
+        var sut = new SiaraLoginService(CreateHostPolicy(allowProductionHost: false), Substitute.For<ILogger<SiaraLoginService>>());
+
+        var result = await sut.LoginAsync(agent, "user", "pass", new CancellationToken(canceled: true));
+
+        result.IsSuccess.ShouldBeFalse();
+        await agent.DidNotReceive().GetCurrentUrlAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenUsernameFieldNotFound_FailsClosed()
+    {
+        var agent = BuildLoginCapableAgentMock(currentUrl: SimulatorLoginUrl);
+        agent.WaitForSelectorAsync(Arg.Any<string>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Result.WithFailure("no field"));
+        var sut = new SiaraLoginService(CreateHostPolicy(allowProductionHost: false), Substitute.For<ILogger<SiaraLoginService>>());
+
+        var result = await sut.LoginAsync(agent, "user", "pass", TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.ShouldContain("Username input field not found");
+        await agent.DidNotReceive().FillInputAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenFillUsernameFails_FailsClosed()
+    {
+        var agent = BuildLoginCapableAgentMock(currentUrl: SimulatorLoginUrl);
+        agent.FillInputAsync("input[name='username']", Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Result.WithFailure("disabled"));
+        var sut = new SiaraLoginService(CreateHostPolicy(allowProductionHost: false), Substitute.For<ILogger<SiaraLoginService>>());
+
+        var result = await sut.LoginAsync(agent, "user", "pass", TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.ShouldContain("Failed to fill username");
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenFillPasswordFails_FailsClosed()
+    {
+        var agent = BuildLoginCapableAgentMock(currentUrl: SimulatorLoginUrl);
+        agent.FillInputAsync("input[name='password']", Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Result.WithFailure("disabled"));
+        var sut = new SiaraLoginService(CreateHostPolicy(allowProductionHost: false), Substitute.For<ILogger<SiaraLoginService>>());
+
+        var result = await sut.LoginAsync(agent, "user", "pass", TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.ShouldContain("Failed to fill password");
+        await agent.DidNotReceive().ClickElementAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenClickFails_FailsClosed()
+    {
+        var agent = BuildLoginCapableAgentMock(currentUrl: SimulatorLoginUrl);
+        agent.ClickElementAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Result.WithFailure("not clickable"));
+        var sut = new SiaraLoginService(CreateHostPolicy(allowProductionHost: false), Substitute.For<ILogger<SiaraLoginService>>());
+
+        var result = await sut.LoginAsync(agent, "user", "pass", TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error!.ShouldContain("Failed to click login button");
+    }
+
+    [Fact]
+    public async Task LoginAsync_WhenAgentThrows_IsCaughtAndFailsClosed()
+    {
+        var agent = BuildLoginCapableAgentMock(currentUrl: SimulatorLoginUrl);
+        agent.WaitForSelectorAsync(Arg.Any<string>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .Returns<Result>(_ => throw new InvalidOperationException("boom"));
+        var sut = new SiaraLoginService(CreateHostPolicy(allowProductionHost: false), Substitute.For<ILogger<SiaraLoginService>>());
+
+        var result = await sut.LoginAsync(agent, "user", "pass", TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeFalse("an unexpected exception must be caught and converted to a failure Result");
     }
 
     private static SiaraHostPolicy CreateHostPolicy(bool allowProductionHost) =>
