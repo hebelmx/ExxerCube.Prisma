@@ -1,13 +1,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Orion.Ingestion;
 
 /// <summary>
 /// Stub implementation of IDocumentDownloader for testing and development.
-/// Returns empty byte arrays. Replace with actual SIARA integration in production.
+/// Fails closed: it is NOT a real SIARA integration and never produces a document, so it can never be
+/// mistaken for a working download. Replaced by SiaraDocumentDownloader in the Orion worker (MVP-PATH 1.1).
 /// </summary>
 public sealed class StubDocumentDownloader : IDocumentDownloader
 {
@@ -23,9 +25,17 @@ public sealed class StubDocumentDownloader : IDocumentDownloader
     }
 
     /// <inheritdoc/>
-    public Task<byte[]> DownloadAsync(string documentId, CancellationToken cancellationToken = default)
+    public Task<Result<DownloadedDocument>> DownloadAsync(string documentId, CancellationToken cancellationToken = default)
     {
-        _logger.LogWarning("StubDocumentDownloader: Returning empty byte array for document {DocumentId}. Replace with actual implementation.", documentId);
-        return Task.FromResult(Array.Empty<byte>());
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<DownloadedDocument>());
+        }
+
+        _logger.LogWarning(
+            "StubDocumentDownloader: no real SIARA integration is wired for document {DocumentId}; failing closed. Register SiaraDocumentDownloader.",
+            documentId);
+        return Task.FromResult(Result<DownloadedDocument>.WithFailure(
+            "StubDocumentDownloader is not a real SIARA integration. Register SiaraDocumentDownloader (MVP-PATH 1.1)."));
     }
 }

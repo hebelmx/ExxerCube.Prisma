@@ -1,5 +1,7 @@
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Prisma.Orion.Ingestion;
 
@@ -19,6 +21,28 @@ namespace ExxerCube.Prisma.Orion.Ingestion.Tests;
 /// </remarks>
 public sealed class IngestionOrchestratorTests
 {
+    private static readonly SiaraActor TestActor = new()
+    {
+        ActorId = "svc-orion-ingestion",
+        ActorType = SiaraActorType.ServiceAccount,
+        DisplayName = "Orion Ingestion Worker",
+    };
+
+    /// <summary>
+    /// Builds a successful Railway-Oriented download result carrying the document bytes and the
+    /// trustworthy provenance (actor + session) the downloader now returns (MVP-PATH 1.1 / ADR-010 P2).
+    /// </summary>
+    private static Result<DownloadedDocument> Downloaded(byte[] content, string documentId = "DOC123") =>
+        Result<DownloadedDocument>.Success(new DownloadedDocument
+        {
+            Content = content,
+            DocumentId = documentId,
+            SourceUrl = $"https://siara.local/documents/{documentId}.pdf",
+            Format = FileFormat.Pdf,
+            AcquiredBy = TestActor,
+            SessionId = "sess-abc123",
+        });
+
     [Fact]
     [Trait("Category", "Unit")]
     public async Task IngestDocument_NewDocument_ReturnsSuccessAndBroadcastsEvent()
@@ -33,7 +57,7 @@ public sealed class IngestionOrchestratorTests
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new byte[] { 0x25, 0x50, 0x44, 0x46 }); // PDF header
+            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 })); // PDF header
 
         eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -78,7 +102,7 @@ public sealed class IngestionOrchestratorTests
 
         // Return test data that will hash to a known value
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F }); // "Hello"
+            .Returns(Downloaded(new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F })); // "Hello"
 
         journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(true); // Duplicate detected after hashing
@@ -118,7 +142,7 @@ public sealed class IngestionOrchestratorTests
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(testData);
+            .Returns(Downloaded(testData));
 
         eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -151,7 +175,7 @@ public sealed class IngestionOrchestratorTests
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new byte[] { 0x25, 0x50, 0x44, 0x46 });
+            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
 
         eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -193,7 +217,7 @@ public sealed class IngestionOrchestratorTests
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new byte[] { 0x25, 0x50, 0x44, 0x46 });
+            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
 
         eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -250,17 +274,18 @@ public sealed class IngestionOrchestratorTests
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
         var logger = NullLogger<IngestionOrchestrator>.Instance;
 
+        // Railway-Oriented: the downloader port fails closed by RETURNING a failure result, never throwing.
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns<byte[]>(_ => throw new InvalidOperationException("Network error"));
+            .Returns(Result<DownloadedDocument>.WithFailure("Network error"));
 
         var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
 
         // Act
         var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
 
-        // Assert - Railway-Oriented: failure is Result, not exception
+        // Assert - Railway-Oriented: failure is Result, not exception; the downloader's error propagates as-is
         result.IsFailure.ShouldBeTrue();
-        result.Errors.ShouldContain(e => e.Contains("Download failed"));
+        result.Errors.ShouldContain(e => e.Contains("Network error"));
 
         // No downstream operations should have been called
         await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
@@ -281,7 +306,7 @@ public sealed class IngestionOrchestratorTests
             .Returns(false);
 
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(new byte[] { 0x25, 0x50, 0x44, 0x46 });
+            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
 
         eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
@@ -298,6 +323,41 @@ public sealed class IngestionOrchestratorTests
             Arg.Is<DocumentDownloadedEvent>(e =>
                 e.Source == "SIARA" &&
                 e.FileSizeBytes > 0),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestDocument_StampsActorAndSessionProvenanceOntoJournalManifest()
+    {
+        // Arrange
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+        var logger = NullLogger<IngestionOrchestrator>.Instance;
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
+
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+
+        // Act
+        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+        // Assert - per-document non-repudiation: the trustworthy actor + session ride onto the durable
+        // manifest record, not just the session (ADR-010 P2).
+        result.IsSuccess.ShouldBeTrue();
+
+        await journal.Received(1).RecordAsync(
+            Arg.Is<IngestionManifestEntry>(e =>
+                e.ActorId == "svc-orion-ingestion" &&
+                e.SessionId == "sess-abc123"),
             Arg.Any<CancellationToken>());
     }
 }

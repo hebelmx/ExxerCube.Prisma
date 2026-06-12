@@ -3,6 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Orion.Ingestion;
@@ -66,7 +67,7 @@ public class IngestionOrchestrator
 
         // ✅ Railway-Oriented Programming: each step returns Result<T>
         var result = await DownloadDocumentAsync(documentId, cancellationToken)
-            .ThenAsync(async bytes => await CheckDuplicateAsync(bytes, documentId, cancellationToken))
+            .ThenAsync(async document => await CheckDuplicateAsync(document, documentId, cancellationToken))
             .ThenAsync(async context => await StoreDocumentAsync(context, documentId, cancellationToken))
             .ThenAsync(async context => await RecordInJournalAsync(context, documentId, cancellationToken))
             .ThenTap(async context => await BroadcastEventAsync(context, correlationId, cancellationToken));
@@ -93,33 +94,32 @@ public class IngestionOrchestrator
         return Result<IngestionResult>.WithFailure(result.Errors);
     }
 
-    private async Task<Result<byte[]>> DownloadDocumentAsync(
+    private async Task<Result<DownloadedDocument>> DownloadDocumentAsync(
         string documentId,
         CancellationToken cancellationToken)
     {
-        try
+        // The downloader port is Railway-Oriented: it returns Result<DownloadedDocument> and fails closed
+        // rather than throwing, so this is a pass-through (the provenance rides along on the document).
+        var result = await _downloader.DownloadAsync(documentId, cancellationToken).ConfigureAwait(false);
+
+        if (result.IsSuccess && result.Value is not null)
         {
-            var bytes = await _downloader.DownloadAsync(documentId, cancellationToken).ConfigureAwait(false);
-            _logger.LogDebug("Document downloaded. Size: {Size} bytes", bytes.Length);
-            return Result<byte[]>.Success(bytes);
+            _logger.LogDebug(
+                "Document downloaded. Size: {Size} bytes, Actor: {ActorId}, Session: {SessionId}",
+                result.Value.Content.Length,
+                result.Value.AcquiredBy.ActorId,
+                result.Value.SessionId);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Document download cancelled");
-            return ResultExtensions.Cancelled<byte[]>();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Document download failed");
-            return Result<byte[]>.WithFailure($"Download failed: {ex.Message}");
-        }
+
+        return result;
     }
 
     private async Task<Result<IngestionContext>> CheckDuplicateAsync(
-        byte[] documentBytes,
+        DownloadedDocument document,
         string sourceUrl,
         CancellationToken cancellationToken)
     {
+        var documentBytes = document.Content;
         var hash = ComputeSha256Hash(documentBytes);
         _logger.LogDebug("Document hash computed: {Hash}", hash);
 
@@ -137,7 +137,10 @@ public class IngestionOrchestrator
                 StoredPath: string.Empty,
                 FileSizeBytes: documentBytes.Length,
                 WasDuplicate: true,
-                DocumentBytes: documentBytes));
+                DocumentBytes: documentBytes,
+                ActorId: document.AcquiredBy.ActorId,
+                SessionId: document.SessionId,
+                SourceUrl: document.SourceUrl));
         }
 
         return Result<IngestionContext>.Success(new IngestionContext(
@@ -147,7 +150,10 @@ public class IngestionOrchestrator
             StoredPath: string.Empty,
             FileSizeBytes: documentBytes.Length,
             WasDuplicate: false,
-            DocumentBytes: documentBytes));
+            DocumentBytes: documentBytes,
+            ActorId: document.AcquiredBy.ActorId,
+            SessionId: document.SessionId,
+            SourceUrl: document.SourceUrl));
     }
 
     private Task<Result<IngestionContext>> StoreDocumentAsync(
@@ -214,7 +220,9 @@ public class IngestionOrchestrator
                 FileSizeBytes: context.FileSizeBytes,
                 StoredPath: context.StoredPath,
                 CorrelationId: Guid.NewGuid(),
-                DownloadedAt: DateTimeOffset.UtcNow);
+                DownloadedAt: DateTimeOffset.UtcNow,
+                ActorId: context.ActorId,
+                SessionId: context.SessionId);
 
             await _journal.RecordAsync(manifestEntry, cancellationToken).ConfigureAwait(false);
             _logger.LogDebug("Document recorded in journal: {FileId}", context.FileId);
@@ -245,7 +253,7 @@ public class IngestionOrchestrator
             FileName = context.FileName,
             Source = "SIARA",
             FileSizeBytes = context.FileSizeBytes,
-            DownloadUrl = string.Empty,  // Set if available
+            DownloadUrl = context.SourceUrl,
             EventType = nameof(DocumentDownloadedEvent),
             CorrelationId = correlationId,
             Timestamp = DateTime.UtcNow
@@ -280,6 +288,8 @@ public class IngestionOrchestrator
 
     /// <summary>
     /// Internal context for passing data through the Railway-Oriented Programming pipeline.
+    /// Carries the provenance (actor + session + source URL) resolved by the downloader so it can be
+    /// stamped onto the journal manifest for per-document non-repudiation (ADR-010 P2).
     /// </summary>
     private sealed record IngestionContext(
         Guid FileId,
@@ -288,5 +298,8 @@ public class IngestionOrchestrator
         string StoredPath,
         long FileSizeBytes,
         bool WasDuplicate,
-        byte[] DocumentBytes);
+        byte[] DocumentBytes,
+        string ActorId,
+        string SessionId,
+        string SourceUrl);
 }
