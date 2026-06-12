@@ -217,6 +217,7 @@ public sealed class InteractiveLoginSiaraSessionProvider : ISiaraSessionProvider
                 "SIARA session is no longer authenticated; a fresh interactive login is required.");
         }
 
+        _logger.LogInformation("Re-validated SIARA session {SessionId} for actor {ActorId}", session.SessionId, session.AcquiredBy.ActorId);
         return Result<SiaraSession>.Success(session);
     }
 
@@ -244,7 +245,7 @@ public sealed class InteractiveLoginSiaraSessionProvider : ISiaraSessionProvider
                 close.Error);
         }
 
-        _logger.LogInformation("Released interactive-login SIARA session {SessionId}", session.SessionId);
+        _logger.LogInformation("Released {Mode} SIARA session {SessionId} for actor {ActorId}", Mode, session.SessionId, session.AcquiredBy.ActorId);
         return Result.Success();
     }
 }

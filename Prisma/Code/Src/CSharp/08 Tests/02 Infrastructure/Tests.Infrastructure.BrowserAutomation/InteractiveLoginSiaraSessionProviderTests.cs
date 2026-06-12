@@ -219,4 +219,20 @@ public sealed class InteractiveLoginSiaraSessionProviderTests
         result.IsFailure.ShouldBeFalse();
         await agent.Received(1).CloseBrowserAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task AcquireAsync_WhenActorCannotBeResolved_FailsClosed()
+    {
+        var actor = Substitute.For<ISiaraActorIdentityProvider>();
+        actor.GetCurrentActorAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<SiaraActor>.WithFailure("no trustworthy actor"));
+
+        var agent = InteractiveLoginTestFactory.CreateSuccessfulAgentMock();
+        var sut = InteractiveLoginTestFactory.CreateProvider(agent, InteractiveLoginTestFactory.CreateAuthenticatedContextMock(), actorIdentity: actor);
+
+        var result = await sut.AcquireAsync(RequestWith(TimeSpan.FromSeconds(1)), TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        await agent.DidNotReceive().LaunchBrowserAsync(Arg.Any<CancellationToken>());
+    }
 }

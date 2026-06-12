@@ -112,9 +112,12 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
                 $"Cannot acquire a SIARA session without a trustworthy actor identity: {actor.Error}");
         }
 
-        // Audit the credential read, recording only the actor (never the credential values).
+        var sessionId = $"automated-{Guid.NewGuid():N}";
+
+        // Audit the credential read, recording only the actor and session id (never the credential values).
         _logger.LogInformation(
-            "Reading SIARA credentials for actor {ActorId}",
+            "Reading SIARA credentials for session {SessionId} actor {ActorId}",
+            sessionId,
             actor.Value!.ActorId);
 
         // Source the credentials transiently from the client secret store. A missing secret is a
@@ -215,7 +218,7 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
 
         var session = new SiaraSession
         {
-            SessionId = $"automated-{Guid.NewGuid():N}",
+            SessionId = sessionId,
             Mode = Mode,
             StorageStateRef = export.Value!,
             ExpiresAt = null, // unknown — valid until proven invalid by a probe
@@ -287,6 +290,7 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
                 "SIARA session is no longer authenticated; a fresh automated login is required.");
         }
 
+        _logger.LogInformation("Re-validated SIARA session {SessionId} for actor {ActorId}", session.SessionId, session.AcquiredBy.ActorId);
         return Result<SiaraSession>.Success(session);
     }
 
@@ -314,7 +318,7 @@ public sealed class AutomatedLoginSiaraSessionProvider : ISiaraSessionProvider
                 close.Error);
         }
 
-        _logger.LogInformation("Released automated-login SIARA session {SessionId}", session.SessionId);
+        _logger.LogInformation("Released {Mode} SIARA session {SessionId} for actor {ActorId}", Mode, session.SessionId, session.AcquiredBy.ActorId);
         return Result.Success();
     }
 }

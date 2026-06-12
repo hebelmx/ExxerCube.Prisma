@@ -201,6 +201,7 @@ public sealed class SessionPassthroughSiaraSessionProvider : ISiaraSessionProvid
             return Result<SiaraSession>.WithFailure("SIARA session is no longer authenticated.");
         }
 
+        _logger.LogInformation("Re-validated SIARA session {SessionId} for actor {ActorId}", session.SessionId, session.AcquiredBy.ActorId);
         return Result<SiaraSession>.Success(session);
     }
 
@@ -219,7 +220,7 @@ public sealed class SessionPassthroughSiaraSessionProvider : ISiaraSessionProvid
 
         // Passthrough does not own the external browser/context (it was handed in), so release is an
         // idempotent book-keeping no-op; the external owner tears the context down.
-        _logger.LogInformation("Released passthrough SIARA session {SessionId}", session.SessionId);
+        _logger.LogInformation("Released {Mode} SIARA session {SessionId} for actor {ActorId}", Mode, session.SessionId, session.AcquiredBy.ActorId);
         return Task.FromResult(Result.Success());
     }
 }

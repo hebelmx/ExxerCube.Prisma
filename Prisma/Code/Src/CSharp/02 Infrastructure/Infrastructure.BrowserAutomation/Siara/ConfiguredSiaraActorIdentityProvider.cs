@@ -49,7 +49,7 @@ public sealed class ConfiguredSiaraActorIdentityProvider : ISiaraActorIdentityPr
             return Task.FromResult(ResultExtensions.Cancelled<SiaraActor>());
         }
 
-        if (string.IsNullOrEmpty(_actorOptions.ActorId))
+        if (string.IsNullOrWhiteSpace(_actorOptions.ActorId))
         {
             _logger.LogError(
                 "SIARA actor identity resolution failed: Siara:Actor:ActorId is not configured. " +

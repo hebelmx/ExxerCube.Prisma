@@ -28,6 +28,17 @@ public sealed class ConfiguredSiaraActorIdentityProviderTests
     }
 
     [Fact]
+    public async Task GetCurrentActorAsync_WhenActorIdIsWhitespace_FailsClosed()
+    {
+        var sut = CreateProvider(actorId: "   ");
+
+        var result = await sut.GetCurrentActorAsync(TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNullOrEmpty();
+    }
+
+    [Fact]
     public async Task GetCurrentActorAsync_WithConfiguredActorId_ReturnsServiceAccountActor()
     {
         var sut = CreateProvider(actorId: "orion-downloader-svc");

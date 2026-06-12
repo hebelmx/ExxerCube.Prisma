@@ -23,6 +23,9 @@ public sealed record SiaraSessionRequest
     /// </summary>
     public TimeSpan? MaxWaitForHuman { get; init; }
 
-    /// <summary>Gets the identity or process making the request, recorded for audit. Optional.</summary>
+    /// <summary>
+    /// Gets an optional caller-supplied correlation hint. The audited acquiring identity is the
+    /// trustworthy actor resolved by ISiaraActorIdentityProvider, NOT this field (ADR-010 P2).
+    /// </summary>
     public string? RequestedBy { get; init; }
 }

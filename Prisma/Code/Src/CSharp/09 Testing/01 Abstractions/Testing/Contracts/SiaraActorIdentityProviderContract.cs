@@ -1,3 +1,4 @@
+using System.Reflection;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
@@ -55,5 +56,28 @@ public abstract class SiaraActorIdentityProviderContract
         SiaraActor actor = result.Value!;
         actor.ActorId.ShouldNotBeNullOrEmpty();
         System.Enum.IsDefined(actor.ActorType).ShouldBeTrue();
+    }
+
+    /// <summary>
+    /// Contract: the <see cref="SiaraActor"/> type (reachable via SiaraSession.AcquiredBy) exposes no
+    /// raw-credential members — the never-store-credentials guarantee, enforced by reflection (ADR-010).
+    /// </summary>
+    [Fact]
+    public void ActorType_ExposesNoCredentialMembers()
+    {
+        string[] forbidden = ["password", "passwd", "pwd", "username", "userid", "credential", "secret"];
+
+        var members = typeof(SiaraActor)
+            .GetMembers(BindingFlags.Public | BindingFlags.Instance)
+            .Select(m => m.Name);
+
+        foreach (var name in members)
+        {
+            foreach (var token in forbidden)
+            {
+                name.Contains(token, StringComparison.OrdinalIgnoreCase).ShouldBeFalse(
+                    $"SiaraActor must not expose a credential-like member ('{name}' matched '{token}').");
+            }
+        }
     }
 }

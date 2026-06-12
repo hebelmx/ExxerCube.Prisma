@@ -180,4 +180,21 @@ public sealed class SessionPassthroughSiaraSessionProviderTests
         result.IsSuccess.ShouldBeTrue();
         result.Value!.SessionId.ShouldBe(acquired.Value!.SessionId);
     }
+
+    [Fact]
+    public async Task AcquireAsync_WhenActorCannotBeResolved_FailsClosed()
+    {
+        var actor = Substitute.For<ISiaraActorIdentityProvider>();
+        actor.GetCurrentActorAsync(Arg.Any<CancellationToken>())
+            .Returns(Result<SiaraActor>.WithFailure("no trustworthy actor"));
+
+        var context = SessionPassthroughTestFactory.CreateAuthenticatedContextMock();
+        var sut = SessionPassthroughTestFactory.CreateProvider(context, actorIdentity: actor);
+
+        var result = await sut.AcquireAsync(RequestWith("imported-ref"), TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        await context.DidNotReceive().LoadStorageStateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await context.DidNotReceive().ConnectToExistingContextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
 }
