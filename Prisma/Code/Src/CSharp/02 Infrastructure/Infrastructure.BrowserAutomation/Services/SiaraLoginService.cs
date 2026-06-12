@@ -29,7 +29,7 @@ public class SiaraLoginService : ISiaraLoginService
     {
         try
         {
-            _logger.LogInformation("Starting SIARA login for user: {Username}", username);
+            _logger.LogInformation("Starting SIARA login");
 
             // Wait for username input field to be visible
             _logger.LogDebug("Waiting for username input field");
@@ -68,7 +68,7 @@ public class SiaraLoginService : ISiaraLoginService
             _logger.LogDebug("Waiting for navigation after login");
             await Task.Delay(2000, cancellationToken); // Allow time for navigation
 
-            _logger.LogInformation("Successfully logged in to SIARA as {Username}", username);
+            _logger.LogInformation("Successfully logged in to SIARA");
             return Result.Success();
         }
         catch (OperationCanceledException)
@@ -78,7 +78,7 @@ public class SiaraLoginService : ISiaraLoginService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to login to SIARA for user: {Username}", username);
+            _logger.LogError(ex, "Failed to login to SIARA");
             return Result.WithFailure($"Failed to login to SIARA: {ex.Message}", ex);
         }
     }
