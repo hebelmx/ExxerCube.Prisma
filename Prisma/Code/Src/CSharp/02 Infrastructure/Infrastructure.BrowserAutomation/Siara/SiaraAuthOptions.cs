@@ -94,6 +94,13 @@ public sealed class SiaraPassthroughOptions
     public string? StorageStateRef { get; set; }
 
     /// <summary>
+    /// Gets or sets the SIARA URL the provider navigates to before probing authentication. Required because
+    /// importing a storage-state leaves the browser on a blank page — the provider must load a real SIARA
+    /// page for the <see cref="PostLoginSelector"/> probe to mean anything. Defaults to the SIARA portal.
+    /// </summary>
+    public string DashboardUrl { get; set; } = "https://siara.cnbv.gob.mx/";
+
+    /// <summary>
     /// Gets or sets a selector that is present only once authenticated, used to confirm (fail-closed)
     /// that the handed-in context really is logged in. Deployment-specific to whatever SIARA presents.
     /// </summary>

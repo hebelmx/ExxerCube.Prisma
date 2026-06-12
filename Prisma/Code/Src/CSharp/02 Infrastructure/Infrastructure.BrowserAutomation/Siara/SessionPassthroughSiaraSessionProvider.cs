@@ -25,27 +25,32 @@ namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
 public sealed class SessionPassthroughSiaraSessionProvider : ISiaraSessionProvider
 {
     private readonly IBrowserSessionContext _sessionContext;
+    private readonly IBrowserAutomationAgent _agent;
     private readonly ISiaraActorIdentityProvider _actorIdentity;
     private readonly SiaraPassthroughOptions _options;
     private readonly ILogger<SessionPassthroughSiaraSessionProvider> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="SessionPassthroughSiaraSessionProvider"/> class.</summary>
     /// <param name="sessionContext">The browser session capability used to attach/probe/capture.</param>
+    /// <param name="agent">The browser agent used to navigate to a real SIARA page before probing auth.</param>
     /// <param name="actorIdentity">The provider that resolves the trustworthy acquiring actor (ADR-010 P2).</param>
     /// <param name="options">The SIARA auth options (the passthrough section is read).</param>
     /// <param name="logger">The logger instance.</param>
     public SessionPassthroughSiaraSessionProvider(
         IBrowserSessionContext sessionContext,
+        IBrowserAutomationAgent agent,
         ISiaraActorIdentityProvider actorIdentity,
         IOptions<SiaraAuthOptions> options,
         ILogger<SessionPassthroughSiaraSessionProvider> logger)
     {
         ArgumentNullException.ThrowIfNull(sessionContext);
+        ArgumentNullException.ThrowIfNull(agent);
         ArgumentNullException.ThrowIfNull(actorIdentity);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
 
         _sessionContext = sessionContext;
+        _agent = agent;
         _actorIdentity = actorIdentity;
         _options = options.Value.Passthrough;
         _logger = logger;
@@ -106,6 +111,20 @@ public sealed class SessionPassthroughSiaraSessionProvider : ISiaraSessionProvid
         if (attach.IsFailure)
         {
             return Result<SiaraSession>.WithFailure($"Failed to attach to external SIARA context: {attach.Error}");
+        }
+
+        // Importing a storage-state leaves the browser on a blank page, so the auth probe would always see
+        // nothing. Navigate to a real SIARA page first; then the post-login probe is meaningful (fail-closed
+        // if SIARA is unreachable).
+        var navigate = await _agent.NavigateToAsync(_options.DashboardUrl, cancellationToken).ConfigureAwait(false);
+        if (navigate.IsCancelled())
+        {
+            return ResultExtensions.Cancelled<SiaraSession>();
+        }
+
+        if (navigate.IsFailure)
+        {
+            return Result<SiaraSession>.WithFailure($"Failed to navigate to SIARA to confirm authentication: {navigate.Error}");
         }
 
         // Fail closed: confirm the handed-in context is really authenticated before we trust it.
@@ -179,6 +198,19 @@ public sealed class SessionPassthroughSiaraSessionProvider : ISiaraSessionProvid
         {
             return Result<SiaraSession>.WithFailure(
                 "SIARA session has expired and passthrough cannot re-authenticate.");
+        }
+
+        // Navigate to a real SIARA page so the re-probe is meaningful (a blank/expired context would
+        // otherwise pass or fail spuriously), then re-probe; fail closed if the session has died.
+        var navigate = await _agent.NavigateToAsync(_options.DashboardUrl, cancellationToken).ConfigureAwait(false);
+        if (navigate.IsCancelled())
+        {
+            return ResultExtensions.Cancelled<SiaraSession>();
+        }
+
+        if (navigate.IsFailure)
+        {
+            return Result<SiaraSession>.WithFailure($"Failed to navigate to SIARA to re-validate the session: {navigate.Error}");
         }
 
         // Re-probe the live context; fail closed if the external session has died underneath us.

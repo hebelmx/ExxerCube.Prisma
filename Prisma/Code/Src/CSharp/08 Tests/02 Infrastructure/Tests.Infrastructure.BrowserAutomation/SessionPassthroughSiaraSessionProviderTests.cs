@@ -50,6 +50,40 @@ public sealed class SessionPassthroughSiaraSessionProviderTests
     }
 
     [Fact]
+    public async Task AcquireAsync_NavigatesToSiaraBeforeProbing()
+    {
+        // Regression: importing a storage-state leaves the browser on a blank page, so the auth probe is
+        // meaningless until the provider navigates to a real SIARA page. This test would have caught the
+        // navigate-before-probe gap the 1.1 live E2E surfaced.
+        var context = SessionPassthroughTestFactory.CreateAuthenticatedContextMock();
+        var agent = SessionPassthroughTestFactory.CreateNavigatingAgentMock();
+        var sut = SessionPassthroughTestFactory.CreateProvider(
+            context,
+            new SiaraPassthroughOptions { DashboardUrl = "https://siara.example/dashboard", PostLoginSelector = "#dashboard" },
+            agent: agent);
+
+        var result = await sut.AcquireAsync(RequestWith("captured-state"), TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        await agent.Received(1).NavigateToAsync("https://siara.example/dashboard", Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task AcquireAsync_WhenNavigationFails_FailsClosedWithoutProbing()
+    {
+        var context = SessionPassthroughTestFactory.CreateAuthenticatedContextMock();
+        var agent = Substitute.For<IBrowserAutomationAgent>();
+        agent.NavigateToAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.WithFailure("SIARA unreachable"));
+        var sut = SessionPassthroughTestFactory.CreateProvider(context, agent: agent);
+
+        var result = await sut.AcquireAsync(RequestWith("captured-state"), TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        await context.DidNotReceive().IsAuthenticatedAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task AcquireAsync_WhenProbeReportsUnauthenticated_FailsClosed()
     {
         var context = SessionPassthroughTestFactory.CreateAuthenticatedContextMock();

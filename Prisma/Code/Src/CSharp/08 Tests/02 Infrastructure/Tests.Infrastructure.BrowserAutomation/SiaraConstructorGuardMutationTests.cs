@@ -66,11 +66,13 @@ public sealed class SiaraConstructorGuardMutationTests
     public void SessionPassthroughSiaraSessionProvider_NullArgs_Throw()
     {
         var ctx = Substitute.For<IBrowserSessionContext>();
+        var agent = Substitute.For<IBrowserAutomationAgent>();
         var actor = new FakeSiaraActorIdentityProvider();
-        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(null!, actor, Opts(), Log<SessionPassthroughSiaraSessionProvider>()));
-        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(ctx, null!, Opts(), Log<SessionPassthroughSiaraSessionProvider>()));
-        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(ctx, actor, null!, Log<SessionPassthroughSiaraSessionProvider>()));
-        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(ctx, actor, Opts(), null!));
+        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(null!, agent, actor, Opts(), Log<SessionPassthroughSiaraSessionProvider>()));
+        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(ctx, null!, actor, Opts(), Log<SessionPassthroughSiaraSessionProvider>()));
+        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(ctx, agent, null!, Opts(), Log<SessionPassthroughSiaraSessionProvider>()));
+        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(ctx, agent, actor, null!, Log<SessionPassthroughSiaraSessionProvider>()));
+        Should.Throw<ArgumentNullException>(() => new SessionPassthroughSiaraSessionProvider(ctx, agent, actor, Opts(), null!));
     }
 
     [Fact]

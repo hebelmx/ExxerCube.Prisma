@@ -40,14 +40,27 @@ internal static class SessionPassthroughTestFactory
         return mock;
     }
 
+    /// <summary>Builds a browser-agent mock that navigates successfully (for the navigate-before-probe step).</summary>
+    public static IBrowserAutomationAgent CreateNavigatingAgentMock()
+    {
+        var agent = Substitute.For<IBrowserAutomationAgent>();
+        agent.NavigateToAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(call => call.ArgAt<CancellationToken>(1).IsCancellationRequested
+                ? ResultExtensions.Cancelled()
+                : Result.Success());
+        return agent;
+    }
+
     /// <summary>Wraps a session-context in a provider with the given passthrough options.</summary>
     /// <param name="sessionContext">The browser session context to use.</param>
     /// <param name="passthrough">Optional passthrough options; defaults to a sensible test setup.</param>
     /// <param name="actorIdentity">Optional actor identity provider; defaults to a fresh fake.</param>
+    /// <param name="agent">Optional browser agent; defaults to a mock that navigates successfully.</param>
     public static SessionPassthroughSiaraSessionProvider CreateProvider(
         IBrowserSessionContext sessionContext,
         SiaraPassthroughOptions? passthrough = null,
-        ISiaraActorIdentityProvider? actorIdentity = null)
+        ISiaraActorIdentityProvider? actorIdentity = null,
+        IBrowserAutomationAgent? agent = null)
     {
         var options = Options.Create(new SiaraAuthOptions
         {
@@ -57,6 +70,7 @@ internal static class SessionPassthroughTestFactory
 
         return new SessionPassthroughSiaraSessionProvider(
             sessionContext,
+            agent ?? CreateNavigatingAgentMock(),
             actorIdentity ?? new FakeSiaraActorIdentityProvider(),
             options,
             Substitute.For<ILogger<SessionPassthroughSiaraSessionProvider>>());
