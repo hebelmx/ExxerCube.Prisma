@@ -1161,6 +1161,19 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
     /// </summary>
     private static IReadOnlyList<Assembly> FindAssembliesByPattern(string pattern)
     {
+        // The pattern is a file glob ("X.Y.dll" / "X.Tests.*.dll"); match by simple assembly name.
+        var simpleName = Path.GetFileNameWithoutExtension(pattern);
+        var nameRegex = new System.Text.RegularExpressions.Regex(
+            "^" + System.Text.RegularExpressions.Regex.Escape(simpleName).Replace("\\*", ".*") + "$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        // Prefer assemblies ALREADY LOADED into this process. LoadFrom of an on-disk copy of an
+        // already-loaded assembly throws "assembly with same name is already loaded", which previously made
+        // discovery intermittently return nothing (depending on whether something had pre-loaded the
+        // assembly first). Reading the loaded set is deterministic and side-effect-free.
+        var alreadyLoaded = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(a => !a.IsDynamic && a.GetName().Name is { } n && nameRegex.IsMatch(n));
+
         var roots = new[]
         {
             AppContext.BaseDirectory,
@@ -1168,9 +1181,13 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", ".."))
         }.Distinct(StringComparer.OrdinalIgnoreCase);
 
-        return roots
+        var objSegment = $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}";
+
+        var fromDisk = roots
             .Where(Directory.Exists)
             .SelectMany(root => Directory.GetFiles(root, pattern, SearchOption.AllDirectories))
+            // Skip reference assemblies under obj/ (ref, refint) — they cannot be loaded for execution.
+            .Where(path => path.IndexOf(objSegment, StringComparison.OrdinalIgnoreCase) < 0)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Select(path => new FileInfo(path))
             .OrderByDescending(fi => fi.LastWriteTimeUtc)
@@ -1182,12 +1199,16 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
                 }
                 catch
                 {
+                    // Already-loaded (handled above) or unloadable copy — skip it.
                     return null;
                 }
             })
             .Where(a => a is not null)
-            .DistinctBy(a => a!.FullName)
-            .Select(a => a!)
+            .Select(a => a!);
+
+        return alreadyLoaded
+            .Concat(fromDisk)
+            .DistinctBy(a => a.FullName)
             .ToList();
     }
 
