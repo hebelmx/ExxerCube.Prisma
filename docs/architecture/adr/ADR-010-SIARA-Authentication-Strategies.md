@@ -138,22 +138,32 @@ tracing/HAR/video **disabled** in any credentialed mode (they capture the typed 
 `ISiaraCredentialSource`'s return type must carry these constraints, and the no-leak test must cover
 the login path — not only `SiaraSession`.
 
-**P6 — `ISiaraLoginService` isolation.** It must be **structurally** prevented from receiving
-*persisted* credentials (today it is merely registered in the general browser DI). Isolate it (no prod
-composition root binding app-config credentials into it); the "never registered for persisted creds"
-claim must be enforced by structure, not convention.
+**P6 — `ISiaraLoginService` isolation.** ✅ **Satisfied (S8.4).** The login driver takes **no** raw
+configuration dependency — its constructor is only an `ILogger` plus the secret-free `SiaraHostPolicy`, so
+it structurally cannot read persisted credentials; credentials reach it only as transient method parameters
+supplied by `ISiaraCredentialSource` through the `AutomatedLogin` provider. Two reflection guardrail tests
+(`SiaraLoginServiceIsolationTests`) lock this in: (1) no `ISiaraLoginService` implementation may depend on
+`IConfiguration`/`IConfigurationSection`, and (2) the only type that may inject `ISiaraLoginService` is
+`AutomatedLoginSiaraSessionProvider` — so a future composition root cannot quietly wire app-config
+credentials through a new consumer.
 
 **P7 — Session blast radius & revocation.** The bearer session secret grants full SIARA access for its
 lifetime. Mandate short TTLs, encryption at rest if ever persisted (prefer in-memory), and a documented
 **revocation/rotation/incident playbook** (kill switch) beyond `ReleaseAsync`.
 
-**P8 — Simulator ↔ production guardrail.** The fake-credential simulator and the automation tooling
-together form a ready template; the test login driver must be **structurally** prevented from targeting
-the real `siara.cnbv.gob.mx` host.
+**P8 — Simulator ↔ production guardrail.** ✅ **Satisfied (S8.5).** The login driver consults a
+`SiaraHostPolicy` against the **current page URL** (via the new `IBrowserAutomationAgent.GetCurrentUrlAsync`)
+**before entering any credentials**, and **fails closed** on the real `siara.cnbv.gob.mx` host (and its
+subdomains) unless a deployment has explicitly set `Siara:AllowProductionHost = true`. That flag defaults to
+`false` and is intended to be flipped only after legal/compliance sign-off (P1) — a configuration change,
+not a code change. The fake-credential simulator and the E2E harness never set it, so the automation tooling
+cannot be repointed at the regulator's portal. (Chosen mechanism: guard inside the login driver, surfaced to
+and approved by the owner 2026-06-12.)
 
 **Residual risks accepted / to-confirm:** P1, P2, P4 are **legal questions for counsel** (recorded, not
-resolved here). P3, P5, P6, P7, P8 are **engineering preconditions** to be satisfied before/within the
-relevant task (noted in MVP-PATH / SIARA-AUTH-DESIGN).
+resolved here). P3, P5, P6, P8 are **engineering preconditions** — now **all satisfied** (P3 in S6b, P5 in
+S8.1/8.2, P2 audit in S8.3, P6 in S8.4, P8 in S8.5). **P7** (short session TTL + revocation/rotation/incident
+playbook) remains **open**.
 
 ## Rationale
 

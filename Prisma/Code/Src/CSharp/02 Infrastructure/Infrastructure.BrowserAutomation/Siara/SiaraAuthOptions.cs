@@ -22,6 +22,16 @@ public sealed class SiaraAuthOptions
     /// </summary>
     public SiaraAuthMode AuthMode { get; set; } = SiaraAuthMode.SessionPassthrough;
 
+    /// <summary>
+    /// Gets or sets whether logging in against the real SIARA production host
+    /// (<see cref="SiaraHostPolicy.ProductionHost"/>) is permitted. Defaults to <c>false</c> — the login
+    /// driver fails closed on the production host (ADR-010 P8) so the fake-credential simulator and the
+    /// automation tooling cannot be repointed at the regulator's portal. A deployment may only set this to
+    /// <c>true</c> once legal/compliance has signed off on automated access (ADR-010 P1); flipping it is a
+    /// configuration change, not a code change.
+    /// </summary>
+    public bool AllowProductionHost { get; set; }
+
     /// <summary>Gets or sets the <see cref="SiaraAuthMode.SessionPassthrough"/> parameters.</summary>
     public SiaraPassthroughOptions Passthrough { get; set; } = new();
 

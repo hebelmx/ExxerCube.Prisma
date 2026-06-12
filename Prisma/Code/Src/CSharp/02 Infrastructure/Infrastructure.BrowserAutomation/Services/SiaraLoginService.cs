@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
 using IndQuestResults;
 using Microsoft.Extensions.Logging;
 
@@ -7,16 +8,31 @@ namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation.Services;
 /// <summary>
 /// Service for handling SIARA Simulator login operations using browser automation.
 /// </summary>
+/// <remarks>
+/// The raw-credential form driver invoked by the <c>AutomatedLogin</c> provider with transient,
+/// vault-sourced credentials. Per ADR-010 P6 it deliberately takes <strong>no</strong> configuration
+/// access (only a logger and the secret-free <see cref="SiaraHostPolicy"/>), so it can never read persisted
+/// credentials itself; and per ADR-010 P8 it consults the host policy <strong>before</strong> entering any
+/// credentials, failing closed on the real SIARA production host unless a deployment has explicitly opted
+/// in. This is what structurally prevents the fake-credential simulator + automation tooling from being
+/// repointed at the regulator's portal.
+/// </remarks>
 public class SiaraLoginService : ISiaraLoginService
 {
+    private readonly SiaraHostPolicy _hostPolicy;
     private readonly ILogger<SiaraLoginService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SiaraLoginService"/> class.
     /// </summary>
+    /// <param name="hostPolicy">The P8 production-host guardrail consulted before entering credentials.</param>
     /// <param name="logger">The logger instance.</param>
-    public SiaraLoginService(ILogger<SiaraLoginService> logger)
+    public SiaraLoginService(SiaraHostPolicy hostPolicy, ILogger<SiaraLoginService> logger)
     {
+        ArgumentNullException.ThrowIfNull(hostPolicy);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        _hostPolicy = hostPolicy;
         _logger = logger;
     }
 
@@ -27,9 +43,31 @@ public class SiaraLoginService : ISiaraLoginService
         string password,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(agent);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Result.WithFailure("Login operation was cancelled");
+        }
+
         try
         {
             _logger.LogInformation("Starting SIARA login");
+
+            // ADR-010 P8: confirm the loaded page is an allowed host BEFORE entering any credentials. The
+            // real SIARA production host fails closed unless the deployment explicitly opted in.
+            var currentUrl = await agent.GetCurrentUrlAsync(cancellationToken);
+            if (!currentUrl.IsSuccess)
+            {
+                return Result.WithFailure(
+                    $"Cannot confirm the SIARA login host before entering credentials: {currentUrl.Error}");
+            }
+
+            var hostCheck = _hostPolicy.Validate(currentUrl.Value);
+            if (!hostCheck.IsSuccess)
+            {
+                return Result.WithFailure(hostCheck.Error ?? "SIARA login host is not allowed.");
+            }
 
             // Wait for username input field to be visible
             _logger.LogDebug("Waiting for username input field");

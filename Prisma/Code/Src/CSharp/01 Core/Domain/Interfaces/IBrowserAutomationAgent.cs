@@ -21,6 +21,16 @@ public interface IBrowserAutomationAgent
     Task<Result> NavigateToAsync(string url, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the URL of the page the browser is currently on.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>
+    /// A result containing the current page URL, or a failure if no page is loaded. Used by the SIARA
+    /// login driver to enforce its host policy (ADR-010 P8) before entering any credentials.
+    /// </returns>
+    Task<Result<string>> GetCurrentUrlAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Identifies downloadable files matching the specified patterns.
     /// </summary>
     /// <param name="filePatterns">Array of file patterns to match (e.g., "*.pdf", "*.xml", "*.docx").</param>

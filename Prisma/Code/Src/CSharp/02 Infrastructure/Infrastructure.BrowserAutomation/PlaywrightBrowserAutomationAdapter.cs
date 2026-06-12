@@ -87,6 +87,25 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
     }
 
     /// <inheritdoc />
+    public Task<Result<string>> GetCurrentUrlAsync(CancellationToken cancellationToken = default)
+    {
+        if (_page == null)
+        {
+            return Task.FromResult(Result<string>.WithFailure("Browser session not launched. Call LaunchBrowserAsync first."));
+        }
+
+        try
+        {
+            return Task.FromResult(Result<string>.Success(_page.Url));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to read the current page URL");
+            return Task.FromResult(Result<string>.WithFailure($"Failed to read the current page URL: {ex.Message}"));
+        }
+    }
+
+    /// <inheritdoc />
     public async Task<Result<List<DownloadableFile>>> IdentifyDownloadableFilesAsync(
         string[] filePatterns,
         CancellationToken cancellationToken = default)

@@ -22,7 +22,7 @@ public sealed class CredentialLogScrubTests
         var loginLogger = new CapturingLogger<SiaraLoginService>();
 
         var agent = BuildLoginCapableAgentMock();
-        var loginService = new SiaraLoginService(loginLogger);
+        var loginService = new SiaraLoginService(CreatePermissiveHostPolicy(), loginLogger);
         var context = AutomatedLoginTestFactory.CreateAuthenticatedContextMock();
         var source = new FakeSiaraCredentialSource(SecretUsername, SecretPassword);
         var breaker = AutomatedLoginTestFactory.CreateCircuitBreaker();
@@ -73,7 +73,7 @@ public sealed class CredentialLogScrubTests
     {
         var loginLogger = new CapturingLogger<SiaraLoginService>();
         var agent = BuildLoginCapableAgentMock();
-        var sut = new SiaraLoginService(loginLogger);
+        var sut = new SiaraLoginService(CreatePermissiveHostPolicy(), loginLogger);
 
         var result = await sut.LoginAsync(
             agent,
@@ -110,6 +110,10 @@ public sealed class CredentialLogScrubTests
         agent.NavigateToAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(_ => Result.Success());
 
+        // A non-production host so the P8 host policy permits the login path to execute.
+        agent.GetCurrentUrlAsync(Arg.Any<CancellationToken>())
+            .Returns(_ => Result<string>.Success("https://siara.example/login"));
+
         agent.WaitForSelectorAsync(Arg.Any<string>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(_ => Result.Success());
 
@@ -123,6 +127,16 @@ public sealed class CredentialLogScrubTests
             .Returns(_ => Result.Success());
 
         return agent;
+    }
+
+    /// <summary>
+    /// Builds a host policy that permits any non-production host (the default), so the log-scrub assertions
+    /// exercise the full login path. The agent mock reports a non-production URL.
+    /// </summary>
+    private static SiaraHostPolicy CreatePermissiveHostPolicy()
+    {
+        var options = Options.Create(new SiaraAuthOptions { AllowProductionHost = false });
+        return new SiaraHostPolicy(options, Substitute.For<ILogger<SiaraHostPolicy>>());
     }
 }
 

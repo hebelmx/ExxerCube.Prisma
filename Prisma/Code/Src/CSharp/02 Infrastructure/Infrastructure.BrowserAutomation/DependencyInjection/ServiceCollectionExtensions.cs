@@ -41,7 +41,10 @@ public static class ServiceCollectionExtensions
         services.AddKeyedScoped<INavigationTarget, InternetArchiveNavigationTarget>("archive");
         services.AddKeyedScoped<INavigationTarget, GutenbergNavigationTarget>("gutenberg");
 
-        // SIARA login service
+        // SIARA login service + its P8 production-host guardrail (ADR-010). The host policy is a
+        // stateless, secret-free singleton; it reads only the non-secret AllowProductionHost flag from
+        // SiaraAuthOptions (which defaults to a fail-closed deny even when the SIARA auth seam is not wired).
+        services.AddSingleton<Siara.SiaraHostPolicy>();
         services.AddScoped<ISiaraLoginService, Services.SiaraLoginService>();
 
         return services;
