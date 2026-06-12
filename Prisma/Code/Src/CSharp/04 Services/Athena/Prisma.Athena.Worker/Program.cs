@@ -25,6 +25,14 @@ builder.Services.AddSingleton<IEventPublisher, EventPublisher>();
 // (the first cross-process edge of the Three-Actors split — ADR-009/ADR-011).
 builder.Services.Configure<IngestionClientOptions>(
     builder.Configuration.GetSection(IngestionClientOptions.SectionName));
+
+// Shared document storage (ADR-011): the Extractor mounts the same volume the Downloader stored into,
+// possibly at a different absolute path, so it resolves the event's storage-relative path against its own
+// configured base before the pipeline loads the file.
+builder.Services.Configure<StorageOptions>(
+    builder.Configuration.GetSection(StorageOptions.SectionName));
+builder.Services.AddSingleton<IStoragePathResolver, SharedStoragePathResolver>();
+
 builder.Services.AddSingleton<IngestionEventForwarder>();
 builder.Services.AddHostedService<SiaraIngestionHubClient>();
 

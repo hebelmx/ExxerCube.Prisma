@@ -49,7 +49,11 @@ builder.Services.AddScoped<IngestionOrchestrator>(sp =>
     var downloader = sp.GetRequiredService<IDocumentDownloader>();
     var eventHub = sp.GetRequiredService<IExxerHub<DocumentDownloadedEvent>>();
     var logger = sp.GetRequiredService<ILogger<IngestionOrchestrator>>();
-    return new IngestionOrchestrator(journal, downloader, eventHub, logger);
+
+    // Shared document storage base (ADR-011): config-driven so the Downloader and Extractor can point at
+    // the same shared volume. When blank, the orchestrator defaults to ./storage (single-box dev).
+    var storageBasePath = builder.Configuration["Storage:BasePath"];
+    return new IngestionOrchestrator(journal, downloader, eventHub, logger, storageBasePath);
 });
 
 // The SIARA watch loop (MVP-PATH 1.2): a singleton poll/watcher that owns the DI scopes (one warm

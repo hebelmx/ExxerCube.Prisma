@@ -184,10 +184,15 @@ public class IngestionOrchestrator
             File.WriteAllBytes(filePath, context.DocumentBytes);
             _logger.LogInformation("Document stored at: {FilePath}", filePath);
 
+            // The storage-relative path (forward-slash, mount-path independent) is what crosses to the
+            // Extractor; it resolves it against its own shared-storage base (ADR-011).
+            var relativeStoragePath = $"{now.Year:D4}/{now.Month:D2}/{now.Day:D2}/{fileName}";
+
             var updatedContext = context with
             {
                 FileName = fileName,
-                StoredPath = filePath
+                StoredPath = filePath,
+                RelativeStoragePath = relativeStoragePath
             };
 
             return Task.FromResult(Result<IngestionContext>.Success(updatedContext));
@@ -254,6 +259,9 @@ public class IngestionOrchestrator
             Source = "SIARA",
             FileSizeBytes = context.FileSizeBytes,
             DownloadUrl = context.SourceUrl,
+            // Storage-relative path so the Extractor resolves the file against its own shared-storage base
+            // (ADR-011) — the two processes may mount the shared volume at different absolute paths.
+            Path = context.RelativeStoragePath,
             EventType = nameof(DocumentDownloadedEvent),
             CorrelationId = correlationId,
             Timestamp = DateTime.UtcNow
@@ -289,5 +297,13 @@ public class IngestionOrchestrator
         byte[] DocumentBytes,
         string ActorId,
         string SessionId,
-        string SourceUrl);
+        string SourceUrl)
+    {
+        /// <summary>
+        /// The storage-relative path (forward-slash, <c>YYYY/MM/DD/{documentId}.pdf</c>) the document was
+        /// stored under, carried onto the cross-process event so the Extractor can resolve it against its own
+        /// shared-storage base (ADR-011). Empty for duplicates (which are not re-stored or broadcast).
+        /// </summary>
+        public string RelativeStoragePath { get; init; } = string.Empty;
+    }
 }

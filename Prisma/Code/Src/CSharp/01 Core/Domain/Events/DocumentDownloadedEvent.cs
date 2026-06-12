@@ -49,9 +49,13 @@ public record DocumentDownloadedEvent : DomainEvent
     /// </summary>
     public DateTimeOffset Timestamp1 { get; }
     /// <summary>
-    /// Gets the file system path where the document is stored.
+    /// Gets the storage-relative path under which the document was stored (relative to the shared storage
+    /// base both the Downloader and Extractor processes mount — e.g. <c>2026/06/12/{fileId}.pdf</c>).
+    /// The Downloader (Orion) stamps this; the Extractor (Athena) resolves it against its own configured
+    /// storage base to obtain a locally-loadable absolute path (MVP-PATH 1.3 shared storage, ADR-011).
+    /// Empty for in-process / single-service flows.
     /// </summary>
-    public string Path { get; } = string.Empty;
+    public string Path { get; init; } = string.Empty;
     /// <summary>
     /// Gets the journal path for audit logging.
     /// </summary>

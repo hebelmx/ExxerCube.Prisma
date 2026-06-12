@@ -205,6 +205,42 @@ public sealed class IngestionOrchestratorTests
 
     [Fact]
     [Trait("Category", "Unit")]
+    public async Task IngestDocument_EmitsRelativeStoragePathOnEvent()
+    {
+        // Arrange
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+        var logger = NullLogger<IngestionOrchestrator>.Instance;
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
+
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+        var documentId = "DOC123";
+        var now = DateTime.UtcNow;
+
+        // Act
+        var result = await orchestrator.IngestDocumentAsync(documentId, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+        // Assert - the cross-process event carries the forward-slash storage-relative path (mount-path
+        // independent) so the Extractor can resolve it against its own shared-storage base (ADR-011).
+        result.IsSuccess.ShouldBeTrue();
+
+        await eventHub.Received(1).SendToAllAsync(
+            Arg.Is<DocumentDownloadedEvent>(e =>
+                e.Path == $"{now.Year:D4}/{now.Month:D2}/{now.Day:D2}/{documentId}.pdf"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
     public async Task IngestDocument_CorrelationId_PreservedInResult()
     {
         // Arrange
