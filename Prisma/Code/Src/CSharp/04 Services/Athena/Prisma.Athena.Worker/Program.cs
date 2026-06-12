@@ -11,12 +11,22 @@ using ExxerCube.Prisma.Infrastructure.Imaging;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Athena.HealthChecks;
 using Prisma.Athena.Processing;
+using Prisma.Athena.Processing.Ingestion;
 using Prisma.Athena.Worker;
+using Prisma.Athena.Worker.Ingestion;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Register event infrastructure
 builder.Services.AddSingleton<IEventPublisher, EventPublisher>();
+
+// Cross-process ingestion (MVP-PATH 1.3): subscribe to the Orion Downloader actor's SignalR hub and
+// republish each DocumentDownloadedEvent onto the local event stream the pipeline subscribes to
+// (the first cross-process edge of the Three-Actors split — ADR-009/ADR-011).
+builder.Services.Configure<IngestionClientOptions>(
+    builder.Configuration.GetSection(IngestionClientOptions.SectionName));
+builder.Services.AddSingleton<IngestionEventForwarder>();
+builder.Services.AddHostedService<SiaraIngestionHubClient>();
 
 // Register pipeline services (adapters → ports)
 builder.Services.AddSingleton<IFileLoader, FileSystemLoader>();

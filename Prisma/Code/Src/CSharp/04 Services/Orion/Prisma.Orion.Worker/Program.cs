@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Prisma.Orion.HealthChecks;
 using Prisma.Orion.Ingestion;
 using Prisma.Orion.Worker;
+using Prisma.Orion.Worker.Ingestion;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,8 +34,12 @@ builder.Services.AddScoped<IDocumentDownloader, SiaraDocumentDownloader>();
 // keeps one long-lived discovery scope so the SIARA session stays warm across cycles.
 builder.Services.AddScoped<ISiaraDocumentSource, SiaraDocumentSource>();
 
-// Register event hub (stub for now — replace with the real Ember transport in MVP-PATH 1.3)
-builder.Services.AddSingleton<IExxerHub<DocumentDownloadedEvent>, StubExxerHub<DocumentDownloadedEvent>>();
+// The real IndFusion.Ember transport (MVP-PATH 1.3): the Orion Downloader actor hosts a SignalR hub and
+// broadcasts DocumentDownloadedEvent to the downstream Extractor (Athena) — the first cross-process edge of
+// the Three-Actors split (ADR-009/ADR-011). Replaces StubExxerHub. The broadcaster sends via IHubContext
+// (a DI-resolved hub instance has a null Clients and cannot send).
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IExxerHub<DocumentDownloadedEvent>, SignalRIngestionBroadcaster>();
 
 // The orchestrator is scoped because it depends on the scoped downloader; the worker resolves it inside
 // a per-work scope and the health/dashboard endpoints resolve it from the per-request scope.
@@ -60,6 +65,10 @@ builder.Services.AddScoped<IHealthCheckService, OrionHealthCheckService>();
 builder.Services.AddScoped<IDashboardService, OrionDashboardService>();
 
 var app = builder.Build();
+
+// The ingestion hub (MVP-PATH 1.3): downstream Extractors (Athena) connect here to receive
+// DocumentDownloadedEvent over the real Ember transport.
+app.MapHub<IngestionHub>("/hubs/ingestion");
 
 // Health endpoints
 app.MapGet("/health", async (IHealthCheckService healthCheck, CancellationToken ct) =>

@@ -16,6 +16,7 @@
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.HealthChecks\ExxerCube.Prisma.Orion.HealthChecks.csproj" />
