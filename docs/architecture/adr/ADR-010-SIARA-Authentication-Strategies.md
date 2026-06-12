@@ -1,14 +1,22 @@
-# ADR-010: SIARA Authentication — Two Client-Selectable, Credential-Free Strategies
+# ADR-010: SIARA Authentication — Three Client-Selectable Strategies (No Credential Storage)
 
 **Date**: 2026-06-11
-**Status**: Accepted
-**Deciders**: Owner (MVP scope ruling, 2026-06-11) + Development Team
-**Tags**: siara, authentication, security, ingestion, browser-automation, itdd, mvp, technical-legal-control
+**Status**: Accepted (auth-mechanism design) — **automation modes gated on legal sign-off (§ Legal preconditions)**
+**Deciders**: Owner (MVP scope ruling, 2026-06-11) + Development Team — **legal/compliance sign-off REQUIRED and PENDING** for any automation against the real SIARA
+**Tags**: siara, authentication, security, ingestion, browser-automation, itdd, mvp, technical-legal-control, liability
 
 > Promotes the planning-level design `docs/planning/gap-analysis/SIARA-AUTH-DESIGN-2026-06.md`
 > to an architectural decision. That document holds the full ITDD/DI/config detail and the
 > task breakdown (S0–S9); this ADR records the decision and its rationale. It feeds MVP-PATH
 > Workstream **1.1** (the real SIARA downloader), whose auth seam this defines.
+
+> ⚠️ **Liability notice.** This ADR's *technical* design (no credential **storage**) is sound and
+> test-enforced, but the residual exposure is **legal and operational**, concentrated in
+> `AutomatedLogin`. **No automation mode (`AutomatedLogin`, and arguably `SessionPassthrough`) may
+> be enabled against the real `siara.cnbv.gob.mx` until the client's legal/compliance has confirmed
+> in writing** that automated, credentialed access under the chosen account model is permitted by
+> SIARA's terms of use and applicable Mexican law. See **§ Legal preconditions & residual risk**.
+> Adversarial review: 2026-06-11 (this document records, not resolves, the legal questions).
 
 ## Context and Problem Statement
 
@@ -31,12 +39,18 @@ policy decides; none is hardcoded). None ever **persists** raw credentials:
 
 | Mode | Mechanism | Who authenticates | What Prisma holds |
 |---|---|---|---|
-| `SessionPassthrough` | Ride an already-authenticated browser context handed in from outside Prisma — **storage-state import (default)** or **CDP attach (opt-in)**, chosen by config. | A human/system **outside** Prisma. | An opaque storage-state handle only. |
-| `InteractiveLogin` | A human logs in **once** on the real SIARA page in a headed browser; Prisma captures the authenticated context and keeps it warm for headless downloads. | A human, on **SIARA's own page**. | An opaque storage-state handle only. |
-| `AutomatedLogin` | Prisma drives SIARA's login form **unattended** with credentials sourced at runtime from a client-owned secret store (Key Vault / env / secrets manager) via `ISiaraCredentialSource`, used **transiently** and **never persisted**. Enables 24/7 operation. | Prisma, with the client's vault-held credentials it never stores. | An opaque storage-state handle only — **no credentials**. |
+| `SessionPassthrough` | Ride an already-authenticated browser context handed in from outside Prisma — **storage-state import (default)** or **CDP attach (opt-in)**, chosen by config. | A human/system **outside** Prisma. | A bearer session secret¹ — no username/password. |
+| `InteractiveLogin` | A human logs in **once** on the real SIARA page in a headed browser; Prisma captures the authenticated context and keeps it warm for headless downloads. | A human, on **SIARA's own page**. | A bearer session secret¹ — no username/password. |
+| `AutomatedLogin` | Prisma drives SIARA's login form **unattended** with credentials sourced at runtime from a client-owned secret store (Key Vault / env / secrets manager) via `ISiaraCredentialSource`, used **transiently** and **never persisted**. Enables 24/7 operation. | Prisma, with the client's vault-held credentials it never stores. | A bearer session secret¹ — no *stored* username/password (creds held only transiently in memory during the login). |
 
-All three produce the **same artifact** — a credential-free `SiaraSession` value object — so they sit
-behind a single strategy port:
+> ¹ **The storage-state is a bearer secret, not a benign "handle."** A Playwright storage-state contains
+> the **session cookie**, which fully impersonates the authenticated SIARA user for the session
+> lifetime. It must receive credential-grade controls (short TTL, never logged in full, encrypted at
+> rest if ever persisted, revocable). Earlier "credential-free / opaque handle" phrasing understated
+> this; the precise guarantee is **no credential *storage***, not "no secrets held."
+
+All three produce the **same artifact** — a `SiaraSession` value object that carries **no
+username/password** — so they sit behind a single strategy port:
 
 - **Domain port** `ISiaraSessionProvider` (`Mode`, `AcquireAsync`, `EnsureValidAsync`,
   `ReleaseAsync`), plus credential-free value objects `SiaraSession` / `SiaraSessionRequest` and
@@ -86,16 +100,73 @@ now closed):
    modes are provably testable end-to-end against it, matching the real cookie-session model. The
    public fake credentials remain in the simulator only.
 
+## Legal preconditions & residual risk
+
+> Recorded from the 2026-06-11 adversarial review. This section **documents** the exposure for the
+> record and for counsel; it does not (and cannot) resolve the legal questions. The technical
+> no-storage design is sound; the residual risk is **legal and operational**, concentrated in
+> `AutomatedLogin`.
+
+**P1 — Authorization to automate (deployment gate).** No automation mode may be enabled against the
+real SIARA until the client's legal/compliance confirms **in writing** that automated, credentialed
+access — under the chosen account model — is permitted by SIARA's terms of use and applicable
+Mexican law (incl. data-protection / LFPDPPP and any computer-misuse provisions). Building the
+capability does not establish that using it is lawful; **config-selection by the client does not
+transfer to the client the vendor's liability for shipping the capability.**
+
+**P2 — Non-repudiation / account-sharing.** SIARA accounts are issued to identified, need-to-know
+users. `AutomatedLogin` (and a human-handed `SessionPassthrough`) attribute every legal-document
+download to a named human/service account and may violate a "personal, non-transferable credential"
+policy. Counsel must confirm a sanctioned service/automation-account model before unattended use; the
+audit trail must bind each download to the acquiring identity (see Consequences).
+
+**P3 — Self-inflicted lockout / missed-deadline compliance failure.** SIARA has **max-attempt
+lockout**, and its auth surface (MFA/CAPTCHA) "may change at any time." An unattended loop driving the
+form the day SIARA changes can lock out the bank's account → the bank stops receiving legal
+requirements → **missed regulatory deadlines / fines.** Before `AutomatedLogin` (S6b) ships it MUST
+implement: lockout/anomaly detection, exponential backoff + circuit-breaker, and a hard **stop-and-
+alert-a-human after N failures** (never a retry storm). "Fail-closed" does not by itself prevent this.
+
+**P4 — Anti-automation controls.** If SIARA presents a CAPTCHA/MFA specifically to prevent automation,
+capturing the post-challenge session to drive a bot is a different legal posture from "a human logged
+in." Flag per-mode for counsel; do not assume "the human cleared it, so we may automate the rest."
+
+**P5 — Credential-in-memory handling (`AutomatedLogin`, before S6b).** "Transient + discarded" must be
+enforced, not asserted: credentials handled as cleared `char[]` (not `string`), never logged (the
+adapter already logs only password *length*), never serialized, no `ToString`; Playwright
+tracing/HAR/video **disabled** in any credentialed mode (they capture the typed password + cookies).
+`ISiaraCredentialSource`'s return type must carry these constraints, and the no-leak test must cover
+the login path — not only `SiaraSession`.
+
+**P6 — `ISiaraLoginService` isolation.** It must be **structurally** prevented from receiving
+*persisted* credentials (today it is merely registered in the general browser DI). Isolate it (no prod
+composition root binding app-config credentials into it); the "never registered for persisted creds"
+claim must be enforced by structure, not convention.
+
+**P7 — Session blast radius & revocation.** The bearer session secret grants full SIARA access for its
+lifetime. Mandate short TTLs, encryption at rest if ever persisted (prefer in-memory), and a documented
+**revocation/rotation/incident playbook** (kill switch) beyond `ReleaseAsync`.
+
+**P8 — Simulator ↔ production guardrail.** The fake-credential simulator and the automation tooling
+together form a ready template; the test login driver must be **structurally** prevented from targeting
+the real `siara.cnbv.gob.mx` host.
+
+**Residual risks accepted / to-confirm:** P1, P2, P4 are **legal questions for counsel** (recorded, not
+resolved here). P3, P5, P6, P7, P8 are **engineering preconditions** to be satisfied before/within the
+relevant task (noted in MVP-PATH / SIARA-AUTH-DESIGN).
+
 ## Rationale
 
-1. **No-credential-storage guarantee is structural, not procedural** — no mode *persists* a
-   username/password; `SiaraSession` carries no credential members (asserted by a reflection
-   contract test). For `AutomatedLogin`, credentials are vault-sourced at the moment of login and
-   discarded. The guarantee is enforced by the type system + tests, not by convention.
-2. **The legal choice belongs to the client** — passthrough vs. interactive vs. automated is a
-   safety-policy decision that varies per deployment (e.g. environments that forbid CDP, or that
-   mandate unattended operation). Making it pure configuration turns it into the client's
-   documented, auditable control rather than a Prisma code decision.
+1. **No-credential-*storage* guarantee is structural for the session; the credential *path* is
+   guarded separately.** No mode persists a username/password, and `SiaraSession` carries no credential
+   members (reflection contract test). That structural guarantee covers the **session object**; the
+   `AutomatedLogin` credential *flow* (vault-source → transient use → discard) is guarded by the P5
+   controls and login-path no-leak tests, which are procedural-plus-tested, not type-enforced. Do not
+   conflate "no credential storage" with "no secrets held" (the session secret is a bearer token).
+2. **The mode choice is the client's to make, but it does not absolve the vendor.** Passthrough vs.
+   interactive vs. automated is a deployment-time, auditable client control — yet offering
+   `AutomatedLogin` at all is a vendor decision whose lawfulness is gated by P1. Config-selection
+   documents *who chose*, not *that it is lawful*.
 3. **One port, three strategies** keeps the downloader (1.1) and watch loop (1.2) ignorant of the
    mechanism — switching is config-only, no code redeploy. `AutomatedLogin` is the mode that makes
    the unattended 24/7 watch loop viable without a human.
@@ -114,15 +185,23 @@ now closed):
   `All_Domain_Interfaces_Should_Have_At_Least_One_Implementation` arch test (ports-before-adapters,
   ITDD) — **remove each from the allowlist as its adapter lands**.
 - `IBrowserSessionContext` (S4, done) is implemented by `PlaywrightBrowserAutomationAdapter`.
-- Security posture (must-haves): storage-state refs and vault credentials are secrets (never logged
-  in full; storage-state encrypted at rest if persisted, prefer in-memory; credentials never
-  persisted at all); every Acquire/EnsureValid/Release is audited via `IAuditLogger` (ties to MVP
-  A6); honor `ExpiresAt`/`ReleaseAsync`.
+- Security posture (must-haves): the storage-state is a **bearer session secret** and the vault
+  credentials are secrets (never logged in full; storage-state encrypted at rest if persisted, prefer
+  in-memory; credentials never persisted at all — see P5/P7). "Fail-closed" prevents *unauthenticated
+  scraping* but NOT the lockout failure mode — P3's backoff/circuit-breaker is the control for that.
+- Audit / forensics (must-haves, ties to MVP A6): the acquiring **actor identity must be mandatory and
+  trustworthy** — *not* the current optional, caller-supplied `SiaraSession.AcquiredBy string?`;
+  every `Acquire/EnsureValid/Release` **and every `ISiaraCredentialSource` read** emits an audit event;
+  each downloaded document is bound to its session id + actor + timestamp (per-document
+  non-repudiation); the audit trail is **immutable, tamper-evident, and retained** per the client's
+  financial-record retention obligation. (The data-model change to make actor identity mandatory is a
+  follow-up on `SiaraSession`/the audit seam.)
 - The reference fake unblocks downstream ingestion tests early; mutation testing scopes the
   providers + resolver after green, excluding the live-Playwright glue.
 
 ## Related
 
+- **Adversarial review (liability & production safety), 2026-06-11:** `ADR-010-adversarial-review-2026-06-11.md` (full graded findings; source of § Legal preconditions)
 - Design (full detail + tasks S0–S9): `docs/planning/gap-analysis/SIARA-AUTH-DESIGN-2026-06.md`
 - MVP path (Workstream 1.1/1.2): `docs/planning/gap-analysis/MVP-PATH-2026-06-11.md`
 - Gap matrix: `docs/planning/gap-analysis/GAP-MATRIX-2026-06-11.md`
