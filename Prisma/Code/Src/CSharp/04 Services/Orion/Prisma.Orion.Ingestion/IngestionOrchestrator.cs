@@ -268,18 +268,6 @@ public class IngestionOrchestrator
             correlationId);
     }
 
-    /// <summary>
-    /// Starts the ingestion orchestrator.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token for graceful shutdown.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public Task StartAsync(CancellationToken cancellationToken = default)
-    {
-        _logger.LogInformation("Ingestion orchestrator starting");
-        // Placeholder for watcher wiring; implement SIARA polling, download, partitioned storage, and journal writes.
-        return Task.CompletedTask;
-    }
-
     private static string ComputeSha256Hash(byte[] data)
     {
         var hashBytes = SHA256.HashData(data);

@@ -26,6 +26,8 @@
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
   </ItemGroup>
   <!-- ============================================================================ -->
   <!-- LOGGING & DIAGNOSTICS -->
@@ -85,6 +87,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\..\..\04 Services\Orion\Prisma.Orion.Ingestion\ExxerCube.Prisma.Orion.Ingestion.csproj" />
+    <ProjectReference Include="..\..\..\..\09 Testing\01 Abstractions\Testing\Contracts\ExxerCube.Prisma.Testing.Contracts.csproj" />
   </ItemGroup>
   <!-- ============================================================================ -->
   <!-- TESTING PLATFORM CAPABILITIES -->

@@ -1,5 +1,6 @@
 using System.Net.Http;
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
@@ -8,18 +9,18 @@ using IndQuestResults;
 namespace ExxerCube.Prisma.Tests.System.BrowserAutomation.E2E;
 
 /// <summary>
-/// MVP-PATH 1.1 acceptance: pulls a real document from the live SIARA simulator through the WHOLE real
-/// path — <see cref="ISiaraSessionProviderResolver"/> → <see cref="SessionPassthroughSiaraSessionProvider"/>
-/// → <see cref="SiaraDocumentDownloader"/> — with a real headless Playwright browser, and asserts the
-/// returned <see cref="DownloadedDocument"/> carries real bytes plus the trustworthy actor + session
-/// provenance (ADR-010 P2).
+/// MVP-PATH 1.2 acceptance: discovers real documents from the live SIARA simulator through the WHOLE real
+/// discovery path the watch loop uses — <see cref="ISiaraSessionProviderResolver"/> →
+/// <see cref="SessionPassthroughSiaraSessionProvider"/> → <see cref="SiaraDocumentSource"/> — with a real
+/// headless Playwright browser, and asserts the source lists at least one document id (a SIARA document
+/// URL) off a single warm session.
 /// </summary>
 /// <remarks>
 /// Headless. Starts the published simulator (<c>Deployments/Siara.Simulator/app</c>) if it is not already
 /// running on <c>http://localhost:5001</c>. Requires a Chromium install (<c>playwright install chromium</c>).
 /// </remarks>
 [Collection("SiaraSimulator")]
-public sealed class SiaraDocumentDownloaderE2ETests : IAsyncLifetime
+public sealed class SiaraDocumentSourceE2ETests : IAsyncLifetime
 {
     private const string SimulatorUrl = "http://localhost:5001";
     private const string ValidUsername = "BANAMEX";
@@ -30,7 +31,7 @@ public sealed class SiaraDocumentDownloaderE2ETests : IAsyncLifetime
     private Process? _simulatorProcess;
     private bool _startedSim;
 
-    public SiaraDocumentDownloaderE2ETests(ITestOutputHelper output) => _output = output;
+    public SiaraDocumentSourceE2ETests(ITestOutputHelper output) => _output = output;
 
     public async ValueTask InitializeAsync()
     {
@@ -60,12 +61,12 @@ public sealed class SiaraDocumentDownloaderE2ETests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task DownloadAsync_ThroughPassthroughProvider_PullsRealDocumentFromSimulator()
+    public async Task DiscoverDocumentIdsAsync_ThroughPassthroughProvider_ListsRealDocumentsFromSimulator()
     {
         var ct = TestContext.Current.CancellationToken;
 
         // 1) Log into the simulator with a real headless browser and capture an authenticated storage-state
-        //    (the credential-free artifact SessionPassthrough rides — no credentials reach the downloader).
+        //    (the credential-free artifact SessionPassthrough rides — no credentials reach the source).
         var authAdapter = CreateAdapter();
         (await authAdapter.LaunchBrowserAsync(ct)).IsSuccess.ShouldBeTrue();
         (await authAdapter.NavigateToAsync($"{SimulatorUrl}/login", ct)).IsSuccess.ShouldBeTrue();
@@ -75,23 +76,18 @@ public sealed class SiaraDocumentDownloaderE2ETests : IAsyncLifetime
         (await authAdapter.ClickElementAsync("button[type='submit']", ct)).IsSuccess.ShouldBeTrue();
         (await authAdapter.WaitForSelectorAsync(DashboardSelector, 15000, ct)).IsSuccess.ShouldBeTrue("login should reach the dashboard");
 
-        // Wait for the InteractiveServer circuit to render at least one document link (cases persist and
-        // also arrive ~6/min). WaitForSelector polls the LIVE DOM, so it catches circuit-pushed rows.
+        // Wait for the InteractiveServer circuit to render at least one document link before capturing the
+        // storage-state, so the simulator definitely has cases to discover.
         var linkAppeared = await authAdapter.WaitForSelectorAsync("a[href$='.pdf']", 90000, ct);
         linkAppeared.IsSuccess.ShouldBeTrue("the simulator dashboard should render at least one PDF document link within 90s");
-
-        var discovered = await authAdapter.IdentifyDownloadableFilesAsync(["*.pdf", "*.xml", "*.docx"], ct);
-        discovered.IsSuccess.ShouldBeTrue($"identify failed: {discovered.Error}");
-        var firstFile = discovered.Value!.FirstOrDefault();
-        firstFile.ShouldNotBeNull("at least one document should be presented once a case row is rendered");
 
         var authState = await authAdapter.ExportStorageStateAsync(ct);
         authState.IsSuccess.ShouldBeTrue($"storage-state capture failed: {authState.Error}");
         authState.Value.ShouldNotBeNullOrEmpty();
         await authAdapter.CloseBrowserAsync(ct);
 
-        // 2) Pull the document through the REAL path on a FRESH browser: resolver -> passthrough provider ->
-        //    SiaraDocumentDownloader, configured to authenticate against the simulator via the storage-state.
+        // 2) Discover documents through the REAL path on a FRESH browser: resolver -> passthrough provider ->
+        //    SiaraDocumentSource, configured to authenticate against the simulator via the storage-state.
         var sutAdapter = CreateAdapter();
         try
         {
@@ -122,22 +118,33 @@ public sealed class SiaraDocumentDownloaderE2ETests : IAsyncLifetime
                 XUnitLogger.CreateLogger<SiaraNavigationTarget>(_output),
                 Options.Create(new NavigationTargetOptions { SiaraUrl = $"{SimulatorUrl}/" }));
 
-            var sut = new SiaraDocumentDownloader(
+            var sut = new SiaraDocumentSource(
                 resolver, sutAdapter, sutAdapter, navigationTarget, options,
-                XUnitLogger.CreateLogger<SiaraDocumentDownloader>(_output));
+                XUnitLogger.CreateLogger<SiaraDocumentSource>(_output));
 
-            var result = await sut.DownloadAsync(firstFile!.Url, ct);
+            // The source keeps one warm session; re-listing re-navigates the live DOM, so poll a few cycles
+            // (exactly as the watch loop does) until the InteractiveServer circuit has rendered a case row.
+            IReadOnlyList<string>? ids = null;
+            for (var attempt = 0; attempt < 18 && (ids is null || ids.Count == 0); attempt++)
+            {
+                var discovered = await sut.DiscoverDocumentIdsAsync(ct);
+                discovered.IsSuccess.ShouldBeTrue($"discovery failed: {discovered.Error}");
+                ids = discovered.Value;
+                if (ids is { Count: > 0 })
+                {
+                    break;
+                }
 
-            result.IsSuccess.ShouldBeTrue($"download failed: {result.Error}");
-            result.Value.ShouldNotBeNull();
-            result.Value!.Content.ShouldNotBeEmpty();
-            result.Value.SourceUrl.ShouldBe(firstFile.Url);
-            result.Value.SessionId.ShouldNotBeNullOrEmpty();
-            // Per-document non-repudiation: the trustworthy service-account actor rides onto the document.
-            result.Value.AcquiredBy.ActorId.ShouldBe("orion-e2e-service-account");
+                await Task.Delay(5000, ct);
+            }
 
-            _output.WriteLine(
-                $"Pulled {result.Value.Content.Length} bytes from {result.Value.SourceUrl} as actor {result.Value.AcquiredBy.ActorId} on session {result.Value.SessionId}");
+            ids.ShouldNotBeNull();
+            ids!.ShouldNotBeEmpty("the warm SIARA discovery session should list at least one document within ~90s");
+            ids.ShouldAllBe(id => !string.IsNullOrWhiteSpace(id));
+
+            _output.WriteLine($"Discovered {ids.Count} SIARA document id(s); first: {ids[0]}");
+
+            await sut.DisposeAsync();
         }
         finally
         {

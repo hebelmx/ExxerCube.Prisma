@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces;
+using IndQuestResults;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
@@ -18,6 +19,13 @@ internal class OrionWorkerApplication : WebApplicationFactory<global::Prisma.Ori
             services.AddSingleton(Substitute.For<IIngestionJournal>());
             services.AddSingleton(Substitute.For<IDocumentDownloader>());
             services.AddSingleton(Substitute.For<IEventPublisher>());
+
+            // Override the real SIARA discovery source so the background watch loop stays quiet (no live
+            // browser) during these health/dashboard endpoint tests: it presents nothing each cycle.
+            var discoverySource = Substitute.For<ISiaraDocumentSource>();
+            discoverySource.DiscoverDocumentIdsAsync(Arg.Any<CancellationToken>())
+                .Returns(Result<IReadOnlyList<string>>.Success(System.Array.Empty<string>()));
+            services.AddSingleton(discoverySource);
         });
     }
 }

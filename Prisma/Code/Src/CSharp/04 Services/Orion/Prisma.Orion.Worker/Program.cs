@@ -25,9 +25,13 @@ builder.Services.Configure<NavigationTargetOptions>(options =>
     builder.Configuration.GetSection("NavigationTargets").Bind(options));
 builder.Services.AddSiaraAuthentication(builder.Configuration);
 
-// The real downloader is scoped: it rides a scoped Playwright browser and SIARA session. The worker
-// creates a scope per unit of work (OrionWorkerService), so the singleton host never captures it.
+// The real downloader is scoped: it rides a scoped Playwright browser and SIARA session. The watch loop
+// creates a fresh scope per document (SiaraWatchLoop), so the singleton host never captures it.
 builder.Services.AddScoped<IDocumentDownloader, SiaraDocumentDownloader>();
+
+// The discovery source (MVP-PATH 1.2 — the "list" half) is scoped for the same reason; the watch loop
+// keeps one long-lived discovery scope so the SIARA session stays warm across cycles.
+builder.Services.AddScoped<ISiaraDocumentSource, SiaraDocumentSource>();
 
 // Register event hub (stub for now — replace with the real Ember transport in MVP-PATH 1.3)
 builder.Services.AddSingleton<IExxerHub<DocumentDownloadedEvent>, StubExxerHub<DocumentDownloadedEvent>>();
@@ -42,6 +46,12 @@ builder.Services.AddScoped<IngestionOrchestrator>(sp =>
     var logger = sp.GetRequiredService<ILogger<IngestionOrchestrator>>();
     return new IngestionOrchestrator(journal, downloader, eventHub, logger);
 });
+
+// The SIARA watch loop (MVP-PATH 1.2): a singleton poll/watcher that owns the DI scopes (one warm
+// discovery scope + a fresh scope per document). Driven by the hosted worker.
+builder.Services.Configure<WatchLoopOptions>(
+    builder.Configuration.GetSection(WatchLoopOptions.SectionName));
+builder.Services.AddSingleton<SiaraWatchLoop>();
 builder.Services.AddHostedService<OrionWorkerService>();
 
 // Health + dashboard depend (transitively) on the scoped orchestrator, so they are scoped too; the
