@@ -21,6 +21,14 @@ public class BrowserAutomationOptions
     public int PageTimeoutMs { get; set; } = 30000;
 
     /// <summary>
+    /// Gets or sets whether to ignore TLS certificate errors. Default <c>false</c> (production SIARA has a
+    /// valid certificate). Set <c>true</c> only against a dev/sim host with a self-signed certificate — the
+    /// browser may trust a locally-installed dev cert via the OS store, but Playwright's API-request stack
+    /// (used to fetch document bytes) validates TLS independently and would otherwise reject it.
+    /// </summary>
+    public bool IgnoreHttpsErrors { get; set; }
+
+    /// <summary>
     /// Gets or sets the default regulatory website URL to navigate to.
     /// </summary>
     public string DefaultWebsiteUrl { get; set; } = string.Empty;

@@ -51,7 +51,10 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
                 Timeout = _options.BrowserLaunchTimeoutMs
             });
 
-            _page = await _browser.NewPageAsync();
+            _page = await _browser.NewPageAsync(new BrowserNewPageOptions
+            {
+                IgnoreHTTPSErrors = _options.IgnoreHttpsErrors
+            });
             _page.SetDefaultTimeout(_options.PageTimeoutMs);
 
             _logger.LogInformation("Browser session launched successfully");
@@ -174,10 +177,15 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
         {
             _logger.LogInformation("Downloading file from URL: {Url}", fileUrl);
 
-            var response = await _page.GotoAsync(fileUrl);
-            if (response == null)
+            // Fetch via the context's API request (which shares the page's authenticated cookies) rather
+            // than page navigation: files served with Content-Disposition: attachment trigger a browser
+            // download that GotoAsync cannot capture ("Download is starting"). This reads the bytes for any
+            // content type without navigating the page.
+            var response = await _page.APIRequest.GetAsync(fileUrl);
+            if (!response.Ok)
             {
-                return Result<DownloadedFile>.WithFailure($"Failed to download file from {fileUrl}: No response received");
+                return Result<DownloadedFile>.WithFailure(
+                    $"Failed to download file from {fileUrl}: HTTP {response.Status} {response.StatusText}");
             }
 
             var content = await response.BodyAsync();
@@ -349,7 +357,8 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
         {
             var context = await _browser.NewContextAsync(new BrowserNewContextOptions
             {
-                StorageState = storageStateRef
+                StorageState = storageStateRef,
+                IgnoreHTTPSErrors = _options.IgnoreHttpsErrors
             });
             var page = await context.NewPageAsync();
             page.SetDefaultTimeout(_options.PageTimeoutMs);
