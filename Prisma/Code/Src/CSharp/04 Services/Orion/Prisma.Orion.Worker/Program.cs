@@ -1,4 +1,7 @@
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Orion.HealthChecks;
@@ -14,13 +17,24 @@ builder.Services.AddSingleton<IIngestionJournal>(sp =>
     var journalPath = Path.Combine(Directory.GetCurrentDirectory(), "journal.txt");
     return new FileIngestionJournal(journalPath, logger);
 });
-builder.Services.AddSingleton<IDocumentDownloader, StubDocumentDownloader>();
+// Real SIARA ingestion (MVP-PATH 1.1): the browser-automation scraper + the credential-free SIARA auth
+// seam (ADR-010), adapted into the IDocumentDownloader port. Replaces StubDocumentDownloader.
+builder.Services.AddBrowserAutomationServices(options =>
+    builder.Configuration.GetSection("BrowserAutomation").Bind(options));
+builder.Services.Configure<NavigationTargetOptions>(options =>
+    builder.Configuration.GetSection("NavigationTargets").Bind(options));
+builder.Services.AddSiaraAuthentication(builder.Configuration);
 
-// Register event hub (stub for now - replace with actual SignalR hub in production)
+// The real downloader is scoped: it rides a scoped Playwright browser and SIARA session. The worker
+// creates a scope per unit of work (OrionWorkerService), so the singleton host never captures it.
+builder.Services.AddScoped<IDocumentDownloader, SiaraDocumentDownloader>();
+
+// Register event hub (stub for now — replace with the real Ember transport in MVP-PATH 1.3)
 builder.Services.AddSingleton<IExxerHub<DocumentDownloadedEvent>, StubExxerHub<DocumentDownloadedEvent>>();
 
-// Register orchestrator and worker service
-builder.Services.AddSingleton<IngestionOrchestrator>(sp =>
+// The orchestrator is scoped because it depends on the scoped downloader; the worker resolves it inside
+// a per-work scope and the health/dashboard endpoints resolve it from the per-request scope.
+builder.Services.AddScoped<IngestionOrchestrator>(sp =>
 {
     var journal = sp.GetRequiredService<IIngestionJournal>();
     var downloader = sp.GetRequiredService<IDocumentDownloader>();
@@ -30,9 +44,10 @@ builder.Services.AddSingleton<IngestionOrchestrator>(sp =>
 });
 builder.Services.AddHostedService<OrionWorkerService>();
 
-// Register health check and dashboard services
-builder.Services.AddSingleton<IHealthCheckService, OrionHealthCheckService>();
-builder.Services.AddSingleton<IDashboardService, OrionDashboardService>();
+// Health + dashboard depend (transitively) on the scoped orchestrator, so they are scoped too; the
+// minimal-API endpoints resolve them from the per-request scope.
+builder.Services.AddScoped<IHealthCheckService, OrionHealthCheckService>();
+builder.Services.AddScoped<IDashboardService, OrionDashboardService>();
 
 var app = builder.Build();
 
