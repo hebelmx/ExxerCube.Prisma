@@ -92,3 +92,35 @@ dotnet test "Prisma/Code/Src/CSharp/08 Tests/05 System/Tests.Infrastructure.Brow
 - **Known follow-ups:** the login-mode (`Interactive`/`Automated`) browser-lifecycle vs. the non-idempotent
   adapter launch (passthrough is the MVP path and is correct); a real cross-impl `IBrowserSessionContext`
   test that would have caught the navigate-before-probe gap directly.
+
+---
+
+## HARD CONSTRAINTS (carry forward)
+- **Conventions:** xUnit v3 + Shouldly + NSubstitute + Meziantou logger; **NO** Moq/FluentAssertions;
+  `TestContext.Current.CancellationToken`; `Result<T>` + `CancellationToken` everywhere, pre-cancel →
+  `ResultExtensions.Cancelled<T>()`; ITDD per ADR-005 (port → `*Contract` + fake + ≥1 inheritor).
+- **No raw credential storage** ever (reflection-enforced). Honor ADR-010 (P7 short-TTL/revocation still open).
+- `dotnet test <project.csproj>` with **no extra flags** (breaks MTP). Build single projects.
+- Commit code+tests separately from docs; end commits with the `Co-Authored-By: Claude Opus 4.8` line;
+  push `Kt2`. The live E2E must be **force-added** (`git add -f`) — the `*.e2e` gitignore rule.
+
+## Verify current state
+```
+dotnet build "Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln"                                                                                        # 0/0
+dotnet test  "Prisma/Code/Src/CSharp/08 Tests/04 Services/Orion/Prisma.Orion.Ingestion.Tests/ExxerCube.Prisma.Orion.Ingestion.Tests.csproj"        # 9
+dotnet test  "Prisma/Code/Src/CSharp/08 Tests/02 Infrastructure/Tests.Infrastructure.BrowserAutomation/ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation.csproj"  # 179
+dotnet test  "Prisma/Code/Src/CSharp/08 Tests/05 System/Tests.Infrastructure.BrowserAutomation.E2E/*.csproj" --filter-query "/*/*/SiaraDocumentDownloaderE2ETests/*"     # 1 (live, needs sim + Chromium)
+```
+
+## Short prompt for the next agent
+> Continue MVP-PATH Workstream 1 on branch `Kt2`. **1.1 (real SIARA `IDocumentDownloader`) is DONE and
+> pushed** (`afbeb89..a6cb2eb`); build 0/0, all suites green (Orion.Ingestion 9, BrowserAutomation 179 +
+> E2E 32, Architecture 22, EndToEnd 27). Read this handoff and the auto-memory
+> `mvp-path-1.1-siara-downloader.md` first. Do **1.2 — the SIARA watch loop**: implement
+> `IngestionOrchestrator.StartAsync` (still a placeholder) as a poll/watcher that discovers SIARA documents
+> and, **per discovered document, creates a DI scope and calls `IngestDocumentAsync`** (the downloader +
+> provenance + journal are ready; the worker already owns the scope via `IServiceScopeFactory`). Keep the
+> session warm across the loop with `ISiaraSessionProvider.EnsureValidAsync`; idempotent via the existing
+> SHA-256 journal; relaxed cadence (≤2k docs/day). ITDD per ADR-005; `Result<T>`+`CancellationToken`;
+> `dotnet test <csproj>` with no extra flags. Then **1.3** — replace `StubExxerHub` with the real
+> `IndFusion.Ember` transport in the worker.
