@@ -50,7 +50,7 @@ These already work and are demonstrable (evidence in GAP-MATRIX §9 live run):
 ## 3. Tier 2 — MVP ACCEPTANCE CHECKLIST (binary; this is the bar)
 
 ### A. Ingestion — real SIARA + 3-process security split
-- [ ] **A1.** Working browser-automation scraper adapted into Orion's `IDocumentDownloader` port (replaces `StubDocumentDownloader`); no raw credentials stored (auth approach chosen + implemented).
+- [x] **A1.** Working browser-automation scraper adapted into Orion's `IDocumentDownloader` port (replaces `StubDocumentDownloader`); no raw credentials stored (auth approach chosen + implemented). **DONE 2026-06-12** (`Kt2 afbeb89..dde5c83`): `SiaraDocumentDownloader` behind the SIARA auth seam, ROP `Result<DownloadedDocument>` with actor/session provenance, live headless-Playwright E2E vs the simulator. See `docs/development/sessions/HANDOFF-2026-06-12-mvp-path-1.1-siara-downloader.md`.
 - [ ] **A2.** `IngestionOrchestrator.StartAsync()` implements the SIARA poll/watch loop (replaces placeholder); idempotent via existing SHA-256 journal; cadence relaxed (≤2k docs/day).
 - [ ] **A3.** `StubExxerHub` replaced with **real `IndFusion.Ember` transport** in the worker(s).
 - [ ] **A4.** Pipeline runs as **three separately-hosted, Ember-coordinated processes** — **Downloader / Extractor / Reconciliator** — exchanging events/handoffs, not shared raw document access.
