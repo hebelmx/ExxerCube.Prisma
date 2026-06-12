@@ -38,7 +38,7 @@ public sealed class SiaraDocumentDownloaderTests
     }
 
     [Fact]
-    public async Task DownloadAsync_WhenAcquireFails_FailsClosedWithoutTouchingBrowser()
+    public async Task DownloadAsync_WhenAcquireFails_FailsClosedWithoutScraping()
     {
         var provider = Substitute.For<ISiaraSessionProvider>();
         provider.AcquireAsync(Arg.Any<SiaraSessionRequest>(), Arg.Any<CancellationToken>())
@@ -50,7 +50,10 @@ public sealed class SiaraDocumentDownloaderTests
         var result = await sut.DownloadAsync(DocId, Ct);
 
         result.IsFailure.ShouldBeTrue();
-        await agent.DidNotReceive().LaunchBrowserAsync(Arg.Any<CancellationToken>());
+        // Passthrough pre-launches the browser before acquisition, but a failed acquire must never lead to
+        // navigation or a download.
+        await agent.DidNotReceive().NavigateToAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await agent.DidNotReceive().DownloadFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

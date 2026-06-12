@@ -95,6 +95,23 @@ public sealed class SiaraDocumentDownloader : IDocumentDownloader
 
         var provider = providerResult.Value;
 
+        // SessionPassthrough attaches a storage-state to an EXISTING browser, so one must be launched
+        // before acquisition; the login modes launch their own browser inside AcquireAsync (so we do not
+        // pre-launch for them — the adapter's launch is not idempotent and a second launch would leak).
+        if (_authOptions.AuthMode == SiaraAuthMode.SessionPassthrough)
+        {
+            var launch = await _agent.LaunchBrowserAsync(cancellationToken).ConfigureAwait(false);
+            if (launch.IsCancelled())
+            {
+                return ResultExtensions.Cancelled<DownloadedDocument>();
+            }
+
+            if (launch.IsFailure)
+            {
+                return Result<DownloadedDocument>.WithFailure(launch.Errors);
+            }
+        }
+
         var sessionResult = await provider.AcquireAsync(BuildSessionRequest(documentId), cancellationToken).ConfigureAwait(false);
         if (sessionResult.IsCancelled())
         {
@@ -132,19 +149,9 @@ public sealed class SiaraDocumentDownloader : IDocumentDownloader
         string documentId,
         CancellationToken cancellationToken)
     {
-        var launch = await _agent.LaunchBrowserAsync(cancellationToken).ConfigureAwait(false);
-        if (launch.IsCancelled())
-        {
-            return ResultExtensions.Cancelled<DownloadedDocument>();
-        }
-
-        if (launch.IsFailure)
-        {
-            return Result<DownloadedDocument>.WithFailure(launch.Errors);
-        }
-
-        // Hydrate this scope's browser with the credential-free authenticated storage-state so the scrape
-        // runs authenticated. Idempotent when the provider already attached the same context.
+        // The browser is already launched (passthrough pre-launches above; the login modes launch inside
+        // AcquireAsync). Hydrate it with the credential-free authenticated storage-state the session
+        // captured, so the scrape runs authenticated regardless of which mode acquired it.
         if (!string.IsNullOrWhiteSpace(session.StorageStateRef))
         {
             var hydrate = await _sessionContext.LoadStorageStateAsync(session.StorageStateRef, cancellationToken).ConfigureAwait(false);
