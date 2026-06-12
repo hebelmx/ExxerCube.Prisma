@@ -27,6 +27,9 @@ public sealed class SiaraAuthOptions
 
     /// <summary>Gets or sets the <see cref="SiaraAuthMode.InteractiveLogin"/> parameters.</summary>
     public SiaraInteractiveOptions Interactive { get; set; } = new();
+
+    /// <summary>Gets or sets the <see cref="SiaraAuthMode.AutomatedLogin"/> parameters.</summary>
+    public SiaraAutomatedOptions Automated { get; set; } = new();
 }
 
 /// <summary>
@@ -84,6 +87,47 @@ public sealed class SiaraInteractiveOptions
     /// does not carry its own <see cref="Domain.ValueObjects.SiaraSessionRequest.MaxWaitForHuman"/>.
     /// </summary>
     public TimeSpan MaxWaitForHuman { get; set; } = TimeSpan.FromMinutes(2);
+}
+
+/// <summary>
+/// Parameters for <see cref="SiaraAuthMode.AutomatedLogin"/>: where to find the credentials, how to drive
+/// and confirm login, and the P3 lockout-safety controls (ADR-010). ⚠️ This mode is gated on legal
+/// sign-off (ADR-010 P1) and must never enable a retry storm against SIARA's max-attempt lockout (P3).
+/// </summary>
+public sealed class SiaraAutomatedOptions
+{
+    /// <summary>Gets or sets the URL of the SIARA login page the unattended login navigates to.</summary>
+    public string LoginUrl { get; set; } = "https://siara.cnbv.gob.mx/";
+
+    /// <summary>
+    /// Gets or sets a selector that is present only once authenticated, used to confirm (fail-closed) and
+    /// re-probe the session. Deployment-specific.
+    /// </summary>
+    public string PostLoginSelector { get; set; } = "#dashboard";
+
+    /// <summary>
+    /// Gets or sets the configuration key the credential source reads the username from. The key names a
+    /// location in the client's secret store (env var / Key Vault config provider) — not the secret itself.
+    /// </summary>
+    public string UsernameConfigKey { get; set; } = "Siara:Credentials:Username";
+
+    /// <summary>Gets or sets the configuration key the credential source reads the password from.</summary>
+    public string PasswordConfigKey { get; set; } = "Siara:Credentials:Password";
+
+    /// <summary>
+    /// Gets or sets how many consecutive login failures are tolerated before the circuit-breaker
+    /// <strong>hard-stops</strong> and alerts a human (ADR-010 P3) — never a retry storm. Default 3.
+    /// </summary>
+    public int MaxConsecutiveFailures { get; set; } = 3;
+
+    /// <summary>Gets or sets the backoff applied after the first failure; grows exponentially. Default 30s.</summary>
+    public TimeSpan InitialBackoff { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>Gets or sets the exponential growth factor applied to the backoff per failure. Default 2.</summary>
+    public double BackoffMultiplier { get; set; } = 2.0;
+
+    /// <summary>Gets or sets the ceiling on the backoff window. Default 15 minutes.</summary>
+    public TimeSpan MaxBackoff { get; set; } = TimeSpan.FromMinutes(15);
 }
 
 /// <summary>
