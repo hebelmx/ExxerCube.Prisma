@@ -54,9 +54,18 @@ Use the **IndFusion.Ember SignalR transport** for the Downloader → Extractor e
 - The `DocumentDownloadedEvent` now crosses the process boundary over a real transport; an end-to-end wire
   test (TestServer-hosted hub + real `HubConnection`) proves delivery, and the broadcaster + forwarder are
   unit-tested independently.
-- **Shared document storage is out of scope here.** The event carries `FileName`; Athena's file loader must
-  resolve it against storage the two processes share. Wiring that shared volume/path is a separate
-  follow-up — the orchestrator already logs-and-continues when a file cannot be loaded.
+- **Shared document storage — wired (MVP-PATH 1.4, 2026-06-12).** The event now carries a storage-*relative*
+  `Path` (`YYYY/MM/DD/{fileId}.pdf`); each process configures its own `Storage:BasePath` at the shared volume
+  and resolves base + relative, so the Downloader and Extractor may mount the volume at different absolute
+  paths. Resolution is a Domain port (`IStoragePathResolver`) over a pure, deterministic confinement guard
+  (`StoragePathResolution` — blank / rooted / `../` traversal / invalid-char all fail closed, no disk access),
+  implemented by `SharedStoragePathResolver` (Athena) and single-sourced with its reference fake. The Athena
+  `IngestionEventForwarder` resolves the relative path to a loadable absolute path and stamps it onto
+  `FileName` before republishing; it is tolerant of configuration faults — on a blank path or a resolution
+  failure it forwards the event unchanged so the orchestrator's existing log-and-continue still holds. The
+  Orion `IngestionOrchestrator` stamps the relative path and reads `Storage:BasePath` from config. An
+  end-to-end test proves a relative-path event resolves and the pipeline opens the absolute path. See
+  `ADR-011` §"Shared document storage" decision recorded by MVP-PATH 1.4.
 - **Reconciliator edge (Extractor → Reconciliator) is not yet built.** This ADR covers only the first edge.
   The same pattern (host a typed hub, subscribe + republish) extends to it.
 - Hub authentication/authorization for the ingestion edge is deferred (today it is an internal, network-
