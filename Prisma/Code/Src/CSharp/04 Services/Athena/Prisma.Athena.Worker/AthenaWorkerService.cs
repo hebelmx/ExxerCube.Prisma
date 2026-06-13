@@ -5,22 +5,25 @@ using Prisma.Athena.Processing;
 namespace Prisma.Athena.Worker;
 
 /// <summary>
-/// Thin host wrapper for Athena processing orchestrator; exposes hosted-service lifecycle.
+/// Thin host wrapper for the Athena <em>Extractor</em> actor (MVP-PATH 1.4, ADR-011); exposes hosted-service
+/// lifecycle. It drives the <see cref="ExtractionPipelineService"/> (Quality → OCR → Fusion → persist handoff →
+/// broadcast to the Reconciliator), not the full monolith — Classification → Export run in the separate
+/// Reconciliator process.
 /// </summary>
 public class AthenaWorkerService : BackgroundService
 {
-    private readonly ProcessingOrchestrator _orchestrator;
+    private readonly ExtractionPipelineService _extractionPipeline;
 
     private readonly ILogger<AthenaWorkerService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AthenaWorkerService"/> class.
     /// </summary>
-    /// <param name="orchestrator">The processing orchestrator.</param>
+    /// <param name="extractionPipeline">The Extractor pipeline driver.</param>
     /// <param name="logger">The logger.</param>
-    public AthenaWorkerService(ProcessingOrchestrator orchestrator, ILogger<AthenaWorkerService> logger)
+    public AthenaWorkerService(ExtractionPipelineService extractionPipeline, ILogger<AthenaWorkerService> logger)
     {
-        _orchestrator = orchestrator;
+        _extractionPipeline = extractionPipeline;
         _logger = logger;
     }
 
@@ -31,7 +34,7 @@ public class AthenaWorkerService : BackgroundService
     /// <returns>A task representing the asynchronous operation.</returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Athena worker starting");
-        await _orchestrator.StartAsync(stoppingToken).ConfigureAwait(false);
+        _logger.LogInformation("Athena Extractor worker starting");
+        await _extractionPipeline.StartAsync(stoppingToken).ConfigureAwait(false);
     }
 }

@@ -1,0 +1,168 @@
+using System;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
+
+namespace Prisma.Athena.Processing;
+
+/// <summary>
+/// Drives the <em>Extractor</em> actor of the 3-process split (MVP-PATH 1.4 Reconciliator edge, ADR-011):
+/// it subscribes to <see cref="DocumentDownloadedEvent"/> (republished from the Orion Downloader over the
+/// 1.3 ingestion edge), runs the Extractor half (Quality → OCR → Fusion via
+/// <see cref="ExtractionOrchestrator"/>), persists the fused expediente to shared storage via
+/// <see cref="IExpedienteHandoffStore"/>, and broadcasts an <see cref="ExtractionCompletedEvent"/> carrying the
+/// storage-relative handoff path to the downstream Reconciliator over <see cref="IExxerHub{T}"/>.
+/// </summary>
+/// <remarks>
+/// Host-agnostic and Railway-Oriented: a quality rejection or a missing fused expediente ends the run cleanly
+/// (no handoff); a storage or broadcast failure is a logged <see cref="Result"/> failure, never a throw — a
+/// transient downstream outage must not crash the Extractor. The handoff is a shared-storage <em>reference</em>
+/// (the raw document never crosses this edge — data minimization, MVP A5).
+/// </remarks>
+public sealed class ExtractionPipelineService
+{
+    private readonly IEventPublisher _eventPublisher;
+    private readonly ExtractionOrchestrator _extractionOrchestrator;
+    private readonly IExpedienteHandoffStore _handoffStore;
+    private readonly IExxerHub<ExtractionCompletedEvent> _reconciliationHub;
+    private readonly ILogger<ExtractionPipelineService> _logger;
+    private IDisposable? _subscription;
+
+    /// <summary>Initializes a new instance of the <see cref="ExtractionPipelineService"/> class.</summary>
+    /// <param name="eventPublisher">The local event stream the ingestion forwarder republishes onto.</param>
+    /// <param name="extractionOrchestrator">The Extractor half (Stages 1–3).</param>
+    /// <param name="handoffStore">Persists the fused expediente to shared storage.</param>
+    /// <param name="reconciliationHub">Broadcasts the handoff event to the Reconciliator.</param>
+    /// <param name="logger">The logger.</param>
+    public ExtractionPipelineService(
+        IEventPublisher eventPublisher,
+        ExtractionOrchestrator extractionOrchestrator,
+        IExpedienteHandoffStore handoffStore,
+        IExxerHub<ExtractionCompletedEvent> reconciliationHub,
+        ILogger<ExtractionPipelineService> logger)
+    {
+        _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
+        _extractionOrchestrator = extractionOrchestrator ?? throw new ArgumentNullException(nameof(extractionOrchestrator));
+        _handoffStore = handoffStore ?? throw new ArgumentNullException(nameof(handoffStore));
+        _reconciliationHub = reconciliationHub ?? throw new ArgumentNullException(nameof(reconciliationHub));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <summary>Subscribes to the local <see cref="DocumentDownloadedEvent"/> stream and runs extraction per document.</summary>
+    /// <param name="cancellationToken">Cancellation token for graceful shutdown.</param>
+    /// <returns>A completed task (the subscription runs until disposed).</returns>
+    public Task StartAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation(
+            "Extraction pipeline starting (Extractor actor): subscribing to DocumentDownloadedEvent");
+
+        _subscription = _eventPublisher.GetEventStream<DocumentDownloadedEvent>()
+            .Subscribe(
+                onNext: async downloadEvent =>
+                {
+                    try
+                    {
+                        await ProcessAsync(downloadEvent, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,
+                            "Error extracting DocumentDownloadedEvent. FileId: {FileId}",
+                            downloadEvent.FileId);
+                    }
+                },
+                onError: ex => _logger.LogError(ex, "Error in DocumentDownloadedEvent stream"));
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Runs the Extractor half for one document, then persists + broadcasts the handoff to the Reconciliator.
+    /// </summary>
+    /// <param name="downloadEvent">The downloaded document event.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Success (incl. clean no-handoff outcomes), or a failure when storage/broadcast fails.</returns>
+    public async Task<Result> ProcessAsync(
+        DocumentDownloadedEvent downloadEvent,
+        CancellationToken cancellationToken = default)
+    {
+        if (downloadEvent is null)
+        {
+            return Result.WithFailure("Download event cannot be null");
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled();
+        }
+
+        var fileId = downloadEvent.FileId;
+        var correlationId = downloadEvent.CorrelationId;
+
+        var extraction = await _extractionOrchestrator.ExtractAsync(downloadEvent, cancellationToken);
+
+        if (extraction.QualityRejected)
+        {
+            _logger.LogInformation(
+                "Extraction stopped: quality rejected, no handoff to the Reconciliator. FileId: {FileId}", fileId);
+            return Result.Success();
+        }
+
+        var expediente = extraction.FusionResult?.FusedExpediente;
+        if (expediente is null)
+        {
+            _logger.LogWarning(
+                "Extraction produced no fused expediente; no handoff to the Reconciliator. FileId: {FileId}", fileId);
+            return Result.Success();
+        }
+
+        var relativePath = BuildHandoffRelativePath(fileId);
+        var save = await _handoffStore.SaveAsync(expediente, relativePath, cancellationToken);
+        if (save.IsFailure)
+        {
+            _logger.LogWarning(
+                "Failed to persist fused expediente handoff for {FileId}: {Errors}",
+                fileId, string.Join(", ", save.Errors));
+            return Result.WithFailure(save.Errors);
+        }
+
+        var completedEvent = new ExtractionCompletedEvent
+        {
+            FileId = fileId,
+            CorrelationId = correlationId,
+            Path = save.Value!,
+            FieldsFused = extraction.FusionResult?.FieldResults.Count ?? 0,
+            ConflictsDetected = extraction.FusionResult?.ConflictingFields.Count ?? 0,
+        };
+
+        var broadcast = await _reconciliationHub.SendToAllAsync(completedEvent, cancellationToken);
+        if (broadcast.IsFailure)
+        {
+            _logger.LogWarning(
+                "Failed to broadcast ExtractionCompletedEvent for {FileId}: {Errors}",
+                fileId, string.Join(", ", broadcast.Errors));
+            return Result.WithFailure(broadcast.Errors);
+        }
+
+        _logger.LogInformation(
+            "Extraction complete; handoff broadcast to the Reconciliator. FileId: {FileId}, Path: {Path}",
+            fileId, save.Value);
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Builds the storage-relative handoff path (forward-slash, mount-path independent), mirroring the document
+    /// partitioning: <c>YYYY/MM/DD/{fileId}.fusion.json</c>.
+    /// </summary>
+    private static string BuildHandoffRelativePath(Guid fileId)
+    {
+        var now = DateTime.UtcNow;
+        return $"{now.Year:D4}/{now.Month:D2}/{now.Day:D2}/{fileId}.fusion.json";
+    }
+}

@@ -8,12 +8,14 @@ using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using ExxerCube.Prisma.Infrastructure.Imaging;
+using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Athena.HealthChecks;
 using Prisma.Athena.Processing;
 using Prisma.Athena.Processing.Ingestion;
 using Prisma.Athena.Worker;
 using Prisma.Athena.Worker.Ingestion;
+using Prisma.Athena.Worker.Reconciliation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +72,24 @@ builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
         fileLoader: fileLoader,
         txtFieldExtractor: txtFieldExtractor);
 });
+
+// Reconciliator edge (MVP-PATH 1.4, ADR-011): the Athena worker is the Extractor actor. It runs the Extractor
+// half (Quality→OCR→Fusion), persists the fused expediente to shared storage, and broadcasts an
+// ExtractionCompletedEvent (carrying the storage-relative handoff path) to the downstream Reconciliator over a
+// SignalR hub it hosts at /hubs/reconciliation. The broadcaster sends via IHubContext (a DI-resolved hub has a
+// null Clients and cannot send). The handoff store reuses the shared-storage resolver registered above.
+builder.Services.AddSingleton<IExpedienteHandoffStore, FileSystemExpedienteHandoffStore>();
+builder.Services.AddSingleton<ExtractionOrchestrator>(sp => new ExtractionOrchestrator(
+    sp.GetRequiredService<IEventPublisher>(),
+    sp.GetRequiredService<ILogger<ExtractionOrchestrator>>(),
+    qualityAnalyzer: sp.GetRequiredService<IImageQualityAnalyzer>(),
+    ocrExecutor: sp.GetRequiredService<IOcrExecutor>(),
+    fusionService: sp.GetRequiredService<IFusionExpediente>(),
+    fileLoader: sp.GetRequiredService<IFileLoader>(),
+    txtFieldExtractor: sp.GetRequiredService<IFieldExtractor<TxtSource>>()));
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IExxerHub<ExtractionCompletedEvent>, SignalRReconciliationBroadcaster>();
+builder.Services.AddSingleton<ExtractionPipelineService>();
 builder.Services.AddHostedService<AthenaWorkerService>();
 
 // Register health check and dashboard services
@@ -77,6 +97,10 @@ builder.Services.AddSingleton<IHealthCheckService, AthenaHealthCheckService>();
 builder.Services.AddSingleton<IDashboardService, AthenaDashboardService>();
 
 var app = builder.Build();
+
+// The reconciliation hub (MVP-PATH 1.4): downstream Reconciliators connect here to receive
+// ExtractionCompletedEvent over the real Ember transport.
+app.MapHub<ReconciliationHub>("/hubs/reconciliation");
 
 // Health endpoints
 app.MapGet("/health", async (IHealthCheckService healthCheck, CancellationToken ct) =>
