@@ -55,3 +55,5 @@ Run after task 4 (1.5 complete), after task 5 (1.6 complete), and before task 10
 
 ## Progress log
 - 2026-06-12: tracker created; owner decisions settled; grounding done. Starting task 1 (design note).
+- 2026-06-12: **Item 1.5 (A5) COMPLETE + hardened.** Commits on Kt2: design 54df0a3; foundation 43bc888 (Domain.Interfaces 329→339); JWT+wiring+send 4854a80 (BrowserAutomation→195, workers 20/20); forwarder enforcement+A5 tests 9e5158e (Athena.Processing 65/65); hardening 1fecf73 (config-driven clearance + JWT rejection tests → BrowserAutomation 199, workers 22/22); doc fix f8714fb. Adversarial gate verdict: COMPLETE WITH GAPS (no Blocker/Major); 3 MINOR findings all closed (#2 dead-config→config-driven, #3 JWT rejection tests added, #1 jti-replay overstatement corrected + logged as accepted MVP limitation). All verified from ground truth (build 0/0 + test runs).
+- NEXT: #6 hub auth → #5 1.6 audit → #7 SmartEnum → #8 SIRO export (checkpoint) → #9 E2E → #10 docs.
