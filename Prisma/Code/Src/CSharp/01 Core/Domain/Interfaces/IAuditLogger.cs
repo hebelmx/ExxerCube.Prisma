@@ -17,6 +17,11 @@ public interface IAuditLogger
     /// <param name="success">Whether the action succeeded.</param>
     /// <param name="errorMessage">Error message if action failed (nullable).</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <param name="processId">
+    /// The process/actor identity that produced the record (nullable; MVP-PATH 1.6 A6).
+    /// Identifies which worker process (e.g. "orion-downloader-prod") originated this entry.
+    /// Existing callers that omit this parameter receive the default value of <see langword="null"/>.
+    /// </param>
     /// <returns>A result indicating success or failure.</returns>
     Task<Result> LogAuditAsync(
         AuditActionType actionType,
@@ -27,7 +32,8 @@ public interface IAuditLogger
         string? actionDetails,
         bool success,
         string? errorMessage,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? processId = null);
 
     /// <summary>
     /// Gets audit records filtered by file ID.
@@ -50,19 +56,26 @@ public interface IAuditLogger
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets audit records filtered by date range, action type, and user.
+    /// Gets audit records filtered by date range, action type, user, and optionally process identity.
     /// </summary>
     /// <param name="startDate">The start date (inclusive).</param>
     /// <param name="endDate">The end date (inclusive).</param>
     /// <param name="actionType">The action type filter (nullable for all types).</param>
     /// <param name="userId">The user ID filter (nullable for all users).</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <param name="processId">
+    /// When non-null, restricts results to records whose <see cref="AuditRecord.ProcessId"/>
+    /// matches this value (first-class <c>WHERE ProcessId = ?</c> filter; MVP-PATH 1.6 A6).
+    /// Existing callers that omit this parameter receive the default value of <see langword="null"/>
+    /// and all process identities are returned.
+    /// </param>
     /// <returns>A result containing the list of audit records or an error.</returns>
     Task<Result<List<AuditRecord>>> GetAuditRecordsAsync(
         DateTime startDate,
         DateTime endDate,
         AuditActionType? actionType,
         string? userId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? processId = null);
 }
 

@@ -62,6 +62,15 @@ public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
         builder.Property(a => a.ErrorMessage)
             .HasMaxLength(1000);
 
+        // ProcessId: the process/actor identity that produced this record (MVP-PATH 1.6 A6).
+        // Nullable so that legacy records (produced before A6) remain unaffected.
+        builder.Property(a => a.ProcessId)
+            .HasMaxLength(100);
+
+        // Index to support first-class WHERE ProcessId = ? filter queries.
+        builder.HasIndex(a => a.ProcessId)
+            .HasDatabaseName("IX_AuditRecords_ProcessId");
+
         // Foreign key relationship to FileMetadata (optional)
         builder.HasOne<FileMetadata>()
             .WithMany()

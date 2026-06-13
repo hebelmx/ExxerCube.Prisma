@@ -5,6 +5,7 @@ using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
+using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,22 @@ using Prisma.Orion.Worker;
 using Prisma.Orion.Worker.Ingestion;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Audit persistence (MVP-PATH 1.6 A6): wire AddDatabaseServices when a real connection string is
+// provided. Skip gracefully when blank so the worker boots in dev/test without a DB.
+var auditConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrWhiteSpace(auditConnectionString)
+    && !auditConnectionString.StartsWith("DEV-PLACEHOLDER", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddDatabaseServices(auditConnectionString, builder.Configuration);
+}
+else
+{
+    var startupLogger = LoggerFactory.Create(l => l.AddConsole()).CreateLogger("Orion.Worker.Startup");
+    startupLogger.LogWarning(
+        "Audit persistence DISABLED for Orion Worker: ConnectionStrings:DefaultConnection is blank or placeholder. " +
+        "Set ConnectionStrings__DefaultConnection via environment variable or user-secrets for production.");
+}
 
 // Register orchestrator dependencies
 builder.Services.AddSingleton<IIngestionJournal>(sp =>

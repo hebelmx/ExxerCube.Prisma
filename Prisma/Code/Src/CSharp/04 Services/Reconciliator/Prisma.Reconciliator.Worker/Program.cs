@@ -1,6 +1,7 @@
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Classification;
+using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,22 @@ using Prisma.Athena.Processing.Reconciliation;
 using Prisma.Reconciliator.Worker;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Audit persistence (MVP-PATH 1.6 A6): wire AddDatabaseServices when a real connection string is
+// provided. Skip gracefully when blank so the worker boots in dev/test without a DB.
+var auditConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrWhiteSpace(auditConnectionString)
+    && !auditConnectionString.StartsWith("DEV-PLACEHOLDER", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddDatabaseServices(auditConnectionString, builder.Configuration);
+}
+else
+{
+    var startupLogger = LoggerFactory.Create(l => l.AddConsole()).CreateLogger("Reconciliator.Worker.Startup");
+    startupLogger.LogWarning(
+        "Audit persistence DISABLED for Reconciliator Worker: ConnectionStrings:DefaultConnection is blank or placeholder. " +
+        "Set ConnectionStrings__DefaultConnection via environment variable or user-secrets for production.");
+}
 
 // Per-process JWT clearance token service (MVP-PATH 1.5, A5): the Reconciliator does not broadcast
 // outbound (it is the terminal stage), but it will validate incoming clearance tokens in its forwarder

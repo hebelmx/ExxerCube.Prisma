@@ -38,7 +38,8 @@ public class QueuedAuditLoggerService : IAuditLogger
         string? actionDetails,
         bool success,
         string? errorMessage,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? processId = null)
     {
         // Early cancellation check
         if (cancellationToken.IsCancellationRequested)
@@ -66,7 +67,8 @@ public class QueuedAuditLoggerService : IAuditLogger
                 Timestamp = DateTime.UtcNow,
                 Stage = stage,
                 Success = success,
-                ErrorMessage = errorMessage
+                ErrorMessage = errorMessage,
+                ProcessId = processId
             };
 
             // Fire-and-forget: Queue the record and return immediately
@@ -185,7 +187,8 @@ public class QueuedAuditLoggerService : IAuditLogger
         DateTime endDate,
         AuditActionType? actionType,
         string? userId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? processId = null)
     {
         // Early cancellation check
         if (cancellationToken.IsCancellationRequested)
@@ -217,6 +220,11 @@ public class QueuedAuditLoggerService : IAuditLogger
             if (!string.IsNullOrWhiteSpace(userId))
             {
                 query = query.Where(r => r.UserId == userId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(processId))
+            {
+                query = query.Where(r => r.ProcessId == processId);
             }
 
             var records = await query

@@ -54,5 +54,12 @@ public class AuditRecord
     /// Gets or sets the error message if action failed (nullable).
     /// </summary>
     public string? ErrorMessage { get; set; }
+
+    /// <summary>
+    /// Gets or sets the process/actor identity that produced the record (nullable for legacy records).
+    /// Populated by worker pipeline services to identify which process (Orion Downloader,
+    /// Athena Extractor, Reconciliator) originated the audit entry. MVP-PATH 1.6 A6.
+    /// </summary>
+    public string? ProcessId { get; set; }
 }
 

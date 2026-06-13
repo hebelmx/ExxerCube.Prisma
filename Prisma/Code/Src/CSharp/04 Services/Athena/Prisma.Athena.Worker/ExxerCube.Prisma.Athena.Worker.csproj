@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />

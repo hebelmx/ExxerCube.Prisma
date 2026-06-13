@@ -33,7 +33,8 @@ public class AuditLoggerService : IAuditLogger
         string? actionDetails,
         bool success,
         string? errorMessage,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? processId = null)
     {
         // Early cancellation check
         if (cancellationToken.IsCancellationRequested)
@@ -61,7 +62,8 @@ public class AuditLoggerService : IAuditLogger
                 Timestamp = DateTime.UtcNow,
                 Stage = stage,
                 Success = success,
-                ErrorMessage = errorMessage
+                ErrorMessage = errorMessage,
+                ProcessId = processId
             };
 
             await _dbContext.AuditRecords.AddAsync(auditRecord, cancellationToken).ConfigureAwait(false);
@@ -173,7 +175,8 @@ public class AuditLoggerService : IAuditLogger
         DateTime endDate,
         AuditActionType? actionType,
         string? userId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? processId = null)
     {
         // Early cancellation check
         if (cancellationToken.IsCancellationRequested)
@@ -202,6 +205,11 @@ public class AuditLoggerService : IAuditLogger
             if (!string.IsNullOrWhiteSpace(userId))
             {
                 query = query.Where(r => r.UserId == userId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(processId))
+            {
+                query = query.Where(r => r.ProcessId == processId);
             }
 
             var records = await query
