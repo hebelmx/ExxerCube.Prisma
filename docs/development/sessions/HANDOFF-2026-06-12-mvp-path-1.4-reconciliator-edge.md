@@ -77,3 +77,37 @@ Athena.Processing 53 · Athena.Worker 15 · Architecture 22 · EndToEnd 27.
 xUnit v3 + Shouldly + NSubstitute (no Moq/FluentAssertions) · `TestContext.Current.CancellationToken` ·
 `Result<T>` + `CancellationToken` · ITDD per ADR-005 · broadcast via `IHubContext` (DI-resolved hub has null
 `Clients`) · `dotnet test <csproj>` no extra flags · commit code+tests separately from docs · push `Kt2`.
+
+---
+
+## Short prompt for the next agent (Workstream 1 → 1.5 + 1.6)
+
+> The **3-process security split is DONE** on `Kt2` (Downloader/Orion → Extractor/Athena → new
+> `Prisma.Reconciliator.Worker`); MVP-PATH 1.1–1.4 complete, build 0/0, all suites green. Read this handoff +
+> the auto-memory `mvp-path-1.4-reconciliator-edge.md` first, then drive the next two Workstream-1 items the
+> split just unblocked (`docs/planning/gap-analysis/MVP-PATH-2026-06-11.md`):
+>
+> - **1.5 — Per-stage authorization + data minimization (A5).** Each of the three processes runs under its own
+>   role/clearance; cross-stage handoffs already pass *derived* data (the fused expediente reference, not the raw
+>   doc — keep that). Register + use the existing `EfCoreIdentityAdapter` (`04 Services/Auth`, real but wired
+>   nowhere) to enforce per-process authorization; a test proves a stage rejects work outside its clearance.
+> - **1.6 — Per-process access audit (A6).** Each process logs which process/identity touched which document via
+>   `IAuditLogger` (extend `LogAuditAsync` with a process-identity dimension); add audit calls on the
+>   Downloader/Extractor/Reconciliator paths (today audit is Web.UI-only); an audit query answers
+>   "who/which-process touched doc X". Reuse the mandatory `ISiaraActorIdentityProvider` (ADR-010 S8.3) as the
+>   trustworthy actor-identity source where applicable.
+>
+> **Decision to settle first (checkpoint with the owner):** where each process's role/clearance + identity comes
+> from in an unattended deployment (config-bound service identity vs the SIARA actor identity vs a vault). Pick a
+> recommended option before coding 1.5.
+>
+> **Also worth surfacing as candidate follow-ups** (from the 1.4 honest-limitations list — owner-gate before
+> doing): wire real SIRO export in the Reconciliator (`AddAdaptiveExportServices(connStr)` + template DB) =
+> overlaps the MVP gate F1/5.2; a single all-real-wire 3-host E2E; a SmartEnum JSON converter for full handoff
+> fidelity; `/hubs/ingestion` + `/hubs/reconciliation` auth.
+>
+> **Constraints:** ITDD per ADR-005; `Result<T>`+`CancellationToken`; xUnit v3 + Shouldly + NSubstitute (no
+> Moq/FluentAssertions); `TestContext.Current.CancellationToken`; `dotnet test <csproj>` no extra flags;
+> broadcast via `IHubContext`; verify every chunk from ground truth (build + the touched test project); commit
+> code+tests separately from docs; push `Kt2`. Use the BMAD orchestrator (delegate chunks to isolated subagents,
+> verify from ground truth, periodic adversarial-review gate) — bigger quota is available this session.
