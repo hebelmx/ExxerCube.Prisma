@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Domain.ValueObjects;
 
@@ -11,18 +12,26 @@ public class ManualReviewerService : IManualReviewerPanel
 {
     private readonly PrismaDbContext _dbContext;
     private readonly ILogger<ManualReviewerService> _logger;
+    private readonly IUnifiedMetadataStore? _unifiedMetadataStore;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ManualReviewerService"/> class.
     /// </summary>
     /// <param name="dbContext">The database context.</param>
     /// <param name="logger">The logger instance.</param>
+    /// <param name="unifiedMetadataStore">
+    /// Optional store used to hydrate real field annotations from the persisted
+    /// <see cref="UnifiedMetadataRecord"/> (C3).  When <c>null</c> the service degrades to the
+    /// previous stub behaviour (only a <c>ConfidenceLevel</c> annotation is emitted).
+    /// </param>
     public ManualReviewerService(
         PrismaDbContext dbContext,
-        ILogger<ManualReviewerService> logger)
+        ILogger<ManualReviewerService> logger,
+        IUnifiedMetadataStore? unifiedMetadataStore = null)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _unifiedMetadataStore = unifiedMetadataStore;
     }
 
     /// <inheritdoc />
@@ -322,15 +331,72 @@ public class ManualReviewerService : IManualReviewerPanel
             }
 
             // Build field annotations from review case and file metadata
-            // Note: This is a simplified implementation - in a real scenario, we would need to
-            // retrieve the UnifiedMetadataRecord from a separate service or storage
             var annotations = new FieldAnnotations
             {
                 CaseId = caseId,
                 FieldAnnotationsDict = new Dictionary<string, FieldAnnotation>()
             };
 
-            // Add basic annotation for confidence level
+            // C3: Hydrate real per-field annotations from the persisted UnifiedMetadataRecord when available.
+            // Degrade gracefully (only the ConfidenceLevel stub annotation) when the store is absent or the
+            // record has not yet been saved for this file.
+            if (_unifiedMetadataStore is not null && !string.IsNullOrWhiteSpace(reviewCase.FileId))
+            {
+                var recordResult = await _unifiedMetadataStore.GetByFileIdAsync(reviewCase.FileId, cancellationToken).ConfigureAwait(false);
+                if (recordResult.IsSuccess && recordResult.Value is not null)
+                {
+                    var record = recordResult.Value;
+
+                    // Hydrate from AdditionalFields (merged XML/OCR fields from FusionExpedienteService)
+                    foreach (var kv in record.AdditionalFields)
+                    {
+                        annotations.FieldAnnotationsDict[kv.Key] = new FieldAnnotation
+                        {
+                            FieldName = kv.Key,
+                            Value = kv.Value,
+                            Source = "Fusion",
+                            Confidence = reviewCase.ConfidenceLevel,
+                            HasConflict = record.AdditionalFieldConflicts.Contains(kv.Key),
+                            AgreementLevel = record.AdditionalFieldConflicts.Contains(kv.Key) ? 0.5f : 1.0f,
+                            OriginTrace = $"File {reviewCase.FileId} - UnifiedMetadataRecord.AdditionalFields",
+                        };
+                    }
+
+                    // Hydrate from MatchedFields.FieldMatches when available (best value per field across sources)
+                    if (record.MatchedFields?.FieldMatches is { Count: > 0 } fieldMatches)
+                    {
+                        foreach (var kv in fieldMatches)
+                        {
+                            // Don't overwrite an entry already hydrated from AdditionalFields
+                            if (!annotations.FieldAnnotationsDict.ContainsKey(kv.Key))
+                            {
+                                annotations.FieldAnnotationsDict[kv.Key] = new FieldAnnotation
+                                {
+                                    FieldName = kv.Key,
+                                    Value = kv.Value.MatchedValue,
+                                    Source = "Reconciliation",
+                                    Confidence = (int)(kv.Value.Confidence * 100),
+                                    HasConflict = kv.Value.HasConflict,
+                                    AgreementLevel = kv.Value.AgreementLevel,
+                                    OriginTrace = $"File {reviewCase.FileId} - UnifiedMetadataRecord.MatchedFields ({kv.Value.SourceType})",
+                                };
+                            }
+                        }
+                    }
+
+                    _logger.LogInformation(
+                        "Hydrated {Count} field annotations from UnifiedMetadataRecord for case {CaseId}",
+                        annotations.FieldAnnotationsDict.Count, caseId);
+                }
+                else if (recordResult.IsFailure)
+                {
+                    _logger.LogDebug(
+                        "No UnifiedMetadataRecord found for file {FileId} (case {CaseId}); falling back to stub annotation: {Error}",
+                        reviewCase.FileId, caseId, recordResult.Error);
+                }
+            }
+
+            // Always emit the ConfidenceLevel annotation as a baseline (even when real fields are present)
             annotations.FieldAnnotationsDict["ConfidenceLevel"] = new FieldAnnotation
             {
                 FieldName = "ConfidenceLevel",

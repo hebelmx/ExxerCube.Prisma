@@ -488,6 +488,27 @@ namespace ExxerCube.Prisma.Infrastructure.Database.Migrations
                     b.ToTable("SLAStatus", (string)null);
                 });
 
+            modelBuilder.Entity("ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities.PersistedUnifiedMetadata", b =>
+                {
+                    b.Property<string>("FileId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("FileId");
+
+                    b.HasIndex("UpdatedAt")
+                        .HasDatabaseName("IX_UnifiedMetadataRecords_UpdatedAt");
+
+                    b.ToTable("UnifiedMetadataRecords", (string)null);
+                });
+
             modelBuilder.Entity("ExxerCube.Prisma.Domain.Entities.ReviewCase", b =>
                 {
                     b.HasOne("ExxerCube.Prisma.Domain.Entities.FileMetadata", null)

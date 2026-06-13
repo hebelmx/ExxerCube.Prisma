@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Linq.Expressions;
@@ -55,6 +56,13 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
     /// </summary>
     public DbSet<RequirementTypeDictionary> RequirementTypeDictionary { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the persisted unified metadata records entity set.
+    /// Stores the JSON-serialised <see cref="PersistedUnifiedMetadata"/> keyed by file identifier,
+    /// enabling reviewer overrides (C2) and field-annotation hydration (C3).
+    /// </summary>
+    public DbSet<PersistedUnifiedMetadata> UnifiedMetadataRecords { get; set; } = null!;
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -67,5 +75,6 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
         modelBuilder.ApplyConfiguration(new ReviewDecisionConfiguration());
         modelBuilder.ApplyConfiguration(new AuditRecordConfiguration());
         modelBuilder.ApplyConfiguration(new RequirementTypeDictionaryConfiguration());
+        modelBuilder.ApplyConfiguration(new PersistedUnifiedMetadataConfiguration());
     }
 }

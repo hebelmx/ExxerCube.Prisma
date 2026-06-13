@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Application.Services;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Database.Repositories;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
@@ -58,6 +59,7 @@ public static class ServiceCollectionExtensions
             return new ResilientSLAEnforcerService(innerService, logger, options);
         });
 
+        services.AddScoped<IUnifiedMetadataStore, EfCoreUnifiedMetadataStore>();
         services.AddScoped<IManualReviewerPanel, ManualReviewerService>();
 
         // Configure SLA options

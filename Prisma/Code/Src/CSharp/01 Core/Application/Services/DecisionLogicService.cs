@@ -10,6 +10,7 @@ public class DecisionLogicService
     private readonly IManualReviewerPanel _manualReviewerPanel;
     private readonly IAuditLogger _auditLogger;
     private readonly ILogger<DecisionLogicService> _logger;
+    private readonly IUnifiedMetadataStore? _unifiedMetadataStore;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DecisionLogicService"/> class.
@@ -19,18 +20,26 @@ public class DecisionLogicService
     /// <param name="manualReviewerPanel">The manual reviewer panel service.</param>
     /// <param name="auditLogger">The audit logger service.</param>
     /// <param name="logger">The logger instance.</param>
+    /// <param name="unifiedMetadataStore">
+    /// Optional store used to persist the <see cref="UnifiedMetadataRecord"/> after review-case
+    /// identification (C2) and to apply reviewer overrides when processing a decision.
+    /// When <c>null</c> the service degrades gracefully: cases are still identified and decisions
+    /// still processed; only the unified-record persistence is skipped.
+    /// </param>
     public DecisionLogicService(
         IPersonIdentityResolver personIdentityResolver,
         ILegalDirectiveClassifier legalDirectiveClassifier,
         IManualReviewerPanel manualReviewerPanel,
         IAuditLogger auditLogger,
-        ILogger<DecisionLogicService> logger)
+        ILogger<DecisionLogicService> logger,
+        IUnifiedMetadataStore? unifiedMetadataStore = null)
     {
         _personIdentityResolver = personIdentityResolver;
         _legalDirectiveClassifier = legalDirectiveClassifier;
         _manualReviewerPanel = manualReviewerPanel;
         _auditLogger = auditLogger;
         _logger = logger;
+        _unifiedMetadataStore = unifiedMetadataStore;
     }
 
     /// <summary>
@@ -650,6 +659,23 @@ public class DecisionLogicService
 
             _logger.LogInformation("Identified {Count} review cases for file: {FileId}", reviewCases.Count, fileId);
 
+            // C2: Persist the unified metadata record so reviewer overrides survive across requests.
+            // Fail-open: a store failure must never fail review-case identification.
+            if (_unifiedMetadataStore is not null)
+            {
+                var saveResult = await _unifiedMetadataStore.SaveAsync(fileId, metadata, cancellationToken).ConfigureAwait(false);
+                if (saveResult.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Failed to persist UnifiedMetadataRecord for file {FileId} after identifying review cases: {Error}",
+                        fileId, saveResult.Error);
+                }
+                else
+                {
+                    _logger.LogInformation("Persisted UnifiedMetadataRecord for file {FileId}", fileId);
+                }
+            }
+
             return Result<List<ReviewCase>>.Success(reviewCases);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -757,8 +783,51 @@ public class DecisionLogicService
 
             _logger.LogInformation("Review decision processed successfully for case: {CaseId}, decision ID: {DecisionId}", caseId, decision.DecisionId);
 
-            // Note: In a full implementation, we would update the unified metadata record here based on the decision
-            // For now, the decision is saved and the case status is updated by ManualReviewerService
+            // C2: Apply reviewer overrides to the persisted UnifiedMetadataRecord.
+            // Fail-open: a store failure must never fail decision processing.
+            if (_unifiedMetadataStore is not null && !string.IsNullOrWhiteSpace(decision.FileId))
+            {
+                var loadResult = await _unifiedMetadataStore.GetByFileIdAsync(decision.FileId, cancellationToken).ConfigureAwait(false);
+                if (loadResult.IsSuccess && loadResult.Value is not null)
+                {
+                    var record = loadResult.Value;
+
+                    // Apply field overrides
+                    if (decision.OverriddenFields is { Count: > 0 })
+                    {
+                        foreach (var kv in decision.OverriddenFields)
+                        {
+                            record.AdditionalFields[kv.Key] = kv.Value?.ToString();
+                        }
+                    }
+
+                    // Apply classification override
+                    if (decision.OverriddenClassification is not null)
+                    {
+                        record.Classification = decision.OverriddenClassification;
+                    }
+
+                    var saveResult = await _unifiedMetadataStore.SaveAsync(decision.FileId, record, cancellationToken).ConfigureAwait(false);
+                    if (saveResult.IsFailure)
+                    {
+                        _logger.LogWarning(
+                            "Failed to save overridden UnifiedMetadataRecord for file {FileId} after decision {DecisionId}: {Error}",
+                            decision.FileId, decision.DecisionId, saveResult.Error);
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "Updated UnifiedMetadataRecord for file {FileId} with reviewer overrides from decision {DecisionId}",
+                            decision.FileId, decision.DecisionId);
+                    }
+                }
+                else if (loadResult.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Could not load UnifiedMetadataRecord for file {FileId} to apply overrides from decision {DecisionId}: {Error}",
+                        decision.FileId, decision.DecisionId, loadResult.Error);
+                }
+            }
 
             return Result.Success();
         }
