@@ -1,19 +1,31 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using ExxerCube.Prisma.Domain.Events;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Shouldly;
 using Xunit;
 
 namespace ExxerCube.Prisma.Athena.Worker.Tests;
 
 /// <summary>
-/// End-to-end wire test for the MVP-PATH 1.4 Reconciliator edge: it boots the real Athena Extractor worker
-/// (which hosts <see cref="Prisma.Athena.Worker.Reconciliation.ReconciliationHub"/>), connects a real SignalR
-/// client to <c>/hubs/reconciliation</c>, broadcasts an <see cref="ExtractionCompletedEvent"/> through the
-/// production <see cref="IExxerHub{T}"/> broadcaster, and asserts the client receives it — proving the
-/// Extractor → Reconciliator edge delivers over the real Ember transport.
+/// End-to-end wire tests for the MVP-PATH 1.4 Reconciliator edge (hub delivery) and the connection-level
+/// JWT bearer authentication added as a follow-up to MVP-PATH 1.5.
 /// </summary>
+/// <remarks>
+/// The tests boot the real Athena Extractor worker (which hosts
+/// <see cref="Prisma.Athena.Worker.Reconciliation.ReconciliationHub"/>)
+/// via <see cref="AthenaWorkerApplication"/> and exercise the hub at the transport level.
+/// <list type="bullet">
+///   <item>Happy path — an authenticated client with <c>ProcessClearance.Reconcile</c> connects and receives
+///   a broadcast event.</item>
+///   <item>Unauthenticated — a client with no token is refused (connection throws).</item>
+///   <item>Wrong clearance — a client with a valid JWT but <c>ProcessClearance.Extract</c> is refused.</item>
+/// </list>
+/// </remarks>
 [Trait("Category", "Integration")]
 public sealed class ReconciliationHubWireTests
 {
@@ -23,14 +35,19 @@ public sealed class ReconciliationHubWireTests
         var ct = TestContext.Current.CancellationToken;
 
         await using var application = new AthenaWorkerApplication();
-        // Force the host to build so the TestServer + hub endpoint exist.
         _ = application.Services;
         var server = application.Server;
+
+        var token = MintToken(AthenaWorkerApplication.TestJwtSecret, "reconciliator-test", "Reconcile");
 
         await using var connection = new HubConnectionBuilder()
             .WithUrl(
                 server.BaseAddress + "hubs/reconciliation",
-                options => options.HttpMessageHandlerFactory = _ => server.CreateHandler())
+                options =>
+                {
+                    options.HttpMessageHandlerFactory = _ => server.CreateHandler();
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(token);
+                })
             .Build();
 
         ExtractionCompletedEvent? received = null;
@@ -64,5 +81,97 @@ public sealed class ReconciliationHubWireTests
         received.CorrelationId.ShouldBe(sent.CorrelationId);
 
         await connection.StopAsync(ct);
+    }
+
+    /// <summary>
+    /// A client that presents no bearer token must be refused: <c>StartAsync</c> throws (HTTP 401/403
+    /// on the negotiate / WebSocket upgrade). The connection never reaches <c>Connected</c> state.
+    /// </summary>
+    [Fact]
+    public async Task Connect_WithNoToken_IsRejected()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await using var application = new AthenaWorkerApplication();
+        _ = application.Services;
+        var server = application.Server;
+
+        await using var connection = new HubConnectionBuilder()
+            .WithUrl(
+                server.BaseAddress + "hubs/reconciliation",
+                options => options.HttpMessageHandlerFactory = _ => server.CreateHandler())
+            .Build();
+
+        // The hub requires the RequireReconcileClearance policy; no token → 401 on negotiate →
+        // StartAsync throws. The connection must NOT reach Connected state.
+        await Should.ThrowAsync<Exception>(
+            () => connection.StartAsync(ct));
+
+        connection.State.ShouldNotBe(HubConnectionState.Connected);
+    }
+
+    /// <summary>
+    /// A client that presents a valid JWT signed with the correct key but carrying a different clearance
+    /// (<c>ProcessClearance.Extract</c>) must be refused: the <c>RequireReconcileClearance</c> policy
+    /// requires exactly <c>Reconcile</c>. <c>StartAsync</c> throws (HTTP 403 on the upgrade).
+    /// </summary>
+    [Fact]
+    public async Task Connect_WithWrongClearanceToken_IsRejected()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        await using var application = new AthenaWorkerApplication();
+        _ = application.Services;
+        var server = application.Server;
+
+        // Mint a token signed with the correct secret but clearance = Extract (not Reconcile).
+        var wrongToken = MintToken(AthenaWorkerApplication.TestJwtSecret, "athena-extractor-test", "Extract");
+
+        await using var connection = new HubConnectionBuilder()
+            .WithUrl(
+                server.BaseAddress + "hubs/reconciliation",
+                options =>
+                {
+                    options.HttpMessageHandlerFactory = _ => server.CreateHandler();
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(wrongToken);
+                })
+            .Build();
+
+        // Valid JWT, wrong clearance claim → 403 on negotiate → StartAsync throws.
+        await Should.ThrowAsync<Exception>(
+            () => connection.StartAsync(ct));
+
+        connection.State.ShouldNotBe(HubConnectionState.Connected);
+    }
+
+    // ── Private helpers ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Mints a test JWT with the given secret, actor, and clearance claim, using the same algorithm and
+    /// issuer/audience values that <c>JwtProcessClearanceTokenService</c> uses — so the hub's bearer
+    /// validation accepts it.
+    /// </summary>
+    private static string MintToken(string secret, string actorId, string clearance)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, actorId),
+            new Claim("actor_type", "ServiceAccount"),
+            new Claim("clearance", clearance),
+            new Claim("file_id", Guid.Empty.ToString("D")),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("D")),
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: "prisma-pipeline",
+            audience: "prisma-pipeline",
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(5),
+            signingCredentials: creds);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

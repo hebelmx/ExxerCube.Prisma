@@ -1,7 +1,12 @@
+using System.Text;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Sources;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
@@ -79,6 +84,55 @@ builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
         txtFieldExtractor: txtFieldExtractor);
 });
 
+// Connection-level hub auth (follow-up to MVP-PATH 1.5): the reconciliation hub only accepts clients that
+// present a valid JWT clearance token with ProcessClearance.Reconcile. The token is read from the
+// access_token query-string parameter (standard SignalR JWT pattern — WebSocket upgrades cannot carry
+// Authorization headers). The same ProcessIdentityOptions.JwtSecret signs both connection-level and
+// per-message tokens.
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var processIdentityOptions = builder.Configuration
+            .GetSection(ProcessIdentityOptions.SectionName)
+            .Get<ProcessIdentityOptions>() ?? new ProcessIdentityOptions();
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(processIdentityOptions.JwtSecret)),
+            ValidateIssuer = true,
+            ValidIssuer = processIdentityOptions.JwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = processIdentityOptions.JwtAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/reconciliation"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            },
+        };
+    });
+
+// Authorization policy: the reconciliation hub requires the connecting client to carry
+// ProcessClearance.Reconcile. Additive to the per-message clearance check in ReconciliationEventForwarder.
+builder.Services.AddAuthorization(authOptions =>
+    authOptions.AddPolicy(Prisma.Athena.Worker.Reconciliation.HubAuthPolicies.RequireReconcileClearance, policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireClaim("clearance", ProcessClearance.Reconcile.ToString())));
+
 // Reconciliator edge (MVP-PATH 1.4, ADR-011): the Athena worker is the Extractor actor. It runs the Extractor
 // half (Quality→OCR→Fusion), persists the fused expediente to shared storage, and broadcasts an
 // ExtractionCompletedEvent (carrying the storage-relative handoff path) to the downstream Reconciliator over a
@@ -103,6 +157,11 @@ builder.Services.AddSingleton<IHealthCheckService, AthenaHealthCheckService>();
 builder.Services.AddSingleton<IDashboardService, AthenaDashboardService>();
 
 var app = builder.Build();
+
+// Hub auth middleware: must appear before MapHub so the JWT bearer scheme can authenticate the
+// SignalR upgrade request before SignalR dispatches it to the hub.
+app.UseAuthentication();
+app.UseAuthorization();
 
 // The reconciliation hub (MVP-PATH 1.4): downstream Reconciliators connect here to receive
 // ExtractionCompletedEvent over the real Ember transport.

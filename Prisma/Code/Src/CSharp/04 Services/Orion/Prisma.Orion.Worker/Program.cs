@@ -1,9 +1,15 @@
+using System.Text;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
 using IndFusion.Ember.Abstractions.Hubs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Prisma.Orion.HealthChecks;
 using Prisma.Orion.Ingestion;
 using Prisma.Orion.Worker;
@@ -37,6 +43,62 @@ builder.Services.AddScoped<IDocumentDownloader, SiaraDocumentDownloader>();
 // The discovery source (MVP-PATH 1.2 — the "list" half) is scoped for the same reason; the watch loop
 // keeps one long-lived discovery scope so the SIARA session stays warm across cycles.
 builder.Services.AddScoped<ISiaraDocumentSource, SiaraDocumentSource>();
+
+// Connection-level hub auth (follow-up to MVP-PATH 1.5): the ingestion hub only accepts clients that
+// present a valid JWT clearance token with ProcessClearance.Extract. This is the standard SignalR JWT
+// pattern — WebSocket upgrades cannot carry Authorization headers, so the token is read from the
+// access_token query-string parameter. The same ProcessIdentityOptions.JwtSecret that mints per-message
+// clearance tokens also validates the connection-level token (same signing key, shared across processes).
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        // Read the signing key from ProcessIdentityOptions after the DI container is built. We use a
+        // post-build options callback so the same IOptions<ProcessIdentityOptions> singleton is the
+        // single source of truth.
+        var processIdentityOptions = builder.Configuration
+            .GetSection(ProcessIdentityOptions.SectionName)
+            .Get<ProcessIdentityOptions>() ?? new ProcessIdentityOptions();
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(processIdentityOptions.JwtSecret)),
+            ValidateIssuer = true,
+            ValidIssuer = processIdentityOptions.JwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = processIdentityOptions.JwtAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
+
+        // Standard SignalR JWT pattern: bearer tokens for WebSocket/SSE arrive in the access_token
+        // query-string parameter rather than the Authorization header. This event copies it to the
+        // request context so the bearer handler can validate it normally.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/ingestion"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            },
+        };
+    });
+
+// Authorization policy: the ingestion hub requires the connecting client to carry ProcessClearance.Extract.
+// A token with a different clearance value is rejected at connection time (connection refused, not just
+// silently dropped). This is additive to the per-message clearance check in IngestionEventForwarder (1.5c).
+builder.Services.AddAuthorization(authOptions =>
+    authOptions.AddPolicy(HubAuthPolicies.RequireExtractClearance, policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireClaim("clearance", ProcessClearance.Extract.ToString())));
 
 // The real IndFusion.Ember transport (MVP-PATH 1.3): the Orion Downloader actor hosts a SignalR hub and
 // broadcasts DocumentDownloadedEvent to the downstream Extractor (Athena) — the first cross-process edge of
@@ -73,6 +135,11 @@ builder.Services.AddScoped<IHealthCheckService, OrionHealthCheckService>();
 builder.Services.AddScoped<IDashboardService, OrionDashboardService>();
 
 var app = builder.Build();
+
+// Hub auth middleware: must appear before MapHub so the JWT bearer scheme can authenticate the
+// SignalR upgrade request before SignalR dispatches it to the hub.
+app.UseAuthentication();
+app.UseAuthorization();
 
 // The ingestion hub (MVP-PATH 1.3): downstream Extractors (Athena) connect here to receive
 // DocumentDownloadedEvent over the real Ember transport.
