@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
@@ -8,6 +9,11 @@ using Prisma.Athena.Processing.Reconciliation;
 using Prisma.Reconciliator.Worker;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Per-process JWT clearance token service (MVP-PATH 1.5, A5): the Reconciliator does not broadcast
+// outbound (it is the terminal stage), but it will validate incoming clearance tokens in its forwarder
+// (A5 DoD, task 1.5c). Also registers ISiaraActorIdentityProvider for the Reconciliator actor identity.
+builder.Services.AddProcessIdentity(builder.Configuration);
 
 // The Reconciliator actor of the 3-process split (MVP-PATH 1.4, ADR-011). It is a SignalR CLIENT of the Athena
 // Extractor's /hubs/reconciliation: it receives ExtractionCompletedEvent, loads the fused expediente from the

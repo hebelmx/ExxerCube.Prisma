@@ -26,6 +26,10 @@ builder.Services.Configure<NavigationTargetOptions>(options =>
     builder.Configuration.GetSection("NavigationTargets").Bind(options));
 builder.Services.AddSiaraAuthentication(builder.Configuration);
 
+// Per-process JWT clearance token service (MVP-PATH 1.5, A5): mints tokens the broadcaster stamps on
+// events; AddSiaraAuthentication already registered ISiaraActorIdentityProvider so TryAdd is a no-op.
+builder.Services.AddProcessIdentity(builder.Configuration);
+
 // The real downloader is scoped: it rides a scoped Playwright browser and SIARA session. The watch loop
 // creates a fresh scope per document (SiaraWatchLoop), so the singleton host never captures it.
 builder.Services.AddScoped<IDocumentDownloader, SiaraDocumentDownloader>();

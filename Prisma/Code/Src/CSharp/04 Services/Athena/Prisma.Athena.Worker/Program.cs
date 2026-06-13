@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Infrastructure.Classification;
@@ -18,6 +19,11 @@ using Prisma.Athena.Worker.Ingestion;
 using Prisma.Athena.Worker.Reconciliation;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Per-process JWT clearance token service (MVP-PATH 1.5, A5): mints tokens that the Reconciliation
+// broadcaster stamps on ExtractionCompletedEvent before sending to the Reconciliator process.
+// Also registers ISiaraActorIdentityProvider (ConfiguredSiaraActorIdentityProvider) for Athena.
+builder.Services.AddProcessIdentity(builder.Configuration);
 
 // Register event infrastructure
 builder.Services.AddSingleton<IEventPublisher, EventPublisher>();

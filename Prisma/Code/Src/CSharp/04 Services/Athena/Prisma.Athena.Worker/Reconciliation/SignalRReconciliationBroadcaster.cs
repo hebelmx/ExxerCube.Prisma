@@ -1,4 +1,6 @@
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 using IndFusion.Ember.Abstractions.Hubs;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -20,6 +22,12 @@ namespace Prisma.Athena.Worker.Reconciliation;
 /// <c>Clients</c> and fails. The hub context is the supported way to broadcast from outside the hub.
 /// </para>
 /// <para>
+/// MVP-PATH 1.5 (A5): before broadcasting, a short-lived process clearance token is minted via
+/// <see cref="IProcessClearanceTokenService"/> using the actor resolved from
+/// <see cref="ISiaraActorIdentityProvider"/> and stamped on the event as <c>ClearanceToken</c>. If
+/// minting fails (misconfigured secret, cancelled), the event is <strong>not</strong> sent (fail-closed).
+/// </para>
+/// <para>
 /// Railway-Oriented: every method returns <see cref="Result"/> and never throws for transport outcomes; a
 /// failed broadcast is a failure result the caller logs and continues on. The <c>"ReceiveMessage"</c> method
 /// name and payload shape match <see cref="ExxerHub{T}"/> so a plain SignalR client (the Reconciliator)
@@ -31,19 +39,29 @@ public sealed class SignalRReconciliationBroadcaster : IExxerHub<ExtractionCompl
     private const string ReceiveMessage = "ReceiveMessage";
 
     private readonly IHubContext<ReconciliationHub> _hubContext;
+    private readonly IProcessClearanceTokenService _clearanceTokenService;
+    private readonly ISiaraActorIdentityProvider _actorIdentityProvider;
     private readonly ILogger<SignalRReconciliationBroadcaster> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="SignalRReconciliationBroadcaster"/> class.</summary>
     /// <param name="hubContext">The SignalR hub context used to broadcast from outside the hub.</param>
+    /// <param name="clearanceTokenService">Mints the per-document process clearance token (A5).</param>
+    /// <param name="actorIdentityProvider">Resolves the Athena Extractor actor identity for the token.</param>
     /// <param name="logger">The logger instance.</param>
     public SignalRReconciliationBroadcaster(
         IHubContext<ReconciliationHub> hubContext,
+        IProcessClearanceTokenService clearanceTokenService,
+        ISiaraActorIdentityProvider actorIdentityProvider,
         ILogger<SignalRReconciliationBroadcaster> logger)
     {
         ArgumentNullException.ThrowIfNull(hubContext);
+        ArgumentNullException.ThrowIfNull(clearanceTokenService);
+        ArgumentNullException.ThrowIfNull(actorIdentityProvider);
         ArgumentNullException.ThrowIfNull(logger);
 
         _hubContext = hubContext;
+        _clearanceTokenService = clearanceTokenService;
+        _actorIdentityProvider = actorIdentityProvider;
         _logger = logger;
     }
 
@@ -60,13 +78,26 @@ public sealed class SignalRReconciliationBroadcaster : IExxerHub<ExtractionCompl
             return Result.WithFailure("Event data cannot be null");
         }
 
+        // MVP-PATH 1.5 (A5): mint a clearance token and stamp it on the event before broadcasting.
+        var stampResult = await MintAndStampAsync(data, cancellationToken).ConfigureAwait(false);
+        if (!stampResult.IsSuccess)
+        {
+            _logger.LogWarning(
+                "Clearance token minting failed for ExtractionCompletedEvent {FileId} — event will not be sent. Reason: {Reason}",
+                data.FileId,
+                string.Join("; ", stampResult.Errors));
+            return Result.WithFailure(string.Join("; ", stampResult.Errors));
+        }
+
+        var stampedData = stampResult.Value!;
+
         try
         {
-            await _hubContext.Clients.All.SendAsync(ReceiveMessage, data, cancellationToken).ConfigureAwait(false);
+            await _hubContext.Clients.All.SendAsync(ReceiveMessage, stampedData, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation(
                 "Broadcast ExtractionCompletedEvent {FileId} (corr {CorrelationId}) to all reconciliation subscribers",
-                data.FileId,
-                data.CorrelationId);
+                stampedData.FileId,
+                stampedData.CorrelationId);
             return Result.Success();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -98,9 +129,21 @@ public sealed class SignalRReconciliationBroadcaster : IExxerHub<ExtractionCompl
             return Result.WithFailure("Event data cannot be null");
         }
 
+        var stampResult = await MintAndStampAsync(data, cancellationToken).ConfigureAwait(false);
+        if (!stampResult.IsSuccess)
+        {
+            _logger.LogWarning(
+                "Clearance token minting failed for ExtractionCompletedEvent {FileId} — event will not be sent. Reason: {Reason}",
+                data.FileId,
+                string.Join("; ", stampResult.Errors));
+            return Result.WithFailure(string.Join("; ", stampResult.Errors));
+        }
+
+        var stampedData = stampResult.Value!;
+
         try
         {
-            await _hubContext.Clients.Client(connectionId).SendAsync(ReceiveMessage, data, cancellationToken).ConfigureAwait(false);
+            await _hubContext.Clients.Client(connectionId).SendAsync(ReceiveMessage, stampedData, cancellationToken).ConfigureAwait(false);
             return Result.Success();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -132,9 +175,21 @@ public sealed class SignalRReconciliationBroadcaster : IExxerHub<ExtractionCompl
             return Result.WithFailure("Event data cannot be null");
         }
 
+        var stampResult = await MintAndStampAsync(data, cancellationToken).ConfigureAwait(false);
+        if (!stampResult.IsSuccess)
+        {
+            _logger.LogWarning(
+                "Clearance token minting failed for ExtractionCompletedEvent {FileId} — event will not be sent. Reason: {Reason}",
+                data.FileId,
+                string.Join("; ", stampResult.Errors));
+            return Result.WithFailure(string.Join("; ", stampResult.Errors));
+        }
+
+        var stampedData = stampResult.Value!;
+
         try
         {
-            await _hubContext.Clients.Group(groupName).SendAsync(ReceiveMessage, data, cancellationToken).ConfigureAwait(false);
+            await _hubContext.Clients.Group(groupName).SendAsync(ReceiveMessage, stampedData, cancellationToken).ConfigureAwait(false);
             return Result.Success();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -153,4 +208,36 @@ public sealed class SignalRReconciliationBroadcaster : IExxerHub<ExtractionCompl
         Task.FromResult(cancellationToken.IsCancellationRequested
             ? ResultExtensions.Cancelled<int>()
             : Result<int>.WithFailure("Connection count tracking not implemented"));
+
+    // ── Private helpers ──────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Resolves the current actor, mints a clearance token, and returns the event stamped with it.
+    /// Returns a failure result (never throws) if actor resolution or minting fails.
+    /// </summary>
+    private async Task<Result<ExtractionCompletedEvent>> MintAndStampAsync(
+        ExtractionCompletedEvent data,
+        CancellationToken cancellationToken)
+    {
+        var actorResult = await _actorIdentityProvider.GetCurrentActorAsync(cancellationToken).ConfigureAwait(false);
+        if (!actorResult.IsSuccess)
+        {
+            return Result<ExtractionCompletedEvent>.WithFailure(
+                $"Actor identity resolution failed: {string.Join("; ", actorResult.Errors)}");
+        }
+
+        var mintResult = await _clearanceTokenService.MintAsync(
+            actorResult.Value!,
+            ProcessClearance.Extract,
+            data.FileId,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!mintResult.IsSuccess)
+        {
+            return Result<ExtractionCompletedEvent>.WithFailure(
+                $"Clearance token minting failed: {string.Join("; ", mintResult.Errors)}");
+        }
+
+        return Result<ExtractionCompletedEvent>.Success(data with { ClearanceToken = mintResult.Value! });
+    }
 }
