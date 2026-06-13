@@ -196,6 +196,14 @@ tampered/replayed.
 > cache, or moving the security boundary to connection-level hub auth — the next follow-up) is deferred and
 > tracked. Do not claim "full replay protection."
 
+> **Connection-scope token / `Guid.Empty` edge (accepted, final-gate finding #3, 2026-06-13).** The hub-auth
+> follow-up mints a *connection-scope* token with `file_id = Guid.Empty` (no per-document binding at connect).
+> The per-message forwarder check `claims.FileId != event.FileId` would therefore PASS for a connection-scope
+> token only if the event's `FileId` were also `Guid.Empty`. This is not an in-practice bypass — production
+> `DocumentDownloadedEvent`/`ExtractionCompletedEvent` always carry a real document GUID from the downloader, so
+> the equality never holds for a connection token on a real message — but it is recorded here as an accepted
+> edge rather than hidden. A hardening option is to reject `file_id == Guid.Empty` on the per-message path.
+
 ### New domain port
 
 ```csharp

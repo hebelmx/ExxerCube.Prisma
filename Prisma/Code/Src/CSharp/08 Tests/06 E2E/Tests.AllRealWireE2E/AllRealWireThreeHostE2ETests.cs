@@ -177,9 +177,10 @@ public sealed class AllRealWireThreeHostE2ETests : IAsyncDisposable
             Source = "SIARA",
             FileSizeBytes = 5,
             Format = FileFormat.Pdf,
-            // ClearanceToken is blank — the AthenaTestApp injects a pass-through
-            // IProcessClearanceTokenService so per-message clearance validation passes
-            // without a real token on the event.
+            // ClearanceToken is blank on the test input on purpose: the broadcast below goes through
+            // Orion's REAL SignalRIngestionBroadcaster, whose MintAndStampAsync mints a genuine
+            // Download-clearance JWT (config-driven) and stamps it onto the event before it crosses the
+            // wire — so the Athena IngestionEventForwarder validates a real token, not a stub.
         };
 
         var broadcastResult = await ingestionHub.SendToAllAsync(downloadEvent, ct);
