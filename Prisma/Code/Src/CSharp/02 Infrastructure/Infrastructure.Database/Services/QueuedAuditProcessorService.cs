@@ -51,14 +51,14 @@ public class QueuedAuditProcessorService : BackgroundService
 
         await foreach (var batch in GetBatchesAsync(stoppingToken))
         {
-            if (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-
+            // Process every batch — including the final partial batch yielded on graceful shutdown
+            // (when stoppingToken is cancelled, GetBatchesAsync breaks out of ReadAllAsync and yields
+            // the remaining records; skipping this batch would silently drop them).
             if (batch.Count > 0)
             {
-                await ProcessBatchAsync(batch, stoppingToken).ConfigureAwait(false);
+                // Use CancellationToken.None so the final drain batch is written even after stoppingToken
+                // is cancelled: the DB write must complete before this host exits.
+                await ProcessBatchAsync(batch, CancellationToken.None).ConfigureAwait(false);
             }
         }
 

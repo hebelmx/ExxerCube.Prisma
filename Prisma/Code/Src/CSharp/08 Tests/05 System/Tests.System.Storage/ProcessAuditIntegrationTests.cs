@@ -5,7 +5,9 @@ using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.Database;
+using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
+using ExxerCube.Prisma.Infrastructure.Database.Services;
 using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Testing.Contracts;
 using IndFusion.Ember.Abstractions.Hubs;
@@ -13,6 +15,7 @@ using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using Prisma.Athena.Processing;
 using Prisma.Athena.Processing.Reconciliation;
@@ -25,10 +28,12 @@ namespace ExxerCube.Prisma.Tests.System.Storage;
 /// <summary>
 /// A6 DoD gate tests: prove "an audit query answers who/which-process touched doc X."
 /// One test per pipeline process (Downloader / Extractor / Reconciliator). Each runs the real
-/// pipeline service with a real <see cref="AuditLoggerService"/> backed by Testcontainers SQL,
-/// then asserts that <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> returns records
-/// carrying <see cref="AuditRecord.ProcessId"/> and <see cref="AuditRecord.UserId"/> equal to
-/// the stub actor's <c>ActorId</c> (MVP-PATH 1.6 A6).
+/// pipeline service against Testcontainers SQL, then asserts that
+/// <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> returns records carrying
+/// <see cref="AuditRecord.ProcessId"/> and <see cref="AuditRecord.UserId"/> equal to the stub
+/// actor's <c>ActorId</c> (MVP-PATH 1.6 A6). A fourth test exercises the PRODUCTION queued
+/// audit path (<see cref="QueuedAuditLoggerService"/> drained by
+/// <see cref="QueuedAuditProcessorService"/>) to prove eventual-consistency persists records.
 /// </summary>
 public sealed class ProcessAuditIntegrationTests : IDisposable
 {
@@ -50,7 +55,7 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
     };
 
     /// <summary>
-    /// Initializes the per-class isolated database and the shared DI service provider used by all three tests.
+    /// Initializes the per-class isolated database and the shared DI service provider used by all tests.
     /// </summary>
     public ProcessAuditIntegrationTests(SqlServerContainerFixture fixture, ITestOutputHelper output)
     {
@@ -66,7 +71,8 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
             .UseSqlServer(connectionString)
             .Options;
 
-        // EnsureCreated applies the current EF model (includes AuditRecord.ProcessId column from 1.6a).
+        // EnsureCreated applies the current EF model (no FK from AuditRecords to FileMetadata
+        // after the DropAuditFileMetadataFk migration — FK was dropped in FIX 1).
         using (var ctx = new PrismaDbContext(_dbOptions))
         {
             ctx.Database.EnsureCreatedAsync(Ct).GetAwaiter().GetResult();
@@ -98,57 +104,33 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a minimal <see cref="FileMetadata"/> row for <paramref name="fileId"/> so that
-    /// <see cref="AuditRecord"/> inserts referencing that FileId do not violate the FK constraint
-    /// (<c>FK_AuditRecords_FileMetadata_FileId</c>). Required when the test drives a pipeline service
-    /// that passes a non-null FileId to audit calls without first inserting a FileMetadata row.
+    /// Queries <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> for the given
+    /// <paramref name="fileId"/> and asserts that the record identified by
+    /// <paramref name="expectedActionType"/> + <paramref name="expectedStage"/> carries the
+    /// known actor's <see cref="AuditRecord.ProcessId"/> / <see cref="AuditRecord.UserId"/>
+    /// (A6 DoD key: "who/which-process touched doc X?" answered by document id).
     /// </summary>
-    private async Task SeedFileMetadataAsync(Guid fileId)
-    {
-        using var scope = _serviceProvider.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<PrismaDbContext>();
-        db.FileMetadata.Add(new FileMetadata
-        {
-            FileId = fileId.ToString(),
-            FileName = $"a6-test-{fileId:N}.pdf",
-            FilePath = $"/tmp/a6/{fileId:N}.pdf",
-            DownloadTimestamp = DateTime.UtcNow,
-            DownloadDateTime = DateTime.UtcNow,
-            Checksum = $"a6checksum{fileId:N}",
-            FileSize = 4L,
-            Format = FileFormat.Pdf,
-            Channel = "SIARA",
-            SignatureType = "N/A",
-            EvidenceHash = string.Empty,
-            LinkedExpediente = string.Empty,
-            LinkedOficio = string.Empty
-        });
-        await db.SaveChangesAsync(Ct);
-    }
-
     private async Task AssertAuditRecordHasProcessIdAsync(
-        string correlationId,
+        string fileId,
         AuditActionType expectedActionType,
         ProcessingStage expectedStage,
         string expectedClearanceKeyword)
     {
-        // Query by correlationId: no FK constraint (AuditRecord.FileId has a FK to FileMetadata,
-        // but CorrelationId is a plain indexed string column). The A6 DoD question is
-        // "who/which-process touched the work identified by correlationId X" — correlationId is
-        // exactly the right query key for cross-process tracing.
+        // Query by fileId — the A6 DoD primary key ("which-process touched doc X").
+        // No FK constraint on AuditRecord.FileId after FIX 1; plain indexed column.
         using var queryScope = _serviceProvider.CreateScope();
         var auditLogger = queryScope.ServiceProvider.GetRequiredService<IAuditLogger>();
-        var auditResult = await auditLogger.GetAuditRecordsByCorrelationIdAsync(correlationId, Ct);
+        var auditResult = await auditLogger.GetAuditRecordsByFileIdAsync(fileId, Ct);
 
         auditResult.IsSuccess.ShouldBeTrue();
         var records = auditResult.Value!;
-        records.ShouldNotBeEmpty($"Expected at least one audit record for correlationId {correlationId}");
+        records.ShouldNotBeEmpty($"Expected at least one audit record for fileId {fileId}");
 
         var record = records.FirstOrDefault(r =>
             r.ActionType == expectedActionType &&
             r.Stage == expectedStage);
         record.ShouldNotBeNull(
-            $"Expected a {expectedActionType}/{expectedStage} audit record for correlationId {correlationId}");
+            $"Expected a {expectedActionType}/{expectedStage} audit record for fileId {fileId}");
 
         // A6 core assertions.
         record!.ProcessId.ShouldBe(KnownActor.ActorId,
@@ -167,9 +149,11 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
 
     /// <summary>
     /// A6 gate for the Orion Downloader: after <see cref="IngestionOrchestrator.IngestDocumentAsync"/> runs
-    /// successfully, <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> returns at least one audit record
+    /// successfully, <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> (queried using the
+    /// <see cref="IngestionResult.FileId"/> returned by the orchestrator) returns at least one audit record
     /// whose <see cref="AuditRecord.ProcessId"/> equals the stub actor id and whose
     /// <see cref="AuditRecord.ActionDetails"/> contains the process clearance ("Download").
+    /// No FileMetadata row is seeded — the FK was dropped (FIX 1), so the INSERT succeeds without it.
     /// </summary>
     [Fact]
     public async Task IngestionOrchestrator_IngestDocument_AuditRecordsCarryProcessId()
@@ -224,12 +208,14 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
         result.IsSuccess.ShouldBeTrue(
             $"IngestionOrchestrator.IngestDocumentAsync failed: {string.Join(", ", result.Errors)}");
 
-        // A6 assertion: the DocumentStored audit record carries the process identity.
-        // Query by correlationId (not fileId) — AuditRecord.FileId has a FK to FileMetadata
-        // which is not seeded in this unit-style test; correlationId is the correct
-        // cross-process tracing key and has no FK constraint.
+        // Capture the real FileId assigned by the orchestrator (not the null DocumentReceived record).
+        var fileId = result.Value!.FileId.ToString();
+
+        // A6 assertion: query by FileId (the document identity key for A6 DoD).
+        // No FileMetadata seed needed — FK is dropped; the audit INSERT succeeds directly.
+        // Asserts the "DocumentStored" record (not just the null-fileId "DocumentReceived" record).
         await AssertAuditRecordHasProcessIdAsync(
-            correlationId.ToString(),
+            fileId,
             AuditActionType.Download,
             ProcessingStage.Ingestion,
             expectedClearanceKeyword: "Download");
@@ -247,6 +233,7 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
     /// a successful extraction, <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> returns at least one
     /// record whose <see cref="AuditRecord.ProcessId"/> equals the stub actor id and whose
     /// <see cref="AuditRecord.ActionDetails"/> contains the process clearance ("Extract").
+    /// No FileMetadata row is seeded — FK is dropped (FIX 1).
     /// </summary>
     [Fact]
     public async Task ExtractionPipelineService_ProcessAsync_AuditRecordsCarryProcessId()
@@ -314,9 +301,7 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
             actorIdentityProvider: actorProvider,
             processClearance: ProcessClearance.Extract);
 
-        // Pre-seed FileMetadata so audit inserts with this FileId don't violate the FK constraint.
-        await SeedFileMetadataAsync(fileId);
-
+        // No FileMetadata seed — FK is dropped. The audit INSERT with this FileId must now succeed.
         var downloadEvent = new DocumentDownloadedEvent
         {
             FileId = fileId,
@@ -334,10 +319,9 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
         result.IsSuccess.ShouldBeTrue(
             $"ExtractionPipelineService.ProcessAsync failed: {string.Join(", ", result.Errors)}");
 
-        // A6 assertion: the ExtractionStarted record carries process identity.
-        // Query by correlationId — no FK constraint; correlationId is the correct tracing key.
+        // A6 assertion: query by FileId — proves "which-process touched doc X" by document id.
         await AssertAuditRecordHasProcessIdAsync(
-            correlationId.ToString(),
+            fileId.ToString(),
             AuditActionType.Extraction,
             ProcessingStage.Extraction,
             expectedClearanceKeyword: "Extract");
@@ -352,6 +336,7 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
     /// a successful reconciliation, <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> returns at least
     /// one record whose <see cref="AuditRecord.ProcessId"/> equals the stub actor id and whose
     /// <see cref="AuditRecord.ActionDetails"/> contains the process clearance ("Reconcile").
+    /// No FileMetadata row is seeded — FK is dropped (FIX 1).
     /// </summary>
     [Fact]
     public async Task ReconciliationPipelineService_ProcessAsync_AuditRecordsCarryProcessId()
@@ -389,9 +374,7 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
             actorIdentityProvider: actorProvider,
             processClearance: ProcessClearance.Reconcile);
 
-        // Pre-seed FileMetadata so audit inserts with this FileId don't violate the FK constraint.
-        await SeedFileMetadataAsync(fileId);
-
+        // No FileMetadata seed — FK is dropped. The audit INSERT with this FileId must now succeed.
         var completedEvent = new ExtractionCompletedEvent
         {
             FileId = fileId,
@@ -408,20 +391,120 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
         result.IsSuccess.ShouldBeTrue(
             $"ReconciliationPipelineService.ProcessAsync failed: {string.Join(", ", result.Errors)}");
 
-        // A6 assertion: the ReconciliationStarted record carries process identity.
-        // Query by correlationId — no FK constraint; correlationId is the correct tracing key.
+        // A6 assertion: query by FileId — proves "which-process touched doc X" by document id.
         await AssertAuditRecordHasProcessIdAsync(
-            correlationId.ToString(),
+            fileId.ToString(),
             AuditActionType.Classification,
             ProcessingStage.DecisionLogic,
             expectedClearanceKeyword: "Reconcile");
 
         // Also verify the ReconciliationCompleted (Export stage) record.
         await AssertAuditRecordHasProcessIdAsync(
-            correlationId.ToString(),
+            fileId.ToString(),
             AuditActionType.Export,
             ProcessingStage.Export,
             expectedClearanceKeyword: "Reconcile");
+    }
+
+    // -------------------------------------------------------------------------
+    // A6-4: Queued path — QueuedAuditLoggerService + QueuedAuditProcessorService
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Proves that the PRODUCTION queued audit path (<see cref="QueuedAuditLoggerService"/> writing to a
+    /// <see cref="System.Threading.Channels.Channel{T}"/> drained by <see cref="QueuedAuditProcessorService"/>)
+    /// eventually persists records to the database so that
+    /// <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> can retrieve them.
+    /// This is the actual path all three workers use at runtime (registered via
+    /// <see cref="ServiceCollectionExtensions.AddDatabaseServices"/>).
+    /// Uses a bounded-timeout poll (up to 5 s) rather than a fixed sleep to accommodate
+    /// the asynchronous channel drain without coupling the test to a specific flush time.
+    /// </summary>
+    [Fact]
+    public async Task QueuedAuditLogger_AfterDrain_RecordIsQueryableByFileId()
+    {
+        // Arrange — build a dedicated service provider that wires the full production stack:
+        // QueuedAuditProcessorService (singleton + hosted) + QueuedAuditLoggerService (scoped).
+        var services = new ServiceCollection();
+        services.AddLogging();                          // ILogger<T> needed by QueuedAuditProcessorService
+        services.AddOptions();                          // IOptions<T> infrastructure
+        services.AddScoped<PrismaDbContext>(_ => new PrismaDbContext(_dbOptions));
+        services.AddScoped<IPrismaDbContext, PrismaDbContext>();
+        services.Configure<AuditOptions>(_ => { });     // defaults are fine
+        services.AddSingleton<QueuedAuditProcessorService>();
+
+        // Register QueuedAuditLoggerService so it can be resolved as IAuditLogger.
+        services.AddScoped<IAuditLogger>(sp =>
+        {
+            var processor = sp.GetRequiredService<QueuedAuditProcessorService>();
+            var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+            var logger = NullLogger<QueuedAuditLoggerService>.Instance;
+            return new QueuedAuditLoggerService(processor, scopeFactory, logger);
+        });
+
+        await using var queuedSp = services.BuildServiceProvider();
+
+        // Start the background processor so it drains the channel into the DB.
+        // Await StartAsync so the hosted service is confirmed running before we enqueue records.
+        var processor = queuedSp.GetRequiredService<QueuedAuditProcessorService>();
+        using var processorCts = CancellationTokenSource.CreateLinkedTokenSource(Ct);
+        await processor.StartAsync(processorCts.Token);
+        // Brief pause to let the ExecuteAsync drain-loop enter its blocking ReadAllAsync wait.
+        await Task.Delay(200, Ct);
+
+        var fileId = Guid.NewGuid().ToString();
+        var correlationId = Guid.NewGuid().ToString();
+
+        // Act — log an audit record through the queued path (fire-and-forget to channel).
+        using (var writeScope = queuedSp.CreateScope())
+        {
+            var queuedLogger = writeScope.ServiceProvider.GetRequiredService<IAuditLogger>();
+            var logResult = await queuedLogger.LogAuditAsync(
+                actionType: AuditActionType.Extraction,
+                stage: ProcessingStage.Extraction,
+                fileId: fileId,
+                correlationId: correlationId,
+                userId: KnownActor.ActorId,
+                actionDetails: $"{{\"processId\":\"{KnownActor.ActorId}\",\"clearance\":\"Extract\"}}",
+                success: true,
+                errorMessage: null,
+                cancellationToken: Ct,
+                processId: KnownActor.ActorId);
+            logResult.IsSuccess.ShouldBeTrue("Queued LogAuditAsync must succeed");
+        }
+
+        // Trigger graceful shutdown: cancel the processor CTS and await StopAsync.
+        // QueuedAuditProcessorService.GetBatchesAsync catches OCE and breaks out of the loop,
+        // then the final partial batch (our one record) is yielded and written via ProcessBatchAsync.
+        // StopAsync completes only after ExecuteAsync exits, so the DB write is done by the time
+        // we reach the assertion below — no polling needed.
+        await processorCts.CancelAsync();
+        try { await processor.StopAsync(CancellationToken.None); } catch (OperationCanceledException) { /* expected on graceful drain */ }
+
+        // Query via the DIRECT AuditLoggerService (_serviceProvider uses the same _dbOptions =
+        // same physical SQL Server database as the processor's scoped PrismaDbContext).
+        List<AuditRecord>? records = null;
+        using (var queryScope = _serviceProvider.CreateScope())
+        {
+            var directLogger = queryScope.ServiceProvider.GetRequiredService<IAuditLogger>();
+            var queryResult = await directLogger.GetAuditRecordsByFileIdAsync(fileId, Ct);
+            if (queryResult.IsSuccess && queryResult.Value is { Count: > 0 })
+            {
+                records = queryResult.Value;
+            }
+        }
+
+        // Assert — the queued record must have been drained into the DB.
+        records.ShouldNotBeNull("Record must be visible via GetAuditRecordsByFileIdAsync after the channel drains");
+        records!.ShouldNotBeEmpty("At least one audit record must be persisted for the given fileId");
+
+        var record = records.FirstOrDefault(r =>
+            r.ActionType == AuditActionType.Extraction &&
+            r.Stage == ProcessingStage.Extraction);
+        record.ShouldNotBeNull("Expected an Extraction/Extraction record persisted by the queued path");
+        record!.ProcessId.ShouldBe(KnownActor.ActorId, "ProcessId must survive the channel round-trip");
+        record.UserId.ShouldBe(KnownActor.ActorId, "UserId must survive the channel round-trip");
+        record.FileId.ShouldBe(fileId, "FileId must survive the channel round-trip");
     }
 
     /// <inheritdoc/>

@@ -71,13 +71,11 @@ public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
         builder.HasIndex(a => a.ProcessId)
             .HasDatabaseName("IX_AuditRecords_ProcessId");
 
-        // Foreign key relationship to FileMetadata (optional)
-        builder.HasOne<FileMetadata>()
-            .WithMany()
-            .HasForeignKey(a => a.FileId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        // Indexes for performance
+        // FileId is a plain indexed column — NO foreign key to FileMetadata.
+        // Worker processes write audit records (with a non-null FileId) before the FileMetadata row
+        // exists, so a FK would silently drop those records (fail-open). Owner decision: keep FileId
+        // as a loose reference; referential integrity is enforced by the application layer.
+        // Index retained for first-class "WHERE FileId = ?" filter queries (A6 DoD).
         builder.HasIndex(a => a.FileId)
             .HasDatabaseName("IX_AuditRecords_FileId");
 
