@@ -1,9 +1,13 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Orion.Ingestion;
@@ -19,6 +23,9 @@ public class IngestionOrchestrator
     private readonly IExxerHub<DocumentDownloadedEvent> _eventHub;
     private readonly ILogger<IngestionOrchestrator> _logger;
     private readonly string _storageBasePath;
+    private readonly IServiceScopeFactory? _scopeFactory;
+    private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
+    private readonly ProcessClearance _processClearance;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IngestionOrchestrator"/> class.
@@ -28,18 +35,38 @@ public class IngestionOrchestrator
     /// <param name="eventHub">The event hub for broadcasting DocumentDownloadedEvent.</param>
     /// <param name="logger">The logger.</param>
     /// <param name="storageBasePath">Base path for document storage (defaults to ./storage).</param>
+    /// <param name="scopeFactory">
+    /// Optional scope factory used to resolve <see cref="IAuditLogger"/> per audit call (avoids captive
+    /// dependency: IAuditLogger is scoped, IngestionOrchestrator may be scoped in the worker host).
+    /// When <see langword="null"/>, audit calls are silently skipped (no-op). MVP-PATH 1.6 A6.
+    /// </param>
+    /// <param name="actorIdentityProvider">
+    /// Optional provider of the current process actor identity. When <see langword="null"/>, audit records
+    /// use a degraded identity ("system") — fail-open so the pipeline is never blocked by an audit failure.
+    /// MVP-PATH 1.6 A6.
+    /// </param>
+    /// <param name="processClearance">
+    /// The clearance level of this process, stamped on every audit record's <c>ActionDetails</c> JSON.
+    /// Defaults to <see cref="ProcessClearance.Download"/> (Orion Downloader). MVP-PATH 1.6 A6.
+    /// </param>
     public IngestionOrchestrator(
         IIngestionJournal journal,
         IDocumentDownloader downloader,
         IExxerHub<DocumentDownloadedEvent> eventHub,
         ILogger<IngestionOrchestrator> logger,
-        string? storageBasePath = null)
+        string? storageBasePath = null,
+        IServiceScopeFactory? scopeFactory = null,
+        ISiaraActorIdentityProvider? actorIdentityProvider = null,
+        ProcessClearance processClearance = ProcessClearance.Download)
     {
         _journal = journal ?? throw new ArgumentNullException(nameof(journal));
         _downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
         _eventHub = eventHub ?? throw new ArgumentNullException(nameof(eventHub));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _storageBasePath = storageBasePath ?? Path.Combine(Directory.GetCurrentDirectory(), "storage");
+        _scopeFactory = scopeFactory;
+        _actorIdentityProvider = actorIdentityProvider;
+        _processClearance = processClearance;
     }
 
     /// <summary>
@@ -65,6 +92,16 @@ public class IngestionOrchestrator
             documentId,
             correlationId);
 
+        // Audit: document received (start of ingestion) — fail-open: pipeline continues on audit failure.
+        await EmitAuditAsync(
+            AuditActionType.Download,
+            ProcessingStage.Ingestion,
+            fileId: null,
+            correlationId: correlationId.ToString(),
+            success: true,
+            actionKey: "DocumentReceived",
+            cancellationToken: cancellationToken).ConfigureAwait(false);
+
         // ✅ Railway-Oriented Programming: each step returns Result<T>
         var result = await DownloadDocumentAsync(documentId, cancellationToken)
             .ThenAsync(async document => await CheckDuplicateAsync(document, documentId, cancellationToken))
@@ -80,6 +117,31 @@ public class IngestionOrchestrator
                 context.FileId,
                 context.WasDuplicate);
 
+            if (context.WasDuplicate)
+            {
+                // Audit: duplicate-skipped.
+                await EmitAuditAsync(
+                    AuditActionType.Download,
+                    ProcessingStage.Ingestion,
+                    fileId: context.FileId.ToString(),
+                    correlationId: correlationId.ToString(),
+                    success: true,
+                    actionKey: "DuplicateSkipped",
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                // Audit: stored successfully.
+                await EmitAuditAsync(
+                    AuditActionType.Download,
+                    ProcessingStage.Ingestion,
+                    fileId: context.FileId.ToString(),
+                    correlationId: correlationId.ToString(),
+                    success: true,
+                    actionKey: "DocumentStored",
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+
             return Result<IngestionResult>.Success(new IngestionResult(
                 FileId: context.FileId,
                 FileName: context.FileName,
@@ -91,6 +153,18 @@ public class IngestionOrchestrator
         }
 
         _logger.LogError("Document ingestion failed: {Errors}", string.Join(", ", result.Errors));
+
+        // Audit: ingestion failed.
+        await EmitAuditAsync(
+            AuditActionType.Download,
+            ProcessingStage.Ingestion,
+            fileId: null,
+            correlationId: correlationId.ToString(),
+            success: false,
+            actionKey: "IngestionFailed",
+            errorMessage: string.Join(", ", result.Errors),
+            cancellationToken: cancellationToken).ConfigureAwait(false);
+
         return Result<IngestionResult>.WithFailure(result.Errors);
     }
 
@@ -275,6 +349,100 @@ public class IngestionOrchestrator
             context.FileId,
             correlationId);
     }
+
+    // -------------------------------------------------------------------------
+    // Per-process audit helpers (MVP-PATH 1.6 A6)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Emits a single audit record stamped with the current process identity.
+    /// Fail-open: any audit failure is logged at Warning and swallowed so the pipeline is never blocked.
+    /// </summary>
+    private async Task EmitAuditAsync(
+        AuditActionType actionType,
+        ProcessingStage stage,
+        string? fileId,
+        string correlationId,
+        bool success,
+        string actionKey,
+        string? errorMessage = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (_scopeFactory is null)
+        {
+            return; // Audit is not wired — silent no-op.
+        }
+
+        try
+        {
+            var (actorId, details) = await ResolveProcessIdentityAsync(actionKey, cancellationToken)
+                .ConfigureAwait(false);
+
+            using var scope = _scopeFactory.CreateScope();
+            var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
+            await auditLogger.LogAuditAsync(
+                actionType,
+                stage,
+                fileId,
+                correlationId,
+                userId: actorId,
+                actionDetails: details,
+                success: success,
+                errorMessage: errorMessage,
+                cancellationToken: cancellationToken,
+                processId: actorId).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // Fail-open: audit failure must never crash the pipeline.
+            _logger.LogWarning(ex,
+                "Audit emission failed for action {Action} (fail-open — pipeline continues). CorrelationId: {CorrelationId}",
+                actionKey, correlationId);
+        }
+    }
+
+    /// <summary>
+    /// Resolves the current actor identity and builds the process-identity audit-details JSON.
+    /// Fail-open: if the provider is null or resolution fails, returns a degraded ("unknown-process") identity.
+    /// </summary>
+    private async Task<(string actorId, string auditDetails)> ResolveProcessIdentityAsync(
+        string action,
+        CancellationToken ct)
+    {
+        if (_actorIdentityProvider is null)
+        {
+            return ("system", JsonSerializer.Serialize(new { action }));
+        }
+
+        var actorResult = await _actorIdentityProvider.GetCurrentActorAsync(ct).ConfigureAwait(false);
+        if (actorResult.IsFailure)
+        {
+            _logger.LogWarning(
+                "Process identity resolution failed for Orion audit (fail-open). Error: {Error}",
+                string.Join(", ", actorResult.Errors));
+            return ("unknown-process", JsonSerializer.Serialize(new
+            {
+                action,
+                error = string.Join(", ", actorResult.Errors)
+            }));
+        }
+
+        var actor = actorResult.Value!;
+        return (actor.ActorId, BuildProcessAuditDetails(actor, _processClearance, action));
+    }
+
+    /// <summary>
+    /// Serializes the process-identity payload that rides in <c>ActionDetails</c> on every worker audit record.
+    /// </summary>
+    private static string BuildProcessAuditDetails(SiaraActor actor, ProcessClearance clearance, string action)
+        => JsonSerializer.Serialize(new
+        {
+            processId = actor.ActorId,
+            processType = actor.ActorType.ToString(),
+            processClearance = clearance.ToString(),
+            displayName = actor.DisplayName,
+            action
+        });
 
     private static string ComputeSha256Hash(byte[] data)
     {

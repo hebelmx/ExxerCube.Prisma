@@ -1,6 +1,7 @@
 using System.Text;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
@@ -136,7 +137,21 @@ builder.Services.AddScoped<IngestionOrchestrator>(sp =>
     // Shared document storage base (ADR-011): config-driven so the Downloader and Extractor can point at
     // the same shared volume. When blank, the orchestrator defaults to ./storage (single-box dev).
     var storageBasePath = builder.Configuration["Storage:BasePath"];
-    return new IngestionOrchestrator(journal, downloader, eventHub, logger, storageBasePath);
+
+    // Per-process audit (MVP-PATH 1.6 A6): wire IAuditLogger (via IServiceScopeFactory to avoid captive
+    // dependency — IAuditLogger is scoped) + ISiaraActorIdentityProvider + Download clearance.
+    // Both are optional; when AddDatabaseServices was skipped (dev/test without DB), scopeFactory is
+    // present but IAuditLogger will not be registered — EmitAuditAsync guards with a try/catch (fail-open).
+    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+    var actorIdentityProvider = sp.GetService<ISiaraActorIdentityProvider>();
+    var processOptions = sp.GetService<IOptions<ProcessIdentityOptions>>();
+    var clearance = processOptions?.Value.Clearance ?? ProcessClearance.Download;
+
+    return new IngestionOrchestrator(
+        journal, downloader, eventHub, logger, storageBasePath,
+        scopeFactory: scopeFactory,
+        actorIdentityProvider: actorIdentityProvider,
+        processClearance: clearance);
 });
 
 // The SIARA watch loop (MVP-PATH 1.2): a singleton poll/watcher that owns the DI scopes (one warm

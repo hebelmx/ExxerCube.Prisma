@@ -1,11 +1,12 @@
 using System.Text;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
-using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Domain.Sources;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using ExxerCube.Prisma.Infrastructure.Classification;
@@ -166,7 +167,26 @@ builder.Services.AddSingleton<ExtractionOrchestrator>(sp => new ExtractionOrches
     txtFieldExtractor: sp.GetRequiredService<IFieldExtractor<TxtSource>>()));
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IExxerHub<ExtractionCompletedEvent>, SignalRReconciliationBroadcaster>();
-builder.Services.AddSingleton<ExtractionPipelineService>();
+
+// Per-process audit (MVP-PATH 1.6 A6): ExtractionPipelineService is singleton; IAuditLogger is scoped.
+// The service resolves IAuditLogger per audit call via IServiceScopeFactory (no captive dependency).
+builder.Services.AddSingleton<ExtractionPipelineService>(sp =>
+{
+    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+    var actorIdentityProvider = sp.GetService<ISiaraActorIdentityProvider>();
+    var processOptions = sp.GetService<IOptions<ProcessIdentityOptions>>();
+    var clearance = processOptions?.Value.Clearance ?? ProcessClearance.Extract;
+
+    return new ExtractionPipelineService(
+        sp.GetRequiredService<IEventPublisher>(),
+        sp.GetRequiredService<ExtractionOrchestrator>(),
+        sp.GetRequiredService<IExpedienteHandoffStore>(),
+        sp.GetRequiredService<IExxerHub<ExtractionCompletedEvent>>(),
+        sp.GetRequiredService<ILogger<ExtractionPipelineService>>(),
+        scopeFactory: scopeFactory,
+        actorIdentityProvider: actorIdentityProvider,
+        processClearance: clearance);
+});
 builder.Services.AddHostedService<AthenaWorkerService>();
 
 // Register health check and dashboard services

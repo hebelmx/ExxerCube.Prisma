@@ -1,10 +1,13 @@
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Prisma.Athena.Processing;
 using Prisma.Athena.Processing.Reconciliation;
 using Prisma.Reconciliator.Worker;
@@ -62,7 +65,25 @@ builder.Services.AddSingleton<ReconciliationOrchestrator>(sp => new Reconciliati
     sp.GetRequiredService<ILogger<ReconciliationOrchestrator>>(),
     classifier: sp.GetRequiredService<IFileClassifier>(),
     exporter: sp.GetService<IAdaptiveExporter>()));
-builder.Services.AddSingleton<ReconciliationPipelineService>();
+
+// Per-process audit (MVP-PATH 1.6 A6): ReconciliationPipelineService is singleton; IAuditLogger is scoped.
+// The service resolves IAuditLogger per audit call via IServiceScopeFactory (no captive dependency).
+builder.Services.AddSingleton<ReconciliationPipelineService>(sp =>
+{
+    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+    var actorIdentityProvider = sp.GetService<ISiaraActorIdentityProvider>();
+    var processOptions = sp.GetService<IOptions<ProcessIdentityOptions>>();
+    var clearance = processOptions?.Value.Clearance ?? ProcessClearance.Reconcile;
+
+    return new ReconciliationPipelineService(
+        sp.GetRequiredService<IEventPublisher>(),
+        sp.GetRequiredService<ReconciliationOrchestrator>(),
+        sp.GetRequiredService<IExpedienteHandoffStore>(),
+        sp.GetRequiredService<ILogger<ReconciliationPipelineService>>(),
+        scopeFactory: scopeFactory,
+        actorIdentityProvider: actorIdentityProvider,
+        processClearance: clearance);
+});
 builder.Services.AddHostedService<ReconciliatorWorkerService>();
 
 var app = builder.Build();
