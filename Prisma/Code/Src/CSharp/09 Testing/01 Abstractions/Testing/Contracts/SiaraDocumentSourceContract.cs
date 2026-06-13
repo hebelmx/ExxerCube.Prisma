@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults.Operations;
 using Shouldly;
 using Xunit;
@@ -61,6 +62,39 @@ public abstract class SiaraDocumentSourceContract
         foreach (var id in result.Value!)
         {
             id.ShouldNotBeNullOrWhiteSpace();
+        }
+    }
+
+    /// <summary>
+    /// Contract: a pre-cancelled token to <see cref="ISiaraDocumentSource.DiscoverCasesAsync"/> yields a
+    /// Cancelled Result — never an exception (MVP-PATH 2.1).
+    /// </summary>
+    [Fact]
+    public async Task DiscoverCasesAsync_PreCancelledToken_ReturnsCancelled()
+    {
+        var cancelled = new CancellationToken(canceled: true);
+
+        var result = await Sut.DiscoverCasesAsync(cancelled);
+
+        result.ShouldNotBeNull();
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    /// <summary>
+    /// Contract: a successful case-discovery wraps a non-null list of <see cref="SiaraCase"/> entries.
+    /// The list may be empty, but it is never null, and each case must have a non-blank CaseId (MVP-PATH 2.1).
+    /// </summary>
+    [Fact]
+    public async Task DiscoverCasesAsync_Success_ReturnsNonNullListOfCases()
+    {
+        var result = await Sut.DiscoverCasesAsync(TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        foreach (var siaraCase in result.Value!)
+        {
+            siaraCase.CaseId.ShouldNotBeNullOrWhiteSpace();
+            siaraCase.Files.ShouldNotBeNull();
         }
     }
 }

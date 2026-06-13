@@ -73,6 +73,14 @@ public record DocumentDownloadedEvent : DomainEvent
     public string ClearanceToken { get; init; } = string.Empty;
 
     /// <summary>
+    /// Gets the companion case files downloaded alongside the primary file (MVP-PATH 2.1).
+    /// Each entry carries the storage-relative path and format of one companion file so the Extractor
+    /// process can locate and load all sources for the case without a second discovery round.
+    /// Defaults to an empty list — all existing per-file producers continue to work unchanged.
+    /// </summary>
+    public IReadOnlyList<CaseFileReference> CaseFiles { get; init; } = Array.Empty<CaseFileReference>();
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DocumentDownloadedEvent"/> class.
     /// </summary>
     public DocumentDownloadedEvent()

@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 
 namespace ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
 
@@ -85,22 +86,70 @@ public sealed class SiaraDocumentSource : ISiaraDocumentSource, IAsyncDisposable
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var sessionResult = await EnsureWarmSessionAsync(cancellationToken).ConfigureAwait(false);
-            if (sessionResult.IsCancelled())
+            var filesResult = await RetrieveFilesLockedAsync(cancellationToken).ConfigureAwait(false);
+            if (filesResult.IsCancelled())
             {
                 return ResultExtensions.Cancelled<IReadOnlyList<string>>();
             }
 
-            if (sessionResult.IsFailure || sessionResult.Value is null)
+            if (filesResult.IsFailure || filesResult.Value is null)
             {
-                return Result<IReadOnlyList<string>>.WithFailure(sessionResult.Errors);
+                return Result<IReadOnlyList<string>>.WithFailure(filesResult.Errors);
             }
 
-            return await ListDocumentsAsync(sessionResult.Value, cancellationToken).ConfigureAwait(false);
+            // The document id is the file URL — unambiguous and directly resolvable by the downloader.
+            var ids = filesResult.Value
+                .Select(f => f.Url)
+                .Where(url => !string.IsNullOrWhiteSpace(url))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return Result<IReadOnlyList<string>>.Success(ids);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             return ResultExtensions.Cancelled<IReadOnlyList<string>>();
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<IReadOnlyList<SiaraCase>>> DiscoverCasesAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<IReadOnlyList<SiaraCase>>();
+        }
+
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var filesResult = await RetrieveFilesLockedAsync(cancellationToken).ConfigureAwait(false);
+            if (filesResult.IsCancelled())
+            {
+                return ResultExtensions.Cancelled<IReadOnlyList<SiaraCase>>();
+            }
+
+            if (filesResult.IsFailure || filesResult.Value is null)
+            {
+                return Result<IReadOnlyList<SiaraCase>>.WithFailure(filesResult.Errors);
+            }
+
+            var cases = SiaraCaseGrouping.GroupByCase(filesResult.Value);
+
+            _logger.LogInformation(
+                "SIARA case discovery grouped {FileCount} file(s) into {CaseCount} case(s)",
+                filesResult.Value.Count,
+                cases.Count);
+
+            return Result<IReadOnlyList<SiaraCase>>.Success(cases);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<IReadOnlyList<SiaraCase>>();
         }
         finally
         {
@@ -190,8 +239,25 @@ public sealed class SiaraDocumentSource : ISiaraDocumentSource, IAsyncDisposable
         return Result<SiaraSession>.Success(_session);
     }
 
-    private async Task<Result<IReadOnlyList<string>>> ListDocumentsAsync(SiaraSession session, CancellationToken cancellationToken)
+    /// <summary>
+    /// Acquires a warm session (if not already held), hydrates the browser, navigates, and retrieves the raw
+    /// file list from SIARA. Must be called while the caller holds <see cref="_gate"/>.
+    /// </summary>
+    private async Task<Result<IReadOnlyList<DownloadableFile>>> RetrieveFilesLockedAsync(CancellationToken cancellationToken)
     {
+        var sessionResult = await EnsureWarmSessionAsync(cancellationToken).ConfigureAwait(false);
+        if (sessionResult.IsCancelled())
+        {
+            return ResultExtensions.Cancelled<IReadOnlyList<DownloadableFile>>();
+        }
+
+        if (sessionResult.IsFailure || sessionResult.Value is null)
+        {
+            return Result<IReadOnlyList<DownloadableFile>>.WithFailure(sessionResult.Errors);
+        }
+
+        var session = sessionResult.Value;
+
         // Hydrate the browser with the credential-free authenticated storage-state the session captured, so
         // the scrape runs authenticated regardless of which mode acquired it.
         if (!string.IsNullOrWhiteSpace(session.StorageStateRef))
@@ -199,51 +265,44 @@ public sealed class SiaraDocumentSource : ISiaraDocumentSource, IAsyncDisposable
             var hydrate = await _sessionContext.LoadStorageStateAsync(session.StorageStateRef, cancellationToken).ConfigureAwait(false);
             if (hydrate.IsCancelled())
             {
-                return ResultExtensions.Cancelled<IReadOnlyList<string>>();
+                return ResultExtensions.Cancelled<IReadOnlyList<DownloadableFile>>();
             }
 
             if (hydrate.IsFailure)
             {
-                return Result<IReadOnlyList<string>>.WithFailure(hydrate.Errors);
+                return Result<IReadOnlyList<DownloadableFile>>.WithFailure(hydrate.Errors);
             }
         }
 
         var navigate = await _agent.NavigateToAsync(_navigationTarget.BaseUrl, cancellationToken).ConfigureAwait(false);
         if (navigate.IsCancelled())
         {
-            return ResultExtensions.Cancelled<IReadOnlyList<string>>();
+            return ResultExtensions.Cancelled<IReadOnlyList<DownloadableFile>>();
         }
 
         if (navigate.IsFailure)
         {
-            return Result<IReadOnlyList<string>>.WithFailure(navigate.Errors);
+            return Result<IReadOnlyList<DownloadableFile>>.WithFailure(navigate.Errors);
         }
 
         var filesResult = await _navigationTarget.RetrieveDocumentsAsync(_agent, cancellationToken).ConfigureAwait(false);
         if (filesResult.IsCancelled())
         {
-            return ResultExtensions.Cancelled<IReadOnlyList<string>>();
+            return ResultExtensions.Cancelled<IReadOnlyList<DownloadableFile>>();
         }
 
         if (filesResult.IsFailure || filesResult.Value is null)
         {
-            return Result<IReadOnlyList<string>>.WithFailure(filesResult.Errors);
+            return Result<IReadOnlyList<DownloadableFile>>.WithFailure(filesResult.Errors);
         }
 
-        // The document id is the file URL — unambiguous and directly resolvable by the downloader.
-        var ids = filesResult.Value
-            .Select(f => f.Url)
-            .Where(url => !string.IsNullOrWhiteSpace(url))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
         _logger.LogInformation(
-            "SIARA discovery listed {Count} document(s) on session {SessionId} for actor {ActorId}",
-            ids.Count,
+            "SIARA discovery retrieved {Count} file(s) on session {SessionId} for actor {ActorId}",
+            filesResult.Value.Count,
             session.SessionId,
             session.AcquiredBy.ActorId);
 
-        return Result<IReadOnlyList<string>>.Success(ids);
+        return Result<IReadOnlyList<DownloadableFile>>.Success(filesResult.Value);
     }
 
     private SiaraSessionRequest BuildSessionRequest() => new()

@@ -1,4 +1,6 @@
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
 using IndQuestResults.Operations;
 
@@ -72,5 +74,45 @@ public sealed class FakeSiaraDocumentSource : ISiaraDocumentSource
         }
 
         return Task.FromResult(Result<IReadOnlyList<string>>.Success(ids));
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The fake synthesizes one <see cref="SiaraCase"/> per document id (treating each id as its own case).
+    /// This is the simplest deterministic behaviour that satisfies the contract; tests that need multi-file
+    /// cases should use the real <c>SiaraCaseGrouping</c> helper or provide a custom fake.
+    /// </remarks>
+    public Task<Result<IReadOnlyList<SiaraCase>>> DiscoverCasesAsync(CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return Task.FromResult(ResultExtensions.Cancelled<IReadOnlyList<SiaraCase>>());
+        }
+
+        IReadOnlyList<string> ids;
+        lock (_gate)
+        {
+            ids = _documentIds;
+        }
+
+        if (_failClosed)
+        {
+            return Task.FromResult(Result<IReadOnlyList<SiaraCase>>.WithFailure(
+                "Fake discovery source configured to fail closed (no authenticated SIARA session)."));
+        }
+
+        // One synthetic case per id, carrying a single placeholder file so the case bundle is non-empty.
+        var cases = ids
+            .Select(id => new SiaraCase
+            {
+                CaseId = id,
+                Files = new[]
+                {
+                    new DownloadableFile { Url = id, FileName = id, Format = FileFormat.Unknown },
+                },
+            })
+            .ToList();
+
+        return Task.FromResult(Result<IReadOnlyList<SiaraCase>>.Success((IReadOnlyList<SiaraCase>)cases));
     }
 }

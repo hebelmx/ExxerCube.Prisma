@@ -141,4 +141,82 @@ public sealed class SiaraDocumentSourceTests
 
         await provider.Received(1).ReleaseAsync(Arg.Any<SiaraSession>(), Arg.Any<CancellationToken>());
     }
+
+    // ---------------------------------------------------------------------------
+    // DiscoverCasesAsync mechanics (MVP-PATH 2.1)
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public async Task DiscoverCasesAsync_PreCancelledToken_ReturnsCancelled()
+    {
+        var sut = SiaraDocumentSourceTestFactory.CreateSource();
+        var cancelled = new CancellationToken(canceled: true);
+
+        var result = await sut.DiscoverCasesAsync(cancelled);
+
+        result.ShouldNotBeNull();
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task DiscoverCasesAsync_WhenResolverFails_FailsClosed()
+    {
+        var resolver = Substitute.For<ISiaraSessionProviderResolver>();
+        resolver.Resolve().Returns(Result<ISiaraSessionProvider>.WithFailure("No provider configured"));
+        var sut = SiaraDocumentSourceTestFactory.CreateSource(resolver: resolver);
+
+        var result = await sut.DiscoverCasesAsync(Ct);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task DiscoverCasesAsync_HappyPath_GroupsFilesIntoCase()
+    {
+        // The default navigation-target mock returns one file at PresentDocumentUrl, which is
+        // "https://siara.local/files/contract-document.pdf" — path segments: ["files","contract-document.pdf"]
+        // → case id = "files". This verifies the full wire (session + hydrate + navigate + group).
+        var sut = SiaraDocumentSourceTestFactory.CreateSource();
+
+        var result = await sut.DiscoverCasesAsync(Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.ShouldNotBeEmpty();
+        // All files from the mock end up in some case.
+        result.Value!.SelectMany(c => c.Files).ShouldNotBeEmpty();
+    }
+
+    [Fact]
+    public async Task DiscoverCasesAsync_WhenSiaraPresentsNothing_ReturnsEmptyCaseList()
+    {
+        var nav = SiaraDocumentSourceTestFactory.CreateNavigationTargetMock(new List<DownloadableFile>());
+        var sut = SiaraDocumentSourceTestFactory.CreateSource(navigationTarget: nav);
+
+        var result = await sut.DiscoverCasesAsync(Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task DiscoverCasesAsync_MultiFileSameCase_ReturnsSingleCase()
+    {
+        var files = new List<DownloadableFile>
+        {
+            new() { Url = "https://siara.local/document_store/EXP001/form.pdf",  FileName = "form",  Format = FileFormat.Pdf },
+            new() { Url = "https://siara.local/document_store/EXP001/data.xml",  FileName = "data",  Format = FileFormat.Xml },
+            new() { Url = "https://siara.local/document_store/EXP001/annex.docx", FileName = "annex", Format = FileFormat.Docx },
+        };
+        var nav = SiaraDocumentSourceTestFactory.CreateNavigationTargetMock(files);
+        var sut = SiaraDocumentSourceTestFactory.CreateSource(navigationTarget: nav);
+
+        var result = await sut.DiscoverCasesAsync(Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Count.ShouldBe(1);
+        result.Value![0].CaseId.ShouldBe("EXP001");
+        result.Value![0].Files.Count.ShouldBe(3);
+    }
 }
