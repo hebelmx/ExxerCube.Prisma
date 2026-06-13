@@ -24,6 +24,9 @@
   <ItemGroup Label="Testing Utilities">
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />
+    <!-- Used to generate a searchable (embedded-text) PDF in-memory for the native-text extraction test
+         (MVP-PATH 2.2 / B2), round-tripped through the same PdfPig reader the production extractor uses. -->
+    <PackageReference Include="PdfPig" />
   </ItemGroup>
   <ItemGroup Label="Logging">
     <PackageReference Include="Microsoft.Extensions.Logging" />
