@@ -1,4 +1,7 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -13,7 +16,13 @@ namespace Prisma.Athena.Processing.Ingestion;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Before republishing it <em>resolves shared storage</em> (ADR-011): the event carries only a
+/// Before republishing it validates the clearance token on the event (MVP-PATH 1.5, A5): only events whose
+/// token carries <see cref="ProcessClearance.Download"/> and whose <c>file_id</c> claim matches
+/// <see cref="DocumentDownloadedEvent.FileId"/> are forwarded. All others are logged and silently dropped
+/// (fail-closed; never throw). This enforces the Orion Downloader → Athena Extractor trust boundary.
+/// </para>
+/// <para>
+/// After clearance validation it <em>resolves shared storage</em> (ADR-011): the event carries only a
 /// storage-relative <see cref="DocumentDownloadedEvent.Path"/> (the two processes may mount the shared volume
 /// at different absolute paths), so the forwarder turns it into a locally-loadable absolute path via
 /// <see cref="IStoragePathResolver"/> and stamps it onto <see cref="DocumentDownloadedEvent.FileName"/> — the
@@ -31,33 +40,77 @@ public sealed class IngestionEventForwarder
 {
     private readonly IEventPublisher _eventPublisher;
     private readonly IStoragePathResolver _storagePathResolver;
+    private readonly IProcessClearanceTokenService _clearanceTokenService;
     private readonly ILogger<IngestionEventForwarder> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="IngestionEventForwarder"/> class.</summary>
     /// <param name="eventPublisher">The local event publisher the pipeline subscribes to.</param>
     /// <param name="storagePathResolver">Resolves the event's storage-relative path against this process's shared-storage base.</param>
+    /// <param name="clearanceTokenService">Validates the per-document process clearance token carried on each cross-process event (MVP-PATH 1.5, A5).</param>
     /// <param name="logger">The logger.</param>
     public IngestionEventForwarder(
         IEventPublisher eventPublisher,
         IStoragePathResolver storagePathResolver,
+        IProcessClearanceTokenService clearanceTokenService,
         ILogger<IngestionEventForwarder> logger)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _storagePathResolver = storagePathResolver ?? throw new ArgumentNullException(nameof(storagePathResolver));
+        _clearanceTokenService = clearanceTokenService ?? throw new ArgumentNullException(nameof(clearanceTokenService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
-    /// Republishes a cross-process <see cref="DocumentDownloadedEvent"/> onto the local event stream, after
-    /// resolving its storage-relative path to a locally-loadable absolute path.
-    /// A null event is ignored (defensive: a malformed transport frame must never crash the consumer).
+    /// Validates the clearance token on a cross-process <see cref="DocumentDownloadedEvent"/> and, when
+    /// authorised, republishes it onto the local event stream after resolving its storage-relative path.
+    /// A null event or one that fails clearance validation is silently dropped (never throws; fail-closed).
     /// </summary>
     /// <param name="downloadEvent">The event received from the Orion ingestion hub.</param>
-    public void Forward(DocumentDownloadedEvent? downloadEvent)
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    public async Task ForwardAsync(DocumentDownloadedEvent? downloadEvent,
+        CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
         if (downloadEvent is null)
         {
             _logger.LogWarning("Received a null DocumentDownloadedEvent from the ingestion hub; ignoring");
+            return;
+        }
+
+        // MVP-PATH 1.5 A5: validate the process clearance token before forwarding.
+        if (string.IsNullOrWhiteSpace(downloadEvent.ClearanceToken))
+        {
+            LogAndReject(downloadEvent.FileId, actorId: null, "missing clearance token");
+            return;
+        }
+
+        var validation = await _clearanceTokenService
+            .ValidateAsync(downloadEvent.ClearanceToken, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (validation.IsFailure)
+        {
+            LogAndReject(downloadEvent.FileId, actorId: null, validation.Error ?? "token validation failed");
+            return;
+        }
+
+        var claims = validation.Value!;
+
+        if (claims.Clearance != ProcessClearance.Download)
+        {
+            LogAndReject(downloadEvent.FileId, claims.ActorId,
+                $"clearance {claims.Clearance} not permitted on ingestion edge");
+            return;
+        }
+
+        if (claims.FileId != downloadEvent.FileId)
+        {
+            LogAndReject(downloadEvent.FileId, claims.ActorId,
+                "clearance token file_id mismatch (replay/tamper)");
             return;
         }
 
@@ -69,6 +122,18 @@ public sealed class IngestionEventForwarder
             resolvedEvent.CorrelationId);
 
         _eventPublisher.Publish(resolvedEvent);
+    }
+
+    /// <summary>
+    /// Logs a rejection at Warning level and returns without publishing. Never throws.
+    /// </summary>
+    private void LogAndReject(Guid fileId, string? actorId, string reason)
+    {
+        _logger.LogWarning(
+            "IngestionEventForwarder: rejected DocumentDownloadedEvent {FileId} (actor {ActorId}): {Reason}",
+            fileId,
+            actorId ?? "(unknown)",
+            reason);
     }
 
     /// <summary>

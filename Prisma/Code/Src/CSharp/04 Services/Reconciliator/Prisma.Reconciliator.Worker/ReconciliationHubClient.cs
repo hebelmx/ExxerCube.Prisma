@@ -62,7 +62,7 @@ public sealed class ReconciliationHubClient : BackgroundService
             .Build();
 
         // Receive on the Ember protocol method name and republish onto the local pipeline.
-        _connection.On<ExtractionCompletedEvent>("ReceiveMessage", evt => _forwarder.Forward(evt));
+        _connection.On<ExtractionCompletedEvent>("ReceiveMessage", async evt => await _forwarder.ForwardAsync(evt).ConfigureAwait(false));
 
         await ConnectWithRetryAsync(stoppingToken).ConfigureAwait(false);
 

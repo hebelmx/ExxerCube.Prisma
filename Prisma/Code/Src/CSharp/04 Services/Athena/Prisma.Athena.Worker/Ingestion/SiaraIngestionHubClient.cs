@@ -61,7 +61,7 @@ public sealed class SiaraIngestionHubClient : BackgroundService
             .Build();
 
         // Receive on the Ember protocol method name and republish onto the local pipeline.
-        _connection.On<DocumentDownloadedEvent>("ReceiveMessage", evt => _forwarder.Forward(evt));
+        _connection.On<DocumentDownloadedEvent>("ReceiveMessage", async evt => await _forwarder.ForwardAsync(evt).ConfigureAwait(false));
 
         await ConnectWithRetryAsync(stoppingToken).ConfigureAwait(false);
 

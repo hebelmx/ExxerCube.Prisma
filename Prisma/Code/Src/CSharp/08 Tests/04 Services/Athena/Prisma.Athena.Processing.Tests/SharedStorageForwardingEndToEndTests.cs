@@ -12,6 +12,37 @@ using Prisma.Athena.Processing.Ingestion;
 
 namespace ExxerCube.Prisma.Athena.Processing.Tests;
 
+file static class TokenServiceHelper
+{
+    public static IProcessClearanceTokenService AcceptingDownload(Guid fileId)
+    {
+        var mock = Substitute.For<IProcessClearanceTokenService>();
+        mock.ValidateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ClearanceTokenClaims>.Success(new ClearanceTokenClaims
+            {
+                ActorId = "orion-downloader",
+                ActorType = SiaraActorType.ServiceAccount,
+                Clearance = ProcessClearance.Download,
+                FileId = fileId,
+            }));
+        return mock;
+    }
+
+    public static IProcessClearanceTokenService AcceptingExtract(Guid fileId)
+    {
+        var mock = Substitute.For<IProcessClearanceTokenService>();
+        mock.ValidateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ClearanceTokenClaims>.Success(new ClearanceTokenClaims
+            {
+                ActorId = "athena-extractor",
+                ActorType = SiaraActorType.ServiceAccount,
+                Clearance = ProcessClearance.Extract,
+                FileId = fileId,
+            }));
+        return mock;
+    }
+}
+
 /// <summary>
 /// End-to-end proof of the MVP-PATH 1.3 shared-storage edge (ADR-011): a cross-process
 /// <see cref="DocumentDownloadedEvent"/> that carries only a storage-<em>relative</em> path must be resolved
@@ -31,6 +62,7 @@ public sealed class SharedStorageForwardingEndToEndTests : IDisposable
     {
         // Arrange — a shared-storage base this (Extractor) process mounts, and the relative path the
         // Downloader put on the wire. The pipeline must open base + relative.
+        var fileId = Guid.NewGuid();
         var baseDir = Path.Combine(Path.GetTempPath(), "prisma-shared-e2e-" + Guid.NewGuid().ToString("N"));
         const string relativePath = "2026/06/12/abc.pdf";
         var expectedAbsolute = Path.GetFullPath(Path.Combine(baseDir, "2026", "06", "12", "abc.pdf"));
@@ -67,22 +99,24 @@ public sealed class SharedStorageForwardingEndToEndTests : IDisposable
         var resolver = new SharedStoragePathResolver(
             Options.Create(new StorageOptions { BasePath = baseDir }),
             NullLogger<SharedStoragePathResolver>.Instance);
+        var tokenService = TokenServiceHelper.AcceptingDownload(fileId);
         var forwarder = new IngestionEventForwarder(
-            _eventPublisher, resolver, NullLogger<IngestionEventForwarder>.Instance);
+            _eventPublisher, resolver, tokenService, NullLogger<IngestionEventForwarder>.Instance);
 
         // Act — the Athena hub client hands the received cross-process event to the forwarder.
-        forwarder.Forward(new DocumentDownloadedEvent
+        await forwarder.ForwardAsync(new DocumentDownloadedEvent
         {
             EventId = Guid.NewGuid(),
             Timestamp = DateTime.UtcNow,
             CorrelationId = Guid.NewGuid(),
-            FileId = Guid.NewGuid(),
+            FileId = fileId,
             FileName = "abc.pdf",       // bare name from the Downloader
             Path = relativePath,        // storage-relative, mount-path independent
             Source = "SIARA",
             FileSizeBytes = 1024,
             Format = FileFormat.Pdf,
-        });
+            ClearanceToken = "e2e-download-token",
+        }, TestContext.Current.CancellationToken);
 
         var completed = await Task.WhenAny(
             processingComplete.Task,

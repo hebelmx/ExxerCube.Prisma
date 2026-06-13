@@ -1,4 +1,7 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -13,35 +16,90 @@ namespace Prisma.Athena.Processing.Reconciliation;
 /// <c>IngestionEventForwarder</c> on the Downloader → Extractor edge.
 /// </summary>
 /// <remarks>
+/// <para>
+/// Before republishing it validates the clearance token on the event (MVP-PATH 1.5, A5): only events whose
+/// token carries <see cref="ProcessClearance.Extract"/> and whose <c>file_id</c> claim matches
+/// <see cref="ExtractionCompletedEvent.FileId"/> are forwarded. All others are logged and silently dropped
+/// (fail-closed; never throw). This enforces the Athena Extractor → Reconciliator trust boundary.
+/// </para>
+/// <para>
 /// Unlike the ingestion forwarder, no path-stamping is needed here: the handoff is a shared-storage reference
 /// and the pipeline loads the fused expediente via <see cref="IExpedienteHandoffStore"/>, which resolves the
 /// path itself. A null event is ignored (a malformed transport frame must never crash the consumer). Kept as a
 /// thin, host-agnostic seam so it is unit-testable without a live SignalR connection.
+/// </para>
 /// </remarks>
 public sealed class ReconciliationEventForwarder
 {
     private readonly IEventPublisher _eventPublisher;
+    private readonly IProcessClearanceTokenService _clearanceTokenService;
     private readonly ILogger<ReconciliationEventForwarder> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="ReconciliationEventForwarder"/> class.</summary>
     /// <param name="eventPublisher">The local event publisher the pipeline subscribes to.</param>
+    /// <param name="clearanceTokenService">Validates the per-document process clearance token carried on each cross-process event (MVP-PATH 1.5, A5).</param>
     /// <param name="logger">The logger.</param>
-    public ReconciliationEventForwarder(IEventPublisher eventPublisher, ILogger<ReconciliationEventForwarder> logger)
+    public ReconciliationEventForwarder(
+        IEventPublisher eventPublisher,
+        IProcessClearanceTokenService clearanceTokenService,
+        ILogger<ReconciliationEventForwarder> logger)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
+        _clearanceTokenService = clearanceTokenService ?? throw new ArgumentNullException(nameof(clearanceTokenService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
-    /// Republishes a cross-process <see cref="ExtractionCompletedEvent"/> onto the local event stream. A null
-    /// event is ignored (defensive: a malformed transport frame must never crash the consumer).
+    /// Validates the clearance token on a cross-process <see cref="ExtractionCompletedEvent"/> and, when
+    /// authorised, republishes it onto the local event stream.
+    /// A null event or one that fails clearance validation is silently dropped (never throws; fail-closed).
     /// </summary>
     /// <param name="completedEvent">The event received from the reconciliation hub.</param>
-    public void Forward(ExtractionCompletedEvent? completedEvent)
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    public async Task ForwardAsync(ExtractionCompletedEvent? completedEvent,
+        CancellationToken cancellationToken = default)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
         if (completedEvent is null)
         {
             _logger.LogWarning("Received a null ExtractionCompletedEvent from the reconciliation hub; ignoring");
+            return;
+        }
+
+        // MVP-PATH 1.5 A5: validate the process clearance token before forwarding.
+        if (string.IsNullOrWhiteSpace(completedEvent.ClearanceToken))
+        {
+            LogAndReject(completedEvent.FileId, actorId: null, "missing clearance token");
+            return;
+        }
+
+        var validation = await _clearanceTokenService
+            .ValidateAsync(completedEvent.ClearanceToken, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (validation.IsFailure)
+        {
+            LogAndReject(completedEvent.FileId, actorId: null, validation.Error ?? "token validation failed");
+            return;
+        }
+
+        var claims = validation.Value!;
+
+        if (claims.Clearance != ProcessClearance.Extract)
+        {
+            LogAndReject(completedEvent.FileId, claims.ActorId,
+                $"clearance {claims.Clearance} not permitted on reconciliation edge");
+            return;
+        }
+
+        if (claims.FileId != completedEvent.FileId)
+        {
+            LogAndReject(completedEvent.FileId, claims.ActorId,
+                "clearance token file_id mismatch (replay/tamper)");
             return;
         }
 
@@ -51,5 +109,17 @@ public sealed class ReconciliationEventForwarder
             completedEvent.CorrelationId);
 
         _eventPublisher.Publish(completedEvent);
+    }
+
+    /// <summary>
+    /// Logs a rejection at Warning level and returns without publishing. Never throws.
+    /// </summary>
+    private void LogAndReject(Guid fileId, string? actorId, string reason)
+    {
+        _logger.LogWarning(
+            "ReconciliationEventForwarder: rejected ExtractionCompletedEvent {FileId} (actor {ActorId}): {Reason}",
+            fileId,
+            actorId ?? "(unknown)",
+            reason);
     }
 }

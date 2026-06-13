@@ -111,15 +111,29 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
         await reconciliationPipeline.StartAsync(ct);
 
         // The reconciliation forwarder republishes the received handoff onto the Reconciliator's local stream.
+        var reconciliationTokenService = Substitute.For<IProcessClearanceTokenService>();
+        reconciliationTokenService.ValidateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => Result<ClearanceTokenClaims>.Success(new ClearanceTokenClaims
+            {
+                ActorId = "athena-extractor",
+                ActorType = SiaraActorType.ServiceAccount,
+                Clearance = ProcessClearance.Extract,
+                FileId = fileId, // matched against the event's FileId by the forwarder
+            }));
+
         var reconciliationForwarder = new ReconciliationEventForwarder(
-            _reconciliatorPublisher, NullLogger<ReconciliationEventForwarder>.Instance);
+            _reconciliatorPublisher, reconciliationTokenService, NullLogger<ReconciliationEventForwarder>.Instance);
 
         // ---- Edge 2 (Extractor → Reconciliator): a hub stub bridges the broadcast to the Reconciliator ----
         var reconciliationHub = Substitute.For<IExxerHub<ExtractionCompletedEvent>>();
         reconciliationHub.SendToAllAsync(Arg.Any<ExtractionCompletedEvent>(), Arg.Any<CancellationToken>())
-            .Returns(callInfo =>
+            .Returns(async callInfo =>
             {
-                reconciliationForwarder.Forward(callInfo.Arg<ExtractionCompletedEvent>());
+                var evt = callInfo.Arg<ExtractionCompletedEvent>();
+                // Stamp a clearance token so the forwarder's validation passes.
+                var stamped = evt with { ClearanceToken = "e2e-extract-token" };
+                await reconciliationForwarder.ForwardAsync(stamped, callInfo.ArgAt<CancellationToken>(1))
+                    .ConfigureAwait(false);
                 return Result.Success();
             });
 
@@ -134,11 +148,21 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
             .Subscribe(e => pipelineComplete.TrySetResult(e));
 
         // ---- Edge 1 (Downloader → Extractor): the ingestion forwarder republishes onto the Extractor stream ----
+        var ingestionTokenService = Substitute.For<IProcessClearanceTokenService>();
+        ingestionTokenService.ValidateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => Result<ClearanceTokenClaims>.Success(new ClearanceTokenClaims
+            {
+                ActorId = "orion-downloader",
+                ActorType = SiaraActorType.ServiceAccount,
+                Clearance = ProcessClearance.Download,
+                FileId = fileId,
+            }));
+
         var ingestionForwarder = new IngestionEventForwarder(
-            _extractorPublisher, storageResolver, NullLogger<IngestionEventForwarder>.Instance);
+            _extractorPublisher, storageResolver, ingestionTokenService, NullLogger<IngestionEventForwarder>.Instance);
 
         // Act — a document is downloaded (Orion) and crosses into the Extractor.
-        ingestionForwarder.Forward(new DocumentDownloadedEvent
+        await ingestionForwarder.ForwardAsync(new DocumentDownloadedEvent
         {
             EventId = Guid.NewGuid(),
             Timestamp = DateTime.UtcNow,
@@ -149,7 +173,8 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
             Source = "SIARA",
             FileSizeBytes = 2048,
             Format = FileFormat.Pdf,
-        });
+            ClearanceToken = "e2e-download-token",
+        }, ct);
 
         // Assert — the document flowed across all three actors and the Reconciliator completed it.
         var completed = await Task.WhenAny(pipelineComplete.Task, Task.Delay(TimeSpan.FromSeconds(10), ct));
