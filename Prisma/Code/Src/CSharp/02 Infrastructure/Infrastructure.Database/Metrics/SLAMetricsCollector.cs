@@ -27,6 +27,15 @@ public class SLAMetricsCollector
     private readonly UpDownCounter<long> _breachedCasesCounter;
     private readonly UpDownCounter<long> _activeCasesCounter;
 
+    // Last-reported gauge values, tracked internally so UpDownCounter deltas are correct.
+    // An UpDownCounter is delta-based: each Add() must be the change since the last report, not the
+    // absolute count. Reading the live value back from OpenTelemetry is not part of the metrics API, so
+    // the collector keeps its own snapshot. Guarded by _gaugeLock for the read-modify-write in the Update* methods.
+    private readonly object _gaugeLock = new();
+    private long _atRiskCurrent;
+    private long _breachedCurrent;
+    private long _activeCurrent;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="SLAMetricsCollector"/> class.
     /// </summary>
@@ -180,11 +189,15 @@ public class SLAMetricsCollector
     /// <param name="count">The current count of at-risk cases.</param>
     public void UpdateAtRiskCases(long count)
     {
-        var delta = count - GetCurrentGaugeValue("at_risk");
-        if (delta != 0)
+        lock (_gaugeLock)
         {
-            _atRiskCasesCounter.Add(delta);
-            _logger.LogDebug("At-risk cases updated: Count={Count}", count);
+            var delta = count - _atRiskCurrent;
+            if (delta != 0)
+            {
+                _atRiskCasesCounter.Add(delta);
+                _atRiskCurrent = count;
+                _logger.LogDebug("At-risk cases updated: Count={Count}", count);
+            }
         }
     }
 
@@ -194,11 +207,15 @@ public class SLAMetricsCollector
     /// <param name="count">The current count of breached cases.</param>
     public void UpdateBreachedCases(long count)
     {
-        var delta = count - GetCurrentGaugeValue("breached");
-        if (delta != 0)
+        lock (_gaugeLock)
         {
-            _breachedCasesCounter.Add(delta);
-            _logger.LogDebug("Breached cases updated: Count={Count}", count);
+            var delta = count - _breachedCurrent;
+            if (delta != 0)
+            {
+                _breachedCasesCounter.Add(delta);
+                _breachedCurrent = count;
+                _logger.LogDebug("Breached cases updated: Count={Count}", count);
+            }
         }
     }
 
@@ -208,11 +225,15 @@ public class SLAMetricsCollector
     /// <param name="count">The current count of active cases.</param>
     public void UpdateActiveCases(long count)
     {
-        var delta = count - GetCurrentGaugeValue("active");
-        if (delta != 0)
+        lock (_gaugeLock)
         {
-            _activeCasesCounter.Add(delta);
-            _logger.LogDebug("Active cases updated: Count={Count}", count);
+            var delta = count - _activeCurrent;
+            if (delta != 0)
+            {
+                _activeCasesCounter.Add(delta);
+                _activeCurrent = count;
+                _logger.LogDebug("Active cases updated: Count={Count}", count);
+            }
         }
     }
 
@@ -241,13 +262,23 @@ public class SLAMetricsCollector
     }
 
     /// <summary>
-    /// Gets the current value of a gauge metric (simplified - in production, use proper metric reading).
+    /// Gets the last-reported value of a gauge metric. The collector tracks gauge state internally because
+    /// reading a live UpDownCounter value back is not part of the OpenTelemetry metrics API; the exported
+    /// metric is reconstructed from the deltas reported via the Update* methods.
     /// </summary>
+    /// <param name="gaugeName">One of "at_risk", "breached", or "active".</param>
     private long GetCurrentGaugeValue(string gaugeName)
     {
-        // Note: In a real implementation, you would read the actual current value from the metric
-        // For now, we'll track it internally. In production, use OpenTelemetry's metric reading APIs.
-        return 0; // Placeholder - actual implementation would read from metric system
+        lock (_gaugeLock)
+        {
+            return gaugeName switch
+            {
+                "at_risk" => _atRiskCurrent,
+                "breached" => _breachedCurrent,
+                "active" => _activeCurrent,
+                _ => 0,
+            };
+        }
     }
 
     /// <summary>

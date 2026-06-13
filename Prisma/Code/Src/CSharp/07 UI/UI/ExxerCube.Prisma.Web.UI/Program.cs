@@ -421,6 +421,10 @@ Inner Stack Trace:
                 {
                     metricsProviderBuilder
                         .SetResourceBuilder(resourceBuilder)
+                        // Export the application's custom SLA meter (SLAMetricsCollector) so the SLA
+                        // counters/histograms/gauges reach Seq/OTLP. Without this the meter is created
+                        // but never collected.
+                        .AddMeter("ExxerCube.Prisma.SLA")
                         // Add ASP.NET Core metrics
                         .AddAspNetCoreInstrumentation()
                         // Add HTTP client metrics
