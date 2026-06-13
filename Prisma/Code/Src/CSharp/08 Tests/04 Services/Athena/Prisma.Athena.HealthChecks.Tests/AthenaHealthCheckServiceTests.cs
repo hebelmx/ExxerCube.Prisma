@@ -1,30 +1,31 @@
 namespace ExxerCube.Prisma.Athena.HealthChecks.Tests;
 
 /// <summary>
-/// TDD tests for AthenaHealthCheckService.
+/// Tests for <see cref="AthenaHealthCheckService"/> (MVP-PATH 4.2 / E1).
 /// </summary>
 /// <remarks>
-/// Stage 4 Requirements:
-/// - Liveness always returns Healthy when process is running
-/// - Readiness returns Healthy when orchestrator is ready
-/// - Health combines liveness and readiness status
+/// - Liveness always returns Healthy when the process is running.
+/// - Readiness reflects the real <see cref="IReadinessProbe"/> (the Extractor pipeline's started state):
+///   Healthy once started, Unhealthy before — no longer the "ready if not null" placeholder.
+/// - Health combines liveness and readiness status.
 /// </remarks>
 public sealed class AthenaHealthCheckServiceTests
 {
+    private static AthenaHealthCheckService CreateService(bool ready)
+    {
+        var probe = Substitute.For<IReadinessProbe>();
+        probe.IsReady.Returns(ready);
+        return new AthenaHealthCheckService(probe, NullLogger<AthenaHealthCheckService>.Instance);
+    }
+
     [Fact]
     [Trait("Category", "Unit")]
     public async Task GetLivenessAsync_ProcessRunning_ReturnsHealthy()
     {
-        // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaHealthCheckService(orchestrator, NullLogger<AthenaHealthCheckService>.Instance);
+        var service = CreateService(ready: false);
 
-        // Act
         var result = await service.GetLivenessAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.ShouldNotBeNull();
         result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Description.ShouldContain("running", Case.Insensitive);
@@ -32,37 +33,40 @@ public sealed class AthenaHealthCheckServiceTests
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task GetReadinessAsync_OrchestratorReady_ReturnsHealthy()
+    public async Task GetReadinessAsync_WhenStarted_ReturnsHealthy()
     {
-        // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaHealthCheckService(orchestrator, NullLogger<AthenaHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
 
-        // Act
         var result = await service.GetReadinessAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.ShouldNotBeNull();
         result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Description.ShouldContain("ready", Case.Insensitive);
+        result.Data.ShouldNotBeNull();
+        result.Data["orchestratorReady"].ShouldBe(true);
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task GetHealthAsync_AllHealthy_ReturnsHealthy()
+    public async Task GetReadinessAsync_WhenNotStarted_ReturnsUnhealthy()
     {
-        // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaHealthCheckService(orchestrator, NullLogger<AthenaHealthCheckService>.Instance);
+        var service = CreateService(ready: false);
 
-        // Act
+        var result = await service.GetReadinessAsync(TestContext.Current.CancellationToken);
+
+        result.Status.ShouldBe(OrchestratorHealthState.Unhealthy);
+        result.Data.ShouldNotBeNull();
+        result.Data["orchestratorReady"].ShouldBe(false);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetHealthAsync_WhenStarted_ReturnsHealthy()
+    {
+        var service = CreateService(ready: true);
+
         var result = await service.GetHealthAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.ShouldNotBeNull();
         result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Data.ShouldNotBeNull();
@@ -72,19 +76,25 @@ public sealed class AthenaHealthCheckServiceTests
 
     [Fact]
     [Trait("Category", "Unit")]
+    public async Task GetHealthAsync_WhenNotStarted_ReturnsDegraded()
+    {
+        var service = CreateService(ready: false);
+
+        var result = await service.GetHealthAsync(TestContext.Current.CancellationToken);
+
+        // Liveness is healthy but readiness is not → overall degraded.
+        result.Status.ShouldBe(OrchestratorHealthState.Degraded);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
     public async Task GetLivenessAsync_IncludesTimestamp()
     {
-        // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaHealthCheckService(orchestrator, NullLogger<AthenaHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
         var beforeCall = DateTime.UtcNow;
 
-        // Act
         var result = await service.GetLivenessAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.Data.ShouldNotBeNull();
         result.Data.ShouldContainKey("timestamp");
         var timestamp = (DateTime)result.Data["timestamp"];
@@ -96,16 +106,10 @@ public sealed class AthenaHealthCheckServiceTests
     [Trait("Category", "Unit")]
     public async Task GetReadinessAsync_IncludesOrchestratorReadyFlag()
     {
-        // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaHealthCheckService(orchestrator, NullLogger<AthenaHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
 
-        // Act
         var result = await service.GetReadinessAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.Data.ShouldNotBeNull();
         result.Data.ShouldContainKey("orchestratorReady");
         result.Data["orchestratorReady"].ShouldBeOfType<bool>();

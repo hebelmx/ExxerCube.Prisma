@@ -32,12 +32,23 @@ namespace Prisma.Orion.Ingestion;
 /// documents is a cheap no-op.
 /// </para>
 /// </remarks>
-public sealed class SiaraWatchLoop
+public sealed class SiaraWatchLoop : IReadinessProbe
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly WatchLoopOptions _options;
     private readonly ILogger<SiaraWatchLoop> _logger;
     private readonly TimeProvider _timeProvider;
+
+    /// <summary>
+    /// Gets a value indicating whether the watch loop is actively polling SIARA. Becomes <see langword="true"/>
+    /// once the discovery source is acquired and the poll loop is entered, and returns to <see langword="false"/>
+    /// when the loop stops (cancellation) or fails to start. Drives the Orion worker's readiness probe
+    /// (MVP-PATH 4.2 / E1) — a truthful signal that ingestion is actually running, not just constructed.
+    /// </summary>
+    public bool IsRunning { get; private set; }
+
+    /// <inheritdoc />
+    bool IReadinessProbe.IsReady => IsRunning;
 
     /// <summary>Initializes a new instance of the <see cref="SiaraWatchLoop"/> class.</summary>
     /// <param name="scopeFactory">The DI scope factory used to create the discovery scope and a scope per document.</param>
@@ -88,29 +99,38 @@ public sealed class SiaraWatchLoop
             return;
         }
 
-        while (!cancellationToken.IsCancellationRequested)
+        // The loop is now genuinely running: discovery source acquired, about to poll. Readiness reflects this.
+        IsRunning = true;
+        try
         {
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                await PollOnceAsync(source, cancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "SIARA watch-loop cycle failed; retrying after the poll interval");
-            }
+                try
+                {
+                    await PollOnceAsync(source, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "SIARA watch-loop cycle failed; retrying after the poll interval");
+                }
 
-            try
-            {
-                await Task.Delay(_options.PollInterval, _timeProvider, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    await Task.Delay(_options.PollInterval, _timeProvider, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
-            catch (OperationCanceledException)
-            {
-                break;
-            }
+        }
+        finally
+        {
+            IsRunning = false;
         }
 
         _logger.LogInformation("SIARA watch loop stopped");

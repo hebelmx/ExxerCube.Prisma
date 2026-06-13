@@ -1,32 +1,31 @@
 namespace ExxerCube.Prisma.Orion.HealthChecks.Tests;
 
 /// <summary>
-/// TDD tests for OrionHealthCheckService.
+/// Tests for <see cref="OrionHealthCheckService"/> (MVP-PATH 4.2 / E1).
 /// </summary>
 /// <remarks>
-/// Stage 4 Requirements:
-/// - Liveness always returns Healthy when process is running
-/// - Readiness returns Healthy when orchestrator is ready
-/// - Health combines liveness and readiness status
+/// - Liveness always returns Healthy when the process is running.
+/// - Readiness reflects the real <see cref="IReadinessProbe"/> (the SIARA watch loop's running state):
+///   Healthy once the loop is polling, Unhealthy before — no longer the "ready if not null" placeholder.
+/// - Health combines liveness and readiness status.
 /// </remarks>
 public sealed class OrionHealthCheckServiceTests
 {
+    private static OrionHealthCheckService CreateService(bool ready)
+    {
+        var probe = Substitute.For<IReadinessProbe>();
+        probe.IsReady.Returns(ready);
+        return new OrionHealthCheckService(probe, NullLogger<OrionHealthCheckService>.Instance);
+    }
+
     [Fact]
     [Trait("Category", "Unit")]
     public async Task GetLivenessAsync_ProcessRunning_ReturnsHealthy()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: false);
 
-        // Act
         var result = await service.GetLivenessAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.ShouldNotBeNull();
         result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Description.ShouldContain("running", Case.Insensitive);
@@ -34,41 +33,40 @@ public sealed class OrionHealthCheckServiceTests
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task GetReadinessAsync_OrchestratorReady_ReturnsHealthy()
+    public async Task GetReadinessAsync_WhenRunning_ReturnsHealthy()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
 
-        // Act
         var result = await service.GetReadinessAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.ShouldNotBeNull();
         result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Description.ShouldContain("ready", Case.Insensitive);
+        result.Data.ShouldNotBeNull();
+        result.Data["orchestratorReady"].ShouldBe(true);
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task GetHealthAsync_AllHealthy_ReturnsHealthy()
+    public async Task GetReadinessAsync_WhenNotRunning_ReturnsUnhealthy()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: false);
 
-        // Act
+        var result = await service.GetReadinessAsync(TestContext.Current.CancellationToken);
+
+        result.Status.ShouldBe(OrchestratorHealthState.Unhealthy);
+        result.Data.ShouldNotBeNull();
+        result.Data["orchestratorReady"].ShouldBe(false);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task GetHealthAsync_WhenRunning_ReturnsHealthy()
+    {
+        var service = CreateService(ready: true);
+
         var result = await service.GetHealthAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.ShouldNotBeNull();
         result.Status.ShouldBe(OrchestratorHealthState.Healthy);
         result.Data.ShouldNotBeNull();
@@ -80,19 +78,11 @@ public sealed class OrionHealthCheckServiceTests
     [Trait("Category", "Unit")]
     public async Task GetLivenessAsync_IncludesTimestamp()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
         var beforeCall = DateTime.UtcNow;
 
-        // Act
         var result = await service.GetLivenessAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.Data.ShouldNotBeNull();
         result.Data.ShouldContainKey("timestamp");
         var timestamp = (DateTime)result.Data["timestamp"];
@@ -104,25 +94,17 @@ public sealed class OrionHealthCheckServiceTests
     [Trait("Category", "Unit")]
     public async Task GetReadinessAsync_IncludesOrchestratorReadyFlag()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
 
-        // Act
         var result = await service.GetReadinessAsync(TestContext.Current.CancellationToken);
 
-        // Assert
         result.Data.ShouldNotBeNull();
         result.Data.ShouldContainKey("orchestratorReady");
         result.Data["orchestratorReady"].ShouldBeOfType<bool>();
     }
 
     // ========================================================================
-    // NEW: Railway-Oriented Programming Tests (Stage 4.5)
+    // Railway-Oriented Programming variants
     // ========================================================================
 
     [Fact]
@@ -130,18 +112,10 @@ public sealed class OrionHealthCheckServiceTests
     [Trait("Stage", "4.5")]
     public async Task GetLivenessWithResult_ProcessRunning_ReturnsSuccessWithHealthy()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
 
-        // Act
         var result = await service.GetLivenessWithResultAsync(TestContext.Current.CancellationToken);
 
-        // Assert - Railway-Oriented Programming
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Status.ShouldBe(OrchestratorHealthState.Healthy);
@@ -150,20 +124,12 @@ public sealed class OrionHealthCheckServiceTests
     [Fact]
     [Trait("Category", "Unit")]
     [Trait("Stage", "4.5")]
-    public async Task GetReadinessWithResult_OrchestratorReady_ReturnsSuccessWithHealthy()
+    public async Task GetReadinessWithResult_WhenRunning_ReturnsSuccessWithHealthy()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
 
-        // Act
         var result = await service.GetReadinessWithResultAsync(TestContext.Current.CancellationToken);
 
-        // Assert - Railway-Oriented Programming
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Status.ShouldBe(OrchestratorHealthState.Healthy);
@@ -172,20 +138,12 @@ public sealed class OrionHealthCheckServiceTests
     [Fact]
     [Trait("Category", "Unit")]
     [Trait("Stage", "4.5")]
-    public async Task GetHealthWithResult_AllHealthy_ReturnsSuccessWithHealthy()
+    public async Task GetHealthWithResult_WhenRunning_ReturnsSuccessWithHealthy()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
 
-        // Act
         var result = await service.GetHealthWithResultAsync(TestContext.Current.CancellationToken);
 
-        // Assert - Railway-Oriented Programming
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Status.ShouldBe(OrchestratorHealthState.Healthy);
@@ -199,21 +157,13 @@ public sealed class OrionHealthCheckServiceTests
     [Trait("Stage", "4.5")]
     public async Task GetLivenessWithResult_WhenCancelled_ReturnsCancelled()
     {
-        // Arrange
-        var orchestrator = new IngestionOrchestrator(
-            Substitute.For<IIngestionJournal>(),
-            Substitute.For<IDocumentDownloader>(),
-            Substitute.For<IExxerHub<DocumentDownloadedEvent>>(),
-            NullLogger<IngestionOrchestrator>.Instance);
-        var service = new OrionHealthCheckService(orchestrator, NullLogger<OrionHealthCheckService>.Instance);
+        var service = CreateService(ready: true);
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // Act
         var result = await service.GetLivenessWithResultAsync(cts.Token);
 
-        // Assert - Railway-Oriented: cancellation is Result, not exception
         result.IsCancelled().ShouldBeTrue();
     }
 }

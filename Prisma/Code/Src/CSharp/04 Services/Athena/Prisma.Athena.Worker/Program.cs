@@ -190,6 +190,10 @@ builder.Services.AddSingleton<ExtractionPipelineService>(sp =>
 });
 builder.Services.AddHostedService<AthenaWorkerService>();
 
+// Readiness (MVP-PATH 4.2 / E1): the Extractor pipeline is the component this worker actually starts, so
+// it is the truthful readiness signal. Resolve the same singleton instance behind IReadinessProbe.
+builder.Services.AddSingleton<IReadinessProbe>(sp => sp.GetRequiredService<ExtractionPipelineService>());
+
 // Register health check and dashboard services
 builder.Services.AddSingleton<IHealthCheckService, AthenaHealthCheckService>();
 builder.Services.AddSingleton<IDashboardService, AthenaDashboardService>();

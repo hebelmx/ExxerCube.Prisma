@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Prisma.Athena.Processing;
 
 namespace Prisma.Athena.HealthChecks;
 
@@ -13,19 +12,23 @@ namespace Prisma.Athena.HealthChecks;
 /// </remarks>
 public sealed class AthenaHealthCheckService : IHealthCheckService
 {
-    private readonly ProcessingOrchestrator _orchestrator;
+    private readonly IReadinessProbe _readiness;
     private readonly ILogger<AthenaHealthCheckService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AthenaHealthCheckService"/> class.
     /// </summary>
-    /// <param name="orchestrator">Processing orchestrator.</param>
+    /// <param name="readiness">
+    /// Readiness of the Extractor pipeline the Athena worker actually drives (MVP-PATH 1.4 split). Readiness
+    /// reflects its started state, not the monolith <c>ProcessingOrchestrator</c> (which the Extractor worker
+    /// never starts).
+    /// </param>
     /// <param name="logger">Logger.</param>
     public AthenaHealthCheckService(
-        ProcessingOrchestrator orchestrator,
+        IReadinessProbe readiness,
         ILogger<AthenaHealthCheckService> logger)
     {
-        _orchestrator = orchestrator;
+        _readiness = readiness;
         _logger = logger;
     }
 
@@ -49,12 +52,10 @@ public sealed class AthenaHealthCheckService : IHealthCheckService
     /// <inheritdoc/>
     public Task<OrchestratorHealthStatus> GetReadinessAsync(CancellationToken cancellationToken = default)
     {
-        // Readiness: Orchestrator is started and ready to process
+        // Readiness: the Extractor pipeline has started and is subscribed to the document stream.
         _logger.LogTrace("Readiness check requested");
 
-        // TODO: Check orchestrator.IsStarted or similar state
-        // For now, assume ready if orchestrator is not null
-        var isReady = _orchestrator != null;
+        var isReady = _readiness.IsReady;
 
         var result = new OrchestratorHealthStatus(
             isReady ? OrchestratorHealthState.Healthy : OrchestratorHealthState.Unhealthy,

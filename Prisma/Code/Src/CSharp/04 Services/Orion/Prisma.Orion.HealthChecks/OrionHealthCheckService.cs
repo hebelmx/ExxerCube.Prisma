@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Prisma.Orion.Ingestion;
 
 namespace Prisma.Orion.HealthChecks;
 
@@ -13,19 +12,22 @@ namespace Prisma.Orion.HealthChecks;
 /// </remarks>
 public sealed class OrionHealthCheckService : IHealthCheckService
 {
-    private readonly IngestionOrchestrator _orchestrator;
+    private readonly IReadinessProbe _readiness;
     private readonly ILogger<OrionHealthCheckService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrionHealthCheckService"/> class.
     /// </summary>
-    /// <param name="orchestrator">Ingestion orchestrator.</param>
+    /// <param name="readiness">
+    /// Readiness of the SIARA watch loop the Orion worker actually drives (MVP-PATH 1.2). Readiness reflects
+    /// whether the loop is actively polling, not just whether an orchestrator object exists.
+    /// </param>
     /// <param name="logger">Logger.</param>
     public OrionHealthCheckService(
-        IngestionOrchestrator orchestrator,
+        IReadinessProbe readiness,
         ILogger<OrionHealthCheckService> logger)
     {
-        _orchestrator = orchestrator;
+        _readiness = readiness;
         _logger = logger;
     }
 
@@ -49,12 +51,10 @@ public sealed class OrionHealthCheckService : IHealthCheckService
     /// <inheritdoc/>
     public Task<OrchestratorHealthStatus> GetReadinessAsync(CancellationToken cancellationToken = default)
     {
-        // Readiness: Orchestrator is started and ready to process
+        // Readiness: the SIARA watch loop is actively polling for new documents.
         _logger.LogTrace("Readiness check requested");
 
-        // TODO: Check orchestrator.IsStarted or similar state
-        // For now, assume ready if orchestrator is not null
-        var isReady = _orchestrator != null;
+        var isReady = _readiness.IsReady;
 
         var result = new OrchestratorHealthStatus(
             isReady ? OrchestratorHealthState.Healthy : OrchestratorHealthState.Unhealthy,

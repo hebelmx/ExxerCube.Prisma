@@ -161,6 +161,10 @@ builder.Services.Configure<WatchLoopOptions>(
 builder.Services.AddSingleton<SiaraWatchLoop>();
 builder.Services.AddHostedService<OrionWorkerService>();
 
+// Readiness (MVP-PATH 4.2 / E1): the SIARA watch loop is the component this worker actually starts, so it
+// is the truthful readiness signal. Resolve the same singleton instance behind IReadinessProbe.
+builder.Services.AddSingleton<IReadinessProbe>(sp => sp.GetRequiredService<SiaraWatchLoop>());
+
 // Health + dashboard depend (transitively) on the scoped orchestrator, so they are scoped too; the
 // minimal-API endpoints resolve them from the per-request scope.
 builder.Services.AddScoped<IHealthCheckService, OrionHealthCheckService>();

@@ -35,6 +35,12 @@ public sealed class ProcessingOrchestrator
     private IDisposable? _eventSubscription;
 
     /// <summary>
+    /// Gets a value indicating whether the orchestrator has started and subscribed to the document stream.
+    /// Drives readiness probes (a started orchestrator is ready to process; a constructed-but-not-started one is not).
+    /// </summary>
+    public bool IsStarted { get; private set; }
+
+    /// <summary>
     /// Quality confidence threshold below which documents are rejected.
     /// Images with quality level Q1_Poor are rejected.
     /// </summary>
@@ -341,6 +347,7 @@ public sealed class ProcessingOrchestrator
                     _logger.LogError(ex, "Error in DocumentDownloadedEvent stream");
                 });
 
+        IsStarted = true;
         return Task.CompletedTask;
     }
 

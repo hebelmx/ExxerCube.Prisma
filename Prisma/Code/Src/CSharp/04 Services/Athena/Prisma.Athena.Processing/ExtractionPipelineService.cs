@@ -28,7 +28,7 @@ namespace Prisma.Athena.Processing;
 /// transient downstream outage must not crash the Extractor. The handoff is a shared-storage <em>reference</em>
 /// (the raw document never crosses this edge — data minimization, MVP A5).
 /// </remarks>
-public sealed class ExtractionPipelineService
+public sealed class ExtractionPipelineService : IReadinessProbe
 {
     private readonly IEventPublisher _eventPublisher;
     private readonly ExtractionOrchestrator _extractionOrchestrator;
@@ -39,6 +39,15 @@ public sealed class ExtractionPipelineService
     private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
     private readonly ProcessClearance _processClearance;
     private IDisposable? _subscription;
+
+    /// <summary>
+    /// Gets a value indicating whether the Extractor pipeline has started and subscribed to the document
+    /// stream. Drives the Athena Extractor worker's readiness probe (MVP-PATH 4.2 / E1).
+    /// </summary>
+    public bool IsStarted { get; private set; }
+
+    /// <inheritdoc />
+    bool IReadinessProbe.IsReady => IsStarted;
 
     /// <summary>Initializes a new instance of the <see cref="ExtractionPipelineService"/> class.</summary>
     /// <param name="eventPublisher">The local event stream the ingestion forwarder republishes onto.</param>
@@ -105,6 +114,7 @@ public sealed class ExtractionPipelineService
                 },
                 onError: ex => _logger.LogError(ex, "Error in DocumentDownloadedEvent stream"));
 
+        IsStarted = true;
         return Task.CompletedTask;
     }
 
