@@ -23,6 +23,7 @@ namespace ExxerCube.Prisma.Domain.Events;
 [JsonDerivedType(typeof(ProcessingErrorEvent), "ProcessingErrorEvent")]
 [JsonDerivedType(typeof(QualityRejectedEvent), "QualityRejectedEvent")]
 [JsonDerivedType(typeof(FusionCompletedEvent), "FusionCompletedEvent")]
+[JsonDerivedType(typeof(ExtractionCompletedEvent), "ExtractionCompletedEvent")]
 [JsonDerivedType(typeof(ExportCompletedEvent), "ExportCompletedEvent")]
 [JsonDerivedType(typeof(ProcessingEvent), "ProcessingEvent")]
 [JsonDerivedType(typeof(ProcessingCompletedEvent), "ProcessingCompletedEvent")]
