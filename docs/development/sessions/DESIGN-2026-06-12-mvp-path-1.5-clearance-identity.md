@@ -177,14 +177,24 @@ it is a no-op for Orion's actor provider and only adds the token service + optio
 | `sub` | `SiaraActor.ActorId` | Sender identity (audit) |
 | `actor_type` | `SiaraActor.ActorType.ToString()` | ServiceAccount / User |
 | `clearance` | `ProcessClearance.ToString()` | Which stage sent this |
-| `file_id` | `Guid.ToString("D")` | Binds token to one document (replay guard) |
-| `jti` | `Guid.NewGuid()` | Unique per token (replay guard) |
+| `file_id` | `Guid.ToString("D")` | Binds token to one document (cross-document replay guard) |
+| `jti` | `Guid.NewGuid()` | Unique per token (minted for future jti-cache use; **not yet enforced**) |
 | `iss` / `aud` | config values | Standard JWT |
 | expiry | config `TokenLifetime` (default 5 min) | Short-lived; longer than worst-case transit |
 
-`file_id` is the anti-replay binding: a token minted for document A is structurally invalid for document B
-even if the JWT signature itself is valid. The forwarder extracts `file_id` from the token and compares it
-against the event's `FileId`. If they disagree the event is rejected as tampered/replayed.
+`file_id` is the **cross-document** anti-replay binding: a token minted for document A is structurally
+invalid for document B even if the JWT signature itself is valid. The forwarder extracts `file_id` from
+the token and compares it against the event's `FileId`. If they disagree the event is rejected as
+tampered/replayed.
+
+> **Replay scope (honest limitation — adversarial gate finding #1, 2026-06-12).** `jti` is minted but
+> **not checked** on the receive side, so *same-document* replay within the token's ≤5-min lifetime is
+> NOT blocked: a captured valid token for document A could re-drive document A's handoff. This is
+> **accepted for MVP** because re-processing the same document is idempotent (the pipeline overwrites the
+> same `{id}.fusion.json` / re-exports the same record — no privilege escalation, no cross-document leak).
+> The only protection today is the short lifetime + `file_id` binding. Hardening (a per-forwarder seen-`jti`
+> cache, or moving the security boundary to connection-level hub auth — the next follow-up) is deferred and
+> tracked. Do not claim "full replay protection."
 
 ### New domain port
 
