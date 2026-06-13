@@ -66,7 +66,56 @@ Use the **IndFusion.Ember SignalR transport** for the Downloader → Extractor e
   Orion `IngestionOrchestrator` stamps the relative path and reads `Storage:BasePath` from config. An
   end-to-end test proves a relative-path event resolves and the pipeline opens the absolute path. See
   `ADR-011` §"Shared document storage" decision recorded by MVP-PATH 1.4.
-- **Reconciliator edge (Extractor → Reconciliator) is not yet built.** This ADR covers only the first edge.
-  The same pattern (host a typed hub, subscribe + republish) extends to it.
 - Hub authentication/authorization for the ingestion edge is deferred (today it is an internal, network-
   bounded endpoint); harden before any untrusted-network exposure.
+
+## Reconciliator edge (Extractor → Reconciliator) — decided + built (MVP-PATH 1.4, 2026-06-12)
+
+The second cross-process edge of the Three-Actors split is now built, completing the 3-process pipeline
+(Downloader → Extractor → Reconciliator) and satisfying MVP DoD **A4**.
+
+### Decision
+Apply the **same transport pattern** as the ingestion edge, with the handoff carried as a **shared-storage
+reference** (owner-chosen over payload-on-event):
+
+- **Athena Extractor (host/publisher).** The Athena worker becomes the Extractor actor: it runs the Extractor
+  half (Quality → OCR → Fusion via `ExtractionOrchestrator`), persists the fused expediente to the shared
+  volume via `IExpedienteHandoffStore` (`FileSystemExpedienteHandoffStore`, JSON, reusing the 1.4
+  `IStoragePathResolver` confinement guard), and broadcasts an `ExtractionCompletedEvent` — carrying only the
+  storage-*relative* handoff path — over a hub it hosts at `/hubs/reconciliation`
+  (`ReconciliationHub : ExxerHub<ExtractionCompletedEvent>` + `SignalRReconciliationBroadcaster` via
+  `IHubContext`). Driven by `ExtractionPipelineService`.
+- **Reconciliator (new host/consumer).** A new `Prisma.Reconciliator.Worker` (own `Program.cs`) is a SignalR
+  *client* of `/hubs/reconciliation` (`ReconciliationHubClient` + `ReconciliationClientOptions`, retry +
+  auto-reconnect, idle when blank). `ReconciliationEventForwarder` republishes the received event onto the
+  local stream; `ReconciliationPipelineService` loads the fused expediente from shared storage and runs the
+  Reconciliator half (Classification → Export via `ReconciliationOrchestrator`), emitting the terminal
+  `DocumentProcessingCompletedEvent`.
+- **Decomposition.** The monolithic `ProcessingOrchestrator` was carved at the Fusion|Classification seam into
+  `ExtractionOrchestrator` (1–3) + `ReconciliationOrchestrator` (4–5); `ProcessingOrchestrator` now *composes*
+  both, so the in-process monolith path is behavior-preserved (all existing tests green).
+- **Data minimization (MVP A5).** Only the derived fused expediente crosses this edge (a shared-storage
+  reference); the raw document never does.
+
+### Rationale (additions)
+- **Shared-storage reference over payload-on-event.** Keeps events light and reuses the proven 1.4
+  storage/resolver plumbing; consistent with the document edge and with passing references/derived data across
+  the security boundary.
+
+### Consequences / known limitations (honest)
+- The Athena worker is now **Extractor-only** (it no longer runs Classification/Export in-process); a working
+  deployment runs all three processes. The `ProcessingOrchestrator` monolith remains available/registered for
+  in-process use and health checks.
+- **Export is wired-but-optional in the Reconciliator host.** The adaptive exporter is template-**DB-backed**
+  (`AddAdaptiveExportServices(connectionString)` + SQL `TemplateDbContext`), so the host wires Classification
+  fully and treats `IAdaptiveExporter` as optional (Stage 5 skipped with a warning when absent). Enabling real
+  SIRO export = register the adaptive export chain + a connection string. This overlaps the separate MVP gate
+  item F1/5.2 ("one real end-to-end run with SIRO export").
+- The **3-process E2E** (`ThreeProcessPipelineEndToEndTests`) models the two edges with their real forwarders
+  (not a live SignalR wire in that single test); each edge's real SignalR wire is proven separately by
+  `IngestionHubWireTests` (1.3) and `ReconciliationHubWireTests` (1.4). A single all-real-wire 3-host E2E is a
+  possible future hardening.
+- Handoff JSON round-trips the expediente's string/collection fields faithfully; SmartEnum members (e.g.
+  `Subdivision`) are best-effort (a dedicated JSON converter is a follow-up).
+- `/hubs/reconciliation` has **no auth** (same posture as `/hubs/ingestion`); harden before untrusted-network
+  exposure.
