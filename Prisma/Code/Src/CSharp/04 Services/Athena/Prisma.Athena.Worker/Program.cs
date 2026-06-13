@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Events;
-using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
@@ -73,7 +72,9 @@ builder.Services.AddSingleton<IImageQualityAnalyzer, PolynomialImageQualityAnaly
 builder.Services.AddSingleton<IOcrExecutor, TesseractOcrExecutor>();
 builder.Services.AddSingleton<IFusionExpediente, FusionExpedienteService>();
 builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
-builder.Services.AddSingleton<IAdaptiveExporter, AdaptiveExporter>();
+// The Extractor (Athena Worker) does NOT run Stage 5 export — export is handled exclusively by the
+// Reconciliator process (3-process split, ADR-011). ProcessingOrchestrator takes IResponseExporter?
+// and skips export when null, so we deliberately register nothing here.
 // Field extractor that turns Stage 2 OCR text into an Expediente feeding Stage 3 fusion.
 builder.Services.AddSingleton<IFieldExtractor<TxtSource>, AdaptiveTxtFieldExtractor>();
 
@@ -87,7 +88,7 @@ builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
     var ocrExecutor = sp.GetRequiredService<IOcrExecutor>();
     var fusionService = sp.GetRequiredService<IFusionExpediente>();
     var classifier = sp.GetRequiredService<IFileClassifier>();
-    var exporter = sp.GetRequiredService<IAdaptiveExporter>();
+    var exporter = sp.GetService<IResponseExporter>();
     var txtFieldExtractor = sp.GetRequiredService<IFieldExtractor<TxtSource>>();
 
     return new ProcessingOrchestrator(

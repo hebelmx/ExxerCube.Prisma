@@ -5,6 +5,7 @@ using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Events;
+using ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -55,16 +56,24 @@ builder.Services.Configure<StorageOptions>(
 builder.Services.AddSingleton<IStoragePathResolver, SharedStoragePathResolver>();
 builder.Services.AddSingleton<IExpedienteHandoffStore, FileSystemExpedienteHandoffStore>();
 
-// Reconciliator pipeline services. Classification is wired; Export (IAdaptiveExporter) is optional — the
-// adaptive exporter is backed by a template database, so a deployment enables SIRO export by also registering
-// AddAdaptiveExportServices(connectionString). When absent, Stage 5 is skipped with a warning (the Reconciliator
-// still classifies and emits the terminal completion event).
+// Reconciliator pipeline services. Classification is always wired. Export uses the SIRO XML path
+// (MVP-PATH #8, ADR-011): AddSiroExportServices registers SiroXmlExporter + CompositeResponseExporter
+// (IResponseExporter) — no IMetadataExtractor / IPdfRequirementSummarizer dependency, so the host DI
+// graph validates cleanly.
+//
+// IMPORTANT: pass ServiceLifetime.Singleton. ReconciliationOrchestrator is a Singleton and captures
+// IResponseExporter at construction time from the root provider. Scoped services cannot be resolved
+// from the root provider (ValidateScopes rejects it). The SIRO export types are stateless so Singleton
+// is safe. Do NOT call AddExportServices (also registers PdfRequirementSummarizerService → IMetadataExtractor,
+// not available here) and do NOT call AddAdaptiveExportServices (overrides IResponseExporter with
+// AdaptiveResponseExporterAdapter which emits <Export>, NOT <SiroResponse>).
+builder.Services.AddSiroExportServices(builder.Configuration, ServiceLifetime.Singleton);
 builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
 builder.Services.AddSingleton<ReconciliationOrchestrator>(sp => new ReconciliationOrchestrator(
     sp.GetRequiredService<IEventPublisher>(),
     sp.GetRequiredService<ILogger<ReconciliationOrchestrator>>(),
     classifier: sp.GetRequiredService<IFileClassifier>(),
-    exporter: sp.GetService<IAdaptiveExporter>()));
+    exporter: sp.GetService<IResponseExporter>()));
 
 // Per-process audit (MVP-PATH 1.6 A6): ReconciliationPipelineService is singleton; IAuditLogger is scoped.
 // The service resolves IAuditLogger per audit call via IServiceScopeFactory (no captive dependency).

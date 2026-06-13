@@ -910,10 +910,17 @@ public sealed class ProcessingOrchestratorTests
 
     private static void SetupFusion(IFusionExpediente fusionService)
     {
+        // FusedExpediente must have NumeroExpediente + NumeroOficio for Stage 5 SIRO export to proceed
+        // (SiroXmlExporter.ValidateMetadata requires both fields). Without these, Stage 5 skips with a warning.
         var fusionResult = new FusionResult
         {
             OverallConfidence = 0.90,
-            ConflictingFields = new List<string>()
+            ConflictingFields = new List<string>(),
+            FusedExpediente = new ExxerCube.Prisma.Domain.Entities.Expediente
+            {
+                NumeroExpediente = "A/AS1-TEST-001",
+                NumeroOficio = "214-1-TEST-001/2026",
+            },
         };
         fusionService.FuseAsync(
                 Arg.Any<ExxerCube.Prisma.Domain.Entities.Expediente?>(),
@@ -937,7 +944,20 @@ public sealed class ProcessingOrchestratorTests
         var ocrExecutor = Substitute.For<IOcrExecutor>();
         var fusionService = Substitute.For<IFusionExpediente>();
         var classifier = Substitute.For<IFileClassifier>();
-        var exporter = Substitute.For<IAdaptiveExporter>();
+        // Stage 5 now uses IResponseExporter.ExportSiroXmlAsync (MVP-PATH #8).
+        // Write a minimal XML stub to the stream so ExportedSizeBytes > 0 in the emitted event.
+        var exporter = Substitute.For<IResponseExporter>();
+        exporter.ExportSiroXmlAsync(
+                Arg.Any<UnifiedMetadataRecord>(),
+                Arg.Any<Stream>(),
+                Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var stream = callInfo.ArgAt<Stream>(1);
+                var bytes = "<SiroResponse />"u8.ToArray();
+                stream.Write(bytes, 0, bytes.Length);
+                return Task.FromResult(Result.Success());
+            });
 
         SetupQualityAndOcr(fileLoader, qualityAnalyzer, ocrExecutor);
         SetupFusion(fusionService);
@@ -949,10 +969,6 @@ public sealed class ProcessingOrchestratorTests
         };
         classifier.ClassifyAsync(Arg.Any<ExtractedMetadata>(), Arg.Any<CancellationToken>())
             .Returns(Result<ClassificationResult>.Success(classResult));
-
-        var exportBytes = new byte[] { 0x50, 0x4B, 0x03, 0x04 }; // ZIP magic bytes
-        exporter.ExportAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<byte[]>.Success(exportBytes));
 
         var fileId = Guid.NewGuid();
         var correlationId = Guid.NewGuid();

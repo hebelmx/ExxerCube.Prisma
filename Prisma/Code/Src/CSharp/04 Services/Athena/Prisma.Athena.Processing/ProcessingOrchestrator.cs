@@ -24,7 +24,7 @@ public sealed class ProcessingOrchestrator
     private readonly IOcrExecutor? _ocrExecutor;
     private readonly IFusionExpediente? _fusionService;
     private readonly IFileClassifier? _classifier;
-    private readonly IAdaptiveExporter? _exporter;
+    private readonly IResponseExporter? _exporter;
     private readonly IFileLoader? _fileLoader;
     private readonly IFieldExtractor<TxtSource>? _txtFieldExtractor;
     private readonly IEventPublisher _eventPublisher;
@@ -55,7 +55,7 @@ public sealed class ProcessingOrchestrator
     /// <param name="ocrExecutor">Optional: OCR execution service for text extraction.</param>
     /// <param name="fusionService">Optional: Fusion service for data reconciliation.</param>
     /// <param name="classifier">Optional: Classification service for document categorization.</param>
-    /// <param name="exporter">Optional: Export service for generating output files.</param>
+    /// <param name="exporter">Optional: SIRO XML export service (IResponseExporter) for generating SIRO-conformant XML output.</param>
     /// <param name="fileLoader">Optional: File loader for reading images from disk.</param>
     /// <param name="txtFieldExtractor">Optional: Field extractor used to turn Stage 2 OCR text into an Expediente that feeds Stage 3 fusion. When null, fusion runs without OCR-derived input (legacy behavior).</param>
     /// <remarks>
@@ -70,7 +70,7 @@ public sealed class ProcessingOrchestrator
         IOcrExecutor? ocrExecutor = null,
         IFusionExpediente? fusionService = null,
         IFileClassifier? classifier = null,
-        IAdaptiveExporter? exporter = null,
+        IResponseExporter? exporter = null,
         IFileLoader? fileLoader = null,
         IFieldExtractor<TxtSource>? txtFieldExtractor = null)
     {
@@ -533,23 +533,32 @@ public sealed class ProcessingOrchestrator
             return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
         }
 
-        var sourceObject = ctx.FusionResult?.FusedExpediente ?? (object)new { FileId = ctx.FileId };
-        var exportResult = await _exporter.ExportAsync(sourceObject, "Excel", cancellationToken);
+        // Guard: null FusedExpediente cannot produce a SIRO XML export — skip with success (mirror ReconciliationOrchestrator §2.1).
+        if (ctx.FusionResult?.FusedExpediente == null)
+        {
+            _logger.LogWarning("Stage 5 (ROP): FusedExpediente is null — no SIRO XML produced. FileId: {FileId}", ctx.FileId);
+            return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
+        }
+
+        // SIRO XML export (MVP-PATH #8): build UnifiedMetadataRecord and write to in-memory stream.
+        var metadata = new UnifiedMetadataRecord { Expediente = ctx.FusionResult.FusedExpediente };
+        using var stream = new MemoryStream();
+        var exportResult = await _exporter.ExportSiroXmlAsync(metadata, stream, cancellationToken).ConfigureAwait(false);
         if (exportResult.IsFailure)
         {
             return Result<ProcessingContext>.WithFailure($"Export failed: {exportResult.Error}");
         }
 
-        var exportBytes = exportResult.Value!;
+        var exportedSizeBytes = (int)stream.Length;
         _eventPublisher.Publish(new ExportCompletedEvent
         {
             EventId = Guid.NewGuid(),
             Timestamp = DateTime.UtcNow,
             CorrelationId = ctx.CorrelationId,
             FileId = ctx.FileId,
-            Destination = $"exports/{ctx.FileId}.xlsx",
-            Format = "Excel",
-            ExportedSizeBytes = exportBytes.Length
+            Destination = $"exports/{ctx.FileId}.siro.xml",
+            Format = "SiroXml",
+            ExportedSizeBytes = exportedSizeBytes
         });
 
         return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });

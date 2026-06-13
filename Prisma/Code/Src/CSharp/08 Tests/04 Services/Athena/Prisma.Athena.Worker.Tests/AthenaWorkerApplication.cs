@@ -41,15 +41,17 @@ internal class AthenaWorkerApplication : WebApplicationFactory<global::Prisma.At
 
         builder.ConfigureServices(services =>
         {
-            // Remove real infrastructure registrations that have unresolvable
-            // dependencies (e.g., AdaptiveExporter requires ITemplateRepository)
+            // Remove real infrastructure registrations that have external dependencies
+            // (OCR engine files, imaging native libs, etc.) and replace with mocks so
+            // the host-DI graph validates cleanly without I/O.
+            // NOTE: export services are intentionally NOT registered in the Athena (Extractor)
+            // worker — export is owned exclusively by the Reconciliator process (ADR-011).
             services.RemoveAll<IEventPublisher>();
             services.RemoveAll<IFileLoader>();
             services.RemoveAll<IImageQualityAnalyzer>();
             services.RemoveAll<IOcrExecutor>();
             services.RemoveAll<IFusionExpediente>();
             services.RemoveAll<IFileClassifier>();
-            services.RemoveAll<IAdaptiveExporter>();
 
             // Replace with NSubstitute mocks
             var mockEventPublisher = Substitute.For<IEventPublisher>();
@@ -62,7 +64,6 @@ internal class AthenaWorkerApplication : WebApplicationFactory<global::Prisma.At
             services.AddSingleton(Substitute.For<IOcrExecutor>());
             services.AddSingleton(Substitute.For<IFusionExpediente>());
             services.AddSingleton(Substitute.For<IFileClassifier>());
-            services.AddSingleton(Substitute.For<IAdaptiveExporter>());
         });
     }
 }

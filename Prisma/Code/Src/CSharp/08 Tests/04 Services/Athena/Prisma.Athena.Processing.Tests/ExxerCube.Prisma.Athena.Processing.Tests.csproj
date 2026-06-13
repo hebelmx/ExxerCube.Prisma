@@ -65,6 +65,7 @@
     <ProjectReference Include="..\..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\..\..\04 Services\Athena\Prisma.Athena.Processing\ExxerCube.Prisma.Athena.Processing.csproj" />
     <ProjectReference Include="..\..\..\..\02 Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\02 Infrastructure\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
   </ItemGroup>
   <ItemGroup Label="Rx.NET">
     <PackageReference Include="System.Reactive" />

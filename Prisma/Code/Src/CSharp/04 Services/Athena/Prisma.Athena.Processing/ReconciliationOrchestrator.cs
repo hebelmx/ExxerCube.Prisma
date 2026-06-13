@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
@@ -25,7 +26,7 @@ namespace Prisma.Athena.Processing;
 public sealed class ReconciliationOrchestrator
 {
     private readonly IFileClassifier? _classifier;
-    private readonly IAdaptiveExporter? _exporter;
+    private readonly IResponseExporter? _exporter;
     private readonly IEventPublisher _eventPublisher;
     private readonly ILogger _logger;
 
@@ -36,12 +37,12 @@ public sealed class ReconciliationOrchestrator
     /// <param name="eventPublisher">The event publisher for domain events.</param>
     /// <param name="logger">The logger.</param>
     /// <param name="classifier">Optional: Stage 4 classification service.</param>
-    /// <param name="exporter">Optional: Stage 5 export service.</param>
+    /// <param name="exporter">Optional: Stage 5 SIRO XML export service. When null Stage 5 is skipped.</param>
     public ReconciliationOrchestrator(
         IEventPublisher eventPublisher,
         ILogger logger,
         IFileClassifier? classifier = null,
-        IAdaptiveExporter? exporter = null)
+        IResponseExporter? exporter = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -165,7 +166,7 @@ public sealed class ReconciliationOrchestrator
     }
 
     // ========================================================================
-    // Stage 5: Export
+    // Stage 5: Export (SIRO XML — MVP-PATH #8, ADR-011)
     // ========================================================================
 
     private async Task<bool> ExecuteStage5ExportAsync(
@@ -181,19 +182,31 @@ public sealed class ReconciliationOrchestrator
             return false;
         }
 
-        _logger.LogInformation("Stage 5: Export - FileId: {FileId}", fileId);
+        // Guard: if the fused expediente is null we cannot produce a SIRO XML export.
+        if (fusionResult?.FusedExpediente == null)
+        {
+            _logger.LogWarning("Stage 5 skipped: FusedExpediente is null — no SIRO XML produced. FileId: {FileId}", fileId);
+            return false;
+        }
 
-        var sourceObject = fusionResult?.FusedExpediente ?? (object)new { FileId = fileId };
-        var exportResult = await _exporter.ExportAsync(sourceObject, "Excel", cancellationToken);
+        _logger.LogInformation("Stage 5: SIRO XML Export - FileId: {FileId}", fileId);
+
+        // Build the UnifiedMetadataRecord wrapper that SiroXmlExporter expects (MVP-PATH #8 §2.1).
+        var metadata = new UnifiedMetadataRecord { Expediente = fusionResult.FusedExpediente };
+
+        // Export to an in-memory stream; ExportedSizeBytes is captured for the event (R4: file
+        // write to shared storage is deferred to post-MVP per design §2.4).
+        using var stream = new MemoryStream();
+        var exportResult = await _exporter.ExportSiroXmlAsync(metadata, stream, cancellationToken);
 
         if (exportResult.IsFailure)
         {
-            _logger.LogWarning("Stage 5: Export failed - {Error}", exportResult.Error);
+            _logger.LogWarning("Stage 5: SIRO XML export failed - {Error}", exportResult.Error);
             EmitProcessingError(fileId, correlationId, "Export", exportResult.Error ?? "Unknown error");
             return false;
         }
 
-        var exportBytes = exportResult.Value!;
+        var exportedSizeBytes = (int)stream.Length;
 
         var exportEvent = new ExportCompletedEvent
         {
@@ -201,14 +214,14 @@ public sealed class ReconciliationOrchestrator
             Timestamp = DateTime.UtcNow,
             CorrelationId = correlationId,
             FileId = fileId,
-            Destination = $"exports/{fileId}.xlsx",
-            Format = "Excel",
-            ExportedSizeBytes = exportBytes.Length
+            Destination = $"exports/{fileId}.siro.xml",
+            Format = "SiroXml",
+            ExportedSizeBytes = exportedSizeBytes
         };
         _eventPublisher.Publish(exportEvent);
 
-        _logger.LogInformation("Stage 5 complete: Export - FileId: {FileId}, Size: {Size} bytes",
-            fileId, exportBytes.Length);
+        _logger.LogInformation("Stage 5 complete: SIRO XML Export - FileId: {FileId}, Size: {Size} bytes",
+            fileId, exportedSizeBytes);
 
         return true;
     }

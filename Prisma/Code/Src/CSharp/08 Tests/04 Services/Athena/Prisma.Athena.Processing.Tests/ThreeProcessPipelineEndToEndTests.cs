@@ -77,7 +77,12 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
             {
                 OverallConfidence = 0.92,
                 ConflictingFields = new List<string>(),
-                FusedExpediente = new Expediente { NumeroExpediente = "EXP-3PROC-E2E" },
+                // NumeroOficio is required by SiroXmlExporter.ValidateMetadata(); include it so Stage 5 succeeds.
+                FusedExpediente = new Expediente
+                {
+                    NumeroExpediente = "EXP-3PROC-E2E",
+                    NumeroOficio = "OF-3PROC-E2E",
+                },
             }));
 
         var extractionOrchestrator = new ExtractionOrchestrator(
@@ -94,13 +99,17 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
                 Confidence = 95,
             }));
 
-        Expediente? exportedExpediente = null;
-        var exporter = Substitute.For<IAdaptiveExporter>();
-        exporter.ExportAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+        // Stage 5 now uses IResponseExporter.ExportSiroXmlAsync (MVP-PATH #8).
+        UnifiedMetadataRecord? exportedMetadata = null;
+        var exporter = Substitute.For<IResponseExporter>();
+        exporter.ExportSiroXmlAsync(
+                Arg.Any<UnifiedMetadataRecord>(),
+                Arg.Any<Stream>(),
+                Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
-                exportedExpediente = callInfo.ArgAt<object>(0) as Expediente;
-                return Result<byte[]>.Success(new byte[] { 0x50, 0x4B, 0x03, 0x04 });
+                exportedMetadata = callInfo.ArgAt<UnifiedMetadataRecord>(0);
+                return Task.FromResult(Result.Success());
             });
 
         var reconciliationOrchestrator = new ReconciliationOrchestrator(
@@ -184,11 +193,13 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
         completionEvent.FileId.ShouldBe(fileId);
         completionEvent.CorrelationId.ShouldBe(correlationId);
 
-        // The Reconciliator classified + exported the expediente the Extractor handed off through shared storage.
+        // The Reconciliator classified + exported (SIRO XML) the expediente the Extractor handed off through shared storage.
         await classifier.Received(1).ClassifyAsync(Arg.Any<ExtractedMetadata>(), Arg.Any<CancellationToken>());
-        await exporter.Received(1).ExportAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
-        exportedExpediente.ShouldNotBeNull();
-        exportedExpediente!.NumeroExpediente.ShouldBe("EXP-3PROC-E2E");
+        await exporter.Received(1).ExportSiroXmlAsync(
+            Arg.Any<UnifiedMetadataRecord>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>());
+        exportedMetadata.ShouldNotBeNull();
+        exportedMetadata!.Expediente.ShouldNotBeNull();
+        exportedMetadata.Expediente!.NumeroExpediente.ShouldBe("EXP-3PROC-E2E");
 
         // The handoff artifact really crossed the shared volume (a file was written by the Extractor).
         Directory.Exists(_sharedBaseDir).ShouldBeTrue();

@@ -25,7 +25,7 @@ public sealed class ReconciliationPipelineServiceTests
     };
 
     private static (ReconciliationPipelineService sut, IExpedienteHandoffStore store, IFileClassifier classifier,
-        IAdaptiveExporter exporter, IEventPublisher eventPublisher) CreateSut()
+        IResponseExporter exporter, IEventPublisher eventPublisher) CreateSut()
     {
         var eventPublisher = Substitute.For<IEventPublisher>();
         var classifier = Substitute.For<IFileClassifier>();
@@ -36,9 +36,13 @@ public sealed class ReconciliationPipelineServiceTests
                 Confidence = 95
             }));
 
-        var exporter = Substitute.For<IAdaptiveExporter>();
-        exporter.ExportAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<byte[]>.Success(new byte[] { 0x50, 0x4B, 0x03, 0x04 }));
+        // Stage 5 now calls ExportSiroXmlAsync — return Success so Stage 5 completes.
+        var exporter = Substitute.For<IResponseExporter>();
+        exporter.ExportSiroXmlAsync(
+                Arg.Any<UnifiedMetadataRecord>(),
+                Arg.Any<Stream>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         var orchestrator = new ReconciliationOrchestrator(
             eventPublisher, NullLogger<ReconciliationOrchestrator>.Instance, classifier, exporter);
@@ -56,13 +60,18 @@ public sealed class ReconciliationPipelineServiceTests
         var fileId = Guid.NewGuid();
         var (sut, store, classifier, exporter, eventPublisher) = CreateSut();
         store.LoadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<Expediente>.Success(new Expediente { NumeroExpediente = "EXP-1" }));
+            .Returns(Result<Expediente>.Success(new Expediente
+            {
+                NumeroExpediente = "EXP-1",
+                NumeroOficio = "OF-1"
+            }));
 
         var result = await sut.ProcessAsync(CreateEvent(fileId: fileId), Ct);
 
         result.IsSuccess.ShouldBeTrue();
         await classifier.Received(1).ClassifyAsync(Arg.Any<ExtractedMetadata>(), Arg.Any<CancellationToken>());
-        await exporter.Received(1).ExportAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await exporter.Received(1).ExportSiroXmlAsync(
+            Arg.Any<UnifiedMetadataRecord>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>());
         eventPublisher.Received(1).Publish(
             Arg.Is<DocumentProcessingCompletedEvent>(e => e.FileId == fileId && e.AutoProcessed));
     }

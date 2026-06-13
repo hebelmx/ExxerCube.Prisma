@@ -294,7 +294,7 @@ public sealed class ProcessingOrchestratorIntegrationTests
         IOcrExecutor ocrExecutor,
         IFusionExpediente fusionService,
         IFileClassifier classifier,
-        IAdaptiveExporter exporter,
+        IResponseExporter exporter,
         IFileLoader fileLoader) CreateConfiguredMockServices()
     {
         var fileLoader = Substitute.For<IFileLoader>();
@@ -302,7 +302,8 @@ public sealed class ProcessingOrchestratorIntegrationTests
         var ocrExecutor = Substitute.For<IOcrExecutor>();
         var fusionService = Substitute.For<IFusionExpediente>();
         var classifier = Substitute.For<IFileClassifier>();
-        var exporter = Substitute.For<IAdaptiveExporter>();
+        // Stage 5 now uses IResponseExporter.ExportSiroXmlAsync (MVP-PATH #8).
+        var exporter = Substitute.For<IResponseExporter>();
 
         // Stage 1: File loading and quality analysis
         var testImageData = new ImageData(new byte[] { 1, 2, 3 }, "test.png");
@@ -325,11 +326,16 @@ public sealed class ProcessingOrchestratorIntegrationTests
         ocrExecutor.ExecuteOcrAsync(Arg.Any<ImageData>(), Arg.Any<ExxerCube.Prisma.Domain.Models.OCRConfig>())
             .Returns(Result<OCRResult>.Success(ocrResult));
 
-        // Stage 3: Fusion
+        // Stage 3: Fusion — FusedExpediente must have both required SIRO fields so Stage 5 runs.
         var fusionResult = new FusionResult
         {
             OverallConfidence = 0.90,
-            ConflictingFields = new List<string>()
+            ConflictingFields = new List<string>(),
+            FusedExpediente = new ExxerCube.Prisma.Domain.Entities.Expediente
+            {
+                NumeroExpediente = "A/AS1-INTG-001",
+                NumeroOficio = "214-1-INTG-001/2026",
+            },
         };
         fusionService.FuseAsync(
                 Arg.Any<ExxerCube.Prisma.Domain.Entities.Expediente?>(),
@@ -350,10 +356,12 @@ public sealed class ProcessingOrchestratorIntegrationTests
         classifier.ClassifyAsync(Arg.Any<ExtractedMetadata>(), Arg.Any<CancellationToken>())
             .Returns(Result<ClassificationResult>.Success(classResult));
 
-        // Stage 5: Export
-        var exportBytes = new byte[] { 0x50, 0x4B, 0x03, 0x04 };
-        exporter.ExportAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result<byte[]>.Success(exportBytes));
+        // Stage 5: SIRO XML Export (MVP-PATH #8). Stub ExportSiroXmlAsync to return Success.
+        exporter.ExportSiroXmlAsync(
+                Arg.Any<UnifiedMetadataRecord>(),
+                Arg.Any<Stream>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
 
         return (qualityAnalyzer, ocrExecutor, fusionService, classifier, exporter, fileLoader);
     }
