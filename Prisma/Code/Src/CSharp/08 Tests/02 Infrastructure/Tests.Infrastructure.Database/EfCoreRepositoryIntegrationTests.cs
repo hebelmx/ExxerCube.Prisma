@@ -147,11 +147,13 @@ public sealed class EfCoreRepositoryIntegrationTests : IDisposable
 
         await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        // Assert
+        // Assert - ROP-compliant: after deletion the entity is no longer retrievable, which is surfaced
+        // as a failure (not success-with-null). This matches the canonical RepositoryContract
+        // (RemoveAsync_ShouldReturnSuccess_WhenEntityRemoved → afterRemoval.IsSuccess.ShouldBeFalse())
+        // and the Phase-6 not-found→failure tightening in GetByIdAsync.
         var retrieved = await repository.GetByIdAsync("file-004", TestContext.Current.CancellationToken);
-        // For nullable Result<T?>, use IsSuccessMayBeNull to check success (null is valid after deletion)
-        retrieved.IsSuccessMayBeNull.ShouldBeTrue($"Expected success (may be null) but got failure. Error: {retrieved.Error}");
-        retrieved.Value.ShouldBeNull();
+        retrieved.IsSuccess.ShouldBeFalse();
+        retrieved.IsFailure.ShouldBeTrue();
     }
 
     [Fact]
