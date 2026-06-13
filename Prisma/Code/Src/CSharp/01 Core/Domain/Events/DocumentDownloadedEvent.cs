@@ -66,6 +66,13 @@ public record DocumentDownloadedEvent : DomainEvent
     public DateTimeOffset Timestamp2 { get; }
 
     /// <summary>
+    /// Gets the short-lived process clearance token minted by the sender (MVP-PATH 1.5, A5).
+    /// The receiving forwarder validates this token before forwarding the event into the local
+    /// pipeline. Empty for in-process / single-service flows.
+    /// </summary>
+    public string ClearanceToken { get; init; } = string.Empty;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DocumentDownloadedEvent"/> class.
     /// </summary>
     public DocumentDownloadedEvent()
