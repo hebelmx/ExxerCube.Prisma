@@ -20,4 +20,13 @@ public sealed class IngestionClientOptions
 
     /// <summary>Gets or sets the delay between connection attempts while the hub is unreachable. Default 5s.</summary>
     public TimeSpan ReconnectDelay { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Gets or sets an optional factory that creates the <see cref="System.Net.Http.HttpMessageHandler"/>
+    /// used by the SignalR hub connection. When <see langword="null"/> (the production default),
+    /// SignalR uses its default handler. Override in tests to route connections through an in-memory
+    /// <c>Microsoft.AspNetCore.TestHost.TestServer</c> handler so hub wire tests do not require
+    /// a live TCP endpoint.
+    /// </summary>
+    public Func<System.Net.Http.HttpMessageHandler>? HttpMessageHandlerFactory { get; set; }
 }

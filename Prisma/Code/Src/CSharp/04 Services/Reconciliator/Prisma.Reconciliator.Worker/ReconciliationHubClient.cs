@@ -117,6 +117,13 @@ public sealed class ReconciliationHubClient : BackgroundService
 
                     return mintResult.Value;
                 };
+
+                // Optional handler factory (non-null in tests to route through an in-memory TestServer;
+                // null in production so SignalR uses its default real TCP handler).
+                if (_options.HttpMessageHandlerFactory is not null)
+                {
+                    connectionOptions.HttpMessageHandlerFactory = _ => _options.HttpMessageHandlerFactory();
+                }
             })
             .WithAutomaticReconnect()
             .Build();
