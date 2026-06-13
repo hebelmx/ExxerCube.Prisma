@@ -2,10 +2,12 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using Prisma.Athena.Worker.Reconciliation;
 using Shouldly;
@@ -36,13 +38,17 @@ public sealed class SignalRReconciliationBroadcasterTests
         CorrelationId = Guid.NewGuid(),
     };
 
+    private static IOptions<ProcessIdentityOptions> DefaultOptions() =>
+        Options.Create(new ProcessIdentityOptions { Clearance = ProcessClearance.Extract });
+
     private static (
         SignalRReconciliationBroadcaster sut,
         IClientProxy all,
         IProcessClearanceTokenService clearanceService,
         ISiaraActorIdentityProvider actorProvider) CreateSut(
             IProcessClearanceTokenService? clearanceService = null,
-            ISiaraActorIdentityProvider? actorProvider = null)
+            ISiaraActorIdentityProvider? actorProvider = null,
+            IOptions<ProcessIdentityOptions>? options = null)
     {
         var hubContext = Substitute.For<IHubContext<ReconciliationHub>>();
         var clients = Substitute.For<IHubClients>();
@@ -57,6 +63,7 @@ public sealed class SignalRReconciliationBroadcasterTests
             hubContext,
             clearanceService,
             actorProvider,
+            options ?? DefaultOptions(),
             NullLogger<SignalRReconciliationBroadcaster>.Instance);
 
         return (sut, all, clearanceService, actorProvider);
@@ -85,6 +92,7 @@ public sealed class SignalRReconciliationBroadcasterTests
                 null!,
                 Substitute.For<IProcessClearanceTokenService>(),
                 Substitute.For<ISiaraActorIdentityProvider>(),
+                DefaultOptions(),
                 NullLogger<SignalRReconciliationBroadcaster>.Instance));
 
     [Fact]
@@ -94,6 +102,7 @@ public sealed class SignalRReconciliationBroadcasterTests
                 Substitute.For<IHubContext<ReconciliationHub>>(),
                 null!,
                 Substitute.For<ISiaraActorIdentityProvider>(),
+                DefaultOptions(),
                 NullLogger<SignalRReconciliationBroadcaster>.Instance));
 
     [Fact]
@@ -102,6 +111,17 @@ public sealed class SignalRReconciliationBroadcasterTests
             new SignalRReconciliationBroadcaster(
                 Substitute.For<IHubContext<ReconciliationHub>>(),
                 Substitute.For<IProcessClearanceTokenService>(),
+                null!,
+                DefaultOptions(),
+                NullLogger<SignalRReconciliationBroadcaster>.Instance));
+
+    [Fact]
+    public void Constructor_NullProcessIdentityOptions_Throws() =>
+        Should.Throw<ArgumentNullException>(() =>
+            new SignalRReconciliationBroadcaster(
+                Substitute.For<IHubContext<ReconciliationHub>>(),
+                Substitute.For<IProcessClearanceTokenService>(),
+                Substitute.For<ISiaraActorIdentityProvider>(),
                 null!,
                 NullLogger<SignalRReconciliationBroadcaster>.Instance));
 
@@ -200,5 +220,26 @@ public sealed class SignalRReconciliationBroadcasterTests
 
         result.IsFailure.ShouldBeTrue();
         await all.DidNotReceive().SendCoreAsync(Arg.Any<string>(), Arg.Any<object?[]>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SendToAllAsync_MintsClearanceFromConfiguredClearance_NotHardcoded()
+    {
+        // Arrange: configure clearance to Extract (as Athena appsettings would).
+        // The test proves that MintAsync is called with whatever Clearance the options carry,
+        // not a hardcoded literal — regression guard against the "dead config" trap.
+        var configuredClearance = ProcessClearance.Extract;
+        var options = Options.Create(new ProcessIdentityOptions { Clearance = configuredClearance });
+        var clearanceService = CreateSucceedingClearanceService();
+
+        var (sut, _, _, _) = CreateSut(clearanceService: clearanceService, options: options);
+
+        await sut.SendToAllAsync(SampleEvent(), Ct);
+
+        await clearanceService.Received(1).MintAsync(
+            Arg.Any<SiaraActor>(),
+            Arg.Is<ProcessClearance>(c => c == configuredClearance),
+            Arg.Any<Guid>(),
+            Arg.Any<CancellationToken>());
     }
 }

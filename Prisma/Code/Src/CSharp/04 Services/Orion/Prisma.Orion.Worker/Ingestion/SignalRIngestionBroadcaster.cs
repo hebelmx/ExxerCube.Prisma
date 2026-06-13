@@ -1,10 +1,12 @@
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using IndFusion.Ember.Abstractions.Hubs;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 
 namespace Prisma.Orion.Worker.Ingestion;
 
@@ -40,27 +42,36 @@ public sealed class SignalRIngestionBroadcaster : IExxerHub<DocumentDownloadedEv
     private readonly IHubContext<IngestionHub> _hubContext;
     private readonly IProcessClearanceTokenService _clearanceTokenService;
     private readonly ISiaraActorIdentityProvider _actorIdentityProvider;
+    private readonly ProcessIdentityOptions _processIdentityOptions;
     private readonly ILogger<SignalRIngestionBroadcaster> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="SignalRIngestionBroadcaster"/> class.</summary>
     /// <param name="hubContext">The SignalR hub context used to broadcast from outside the hub.</param>
     /// <param name="clearanceTokenService">Mints the per-document process clearance token (A5).</param>
     /// <param name="actorIdentityProvider">Resolves the Orion Downloader actor identity for the token.</param>
+    /// <param name="processIdentityOptions">
+    /// The per-process identity options; <see cref="ProcessIdentityOptions.Clearance"/> determines which
+    /// clearance level is stamped on outbound tokens — config-driven (Orion appsettings sets
+    /// <see cref="ProcessClearance.Download"/>).
+    /// </param>
     /// <param name="logger">The logger instance.</param>
     public SignalRIngestionBroadcaster(
         IHubContext<IngestionHub> hubContext,
         IProcessClearanceTokenService clearanceTokenService,
         ISiaraActorIdentityProvider actorIdentityProvider,
+        IOptions<ProcessIdentityOptions> processIdentityOptions,
         ILogger<SignalRIngestionBroadcaster> logger)
     {
         ArgumentNullException.ThrowIfNull(hubContext);
         ArgumentNullException.ThrowIfNull(clearanceTokenService);
         ArgumentNullException.ThrowIfNull(actorIdentityProvider);
+        ArgumentNullException.ThrowIfNull(processIdentityOptions);
         ArgumentNullException.ThrowIfNull(logger);
 
         _hubContext = hubContext;
         _clearanceTokenService = clearanceTokenService;
         _actorIdentityProvider = actorIdentityProvider;
+        _processIdentityOptions = processIdentityOptions.Value;
         _logger = logger;
     }
 
@@ -229,7 +240,7 @@ public sealed class SignalRIngestionBroadcaster : IExxerHub<DocumentDownloadedEv
 
         var mintResult = await _clearanceTokenService.MintAsync(
             actorResult.Value!,
-            ProcessClearance.Download,
+            _processIdentityOptions.Clearance,
             data.FileId,
             cancellationToken).ConfigureAwait(false);
 
