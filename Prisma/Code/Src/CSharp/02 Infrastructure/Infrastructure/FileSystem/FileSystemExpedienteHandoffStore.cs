@@ -1,6 +1,7 @@
 using System.Text.Json;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.Serialization;
 using IndQuestResults.Operations;
 
 namespace ExxerCube.Prisma.Infrastructure.FileSystem;
@@ -18,10 +19,11 @@ namespace ExxerCube.Prisma.Infrastructure.FileSystem;
 /// </remarks>
 public sealed class FileSystemExpedienteHandoffStore : IExpedienteHandoffStore
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
+    private static readonly System.Text.Json.JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         WriteIndented = false,
+        Converters = { new EnumModelJsonConverterFactory() },
     };
 
     private readonly IStoragePathResolver _pathResolver;
