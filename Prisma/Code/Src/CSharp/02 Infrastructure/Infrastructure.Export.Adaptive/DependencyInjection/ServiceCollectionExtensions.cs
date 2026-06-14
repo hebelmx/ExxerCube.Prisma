@@ -49,6 +49,38 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
+    /// Adds the "Datos Carga de Oficio" Excel layout generator services.
+    /// </summary>
+    /// <remarks>
+    /// Registers:
+    /// <list type="bullet">
+    ///   <item><see cref="ITemplateFieldMapper"/> → <see cref="TemplateFieldMapper"/></item>
+    ///   <item><see cref="IDatosCargaOficioLayoutGenerator"/> → <see cref="DatosCargaOficioLayoutGenerator"/></item>
+    /// </list>
+    /// Does NOT force a <c>TemplateDbContext</c>. The generator falls back to the built-in
+    /// <see cref="DatosCargaOficioTemplate.Default"/> when <c>ITemplateRepository</c> is absent or
+    /// returns <see langword="null"/>.
+    /// </remarks>
+    /// <param name="services">The service collection.</param>
+    /// <param name="lifetime">
+    /// Service lifetime for the registrations. Defaults to <see cref="ServiceLifetime.Singleton"/>
+    /// because worker host orchestrators are singletons.
+    /// </param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddDatosCargaOficioExportServices(
+        this IServiceCollection services,
+        ServiceLifetime lifetime = ServiceLifetime.Singleton)
+    {
+        services.Add(ServiceDescriptor.Describe(
+            typeof(ITemplateFieldMapper), typeof(TemplateFieldMapper), lifetime));
+
+        services.Add(ServiceDescriptor.Describe(
+            typeof(IDatosCargaOficioLayoutGenerator), typeof(DatosCargaOficioLayoutGenerator), lifetime));
+
+        return services;
+    }
+
+    /// <summary>
     /// Seeds initial templates (Excel, XML) if they don't already exist.
     /// Call this during application startup to ensure templates are available.
     /// </summary>

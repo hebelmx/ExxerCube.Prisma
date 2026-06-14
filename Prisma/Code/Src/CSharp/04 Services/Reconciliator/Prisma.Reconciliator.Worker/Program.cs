@@ -5,6 +5,8 @@ using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Events;
+using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
+using ExxerCube.Prisma.Infrastructure.Export.Adaptive.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Export.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,13 +70,21 @@ builder.Services.AddSingleton<IExpedienteHandoffStore, FileSystemExpedienteHando
 // not available here) and do NOT call AddAdaptiveExportServices (overrides IResponseExporter with
 // AdaptiveResponseExporterAdapter which emits <Export>, NOT <SiroResponse>).
 builder.Services.AddSiroExportServices(builder.Configuration, ServiceLifetime.Singleton);
+
+// "Datos Carga de Oficio" xlsx layout generator (FR-A, Item #7).
+// Singleton lifetime — stateless, safe to share. No TemplateDbContext required: falls back to built-in
+// DatosCargaOficioTemplate.Default when no ITemplateRepository override is wired.
+builder.Services.AddDatosCargaOficioExportServices(ServiceLifetime.Singleton);
+
 builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
 builder.Services.AddSingleton<ReconciliationOrchestrator>(sp => new ReconciliationOrchestrator(
     sp.GetRequiredService<IEventPublisher>(),
     sp.GetRequiredService<ILogger<ReconciliationOrchestrator>>(),
     classifier: sp.GetRequiredService<IFileClassifier>(),
     exporter: sp.GetService<IResponseExporter>(),
-    reviewCaseScopeFactory: sp.GetService<IServiceScopeFactory>()));
+    reviewCaseScopeFactory: sp.GetService<IServiceScopeFactory>(),
+    datosCargaGenerator: sp.GetService<IDatosCargaOficioLayoutGenerator>(),
+    storagePathResolver: sp.GetService<IStoragePathResolver>()));
 
 // Per-process audit (MVP-PATH 1.6 A6): ReconciliationPipelineService is singleton; IAuditLogger is scoped.
 // The service resolves IAuditLogger per audit call via IServiceScopeFactory (no captive dependency).

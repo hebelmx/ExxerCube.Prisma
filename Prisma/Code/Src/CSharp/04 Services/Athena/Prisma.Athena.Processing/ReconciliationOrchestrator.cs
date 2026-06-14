@@ -8,6 +8,7 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -31,6 +32,8 @@ public sealed class ReconciliationOrchestrator
     private readonly IEventPublisher _eventPublisher;
     private readonly ILogger _logger;
     private readonly IServiceScopeFactory? _reviewCaseScopeFactory;
+    private readonly IDatosCargaOficioLayoutGenerator? _datosCargaGenerator;
+    private readonly IStoragePathResolver? _storagePathResolver;
 
     /// <summary>Classification confidence threshold below which documents are flagged for review.</summary>
     private const int ClassificationConfidenceThreshold = 70;
@@ -45,18 +48,33 @@ public sealed class ReconciliationOrchestrator
     /// dependency: IManualReviewerPanel is scoped, ReconciliationOrchestrator is singleton). When
     /// <see langword="null"/> review-case persistence is a silent no-op (no DB wired). GH #6.
     /// </param>
+    /// <param name="datosCargaGenerator">
+    /// Optional generator for the "Datos Carga de Oficio" Excel layout (FR-A, Item #7). When non-null,
+    /// Stage 5 additionally generates an xlsx and emits a
+    /// <see cref="ExportCompletedEvent"/> with <c>Format="DatosCargaOficioXlsx"</c>. When
+    /// <see langword="null"/> only the SIRO XML export runs (existing behaviour preserved).
+    /// </param>
+    /// <param name="storagePathResolver">
+    /// Optional resolver for writing the xlsx bytes to shared storage. When non-null the xlsx is written
+    /// to the resolved path; when <see langword="null"/> the bytes remain in-memory (size is captured for
+    /// the event). Either way the event is published.
+    /// </param>
     public ReconciliationOrchestrator(
         IEventPublisher eventPublisher,
         ILogger logger,
         IFileClassifier? classifier = null,
         IResponseExporter? exporter = null,
-        IServiceScopeFactory? reviewCaseScopeFactory = null)
+        IServiceScopeFactory? reviewCaseScopeFactory = null,
+        IDatosCargaOficioLayoutGenerator? datosCargaGenerator = null,
+        IStoragePathResolver? storagePathResolver = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _classifier = classifier;
         _exporter = exporter;
         _reviewCaseScopeFactory = reviewCaseScopeFactory;
+        _datosCargaGenerator = datosCargaGenerator;
+        _storagePathResolver = storagePathResolver;
     }
 
     /// <summary>
@@ -313,7 +331,100 @@ public sealed class ReconciliationOrchestrator
         _logger.LogInformation("Stage 5 complete: SIRO XML Export - FileId: {FileId}, Size: {Size} bytes",
             fileId, exportedSizeBytes);
 
+        // Stage 5b: "Datos Carga de Oficio" Excel layout (FR-A, Item #7)
+        // Fail-open: any failure is logged at Warning — the SIRO XML export already succeeded.
+        if (_datosCargaGenerator is not null)
+        {
+            await ExecuteStage5DatosCargaAsync(metadata, fileId, correlationId, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         return true;
+    }
+
+    /// <summary>
+    /// Generates the "Datos Carga de Oficio" xlsx and emits a
+    /// <see cref="ExportCompletedEvent"/> with <c>Format="DatosCargaOficioXlsx"</c>.
+    /// Fail-open: any error is logged at Warning and swallowed — the pipeline must continue.
+    /// </summary>
+    private async Task ExecuteStage5DatosCargaAsync(
+        UnifiedMetadataRecord metadata,
+        Guid fileId,
+        Guid? correlationId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var xlsxStream = new MemoryStream();
+            var genResult = await _datosCargaGenerator!
+                .GenerateAsync(metadata, xlsxStream, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (genResult.IsFailure)
+            {
+                _logger.LogWarning(
+                    "Stage 5b: DatosCargaOficio generation failed for FileId {FileId}: {Error} (pipeline continues)",
+                    fileId, genResult.Error);
+                return;
+            }
+
+            var destination = $"exports/{fileId}.datos-carga-oficio.xlsx";
+            var sizeBytes = (int)xlsxStream.Length;
+
+            // Optional: persist to shared storage when resolver is wired
+            if (_storagePathResolver is not null)
+            {
+                var resolveResult = _storagePathResolver.Resolve(destination);
+                if (resolveResult.IsSuccess && !string.IsNullOrWhiteSpace(resolveResult.Value))
+                {
+                    try
+                    {
+                        var absPath = resolveResult.Value!;
+                        var dir = Path.GetDirectoryName(absPath);
+                        if (!string.IsNullOrWhiteSpace(dir))
+                        {
+                            Directory.CreateDirectory(dir);
+                        }
+
+                        xlsxStream.Position = 0;
+                        await using var fileOut = new FileStream(absPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                        await xlsxStream.CopyToAsync(fileOut, cancellationToken).ConfigureAwait(false);
+
+                        _logger.LogInformation(
+                            "Stage 5b: DatosCargaOficio xlsx written to {Path} ({Size} bytes)",
+                            absPath, sizeBytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex,
+                            "Stage 5b: Failed to write DatosCargaOficio xlsx to storage for FileId {FileId} (pipeline continues)",
+                            fileId);
+                    }
+                }
+            }
+
+            var datosCargaEvent = new ExportCompletedEvent
+            {
+                EventId = Guid.NewGuid(),
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = correlationId,
+                FileId = fileId,
+                Destination = destination,
+                Format = "DatosCargaOficioXlsx",
+                ExportedSizeBytes = sizeBytes,
+            };
+            _eventPublisher.Publish(datosCargaEvent);
+
+            _logger.LogInformation(
+                "Stage 5b complete: DatosCargaOficio xlsx - FileId: {FileId}, Size: {Size} bytes",
+                fileId, sizeBytes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Stage 5b: DatosCargaOficio generation threw for FileId {FileId} (fail-open — pipeline continues)",
+                fileId);
+        }
     }
 
     private void EmitProcessingError(Guid fileId, Guid? correlationId, string component, string errorMessage)
