@@ -62,10 +62,10 @@ public class ManualReviewerServiceIntegrationTests : IDisposable
         };
 
         // Act - Step 1: Identify review cases (first call)
-        var identifyResult = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var identifyResult = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Verify no duplicates on second call
-        var identifyResult2 = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var identifyResult2 = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
         identifyResult2.IsSuccess.ShouldBeTrue();
         // Should return existing cases, not create duplicates
         identifyResult2.Value.ShouldNotBeNull();
@@ -143,7 +143,7 @@ public class ManualReviewerServiceIntegrationTests : IDisposable
         var classification = new ClassificationResult { Confidence = 75 };
 
         // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -262,7 +262,7 @@ public class ManualReviewerServiceIntegrationTests : IDisposable
         };
 
         // Act
-        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();

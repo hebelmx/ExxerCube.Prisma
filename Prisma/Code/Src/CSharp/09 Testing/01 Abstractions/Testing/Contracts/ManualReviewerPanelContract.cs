@@ -180,7 +180,7 @@ public abstract class ManualReviewerPanelContract
         var lowConf = Classification(LowConfidenceThreshold - 5);
 
         var identify = await sut.IdentifyReviewCasesAsync(
-            fileId, MetadataWith(lowConf), lowConf, TestContext.Current.CancellationToken);
+            fileId, MetadataWith(lowConf), lowConf, cancellationToken: TestContext.Current.CancellationToken);
         identify.IsSuccess.ShouldBeTrue();
         identify.Value.ShouldNotBeNull();
         identify.Value!.ShouldNotBeEmpty();
@@ -242,7 +242,7 @@ public abstract class ManualReviewerPanelContract
     {
         var sut = CreateSut();
 
-        var result = await sut.IdentifyReviewCasesAsync("FILE-001", null!, Classification(95), TestContext.Current.CancellationToken);
+        var result = await sut.IdentifyReviewCasesAsync("FILE-001", null!, Classification(95), cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldNotBeNullOrEmpty();
@@ -254,7 +254,7 @@ public abstract class ManualReviewerPanelContract
     {
         var sut = CreateSut();
 
-        var result = await sut.IdentifyReviewCasesAsync("FILE-001", MetadataWith(Classification(95)), null!, TestContext.Current.CancellationToken);
+        var result = await sut.IdentifyReviewCasesAsync("FILE-001", MetadataWith(Classification(95)), null!, cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldNotBeNullOrEmpty();
@@ -269,7 +269,7 @@ public abstract class ManualReviewerPanelContract
         var classification = Classification(LowConfidenceThreshold - 5);
 
         var result = await sut.IdentifyReviewCasesAsync(
-            fileId, MetadataWith(classification), classification, TestContext.Current.CancellationToken);
+            fileId, MetadataWith(classification), classification, cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -285,7 +285,7 @@ public abstract class ManualReviewerPanelContract
         var classification = Classification(85, level2: null);
 
         var result = await sut.IdentifyReviewCasesAsync(
-            fileId, MetadataWith(classification), classification, TestContext.Current.CancellationToken);
+            fileId, MetadataWith(classification), classification, cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -301,7 +301,7 @@ public abstract class ManualReviewerPanelContract
         var classification = Classification(90);
         var metadata = MetadataWith(classification, new MatchedFields { ConflictingFields = new List<string> { "Expediente", "Causa" } });
 
-        var result = await sut.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var result = await sut.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -317,7 +317,7 @@ public abstract class ManualReviewerPanelContract
         var classification = Classification(LowConfidenceThreshold + 15, ClassificationLevel2.Judicial);
         var metadata = MetadataWith(classification, new MatchedFields { ConflictingFields = new List<string>() });
 
-        var result = await sut.IdentifyReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var result = await sut.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -332,8 +332,157 @@ public abstract class ManualReviewerPanelContract
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var result = await sut.IdentifyReviewCasesAsync("FILE-001", new UnifiedMetadataRecord(), new ClassificationResult(), cts.Token);
+        var result = await sut.IdentifyReviewCasesAsync("FILE-001", new UnifiedMetadataRecord(), new ClassificationResult(), cancellationToken: cts.Token);
 
         result.IsCancelled().ShouldBeTrue();
+    }
+
+    //
+    // IncompleteCase dimension (GH #6)
+    //
+
+    /// <summary>
+    /// High-confidence, unambiguous, conflict-free classification — only the <c>isComplete</c>
+    /// flag fires; no other review reason should be created.
+    /// Confidence is hardcoded to 95 (well above the 80 default threshold used by both impls).
+    /// </summary>
+    private static ClassificationResult HighConfidenceClassificationForIsComplete()
+        => new()
+        {
+            Level1 = ClassificationLevel1.Aseguramiento,
+            Level2 = ClassificationLevel2.Judicial, // non-null → not ambiguous
+            Confidence = 95, // well above the 80 threshold used by both known impls
+        };
+
+    /// <summary>
+    /// Clean metadata record that will not trigger confidence/ambiguity/extraction reasons.
+    /// </summary>
+    private static UnifiedMetadataRecord CleanMetadataForIsComplete()
+        => new()
+        {
+            Classification = HighConfidenceClassificationForIsComplete(),
+            MatchedFields = new MatchedFields
+            {
+                ConflictingFields = new List<string>(),
+                MissingFields = new List<string>(),
+            },
+        };
+
+    /// <summary>
+    /// Contract: calling <c>IdentifyReviewCasesAsync</c> with <c>isComplete=false</c> then querying
+    /// for <see cref="ReviewReason.IncompleteCase"/> returns exactly one Pending case (GH #6).
+    /// </summary>
+    [Fact]
+    public async Task IdentifyReviewCasesAsync_WhenIncomplete_CreatesExactlyOnePendingIncompleteCase()
+    {
+        var sut = CreateSut();
+        var fileId = "FILE-IC-CTR-" + Guid.NewGuid().ToString("N");
+        var classification = HighConfidenceClassificationForIsComplete();
+        var metadata = CleanMetadataForIsComplete();
+
+        // Act — first (and only) call with isComplete=false
+        var identifyResult = await sut.IdentifyReviewCasesAsync(
+            fileId, metadata, classification, isComplete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        identifyResult.IsSuccess.ShouldBeTrue();
+
+        // Fetch all cases for this file and filter in-memory for the IncompleteCase/Pending combination
+        var getResult = await sut.GetReviewCasesAsync(
+            new ReviewFilters { ReviewReason = ReviewReason.IncompleteCase, Status = ReviewStatus.Pending },
+            pageNumber: 1, pageSize: 50,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        getResult.IsSuccess.ShouldBeTrue();
+        var incomplete = getResult.Value!
+            .Where(c => c.FileId == fileId)
+            .ToList();
+
+        incomplete.Count.ShouldBe(1,
+            "exactly one IncompleteCase/Pending row must exist after a single isComplete=false call");
+        incomplete[0].RequiresReviewReason.ShouldBe(ReviewReason.IncompleteCase);
+        incomplete[0].Status.ShouldBe(ReviewStatus.Pending);
+    }
+
+    /// <summary>
+    /// Contract: calling <c>IdentifyReviewCasesAsync</c> with <c>isComplete=false</c> twice for the
+    /// same fileId does NOT duplicate the <see cref="ReviewReason.IncompleteCase"/> row (idempotent,
+    /// GH #6).
+    /// </summary>
+    [Fact]
+    public async Task IdentifyReviewCasesAsync_RepeatedIncomplete_DoesNotCreateDuplicates()
+    {
+        var sut = CreateSut();
+        var fileId = "FILE-IC-DUP-" + Guid.NewGuid().ToString("N");
+        var classification = HighConfidenceClassificationForIsComplete();
+        var metadata = CleanMetadataForIsComplete();
+
+        // Act — two calls with isComplete=false
+        var r1 = await sut.IdentifyReviewCasesAsync(
+            fileId, metadata, classification, isComplete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+        r1.IsSuccess.ShouldBeTrue();
+
+        var r2 = await sut.IdentifyReviewCasesAsync(
+            fileId, metadata, classification, isComplete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+        r2.IsSuccess.ShouldBeTrue();
+
+        // Fetch and filter by fileId in-memory
+        var getResult = await sut.GetReviewCasesAsync(
+            new ReviewFilters { ReviewReason = ReviewReason.IncompleteCase },
+            pageNumber: 1, pageSize: 50,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        getResult.IsSuccess.ShouldBeTrue();
+        var incomplete = getResult.Value!
+            .Where(c => c.FileId == fileId)
+            .ToList();
+
+        incomplete.Count.ShouldBe(1,
+            "a second isComplete=false call must not duplicate the IncompleteCase row");
+    }
+
+    /// <summary>
+    /// Contract: after <c>isComplete=false</c> (which creates a Pending IncompleteCase), a subsequent
+    /// call with <c>isComplete=true</c> heals the row — no Pending IncompleteCase remains (GH #6).
+    /// </summary>
+    [Fact]
+    public async Task IdentifyReviewCasesAsync_CompleteAfterIncomplete_HealsPendingRow()
+    {
+        var sut = CreateSut();
+        var fileId = "FILE-IC-HEAL-" + Guid.NewGuid().ToString("N");
+        var classification = HighConfidenceClassificationForIsComplete();
+        var metadata = CleanMetadataForIsComplete();
+
+        // Arrange — create the pending row
+        var incompleteResult = await sut.IdentifyReviewCasesAsync(
+            fileId, metadata, classification, isComplete: false,
+            cancellationToken: TestContext.Current.CancellationToken);
+        incompleteResult.IsSuccess.ShouldBeTrue();
+
+        // Pre-condition: one Pending IncompleteCase exists
+        var beforeHeal = await sut.GetReviewCasesAsync(
+            new ReviewFilters { ReviewReason = ReviewReason.IncompleteCase, Status = ReviewStatus.Pending },
+            pageNumber: 1, pageSize: 50,
+            cancellationToken: TestContext.Current.CancellationToken);
+        beforeHeal.IsSuccess.ShouldBeTrue();
+        beforeHeal.Value!.Where(c => c.FileId == fileId).Count()
+            .ShouldBe(1, "pre-condition: exactly one Pending IncompleteCase must exist before the heal call");
+
+        // Act — heal
+        var completeResult = await sut.IdentifyReviewCasesAsync(
+            fileId, metadata, classification, isComplete: true,
+            cancellationToken: TestContext.Current.CancellationToken);
+        completeResult.IsSuccess.ShouldBeTrue();
+
+        // Assert — no Pending IncompleteCase remains after the heal call
+        var afterHeal = await sut.GetReviewCasesAsync(
+            new ReviewFilters { ReviewReason = ReviewReason.IncompleteCase, Status = ReviewStatus.Pending },
+            pageNumber: 1, pageSize: 50,
+            cancellationToken: TestContext.Current.CancellationToken);
+        afterHeal.IsSuccess.ShouldBeTrue();
+        afterHeal.Value!.Where(c => c.FileId == fileId).Count()
+            .ShouldBe(0, "no Pending IncompleteCase row must remain after isComplete=true (heal)");
     }
 }

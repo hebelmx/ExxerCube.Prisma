@@ -533,7 +533,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Identify_NullFileId_ReturnsExactFailure()
     {
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
-            "  ", new UnifiedMetadataRecord(), new ClassificationResult(), TestContext.Current.CancellationToken);
+            "  ", new UnifiedMetadataRecord(), new ClassificationResult(), cancellationToken: TestContext.Current.CancellationToken);
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe("FileId cannot be null or empty");
     }
@@ -542,7 +542,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Identify_NullMetadata_ReturnsExactFailure()
     {
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
-            "F1", null!, new ClassificationResult(), TestContext.Current.CancellationToken);
+            "F1", null!, new ClassificationResult(), cancellationToken: TestContext.Current.CancellationToken);
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe("Metadata cannot be null");
     }
@@ -551,7 +551,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Identify_NullClassification_ReturnsExactFailure()
     {
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
-            "F1", new UnifiedMetadataRecord(), null!, TestContext.Current.CancellationToken);
+            "F1", new UnifiedMetadataRecord(), null!, cancellationToken: TestContext.Current.CancellationToken);
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe("Classification cannot be null");
     }
@@ -559,11 +559,11 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Identify_PanelFailure_ReturnsExactError()
     {
-        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<CancellationToken>())
+        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.WithFailure("panel boom"));
 
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
-            "F1", new UnifiedMetadataRecord(), new ClassificationResult(), TestContext.Current.CancellationToken);
+            "F1", new UnifiedMetadataRecord(), new ClassificationResult(), cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe("Failed to identify review cases: panel boom");
@@ -572,11 +572,11 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Identify_PanelCancelled_ReturnsCancelled()
     {
-        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<CancellationToken>())
+        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<ReviewCase>>());
 
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
-            "F1", new UnifiedMetadataRecord(), new ClassificationResult(), TestContext.Current.CancellationToken);
+            "F1", new UnifiedMetadataRecord(), new ClassificationResult(), cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsCancelled().ShouldBeTrue();
     }
@@ -584,11 +584,11 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Identify_SuccessNullValue_ReturnsEmptyList()
     {
-        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<CancellationToken>())
+        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(null!));
 
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
-            "F1", new UnifiedMetadataRecord(), new ClassificationResult(), TestContext.Current.CancellationToken);
+            "F1", new UnifiedMetadataRecord(), new ClassificationResult(), cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -598,11 +598,11 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Identify_PanelThrows_ReturnsWrappedError()
     {
-        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<CancellationToken>())
+        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns<Task<Result<List<ReviewCase>>>>(_ => throw new InvalidOperationException("boom"));
 
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
-            "F1", new UnifiedMetadataRecord(), new ClassificationResult(), TestContext.Current.CancellationToken);
+            "F1", new UnifiedMetadataRecord(), new ClassificationResult(), cancellationToken: TestContext.Current.CancellationToken);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe("Error identifying review cases: boom");

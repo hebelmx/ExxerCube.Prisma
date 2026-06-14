@@ -149,14 +149,14 @@ public class ManualReviewIntegrationTests
             }
         };
 
-        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<CancellationToken>())
+        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(reviewCases));
 
         _manualReviewerPanel.SubmitReviewDecisionAsync(Arg.Any<string>(), Arg.Any<ReviewDecision>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
         // Act - Step 1: Identify review cases
-        var identifyResult = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var identifyResult = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert - Step 1
         identifyResult.IsSuccess.ShouldBeTrue();

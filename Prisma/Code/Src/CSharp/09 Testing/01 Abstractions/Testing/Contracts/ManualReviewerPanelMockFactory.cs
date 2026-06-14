@@ -210,6 +210,7 @@ public static class ManualReviewerPanelMockFactory
             string fileId,
             UnifiedMetadataRecord metadata,
             ClassificationResult classification,
+            bool isComplete = true,
             CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -232,36 +233,67 @@ public static class ManualReviewerPanelMockFactory
                 return Task.FromResult(Result<List<ReviewCase>>.WithFailure("Classification cannot be null"));
             }
 
-            var existing = _cases.Where(c => c.FileId == fileId && c.Status != ReviewStatus.Completed).ToList();
-            if (existing.Count > 0)
-            {
-                return Task.FromResult(Result<List<ReviewCase>>.Success(existing));
-            }
+            var existingNonCompleted = _cases
+                .Where(c => c.FileId == fileId && c.Status != ReviewStatus.Completed)
+                .ToList();
 
             var reviewCases = new List<ReviewCase>();
 
-            if (classification.Confidence < 80)
+            // Incomplete dimension — orthogonal to confidence/ambiguity/extraction.
+            if (!isComplete)
             {
-                reviewCases.Add(NewCase(fileId, ReviewReason.LowConfidence, classification.Confidence, ambiguity: false));
-            }
-
-            var isAmbiguous = classification.Level2 == null || (metadata.MatchedFields?.ConflictingFields?.Count > 0);
-            if (isAmbiguous)
-            {
-                reviewCases.Add(NewCase(fileId, ReviewReason.AmbiguousClassification, classification.Confidence, ambiguity: true));
-            }
-
-            if (metadata.MatchedFields != null)
-            {
-                var hasExtractionErrors = (metadata.MatchedFields.ConflictingFields?.Count > 0)
-                                          || (metadata.MatchedFields.MissingFields?.Count > 0);
-                if (hasExtractionErrors)
+                var alreadyFlagged = existingNonCompleted
+                    .Any(c => c.RequiresReviewReason == ReviewReason.IncompleteCase);
+                if (!alreadyFlagged)
                 {
-                    reviewCases.Add(NewCase(fileId, ReviewReason.ExtractionError, classification.Confidence, ambiguity: false));
+                    var incompleteCase = NewCase(fileId, ReviewReason.IncompleteCase, classification.Confidence, ambiguity: false);
+                    reviewCases.Add(incompleteCase);
+                    _cases.Add(incompleteCase);
+                }
+            }
+            else
+            {
+                // Heal any pending IncompleteCase rows.
+                var pendingIncomplete = existingNonCompleted
+                    .Where(c => c.RequiresReviewReason == ReviewReason.IncompleteCase
+                                && (c.Status == ReviewStatus.Pending || c.Status == ReviewStatus.InProgress))
+                    .ToList();
+                foreach (var row in pendingIncomplete)
+                {
+                    row.Status = ReviewStatus.Completed;
                 }
             }
 
-            _cases.AddRange(reviewCases);
+            // Confidence/ambiguity/extraction — only when no non-completed cases exist (dedup).
+            if (existingNonCompleted.Count == 0)
+            {
+                if (classification.Confidence < 80)
+                {
+                    reviewCases.Add(NewCase(fileId, ReviewReason.LowConfidence, classification.Confidence, ambiguity: false));
+                }
+
+                var isAmbiguous = classification.Level2 == null || (metadata.MatchedFields?.ConflictingFields?.Count > 0);
+                if (isAmbiguous)
+                {
+                    reviewCases.Add(NewCase(fileId, ReviewReason.AmbiguousClassification, classification.Confidence, ambiguity: true));
+                }
+
+                if (metadata.MatchedFields != null)
+                {
+                    var hasExtractionErrors = (metadata.MatchedFields.ConflictingFields?.Count > 0)
+                                              || (metadata.MatchedFields.MissingFields?.Count > 0);
+                    if (hasExtractionErrors)
+                    {
+                        reviewCases.Add(NewCase(fileId, ReviewReason.ExtractionError, classification.Confidence, ambiguity: false));
+                    }
+                }
+
+                // Add new confidence/ambiguity/extraction cases (IncompleteCase was already added above).
+                var newConfidenceCases = reviewCases
+                    .Where(c => c.RequiresReviewReason != ReviewReason.IncompleteCase)
+                    .ToList();
+                _cases.AddRange(newConfidenceCases);
+            }
 
             return Task.FromResult(Result<List<ReviewCase>>.Success(reviewCases));
         }

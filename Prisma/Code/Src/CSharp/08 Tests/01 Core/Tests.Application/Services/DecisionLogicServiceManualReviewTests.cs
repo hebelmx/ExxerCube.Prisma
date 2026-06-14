@@ -63,11 +63,11 @@ public class DecisionLogicServiceManualReviewTests
             }
         };
 
-        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<CancellationToken>())
+        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(expectedCases));
 
         // Act
-        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -90,11 +90,11 @@ public class DecisionLogicServiceManualReviewTests
         var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
 
-        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationTokenSource.Token)
+        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<ReviewCase>>());
 
         // Act
-        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, cancellationTokenSource.Token);
+        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, cancellationToken: cancellationTokenSource.Token);
 
         // Assert
         result.IsCancelled().ShouldBeTrue();
@@ -112,11 +112,11 @@ public class DecisionLogicServiceManualReviewTests
         var metadata = new UnifiedMetadataRecord();
         var classification = new ClassificationResult();
 
-        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<CancellationToken>())
+        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.WithFailure("Identification failed"));
 
         // Act
-        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -135,7 +135,7 @@ public class DecisionLogicServiceManualReviewTests
         var classification = new ClassificationResult();
 
         // Act
-        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, TestContext.Current.CancellationToken);
+        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -154,7 +154,7 @@ public class DecisionLogicServiceManualReviewTests
         var classification = new ClassificationResult();
 
         // Act
-        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata!, classification, TestContext.Current.CancellationToken);
+        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata!, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();
@@ -173,7 +173,7 @@ public class DecisionLogicServiceManualReviewTests
         ClassificationResult? classification = null;
 
         // Act
-        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification!, TestContext.Current.CancellationToken);
+        var result = await _service.IdentifyAndQueueReviewCasesAsync(fileId, metadata, classification!, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsFailure.ShouldBeTrue();

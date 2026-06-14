@@ -50,7 +50,7 @@ public class DecisionLogicServiceUnifiedMetadataStoreTests
         };
 
         _manualReviewerPanel
-            .IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<CancellationToken>())
+            .IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(expectedCases));
 
         // Use an in-memory fake store so we can inspect what was saved
@@ -62,7 +62,7 @@ public class DecisionLogicServiceUnifiedMetadataStoreTests
 
         // Act
         var result = await service.IdentifyAndQueueReviewCasesAsync(
-            fileId, metadata, classification, TestContext.Current.CancellationToken);
+            fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert — identification succeeded
         result.IsSuccess.ShouldBeTrue();
@@ -91,7 +91,7 @@ public class DecisionLogicServiceUnifiedMetadataStoreTests
         };
 
         _manualReviewerPanel
-            .IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<CancellationToken>())
+            .IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(expectedCases));
 
         // No store — the optional param defaults to null
@@ -101,7 +101,7 @@ public class DecisionLogicServiceUnifiedMetadataStoreTests
 
         // Act
         var result = await service.IdentifyAndQueueReviewCasesAsync(
-            fileId, metadata, classification, TestContext.Current.CancellationToken);
+            fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
