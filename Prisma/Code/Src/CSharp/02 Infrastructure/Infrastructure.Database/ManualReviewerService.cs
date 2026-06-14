@@ -429,6 +429,7 @@ public class ManualReviewerService : IManualReviewerPanel
         string fileId,
         UnifiedMetadataRecord metadata,
         ClassificationResult classification,
+        bool isComplete = true,
         CancellationToken cancellationToken = default)
     {
         // Early cancellation check
@@ -458,101 +459,185 @@ public class ManualReviewerService : IManualReviewerPanel
 
         try
         {
-            _logger.LogInformation("Identifying review cases for file: {FileId}, classification confidence: {Confidence}", fileId, classification.Confidence);
+            _logger.LogInformation(
+                "Identifying review cases for file: {FileId}, classification confidence: {Confidence}, isComplete: {IsComplete}",
+                fileId, classification.Confidence, isComplete);
 
-            // Check if cases already exist for this file (prevent duplicates)
-            var existingCases = await _dbContext.ReviewCases
+            // Query all existing non-Completed cases for this file once.
+            var existingNonCompleted = await _dbContext.ReviewCases
                 .Where(c => c.FileId == fileId && c.Status != ReviewStatus.Completed)
-                .AnyAsync(cancellationToken).ConfigureAwait(false);
-
-            if (existingCases)
-            {
-                _logger.LogInformation("Review cases already exist for file: {FileId}, skipping duplicate creation", fileId);
-                var existingReviewCases = await _dbContext.ReviewCases
-                    .Where(c => c.FileId == fileId && c.Status != ReviewStatus.Completed)
-                    .ToListAsync(cancellationToken).ConfigureAwait(false);
-                return Result<List<ReviewCase>>.Success(existingReviewCases);
-            }
+                .ToListAsync(cancellationToken).ConfigureAwait(false);
 
             var reviewCases = new List<ReviewCase>();
+            var anyChanges = false;
 
-            // Check for low confidence (< 80%)
-            if (classification.Confidence < 80)
+            // ----------------------------------------------------------------
+            // INCOMPLETE DIMENSION — orthogonal to confidence/ambiguity/extraction.
+            // ----------------------------------------------------------------
+            if (!isComplete)
             {
-                var lowConfidenceCase = new ReviewCase
+                // Flag: create an IncompleteCase row if no pending one already exists.
+                var alreadyFlagged = existingNonCompleted
+                    .Any(c => c.RequiresReviewReason == ReviewReason.IncompleteCase);
+
+                if (!alreadyFlagged)
                 {
-                    CaseId = $"CASE-{Guid.NewGuid():N}",
-                    FileId = fileId,
-                    RequiresReviewReason = ReviewReason.LowConfidence,
-                    ConfidenceLevel = classification.Confidence,
-                    ClassificationAmbiguity = false,
-                    Status = ReviewStatus.Pending,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                reviewCases.Add(lowConfidenceCase);
-                _logger.LogInformation("Identified low confidence case: {CaseId}, confidence: {Confidence}", lowConfidenceCase.CaseId, classification.Confidence);
-            }
-
-            // Check for ambiguous classification
-            bool isAmbiguous = classification.Level2 == null ||
-                              (metadata.MatchedFields?.ConflictingFields?.Count > 0);
-
-            if (isAmbiguous)
-            {
-                var ambiguousCase = new ReviewCase
-                {
-                    CaseId = $"CASE-{Guid.NewGuid():N}",
-                    FileId = fileId,
-                    RequiresReviewReason = ReviewReason.AmbiguousClassification,
-                    ConfidenceLevel = classification.Confidence,
-                    ClassificationAmbiguity = true,
-                    Status = ReviewStatus.Pending,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                reviewCases.Add(ambiguousCase);
-                _logger.LogInformation("Identified ambiguous classification case: {CaseId}", ambiguousCase.CaseId);
-            }
-
-            // Check for extraction errors (conflicting fields or missing fields)
-            if (metadata.MatchedFields != null)
-            {
-                bool hasExtractionErrors = (metadata.MatchedFields.ConflictingFields?.Count > 0) ||
-                                          (metadata.MatchedFields.MissingFields?.Count > 0);
-
-                if (hasExtractionErrors)
-                {
-                    var extractionErrorCase = new ReviewCase
+                    var incompleteCase = new ReviewCase
                     {
                         CaseId = $"CASE-{Guid.NewGuid():N}",
                         FileId = fileId,
-                        RequiresReviewReason = ReviewReason.ExtractionError,
+                        RequiresReviewReason = ReviewReason.IncompleteCase,
                         ConfidenceLevel = classification.Confidence,
                         ClassificationAmbiguity = false,
                         Status = ReviewStatus.Pending,
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    reviewCases.Add(extractionErrorCase);
-                    _logger.LogInformation("Identified extraction error case: {CaseId}, conflicts: {Conflicts}, missing: {Missing}",
-                        extractionErrorCase.CaseId,
-                        metadata.MatchedFields.ConflictingFields?.Count ?? 0,
-                        metadata.MatchedFields.MissingFields?.Count ?? 0);
+                    reviewCases.Add(incompleteCase);
+                    await _dbContext.ReviewCases.AddAsync(incompleteCase, cancellationToken).ConfigureAwait(false);
+                    anyChanges = true;
+                    _logger.LogInformation(
+                        "Incomplete case flagged: {CaseId} for file {FileId}", incompleteCase.CaseId, fileId);
                 }
-            }
-
-            // Save identified cases to database
-            if (reviewCases.Count > 0)
-            {
-                await _dbContext.ReviewCases.AddRangeAsync(reviewCases, cancellationToken).ConfigureAwait(false);
-                await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-
-                _logger.LogInformation("Identified and saved {Count} review cases", reviewCases.Count);
+                else
+                {
+                    _logger.LogInformation(
+                        "Incomplete case already pending for file {FileId} — skipping duplicate", fileId);
+                }
             }
             else
             {
-                _logger.LogInformation("No review cases identified - classification and extraction are acceptable");
+                // Heal: if the case package is now complete, close any pending IncompleteCase rows.
+                var pendingIncomplete = existingNonCompleted
+                    .Where(c => c.RequiresReviewReason == ReviewReason.IncompleteCase
+                                && (c.Status == ReviewStatus.Pending || c.Status == ReviewStatus.InProgress))
+                    .ToList();
+
+                if (pendingIncomplete.Count > 0)
+                {
+                    foreach (var row in pendingIncomplete)
+                    {
+                        row.Status = ReviewStatus.Completed;
+                    }
+
+                    anyChanges = true;
+                    _logger.LogInformation(
+                        "Healed {Count} incomplete-case row(s) for file {FileId} (case is now complete)",
+                        pendingIncomplete.Count, fileId);
+                }
+            }
+
+            // ----------------------------------------------------------------
+            // CONFIDENCE / AMBIGUITY / EXTRACTION DIMENSION
+            // Dedup: only add these when NO non-Completed case of ANY kind exists yet
+            // (existing guard, unchanged — only skips creation, not the incomplete heal above).
+            // ----------------------------------------------------------------
+            var hasExistingNonCompleted = existingNonCompleted.Count > 0;
+
+            if (!hasExistingNonCompleted)
+            {
+                // Check for low confidence (< 80%)
+                if (classification.Confidence < 80)
+                {
+                    var lowConfidenceCase = new ReviewCase
+                    {
+                        CaseId = $"CASE-{Guid.NewGuid():N}",
+                        FileId = fileId,
+                        RequiresReviewReason = ReviewReason.LowConfidence,
+                        ConfidenceLevel = classification.Confidence,
+                        ClassificationAmbiguity = false,
+                        Status = ReviewStatus.Pending,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    reviewCases.Add(lowConfidenceCase);
+                    _logger.LogInformation(
+                        "Identified low confidence case: {CaseId}, confidence: {Confidence}",
+                        lowConfidenceCase.CaseId, classification.Confidence);
+                }
+
+                // Check for ambiguous classification
+                bool isAmbiguous = classification.Level2 == null ||
+                                  (metadata.MatchedFields?.ConflictingFields?.Count > 0);
+
+                if (isAmbiguous)
+                {
+                    var ambiguousCase = new ReviewCase
+                    {
+                        CaseId = $"CASE-{Guid.NewGuid():N}",
+                        FileId = fileId,
+                        RequiresReviewReason = ReviewReason.AmbiguousClassification,
+                        ConfidenceLevel = classification.Confidence,
+                        ClassificationAmbiguity = true,
+                        Status = ReviewStatus.Pending,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    reviewCases.Add(ambiguousCase);
+                    _logger.LogInformation(
+                        "Identified ambiguous classification case: {CaseId}", ambiguousCase.CaseId);
+                }
+
+                // Check for extraction errors (conflicting fields or missing fields)
+                if (metadata.MatchedFields != null)
+                {
+                    bool hasExtractionErrors = (metadata.MatchedFields.ConflictingFields?.Count > 0) ||
+                                              (metadata.MatchedFields.MissingFields?.Count > 0);
+
+                    if (hasExtractionErrors)
+                    {
+                        var extractionErrorCase = new ReviewCase
+                        {
+                            CaseId = $"CASE-{Guid.NewGuid():N}",
+                            FileId = fileId,
+                            RequiresReviewReason = ReviewReason.ExtractionError,
+                            ConfidenceLevel = classification.Confidence,
+                            ClassificationAmbiguity = false,
+                            Status = ReviewStatus.Pending,
+                            CreatedAt = DateTime.UtcNow
+                        };
+
+                        reviewCases.Add(extractionErrorCase);
+                        _logger.LogInformation(
+                            "Identified extraction error case: {CaseId}, conflicts: {Conflicts}, missing: {Missing}",
+                            extractionErrorCase.CaseId,
+                            metadata.MatchedFields.ConflictingFields?.Count ?? 0,
+                            metadata.MatchedFields.MissingFields?.Count ?? 0);
+                    }
+                }
+
+                if (reviewCases.Count > 0)
+                {
+                    // Only the newly-added confidence/ambiguity/extraction cases need AddRange;
+                    // the IncompleteCase row was already Add'd individually above (when applicable).
+                    var newConfidenceCases = reviewCases
+                        .Where(c => c.RequiresReviewReason != ReviewReason.IncompleteCase)
+                        .ToList();
+                    if (newConfidenceCases.Count > 0)
+                    {
+                        await _dbContext.ReviewCases.AddRangeAsync(newConfidenceCases, cancellationToken).ConfigureAwait(false);
+                        anyChanges = true;
+                    }
+                }
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Non-completed review cases already exist for file: {FileId}, skipping duplicate confidence/ambiguity/extraction case creation",
+                    fileId);
+            }
+
+            // Persist once if anything was added or healed.
+            if (anyChanges)
+            {
+                await _dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                _logger.LogInformation(
+                    "Saved review case changes for file {FileId}: {NewCount} new case(s)", fileId, reviewCases.Count);
+            }
+            else if (reviewCases.Count == 0)
+            {
+                _logger.LogInformation(
+                    "No review cases identified or changed for file {FileId}", fileId);
             }
 
             return Result<List<ReviewCase>>.Success(reviewCases);

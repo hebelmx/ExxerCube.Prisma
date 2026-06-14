@@ -11,6 +11,7 @@ public sealed class ReviewReason : EnumModel
     public static readonly ReviewReason LowConfidence = new(0, "LowConfidence", "Low confidence");
     public static readonly ReviewReason AmbiguousClassification = new(1, "AmbiguousClassification", "Ambiguous classification");
     public static readonly ReviewReason ExtractionError = new(2, "ExtractionError", "Extraction error");
+    public static readonly ReviewReason IncompleteCase = new(3, "IncompleteCase", "Incomplete case (missing companion file)");
     public static readonly ReviewReason Other = new(999, "Other", "Other");
 
     public ReviewReason() { }

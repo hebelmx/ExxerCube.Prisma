@@ -8,6 +8,7 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Athena.Processing;
@@ -29,6 +30,7 @@ public sealed class ReconciliationOrchestrator
     private readonly IResponseExporter? _exporter;
     private readonly IEventPublisher _eventPublisher;
     private readonly ILogger _logger;
+    private readonly IServiceScopeFactory? _reviewCaseScopeFactory;
 
     /// <summary>Classification confidence threshold below which documents are flagged for review.</summary>
     private const int ClassificationConfidenceThreshold = 70;
@@ -38,25 +40,40 @@ public sealed class ReconciliationOrchestrator
     /// <param name="logger">The logger.</param>
     /// <param name="classifier">Optional: Stage 4 classification service.</param>
     /// <param name="exporter">Optional: Stage 5 SIRO XML export service. When null Stage 5 is skipped.</param>
+    /// <param name="reviewCaseScopeFactory">
+    /// Optional scope factory used to resolve <see cref="IManualReviewerPanel"/> per document (avoids captive
+    /// dependency: IManualReviewerPanel is scoped, ReconciliationOrchestrator is singleton). When
+    /// <see langword="null"/> review-case persistence is a silent no-op (no DB wired). GH #6.
+    /// </param>
     public ReconciliationOrchestrator(
         IEventPublisher eventPublisher,
         ILogger logger,
         IFileClassifier? classifier = null,
-        IResponseExporter? exporter = null)
+        IResponseExporter? exporter = null,
+        IServiceScopeFactory? reviewCaseScopeFactory = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _classifier = classifier;
         _exporter = exporter;
+        _reviewCaseScopeFactory = reviewCaseScopeFactory;
     }
 
     /// <summary>
     /// Runs Stage 4 Classification → Stage 5 Export over the Extractor's fused result.
+    /// After Stage 4, persists a review case reflecting the <paramref name="isComplete"/> flag (GH #6,
+    /// fail-open: a persistence failure is logged at Warning and never throws).
     /// </summary>
     /// <param name="ocrResult">The OCR result from the Extractor (currently unused by Stage 4; kept for fidelity/future use).</param>
     /// <param name="fusionResult">The fused result from the Extractor (its expediente feeds classification + export).</param>
     /// <param name="fileId">The file id (stable across the pipeline).</param>
     /// <param name="correlationId">The correlation id.</param>
+    /// <param name="isComplete">
+    /// Whether the source case package was complete. When <see langword="false"/> an
+    /// <c>IncompleteCase</c> review case is persisted (idempotent). When <see langword="true"/> any
+    /// existing pending incomplete-case row is healed. Defaults to <see langword="true"/> so existing
+    /// callers compile unchanged. GH #6.
+    /// </param>
     /// <param name="cancellationToken">Cancellation token; honored between stages.</param>
     /// <returns>How many of Stages 4–5 completed.</returns>
     public async Task<int> ReconcileAsync(
@@ -64,6 +81,7 @@ public sealed class ReconciliationOrchestrator
         FusionResult? fusionResult,
         Guid fileId,
         Guid? correlationId,
+        bool isComplete = true,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -78,6 +96,11 @@ public sealed class ReconciliationOrchestrator
             stagesCompleted++;
         }
 
+        // REVIEW CASE PERSISTENCE (GH #6): run after Stage 4 so we have classificationResult.
+        // Fail-open: any failure is logged at Warning and never throws — the pipeline must continue.
+        await PersistReviewCaseAsync(fileId, fusionResult, classificationResult, isComplete, cancellationToken)
+            .ConfigureAwait(false);
+
         cancellationToken.ThrowIfCancellationRequested();
 
         // STAGE 5: Export
@@ -89,6 +112,73 @@ public sealed class ReconciliationOrchestrator
         }
 
         return stagesCompleted;
+    }
+
+    /// <summary>
+    /// Persists a review case for the document after Stage 4.  Fail-open: any error is logged at
+    /// Warning and swallowed — a review-persistence failure must not crash the pipeline.
+    /// </summary>
+    private async Task PersistReviewCaseAsync(
+        Guid fileId,
+        FusionResult? fusionResult,
+        ClassificationResult? classificationResult,
+        bool isComplete,
+        CancellationToken cancellationToken)
+    {
+        if (_reviewCaseScopeFactory is null)
+        {
+            return; // No DB wired — silent no-op.
+        }
+
+        try
+        {
+            // When classificationResult is null (classifier absent/failed) but !isComplete we still
+            // want to flag the incomplete case.  Use a minimal ClassificationResult (Confidence 0)
+            // so the IncompleteCase row is never silently dropped.
+            // Note: ClassificationResult has a public parameterless ctor and Confidence defaults to 0,
+            // so this is safe to construct directly.
+            var effectiveClassification = classificationResult ?? new ClassificationResult();
+
+            var metadata = new UnifiedMetadataRecord
+            {
+                Expediente = fusionResult?.FusedExpediente
+            };
+
+            using var scope = _reviewCaseScopeFactory.CreateScope();
+            var panel = scope.ServiceProvider.GetService<IManualReviewerPanel>();
+            if (panel is null)
+            {
+                _logger.LogDebug(
+                    "IManualReviewerPanel not registered in scope — review-case persistence skipped for file {FileId}",
+                    fileId);
+                return;
+            }
+
+            var result = await panel.IdentifyReviewCasesAsync(
+                fileId.ToString(),
+                metadata,
+                effectiveClassification,
+                isComplete,
+                cancellationToken).ConfigureAwait(false);
+
+            if (result.IsFailure)
+            {
+                _logger.LogWarning(
+                    "Review-case persistence returned failure for file {FileId}: {Error} (pipeline continues)",
+                    fileId, result.Error);
+            }
+            else
+            {
+                _logger.LogDebug(
+                    "Review-case persistence succeeded for file {FileId}: {Count} case(s), isComplete={IsComplete}",
+                    fileId, result.Value?.Count ?? 0, isComplete);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Review-case persistence threw for file {FileId} (fail-open — pipeline continues)", fileId);
+        }
     }
 
     // ========================================================================

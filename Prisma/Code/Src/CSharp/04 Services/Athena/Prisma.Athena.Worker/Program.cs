@@ -113,7 +113,8 @@ builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
         fileLoader: fileLoader,
         txtFieldExtractor: txtFieldExtractor,
         xmlFieldExtractor: xmlFieldExtractor,
-        docxFieldExtractor: docxFieldExtractor);
+        docxFieldExtractor: docxFieldExtractor,
+        scopeFactory: sp.GetService<IServiceScopeFactory>());
 });
 
 // Connection-level hub auth (follow-up to MVP-PATH 1.5): the reconciliation hub only accepts clients that

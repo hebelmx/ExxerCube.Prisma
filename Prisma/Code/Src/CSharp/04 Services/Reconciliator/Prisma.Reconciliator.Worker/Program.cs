@@ -73,7 +73,8 @@ builder.Services.AddSingleton<ReconciliationOrchestrator>(sp => new Reconciliati
     sp.GetRequiredService<IEventPublisher>(),
     sp.GetRequiredService<ILogger<ReconciliationOrchestrator>>(),
     classifier: sp.GetRequiredService<IFileClassifier>(),
-    exporter: sp.GetService<IResponseExporter>()));
+    exporter: sp.GetService<IResponseExporter>(),
+    reviewCaseScopeFactory: sp.GetService<IServiceScopeFactory>()));
 
 // Per-process audit (MVP-PATH 1.6 A6): ReconciliationPipelineService is singleton; IAuditLogger is scoped.
 // The service resolves IAuditLogger per audit call via IServiceScopeFactory (no captive dependency).

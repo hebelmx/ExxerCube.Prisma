@@ -46,6 +46,15 @@ public record ExtractionCompletedEvent : DomainEvent
     public string ClearanceToken { get; init; } = string.Empty;
 
     /// <summary>
+    /// Gets a value indicating whether the source case package was complete
+    /// (all expected companion files were present). When <see langword="false"/> the
+    /// Reconciliator will flag a pending <c>IncompleteCase</c> review case for this file;
+    /// when <see langword="true"/> any existing pending incomplete-case row is healed.
+    /// Defaults to <see langword="true"/> so in-process paths compile unchanged (GH #6).
+    /// </summary>
+    public bool IsComplete { get; init; } = true;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ExtractionCompletedEvent"/> class.
     /// </summary>
     public ExtractionCompletedEvent()

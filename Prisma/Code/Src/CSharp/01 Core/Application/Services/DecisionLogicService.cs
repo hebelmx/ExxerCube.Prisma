@@ -603,12 +603,17 @@ public class DecisionLogicService
     /// <param name="fileId">The file identifier this metadata is associated with.</param>
     /// <param name="metadata">The unified metadata record to analyze.</param>
     /// <param name="classification">The classification result to analyze.</param>
+    /// <param name="isComplete">
+    /// Whether the source case package was complete (all companion files present).
+    /// Defaults to <see langword="true"/> so existing callers compile unchanged.
+    /// </param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of identified review cases or an error.</returns>
     public async Task<Result<List<ReviewCase>>> IdentifyAndQueueReviewCasesAsync(
         string fileId,
         UnifiedMetadataRecord metadata,
         ClassificationResult classification,
+        bool isComplete = true,
         CancellationToken cancellationToken = default)
     {
         // Early cancellation check
@@ -640,7 +645,7 @@ public class DecisionLogicService
         {
             _logger.LogInformation("Identifying review cases for file: {FileId}, classification confidence: {Confidence}", fileId, classification.Confidence);
 
-            var identifyResult = await _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationToken).ConfigureAwait(false);
+            var identifyResult = await _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, isComplete, cancellationToken).ConfigureAwait(false);
 
             // Propagate cancellation from manual reviewer panel
             if (identifyResult.IsCancelled())

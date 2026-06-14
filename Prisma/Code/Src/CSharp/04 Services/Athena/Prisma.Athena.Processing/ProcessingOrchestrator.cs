@@ -10,6 +10,7 @@ using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Domain.Sources;
 using ExxerCube.Prisma.Domain.ValueObjects;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Athena.Processing;
@@ -35,6 +36,7 @@ public sealed class ProcessingOrchestrator
     private readonly ExtractionOrchestrator _extractionOrchestrator;
     private readonly ReconciliationOrchestrator _reconciliationOrchestrator;
     private IDisposable? _eventSubscription;
+    private readonly IServiceScopeFactory? _scopeFactory;
 
     /// <summary>
     /// Gets a value indicating whether the orchestrator has started and subscribed to the document stream.
@@ -68,6 +70,10 @@ public sealed class ProcessingOrchestrator
     /// <param name="txtFieldExtractor">Optional: Field extractor used to turn Stage 2 OCR text into an Expediente that feeds Stage 3 fusion. When null, fusion runs without OCR-derived input (legacy behavior).</param>
     /// <param name="xmlFieldExtractor">Optional: Field extractor for XML companion case files (MVP-PATH 2.1 multi-source fusion).</param>
     /// <param name="docxFieldExtractor">Optional: Field extractor for DOCX companion case files (MVP-PATH 2.1 multi-source fusion).</param>
+    /// <param name="scopeFactory">
+    /// Optional scope factory forwarded to <see cref="ReconciliationOrchestrator"/> for review-case
+    /// persistence (GH #6). When <see langword="null"/> review-case persistence is a silent no-op.
+    /// </param>
     /// <remarks>
     /// Pipeline services are optional to support incremental testing.
     /// When null, that pipeline stage is skipped with a warning log.
@@ -84,7 +90,8 @@ public sealed class ProcessingOrchestrator
         IFileLoader? fileLoader = null,
         IFieldExtractor<TxtSource>? txtFieldExtractor = null,
         IFieldExtractor<XmlSource>? xmlFieldExtractor = null,
-        IFieldExtractor<DocxSource>? docxFieldExtractor = null)
+        IFieldExtractor<DocxSource>? docxFieldExtractor = null,
+        IServiceScopeFactory? scopeFactory = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -98,6 +105,7 @@ public sealed class ProcessingOrchestrator
         _txtFieldExtractor = txtFieldExtractor;
         _xmlFieldExtractor = xmlFieldExtractor;
         _docxFieldExtractor = docxFieldExtractor;
+        _scopeFactory = scopeFactory;
 
         // Compose the two pipeline halves (MVP-PATH 1.4 Reconciliator edge): the in-process monolith runs both,
         // while the 3-process split hosts ExtractionOrchestrator (Extractor) and ReconciliationOrchestrator
@@ -106,7 +114,7 @@ public sealed class ProcessingOrchestrator
             eventPublisher, logger, qualityAnalyzer, ocrExecutor, fusionService, fileLoader, txtFieldExtractor,
             xmlFieldExtractor, docxFieldExtractor);
         _reconciliationOrchestrator = new ReconciliationOrchestrator(
-            eventPublisher, logger, classifier, exporter);
+            eventPublisher, logger, classifier, exporter, reviewCaseScopeFactory: scopeFactory);
     }
 
     /// <summary>
@@ -157,7 +165,9 @@ public sealed class ProcessingOrchestrator
 
             // Reconciliator half (Stages 4–5): Classification → Export.
             stagesCompleted += await _reconciliationOrchestrator.ReconcileAsync(
-                extraction.OcrResult, extraction.FusionResult, fileId, correlationId, cancellationToken);
+                extraction.OcrResult, extraction.FusionResult, fileId, correlationId,
+                isComplete: downloadEvent.IsComplete,
+                cancellationToken);
 
             stopwatch.Stop();
             EmitCompletionEvent(fileId, correlationId, stopwatch.Elapsed, stagesCompleted, autoProcessed: true);

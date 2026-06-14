@@ -163,6 +163,7 @@ public sealed class ReconciliationPipelineService
             fusionResult: fusionResult,
             fileId: fileId,
             correlationId: correlationId,
+            isComplete: completedEvent.IsComplete,
             cancellationToken: cancellationToken);
 
         _eventPublisher.Publish(new DocumentProcessingCompletedEvent

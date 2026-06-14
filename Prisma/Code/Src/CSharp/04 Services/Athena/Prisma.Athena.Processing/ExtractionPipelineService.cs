@@ -221,6 +221,7 @@ public sealed class ExtractionPipelineService : IReadinessProbe
             Path = save.Value!,
             FieldsFused = extraction.FusionResult?.FieldResults.Count ?? 0,
             ConflictsDetected = extraction.FusionResult?.ConflictingFields.Count ?? 0,
+            IsComplete = downloadEvent.IsComplete,
         };
 
         var broadcast = await _reconciliationHub.SendToAllAsync(completedEvent, cancellationToken);
