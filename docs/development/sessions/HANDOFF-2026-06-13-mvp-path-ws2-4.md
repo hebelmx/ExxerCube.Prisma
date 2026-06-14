@@ -52,3 +52,24 @@ Integration tests for the new MVP surfaces + the single real end-to-end run (SIA
 
 ## Constraints (carry forward)
 ITDD per ADR-005 · `Result<T>`+`CancellationToken` · xUnit v3 + Shouldly + NSubstitute (no Moq/FluentAssertions) · `TestContext.Current.CancellationToken` · `dotnet test <csproj>` no extra flags · broadcast via `IHubContext` · commit code+tests separately from docs · push `Kt2` · **verify every chunk from ground truth — run the directly-affected suites + a worker `ValidateOnBuild` host-DI test; diff the working tree, don't trust subagent summaries.** Docker IS available for Testcontainers.
+
+---
+
+## Open GitHub issues (tracking)
+- **#3 (bug)** — cross-day duplicate CaseFile stale-path (2.1 adversarial F1).
+- **#4 (question)** — a permanently-undownloadable file blocks its whole case (2.1 adversarial F4; owner ruling needed).
+- **#5 (enhancement)** — the MVP gate 5.1/5.2 (the single remaining item).
+- **#2 (open)** — deferred security-spine hardening + SIRO XSD validation (pending the Banamex `.xsd`).
+
+## Next session — prompt for the next agent
+
+> **The only thing between `Kt2` and MVP is the 5.1/5.2 E2E gate — GitHub issue #5.** Everything else is done and pushed: WS1 (1.1–1.6), the WS2–4 tail (4.1 SLA, 4.2 readiness, 3.1 unified-record store; 4.3/2.2 were already done), and **2.1 case-package ingestion in full** (the downloader bundles a SIARA case's companion files and emits ONE event per case; the Extractor fuses XML+PDF+DOCX). Read this handoff + the auto-memory `mvp-path-phase2-4-progress.md` first.
+>
+> **Do issue #5 (the gate):**
+> 1. Stand up `tools/Siara.Simulator` (serves a case dir of pdf/docx/xml at `/document_store/{caseId}/{file}`) and prove **one real run with no stub on the critical path**: SIARA case pull → 3-process pipeline → flagged case in review → SIRO XML export → complete audit trail. The live-browser E2E project `Tests.Infrastructure.BrowserAutomation.E2E` is **gitignored/local-only** — its `SiaraDocumentSourceE2ETests` was migrated to `DiscoverCasesAsync` but only asserts `cases.Count > 0`; extend it to assert `Files.Count` ≥ 2–3 and ideally a full pipeline run.
+> 2. **De-flake `System.Ocr.Pipeline`** (confidence-tolerant assertion or fixed transcript fixture).
+> 3. **Don't redo** what's proven: real-component 3-source fusion is covered by `Tests.Athena.Processing.Tests/MultiSourceFusionIntegrationTests`; the in-memory all-real-wire 3-host edge by `Tests.AllRealWireE2E`. SIRO XSD validation stays dormant pending the Banamex `.xsd` (issue #2).
+>
+> **Then, owner-gated:** resolve **#4** (case-blocking-on-missing-file: keep "no incomplete cases" vs emit partial) and decide **#3** (fix the cross-day stale-path vs accept the degrade).
+>
+> **Constraints (unchanged):** ITDD per ADR-005; `Result<T>`+`CancellationToken`; xUnit v3 + Shouldly + NSubstitute (no Moq/FluentAssertions); `TestContext.Current.CancellationToken`; `dotnet test <csproj>` no extra flags; broadcast via `IHubContext`; commit code+tests separately from docs; push `Kt2`. **Use the BMAD orchestrator and verify every chunk from ground truth — diff the working tree (`git status`) for stray edits/deletions and run the directly-affected suites + a worker `ValidateOnBuild` host-DI test yourself; do NOT trust subagent "all green" summaries.** Docker IS available for Testcontainers.
