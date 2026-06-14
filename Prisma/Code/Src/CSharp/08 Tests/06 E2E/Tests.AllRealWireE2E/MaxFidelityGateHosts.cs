@@ -111,14 +111,17 @@ internal sealed class GateAthenaApp : WebApplicationFactory<global::Prisma.Athen
     private readonly string _sharedStorageDir;
     private readonly string _connectionString;
     private readonly GateOrionApp _orionApp;
+    private readonly bool _runExtractionPipeline;
 
     internal GateAthenaApp(
-        string jwtSecret, string sharedStorageDir, string connectionString, GateOrionApp orionApp)
+        string jwtSecret, string sharedStorageDir, string connectionString, GateOrionApp orionApp,
+        bool runExtractionPipeline = true)
     {
         _jwtSecret = jwtSecret;
         _sharedStorageDir = sharedStorageDir;
         _connectionString = connectionString;
         _orionApp = orionApp;
+        _runExtractionPipeline = runExtractionPipeline;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -147,6 +150,22 @@ internal sealed class GateAthenaApp : WebApplicationFactory<global::Prisma.Athen
             // SignalR transport; all auth + hub code still runs).
             services.Configure<IngestionClientOptions>(o =>
                 o.HttpMessageHandlerFactory = () => _orionApp.Server.CreateHandler());
+
+            // Optionally disable the OCR extraction pipeline (AthenaWorkerService drives
+            // ExtractionPipelineService.StartAsync). The best-effort partial-case gate keeps the real ingestion
+            // forwarder (SiaraIngestionHubClient) but skips OCR — it asserts the ingestion/handoff contract,
+            // and running native Tesseract a second time in the same test process is a known transient flake
+            // that must not bleed into the complete-case gate.
+            if (!_runExtractionPipeline)
+            {
+                var pipelineHosted = services
+                    .Where(s => s.ImplementationType?.Name == "AthenaWorkerService")
+                    .ToList();
+                foreach (var descriptor in pipelineHosted)
+                {
+                    services.Remove(descriptor);
+                }
+            }
         });
     }
 }
