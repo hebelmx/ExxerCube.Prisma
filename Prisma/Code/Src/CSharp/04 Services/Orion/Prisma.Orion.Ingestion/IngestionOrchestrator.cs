@@ -186,14 +186,18 @@ public class IngestionOrchestrator
                     "Failed to download case file {Url} for case {CaseId}: {Errors}",
                     file.Url, siaraCase.CaseId, string.Join(", ", downloadResult.Errors));
 
-                // Audit: ingestion failed for this individual case file.
+                // Audit: this INDIVIDUAL case file could not be downloaded. Use a distinct action key
+                // ("CaseFileDownloadFailed") so this expected best-effort skip — which fires on the
+                // owner's normal ~5-15% partial-case scenario — is NOT conflated with the terminal
+                // "IngestionFailed" emitted only when the WHOLE case yields zero files. Monitors can then
+                // exclude expected per-file skips from case-level failure counts.
                 await EmitAuditAsync(
                     AuditActionType.Download,
                     ProcessingStage.Ingestion,
                     fileId: caseFileId.ToString(),
                     correlationId: correlationId.ToString(),
                     success: false,
-                    actionKey: "IngestionFailed",
+                    actionKey: "CaseFileDownloadFailed",
                     errorMessage: string.Join(", ", downloadResult.Errors),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
