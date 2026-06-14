@@ -18,6 +18,16 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
     private readonly ServiceProvider _serviceProvider;
     private readonly ITestOutputHelper _output;
 
+    // DE-FLAKED 2026-06-14: these are EVENTUAL-CONSISTENCY assertions — they wait for the
+    // EventPersistenceWorker's background subscription to drain the published event onto the
+    // InMemory DB. The previous 2s budget intermittently failed (~1 in N) when this class ran in
+    // PARALLEL with the assembly's CPU-heavy live-OCR (Tesseract) classes: the worker's background
+    // thread was starved and persistence lagged past 2s, surfacing as "Workflow 1 should have
+    // exactly 1 event". The poll (WaitForAuditRecordsAsync) returns the instant the expected count
+    // is reached, so a generous bound costs nothing on the happy path and only guards against a
+    // true hang — exactly the doctrine the sibling PDF live-OCR de-flake adopted (2026-06-13).
+    private static readonly TimeSpan EventPersistenceTimeout = TimeSpan.FromSeconds(30);
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentPipelineEventPersistenceTests"/> class.
     /// </summary>
@@ -86,7 +96,7 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
         var auditRecords = await WaitForAuditRecordsAsync(
             ctx => ctx.AuditRecords.Where(r => r.FileId == fileId.ToString()),
             expectedCount: 1,
-            timeout: TimeSpan.FromSeconds(2));
+            timeout: EventPersistenceTimeout);
 
         auditRecords.Count.ShouldBe(1, "Expected exactly one audit record for the ingested document");
 
@@ -140,7 +150,7 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
         var auditRecords = await WaitForAuditRecordsAsync(
             ctx => ctx.AuditRecords.Where(r => r.FileId == fileId.ToString()),
             expectedCount: 1,
-            timeout: TimeSpan.FromSeconds(2));
+            timeout: EventPersistenceTimeout);
 
         auditRecords.Count.ShouldBe(1, "Expected exactly one audit record for OCR processing");
 
@@ -210,7 +220,7 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
                 .Where(r => r.CorrelationId == correlationId.ToString())
                 .OrderBy(r => r.Timestamp),
             expectedCount: 2,
-            timeout: TimeSpan.FromSeconds(2));
+            timeout: EventPersistenceTimeout);
 
         auditRecords.Count.ShouldBe(2, "Both ingestion and OCR events should be persisted");
 
@@ -270,12 +280,12 @@ public class DocumentPipelineEventPersistenceTests : IDisposable
         var workflow1Records = await WaitForAuditRecordsAsync(
             ctx => ctx.AuditRecords.Where(r => r.CorrelationId == correlationId1.ToString()),
             expectedCount: 1,
-            timeout: TimeSpan.FromSeconds(2));
+            timeout: EventPersistenceTimeout);
 
         var workflow2Records = await WaitForAuditRecordsAsync(
             ctx => ctx.AuditRecords.Where(r => r.CorrelationId == correlationId2.ToString()),
             expectedCount: 1,
-            timeout: TimeSpan.FromSeconds(2));
+            timeout: EventPersistenceTimeout);
 
         workflow1Records.Count.ShouldBe(1, "Workflow 1 should have exactly 1 event");
         workflow2Records.Count.ShouldBe(1, "Workflow 2 should have exactly 1 event");
