@@ -279,4 +279,148 @@ public sealed class MultiSourceFusionIntegrationTests
             try { File.Delete(tempXmlPath); } catch { /* ignore */ }
         }
     }
+
+    // ---------------------------------------------------------------------------
+    // Corrupt-file resilience (issue #4 processing half, owner ruling 2026-06-13):
+    // "even a corrupt file ... must be managed on the pipeline on processing. None of
+    // these conditions make invalid the request." A present-but-unparseable companion
+    // must DEGRADE the case (fuse the valid sources), never crash it. Both field
+    // extractors wrap parsing in try/catch → Result.WithFailure, and the orchestrator's
+    // Build{Xml,Docx}ExpedienteAsync treat that failure as "fusion continues without
+    // this source". These tests pin that resilience against the REAL extraction chain.
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// A corrupt DOCX companion (not a valid OpenXML package) must NOT crash the case:
+    /// the orchestrator degrades to XML-only and still produces a FusionResult whose
+    /// NumeroExpediente came from the valid XML source.
+    /// </summary>
+    [Fact]
+    public async Task ExtractAsync_CorruptDocxCompanion_DegradesToXmlOnly_StillFuses()
+    {
+        var orchestrator = new ExtractionOrchestrator(
+            eventPublisher: Substitute.For<IEventPublisher>(),
+            logger: NullLogger<ExtractionOrchestrator>.Instance,
+            qualityAnalyzer: null,
+            ocrExecutor: null,
+            fusionService: new FusionExpedienteService(NullLogger<FusionExpedienteService>.Instance),
+            fileLoader: null,
+            txtFieldExtractor: null,
+            xmlFieldExtractor: new XmlFieldExtractor(),
+            docxFieldExtractor: new DocxFieldExtractor(NullLogger<DocxFieldExtractor>.Instance));
+
+        var tempXmlPath = Path.GetTempFileName() + ".xml";
+        await File.WriteAllTextAsync(tempXmlPath, XmlFixtureContent, System.Text.Encoding.UTF8, Ct);
+
+        // A corrupt DOCX: arbitrary bytes that are NOT a valid OpenXML zip — OpenXml throws,
+        // DocxFieldExtractor catches it and returns Result.WithFailure.
+        var tempDocxPath = Path.GetTempFileName() + ".docx";
+        await File.WriteAllBytesAsync(tempDocxPath, System.Text.Encoding.UTF8.GetBytes("THIS IS NOT A VALID DOCX PACKAGE"), Ct);
+
+        try
+        {
+            var downloadEvent = new DocumentDownloadedEvent
+            {
+                FileId = Guid.NewGuid(),
+                CorrelationId = Guid.NewGuid(),
+                FileName = tempXmlPath,
+                Source = "SIARA",
+                Format = FileFormat.Xml,
+                IsComplete = true, // the files are present; one is corrupt — a processing-half concern.
+                CaseFiles = new List<CaseFileReference>
+                {
+                    new() { RelativePath = tempXmlPath,  Format = FileFormat.Xml },
+                    new() { RelativePath = tempDocxPath, Format = FileFormat.Docx },
+                },
+            };
+
+            // Act — must NOT throw despite the corrupt DOCX.
+            var result = await orchestrator.ExtractAsync(downloadEvent, Ct);
+
+            // The case still processed (degraded), fusion ran from the valid XML source.
+            result.FusionResult.ShouldNotBeNull("a corrupt DOCX must degrade the case, not crash it");
+            result.FusionResult!.FusedExpediente.ShouldNotBeNull();
+            result.FusionResult.SourceReliabilities.ShouldContainKey(
+                SourceType.XML_HandFilled, "the valid XML source must still contribute");
+
+            var nroField = result.FusionResult.FieldResults["NumeroExpediente"];
+            nroField.ContributingSources.ShouldContain(
+                SourceType.XML_HandFilled, "XML produced the NumeroExpediente");
+            nroField.ContributingSources.ShouldNotContain(
+                SourceType.DOCX_OCR_Authority, "the corrupt DOCX must have been dropped (degraded)");
+            // With DOCX dropped there is no conflict — XML wins cleanly.
+            result.FusionResult.FusedExpediente!.NumeroExpediente.Trim()
+                .ShouldBe(XmlExpedienteNumber);
+        }
+        finally
+        {
+            try { File.Delete(tempDocxPath); } catch { /* ignore */ }
+            try { File.Delete(tempXmlPath); } catch { /* ignore */ }
+        }
+    }
+
+    /// <summary>
+    /// A corrupt XML companion (malformed markup) must NOT crash the case: the orchestrator
+    /// degrades to DOCX-only and still produces a FusionResult whose NumeroExpediente came
+    /// from the valid DOCX source.
+    /// </summary>
+    [Fact]
+    public async Task ExtractAsync_CorruptXmlCompanion_DegradesToDocxOnly_StillFuses()
+    {
+        var orchestrator = new ExtractionOrchestrator(
+            eventPublisher: Substitute.For<IEventPublisher>(),
+            logger: NullLogger<ExtractionOrchestrator>.Instance,
+            qualityAnalyzer: null,
+            ocrExecutor: null,
+            fusionService: new FusionExpedienteService(NullLogger<FusionExpedienteService>.Instance),
+            fileLoader: null,
+            txtFieldExtractor: null,
+            xmlFieldExtractor: new XmlFieldExtractor(),
+            docxFieldExtractor: new DocxFieldExtractor(NullLogger<DocxFieldExtractor>.Instance));
+
+        // A corrupt XML: malformed markup (unclosed tag) — XDocument.Parse throws,
+        // XmlFieldExtractor catches it and returns Result.WithFailure.
+        var tempXmlPath = Path.GetTempFileName() + ".xml";
+        await File.WriteAllTextAsync(tempXmlPath, "<Expediente><unclosed>", System.Text.Encoding.UTF8, Ct);
+
+        var tempDocxPath = Path.GetTempFileName() + ".docx";
+        await File.WriteAllBytesAsync(tempDocxPath, BuildDocxBytes(DocxExpedienteNumber), Ct);
+
+        try
+        {
+            var downloadEvent = new DocumentDownloadedEvent
+            {
+                FileId = Guid.NewGuid(),
+                CorrelationId = Guid.NewGuid(),
+                FileName = tempXmlPath,
+                Source = "SIARA",
+                Format = FileFormat.Xml, // primary is XML so Quality/OCR are skipped; XML parse fails in Stage 3.
+                IsComplete = true,
+                CaseFiles = new List<CaseFileReference>
+                {
+                    new() { RelativePath = tempXmlPath,  Format = FileFormat.Xml },
+                    new() { RelativePath = tempDocxPath, Format = FileFormat.Docx },
+                },
+            };
+
+            // Act — must NOT throw despite the corrupt XML.
+            var result = await orchestrator.ExtractAsync(downloadEvent, Ct);
+
+            result.FusionResult.ShouldNotBeNull("a corrupt XML must degrade the case, not crash it");
+            result.FusionResult!.FusedExpediente.ShouldNotBeNull();
+
+            var nroField = result.FusionResult.FieldResults["NumeroExpediente"];
+            nroField.ContributingSources.ShouldContain(
+                SourceType.DOCX_OCR_Authority, "the valid DOCX produced the NumeroExpediente");
+            nroField.ContributingSources.ShouldNotContain(
+                SourceType.XML_HandFilled, "the corrupt XML must have been dropped (degraded)");
+            result.FusionResult.FusedExpediente!.NumeroExpediente.Trim()
+                .ShouldBe(DocxExpedienteNumber);
+        }
+        finally
+        {
+            try { File.Delete(tempDocxPath); } catch { /* ignore */ }
+            try { File.Delete(tempXmlPath); } catch { /* ignore */ }
+        }
+    }
 }
