@@ -8,13 +8,15 @@ namespace ExxerCube.Prisma.Testing.Contracts;
 
 /// <summary>
 /// Hand-written, in-memory reference fake of <see cref="ISiaraDocumentSource"/> (ADR-005 §6): honest
-/// Railway-Oriented logic, no mocking framework. It returns a deterministic, configurable set of document
-/// ids without a live browser or a real SIARA — so it unblocks the watch-loop tests.
+/// Railway-Oriented logic, no mocking framework. It returns a deterministic, configurable set of
+/// <see cref="SiaraCase"/> bundles without a live browser or a real SIARA — so it unblocks the
+/// watch-loop tests (MVP-PATH 2.1).
 /// </summary>
 /// <remarks>
 /// Construct with <c>failClosed: true</c> to model the fail-closed path (resolver/provider/auth failure)
-/// where the source returns a failure rather than a list. The id list can be reconfigured between calls via
-/// <see cref="SetDocumentIds"/> to model SIARA presenting different documents across watch-loop cycles.
+/// where the source returns a failure rather than a list. The document id list can be reconfigured between
+/// calls via <see cref="SetDocumentIds"/> to model SIARA presenting different documents across watch-loop
+/// cycles. Each id is wrapped into its own one-file <see cref="SiaraCase"/>.
 /// </remarks>
 public sealed class FakeSiaraDocumentSource : ISiaraDocumentSource
 {
@@ -38,7 +40,7 @@ public sealed class FakeSiaraDocumentSource : ISiaraDocumentSource
         _documentIds = documentIds ?? DefaultIds;
     }
 
-    /// <summary>Gets the number of times <see cref="DiscoverDocumentIdsAsync"/> has been invoked.</summary>
+    /// <summary>Gets the number of times <see cref="DiscoverCasesAsync"/> has been invoked.</summary>
     public int DiscoverCount
     {
         get { lock (_gate) { return _discoverCount; } }
@@ -53,34 +55,10 @@ public sealed class FakeSiaraDocumentSource : ISiaraDocumentSource
     }
 
     /// <inheritdoc />
-    public Task<Result<IReadOnlyList<string>>> DiscoverDocumentIdsAsync(CancellationToken cancellationToken = default)
-    {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return Task.FromResult(ResultExtensions.Cancelled<IReadOnlyList<string>>());
-        }
-
-        IReadOnlyList<string> ids;
-        lock (_gate)
-        {
-            _discoverCount++;
-            ids = _documentIds;
-        }
-
-        if (_failClosed)
-        {
-            return Task.FromResult(Result<IReadOnlyList<string>>.WithFailure(
-                "Fake discovery source configured to fail closed (no authenticated SIARA session)."));
-        }
-
-        return Task.FromResult(Result<IReadOnlyList<string>>.Success(ids));
-    }
-
-    /// <inheritdoc />
     /// <remarks>
     /// The fake synthesizes one <see cref="SiaraCase"/> per document id (treating each id as its own case).
     /// This is the simplest deterministic behaviour that satisfies the contract; tests that need multi-file
-    /// cases should use the real <c>SiaraCaseGrouping</c> helper or provide a custom fake.
+    /// cases should provide a custom fake or seed <see cref="SetDocumentIds"/> with case-appropriate values.
     /// </remarks>
     public Task<Result<IReadOnlyList<SiaraCase>>> DiscoverCasesAsync(CancellationToken cancellationToken = default)
     {
@@ -92,6 +70,7 @@ public sealed class FakeSiaraDocumentSource : ISiaraDocumentSource
         IReadOnlyList<string> ids;
         lock (_gate)
         {
+            _discoverCount++;
             ids = _documentIds;
         }
 
@@ -102,16 +81,18 @@ public sealed class FakeSiaraDocumentSource : ISiaraDocumentSource
         }
 
         // One synthetic case per id, carrying a single placeholder file so the case bundle is non-empty.
-        var cases = ids
-            .Select(id => new SiaraCase
+        var cases = new List<SiaraCase>(ids.Count);
+        foreach (var id in ids)
+        {
+            cases.Add(new SiaraCase
             {
                 CaseId = id,
                 Files = new[]
                 {
-                    new DownloadableFile { Url = id, FileName = id, Format = FileFormat.Unknown },
+                    new DownloadableFile { Url = id, FileName = System.IO.Path.GetFileName(id) ?? id, Format = FileFormat.Pdf },
                 },
-            })
-            .ToList();
+            });
+        }
 
         return Task.FromResult(Result<IReadOnlyList<SiaraCase>>.Success((IReadOnlyList<SiaraCase>)cases));
     }

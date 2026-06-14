@@ -7,8 +7,8 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.BrowserAutomation;
 /// Mode-specific mechanics for <see cref="SiaraDocumentSource"/> that the universal
 /// <see cref="ExxerCube.Prisma.Testing.Contracts.SiaraDocumentSourceContract"/> intentionally leaves to the
 /// implementation (ADR-005 §5): fail-closed on resolver/acquire failure, authenticated-state hydration, the
-/// warm-session lifecycle (acquire once, re-validate thereafter, re-acquire on death), listing as file
-/// URLs, and the release-on-dispose guarantee.
+/// warm-session lifecycle (acquire once, re-validate thereafter, re-acquire on death), and the
+/// release-on-dispose guarantee.
 /// </summary>
 public sealed class SiaraDocumentSourceTests
 {
@@ -27,14 +27,14 @@ public sealed class SiaraDocumentSourceTests
             Substitute.For<ILogger<SiaraDocumentSource>>()));
 
     [Fact]
-    public async Task DiscoverDocumentIdsAsync_WhenResolverFails_FailsClosedWithoutTouchingBrowser()
+    public async Task DiscoverCasesAsync_WhenResolverFails_FailsClosedWithoutTouchingBrowser()
     {
         var resolver = Substitute.For<ISiaraSessionProviderResolver>();
         resolver.Resolve().Returns(Result<ISiaraSessionProvider>.WithFailure("No provider for the configured SIARA auth mode"));
         var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
         var sut = SiaraDocumentSourceTestFactory.CreateSource(resolver: resolver, agent: agent);
 
-        var result = await sut.DiscoverDocumentIdsAsync(Ct);
+        var result = await sut.DiscoverCasesAsync(Ct);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldNotBeNullOrEmpty();
@@ -42,7 +42,7 @@ public sealed class SiaraDocumentSourceTests
     }
 
     [Fact]
-    public async Task DiscoverDocumentIdsAsync_WhenAcquireFails_FailsClosedWithoutListing()
+    public async Task DiscoverCasesAsync_WhenAcquireFails_FailsClosedWithoutListing()
     {
         var provider = Substitute.For<ISiaraSessionProvider>();
         provider.AcquireAsync(Arg.Any<SiaraSessionRequest>(), Arg.Any<CancellationToken>())
@@ -51,7 +51,7 @@ public sealed class SiaraDocumentSourceTests
         var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
         var sut = SiaraDocumentSourceTestFactory.CreateSource(resolver: resolver, agent: agent);
 
-        var result = await sut.DiscoverDocumentIdsAsync(Ct);
+        var result = await sut.DiscoverCasesAsync(Ct);
 
         result.IsFailure.ShouldBeTrue();
         // Passthrough pre-launches the browser before acquisition, but a failed acquire must never navigate.
@@ -59,36 +59,38 @@ public sealed class SiaraDocumentSourceTests
     }
 
     [Fact]
-    public async Task DiscoverDocumentIdsAsync_HappyPath_ReturnsFileUrlsAsIds()
+    public async Task DiscoverCasesAsync_HappyPath_ReturnsCasesContainingFileUrls()
     {
         var sut = SiaraDocumentSourceTestFactory.CreateSource();
 
-        var result = await sut.DiscoverDocumentIdsAsync(Ct);
+        var result = await sut.DiscoverCasesAsync(Ct);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value!.ShouldContain(DocUrl);
+        // All returned cases together must include the known document URL somewhere in their file lists.
+        var allUrls = result.Value!.SelectMany(c => c.Files).Select(f => f.Url);
+        allUrls.ShouldContain(DocUrl);
     }
 
     [Fact]
-    public async Task DiscoverDocumentIdsAsync_HydratesAuthenticatedStorageState()
+    public async Task DiscoverCasesAsync_HydratesAuthenticatedStorageState()
     {
         var sessionContext = SiaraDocumentDownloaderTestFactory.CreateSessionContextMock();
         var sut = SiaraDocumentSourceTestFactory.CreateSource(sessionContext: sessionContext);
 
-        var result = await sut.DiscoverDocumentIdsAsync(Ct);
+        var result = await sut.DiscoverCasesAsync(Ct);
 
         result.IsSuccess.ShouldBeTrue();
         await sessionContext.Received(1).LoadStorageStateAsync("captured-storage-state", Arg.Any<CancellationToken>());
     }
 
     [Fact]
-    public async Task DiscoverDocumentIdsAsync_WhenSiaraPresentsNothing_ReturnsEmptyList()
+    public async Task DiscoverCasesAsync_WhenSiaraPresentsNothing_ReturnsEmptyList()
     {
         var nav = SiaraDocumentSourceTestFactory.CreateNavigationTargetMock(new List<DownloadableFile>());
         var sut = SiaraDocumentSourceTestFactory.CreateSource(navigationTarget: nav);
 
-        var result = await sut.DiscoverDocumentIdsAsync(Ct);
+        var result = await sut.DiscoverCasesAsync(Ct);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
@@ -96,15 +98,15 @@ public sealed class SiaraDocumentSourceTests
     }
 
     [Fact]
-    public async Task DiscoverDocumentIdsAsync_SecondCycle_KeepsSessionWarm_ReValidatesInsteadOfReacquiring()
+    public async Task DiscoverCasesAsync_SecondCycle_KeepsSessionWarm_ReValidatesInsteadOfReacquiring()
     {
         var provider = SiaraDocumentSourceTestFactory.CreateProviderMock();
         var resolver = SiaraDocumentDownloaderTestFactory.CreateResolverMock(provider);
         var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
         var sut = SiaraDocumentSourceTestFactory.CreateSource(resolver: resolver, agent: agent);
 
-        (await sut.DiscoverDocumentIdsAsync(Ct)).IsSuccess.ShouldBeTrue();
-        (await sut.DiscoverDocumentIdsAsync(Ct)).IsSuccess.ShouldBeTrue();
+        (await sut.DiscoverCasesAsync(Ct)).IsSuccess.ShouldBeTrue();
+        (await sut.DiscoverCasesAsync(Ct)).IsSuccess.ShouldBeTrue();
 
         // Acquire and the (non-idempotent) browser launch happen exactly once; the second cycle re-validates.
         await provider.Received(1).AcquireAsync(Arg.Any<SiaraSessionRequest>(), Arg.Any<CancellationToken>());
@@ -113,7 +115,7 @@ public sealed class SiaraDocumentSourceTests
     }
 
     [Fact]
-    public async Task DiscoverDocumentIdsAsync_WhenWarmSessionDies_ReacquiresInsteadOfFailing()
+    public async Task DiscoverCasesAsync_WhenWarmSessionDies_ReacquiresInsteadOfFailing()
     {
         var provider = SiaraDocumentSourceTestFactory.CreateProviderMock();
         // The warm session has died underneath us: re-validation fails, so the source must re-acquire.
@@ -122,8 +124,8 @@ public sealed class SiaraDocumentSourceTests
         var resolver = SiaraDocumentDownloaderTestFactory.CreateResolverMock(provider);
         var sut = SiaraDocumentSourceTestFactory.CreateSource(resolver: resolver);
 
-        (await sut.DiscoverDocumentIdsAsync(Ct)).IsSuccess.ShouldBeTrue();
-        var second = await sut.DiscoverDocumentIdsAsync(Ct);
+        (await sut.DiscoverCasesAsync(Ct)).IsSuccess.ShouldBeTrue();
+        var second = await sut.DiscoverCasesAsync(Ct);
 
         second.IsSuccess.ShouldBeTrue();
         await provider.Received(2).AcquireAsync(Arg.Any<SiaraSessionRequest>(), Arg.Any<CancellationToken>());
@@ -136,14 +138,14 @@ public sealed class SiaraDocumentSourceTests
         var resolver = SiaraDocumentDownloaderTestFactory.CreateResolverMock(provider);
         var sut = SiaraDocumentSourceTestFactory.CreateSource(resolver: resolver);
 
-        (await sut.DiscoverDocumentIdsAsync(Ct)).IsSuccess.ShouldBeTrue();
+        (await sut.DiscoverCasesAsync(Ct)).IsSuccess.ShouldBeTrue();
         await sut.DisposeAsync();
 
         await provider.Received(1).ReleaseAsync(Arg.Any<SiaraSession>(), Arg.Any<CancellationToken>());
     }
 
     // ---------------------------------------------------------------------------
-    // DiscoverCasesAsync mechanics (MVP-PATH 2.1)
+    // DiscoverCasesAsync case-grouping mechanics (MVP-PATH 2.1)
     // ---------------------------------------------------------------------------
 
     [Fact]

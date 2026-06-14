@@ -442,8 +442,8 @@ internal sealed class OrionTestApp
             // Stub: SIARA document discovery (watch loop stays idle).
             services.RemoveAll<ISiaraDocumentSource>();
             var source = Substitute.For<ISiaraDocumentSource>();
-            source.DiscoverDocumentIdsAsync(Arg.Any<CancellationToken>())
-                .Returns(Result<IReadOnlyList<string>>.Success(Array.Empty<string>()));
+            source.DiscoverCasesAsync(Arg.Any<CancellationToken>())
+                .Returns(Result<IReadOnlyList<SiaraCase>>.Success(Array.Empty<SiaraCase>()));
             services.AddSingleton(source);
         });
     }

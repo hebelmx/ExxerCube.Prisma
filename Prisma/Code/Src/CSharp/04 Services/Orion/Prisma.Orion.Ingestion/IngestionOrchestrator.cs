@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +29,8 @@ public class IngestionOrchestrator
     private readonly IServiceScopeFactory? _scopeFactory;
     private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
     private readonly ProcessClearance _processClearance;
+    private readonly TimeProvider _timeProvider;
+    private readonly TimeSpan _postWriteFlushDelay;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IngestionOrchestrator"/> class.
@@ -49,6 +54,17 @@ public class IngestionOrchestrator
     /// The clearance level of this process, stamped on every audit record's <c>ActionDetails</c> JSON.
     /// Defaults to <see cref="ProcessClearance.Download"/> (Orion Downloader). MVP-PATH 1.6 A6.
     /// </param>
+    /// <param name="timeProvider">
+    /// Optional time provider; defaults to <see cref="TimeProvider.System"/> when <see langword="null"/>.
+    /// Injected for testability so tests may use a fake provider or pass
+    /// <paramref name="postWriteFlushDelay"/> of <see cref="TimeSpan.Zero"/> to avoid real delays.
+    /// </param>
+    /// <param name="postWriteFlushDelay">
+    /// Optional I/O-race mitigation delay inserted after all case files are written and before the
+    /// broadcast event is emitted, giving the filesystem time to flush. Defaults to 250 ms when
+    /// <see langword="null"/>; pass <see cref="TimeSpan.Zero"/> to disable (e.g. in tests).
+    /// MVP-PATH 2.1 (owner-approved).
+    /// </param>
     public IngestionOrchestrator(
         IIngestionJournal journal,
         IDocumentDownloader downloader,
@@ -57,7 +73,9 @@ public class IngestionOrchestrator
         string? storageBasePath = null,
         IServiceScopeFactory? scopeFactory = null,
         ISiaraActorIdentityProvider? actorIdentityProvider = null,
-        ProcessClearance processClearance = ProcessClearance.Download)
+        ProcessClearance processClearance = ProcessClearance.Download,
+        TimeProvider? timeProvider = null,
+        TimeSpan? postWriteFlushDelay = null)
     {
         _journal = journal ?? throw new ArgumentNullException(nameof(journal));
         _downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
@@ -67,18 +85,44 @@ public class IngestionOrchestrator
         _scopeFactory = scopeFactory;
         _actorIdentityProvider = actorIdentityProvider;
         _processClearance = processClearance;
+        _timeProvider = timeProvider ?? TimeProvider.System;
+        _postWriteFlushDelay = postWriteFlushDelay ?? TimeSpan.FromMilliseconds(250);
     }
 
+    // -------------------------------------------------------------------------
+    // Case ingestion (MVP-PATH 2.1) — one event per case, all companion files
+    // -------------------------------------------------------------------------
+
     /// <summary>
-    /// Ingests a single document with idempotency, hashing, storage, and event emission.
-    /// Uses Railway-Oriented Programming - no exceptions for control flow.
+    /// Ingests all companion files of a <see cref="SiaraCase"/> with idempotency, hashing, storage, and a
+    /// single event emission covering the whole case. Uses Railway-Oriented Programming — no exceptions for
+    /// control flow.
     /// </summary>
-    /// <param name="documentId">SIARA document ID.</param>
+    /// <remarks>
+    /// <para>
+    /// The case FileId is <em>deterministic</em> — derived from <paramref name="siaraCase"/>'s
+    /// <see cref="SiaraCase.CaseId"/> via an MD5 byte-hash so re-ingesting the same case always produces the
+    /// same <c>FileId</c> on the emitted event (stable across restarts and re-discoveries).
+    /// MD5 is used solely for id derivation, not for security — see <see cref="DeterministicGuid"/>.
+    /// </para>
+    /// <para>
+    /// A single <see cref="DocumentDownloadedEvent"/> is broadcast with all <see cref="CaseFileReference"/>
+    /// entries so the downstream Extractor can load every source without a second discovery round. If
+    /// <em>all</em> files are already known to the journal (all duplicates) the event is suppressed and the
+    /// call returns success with <see cref="IngestionResult.WasDuplicate"/> true.
+    /// </para>
+    /// <para>
+    /// After writing all new files and before broadcasting, a configurable flush delay
+    /// (<see cref="_postWriteFlushDelay"/>) is awaited to mitigate I/O-race conditions on the shared storage
+    /// volume (owner-approved, MVP-PATH 2.1).
+    /// </para>
+    /// </remarks>
+    /// <param name="siaraCase">The SIARA case bundle to ingest.</param>
     /// <param name="correlationId">Correlation ID for end-to-end tracing.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A Result containing IngestionResult on success, or error messages on failure.</returns>
-    public async Task<Result<IngestionResult>> IngestDocumentAsync(
-        string documentId,
+    /// <returns>A Result containing <see cref="IngestionResult"/> on success, or error messages on failure.</returns>
+    public async Task<Result<IngestionResult>> IngestCaseAsync(
+        SiaraCase siaraCase,
         Guid correlationId,
         CancellationToken cancellationToken = default)
     {
@@ -87,99 +131,254 @@ public class IngestionOrchestrator
             return ResultExtensions.Cancelled<IngestionResult>();
         }
 
-        _logger.LogInformation(
-            "Starting document ingestion. DocumentId: {DocumentId}, CorrelationId: {CorrelationId}",
-            documentId,
-            correlationId);
+        ArgumentNullException.ThrowIfNull(siaraCase);
 
-        // Audit: document received (start of ingestion) — fail-open: pipeline continues on audit failure.
+        var caseFileId = DeterministicGuid(siaraCase.CaseId);
+
+        _logger.LogInformation(
+            "Starting case ingestion. CaseId: {CaseId}, FileId: {FileId}, CorrelationId: {CorrelationId}, Files: {FileCount}",
+            siaraCase.CaseId,
+            caseFileId,
+            correlationId,
+            siaraCase.Files.Count);
+
+        // Audit: case received (start of ingestion) — fail-open.
         await EmitAuditAsync(
             AuditActionType.Download,
             ProcessingStage.Ingestion,
-            fileId: null,
+            fileId: caseFileId.ToString(),
             correlationId: correlationId.ToString(),
             success: true,
             actionKey: "DocumentReceived",
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        // ✅ Railway-Oriented Programming: each step returns Result<T>
-        var result = await DownloadDocumentAsync(documentId, cancellationToken)
-            .ThenAsync(async document => await CheckDuplicateAsync(document, documentId, cancellationToken))
-            .ThenAsync(async context => await StoreDocumentAsync(context, documentId, cancellationToken))
-            .ThenAsync(async context => await RecordInJournalAsync(context, documentId, cancellationToken))
-            .ThenTap(async context => await BroadcastEventAsync(context, correlationId, cancellationToken));
+        var now = DateTime.UtcNow;
+        var caseRefs = new List<CaseFileReference>(siaraCase.Files.Count);
 
-        if (result.IsSuccess && result.Value is not null)
+        // Helpers to track the primary file (PDF preferred, else first)
+        string? primaryRelativePath = null;
+        FileFormat primaryFormat = FileFormat.Unknown;
+        string? primaryUrl = null;
+        string? primaryFileName = null;
+        long primarySizeBytes = 0;
+        bool anyNew = false;
+        string? lastActorId = null;
+        string? lastSessionId = null;
+
+        foreach (var file in siaraCase.Files)
         {
-            var context = result.Value;
-            _logger.LogInformation(
-                "Document ingestion completed. FileId: {FileId}, WasDuplicate: {WasDuplicate}",
-                context.FileId,
-                context.WasDuplicate);
-
-            if (context.WasDuplicate)
+            if (cancellationToken.IsCancellationRequested)
             {
-                // Audit: duplicate-skipped.
+                return ResultExtensions.Cancelled<IngestionResult>();
+            }
+
+            // Download the individual file
+            var downloadResult = await DownloadFileAsync(file.Url, cancellationToken).ConfigureAwait(false);
+            if (downloadResult.IsCancelled())
+            {
+                return ResultExtensions.Cancelled<IngestionResult>();
+            }
+
+            if (downloadResult.IsFailure || downloadResult.Value is null)
+            {
+                _logger.LogError(
+                    "Failed to download case file {Url} for case {CaseId}: {Errors}",
+                    file.Url, siaraCase.CaseId, string.Join(", ", downloadResult.Errors));
+
+                // Audit: ingestion failed for this case file.
                 await EmitAuditAsync(
                     AuditActionType.Download,
                     ProcessingStage.Ingestion,
-                    fileId: context.FileId.ToString(),
+                    fileId: caseFileId.ToString(),
                     correlationId: correlationId.ToString(),
-                    success: true,
-                    actionKey: "DuplicateSkipped",
+                    success: false,
+                    actionKey: "IngestionFailed",
+                    errorMessage: string.Join(", ", downloadResult.Errors),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return Result<IngestionResult>.WithFailure(downloadResult.Errors);
+            }
+
+            var downloaded = downloadResult.Value;
+            lastActorId = downloaded.AcquiredBy.ActorId;
+            lastSessionId = downloaded.SessionId;
+
+            var hash = ComputeSha256Hash(downloaded.Content);
+            var isDuplicate = await _journal.ExistsAsync(hash, file.Url, cancellationToken).ConfigureAwait(false);
+
+            var relativePath = BuildRelativePath(now, siaraCase.CaseId, file.FileName);
+
+            if (!isDuplicate)
+            {
+                // Store the file under YYYY/MM/DD/{caseId}/{fileName}
+                var storeResult = StoreFileBytes(downloaded.Content, relativePath);
+                if (storeResult.IsFailure)
+                {
+                    await EmitAuditAsync(
+                        AuditActionType.Download,
+                        ProcessingStage.Ingestion,
+                        fileId: caseFileId.ToString(),
+                        correlationId: correlationId.ToString(),
+                        success: false,
+                        actionKey: "IngestionFailed",
+                        errorMessage: string.Join(", ", storeResult.Errors),
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                    return Result<IngestionResult>.WithFailure(storeResult.Errors);
+                }
+
+                // Record in journal
+                var journalResult = await RecordFileInJournalAsync(
+                    caseFileId, file.FileName, file.Url, hash,
+                    downloaded.Content.LongLength, relativePath,
+                    downloaded.AcquiredBy.ActorId, downloaded.SessionId,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (journalResult.IsFailure)
+                {
+                    await EmitAuditAsync(
+                        AuditActionType.Download,
+                        ProcessingStage.Ingestion,
+                        fileId: caseFileId.ToString(),
+                        correlationId: correlationId.ToString(),
+                        success: false,
+                        actionKey: "IngestionFailed",
+                        errorMessage: string.Join(", ", journalResult.Errors),
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                    return Result<IngestionResult>.WithFailure(journalResult.Errors);
+                }
+
+                anyNew = true;
+
+                _logger.LogDebug(
+                    "Stored case file {FileName} at {RelativePath} for case {CaseId}",
+                    file.FileName, relativePath, siaraCase.CaseId);
             }
             else
             {
-                // Audit: stored successfully.
-                await EmitAuditAsync(
-                    AuditActionType.Download,
-                    ProcessingStage.Ingestion,
-                    fileId: context.FileId.ToString(),
-                    correlationId: correlationId.ToString(),
-                    success: true,
-                    actionKey: "DocumentStored",
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                _logger.LogDebug(
+                    "Duplicate file skipped: {FileName} (hash: {Hash}) for case {CaseId}",
+                    file.FileName, hash, siaraCase.CaseId);
             }
 
-            return Result<IngestionResult>.Success(new IngestionResult(
-                FileId: context.FileId,
-                FileName: context.FileName,
-                Hash: context.Hash,
-                StoredPath: context.StoredPath,
-                FileSizeBytes: context.FileSizeBytes,
-                CorrelationId: correlationId,
-                WasDuplicate: context.WasDuplicate));
+            // Always collect a CaseFileReference — duplicate or new — so the event lists all case files.
+            caseRefs.Add(new CaseFileReference
+            {
+                RelativePath = relativePath,
+                Format = file.Format,
+            });
+
+            // Primary file: prefer PDF; otherwise use the first file encountered.
+            if (primaryRelativePath is null || (file.Format == FileFormat.Pdf && primaryFormat != FileFormat.Pdf))
+            {
+                primaryRelativePath = relativePath;
+                primaryFormat = file.Format;
+                primaryUrl = file.Url;
+                primaryFileName = file.FileName;
+                primarySizeBytes = downloaded.Content.LongLength;
+            }
         }
 
-        _logger.LogError("Document ingestion failed: {Errors}", string.Join(", ", result.Errors));
+        _logger.LogInformation(
+            "Case {CaseId} processing complete: {FileCount} file(s), anyNew={AnyNew}",
+            siaraCase.CaseId, siaraCase.Files.Count, anyNew);
 
-        // Audit: ingestion failed.
+        if (!anyNew)
+        {
+            // All files were duplicates — idempotent skip, no broadcast.
+            await EmitAuditAsync(
+                AuditActionType.Download,
+                ProcessingStage.Ingestion,
+                fileId: caseFileId.ToString(),
+                correlationId: correlationId.ToString(),
+                success: true,
+                actionKey: "DuplicateSkipped",
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            return Result<IngestionResult>.Success(new IngestionResult(
+                FileId: caseFileId,
+                FileName: primaryFileName ?? string.Empty,
+                Hash: string.Empty,
+                StoredPath: primaryRelativePath ?? string.Empty,
+                FileSizeBytes: primarySizeBytes,
+                CorrelationId: correlationId,
+                WasDuplicate: true));
+        }
+
+        // Post-write flush delay: give the filesystem time to flush before the Extractor acts on the event.
+        if (_postWriteFlushDelay > TimeSpan.Zero)
+        {
+            try
+            {
+                await Task.Delay(_postWriteFlushDelay, _timeProvider, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return ResultExtensions.Cancelled<IngestionResult>();
+            }
+        }
+
+        // Broadcast ONE event covering the full case
+        var evt = new DocumentDownloadedEvent
+        {
+            FileId = caseFileId,
+            FileName = primaryFileName ?? string.Empty,
+            Source = "SIARA",
+            FileSizeBytes = primarySizeBytes,
+            Format = primaryFormat,
+            DownloadUrl = primaryUrl ?? string.Empty,
+            Path = primaryRelativePath ?? string.Empty,
+            EventType = nameof(DocumentDownloadedEvent),
+            CorrelationId = correlationId,
+            Timestamp = DateTime.UtcNow,
+            CaseFiles = caseRefs,
+        };
+
+        await _eventHub.SendToAllAsync(evt, cancellationToken).ConfigureAwait(false);
+
+        _logger.LogInformation(
+            "DocumentDownloadedEvent broadcast for case {CaseId}. FileId: {FileId}, CaseFiles: {Count}, CorrelationId: {CorrelationId}",
+            siaraCase.CaseId, caseFileId, caseRefs.Count, correlationId);
+
+        // Audit: stored successfully.
         await EmitAuditAsync(
             AuditActionType.Download,
             ProcessingStage.Ingestion,
-            fileId: null,
+            fileId: caseFileId.ToString(),
             correlationId: correlationId.ToString(),
-            success: false,
-            actionKey: "IngestionFailed",
-            errorMessage: string.Join(", ", result.Errors),
+            success: true,
+            actionKey: "DocumentStored",
             cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        return Result<IngestionResult>.WithFailure(result.Errors);
+        return Result<IngestionResult>.Success(new IngestionResult(
+            FileId: caseFileId,
+            FileName: primaryFileName ?? string.Empty,
+            Hash: string.Empty,
+            StoredPath: primaryRelativePath ?? string.Empty,
+            FileSizeBytes: primarySizeBytes,
+            CorrelationId: correlationId,
+            WasDuplicate: false));
     }
 
-    private async Task<Result<DownloadedDocument>> DownloadDocumentAsync(
-        string documentId,
+    // -------------------------------------------------------------------------
+    // Private shared helpers
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Downloads a single file from the given URL.
+    /// Pass-through to the downloader port (Railway-Oriented, fail-closed).
+    /// </summary>
+    private async Task<Result<DownloadedDocument>> DownloadFileAsync(
+        string fileUrl,
         CancellationToken cancellationToken)
     {
-        // The downloader port is Railway-Oriented: it returns Result<DownloadedDocument> and fails closed
-        // rather than throwing, so this is a pass-through (the provenance rides along on the document).
-        var result = await _downloader.DownloadAsync(documentId, cancellationToken).ConfigureAwait(false);
+        var result = await _downloader.DownloadAsync(fileUrl, cancellationToken).ConfigureAwait(false);
 
         if (result.IsSuccess && result.Value is not null)
         {
             _logger.LogDebug(
-                "Document downloaded. Size: {Size} bytes, Actor: {ActorId}, Session: {SessionId}",
+                "File downloaded. Size: {Size} bytes, Actor: {ActorId}, Session: {SessionId}",
                 result.Value.Content.Length,
                 result.Value.AcquiredBy.ActorId,
                 result.Value.SessionId);
@@ -188,166 +387,127 @@ public class IngestionOrchestrator
         return result;
     }
 
-    private async Task<Result<IngestionContext>> CheckDuplicateAsync(
-        DownloadedDocument document,
-        string sourceUrl,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Builds the storage-relative path for a case file: <c>YYYY/MM/DD/{caseId}/{fileName}</c>.
+    /// Path segments are sanitized to prevent directory traversal.
+    /// </summary>
+    private static string BuildRelativePath(DateTime utcNow, string caseId, string fileName)
     {
-        var documentBytes = document.Content;
-        var hash = ComputeSha256Hash(documentBytes);
-        _logger.LogDebug("Document hash computed: {Hash}", hash);
-
-        var isDuplicate = await _journal.ExistsAsync(hash, sourceUrl, cancellationToken).ConfigureAwait(false);
-
-        if (isDuplicate)
-        {
-            _logger.LogInformation("Duplicate document detected (hash: {Hash}, URL: {URL}). Skipping ingestion", hash, sourceUrl);
-
-            // ✅ Return success with WasDuplicate=true (idempotent skip)
-            return Result<IngestionContext>.Success(new IngestionContext(
-                FileId: Guid.NewGuid(),
-                FileName: string.Empty,
-                Hash: hash,
-                StoredPath: string.Empty,
-                FileSizeBytes: documentBytes.Length,
-                WasDuplicate: true,
-                DocumentBytes: documentBytes,
-                ActorId: document.AcquiredBy.ActorId,
-                SessionId: document.SessionId,
-                SourceUrl: document.SourceUrl));
-        }
-
-        return Result<IngestionContext>.Success(new IngestionContext(
-            FileId: Guid.NewGuid(),
-            FileName: string.Empty,
-            Hash: hash,
-            StoredPath: string.Empty,
-            FileSizeBytes: documentBytes.Length,
-            WasDuplicate: false,
-            DocumentBytes: documentBytes,
-            ActorId: document.AcquiredBy.ActorId,
-            SessionId: document.SessionId,
-            SourceUrl: document.SourceUrl));
+        var safeCaseId = SanitizePathSegment(caseId);
+        var safeFileName = SanitizePathSegment(fileName);
+        return $"{utcNow.Year:D4}/{utcNow.Month:D2}/{utcNow.Day:D2}/{safeCaseId}/{safeFileName}";
     }
 
-    private Task<Result<IngestionContext>> StoreDocumentAsync(
-        IngestionContext context,
-        string documentId,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Removes directory-traversal sequences and invalid path characters from a path segment so it is safe
+    /// to compose into a storage path without risking an escape above the storage root.
+    /// </summary>
+    private static string SanitizePathSegment(string segment)
     {
-        // Skip storage for duplicates
-        if (context.WasDuplicate)
+        if (string.IsNullOrWhiteSpace(segment))
         {
-            return Task.FromResult(Result<IngestionContext>.Success(context));
+            return "_empty_";
         }
 
+        // Strip directory-separator characters and dot-dot sequences.
+        var result = segment
+            .Replace("..", string.Empty, StringComparison.Ordinal)
+            .Replace('/', '_')
+            .Replace('\\', '_');
+
+        // Remove any remaining characters that are invalid in a file-system path name.
+        var invalidChars = Path.GetInvalidFileNameChars();
+        foreach (var c in invalidChars)
+        {
+            result = result.Replace(c, '_');
+        }
+
+        return string.IsNullOrWhiteSpace(result) ? "_empty_" : result;
+    }
+
+    /// <summary>
+    /// Writes the file bytes to the storage path derived from the relative path and the storage base.
+    /// Returns a failure result if the write fails; never throws.
+    /// </summary>
+    private Result<bool> StoreFileBytes(byte[] content, string relativePath)
+    {
         try
         {
-            var now = DateTime.UtcNow;
-            var partitionPath = Path.Combine(
-                _storageBasePath,
-                $"{now.Year:D4}",
-                $"{now.Month:D2}",
-                $"{now.Day:D2}");
+            // Forward-slash relative path → OS-native path under the storage base.
+            var nativePath = relativePath.Replace('/', Path.DirectorySeparatorChar);
+            var fullPath = Path.Combine(_storageBasePath, nativePath);
+            var dir = Path.GetDirectoryName(fullPath)!;
 
-            Directory.CreateDirectory(partitionPath);
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(fullPath, content);
 
-            var fileName = $"{documentId}.pdf";
-            var filePath = Path.Combine(partitionPath, fileName);
-
-            File.WriteAllBytes(filePath, context.DocumentBytes);
-            _logger.LogInformation("Document stored at: {FilePath}", filePath);
-
-            // The storage-relative path (forward-slash, mount-path independent) is what crosses to the
-            // Extractor; it resolves it against its own shared-storage base (ADR-011).
-            var relativeStoragePath = $"{now.Year:D4}/{now.Month:D2}/{now.Day:D2}/{fileName}";
-
-            var updatedContext = context with
-            {
-                FileName = fileName,
-                StoredPath = filePath,
-                RelativeStoragePath = relativeStoragePath
-            };
-
-            return Task.FromResult(Result<IngestionContext>.Success(updatedContext));
+            _logger.LogDebug("File stored at: {FullPath}", fullPath);
+            return Result<bool>.Success(true);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Document storage failed");
-            return Task.FromResult(Result<IngestionContext>.WithFailure($"Storage failed: {ex.Message}"));
+            _logger.LogError(ex, "File storage failed for relative path {RelativePath}", relativePath);
+            return Result<bool>.WithFailure($"Storage failed: {ex.Message}");
         }
     }
 
-    private async Task<Result<IngestionContext>> RecordInJournalAsync(
-        IngestionContext context,
+    /// <summary>
+    /// Records a file entry in the ingestion journal so re-discovery is a no-op (SHA-256 idempotency).
+    /// Returns a failure result if recording fails; never throws.
+    /// </summary>
+    private async Task<Result<bool>> RecordFileInJournalAsync(
+        Guid fileId,
+        string fileName,
         string sourceUrl,
+        string hash,
+        long fileSizeBytes,
+        string relativePath,
+        string actorId,
+        string sessionId,
         CancellationToken cancellationToken)
     {
-        // Skip journal recording for duplicates (already exists)
-        if (context.WasDuplicate)
-        {
-            return Result<IngestionContext>.Success(context);
-        }
-
         try
         {
             var manifestEntry = new IngestionManifestEntry(
-                FileId: context.FileId,
-                FileName: context.FileName,
+                FileId: fileId,
+                FileName: fileName,
                 SourceUrl: sourceUrl,
-                ContentHash: context.Hash,
-                FileSizeBytes: context.FileSizeBytes,
-                StoredPath: context.StoredPath,
+                ContentHash: hash,
+                FileSizeBytes: fileSizeBytes,
+                StoredPath: relativePath,
                 CorrelationId: Guid.NewGuid(),
                 DownloadedAt: DateTimeOffset.UtcNow,
-                ActorId: context.ActorId,
-                SessionId: context.SessionId);
+                ActorId: actorId,
+                SessionId: sessionId);
 
             await _journal.RecordAsync(manifestEntry, cancellationToken).ConfigureAwait(false);
-            _logger.LogDebug("Document recorded in journal: {FileId}", context.FileId);
-            return Result<IngestionContext>.Success(context);
+            _logger.LogDebug("File recorded in journal: {FileId} / {FileName}", fileId, fileName);
+            return Result<bool>.Success(true);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Journal recording failed");
-            return Result<IngestionContext>.WithFailure($"Journal recording failed: {ex.Message}");
+            _logger.LogError(ex, "Journal recording failed for {FileName}", fileName);
+            return Result<bool>.WithFailure($"Journal recording failed: {ex.Message}");
         }
     }
 
-    private async Task BroadcastEventAsync(
-        IngestionContext context,
-        Guid correlationId,
-        CancellationToken cancellationToken)
+    // -------------------------------------------------------------------------
+    // Deterministic case FileId
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Derives a deterministic <see cref="Guid"/> from a case id string using MD5 over the UTF-8 bytes.
+    /// MD5 is used here solely for stable id derivation (not for security or collision resistance) so
+    /// repeated ingestion of the same case always produces the same <see cref="Guid"/>.
+    /// </summary>
+    // Not a security use — suppress the CA5351 "Do not use broken cryptographic algorithms" warning.
+    // MD5 is used only to deterministically map a string key → 16-byte Guid.
+    private static Guid DeterministicGuid(string caseId)
     {
-        // Skip event broadcast for duplicates
-        if (context.WasDuplicate)
-        {
-            _logger.LogDebug("Skipping event broadcast for duplicate document");
-            return;
-        }
-
-        var evt = new DocumentDownloadedEvent
-        {
-            FileId = context.FileId,
-            FileName = context.FileName,
-            Source = "SIARA",
-            FileSizeBytes = context.FileSizeBytes,
-            DownloadUrl = context.SourceUrl,
-            // Storage-relative path so the Extractor resolves the file against its own shared-storage base
-            // (ADR-011) — the two processes may mount the shared volume at different absolute paths.
-            Path = context.RelativeStoragePath,
-            EventType = nameof(DocumentDownloadedEvent),
-            CorrelationId = correlationId,
-            Timestamp = DateTime.UtcNow
-        };
-
-        // ✅ Broadcast via IExxerHub<T> (transport-agnostic)
-        await _eventHub.SendToAllAsync(evt, cancellationToken);
-
-        _logger.LogInformation(
-            "DocumentDownloadedEvent broadcast. FileId: {FileId}, CorrelationId: {CorrelationId}",
-            context.FileId,
-            correlationId);
+#pragma warning disable CA5351
+        var hash = MD5.HashData(Encoding.UTF8.GetBytes(caseId));
+#pragma warning restore CA5351
+        return new Guid(hash);
     }
 
     // -------------------------------------------------------------------------
@@ -448,30 +608,5 @@ public class IngestionOrchestrator
     {
         var hashBytes = SHA256.HashData(data);
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
-    }
-
-    /// <summary>
-    /// Internal context for passing data through the Railway-Oriented Programming pipeline.
-    /// Carries the provenance (actor + session + source URL) resolved by the downloader so it can be
-    /// stamped onto the journal manifest for per-document non-repudiation (ADR-010 P2).
-    /// </summary>
-    private sealed record IngestionContext(
-        Guid FileId,
-        string FileName,
-        string Hash,
-        string StoredPath,
-        long FileSizeBytes,
-        bool WasDuplicate,
-        byte[] DocumentBytes,
-        string ActorId,
-        string SessionId,
-        string SourceUrl)
-    {
-        /// <summary>
-        /// The storage-relative path (forward-slash, <c>YYYY/MM/DD/{documentId}.pdf</c>) the document was
-        /// stored under, carried onto the cross-process event so the Extractor can resolve it against its own
-        /// shared-storage base (ADR-011). Empty for duplicates (which are not re-stored or broadcast).
-        /// </summary>
-        public string RelativeStoragePath { get; init; } = string.Empty;
     }
 }

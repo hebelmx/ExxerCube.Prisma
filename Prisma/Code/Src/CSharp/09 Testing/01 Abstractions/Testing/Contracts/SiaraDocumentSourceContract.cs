@@ -18,9 +18,9 @@ namespace ExxerCube.Prisma.Testing.Contracts;
 /// </para>
 /// <para>
 /// Scope rule (ADR-005 §5): only behavior <em>any</em> correct discovery source must exhibit — the
-/// Railway-Oriented cancellation guarantee and the success-shape guarantee (a non-null list of non-blank
-/// ids the downloader can resolve). Mode-specific acquisition/scrape mechanics and the fail-closed paths
-/// stay in the SUT's own test project.
+/// Railway-Oriented cancellation guarantee and the success-shape guarantee (a non-null list of
+/// <see cref="SiaraCase"/> bundles with non-blank <see cref="SiaraCase.CaseId"/> values). Mode-specific
+/// acquisition/scrape mechanics and the fail-closed paths stay in the SUT's own test project.
 /// </para>
 /// </remarks>
 public abstract class SiaraDocumentSourceContract
@@ -35,35 +35,6 @@ public abstract class SiaraDocumentSourceContract
 
     /// <summary>Gets the discovery source under test.</summary>
     protected ISiaraDocumentSource Sut { get; }
-
-    /// <summary>Contract: a pre-cancelled token yields a Cancelled Result — never an exception.</summary>
-    [Fact]
-    public async Task DiscoverDocumentIdsAsync_PreCancelledToken_ReturnsCancelled()
-    {
-        var cancelled = new CancellationToken(canceled: true);
-
-        var result = await Sut.DiscoverDocumentIdsAsync(cancelled);
-
-        result.ShouldNotBeNull();
-        result.IsCancelled().ShouldBeTrue();
-    }
-
-    /// <summary>
-    /// Contract: a successful discovery wraps a non-null list of non-blank ids — each id is something a
-    /// downloader can resolve. The list may be empty, but it is never null and never carries a blank id.
-    /// </summary>
-    [Fact]
-    public async Task DiscoverDocumentIdsAsync_Success_ReturnsNonNullListOfNonBlankIds()
-    {
-        var result = await Sut.DiscoverDocumentIdsAsync(TestContext.Current.CancellationToken);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        foreach (var id in result.Value!)
-        {
-            id.ShouldNotBeNullOrWhiteSpace();
-        }
-    }
 
     /// <summary>
     /// Contract: a pre-cancelled token to <see cref="ISiaraDocumentSource.DiscoverCasesAsync"/> yields a

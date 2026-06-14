@@ -8,18 +8,21 @@ using Prisma.Orion.Ingestion;
 namespace ExxerCube.Prisma.Orion.Ingestion.Tests;
 
 /// <summary>
-/// Behavioral tests for <see cref="SiaraWatchLoop"/> (MVP-PATH 1.2). Rather than mock the scope plumbing,
-/// these run the loop over a <strong>real</strong> <see cref="ServiceProvider"/> wired with the reference
-/// fakes (<see cref="FakeSiaraDocumentSource"/> + <see cref="FakeDocumentDownloader"/>), the real
+/// Behavioral tests for <see cref="SiaraWatchLoop"/> (MVP-PATH 1.2 / 2.1). Rather than mock the scope
+/// plumbing, these run the loop over a <strong>real</strong> <see cref="ServiceProvider"/> wired with the
+/// reference fakes (<see cref="FakeSiaraDocumentSource"/> + <see cref="FakeDocumentDownloader"/>), the real
 /// <see cref="IngestionOrchestrator"/>, and the real file-based journal — so they exercise the actual
-/// per-document scope creation and the SHA-256 idempotency path, with no live browser.
+/// per-case scope creation and the SHA-256 idempotency path, with no live browser.
+/// The loop now drives <see cref="ISiaraDocumentSource.DiscoverCasesAsync"/> and
+/// <see cref="IngestionOrchestrator.IngestCaseAsync"/> (MVP-PATH 2.1 switch).
 /// </summary>
 public sealed class SiaraWatchLoopTests
 {
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task RunAsync_IngestsEachDiscoveredDocument_InItsOwnScope()
+    public async Task RunAsync_IngestsEachDiscoveredCase_InItsOwnScope()
     {
+        // The fake wraps each doc-id into its own single-file SiaraCase.
         var source = new FakeSiaraDocumentSource(documentIds: ["doc-a", "doc-b", "doc-c"]);
         using var harness = BuildHarness(source);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
@@ -29,15 +32,15 @@ public sealed class SiaraWatchLoopTests
         await cts.CancelAsync();
         await run;
 
-        // Three distinct documents → three ingests, each broadcast exactly once.
+        // Three distinct cases → three ingests, each broadcast exactly once.
         harness.Hub.SentCount.ShouldBe(3);
-        // A fresh DI scope (hence a fresh downloader) per document — never one captured instance.
+        // A fresh DI scope (hence a fresh downloader) per case — never one captured instance.
         harness.DownloaderCreations.ShouldBeGreaterThanOrEqualTo(3);
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task RunAsync_RediscoveringSameDocuments_IsIdempotent()
+    public async Task RunAsync_RediscoveringSameCases_IsIdempotent()
     {
         var source = new FakeSiaraDocumentSource(documentIds: ["doc-a", "doc-b", "doc-c"]);
         using var harness = BuildHarness(source);
@@ -80,7 +83,7 @@ public sealed class SiaraWatchLoopTests
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
 
         var run = harness.Loop.RunAsync(cts.Token);
-        // A per-document failure must not abort the loop — it should keep discovering on later cycles.
+        // A per-case failure must not abort the loop — it should keep discovering on later cycles.
         await WaitUntilAsync(() => source.DiscoverCount >= 2, TestContext.Current.CancellationToken);
         await cts.CancelAsync();
         await run;
@@ -154,7 +157,8 @@ public sealed class SiaraWatchLoopTests
             sp.GetRequiredService<IDocumentDownloader>(),
             sp.GetRequiredService<IExxerHub<DocumentDownloadedEvent>>(),
             sp.GetRequiredService<ILogger<IngestionOrchestrator>>(),
-            storagePath));
+            storagePath,
+            postWriteFlushDelay: TimeSpan.Zero));    // No real delay in tests
         services.AddSingleton<SiaraWatchLoop>();
 
         var provider = services.BuildServiceProvider();

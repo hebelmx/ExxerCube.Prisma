@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,10 +12,10 @@ using Microsoft.Extensions.Options;
 namespace Prisma.Orion.Ingestion;
 
 /// <summary>
-/// The SIARA watch loop (MVP-PATH 1.2): the headless poll/watcher that drives ingestion. Each cycle it
-/// discovers the documents SIARA presents and, <strong>per discovered document, creates a fresh DI scope</strong>
-/// and ingests it through the <see cref="IngestionOrchestrator"/> (download → hash → idempotent journal →
-/// event). It then waits a relaxed interval and repeats.
+/// The SIARA watch loop (MVP-PATH 1.2 / 2.1): the headless poll/watcher that drives ingestion. Each cycle it
+/// discovers the cases SIARA presents and, <strong>per discovered case, creates a fresh DI scope</strong>
+/// and ingests it through the <see cref="IngestionOrchestrator"/> (download all companion files → SHA-256
+/// idempotency → store → ONE broadcast event per case). It then waits a relaxed interval and repeats.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -22,14 +23,14 @@ namespace Prisma.Orion.Ingestion;
 /// is why it takes <see cref="IServiceScopeFactory"/> rather than the scoped orchestrator/downloader
 /// directly — that would be a captive dependency. It keeps <em>one</em> long-lived discovery scope so the
 /// SIARA session stays warm across cycles (the <see cref="ISiaraDocumentSource"/> re-validates it via
-/// <see cref="ISiaraSessionProvider.EnsureValidAsync"/>), and creates a <em>fresh</em> scope per document
+/// <see cref="ISiaraSessionProvider.EnsureValidAsync"/>), and creates a <em>fresh</em> scope per case
 /// so each pull rides its own browser/session with no state bleed.
 /// </para>
 /// <para>
-/// The loop is resilient: a failed discovery pass or a single failed document is logged and the loop
-/// continues on the next cycle — it never throws out of <see cref="RunAsync"/>, so a transient SIARA outage
-/// never takes the worker host down. Idempotency comes from the SHA-256 journal, so re-discovering the same
-/// documents is a cheap no-op.
+/// The loop is resilient: a failed discovery pass or a single failed case is logged and the loop continues
+/// on the next cycle — it never throws out of <see cref="RunAsync"/>, so a transient SIARA outage never
+/// takes the worker host down. Idempotency comes from the SHA-256 journal, so re-discovering the same cases
+/// is a cheap no-op.
 /// </para>
 /// </remarks>
 public sealed class SiaraWatchLoop : IReadinessProbe
@@ -51,7 +52,7 @@ public sealed class SiaraWatchLoop : IReadinessProbe
     bool IReadinessProbe.IsReady => IsRunning;
 
     /// <summary>Initializes a new instance of the <see cref="SiaraWatchLoop"/> class.</summary>
-    /// <param name="scopeFactory">The DI scope factory used to create the discovery scope and a scope per document.</param>
+    /// <param name="scopeFactory">The DI scope factory used to create the discovery scope and a scope per case.</param>
     /// <param name="options">The watch-loop options (poll cadence).</param>
     /// <param name="logger">The logger.</param>
     /// <param name="timeProvider">The time provider used for the (testable) inter-cycle delay.</param>
@@ -74,7 +75,7 @@ public sealed class SiaraWatchLoop : IReadinessProbe
 
     /// <summary>
     /// Runs the watch loop until the token is cancelled. Never throws for business outcomes — discovery and
-    /// per-document failures are logged and retried on the next cycle.
+    /// per-case failures are logged and retried on the next cycle.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token for graceful shutdown.</param>
     /// <returns>A task that completes when the loop stops (on cancellation).</returns>
@@ -138,7 +139,7 @@ public sealed class SiaraWatchLoop : IReadinessProbe
 
     private async Task PollOnceAsync(ISiaraDocumentSource source, CancellationToken cancellationToken)
     {
-        var discovered = await source.DiscoverDocumentIdsAsync(cancellationToken).ConfigureAwait(false);
+        var discovered = await source.DiscoverCasesAsync(cancellationToken).ConfigureAwait(false);
         if (discovered.IsCancelled())
         {
             return;
@@ -146,25 +147,25 @@ public sealed class SiaraWatchLoop : IReadinessProbe
 
         if (discovered.IsFailure || discovered.Value is null)
         {
-            _logger.LogWarning("SIARA discovery failed: {Errors}", string.Join(", ", discovered.Errors));
+            _logger.LogWarning("SIARA case discovery failed: {Errors}", string.Join(", ", discovered.Errors));
             return;
         }
 
-        var documentIds = discovered.Value;
-        _logger.LogInformation("SIARA discovery found {Count} document(s) this cycle", documentIds.Count);
+        var cases = discovered.Value;
+        _logger.LogInformation("SIARA discovery found {Count} case(s) this cycle", cases.Count);
 
         var ingested = 0;
         var duplicates = 0;
         var failures = 0;
 
-        foreach (var documentId in documentIds)
+        foreach (var siaraCase in cases)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 break;
             }
 
-            var result = await IngestOneAsync(documentId, cancellationToken).ConfigureAwait(false);
+            var result = await IngestOneAsync(siaraCase, cancellationToken).ConfigureAwait(false);
             if (result.IsCancelled())
             {
                 break;
@@ -185,8 +186,8 @@ public sealed class SiaraWatchLoop : IReadinessProbe
             {
                 failures++;
                 _logger.LogWarning(
-                    "Failed to ingest SIARA document {DocumentId}: {Errors}",
-                    documentId,
+                    "Failed to ingest SIARA case {CaseId}: {Errors}",
+                    siaraCase.CaseId,
                     string.Join(", ", result.Errors));
             }
         }
@@ -199,15 +200,15 @@ public sealed class SiaraWatchLoop : IReadinessProbe
     }
 
     /// <summary>
-    /// Ingests a single discovered document in its own DI scope, so each pull rides a fresh SIARA
-    /// downloader/browser/session with no state bleed between documents.
+    /// Ingests a single discovered case in its own DI scope, so each pull rides a fresh SIARA
+    /// downloader/browser/session with no state bleed between cases.
     /// </summary>
-    private async Task<Result<IngestionResult>> IngestOneAsync(string documentId, CancellationToken cancellationToken)
+    private async Task<Result<IngestionResult>> IngestOneAsync(SiaraCase siaraCase, CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
         var orchestrator = scope.ServiceProvider.GetRequiredService<IngestionOrchestrator>();
         return await orchestrator
-            .IngestDocumentAsync(documentId, Guid.NewGuid(), cancellationToken)
+            .IngestCaseAsync(siaraCase, Guid.NewGuid(), cancellationToken)
             .ConfigureAwait(false);
     }
 }

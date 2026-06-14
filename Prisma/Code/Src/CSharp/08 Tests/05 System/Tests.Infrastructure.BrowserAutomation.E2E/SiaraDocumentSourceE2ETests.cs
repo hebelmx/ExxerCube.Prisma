@@ -61,7 +61,7 @@ public sealed class SiaraDocumentSourceE2ETests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task DiscoverDocumentIdsAsync_ThroughPassthroughProvider_ListsRealDocumentsFromSimulator()
+    public async Task DiscoverCasesAsync_ThroughPassthroughProvider_ListsRealCasesFromSimulator()
     {
         var ct = TestContext.Current.CancellationToken;
 
@@ -124,13 +124,13 @@ public sealed class SiaraDocumentSourceE2ETests : IAsyncLifetime
 
             // The source keeps one warm session; re-listing re-navigates the live DOM, so poll a few cycles
             // (exactly as the watch loop does) until the InteractiveServer circuit has rendered a case row.
-            IReadOnlyList<string>? ids = null;
-            for (var attempt = 0; attempt < 18 && (ids is null || ids.Count == 0); attempt++)
+            IReadOnlyList<SiaraCase>? cases = null;
+            for (var attempt = 0; attempt < 18 && (cases is null || cases.Count == 0); attempt++)
             {
-                var discovered = await sut.DiscoverDocumentIdsAsync(ct);
+                var discovered = await sut.DiscoverCasesAsync(ct);
                 discovered.IsSuccess.ShouldBeTrue($"discovery failed: {discovered.Error}");
-                ids = discovered.Value;
-                if (ids is { Count: > 0 })
+                cases = discovered.Value;
+                if (cases is { Count: > 0 })
                 {
                     break;
                 }
@@ -138,11 +138,11 @@ public sealed class SiaraDocumentSourceE2ETests : IAsyncLifetime
                 await Task.Delay(5000, ct);
             }
 
-            ids.ShouldNotBeNull();
-            ids!.ShouldNotBeEmpty("the warm SIARA discovery session should list at least one document within ~90s");
-            ids.ShouldAllBe(id => !string.IsNullOrWhiteSpace(id));
+            cases.ShouldNotBeNull();
+            cases!.ShouldNotBeEmpty("the warm SIARA discovery session should list at least one case within ~90s");
+            cases.ShouldAllBe(c => !string.IsNullOrWhiteSpace(c.CaseId));
 
-            _output.WriteLine($"Discovered {ids.Count} SIARA document id(s); first: {ids[0]}");
+            _output.WriteLine($"Discovered {cases.Count} SIARA case(s); first: {cases[0].CaseId}");
 
             await sut.DisposeAsync();
         }

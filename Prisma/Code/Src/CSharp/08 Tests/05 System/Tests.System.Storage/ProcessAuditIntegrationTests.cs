@@ -148,7 +148,7 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// A6 gate for the Orion Downloader: after <see cref="IngestionOrchestrator.IngestDocumentAsync"/> runs
+    /// A6 gate for the Orion Downloader: after <see cref="IngestionOrchestrator.IngestCaseAsync"/> runs
     /// successfully, <see cref="IAuditLogger.GetAuditRecordsByFileIdAsync"/> (queried using the
     /// <see cref="IngestionResult.FileId"/> returned by the orchestrator) returns at least one audit record
     /// whose <see cref="AuditRecord.ProcessId"/> equals the stub actor id and whose
@@ -156,19 +156,22 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
     /// No FileMetadata row is seeded — the FK was dropped (FIX 1), so the INSERT succeeds without it.
     /// </summary>
     [Fact]
-    public async Task IngestionOrchestrator_IngestDocument_AuditRecordsCarryProcessId()
+    public async Task IngestionOrchestrator_IngestCase_AuditRecordsCarryProcessId()
     {
         // Arrange
         var actorProvider = CreateStubActorProvider();
 
+        const string docUrl = "https://siara.test/doc/A6-1";
+        const string caseId = "test-case-A6-1";
+
         // Stub downloader — returns a minimal document with known provenance.
         var downloader = Substitute.For<IDocumentDownloader>();
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+        downloader.DownloadAsync(docUrl, Arg.Any<CancellationToken>())
             .Returns(Result<DownloadedDocument>.Success(new DownloadedDocument
             {
                 Content = new byte[] { 0x25, 0x50, 0x44, 0x46 }, // minimal PDF header
-                DocumentId = "test-doc-A6-1",
-                SourceUrl = "https://siara.test/doc/A6-1",
+                DocumentId = docUrl,
+                SourceUrl = docUrl,
                 AcquiredBy = KnownActor,
                 SessionId = Guid.NewGuid().ToString(),
                 Format = FileFormat.Pdf
@@ -197,16 +200,25 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
             storageBasePath: storageBase,
             scopeFactory: scopeFactory,
             actorIdentityProvider: actorProvider,
-            processClearance: ProcessClearance.Download);
+            processClearance: ProcessClearance.Download,
+            postWriteFlushDelay: TimeSpan.Zero);
 
         var correlationId = Guid.NewGuid();
+        var siaraCase = new SiaraCase
+        {
+            CaseId = caseId,
+            Files = new[]
+            {
+                new DownloadableFile { Url = docUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+            },
+        };
 
         // Act
-        var result = await orchestrator.IngestDocumentAsync("test-doc-A6-1", correlationId, Ct);
+        var result = await orchestrator.IngestCaseAsync(siaraCase, correlationId, Ct);
 
         // Assert — ingestion must succeed.
         result.IsSuccess.ShouldBeTrue(
-            $"IngestionOrchestrator.IngestDocumentAsync failed: {string.Join(", ", result.Errors)}");
+            $"IngestionOrchestrator.IngestCaseAsync failed: {string.Join(", ", result.Errors)}");
 
         // Capture the real FileId assigned by the orchestrator (not the null DocumentReceived record).
         var fileId = result.Value!.FileId.ToString();

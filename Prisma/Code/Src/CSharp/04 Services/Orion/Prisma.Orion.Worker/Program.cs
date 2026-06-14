@@ -147,11 +147,25 @@ builder.Services.AddScoped<IngestionOrchestrator>(sp =>
     var processOptions = sp.GetService<IOptions<ProcessIdentityOptions>>();
     var clearance = processOptions?.Value.Clearance ?? ProcessClearance.Download;
 
+    // Post-write flush delay (MVP-PATH 2.1, owner I/O-race mitigation): configurable via
+    // Ingestion:PostWriteFlushDelayMs; defaults to 250 ms when absent.
+    TimeSpan? postWriteFlushDelay = null;
+    var delayMsStr = builder.Configuration["Ingestion:PostWriteFlushDelayMs"];
+    if (int.TryParse(delayMsStr, out var delayMs))
+    {
+        postWriteFlushDelay = TimeSpan.FromMilliseconds(delayMs);
+    }
+
+    // TimeProvider from DI if registered (e.g. FakeTimeProvider in tests), else system default.
+    var timeProvider = sp.GetService<TimeProvider>();
+
     return new IngestionOrchestrator(
         journal, downloader, eventHub, logger, storageBasePath,
         scopeFactory: scopeFactory,
         actorIdentityProvider: actorIdentityProvider,
-        processClearance: clearance);
+        processClearance: clearance,
+        timeProvider: timeProvider,
+        postWriteFlushDelay: postWriteFlushDelay);
 });
 
 // The SIARA watch loop (MVP-PATH 1.2): a singleton poll/watcher that owns the DI scopes (one warm

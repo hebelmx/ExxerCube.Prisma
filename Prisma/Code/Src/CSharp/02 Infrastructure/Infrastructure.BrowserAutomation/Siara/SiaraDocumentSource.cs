@@ -76,47 +76,6 @@ public sealed class SiaraDocumentSource : ISiaraDocumentSource, IAsyncDisposable
     }
 
     /// <inheritdoc />
-    public async Task<Result<IReadOnlyList<string>>> DiscoverDocumentIdsAsync(CancellationToken cancellationToken = default)
-    {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<IReadOnlyList<string>>();
-        }
-
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            var filesResult = await RetrieveFilesLockedAsync(cancellationToken).ConfigureAwait(false);
-            if (filesResult.IsCancelled())
-            {
-                return ResultExtensions.Cancelled<IReadOnlyList<string>>();
-            }
-
-            if (filesResult.IsFailure || filesResult.Value is null)
-            {
-                return Result<IReadOnlyList<string>>.WithFailure(filesResult.Errors);
-            }
-
-            // The document id is the file URL — unambiguous and directly resolvable by the downloader.
-            var ids = filesResult.Value
-                .Select(f => f.Url)
-                .Where(url => !string.IsNullOrWhiteSpace(url))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            return Result<IReadOnlyList<string>>.Success(ids);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return ResultExtensions.Cancelled<IReadOnlyList<string>>();
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
-
-    /// <inheritdoc />
     public async Task<Result<IReadOnlyList<SiaraCase>>> DiscoverCasesAsync(CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)

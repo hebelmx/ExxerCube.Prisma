@@ -1,3 +1,4 @@
+using System.Text;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
@@ -8,17 +9,10 @@ using Prisma.Orion.Ingestion;
 namespace ExxerCube.Prisma.Orion.Ingestion.Tests;
 
 /// <summary>
-/// Stage 2.5 REFACTORED tests for IngestionOrchestrator using IExxerHub&lt;T&gt; and Result&lt;T&gt;.
-/// Validates Railway-Oriented Programming, transport-agnostic event broadcasting, and idempotency.
+/// Unit tests for <see cref="IngestionOrchestrator.IngestCaseAsync"/>: validates case-level ingestion with
+/// Railway-Oriented Programming, one-event-per-case semantics, deterministic FileId, path layout,
+/// all-duplicate suppression, and CaseFiles population.
 /// </summary>
-/// <remarks>
-/// Stage 2.5 Exit Criteria:
-/// - Uses IExxerHub&lt;DocumentDownloadedEvent&gt; instead of IEventPublisher
-/// - Returns Result&lt;IngestionResult&gt; instead of Task (void)
-/// - No exceptions for control flow (uses Result.Failure(), ResultExtensions.Cancelled())
-/// - Events broadcast via SendToAllAsync() (transport-agnostic)
-/// - All tests green (Railway-Oriented Programming validated)
-/// </remarks>
 public sealed class IngestionOrchestratorTests
 {
     private static readonly SiaraActor TestActor = new()
@@ -29,371 +23,525 @@ public sealed class IngestionOrchestratorTests
     };
 
     /// <summary>
-    /// Builds a successful Railway-Oriented download result carrying the document bytes and the
-    /// trustworthy provenance (actor + session) the downloader now returns (MVP-PATH 1.1 / ADR-010 P2).
+    /// Builds a successful Railway-Oriented download result carrying the document bytes and trustworthy
+    /// provenance (actor + session) the downloader returns (MVP-PATH 1.1 / ADR-010 P2).
     /// </summary>
-    private static Result<DownloadedDocument> Downloaded(byte[] content, string documentId = "DOC123") =>
+    private static Result<DownloadedDocument> Downloaded(byte[] content, string url, FileFormat format) =>
         Result<DownloadedDocument>.Success(new DownloadedDocument
         {
             Content = content,
-            DocumentId = documentId,
-            SourceUrl = $"https://siara.local/documents/{documentId}.pdf",
-            Format = FileFormat.Pdf,
+            DocumentId = url,
+            SourceUrl = url,
+            Format = format,
             AcquiredBy = TestActor,
             SessionId = "sess-abc123",
         });
 
+    /// <summary>
+    /// Builds an orchestrator under test with no delay (tests should be fast) and a temp storage path.
+    /// </summary>
+    private static (IngestionOrchestrator Orchestrator, string StoragePath) BuildOrchestrator(
+        IIngestionJournal journal,
+        IDocumentDownloader downloader,
+        IExxerHub<DocumentDownloadedEvent> eventHub)
+    {
+        var storagePath = Path.Combine(Path.GetTempPath(), "iot-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(storagePath);
+        var orchestrator = new IngestionOrchestrator(
+            journal,
+            downloader,
+            eventHub,
+            NullLogger<IngestionOrchestrator>.Instance,
+            storageBasePath: storagePath,
+            postWriteFlushDelay: TimeSpan.Zero);        // No real delay in unit tests
+        return (orchestrator, storagePath);
+    }
+
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task IngestDocument_NewDocument_ReturnsSuccessAndBroadcastsEvent()
+    public async Task IngestCase_NewThreeFileCase_ReturnsSuccessAndBroadcastsOneEvent()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 })); // PDF header
+        var pdfUrl = "https://siara.local/cases/CASE1/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/CASE1/doc.xml";
+        var docxUrl = "https://siara.local/cases/CASE1/doc.docx";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf-content"), pdfUrl, FileFormat.Pdf));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml-content"), xmlUrl, FileFormat.Xml));
+        downloader.DownloadAsync(docxUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("docx-content"), docxUrl, FileFormat.Docx));
 
         eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
-        var documentId = "DOC123";
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "CASE1",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = docxUrl, FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
         var correlationId = Guid.NewGuid();
-
-        // Act
-        var result = await orchestrator.IngestDocumentAsync(documentId, correlationId, TestContext.Current.CancellationToken);
-
-        // Assert - Railway-Oriented Programming
-        result.IsSuccess.ShouldBeTrue();
-        result.Value.ShouldNotBeNull();
-        result.Value.FileId.ShouldNotBe(Guid.Empty);
-        result.Value.CorrelationId.ShouldBe(correlationId);
-        result.Value.WasDuplicate.ShouldBeFalse();
-
-        await journal.Received(1).RecordAsync(
-            Arg.Is<IngestionManifestEntry>(e =>
-                !string.IsNullOrEmpty(e.ContentHash) &&
-                !string.IsNullOrEmpty(e.SourceUrl) &&
-                e.FileId != Guid.Empty),
-            Arg.Any<CancellationToken>());
-
-        await eventHub.Received(1).SendToAllAsync(
-            Arg.Is<DocumentDownloadedEvent>(e =>
-                e.FileId != Guid.Empty &&
-                e.CorrelationId == correlationId),
-            Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    [Trait("Category", "Unit")]
-    public async Task IngestDocument_DuplicateHash_ReturnsSuccessWithoutBroadcast()
-    {
-        // Arrange
-        var journal = Substitute.For<IIngestionJournal>();
-        var downloader = Substitute.For<IDocumentDownloader>();
-        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
-
-        // Return test data that will hash to a known value
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Downloaded(new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F })); // "Hello"
-
-        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(true); // Duplicate detected after hashing
-
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
-        var documentId = "DOC123";
-        var correlationId = Guid.NewGuid();
-
-        // Act
-        var result = await orchestrator.IngestDocumentAsync(documentId, correlationId, TestContext.Current.CancellationToken);
-
-        // Assert - Railway-Oriented: duplicate is SUCCESS (idempotent skip)
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.WasDuplicate.ShouldBeTrue();
-        result.Value!.CorrelationId.ShouldBe(correlationId);
-
-        // MUST download to compute hash, but should NOT store or broadcast after detecting duplicate
-        await downloader.Received(1).DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
-        await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    [Trait("Category", "Unit")]
-    public async Task IngestDocument_ComputesCorrectSHA256Hash()
-    {
-        // Arrange
-        var journal = Substitute.For<IIngestionJournal>();
-        var downloader = Substitute.For<IDocumentDownloader>();
-        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
-
-        var testData = new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F }; // "Hello"
-        var expectedHash = "185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969"; // SHA-256 of "Hello"
-
-        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(false);
-
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Downloaded(testData));
-
-        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
-
-        // Act
-        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
-
-        // Assert - verify hash was computed correctly
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Hash.ShouldBe(expectedHash);
-
-        await journal.Received(1).RecordAsync(
-            Arg.Is<IngestionManifestEntry>(e => e.ContentHash == expectedHash),
-            Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    [Trait("Category", "Unit")]
-    public async Task IngestDocument_CreatesPartitionedStoragePath()
-    {
-        // Arrange
-        var journal = Substitute.For<IIngestionJournal>();
-        var downloader = Substitute.For<IDocumentDownloader>();
-        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
-
-        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(false);
-
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
-
-        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
-        var documentId = "DOC123";
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
         var now = DateTime.UtcNow;
 
-        // Act
-        var result = await orchestrator.IngestDocumentAsync(documentId, Guid.NewGuid(), TestContext.Current.CancellationToken);
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, correlationId, TestContext.Current.CancellationToken);
 
-        // Assert - path should be: {base}/YYYY/MM/DD/{docId}.pdf
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.StoredPath.ShouldContain($"{now.Year:D4}");
-        result.Value!.StoredPath.ShouldContain($"{now.Month:D2}");
-        result.Value!.StoredPath.ShouldContain($"{now.Day:D2}");
-        result.Value!.StoredPath.ShouldEndWith($"{documentId}.pdf");
+            // Assert: success
+            result.IsSuccess.ShouldBeTrue();
+            result.Value.ShouldNotBeNull();
+            result.Value!.WasDuplicate.ShouldBeFalse();
+            result.Value!.CorrelationId.ShouldBe(correlationId);
 
-        await journal.Received(1).RecordAsync(
-            Arg.Is<IngestionManifestEntry>(e =>
-                e.StoredPath.Contains($"{now.Year:D4}") &&
-                e.StoredPath.Contains($"{now.Month:D2}") &&
-                e.StoredPath.Contains($"{now.Day:D2}") &&
-                e.StoredPath.EndsWith($"{documentId}.pdf")),
-            Arg.Any<CancellationToken>());
+            // Assert: exactly ONE event broadcast
+            await eventHub.Received(1).SendToAllAsync(
+                Arg.Any<DocumentDownloadedEvent>(),
+                Arg.Any<CancellationToken>());
+
+            // Assert: the event carries all 3 CaseFileReferences
+            await eventHub.Received(1).SendToAllAsync(
+                Arg.Is<DocumentDownloadedEvent>(e =>
+                    e.CaseFiles.Count == 3 &&
+                    e.CorrelationId == correlationId &&
+                    e.Source == "SIARA"),
+                Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task IngestDocument_EmitsRelativeStoragePathOnEvent()
+    public async Task IngestCase_CaseFiles_HaveCorrectRelativePathsAndFormats()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
+        var pdfUrl = "https://siara.local/cases/CASE2/report.pdf";
+        var xmlUrl = "https://siara.local/cases/CASE2/data.xml";
 
-        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf"), pdfUrl, FileFormat.Pdf));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml"), xmlUrl, FileFormat.Xml));
+
+        // Set up a capture via Arg.Do BEFORE the Act call so the side-effect fires on the real call.
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
-        var documentId = "DOC123";
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "CASE2",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "report.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "data.xml", Format = FileFormat.Xml },
+            },
+        };
+
         var now = DateTime.UtcNow;
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
 
-        // Act
-        var result = await orchestrator.IngestDocumentAsync(documentId, Guid.NewGuid(), TestContext.Current.CancellationToken);
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
 
-        // Assert - the cross-process event carries the forward-slash storage-relative path (mount-path
-        // independent) so the Extractor can resolve it against its own shared-storage base (ADR-011).
-        result.IsSuccess.ShouldBeTrue();
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            captured.ShouldNotBeNull();
+            captured!.CaseFiles.Count.ShouldBe(2);
 
-        await eventHub.Received(1).SendToAllAsync(
-            Arg.Is<DocumentDownloadedEvent>(e =>
-                e.Path == $"{now.Year:D4}/{now.Month:D2}/{now.Day:D2}/{documentId}.pdf"),
-            Arg.Any<CancellationToken>());
+            // Paths must follow YYYY/MM/DD/{caseId}/{fileName} with forward slashes
+            var expectedDatePrefix = $"{now.Year:D4}/{now.Month:D2}/{now.Day:D2}/CASE2/";
+            foreach (var fileRef in captured.CaseFiles)
+            {
+                fileRef.RelativePath.ShouldStartWith(expectedDatePrefix);
+            }
+
+            // Formats match inputs
+            captured.CaseFiles.ShouldContain(r => r.Format == FileFormat.Pdf);
+            captured.CaseFiles.ShouldContain(r => r.Format == FileFormat.Xml);
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task IngestDocument_CorrelationId_PreservedInResult()
+    public async Task IngestCase_FileId_IsDeterministicFromCaseId()
     {
-        // Arrange
+        // Arrange — two separate orchestrator instances ingesting the same caseId must produce the same FileId
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
+        var url = "https://siara.local/cases/STABLE/doc.pdf";
+        downloader.DownloadAsync(url, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("content"), url, FileFormat.Pdf));
 
         eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
-        var correlationId = Guid.Parse("12345678-1234-1234-1234-123456789012");
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "STABLE",
+            Files = new[] { new DownloadableFile { Url = url, FileName = "doc.pdf", Format = FileFormat.Pdf } },
+        };
 
-        // Act
-        var result = await orchestrator.IngestDocumentAsync("DOC123", correlationId, TestContext.Current.CancellationToken);
+        var (orch1, path1) = BuildOrchestrator(journal, downloader, eventHub);
+        var (orch2, path2) = BuildOrchestrator(journal, downloader, eventHub);
 
-        // Assert - CRITICAL: correlation ID must be preserved exactly
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.CorrelationId.ShouldBe(correlationId);
+        try
+        {
+            // Act
+            var r1 = await orch1.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+            // Second orchestrator — journal returns false so it tries to store again (different bytes path)
+            // but the FileId must match.
+            var r2 = await orch2.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
 
-        await eventHub.Received(1).SendToAllAsync(
-            Arg.Is<DocumentDownloadedEvent>(e => e.CorrelationId == correlationId),
-            Arg.Any<CancellationToken>());
+            // Assert: same deterministic FileId regardless of orchestrator instance
+            r1.IsSuccess.ShouldBeTrue();
+            r2.IsSuccess.ShouldBeTrue();
+            r1.Value!.FileId.ShouldBe(r2.Value!.FileId);
+            r1.Value!.FileId.ShouldNotBe(Guid.Empty);
+        }
+        finally
+        {
+            Directory.Delete(path1, recursive: true);
+            Directory.Delete(path2, recursive: true);
+        }
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task IngestDocument_WhenCancelled_ReturnsCancelledResult()
+    public async Task IngestCase_PrimaryFile_IsPdfWhenPresent()
+    {
+        // Arrange: XML is first, PDF is second — primary should be the PDF
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var xmlUrl = "https://siara.local/cases/CASE3/data.xml";
+        var pdfUrl = "https://siara.local/cases/CASE3/doc.pdf";
+
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml"), xmlUrl, FileFormat.Xml));
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf"), pdfUrl, FileFormat.Pdf));
+
+        // Pre-call capture: Arg.Do fires when SendToAllAsync is called during the Act.
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        // XML is listed first; PDF is second
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "CASE3",
+            Files = new[]
+            {
+                new DownloadableFile { Url = xmlUrl, FileName = "data.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert: primary fields derive from the PDF file
+            result.IsSuccess.ShouldBeTrue();
+            captured.ShouldNotBeNull();
+            captured!.Format.ShouldBe(FileFormat.Pdf);
+            captured!.FileName.ShouldBe("doc.pdf");
+            // Primary path ends with the PDF file name
+            captured!.Path.ShouldEndWith("doc.pdf");
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_AllDuplicates_ReturnsSuccessWithNoBroadcast()
+    {
+        // Arrange: all files report as duplicates via the journal
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(true);   // All files are duplicates
+
+        var pdfUrl = "https://siara.local/cases/CASE4/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/CASE4/doc.xml";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf"), pdfUrl, FileFormat.Pdf));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml"), xmlUrl, FileFormat.Xml));
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "CASE4",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert: idempotent success, no broadcast
+            result.IsSuccess.ShouldBeTrue();
+            result.Value.ShouldNotBeNull();
+            result.Value!.WasDuplicate.ShouldBeTrue();
+
+            // No event must be sent when all files are duplicates
+            await eventHub.DidNotReceive().SendToAllAsync(
+                Arg.Any<DocumentDownloadedEvent>(),
+                Arg.Any<CancellationToken>());
+
+            // Journal must NOT be written to for already-known files
+            await journal.DidNotReceive().RecordAsync(
+                Arg.Any<IngestionManifestEntry>(),
+                Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_WhenCancelled_ReturnsCancelledResult()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "CASE_CT",
+            Files = new[] { new DownloadableFile { Url = "https://x/a.pdf", FileName = "a.pdf", Format = FileFormat.Pdf } },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
 
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // Act
-        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), cts.Token);
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), cts.Token);
 
-        // Assert - Railway-Oriented: cancellation is Result, not exception
-        result.IsCancelled().ShouldBeTrue();
+            // Assert: cancelled result, no side effects
+            result.IsCancelled().ShouldBeTrue();
 
-        // No operations should have been called
-        await downloader.DidNotReceive().DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
-        await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+            await downloader.DidNotReceive().DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
+            await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task IngestDocument_WhenDownloadFails_ReturnsFailureWithoutBroadcast()
+    public async Task IngestCase_WhenDownloadFails_ReturnsFailureWithoutBroadcast()
     {
-        // Arrange
+        // Arrange: the downloader fails closed for one file
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
 
-        // Railway-Oriented: the downloader port fails closed by RETURNING a failure result, never throwing.
         downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result<DownloadedDocument>.WithFailure("Network error"));
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "CASE_FAIL",
+            Files = new[] { new DownloadableFile { Url = "https://x/fail.pdf", FileName = "fail.pdf", Format = FileFormat.Pdf } },
+        };
 
-        // Act
-        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
 
-        // Assert - Railway-Oriented: failure is Result, not exception; the downloader's error propagates as-is
-        result.IsFailure.ShouldBeTrue();
-        result.Errors.ShouldContain(e => e.Contains("Network error"));
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
 
-        // No downstream operations should have been called
-        await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
-        await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+            // Assert
+            result.IsFailure.ShouldBeTrue();
+            result.Errors.ShouldContain(e => e.Contains("Network error"));
+
+            await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
+            await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task IngestDocument_BroadcastsViaIExxerHub_NotIEventPublisher()
+    public async Task IngestCase_StoresFilesUnderCaseFolderPath()
     {
         // Arrange
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
+        var pdfUrl = "https://siara.local/cases/CASESTORE/a.pdf";
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf-bytes"), pdfUrl, FileFormat.Pdf));
 
-        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+        // Pre-call capture: Arg.Do fires when SendToAllAsync is called during the Act.
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "CASESTORE",
+            Files = new[] { new DownloadableFile { Url = pdfUrl, FileName = "a.pdf", Format = FileFormat.Pdf } },
+        };
 
-        // Act
-        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+        var now = DateTime.UtcNow;
 
-        // Assert - CRITICAL: uses IExxerHub<T>.SendToAllAsync() (transport-agnostic)
-        result.IsSuccess.ShouldBeTrue();
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
 
-        await eventHub.Received(1).SendToAllAsync(
-            Arg.Is<DocumentDownloadedEvent>(e =>
-                e.Source == "SIARA" &&
-                e.FileSizeBytes > 0),
-            Arg.Any<CancellationToken>());
+            // Assert: the event Path follows YYYY/MM/DD/{caseId}/{fileName}
+            result.IsSuccess.ShouldBeTrue();
+            captured.ShouldNotBeNull();
+            var expectedPathPrefix = $"{now.Year:D4}/{now.Month:D2}/{now.Day:D2}/CASESTORE/";
+            captured!.Path.ShouldStartWith(expectedPathPrefix);
+            captured!.Path.ShouldEndWith("a.pdf");
+
+            // The file should physically exist under the storage root
+            var physicalPath = System.IO.Path.Combine(
+                storagePath,
+                captured.Path.Replace('/', System.IO.Path.DirectorySeparatorChar));
+            File.Exists(physicalPath).ShouldBeTrue();
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task IngestDocument_StampsActorAndSessionProvenanceOntoJournalManifest()
+    public async Task IngestCase_EventFileId_MatchesDeterministicCaseGuid()
     {
-        // Arrange
+        // Arrange: verify the event carries the deterministic FileId (not a random Guid)
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
-        var logger = NullLogger<IngestionOrchestrator>.Instance;
 
         journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Downloaded(new byte[] { 0x25, 0x50, 0x44, 0x46 }));
+        var url = "https://siara.local/cases/CASE_DET/doc.pdf";
+        downloader.DownloadAsync(url, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf"), url, FileFormat.Pdf));
 
         eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var orchestrator = new IngestionOrchestrator(journal, downloader, eventHub, logger);
+        var caseId = "CASE_DET";
+        var siaraCase = new SiaraCase
+        {
+            CaseId = caseId,
+            Files = new[] { new DownloadableFile { Url = url, FileName = "doc.pdf", Format = FileFormat.Pdf } },
+        };
 
-        // Act
-        var result = await orchestrator.IngestDocumentAsync("DOC123", Guid.NewGuid(), TestContext.Current.CancellationToken);
+        // Compute the expected deterministic Guid the same way the orchestrator does (MD5 of UTF-8 caseId)
+        var expectedFileId = new Guid(
+            System.Security.Cryptography.MD5.HashData(
+                System.Text.Encoding.UTF8.GetBytes(caseId)));
 
-        // Assert - per-document non-repudiation: the trustworthy actor + session ride onto the durable
-        // manifest record, not just the session (ADR-010 P2).
-        result.IsSuccess.ShouldBeTrue();
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
 
-        await journal.Received(1).RecordAsync(
-            Arg.Is<IngestionManifestEntry>(e =>
-                e.ActorId == "svc-orion-ingestion" &&
-                e.SessionId == "sess-abc123"),
-            Arg.Any<CancellationToken>());
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            result.Value!.FileId.ShouldBe(expectedFileId);
+
+            await eventHub.Received(1).SendToAllAsync(
+                Arg.Is<DocumentDownloadedEvent>(e => e.FileId == expectedFileId),
+                Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
     }
 }
