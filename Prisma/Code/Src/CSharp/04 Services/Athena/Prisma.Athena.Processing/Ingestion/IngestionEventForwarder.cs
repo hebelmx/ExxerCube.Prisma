@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
 namespace Prisma.Athena.Processing.Ingestion;
@@ -139,7 +142,11 @@ public sealed class IngestionEventForwarder
     /// <summary>
     /// Resolves the event's storage-relative <see cref="DocumentDownloadedEvent.Path"/> against the shared
     /// storage base and stamps the absolute result onto <see cref="DocumentDownloadedEvent.FileName"/>.
-    /// Returns the event unchanged when there is no relative path or resolution fails (tolerant fallback).
+    /// Also resolves each <see cref="CaseFileReference.RelativePath"/> in
+    /// <see cref="DocumentDownloadedEvent.CaseFiles"/> to absolute paths so the Extractor can open them
+    /// directly (MVP-PATH 2.1). Companion-file resolution is tolerant: a failure keeps the original relative
+    /// path and logs at Debug level, preserving single-file fallback behavior.
+    /// Returns the event unchanged when there is no relative path or resolution of the primary fails.
     /// </summary>
     private DocumentDownloadedEvent ResolveStoragePath(DocumentDownloadedEvent downloadEvent)
     {
@@ -167,6 +174,47 @@ public sealed class IngestionEventForwarder
             downloadEvent.Path,
             resolution.Value);
 
-        return downloadEvent with { FileName = resolution.Value! };
+        // Resolve companion case-file paths (MVP-PATH 2.1); tolerant — failures keep original relative path.
+        var resolvedCaseFiles = ResolveCaseFilePaths(downloadEvent);
+
+        return downloadEvent with { FileName = resolution.Value!, CaseFiles = resolvedCaseFiles };
+    }
+
+    /// <summary>
+    /// Resolves each <see cref="CaseFileReference.RelativePath"/> in
+    /// <see cref="DocumentDownloadedEvent.CaseFiles"/> to an absolute path.
+    /// On resolution failure the original relative path is kept (tolerant fallback).
+    /// Returns the original list unchanged when it is empty.
+    /// </summary>
+    private IReadOnlyList<CaseFileReference> ResolveCaseFilePaths(DocumentDownloadedEvent downloadEvent)
+    {
+        if (downloadEvent.CaseFiles.Count == 0)
+        {
+            return downloadEvent.CaseFiles;
+        }
+
+        var resolved = new List<CaseFileReference>(downloadEvent.CaseFiles.Count);
+        foreach (var caseFile in downloadEvent.CaseFiles)
+        {
+            var r = _storagePathResolver.Resolve(caseFile.RelativePath);
+            if (r.IsFailure)
+            {
+                _logger.LogDebug(
+                    "Could not resolve companion case file path '{RelativePath}': {Error}. Keeping original.",
+                    caseFile.RelativePath,
+                    r.Error);
+                resolved.Add(caseFile);
+            }
+            else
+            {
+                _logger.LogDebug(
+                    "Resolved companion case file: '{RelativePath}' -> '{AbsolutePath}'",
+                    caseFile.RelativePath,
+                    r.Value);
+                resolved.Add(caseFile with { RelativePath = r.Value! });
+            }
+        }
+
+        return resolved;
     }
 }

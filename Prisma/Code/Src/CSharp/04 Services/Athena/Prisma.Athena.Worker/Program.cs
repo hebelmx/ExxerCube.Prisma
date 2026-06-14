@@ -77,6 +77,11 @@ builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
 // and skips export when null, so we deliberately register nothing here.
 // Field extractor that turns Stage 2 OCR text into an Expediente feeding Stage 3 fusion.
 builder.Services.AddSingleton<IFieldExtractor<TxtSource>, AdaptiveTxtFieldExtractor>();
+// Multi-source companion extractors (MVP-PATH 2.1): feed XML and DOCX case files into Stage 3 fusion.
+// XmlFieldExtractor has no extra dependencies; DocxFieldExtractor requires ILogger<DocxFieldExtractor>
+// (resolved automatically by the DI container).
+builder.Services.AddSingleton<IFieldExtractor<XmlSource>, XmlFieldExtractor>();
+builder.Services.AddSingleton<IFieldExtractor<DocxSource>, DocxFieldExtractor>();
 
 // Register orchestrator with all pipeline services
 builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
@@ -90,6 +95,8 @@ builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
     var classifier = sp.GetRequiredService<IFileClassifier>();
     var exporter = sp.GetService<IResponseExporter>();
     var txtFieldExtractor = sp.GetRequiredService<IFieldExtractor<TxtSource>>();
+    var xmlFieldExtractor = sp.GetRequiredService<IFieldExtractor<XmlSource>>();
+    var docxFieldExtractor = sp.GetRequiredService<IFieldExtractor<DocxSource>>();
 
     return new ProcessingOrchestrator(
         eventPublisher,
@@ -100,7 +107,9 @@ builder.Services.AddSingleton<ProcessingOrchestrator>(sp =>
         classifier: classifier,
         exporter: exporter,
         fileLoader: fileLoader,
-        txtFieldExtractor: txtFieldExtractor);
+        txtFieldExtractor: txtFieldExtractor,
+        xmlFieldExtractor: xmlFieldExtractor,
+        docxFieldExtractor: docxFieldExtractor);
 });
 
 // Connection-level hub auth (follow-up to MVP-PATH 1.5): the reconciliation hub only accepts clients that
@@ -165,7 +174,9 @@ builder.Services.AddSingleton<ExtractionOrchestrator>(sp => new ExtractionOrches
     ocrExecutor: sp.GetRequiredService<IOcrExecutor>(),
     fusionService: sp.GetRequiredService<IFusionExpediente>(),
     fileLoader: sp.GetRequiredService<IFileLoader>(),
-    txtFieldExtractor: sp.GetRequiredService<IFieldExtractor<TxtSource>>()));
+    txtFieldExtractor: sp.GetRequiredService<IFieldExtractor<TxtSource>>(),
+    xmlFieldExtractor: sp.GetRequiredService<IFieldExtractor<XmlSource>>(),
+    docxFieldExtractor: sp.GetRequiredService<IFieldExtractor<DocxSource>>()));
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IExxerHub<ExtractionCompletedEvent>, SignalRReconciliationBroadcaster>();
 

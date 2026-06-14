@@ -27,6 +27,8 @@ public sealed class ProcessingOrchestrator
     private readonly IResponseExporter? _exporter;
     private readonly IFileLoader? _fileLoader;
     private readonly IFieldExtractor<TxtSource>? _txtFieldExtractor;
+    private readonly IFieldExtractor<XmlSource>? _xmlFieldExtractor;
+    private readonly IFieldExtractor<DocxSource>? _docxFieldExtractor;
     private readonly IEventPublisher _eventPublisher;
     private readonly IExxerHub<DocumentProcessingCompletedEvent>? _eventHub;
     private readonly ILogger<ProcessingOrchestrator> _logger;
@@ -64,6 +66,8 @@ public sealed class ProcessingOrchestrator
     /// <param name="exporter">Optional: SIRO XML export service (IResponseExporter) for generating SIRO-conformant XML output.</param>
     /// <param name="fileLoader">Optional: File loader for reading images from disk.</param>
     /// <param name="txtFieldExtractor">Optional: Field extractor used to turn Stage 2 OCR text into an Expediente that feeds Stage 3 fusion. When null, fusion runs without OCR-derived input (legacy behavior).</param>
+    /// <param name="xmlFieldExtractor">Optional: Field extractor for XML companion case files (MVP-PATH 2.1 multi-source fusion).</param>
+    /// <param name="docxFieldExtractor">Optional: Field extractor for DOCX companion case files (MVP-PATH 2.1 multi-source fusion).</param>
     /// <remarks>
     /// Pipeline services are optional to support incremental testing.
     /// When null, that pipeline stage is skipped with a warning log.
@@ -78,7 +82,9 @@ public sealed class ProcessingOrchestrator
         IFileClassifier? classifier = null,
         IResponseExporter? exporter = null,
         IFileLoader? fileLoader = null,
-        IFieldExtractor<TxtSource>? txtFieldExtractor = null)
+        IFieldExtractor<TxtSource>? txtFieldExtractor = null,
+        IFieldExtractor<XmlSource>? xmlFieldExtractor = null,
+        IFieldExtractor<DocxSource>? docxFieldExtractor = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -90,12 +96,15 @@ public sealed class ProcessingOrchestrator
         _exporter = exporter;
         _fileLoader = fileLoader;
         _txtFieldExtractor = txtFieldExtractor;
+        _xmlFieldExtractor = xmlFieldExtractor;
+        _docxFieldExtractor = docxFieldExtractor;
 
         // Compose the two pipeline halves (MVP-PATH 1.4 Reconciliator edge): the in-process monolith runs both,
         // while the 3-process split hosts ExtractionOrchestrator (Extractor) and ReconciliationOrchestrator
         // (Reconciliator) in separate processes. Stage logic lives in the halves; this class composes them.
         _extractionOrchestrator = new ExtractionOrchestrator(
-            eventPublisher, logger, qualityAnalyzer, ocrExecutor, fusionService, fileLoader, txtFieldExtractor);
+            eventPublisher, logger, qualityAnalyzer, ocrExecutor, fusionService, fileLoader, txtFieldExtractor,
+            xmlFieldExtractor, docxFieldExtractor);
         _reconciliationOrchestrator = new ReconciliationOrchestrator(
             eventPublisher, logger, classifier, exporter);
     }

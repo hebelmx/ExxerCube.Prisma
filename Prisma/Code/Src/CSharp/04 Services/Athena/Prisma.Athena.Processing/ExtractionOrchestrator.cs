@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
@@ -34,6 +35,8 @@ public sealed class ExtractionOrchestrator
     private readonly IFusionExpediente? _fusionService;
     private readonly IFileLoader? _fileLoader;
     private readonly IFieldExtractor<TxtSource>? _txtFieldExtractor;
+    private readonly IFieldExtractor<XmlSource>? _xmlFieldExtractor;
+    private readonly IFieldExtractor<DocxSource>? _docxFieldExtractor;
     private readonly IEventPublisher _eventPublisher;
     private readonly ILogger _logger;
 
@@ -48,6 +51,8 @@ public sealed class ExtractionOrchestrator
     /// <param name="fusionService">Optional: Stage 3 fusion service.</param>
     /// <param name="fileLoader">Optional: File loader for reading images from disk.</param>
     /// <param name="txtFieldExtractor">Optional: Field extractor turning Stage 2 OCR text into an Expediente for Stage 3 fusion.</param>
+    /// <param name="xmlFieldExtractor">Optional: Field extractor for XML companion case files (MVP-PATH 2.1 multi-source fusion).</param>
+    /// <param name="docxFieldExtractor">Optional: Field extractor for DOCX companion case files (MVP-PATH 2.1 multi-source fusion).</param>
     public ExtractionOrchestrator(
         IEventPublisher eventPublisher,
         ILogger logger,
@@ -55,7 +60,9 @@ public sealed class ExtractionOrchestrator
         IOcrExecutor? ocrExecutor = null,
         IFusionExpediente? fusionService = null,
         IFileLoader? fileLoader = null,
-        IFieldExtractor<TxtSource>? txtFieldExtractor = null)
+        IFieldExtractor<TxtSource>? txtFieldExtractor = null,
+        IFieldExtractor<XmlSource>? xmlFieldExtractor = null,
+        IFieldExtractor<DocxSource>? docxFieldExtractor = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -64,6 +71,8 @@ public sealed class ExtractionOrchestrator
         _fusionService = fusionService;
         _fileLoader = fileLoader;
         _txtFieldExtractor = txtFieldExtractor;
+        _xmlFieldExtractor = xmlFieldExtractor;
+        _docxFieldExtractor = docxFieldExtractor;
     }
 
     /// <summary>
@@ -110,7 +119,7 @@ public sealed class ExtractionOrchestrator
         cancellationToken.ThrowIfCancellationRequested();
 
         // STAGE 3: Fusion/Reconciliation
-        var fusionResult = await ExecuteStage3FusionAsync(ocrResult, fileId, correlationId, cancellationToken);
+        var fusionResult = await ExecuteStage3FusionAsync(downloadEvent, ocrResult, fileId, correlationId, cancellationToken);
         if (fusionResult != null)
         {
             stagesCompleted++;
@@ -259,6 +268,7 @@ public sealed class ExtractionOrchestrator
     // ========================================================================
 
     private async Task<FusionResult?> ExecuteStage3FusionAsync(
+        DocumentDownloadedEvent downloadEvent,
         OCRResult? ocrResult,
         Guid fileId,
         Guid? correlationId,
@@ -272,12 +282,17 @@ public sealed class ExtractionOrchestrator
 
         _logger.LogInformation("Stage 3: Fusion/Reconciliation - FileId: {FileId}", fileId);
 
+        // PDF (primary OCR path — unchanged).
         var (pdfExpediente, pdfMetadata) = await BuildPdfExpedienteFromOcrAsync(ocrResult, cancellationToken);
-        var xmlMetadata = new ExtractionMetadata();
-        var docxMetadata = new ExtractionMetadata();
+
+        // XML companion (MVP-PATH 2.1): extract fields when a CaseFile with XML format is present.
+        var (xmlExpediente, xmlMetadata) = await BuildXmlExpedienteAsync(downloadEvent, cancellationToken);
+
+        // DOCX companion (MVP-PATH 2.1): extract fields when a CaseFile with DOCX format is present.
+        var (docxExpediente, docxMetadata) = await BuildDocxExpedienteAsync(downloadEvent, cancellationToken);
 
         var fusionResultObj = await _fusionService.FuseAsync(
-            null, pdfExpediente, null,
+            xmlExpediente, pdfExpediente, docxExpediente,
             xmlMetadata, pdfMetadata, docxMetadata,
             cancellationToken);
 
@@ -375,6 +390,136 @@ public sealed class ExtractionOrchestrator
 
         _logger.LogInformation(
             "Stage 3: Built PDF Expediente from OCR - NumeroExpediente: {NumeroExpediente}, FieldsExtracted: {Count}",
+            expediente.NumeroExpediente, metadata.TotalFieldsExtracted);
+
+        return (expediente, metadata);
+    }
+
+    /// <summary>
+    /// Extracts fields from the XML companion case file (if any) and maps them to an
+    /// <see cref="Expediente"/> for Stage 3 multi-source fusion (MVP-PATH 2.1).
+    /// Returns (null, empty metadata) when no XML extractor is configured, no XML
+    /// <see cref="CaseFileReference"/> is present on the event, or extraction fails — so the
+    /// downstream fuse call degrades gracefully to PDF-only.
+    /// </summary>
+    private async Task<(Expediente? Expediente, ExtractionMetadata Metadata)> BuildXmlExpedienteAsync(
+        DocumentDownloadedEvent downloadEvent,
+        CancellationToken cancellationToken)
+    {
+        if (_xmlFieldExtractor == null)
+        {
+            return (null, new ExtractionMetadata());
+        }
+
+        var xmlRef = downloadEvent.CaseFiles.FirstOrDefault(f => f.Format == FileFormat.Xml);
+        if (xmlRef == null)
+        {
+            return (null, new ExtractionMetadata());
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return (null, new ExtractionMetadata());
+        }
+
+        // After the forwarder resolves paths, RelativePath already holds the absolute path.
+        var xmlSource = new XmlSource(xmlRef.RelativePath);
+
+        var fieldDefinitions = new[]
+        {
+            new FieldDefinition("Expediente"),
+            new FieldDefinition("NumeroOficio"),
+            new FieldDefinition("AutoridadNombre"),
+            new FieldDefinition("Causa"),
+            new FieldDefinition("AccionSolicitada"),
+        };
+
+        var extractionResult = await _xmlFieldExtractor
+            .ExtractFieldsAsync(xmlSource, fieldDefinitions)
+            .ConfigureAwait(false);
+
+        if (extractionResult.IsFailure || extractionResult.Value == null)
+        {
+            _logger.LogDebug(
+                "Stage 3: XML companion extraction produced no fields ({Error}); fusion continues without XML input",
+                extractionResult.Error);
+            return (null, new ExtractionMetadata());
+        }
+
+        var expediente = MapExtractedFieldsToExpediente(extractionResult.Value);
+        var metadata = new ExtractionMetadata
+        {
+            Source = SourceType.XML_HandFilled,
+            TotalFieldsExtracted = CountExtractedFields(expediente),
+        };
+
+        _logger.LogInformation(
+            "Stage 3: Built XML Expediente from companion case file - NumeroExpediente: {NumeroExpediente}, FieldsExtracted: {Count}",
+            expediente.NumeroExpediente, metadata.TotalFieldsExtracted);
+
+        return (expediente, metadata);
+    }
+
+    /// <summary>
+    /// Extracts fields from the DOCX companion case file (if any) and maps them to an
+    /// <see cref="Expediente"/> for Stage 3 multi-source fusion (MVP-PATH 2.1).
+    /// Returns (null, empty metadata) when no DOCX extractor is configured, no DOCX
+    /// <see cref="CaseFileReference"/> is present on the event, or extraction fails — so the
+    /// downstream fuse call degrades gracefully.
+    /// </summary>
+    private async Task<(Expediente? Expediente, ExtractionMetadata Metadata)> BuildDocxExpedienteAsync(
+        DocumentDownloadedEvent downloadEvent,
+        CancellationToken cancellationToken)
+    {
+        if (_docxFieldExtractor == null)
+        {
+            return (null, new ExtractionMetadata());
+        }
+
+        var docxRef = downloadEvent.CaseFiles.FirstOrDefault(f => f.Format == FileFormat.Docx);
+        if (docxRef == null)
+        {
+            return (null, new ExtractionMetadata());
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return (null, new ExtractionMetadata());
+        }
+
+        // After the forwarder resolves paths, RelativePath already holds the absolute path.
+        var docxSource = new DocxSource(docxRef.RelativePath);
+
+        var fieldDefinitions = new[]
+        {
+            new FieldDefinition("Expediente"),
+            new FieldDefinition("NumeroOficio"),
+            new FieldDefinition("AutoridadNombre"),
+            new FieldDefinition("Causa"),
+            new FieldDefinition("AccionSolicitada"),
+        };
+
+        var extractionResult = await _docxFieldExtractor
+            .ExtractFieldsAsync(docxSource, fieldDefinitions)
+            .ConfigureAwait(false);
+
+        if (extractionResult.IsFailure || extractionResult.Value == null)
+        {
+            _logger.LogDebug(
+                "Stage 3: DOCX companion extraction produced no fields ({Error}); fusion continues without DOCX input",
+                extractionResult.Error);
+            return (null, new ExtractionMetadata());
+        }
+
+        var expediente = MapExtractedFieldsToExpediente(extractionResult.Value);
+        var metadata = new ExtractionMetadata
+        {
+            Source = SourceType.DOCX_OCR_Authority,
+            TotalFieldsExtracted = CountExtractedFields(expediente),
+        };
+
+        _logger.LogInformation(
+            "Stage 3: Built DOCX Expediente from companion case file - NumeroExpediente: {NumeroExpediente}, FieldsExtracted: {Count}",
             expediente.NumeroExpediente, metadata.TotalFieldsExtracted);
 
         return (expediente, metadata);
