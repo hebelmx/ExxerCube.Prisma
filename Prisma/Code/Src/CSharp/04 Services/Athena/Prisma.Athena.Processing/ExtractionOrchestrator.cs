@@ -92,28 +92,47 @@ public sealed class ExtractionOrchestrator
         var correlationId = downloadEvent.CorrelationId;
         var stagesCompleted = 0;
 
-        // STAGE 1: Quality Analysis
-        var qualityPassed = await ExecuteStage1QualityAnalysisAsync(
-            downloadEvent, fileId, correlationId, cancellationToken);
+        // The image-based Quality+OCR stages only apply to an image/PDF primary. For an XML- or DOCX-only
+        // case (no PDF companion → primary is XML/DOCX) there is nothing to rasterize, so skip Stages 1–2 and
+        // go straight to Stage 3, which extracts the XML/DOCX sources directly (MVP-PATH 2.1). This avoids a
+        // spurious file-load failure + ProcessingError event on a non-image primary.
+        var primaryIsImageBased =
+            downloadEvent.Format != FileFormat.Xml && downloadEvent.Format != FileFormat.Docx;
 
-        var imageData = qualityPassed.imageData;
-        if (imageData != null)
+        ImageData? imageData = null;
+        OCRResult? ocrResult = null;
+
+        if (primaryIsImageBased)
         {
-            stagesCompleted++;
+            // STAGE 1: Quality Analysis
+            var qualityPassed = await ExecuteStage1QualityAnalysisAsync(
+                downloadEvent, fileId, correlationId, cancellationToken);
+
+            imageData = qualityPassed.imageData;
+            if (imageData != null)
+            {
+                stagesCompleted++;
+            }
+
+            if (qualityPassed.rejected)
+            {
+                return new ExtractionResult(imageData, null, null, QualityRejected: true, stagesCompleted);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // STAGE 2: OCR Execution
+            ocrResult = await ExecuteStage2OcrAsync(imageData, fileId, correlationId, cancellationToken);
+            if (ocrResult != null)
+            {
+                stagesCompleted++;
+            }
         }
-
-        if (qualityPassed.rejected)
+        else
         {
-            return new ExtractionResult(imageData, null, null, QualityRejected: true, stagesCompleted);
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // STAGE 2: OCR Execution
-        var ocrResult = await ExecuteStage2OcrAsync(imageData, fileId, correlationId, cancellationToken);
-        if (ocrResult != null)
-        {
-            stagesCompleted++;
+            _logger.LogInformation(
+                "Stages 1-2 skipped: primary is a non-image source ({Format}); fusing companion sources directly. FileId: {FileId}",
+                downloadEvent.Format, fileId);
         }
 
         cancellationToken.ThrowIfCancellationRequested();

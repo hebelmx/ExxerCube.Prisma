@@ -311,6 +311,60 @@ public sealed class MultiSourceFusionTests
     }
 
     /// <summary>
+    /// F3 (Phase D): a DOCX-only case (no PDF) must skip the image Quality/OCR stages — the primary is not
+    /// an image — without a spurious file-load failure, and still fuse the DOCX source.
+    /// </summary>
+    [Fact]
+    public async Task ExtractAsync_DocxOnlyCase_SkipsImageStagesAndFusesDocx()
+    {
+        // Arrange
+        var fileLoader = Substitute.For<IFileLoader>();
+        var qualityAnalyzer = Substitute.For<IImageQualityAnalyzer>();
+        var ocrExecutor = Substitute.For<IOcrExecutor>();
+        var fusionService = CreateFusionCapture(out var captured);
+        var docxExtractor = CreateExtractorMock<DocxSource>("EXP-DOCX");
+        var xmlExtractor = Substitute.For<IFieldExtractor<XmlSource>>();
+
+        var orchestrator = new ExtractionOrchestrator(
+            Substitute.For<IEventPublisher>(),
+            NullLogger<ExtractionOrchestrator>.Instance,
+            qualityAnalyzer: qualityAnalyzer,
+            ocrExecutor: ocrExecutor,
+            fusionService: fusionService,
+            fileLoader: fileLoader,
+            txtFieldExtractor: CreateExtractorMock<TxtSource>("EXP-PDF"),
+            xmlFieldExtractor: xmlExtractor,
+            docxFieldExtractor: docxExtractor);
+
+        // A DOCX-only case: primary Format = Docx, the single companion is the DOCX.
+        var downloadEvent = new DocumentDownloadedEvent
+        {
+            FileId = Guid.NewGuid(),
+            CorrelationId = Guid.NewGuid(),
+            FileName = "C:/storage/2026/06/case.docx",
+            Source = "SIARA",
+            Format = FileFormat.Docx,
+            CaseFiles = new List<CaseFileReference>
+            {
+                new() { RelativePath = "C:/storage/2026/06/case.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        // Act
+        var result = await orchestrator.ExtractAsync(downloadEvent, Ct);
+
+        // Assert: the image stages were skipped — no load attempt, no quality rejection.
+        await fileLoader.DidNotReceive().LoadImageAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        result.QualityRejected.ShouldBeFalse();
+        result.FusionResult.ShouldNotBeNull();
+
+        // Assert: DOCX fused, PDF/XML null (no PDF primary, no XML companion).
+        captured[1].ShouldBeNull("PDF expediente must be null — no image/OCR ran");
+        captured[2].ShouldNotBeNull("DOCX expediente must be non-null");
+        captured[2]!.NumeroExpediente.ShouldBe("EXP-DOCX");
+    }
+
+    /// <summary>
     /// Verifies that when only an XML companion file is present (no DOCX) only the XML and PDF
     /// expedientes are non-null; docxExpediente is null.
     /// </summary>
