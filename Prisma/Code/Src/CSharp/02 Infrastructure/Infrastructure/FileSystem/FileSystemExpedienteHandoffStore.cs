@@ -1,7 +1,7 @@
 using System.Text.Json;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Serialization;
+using ExxerCube.Prisma.Domain.Serialization;
 using IndQuestResults.Operations;
 
 namespace ExxerCube.Prisma.Infrastructure.FileSystem;

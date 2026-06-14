@@ -7,6 +7,7 @@ using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
+using ExxerCube.Prisma.Domain.Serialization;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,11 +22,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Audit persistence (MVP-PATH 1.6 A6): wire AddDatabaseServices when a real connection string is
 // provided. Skip gracefully when blank so the worker boots in dev/test without a DB.
+// The Downloader is lean (no local Rx event stream / IEventPublisher), so opt out of the
+// EventPersistenceWorker subscriber — it would fail to construct and block host startup.
 var auditConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrWhiteSpace(auditConnectionString)
     && !auditConnectionString.StartsWith("DEV-PLACEHOLDER", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddDatabaseServices(auditConnectionString, builder.Configuration);
+    builder.Services.AddDatabaseServices(auditConnectionString, builder.Configuration, registerEventPersistence: false);
 }
 else
 {
@@ -122,7 +125,13 @@ builder.Services.AddAuthorization(authOptions =>
 // broadcasts DocumentDownloadedEvent to the downstream Extractor (Athena) — the first cross-process edge of
 // the Three-Actors split (ADR-009/ADR-011). Replaces StubExxerHub. The broadcaster sends via IHubContext
 // (a DI-resolved hub instance has a null Clients and cannot send).
-builder.Services.AddSignalR();
+// Register the SmartEnum (EnumModel) JSON converter on the hub protocol: domain events on the wire carry
+// SmartEnums (e.g. CaseFileReference.Format) that default System.Text.Json serializes as objects and cannot
+// reconstruct — silently collapsing every Format to its zero-value singleton and hiding the XML/DOCX
+// companions from Stage-3 fusion (max-fidelity gate #5 diagnosis, 2026-06-14). Both ends of the edge must
+// agree, so the Athena ingestion client registers the same converter.
+builder.Services.AddSignalR()
+    .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new EnumModelJsonConverterFactory()));
 builder.Services.AddSingleton<IExxerHub<DocumentDownloadedEvent>, SignalRIngestionBroadcaster>();
 
 // The orchestrator is scoped because it depends on the scoped downloader; the worker resolves it inside

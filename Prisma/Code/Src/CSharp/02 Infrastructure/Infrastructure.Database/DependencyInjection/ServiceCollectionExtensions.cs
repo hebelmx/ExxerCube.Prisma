@@ -15,11 +15,20 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="connectionString">The database connection string.</param>
     /// <param name="configuration">The configuration instance (optional, for SLA options).</param>
+    /// <param name="registerEventPersistence">
+    /// When <see langword="true"/> (default) registers the <see cref="Services.EventPersistenceWorker"/>
+    /// hosted service, which subscribes to the local Rx domain-event stream (<see cref="IEventPublisher"/>)
+    /// to persist the event-store trail. Lean processes that wire the database only for audit (e.g. the
+    /// Orion Downloader in the 3-process split) have no local event stream and do not register
+    /// <see cref="IEventPublisher"/> — they must pass <see langword="false"/>, otherwise the worker fails to
+    /// construct and the host cannot start.
+    /// </param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddDatabaseServices(
         this IServiceCollection services,
         string connectionString,
-        IConfiguration? configuration = null)
+        IConfiguration? configuration = null,
+        bool registerEventPersistence = true)
     {
         services.AddDbContext<PrismaDbContext>(options =>
             options.UseSqlServer(connectionString));
@@ -230,8 +239,12 @@ public static class ServiceCollectionExtensions
         // Register background service for automatic audit retention enforcement
         services.AddHostedService<Services.AuditRetentionBackgroundService>();
 
-        // Register event persistence worker to persist events to database
-        services.AddHostedService<Services.EventPersistenceWorker>();
+        // Register event persistence worker to persist events to database. Skipped for lean processes
+        // (e.g. the Orion Downloader) that wire the DB only for audit and have no local IEventPublisher.
+        if (registerEventPersistence)
+        {
+            services.AddHostedService<Services.EventPersistenceWorker>();
+        }
 
         return services;
     }

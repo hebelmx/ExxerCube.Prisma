@@ -15,6 +15,7 @@ using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using ExxerCube.Prisma.Infrastructure.Imaging;
+using ExxerCube.Prisma.Domain.Serialization;
 using IndFusion.Ember.Abstractions.Hubs;
 using Microsoft.Extensions.DependencyInjection;
 using Prisma.Athena.HealthChecks;
@@ -67,6 +68,9 @@ builder.Services.AddSingleton<IngestionEventForwarder>();
 builder.Services.AddHostedService<SiaraIngestionHubClient>();
 
 // Register pipeline services (adapters → ports)
+// PDF rasterization (PDFtoImage/SkiaSharp): FileSystemLoader renders a .pdf primary to PNG so the quality +
+// OCR stages can process it. Without this the loader returns raw PDF bytes and OCR cannot read them.
+builder.Services.AddSingleton<IPdfToImageConverter, PdfToImageConverter>();
 builder.Services.AddSingleton<IFileLoader, FileSystemLoader>();
 builder.Services.AddSingleton<IImageQualityAnalyzer, PolynomialImageQualityAnalyzer>();
 builder.Services.AddSingleton<IOcrExecutor, TesseractOcrExecutor>();
@@ -177,7 +181,11 @@ builder.Services.AddSingleton<ExtractionOrchestrator>(sp => new ExtractionOrches
     txtFieldExtractor: sp.GetRequiredService<IFieldExtractor<TxtSource>>(),
     xmlFieldExtractor: sp.GetRequiredService<IFieldExtractor<XmlSource>>(),
     docxFieldExtractor: sp.GetRequiredService<IFieldExtractor<DocxSource>>()));
-builder.Services.AddSignalR();
+// SmartEnum (EnumModel) JSON converter on the reconciliation hub protocol — same reason as the Orion
+// ingestion edge: domain events on the wire carry SmartEnums that default System.Text.Json cannot
+// reconstruct. Both ends of the edge must agree, so the Reconciliator client registers the same converter.
+builder.Services.AddSignalR()
+    .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new EnumModelJsonConverterFactory()));
 builder.Services.AddSingleton<IExxerHub<ExtractionCompletedEvent>, SignalRReconciliationBroadcaster>();
 
 // Per-process audit (MVP-PATH 1.6 A6): ExtractionPipelineService is singleton; IAuditLogger is scoped.

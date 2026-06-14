@@ -2,11 +2,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ExxerCube.Prisma.Domain.Enum;
 
-namespace ExxerCube.Prisma.Infrastructure.Serialization;
+namespace ExxerCube.Prisma.Domain.Serialization;
 
 /// <summary>
 /// <see cref="System.Text.Json.Serialization.JsonConverterFactory"/> that handles any
-/// <see cref="EnumModel"/>-derived type in the handoff JSON round-trip (ADR-011, MVP-PATH 1.4).
+/// <see cref="EnumModel"/>-derived type in any System.Text.Json round-trip — the handoff JSON
+/// (ADR-011, MVP-PATH 1.4) and the SignalR cross-process wire (MVP-PATH 1.3).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -19,18 +20,20 @@ namespace ExxerCube.Prisma.Infrastructure.Serialization;
 /// and deserializes back to the correct singleton via <see cref="EnumModel.FromName{TEnumeration}"/>.
 /// </para>
 /// <para>
+/// <strong>Why it lives in Domain:</strong> it depends only on <see cref="EnumModel"/> (Domain) and the
+/// BCL, and every cross-process worker (Orion Downloader, Athena Extractor, Reconciliator) plus the
+/// Infrastructure handoff store needs it. Domain is the only project common to them all, and the lean
+/// Downloader process must not take a dependency on the heavy Infrastructure assembly (CSnakes/Python,
+/// imaging) just for a serializer — that would undermine the security-mandated process split.
+/// </para>
+/// <para>
 /// <strong>Key choice — Name over Value:</strong> Name is a stable human-readable string identifier
 /// (e.g., <c>"A_AS"</c>, <c>"CNBV"</c>, <c>"Aseguramiento"</c>) that is also unique within each
 /// derived type. Value is stable too, but Name is the safer key because it survives accidental
 /// integer re-numbering and is readable in the handoff JSON on disk.
 /// </para>
-/// <para>
-/// <strong>Ambiguity note:</strong> the Infrastructure project has global usings for both
-/// <c>System.Text.Json</c> and <c>Newtonsoft.Json</c>. All System.Text.Json types are therefore
-/// fully qualified in this file to avoid CS0104.
-/// </para>
 /// </remarks>
-public sealed class EnumModelJsonConverterFactory : System.Text.Json.Serialization.JsonConverterFactory
+public sealed class EnumModelJsonConverterFactory : JsonConverterFactory
 {
     /// <inheritdoc />
     public override bool CanConvert(Type typeToConvert)
@@ -39,12 +42,12 @@ public sealed class EnumModelJsonConverterFactory : System.Text.Json.Serializati
             && typeof(EnumModel).IsAssignableFrom(typeToConvert);
 
     /// <inheritdoc />
-    public override System.Text.Json.Serialization.JsonConverter? CreateConverter(
+    public override JsonConverter? CreateConverter(
         Type typeToConvert,
-        System.Text.Json.JsonSerializerOptions options)
+        JsonSerializerOptions options)
     {
         var converterType = typeof(EnumModelJsonConverter<>).MakeGenericType(typeToConvert);
-        return (System.Text.Json.Serialization.JsonConverter)Activator.CreateInstance(converterType)!;
+        return (JsonConverter)Activator.CreateInstance(converterType)!;
     }
 }
 
@@ -53,14 +56,14 @@ public sealed class EnumModelJsonConverterFactory : System.Text.Json.Serializati
 /// <see cref="EnumModel"/>.
 /// </summary>
 /// <typeparam name="TEnum">The concrete <see cref="EnumModel"/> subtype.</typeparam>
-internal sealed class EnumModelJsonConverter<TEnum> : System.Text.Json.Serialization.JsonConverter<TEnum>
+internal sealed class EnumModelJsonConverter<TEnum> : JsonConverter<TEnum>
     where TEnum : EnumModel, new()
 {
     /// <inheritdoc />
     public override TEnum Read(
-        ref System.Text.Json.Utf8JsonReader reader,
+        ref Utf8JsonReader reader,
         Type typeToConvert,
-        System.Text.Json.JsonSerializerOptions options)
+        JsonSerializerOptions options)
     {
         var name = reader.GetString();
         if (string.IsNullOrWhiteSpace(name))
@@ -73,9 +76,9 @@ internal sealed class EnumModelJsonConverter<TEnum> : System.Text.Json.Serializa
 
     /// <inheritdoc />
     public override void Write(
-        System.Text.Json.Utf8JsonWriter writer,
+        Utf8JsonWriter writer,
         TEnum value,
-        System.Text.Json.JsonSerializerOptions options)
+        JsonSerializerOptions options)
     {
         writer.WriteStringValue(value.Name);
     }

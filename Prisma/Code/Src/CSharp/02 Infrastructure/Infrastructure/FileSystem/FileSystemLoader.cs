@@ -6,15 +6,26 @@ namespace ExxerCube.Prisma.Infrastructure.FileSystem;
 public class FileSystemLoader : IFileLoader
 {
     private readonly ILogger<FileSystemLoader> _logger;
+    private readonly IPdfToImageConverter? _pdfToImageConverter;
     private readonly string[] _supportedExtensions = { ".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".pdf" };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileSystemLoader"/> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
-    public FileSystemLoader(ILogger<FileSystemLoader> logger)
+    /// <param name="pdfToImageConverter">
+    /// Optional PDF-to-image converter (PDFtoImage/SkiaSharp adapter). When supplied, a <c>.pdf</c> primary is
+    /// rasterized to PNG bytes (page 1, 300 DPI) so the downstream quality + OCR stages can process it. When
+    /// not supplied (or rasterization yields no pages), the raw PDF bytes are returned so a downstream OCR
+    /// executor with its own PDF fallback can still attempt conversion. This dependency is optional so the
+    /// loader keeps working in composition roots that do not register the converter.
+    /// </param>
+    public FileSystemLoader(
+        ILogger<FileSystemLoader> logger,
+        IPdfToImageConverter? pdfToImageConverter = null)
     {
         _logger = logger;
+        _pdfToImageConverter = pdfToImageConverter;
     }
 
     /// <summary>
@@ -76,7 +87,7 @@ public class FileSystemLoader : IFileLoader
             byte[] imageData;
             if (extension == ".pdf")
             {
-                imageData = await Task.Run(() => LoadPdfAsImage(filePath), cancellationToken);
+                imageData = await LoadPdfAsImageAsync(filePath, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -329,14 +340,44 @@ public class FileSystemLoader : IFileLoader
     }
 
     /// <summary>
-    /// Loads a PDF file as image (simplified implementation).
+    /// Rasterizes a PDF to image bytes the quality + OCR stages can consume. When an
+    /// <see cref="IPdfToImageConverter"/> is configured the first page is rendered to PNG (300 DPI); otherwise
+    /// (or when rendering yields no pages) the raw PDF bytes are returned so a downstream OCR executor with its
+    /// own PDF fallback can still attempt conversion. The first page carries the oficio/expediente header where
+    /// the canonical fields live; multi-page OCR is handled by the dedicated field-extraction path.
     /// </summary>
     /// <param name="filePath">The path to the PDF file.</param>
-    /// <returns>The image data as byte array.</returns>
-    private byte[] LoadPdfAsImage(string filePath)
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>PNG bytes of the first page, or the raw PDF bytes when no converter/page is available.</returns>
+    private async Task<byte[]> LoadPdfAsImageAsync(string filePath, CancellationToken cancellationToken)
     {
-        // Simplified implementation - in real scenario, use a PDF library like iText7 or PdfSharp
-        _logger.LogWarning("PDF loading is not fully implemented for {FilePath}", filePath);
-        return new byte[0];
+        var pdfBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
+
+        if (_pdfToImageConverter == null)
+        {
+            _logger.LogWarning(
+                "PDF rasterization unavailable (no IPdfToImageConverter registered); returning raw PDF bytes for {FilePath}. " +
+                "A downstream OCR executor must convert it, otherwise OCR will fail.",
+                filePath);
+            return pdfBytes;
+        }
+
+        var conversion = await _pdfToImageConverter
+            .ConvertToImagesAsync(pdfBytes, dpi: 300, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (conversion.IsFailure || conversion.Value is null || conversion.Value.Count == 0)
+        {
+            _logger.LogWarning(
+                "PDF rasterization produced no pages for {FilePath} ({Error}); returning raw PDF bytes for downstream fallback.",
+                filePath, conversion.Error);
+            return pdfBytes;
+        }
+
+        _logger.LogInformation(
+            "Rasterized PDF {FilePath}: {PageCount} page(s) rendered; using page 1 ({Size} bytes) for the pipeline.",
+            filePath, conversion.Value.Count, conversion.Value[0].Length);
+
+        return conversion.Value[0];
     }
 }

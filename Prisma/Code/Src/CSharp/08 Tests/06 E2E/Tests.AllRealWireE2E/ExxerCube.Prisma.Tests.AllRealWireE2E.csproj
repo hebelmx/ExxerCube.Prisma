@@ -87,6 +87,13 @@
     <!-- Infrastructure for shared storage + events -->
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure\ExxerCube.Prisma.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
+    <!-- Max-fidelity gate (#5) only: real DB persistence (PrismaDbContext + Testcontainers SQL fixture),
+         real classification/fusion types, and the real SIARA browser download path. The fast in-memory
+         AllRealWireThreeHostE2ETests uses none of these. -->
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Database\ExxerCube.Prisma.Infrastructure.Database.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj" />
+    <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

@@ -309,6 +309,68 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.FileSystem
         }
 
         /// <summary>
+        /// Tests that a PDF primary is rasterized via the injected converter and the first page's PNG bytes are
+        /// returned (the single-image pipeline OCRs page 1, where the oficio/expediente header lives).
+        /// </summary>
+        [Fact]
+        public async Task LoadImageAsync_PdfWithConverter_ReturnsRasterizedFirstPage()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return; // Skip on non-Windows platforms
+            }
+
+            // Arrange: a .pdf file on disk + a converter that yields two pages.
+            var pdfPath = Path.Combine(_testDirectory, "case.pdf");
+            await File.WriteAllBytesAsync(
+                pdfPath, new byte[] { 0x25, 0x50, 0x44, 0x46 }, TestContext.Current.CancellationToken); // "%PDF"
+
+            var page1 = new byte[] { 1, 2, 3, 4 };
+            var page2 = new byte[] { 5, 6, 7, 8 };
+            var converter = Substitute.For<IPdfToImageConverter>();
+            converter.ConvertToImagesAsync(Arg.Any<byte[]>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult(Result<IReadOnlyList<byte[]>>.Success(new List<byte[]> { page1, page2 })));
+
+            var loader = new FileSystemLoader(_logger, converter);
+
+            // Act
+            var result = await loader.LoadImageAsync(pdfPath, TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            result.Value.ShouldNotBeNull();
+            result.Value!.Data.ShouldBe(page1); // first page only — used by the single-image pipeline
+        }
+
+        /// <summary>
+        /// Tests that without a converter a PDF primary returns the raw PDF bytes (not an empty array). The
+        /// previous stub returned <c>byte[0]</c>, which silently broke downstream OCR; raw bytes let an OCR
+        /// executor with its own PDF fallback still attempt conversion.
+        /// </summary>
+        [Fact]
+        public async Task LoadImageAsync_PdfWithoutConverter_ReturnsRawPdfBytesNotEmpty()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                return; // Skip on non-Windows platforms
+            }
+
+            // Arrange: _loader was constructed without a converter.
+            var pdfPath = Path.Combine(_testDirectory, "nocvt.pdf");
+            var raw = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D }; // "%PDF-"
+            await File.WriteAllBytesAsync(pdfPath, raw, TestContext.Current.CancellationToken);
+
+            // Act
+            var result = await _loader.LoadImageAsync(pdfPath, TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            result.Value.ShouldNotBeNull();
+            result.Value!.Data.Length.ShouldBeGreaterThan(0);
+            result.Value!.Data.ShouldBe(raw);
+        }
+
+        /// <summary>
         /// Creates a minimal valid test image file.
         /// </summary>
         /// <param name="filePath">The path where to create the test image.</param>

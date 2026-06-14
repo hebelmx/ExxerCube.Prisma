@@ -182,8 +182,8 @@ public sealed class EfCoreUnifiedMetadataStore : IUnifiedMetadataStore
 /// <summary>
 /// Internal <see cref="JsonConverterFactory"/> for <see cref="EnumModel"/>-derived types within the
 /// Infrastructure.Database project.  Logically identical to the
-/// <c>ExxerCube.Prisma.Infrastructure.Serialization.EnumModelJsonConverterFactory</c> in the
-/// Infrastructure project; re-declared here to avoid a cross-infrastructure project reference.
+/// <c>ExxerCube.Prisma.Domain.Serialization.EnumModelJsonConverterFactory</c> in the
+/// Domain project; re-declared here to keep the EF JSON column converter self-contained.
 /// </summary>
 internal sealed class DatabaseEnumModelJsonConverterFactory : JsonConverterFactory
 {

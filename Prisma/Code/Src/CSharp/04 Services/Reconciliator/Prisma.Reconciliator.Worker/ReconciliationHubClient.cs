@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
+using ExxerCube.Prisma.Domain.Serialization;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -125,6 +127,9 @@ public sealed class ReconciliationHubClient : BackgroundService
                     connectionOptions.HttpMessageHandlerFactory = _ => _options.HttpMessageHandlerFactory();
                 }
             })
+            // Match the Athena reconciliation hub's SmartEnum (EnumModel) JSON converter so SmartEnums on
+            // the wire survive deserialization (max-fidelity gate #5 diagnosis, 2026-06-14).
+            .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new EnumModelJsonConverterFactory()))
             .WithAutomaticReconnect()
             .Build();
 

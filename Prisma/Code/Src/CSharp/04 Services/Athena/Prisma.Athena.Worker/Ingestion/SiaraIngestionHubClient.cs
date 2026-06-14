@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
+using ExxerCube.Prisma.Domain.Serialization;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -126,6 +128,9 @@ public sealed class SiaraIngestionHubClient : BackgroundService
                     connectionOptions.HttpMessageHandlerFactory = _ => _options.HttpMessageHandlerFactory();
                 }
             })
+            // Match the Orion hub's SmartEnum (EnumModel) JSON converter so CaseFileReference.Format and
+            // other SmartEnums survive the wire (max-fidelity gate #5 diagnosis, 2026-06-14).
+            .AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new EnumModelJsonConverterFactory()))
             .WithAutomaticReconnect()
             .Build();
 
