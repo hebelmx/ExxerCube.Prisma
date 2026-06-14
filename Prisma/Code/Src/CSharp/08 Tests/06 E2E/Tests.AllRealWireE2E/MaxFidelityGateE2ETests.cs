@@ -64,13 +64,18 @@ namespace ExxerCube.Prisma.Tests.AllRealWireE2E;
 /// no TCP port needed).
 /// </para>
 /// <para>
-/// <strong>[DEV MISSING] — disclosed gaps (owner ruling 2: stubs/partials are OK to demo if labelled):</strong>
+/// <strong>Scope notes (owner ruling 2: stubs/partials are OK to demo if labelled):</strong>
 /// </para>
 /// <list type="bullet">
-///   <item><strong>Review-case persistence is NOT yet wired</strong> (GH #6). A partial/degraded case carries
-///   <see cref="DocumentDownloadedEvent.IsComplete"/> but nothing consumes it to write a flagged
-///   <c>ReviewCase</c> row, so this gate does NOT assert a persisted review case — that is the honest
-///   deferred half of the best-effort feature.</item>
+///   <item>Review-case persistence IS now wired in production (GH #6, commit <c>2c5b01d</c>): a
+///   partial/degraded case carrying <see cref="DocumentDownloadedEvent.IsComplete"/> = <see langword="false"/>
+///   persists a flagged <c>ReviewReason.IncompleteCase</c> <c>ReviewCase</c> row via the Reconciliator's
+///   Stage-4 scope. This gate does NOT itself <em>assert</em> that row: the full gate's complete case is
+///   <c>IsComplete</c> = <see langword="true"/> (nothing to flag), and the partial-case gate deliberately
+///   runs with the extraction pipeline disabled (<c>runExtractionPipeline: false</c>) to avoid the
+///   Tesseract second-init deadlock, so it never reaches the Stage-4 persistence point. Review-case
+///   persistence is covered directly by GH #6's own Testcontainers integration tests (incomplete-case
+///   persistence, idempotency/heal) — see commit <c>e3fd56a</c>.</item>
 /// </list>
 /// <para>
 /// <strong>Environment requirements (this machine satisfies all):</strong> Docker (Testcontainers SQL),
