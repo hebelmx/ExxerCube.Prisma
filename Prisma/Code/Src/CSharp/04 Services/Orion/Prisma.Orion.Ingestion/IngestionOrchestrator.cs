@@ -162,6 +162,7 @@ public class IngestionOrchestrator
         string? primaryFileName = null;
         long primarySizeBytes = 0;
         bool anyNew = false;
+        bool anyMissing = false;
         string? lastActorId = null;
         string? lastSessionId = null;
 
@@ -185,7 +186,7 @@ public class IngestionOrchestrator
                     "Failed to download case file {Url} for case {CaseId}: {Errors}",
                     file.Url, siaraCase.CaseId, string.Join(", ", downloadResult.Errors));
 
-                // Audit: ingestion failed for this case file.
+                // Audit: ingestion failed for this individual case file.
                 await EmitAuditAsync(
                     AuditActionType.Download,
                     ProcessingStage.Ingestion,
@@ -196,7 +197,10 @@ public class IngestionOrchestrator
                     errorMessage: string.Join(", ", downloadResult.Errors),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                return Result<IngestionResult>.WithFailure(downloadResult.Errors);
+                // Best-effort: a missing file does NOT fail the whole case.
+                // Track the gap and continue to the next file (issue #4, owner ruling 2026-06-13).
+                anyMissing = true;
+                continue;
             }
 
             var downloaded = downloadResult.Value;
@@ -281,8 +285,27 @@ public class IngestionOrchestrator
         }
 
         _logger.LogInformation(
-            "Case {CaseId} processing complete: {FileCount} file(s), anyNew={AnyNew}",
-            siaraCase.CaseId, siaraCase.Files.Count, anyNew);
+            "Case {CaseId} processing complete: {ObtainedCount}/{ExpectedCount} file(s) obtained, anyNew={AnyNew}, anyMissing={AnyMissing}",
+            siaraCase.CaseId, caseRefs.Count, siaraCase.Files.Count, anyNew, anyMissing);
+
+        // Hard fail: zero files were obtained — nothing to process.
+        if (caseRefs.Count == 0)
+        {
+            var noFilesMessage = $"Case {siaraCase.CaseId}: no files could be downloaded";
+            _logger.LogError("Case ingestion abandoned — {Message}", noFilesMessage);
+
+            await EmitAuditAsync(
+                AuditActionType.Download,
+                ProcessingStage.Ingestion,
+                fileId: caseFileId.ToString(),
+                correlationId: correlationId.ToString(),
+                success: false,
+                actionKey: "IngestionFailed",
+                errorMessage: noFilesMessage,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            return Result<IngestionResult>.WithFailure(noFilesMessage);
+        }
 
         if (!anyNew)
         {
@@ -319,7 +342,7 @@ public class IngestionOrchestrator
             }
         }
 
-        // Broadcast ONE event covering the full case
+        // Broadcast ONE event covering the case (complete or best-effort partial).
         var evt = new DocumentDownloadedEvent
         {
             FileId = caseFileId,
@@ -333,6 +356,7 @@ public class IngestionOrchestrator
             CorrelationId = correlationId,
             Timestamp = DateTime.UtcNow,
             CaseFiles = caseRefs,
+            IsComplete = caseRefs.Count == siaraCase.Files.Count,
         };
 
         await _eventHub.SendToAllAsync(evt, cancellationToken).ConfigureAwait(false);

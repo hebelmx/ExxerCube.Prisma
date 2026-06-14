@@ -81,6 +81,15 @@ public record DocumentDownloadedEvent : DomainEvent
     public IReadOnlyList<CaseFileReference> CaseFiles { get; init; } = Array.Empty<CaseFileReference>();
 
     /// <summary>
+    /// Gets a value indicating whether every discovered case file was successfully obtained.
+    /// <see langword="true"/> when all expected files were downloaded (complete case);
+    /// <see langword="false"/> when one or more expected files could not be downloaded and the event
+    /// represents a best-effort partial case that should be flagged for manual review.
+    /// Defaults to <see langword="true"/> so all existing producers remain backward-compatible.
+    /// </summary>
+    public bool IsComplete { get; init; } = true;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DocumentDownloadedEvent"/> class.
     /// </summary>
     public DocumentDownloadedEvent()

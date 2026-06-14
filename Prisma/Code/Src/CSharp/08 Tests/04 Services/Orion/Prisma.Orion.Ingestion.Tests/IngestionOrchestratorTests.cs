@@ -401,9 +401,12 @@ public sealed class IngestionOrchestratorTests
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task IngestCase_WhenDownloadFails_ReturnsFailureWithoutBroadcast()
+    public async Task IngestCase_WhenAllFilesFailToDownload_ReturnsFailureWithoutBroadcast()
     {
-        // Arrange: the downloader fails closed for one file
+        // Arrange: the only file in the case fails — zero files obtained — hard fail (best-effort contract).
+        // Previously this test was named IngestCase_WhenDownloadFails_ReturnsFailureWithoutBroadcast and
+        // asserted on the raw downloader error message. Under the new best-effort contract the failure message
+        // is the "no files could be downloaded" case summary (issue #4, owner ruling 2026-06-13).
         var journal = Substitute.For<IIngestionJournal>();
         var downloader = Substitute.For<IDocumentDownloader>();
         var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
@@ -424,12 +427,494 @@ public sealed class IngestionOrchestratorTests
             // Act
             var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
 
-            // Assert
+            // Assert: zero files obtained → hard fail
             result.IsFailure.ShouldBeTrue();
-            result.Errors.ShouldContain(e => e.Contains("Network error"));
+            result.Errors.ShouldContain(e => e.Contains("no files could be downloaded"));
 
             await journal.DidNotReceive().RecordAsync(Arg.Any<IngestionManifestEntry>(), Arg.Any<CancellationToken>());
             await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Best-effort partial-case ingestion tests (issue #4, owner ruling 2026-06-13)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Builds a failed download result for a file URL.
+    /// </summary>
+    private static Result<DownloadedDocument> FailedDownload(string errorMessage = "Network error") =>
+        Result<DownloadedDocument>.WithFailure(errorMessage);
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_PartialCase_PdfMissing_BroadcastsEventWithTwoFiles()
+    {
+        // Arrange: 3-file case where PDF fails; DOCX + XML succeed.
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var pdfUrl = "https://siara.local/cases/PARTIAL1/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/PARTIAL1/doc.xml";
+        var docxUrl = "https://siara.local/cases/PARTIAL1/doc.docx";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("PDF unavailable"));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml-content"), xmlUrl, FileFormat.Xml));
+        downloader.DownloadAsync(docxUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("docx-content"), docxUrl, FileFormat.Docx));
+
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "PARTIAL1",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = docxUrl, FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert: best-effort success
+            result.IsSuccess.ShouldBeTrue();
+
+            // One event broadcast
+            await eventHub.Received(1).SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            // Event is flagged as incomplete with 2 of 3 files
+            captured.ShouldNotBeNull();
+            captured!.IsComplete.ShouldBeFalse();
+            captured!.CaseFiles.Count.ShouldBe(2);
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_PartialCase_DocxMissing_BroadcastsEventWithTwoFiles()
+    {
+        // Arrange: 3-file case where DOCX fails; PDF + XML succeed.
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var pdfUrl = "https://siara.local/cases/PARTIAL2/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/PARTIAL2/doc.xml";
+        var docxUrl = "https://siara.local/cases/PARTIAL2/doc.docx";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf-content"), pdfUrl, FileFormat.Pdf));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml-content"), xmlUrl, FileFormat.Xml));
+        downloader.DownloadAsync(docxUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("DOCX unavailable"));
+
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "PARTIAL2",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = docxUrl, FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            await eventHub.Received(1).SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            captured.ShouldNotBeNull();
+            captured!.IsComplete.ShouldBeFalse();
+            captured!.CaseFiles.Count.ShouldBe(2);
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_PartialCase_XmlMissing_BroadcastsEventWithTwoFiles()
+    {
+        // Arrange: 3-file case where XML fails; PDF + DOCX succeed.
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var pdfUrl = "https://siara.local/cases/PARTIAL3/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/PARTIAL3/doc.xml";
+        var docxUrl = "https://siara.local/cases/PARTIAL3/doc.docx";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf-content"), pdfUrl, FileFormat.Pdf));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("XML unavailable"));
+        downloader.DownloadAsync(docxUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("docx-content"), docxUrl, FileFormat.Docx));
+
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "PARTIAL3",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = docxUrl, FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            await eventHub.Received(1).SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            captured.ShouldNotBeNull();
+            captured!.IsComplete.ShouldBeFalse();
+            captured!.CaseFiles.Count.ShouldBe(2);
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_PartialCase_OnlyPdfSucceeds_BroadcastsEventWithOneFile()
+    {
+        // Arrange: 3-file case where only PDF succeeds (XML + DOCX fail).
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var pdfUrl = "https://siara.local/cases/PARTIAL4/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/PARTIAL4/doc.xml";
+        var docxUrl = "https://siara.local/cases/PARTIAL4/doc.docx";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf-content"), pdfUrl, FileFormat.Pdf));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("XML unavailable"));
+        downloader.DownloadAsync(docxUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("DOCX unavailable"));
+
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "PARTIAL4",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = docxUrl, FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            await eventHub.Received(1).SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            captured.ShouldNotBeNull();
+            captured!.IsComplete.ShouldBeFalse();
+            captured!.CaseFiles.Count.ShouldBe(1);
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_PartialCase_OnlyDocxSucceeds_BroadcastsEventWithOneFile()
+    {
+        // Arrange: 3-file case where only DOCX succeeds (PDF + XML fail).
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var pdfUrl = "https://siara.local/cases/PARTIAL5/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/PARTIAL5/doc.xml";
+        var docxUrl = "https://siara.local/cases/PARTIAL5/doc.docx";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("PDF unavailable"));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("XML unavailable"));
+        downloader.DownloadAsync(docxUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("docx-content"), docxUrl, FileFormat.Docx));
+
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "PARTIAL5",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = docxUrl, FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            await eventHub.Received(1).SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            captured.ShouldNotBeNull();
+            captured!.IsComplete.ShouldBeFalse();
+            captured!.CaseFiles.Count.ShouldBe(1);
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_PartialCase_OnlyXmlSucceeds_BroadcastsEventWithOneFile()
+    {
+        // Arrange: 3-file case where only XML succeeds (PDF + DOCX fail).
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var pdfUrl = "https://siara.local/cases/PARTIAL6/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/PARTIAL6/doc.xml";
+        var docxUrl = "https://siara.local/cases/PARTIAL6/doc.docx";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("PDF unavailable"));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml-content"), xmlUrl, FileFormat.Xml));
+        downloader.DownloadAsync(docxUrl, Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("DOCX unavailable"));
+
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "PARTIAL6",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = docxUrl, FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            await eventHub.Received(1).SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            captured.ShouldNotBeNull();
+            captured!.IsComplete.ShouldBeFalse();
+            captured!.CaseFiles.Count.ShouldBe(1);
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_AllFilesFailToDownload_ReturnsFailureAndNoBroadcast()
+    {
+        // Arrange: all 3 files fail — zero obtained — hard fail, no event.
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        downloader.DownloadAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(FailedDownload("Network error"));
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "PARTIAL7",
+            Files = new[]
+            {
+                new DownloadableFile { Url = "https://siara.local/cases/PARTIAL7/doc.pdf", FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = "https://siara.local/cases/PARTIAL7/doc.xml", FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = "https://siara.local/cases/PARTIAL7/doc.docx", FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert: zero files obtained → hard fail
+            result.IsFailure.ShouldBeTrue();
+            result.Errors.ShouldContain(e => e.Contains("no files could be downloaded"));
+
+            await eventHub.DidNotReceive().SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_AllThreeFilesPresent_IsCompleteIsTrue()
+    {
+        // Arrange: happy path — all 3 files succeed → IsComplete true.
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var pdfUrl = "https://siara.local/cases/COMPLETE1/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/COMPLETE1/doc.xml";
+        var docxUrl = "https://siara.local/cases/COMPLETE1/doc.docx";
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf-content"), pdfUrl, FileFormat.Pdf));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml-content"), xmlUrl, FileFormat.Xml));
+        downloader.DownloadAsync(docxUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("docx-content"), docxUrl, FileFormat.Docx));
+
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "COMPLETE1",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+                new DownloadableFile { Url = docxUrl, FileName = "doc.docx", Format = FileFormat.Docx },
+            },
+        };
+
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert
+            result.IsSuccess.ShouldBeTrue();
+            await eventHub.Received(1).SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            captured.ShouldNotBeNull();
+            captured!.IsComplete.ShouldBeTrue();
+            captured!.CaseFiles.Count.ShouldBe(3);
         }
         finally
         {
