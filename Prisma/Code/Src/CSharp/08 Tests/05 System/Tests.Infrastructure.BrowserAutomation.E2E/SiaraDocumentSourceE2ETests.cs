@@ -123,14 +123,19 @@ public sealed class SiaraDocumentSourceE2ETests : IAsyncLifetime
                 XUnitLogger.CreateLogger<SiaraDocumentSource>(_output));
 
             // The source keeps one warm session; re-listing re-navigates the live DOM, so poll a few cycles
-            // (exactly as the watch loop does) until the InteractiveServer circuit has rendered a case row.
+            // (exactly as the watch loop does) until the InteractiveServer circuit has rendered a case row
+            // carrying its FULL companion set (PDF + DOCX + XML). The simulator renders all three links per
+            // case row atomically (Dashboard.razor), so a discovered case normally arrives complete; polling
+            // for the full package keeps the case-package assertion below robust against a partial render.
             IReadOnlyList<SiaraCase>? cases = null;
-            for (var attempt = 0; attempt < 18 && (cases is null || cases.Count == 0); attempt++)
+            SiaraCase? fullPackage = null;
+            for (var attempt = 0; attempt < 18 && fullPackage is null; attempt++)
             {
                 var discovered = await sut.DiscoverCasesAsync(ct);
                 discovered.IsSuccess.ShouldBeTrue($"discovery failed: {discovered.Error}");
                 cases = discovered.Value;
-                if (cases is { Count: > 0 })
+                fullPackage = cases?.FirstOrDefault(IsFullCompanionPackage);
+                if (fullPackage is not null)
                 {
                     break;
                 }
@@ -142,7 +147,20 @@ public sealed class SiaraDocumentSourceE2ETests : IAsyncLifetime
             cases!.ShouldNotBeEmpty("the warm SIARA discovery session should list at least one case within ~90s");
             cases.ShouldAllBe(c => !string.IsNullOrWhiteSpace(c.CaseId));
 
-            _output.WriteLine($"Discovered {cases.Count} SIARA case(s); first: {cases[0].CaseId}");
+            // Every discovered case must carry its companion files — discovery groups per-file links into
+            // case packages, never bare cases (case-package ingestion, MVP-PATH 2.1).
+            cases.ShouldAllBe(c => c.Files.Count > 0);
+
+            // The live-sim proof that discovery produces a FULL 3-companion case package (not single files):
+            // at least one case must bundle its PDF + DOCX + XML — exactly the source set Stage-3 multi-source
+            // fusion consumes (XML hand-filled + DOCX authority + PDF OCR).
+            fullPackage.ShouldNotBeNull(
+                "at least one discovered case should bundle all three companion files (PDF + DOCX + XML)");
+
+            _output.WriteLine(
+                $"Discovered {cases.Count} SIARA case(s); first: {cases[0].CaseId} with {cases[0].Files.Count} file(s). " +
+                $"Full 3-companion package: {fullPackage!.CaseId} " +
+                $"({string.Join(", ", fullPackage.Files.Select(f => Path.GetExtension(f.Url)))})");
 
             await sut.DisposeAsync();
         }
@@ -151,6 +169,15 @@ public sealed class SiaraDocumentSourceE2ETests : IAsyncLifetime
             await sutAdapter.CloseBrowserAsync(ct);
         }
     }
+
+    /// <summary>
+    /// True when a discovered case bundles all three SIARA companion formats (PDF + DOCX + XML) —
+    /// the full case package Stage-3 multi-source fusion consumes.
+    /// </summary>
+    private static bool IsFullCompanionPackage(SiaraCase c) =>
+        c.Files.Any(f => f.Url.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) &&
+        c.Files.Any(f => f.Url.EndsWith(".docx", StringComparison.OrdinalIgnoreCase)) &&
+        c.Files.Any(f => f.Url.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
 
     private PlaywrightBrowserAutomationAdapter CreateAdapter() =>
         new(
