@@ -56,4 +56,22 @@ public interface IIngestionJournal
     Task<IngestionManifestEntry?> GetByFileIdAsync(
         Guid fileId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the original stored relative path for a previously-journaled (hash, url) pair.
+    /// </summary>
+    /// <param name="contentHash">SHA256 hash of file content.</param>
+    /// <param name="sourceUrl">Source URL from SIARA.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The StoredPath recorded for an exact (hash, url) match; null if unknown.</returns>
+    /// <remarks>
+    /// ITDD Contract:
+    /// - MUST return the StoredPath recorded by RecordAsync for an exact (contentHash, sourceUrl) match
+    /// - MUST return null for an unknown pair (not throw)
+    /// - Liskov: same (hash, sourceUrl) key semantics as ExistsAsync
+    /// </remarks>
+    Task<string?> TryGetStoredPathAsync(
+        string contentHash,
+        string sourceUrl,
+        CancellationToken cancellationToken = default);
 }

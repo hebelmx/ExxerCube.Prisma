@@ -265,9 +265,25 @@ public class IngestionOrchestrator
             }
             else
             {
+                // issue #3: a duplicate's bytes live where they were FIRST stored — possibly an earlier
+                // day's partition — NOT under today's recomputed path. Reuse the journaled stored path so
+                // the emitted CaseFileReference points at bytes that actually exist on disk (otherwise the
+                // Extractor's companion resolution drops this source from fusion).
+                var originalPath = await _journal.TryGetStoredPathAsync(hash, file.Url, cancellationToken).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(originalPath))
+                {
+                    relativePath = originalPath;
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Duplicate file {FileName} for case {CaseId} has no journaled stored path; using recomputed partition {RelativePath} (may not exist on disk).",
+                        file.FileName, siaraCase.CaseId, relativePath);
+                }
+
                 _logger.LogDebug(
-                    "Duplicate file skipped: {FileName} (hash: {Hash}) for case {CaseId}",
-                    file.FileName, hash, siaraCase.CaseId);
+                    "Duplicate file resolved to original stored path: {FileName} (hash: {Hash}) -> {RelativePath} for case {CaseId}",
+                    file.FileName, hash, relativePath, siaraCase.CaseId);
             }
 
             // Always collect a CaseFileReference — duplicate or new — so the event lists all case files.

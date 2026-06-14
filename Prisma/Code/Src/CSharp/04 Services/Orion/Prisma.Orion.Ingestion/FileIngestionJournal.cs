@@ -114,6 +114,21 @@ public sealed class FileIngestionJournal : IIngestionJournal
         return Task.FromResult(entry);
     }
 
+    /// <inheritdoc />
+    public Task<string?> TryGetStoredPathAsync(
+        string contentHash,
+        string sourceUrl,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(contentHash) || string.IsNullOrWhiteSpace(sourceUrl))
+        {
+            return Task.FromResult<string?>(null);
+        }
+
+        var key = GetKey(contentHash, sourceUrl);
+        return Task.FromResult(_manifestEntries.TryGetValue(key, out var entry) ? entry.StoredPath : null);
+    }
+
     private static string GetKey(string contentHash, string sourceUrl) =>
         $"{contentHash}|{sourceUrl}";
 

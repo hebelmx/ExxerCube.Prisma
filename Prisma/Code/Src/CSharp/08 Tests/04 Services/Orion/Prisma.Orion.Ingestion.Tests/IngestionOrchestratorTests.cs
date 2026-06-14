@@ -1029,4 +1029,94 @@ public sealed class IngestionOrchestratorTests
             Directory.Delete(storagePath, recursive: true);
         }
     }
+
+    // -------------------------------------------------------------------------
+    // GH issue #3: cross-day-partition duplicate resolution
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_DuplicateFileStoredEarlierDay_EmitsOriginalStoredPath()
+    {
+        // Arrange: 2-file case (PDF new, XML duplicate stored on an earlier day).
+        // The bug: without the fix, relativePath for the XML ref is today's partition
+        // (BuildRelativePath(now, ...)) even though the bytes live under 2026/06/10/CASE5/doc.xml.
+        // The fix: the else-branch calls TryGetStoredPathAsync and reassigns relativePath.
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        var pdfUrl = "https://siara.local/cases/CASE5/doc.pdf";
+        var xmlUrl = "https://siara.local/cases/CASE5/doc.xml";
+        const string earlierDayXmlPath = "2026/06/10/CASE5/doc.xml";
+
+        // Default: no file is a duplicate (PDF is new)
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        // XML is a duplicate (stored on an earlier day)
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Is<string>(u => u == xmlUrl), Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        // Journal returns the original earlier-day stored path for the XML hash+url
+        journal.TryGetStoredPathAsync(Arg.Any<string>(), Arg.Is<string>(u => u == xmlUrl), Arg.Any<CancellationToken>())
+            .Returns(earlierDayXmlPath);
+
+        downloader.DownloadAsync(pdfUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("pdf-content"), pdfUrl, FileFormat.Pdf));
+        downloader.DownloadAsync(xmlUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(Encoding.UTF8.GetBytes("xml-content"), xmlUrl, FileFormat.Xml));
+
+        // Pre-call capture via Arg.Do
+        DocumentDownloadedEvent? captured = null;
+        eventHub.SendToAllAsync(
+            Arg.Do<DocumentDownloadedEvent>(e => captured = e),
+            Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "CASE5",
+            Files = new[]
+            {
+                new DownloadableFile { Url = pdfUrl, FileName = "doc.pdf", Format = FileFormat.Pdf },
+                new DownloadableFile { Url = xmlUrl, FileName = "doc.xml", Format = FileFormat.Xml },
+            },
+        };
+
+        var now = DateTime.UtcNow;
+        var (orchestrator, storagePath) = BuildOrchestrator(journal, downloader, eventHub);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert: overall success (PDF is new → anyNew=true → event fires)
+            result.IsSuccess.ShouldBeTrue();
+
+            // Exactly one event broadcast
+            await eventHub.Received(1).SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            captured.ShouldNotBeNull();
+            captured!.CaseFiles.Count.ShouldBe(2);
+
+            // The XML CaseFileReference must carry the original earlier-day path, NOT today's partition.
+            var xmlRef = captured.CaseFiles.Single(f => f.Format == FileFormat.Xml);
+            xmlRef.RelativePath.ShouldBe(earlierDayXmlPath);
+
+            // Sanity: PDF ref uses today's partition (new file, unchanged path).
+            var pdfRef = captured.CaseFiles.Single(f => f.Format == FileFormat.Pdf);
+            var todayPartition = $"{now.Year:D4}/{now.Month:D2}/{now.Day:D2}/CASE5/";
+            pdfRef.RelativePath.ShouldStartWith(todayPartition);
+            pdfRef.RelativePath.ShouldEndWith("doc.pdf");
+
+            // Guard: XML path must NOT be today's partition (that was the bug)
+            xmlRef.RelativePath.ShouldNotStartWith(todayPartition);
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
 }
