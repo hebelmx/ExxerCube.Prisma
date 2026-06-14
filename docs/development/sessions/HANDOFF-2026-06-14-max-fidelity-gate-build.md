@@ -16,7 +16,13 @@ The **one remaining MVP item — the gate (#5), a SINGLE max-fidelity full live 
 
 **Verification (all green):** gate PASSED · solution build 0/0 · Architecture 22/22 · fast AllRealWire 3-host E2E 1/1 · serialization regression 3/3 · handoff SmartEnum 16/16 · Processing.Tests 81/81.
 
-**Next:** the deferred best-effort missing-file gate scenario (owner ruling 3 / task #3 below) + `[DEV MISSING]` review-case persistence (GH #6) remain open. The gate currently exercises the full (complete-case) happy path.
+### Best-effort partial-case gate — ✅ ADDED (owner ruling 3 / issue #4) — commit `49546c1`
+
+A second live gate (`PartialCase_MissingCompanionFile_StillProcessesBestEffort_AndFlagsIncomplete`) breaks one companion's (DOCX) download URL (HTTP 404) and asserts the best-effort contract: ingestion still **succeeds**, the event forwarded across the real SignalR edge is flagged **`IsComplete=false`** with only the two surviving companions (XML still typed correctly — also re-exercises the Gap-2 wire fix), and a **failed per-file ingestion/download audit row** persists to real SQL. Both gate scenarios pass (2/2).
+
+**Test-design note (real, deliberate):** the partial gate asserts the ingestion + cross-process handoff contract (which completes before Stage 1/2) and **deliberately skips** the downstream OCR→fusion→export. A first attempt that awaited the full export **hung at 15 min**: re-running native **Tesseract a second time in the same test process** deadlocks (tessdata `ObjectCache` not released by the first pipeline) — a known transient OCR flake, amplified by two pipelines per process. To keep the partial gate independent (and prevent its background OCR from flaking the committed complete-case gate by execution order), `GateAthenaApp` gained a `runExtractionPipeline` opt-out that drops `AthenaWorkerService`; the OCR→export machinery is proven by the complete-case gate.
+
+**Next:** `[DEV MISSING]` review-case persistence (GH #6) — propagate `IsComplete=false` to the review dashboard + downstream idempotency — remains the honest deferred half of the best-effort feature.
 
 ---
 
