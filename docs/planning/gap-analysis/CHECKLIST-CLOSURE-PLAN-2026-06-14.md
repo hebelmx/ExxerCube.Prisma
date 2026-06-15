@@ -10,13 +10,22 @@ the "Atención a Autoridades" 7-step demo) and the product, so the full 7 steps 
 
 | Item | Checklist | Issue | Verdict today | Size |
 |------|-----------|-------|---------------|------|
-| A | Step 6 — Excel "Datos Carga de Oficio" layout produced + wired into Stage 5 | **#7** | ❌ Missing/misaligned (pipeline = SIRO XML) | L |
-| B | Step 3 — Manifest reconciliation (missing + extra vs expected Listado) | **#8** | ❌ Missing | M |
-| C | Step 5 — Surface cross-validation mismatch as an alertamiento | **#9** | 🟡 Conflicts computed, never surfaced | M |
+| A | Step 6 — Excel "Datos Carga de Oficio" layout produced + wired into Stage 5 | **#7** | ✅ **DONE** (cdb9d4f + hardening b6abdc6) — closed | L |
+| B | Step 3 — Manifest reconciliation (missing + extra vs expected Listado) | **#8** | ✅ **DONE** (db65f52 range + b6abdc6) — closed | M |
+| C | Step 5 — Surface cross-validation mismatch as an alertamiento | **#9** | ✅ **DONE** (395fb3c range) — closed; dashboard value-hydration deferred | M |
 | D | Step 4 — Field-extraction completeness (XML Domicilio/NumeroOficio, Descripción, Docx requerimiento regex, Word signature OCR) | **#10** | 🟡 Partial | M (image-OCR: L) |
 | E | Step 7 — Per-category sub-answer extraction | **#11** | 🟡 Categories built, sub-answers all TODO | L–XL |
-| F | Step 2 — Explicit per-cycle downloaded-file list report | **#12** | 🟡 Implicit only | S |
+| F | Step 2 — Explicit per-cycle downloaded-file list report | **#12** | ✅ **DONE** (folded into B, db65f52 range) — closed | S |
 | G | Cross-cutting — Mexican-holiday business-day calendar (conclusion date) | **#13** | 🟡 Weekend-only | S–M |
+
+> **Progress — Phase 1 COMPLETE (2026-06-14, branch Kt2):** A (#7), B+F (#8/#12), C (#9) implemented, ITDD-tested,
+> ground-truth verified (build 0/0; arch 22/22), committed/pushed, issues closed. A phase-boundary adversarial
+> review (plan-completion-reviewer) caught 2 arch-guardrail Blockers + 2 wiring Majors → fixed in `b6abdc6`.
+> Per-item design notes: `ITEM-A-DATOS-CARGA-DESIGN.md`, `ITEM-BF-MANIFEST-RECONCILIATION-DESIGN.md`,
+> `ITEM-C-ALERTAMIENTO-DESIGN.md`. Known carry-overs: (C) persist UnifiedMetadataRecord to IUnifiedMetadataStore
+> for dashboard per-source conflict-value hydration; (A) classifier-driven Tipo de asunto (heuristic for now);
+> pre-existing unrelated red `IngestionHubWireTests.Broadcast_DocumentDownloadedEvent_IsReceivedByConnectedClient`
+> (SignalR, fails on clean HEAD). **Next: Phase 2 — D (#10) then G (#13).**
 
 ---
 
