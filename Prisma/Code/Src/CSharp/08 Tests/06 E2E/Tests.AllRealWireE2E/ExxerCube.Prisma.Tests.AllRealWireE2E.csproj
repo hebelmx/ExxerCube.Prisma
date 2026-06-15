@@ -75,6 +75,11 @@
   <ItemGroup Label="Rx.NET">
     <PackageReference Include="System.Reactive" />
   </ItemGroup>
+  <ItemGroup Label="Phase 4 demo checklist (ClosedXML for xlsx verification)">
+    <!-- Used in DemoChecklistSevenStepsTests (Step 6: verify 24-column Datos Carga xlsx) and
+         in the live gate extension (Step 6 assertion on shared-storage xlsx). -->
+    <PackageReference Include="ClosedXML" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- All three worker programs (so we can boot them via WebApplicationFactory) -->
     <ProjectReference Include="..\..\..\04 Services\Orion\Prisma.Orion.Worker\ExxerCube.Prisma.Orion.Worker.csproj" />
@@ -94,6 +99,11 @@
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.BrowserAutomation\ExxerCube.Prisma.Infrastructure.BrowserAutomation.csproj" />
     <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
+    <!-- Phase 4 demo checklist E2E: field extractors (XmlFieldExtractor, DocxFieldExtractor),
+         the Datos Carga xlsx generator, and the imaging text comparer (LevenshteinTextComparer). -->
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Extraction\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export.Adaptive\ExxerCube.Prisma.Infrastructure.Export.Adaptive.csproj" />
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

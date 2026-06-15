@@ -1,9 +1,11 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Reactive.Linq;
 using System.Security.Claims;
 using System.Text;
+using ClosedXML.Excel;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
@@ -211,14 +213,26 @@ public sealed class MaxFidelityGateE2ETests : IAsyncLifetime
         BuildThreeHostsWithDb(storageState);
 
         // ── STEP 3: Subscribe to the Reconciliator's terminal events ──
-        var exportCompletedSource = new TaskCompletionSource<ExportCompletedEvent>(
+        // Stage 5 now emits TWO ExportCompletedEvents: SiroXml + DatosCargaOficioXlsx.
+        // Collect all export events into a list; also gate on the Xlsx one specifically.
+        var allExportEvents = new System.Collections.Concurrent.ConcurrentBag<ExportCompletedEvent>();
+        var siroXmlExportSource = new TaskCompletionSource<ExportCompletedEvent>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var datosCargaExportSource = new TaskCompletionSource<ExportCompletedEvent>(
             TaskCreationOptions.RunContinuationsAsynchronously);
         var processingCompletedSource = new TaskCompletionSource<DocumentProcessingCompletedEvent>(
             TaskCreationOptions.RunContinuationsAsynchronously);
 
         using var exportSub = _reconciliatorApp!.ReconciliatorEventPublisher
             .GetEventStream<ExportCompletedEvent>()
-            .Subscribe(e => exportCompletedSource.TrySetResult(e));
+            .Subscribe(e =>
+            {
+                allExportEvents.Add(e);
+                if (e.Format == "SiroXml")
+                    siroXmlExportSource.TrySetResult(e);
+                else if (e.Format == "DatosCargaOficioXlsx")
+                    datosCargaExportSource.TrySetResult(e);
+            });
         using var completionSub = _reconciliatorApp.ReconciliatorEventPublisher
             .GetEventStream<DocumentProcessingCompletedEvent>()
             .Subscribe(e => processingCompletedSource.TrySetResult(e));
@@ -245,9 +259,19 @@ public sealed class MaxFidelityGateE2ETests : IAsyncLifetime
 
         // ── STEP 7: Wait (bounded, generous for native OCR) for the export + completion events ──
         var exportEvent = await AwaitOrFailAsync(
-            exportCompletedSource.Task,
+            siroXmlExportSource.Task,
             TimeSpan.FromMinutes(10),
-            "ExportCompletedEvent — the real case did not traverse the full pipeline (live download → OCR → fusion → classify → export)",
+            "ExportCompletedEvent(SiroXml) — the real case did not traverse the full pipeline (live download → OCR → fusion → classify → export)",
+            ct);
+
+        // Step 6 (checklist A #7): wait for the Datos Carga xlsx export event alongside SIRO XML.
+        // The Reconciliator Program.cs registers AddDatosCargaOficioExportServices (line 77), so Stage 5
+        // emits this event immediately after the SiroXml one.
+        var datosCargaEvent = await AwaitOrFailAsync(
+            datosCargaExportSource.Task,
+            TimeSpan.FromMinutes(1),
+            "ExportCompletedEvent(DatosCargaOficioXlsx) — Stage 5 must emit the Datos Carga xlsx event " +
+            "in addition to the SIRO XML export (GateReconciliatorApp wires AddDatosCargaOficioExportServices)",
             ct);
 
         var completedEvent = await AwaitOrFailAsync(
@@ -270,6 +294,38 @@ public sealed class MaxFidelityGateE2ETests : IAsyncLifetime
         exportEvent.ExportedSizeBytes.ShouldBeGreaterThan(0,
             "SIRO XML must have a non-zero byte size (a real XML document was rendered from real OCR/fusion data)");
         exportEvent.Destination.ShouldEndWith(".siro.xml");
+
+        // B-Step6) Datos Carga de Oficio xlsx export (checklist Step 6 / A #7).
+        datosCargaEvent.FileId.ShouldBe(fileId,
+            "DatosCargaOficioXlsx event FileId must match the ingested case");
+        datosCargaEvent.Format.ShouldBe("DatosCargaOficioXlsx",
+            "Stage 5 must emit a second ExportCompletedEvent with Format=DatosCargaOficioXlsx");
+        datosCargaEvent.ExportedSizeBytes.ShouldBeGreaterThan(0,
+            "the Datos Carga xlsx must have a non-zero byte size");
+
+        // Verify the xlsx is physically present on shared storage (IStoragePathResolver wired in the Reconciliator).
+        var xlsxFiles = Directory.GetFiles(_sharedStorageDir, "*.datos-carga-oficio.xlsx", SearchOption.AllDirectories);
+        xlsxFiles.Length.ShouldBeGreaterThanOrEqualTo(1,
+            "Stage 5 must have written the Datos Carga xlsx file to shared storage " +
+            "(IStoragePathResolver is wired in Prisma.Reconciliator.Worker/Program.cs)");
+
+        // Open the xlsx and verify the 24 mandatory headers are present.
+        using (var wb = new ClosedXML.Excel.XLWorkbook(xlsxFiles[0]))
+        {
+            var ws = wb.Worksheets.First();
+            var headerCount = Enumerable.Range(1, 30)
+                .Select(c => ws.Row(1).Cell(c).GetString()?.Trim())
+                .Count(h => !string.IsNullOrWhiteSpace(h));
+            headerCount.ShouldBe(24,
+                "the Datos Carga de Oficio xlsx on shared storage must have exactly 24 column headers");
+        }
+
+        // Both export formats must be present in the collected events.
+        var formats = allExportEvents.Select(e => e.Format).ToList();
+        formats.ShouldContain("SiroXml",
+            "the pipeline must emit a SiroXml ExportCompletedEvent");
+        formats.ShouldContain("DatosCargaOficioXlsx",
+            "the pipeline must also emit a DatosCargaOficioXlsx ExportCompletedEvent (checklist Step 6)");
 
         // C) Shared-storage handoff: the Athena Extractor physically wrote the fused expediente, the
         //    Reconciliator physically read it — the real cross-process filesystem edge.
