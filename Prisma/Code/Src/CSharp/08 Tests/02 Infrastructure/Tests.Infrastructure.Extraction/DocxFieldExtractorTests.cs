@@ -153,6 +153,37 @@ public class DocxFieldExtractorTests
         result.Value!.Expediente.ShouldBeNull(); // No fields extracted
     }
 
+    /// <summary>
+    /// Issue #2 fix: the real CNBV oficio shape. When the caller requests Expediente + NumeroOficio
+    /// (as the Athena worker does), the authoritative oficio is label-anchored ("Oficio Núm.:") and
+    /// must win over the remitted source oficio (AGAFADAFSON2/2025/000084); the folio is printed with
+    /// internal whitespace and must be normalised; and NumeroOficio must land in AdditionalFields.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldsAsync_CnbvOficioAndSpacedFolio_ExtractedAndNormalised()
+    {
+        // Arrange
+        var text =
+            "Oficio Núm.: 222/AAA/-4444444444/2025 Folio Núm.: A/AS1- 1111-222222-AAA " +
+            "se remite el oficio No. AGAFADAFSON2/2025/000084 del 09 de Abril";
+        var docxBytes = CreateSampleDocxWithText(text);
+        var source = new DocxSource(docxBytes);
+        var fieldDefinitions = new[]
+        {
+            new FieldDefinition("Expediente"),
+            new FieldDefinition("NumeroOficio"),
+        };
+
+        // Act
+        var result = await _extractor.ExtractFieldsAsync(source, fieldDefinitions);
+
+        // Assert — labeled CNBV oficio wins NumeroOficio; folio whitespace collapsed.
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Expediente.ShouldBe("A/AS1-1111-222222-AAA");
+        result.Value.AdditionalFields.ShouldContainKey("NumeroOficio");
+        result.Value.AdditionalFields["NumeroOficio"].ShouldBe("222/AAA/-4444444444/2025");
+    }
+
     // -----------------------------------------------------------------------
     // Real-corpus tests (D1) — Docx requerimiento extraction
     // -----------------------------------------------------------------------

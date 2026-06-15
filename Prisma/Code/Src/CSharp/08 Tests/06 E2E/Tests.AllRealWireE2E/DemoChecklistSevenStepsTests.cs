@@ -80,6 +80,10 @@ public sealed class DemoChecklistSevenStepsTests
     private const string ExpectedDomicilio = "Pza. de la Constitución S/N  CP 066V60 Col centro , CDMX";
     private const string ExpectedNombre = "EAEROLÍNEAS PAYASO ORGULLO NACIONALIVE, S.A. DE C.V.";
 
+    // Known values from the real DOCX (222AAA-44444444442025.docx): the CNBV "Oficio Núm." and the
+    // "Folio Núm." (printed as "A/AS1- 1111-222222-AAA"; the extractor normalises out the whitespace).
+    private const string ExpectedExpediente = "A/AS1-1111-222222-AAA";
+
     // ── Step helper: shared logger (NullLogger for determinism) ──────────────────
 
     private static ILogger<T> NullLog<T>() => NullLogger<T>.Instance;
@@ -366,41 +370,37 @@ public sealed class DemoChecklistSevenStepsTests
         // DocxSource(byte[]) — bytes-only constructor (no bytes+path overload).
         var docxBytes = await File.ReadAllBytesAsync(docxPath, ct);
         var docxSource = new DocxSource(docxBytes);
-        var docxResult = await docxExtractor.ExtractFieldsAsync(docxSource, Array.Empty<FieldDefinition>());
+
+        // Request the same field set the Athena worker's BuildDocxExpedienteAsync requests.
+        var docxFieldDefinitions = new[]
+        {
+            new FieldDefinition("Expediente"),
+            new FieldDefinition("NumeroOficio"),
+        };
+        var docxResult = await docxExtractor.ExtractFieldsAsync(docxSource, docxFieldDefinitions);
 
         docxResult.IsSuccess.ShouldBeTrue(
             $"DOCX extractor must succeed on the real sample: {string.Join(", ", docxResult.Errors)}");
         docxResult.Value.ShouldNotBeNull(
             "DOCX extraction must yield a non-null ExtractedFields result");
 
-        // The requerimiento/NumeroOficio pattern from the DOCX text.
-        // The DOCX extractor (D1b, Item D design) routes the requerimiento pattern
-        // [A-Z]{4,}[A-Z0-9]{0,10}/\d{4}/\d{6} to a "NumeroOficio" or "requerimiento" field.
         var docxAdditional = docxResult.Value!.AdditionalFields;
 
-        // Best-effort: if the DOCX has a requerimiento id token, it must be surfaced.
-        // The D1b design surfaces it under "NumeroOficio" in AdditionalFields.
-        // ExtractedFields.Expediente is a string? (the expediente number text), not an entity.
-        var requerimientoPresent =
-            docxAdditional.ContainsKey("NumeroOficio") &&
-            !string.IsNullOrWhiteSpace(docxAdditional["NumeroOficio"]);
+        // S4-DOCX assertion A — the authoritative CNBV oficio number is extracted (label-anchored,
+        // NOT the remitted source oficio "AGAFADAFSON2/2025/000084"), and matches the XML.
+        docxAdditional.ShouldContainKey("NumeroOficio",
+            "the DOCX extractor must surface the CNBV oficio number from the real sample DOCX");
+        docxAdditional["NumeroOficio"].ShouldNotBeNullOrWhiteSpace(
+            "DOCX NumeroOficio must be a non-empty value");
+        docxAdditional["NumeroOficio"]!.Trim().ShouldBe(ExpectedNumeroOficio,
+            "DOCX NumeroOficio must match the CNBV 'Oficio Núm.' in 222AAA-44444444442025.docx " +
+            "(and therefore agree with the XML source under fusion)");
 
-        // Fail-open: the DOCX text extraction ran without throwing (key constraint).
-        // Whether the requerimiento was found depends on the real DOCX content.
-        // We assert the result is non-null and the extractor ran successfully.
-        // (The exact field assertion is best-effort per the Item D design.)
-        docxResult.IsSuccess.ShouldBeTrue("DOCX extraction must complete without error");
-
-        // Remitente path: substitute OCR was called for the image (or gracefully skipped).
-        // Either way: the text extraction did NOT throw and returned a Result (deadlock-safe).
-        docxResult.Value.ShouldNotBeNull();
-
-        // If requerimiento IS present in AdditionalFields, verify it is non-empty.
-        if (requerimientoPresent)
-        {
-            docxAdditional["NumeroOficio"].ShouldNotBeNullOrWhiteSpace(
-                "if requerimiento id was extracted from DOCX NumeroOficio, it must be non-empty");
-        }
+        // S4-DOCX assertion B — the folio/expediente is extracted and whitespace-normalised.
+        docxResult.Value!.Expediente.ShouldNotBeNullOrWhiteSpace(
+            "the DOCX extractor must surface the folio/expediente from the real sample DOCX");
+        docxResult.Value!.Expediente!.Trim().ShouldBe(ExpectedExpediente,
+            "DOCX Expediente must match the normalised 'Folio Núm.' in 222AAA-44444444442025.docx");
     }
 
     // ─────────────────────────────────────────────────────────────────────────────

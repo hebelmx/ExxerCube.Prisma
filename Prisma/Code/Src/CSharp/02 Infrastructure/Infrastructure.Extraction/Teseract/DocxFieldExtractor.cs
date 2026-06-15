@@ -403,7 +403,8 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
             "expediente" => ExtractExpediente(text),
             "causa" => ExtractCausa(text),
             "accionsolicitada" or "accion_solicitada" => ExtractAccionSolicitada(text),
-            "numerooficio" or "numero_oficio" or "requerimiento" => ExtractRequerimiento(text),
+            "numerooficio" or "numero_oficio" => ExtractNumeroOficio(text),
+            "requerimiento" => ExtractRequerimiento(text),
             _ => null
         };
 
@@ -429,15 +430,67 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
             case "accion_solicitada":
                 fields.AccionSolicitada = value;
                 break;
+            case "numerooficio":
+            case "numero_oficio":
+                // NumeroOficio has no typed slot on ExtractedFields; surface it in AdditionalFields
+                // so consumers (e.g. the Athena worker's MapExtractedFieldsToExpediente) can read it.
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    fields.AdditionalFields["NumeroOficio"] = value;
+                }
+                break;
         }
     }
 
     private static string? ExtractExpediente(string text)
     {
-        // Pattern: A/AS1-2505-088637-PHM or similar
-        var expedientePattern = @"[A-Z]/[A-Z]{1,2}\d+-\d+-\d+-[A-Z]+";
+        // Prefer the label-anchored folio/expediente, e.g. "Folio Núm.: A/AS1- 1111-222222-AAA"
+        // (real CNBV oficios print the folio with internal whitespace).
+        var labeled = System.Text.RegularExpressions.Regex.Match(
+            text,
+            @"(?:Folio\s+N[uú]m\.?|Expediente)\s*:?\s*([A-Z]/[A-Z]{1,2}\d+-\s*\d+-\s*\d+-\s*[A-Z]+)",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (labeled.Success && labeled.Groups.Count > 1)
+        {
+            return NormalizeExpediente(labeled.Groups[1].Value);
+        }
+
+        // Fallback: bare pattern (A/AS1-2505-088637-PHM), tolerant of internal whitespace.
+        var expedientePattern = @"[A-Z]/[A-Z]{1,2}\d+-\s*\d+-\s*\d+-\s*[A-Z]+";
         var match = System.Text.RegularExpressions.Regex.Match(text, expedientePattern);
-        return match.Success ? match.Value : null;
+        return match.Success ? NormalizeExpediente(match.Value) : null;
+    }
+
+    /// <summary>
+    /// Collapses internal whitespace in an expediente/folio token so a value printed as
+    /// <c>A/AS1- 1111-222222-AAA</c> normalises to <c>A/AS1-1111-222222-AAA</c>, matching the
+    /// canonical form the XML extractor surfaces (so the two sources agree under fusion).
+    /// </summary>
+    private static string NormalizeExpediente(string raw) =>
+        System.Text.RegularExpressions.Regex.Replace(raw.Trim(), @"\s+", string.Empty);
+
+    /// <summary>
+    /// Extracts the authoritative CNBV oficio number from the DOCX text, preferring the
+    /// label-anchored value (<c>Oficio Núm.: 222/AAA/-4444444444/2025</c>) over the bare
+    /// requerimiento/solicitud id pattern (a remitted source oficio such as
+    /// <c>AGAFADAFSON2/2025/000084</c>), so the DOCX agrees with the XML on NumeroOficio.
+    /// </summary>
+    private static string? ExtractNumeroOficio(string text)
+    {
+        var labeled = System.Text.RegularExpressions.Regex.Match(
+            text,
+            @"Oficio\s+N[uú]m\.?\s*:?\s*([0-9A-Z/\-]+)",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        if (labeled.Success && labeled.Groups.Count > 1)
+        {
+            var value = labeled.Groups[1].Value.Trim();
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return ExtractRequerimiento(text);
     }
 
     /// <summary>
