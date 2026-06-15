@@ -112,6 +112,13 @@ internal static class NavigationRegistry
                     Match: NavLinkMatch.Prefix,
                     Tags: new[] { "xml", "ocr", "extraction", "expediente", "cnbv", "pdf", "prp1", "stakeholder" }),
                 new NavigationLink(
+                    "Resumen del Oficio",
+                    "/oficio-summary",
+                    Icons.Material.Filled.Gavel,
+                    "Interpreta el oficio y lo resume en los 5 apartados (Bloqueo, Desbloqueo, Documentación, Transferencia, Información) con cuentas, productos y montos.",
+                    Match: NavLinkMatch.All,
+                    Tags: new[] { "oficio", "resumen", "bloqueo", "desbloqueo", "documentacion", "transferencia", "informacion", "semantic", "ia", "atencion a autoridades" }),
+                new NavigationLink(
                     "Adaptive DOCX Extractor",
                     "/adaptive-extractor",
                     Icons.Material.Filled.AutoAwesome,

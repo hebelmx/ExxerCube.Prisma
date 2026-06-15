@@ -1,0 +1,299 @@
+@page "/oficio-summary"
+@using System.Threading
+@using ExxerCube.Prisma.Domain.Interfaces
+@using ExxerCube.Prisma.Domain.ValueObjects
+@using IndQuestResults
+@using MudBlazor
+
+@inject ISemanticAnalyzer SemanticAnalyzer
+@inject ISnackbar Snackbar
+@inject ILogger<OficioSummary> Logger
+
+<PageTitle>Resumen del Oficio</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudPaper Class="pa-6" Elevation="3">
+        <h1 class="mud-typography mud-typography-h4 mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.Gavel" Class="mr-2" />
+            Resumen del Oficio — Interpretación en 5 apartados
+        </h1>
+
+        <MudText Typo="Typo.body2" Class="mb-4">
+            El sistema lee e interpreta el texto del oficio y lo resume en los cinco apartados de
+            <em>Atención a Autoridades</em>: <strong>Bloqueo</strong>, <strong>Desbloqueo</strong>,
+            <strong>Documentación</strong>, <strong>Transferencia de Fondos</strong> e
+            <strong>Información</strong> — con el detalle de cuentas, productos y montos solicitados.
+        </MudText>
+
+        <!-- Oficio text input + sample loaders -->
+        <MudCard Class="mb-4">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Texto del oficio</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mr-2">Cargar ejemplo:</MudText>
+                    <MudButtonGroup Variant="Variant.Outlined" Size="Size.Small">
+                        <MudButton OnClick="@(() => LoadSample(SampleBloqueo))">Bloqueo</MudButton>
+                        <MudButton OnClick="@(() => LoadSample(SampleDesbloqueo))">Desbloqueo</MudButton>
+                        <MudButton OnClick="@(() => LoadSample(SampleDocumentacion))">Documentación</MudButton>
+                        <MudButton OnClick="@(() => LoadSample(SampleTransferencia))">Transferencia</MudButton>
+                        <MudButton OnClick="@(() => LoadSample(SampleInformacion))">Información</MudButton>
+                    </MudButtonGroup>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudTextField @bind-Value="oficioText"
+                              T="string"
+                              Label="Pegue o edite el texto del oficio a interpretar"
+                              Variant="Variant.Outlined"
+                              Lines="8"
+                              AutoGrow="true" />
+                <div class="d-flex align-center mt-3">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Psychology"
+                               OnClick="AnalyzeAsync"
+                               Disabled="@(isAnalyzing || string.IsNullOrWhiteSpace(oficioText))">
+                        @(isAnalyzing ? "Interpretando..." : "Analizar Oficio")
+                    </MudButton>
+                    <MudSpacer />
+                    @if (analysis is not null)
+                    {
+                        <MudChip T="string" Color="Color.Info" Variant="Variant.Text" Icon="@Icons.Material.Filled.Checklist">
+                            @DetectedCount de 5 apartados detectados
+                        </MudChip>
+                    }
+                </div>
+                @if (isAnalyzing)
+                {
+                    <MudProgressLinear Indeterminate="true" Class="mt-3" />
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <!-- Results: the 5 apartados -->
+        @if (analysis is not null)
+        {
+            <MudGrid>
+                <!-- 1. Bloqueo -->
+                <MudItem xs="12" md="6">
+                    <ApartadoCard Title="1. Requiere Bloqueo"
+                                  Icon="@Icons.Material.Filled.Lock"
+                                  Required="@(analysis.RequiereBloqueo?.EsRequerido == true)"
+                                  Confidence="@(analysis.RequiereBloqueo?.Confidence)">
+                        @if (analysis.RequiereBloqueo is { EsRequerido: true } b)
+                        {
+                            @SubAnswer("Tipo de bloqueo", b.EsParcial ? "Parcial" : "Total")
+                            @SubAnswer("Monto", FormatMonto(b.Monto, b.Moneda))
+                            @SubAnswerList("Cuentas específicas", b.CuentasEspecificas)
+                            @SubAnswerList("Productos específicos", b.ProductosEspecificos)
+                        }
+                    </ApartadoCard>
+                </MudItem>
+
+                <!-- 2. Desbloqueo -->
+                <MudItem xs="12" md="6">
+                    <ApartadoCard Title="2. Requiere Desbloqueo"
+                                  Icon="@Icons.Material.Filled.LockOpen"
+                                  Required="@(analysis.RequiereDesbloqueo?.EsRequerido == true)"
+                                  Confidence="@(analysis.RequiereDesbloqueo?.Confidence)">
+                        @if (analysis.RequiereDesbloqueo is { EsRequerido: true } d)
+                        {
+                            @SubAnswer("Expediente del bloqueo original", d.ExpedienteBloqueoOriginal)
+                        }
+                    </ApartadoCard>
+                </MudItem>
+
+                <!-- 3. Documentación -->
+                <MudItem xs="12" md="6">
+                    <ApartadoCard Title="3. Requiere Documentación"
+                                  Icon="@Icons.Material.Filled.Description"
+                                  Required="@(analysis.RequiereDocumentacion?.EsRequerido == true)"
+                                  Confidence="@(analysis.RequiereDocumentacion?.Confidence)">
+                        @if (analysis.RequiereDocumentacion is { EsRequerido: true } docReq)
+                        {
+                            @if (docReq.TiposDocumento is { Count: > 0 } tipos)
+                            {
+                                @SubAnswerList("Documentos solicitados", tipos.Select(t => t.Tipo).ToList())
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Documentación requerida (tipo no especificado en el texto).
+                                </MudText>
+                            }
+                        }
+                    </ApartadoCard>
+                </MudItem>
+
+                <!-- 4. Transferencia de Fondos -->
+                <MudItem xs="12" md="6">
+                    <ApartadoCard Title="4. Requiere Transferencia de Fondos"
+                                  Icon="@Icons.Material.Filled.SwapHoriz"
+                                  Required="@(analysis.RequiereTransferencia?.EsRequerido == true)"
+                                  Confidence="@(analysis.RequiereTransferencia?.Confidence)">
+                        @if (analysis.RequiereTransferencia is { EsRequerido: true } t)
+                        {
+                            @SubAnswer("Cuenta de abono / destino", t.CuentaDestino)
+                            @SubAnswer("Monto", FormatMonto(t.Monto, null))
+                        }
+                    </ApartadoCard>
+                </MudItem>
+
+                <!-- 5. Información -->
+                <MudItem xs="12" md="6">
+                    <ApartadoCard Title="5. Requiere Información"
+                                  Icon="@Icons.Material.Filled.Info"
+                                  Required="@(analysis.RequiereInformacionGeneral?.EsRequerido == true)"
+                                  Confidence="@(analysis.RequiereInformacionGeneral?.Confidence)">
+                        @if (analysis.RequiereInformacionGeneral is { EsRequerido: true } info)
+                        {
+                            @SubAnswer("Información solicitada", info.InformacionSolicitada)
+                        }
+                    </ApartadoCard>
+                </MudItem>
+            </MudGrid>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string oficioText = string.Empty;
+    private bool isAnalyzing;
+    private SemanticAnalysis? analysis;
+
+    private int DetectedCount =>
+        analysis is null ? 0 :
+        (analysis.RequiereBloqueo?.EsRequerido == true ? 1 : 0)
+        + (analysis.RequiereDesbloqueo?.EsRequerido == true ? 1 : 0)
+        + (analysis.RequiereDocumentacion?.EsRequerido == true ? 1 : 0)
+        + (analysis.RequiereTransferencia?.EsRequerido == true ? 1 : 0)
+        + (analysis.RequiereInformacionGeneral?.EsRequerido == true ? 1 : 0);
+
+    protected override void OnInitialized()
+    {
+        // Pre-load the Bloqueo sample so the page is demo-ready on first render.
+        oficioText = SampleBloqueo;
+    }
+
+    private void LoadSample(string sample)
+    {
+        oficioText = sample;
+        analysis = null;
+    }
+
+    private async Task AnalyzeAsync()
+    {
+        if (string.IsNullOrWhiteSpace(oficioText))
+        {
+            Snackbar.Add("Ingrese el texto del oficio a interpretar.", Severity.Warning);
+            return;
+        }
+
+        isAnalyzing = true;
+        analysis = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await SemanticAnalyzer.AnalyzeDirectivesAsync(
+                oficioText, expediente: null, CancellationToken.None);
+
+            if (result.IsSuccess)
+            {
+                analysis = result.Value;
+                Snackbar.Add($"Interpretación completa: {DetectedCount} de 5 apartados.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"No se pudo interpretar el oficio: {result.Error}", Severity.Error);
+                Logger.LogWarning("Semantic analysis failed: {Error}", result.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al interpretar el oficio: {ex.Message}", Severity.Error);
+            Logger.LogError(ex, "Error during oficio semantic analysis");
+        }
+        finally
+        {
+            isAnalyzing = false;
+            StateHasChanged();
+        }
+    }
+
+    // ── Inline sub-answer renderers (single value + list) ──────────────────────
+
+    private static RenderFragment SubAnswer(string label, string? value) => builder =>
+    {
+        var shown = string.IsNullOrWhiteSpace(value) ? "No especificado" : value!;
+        builder.OpenComponent<MudText>(0);
+        builder.AddAttribute(1, nameof(MudText.Typo), Typo.body2);
+        builder.AddAttribute(2, nameof(MudText.Class), "mt-1");
+        builder.AddAttribute(3, nameof(MudText.ChildContent), (RenderFragment)(b =>
+        {
+            b.AddMarkupContent(0, $"<strong>{label}:</strong> ");
+            b.AddContent(1, shown);
+        }));
+        builder.CloseComponent();
+    };
+
+    private static RenderFragment SubAnswerList(string label, IReadOnlyList<string> items) => builder =>
+    {
+        builder.OpenComponent<MudText>(0);
+        builder.AddAttribute(1, nameof(MudText.Typo), Typo.body2);
+        builder.AddAttribute(2, nameof(MudText.Class), "mt-1");
+        builder.AddAttribute(3, nameof(MudText.ChildContent), (RenderFragment)(b =>
+        {
+            var shown = items is { Count: > 0 } ? string.Join(", ", items) : "No especificado";
+            b.AddMarkupContent(0, $"<strong>{label}:</strong> ");
+            b.AddContent(1, shown);
+        }));
+        builder.CloseComponent();
+    };
+
+    private static string FormatMonto(decimal? monto, string? moneda)
+    {
+        if (monto is null || monto <= 0m)
+        {
+            return "No especificado";
+        }
+
+        var moneyText = monto.Value.ToString("N2");
+        return string.IsNullOrWhiteSpace(moneda) ? $"${moneyText}" : $"${moneyText} {moneda}";
+    }
+
+    // ── Representative oficio samples (Spanish) — phrases chosen to match the
+    //    production classification dictionary so each apartado triggers reliably. ──
+
+    private const string SampleBloqueo =
+        "Por medio del presente oficio, esta autoridad instruye al banco el ASEGURAMIENTO DE CUENTAS y " +
+        "BLOQUEO DE CUENTAS a nombre de AEROLINEAS PAYASO ORGULLO NACIONAL, RFC APON333334. " +
+        "Se ordena el aseguramiento precautorio de la cuenta 12345678 y la cuenta 87654321, " +
+        "así como de los productos TARJETA DE CRÉDITO asociados. El monto a asegurar asciende a " +
+        "$500,000.00 pesos (quinientos mil pesos 00/100 M.N.). El bloqueo es de carácter parcial. " +
+        "Atentamente, SUBDELEGACION 8 SAN ANGEL.";
+
+    private const string SampleDesbloqueo =
+        "Por medio del presente oficio se ordena el DESBLOQUEO DE CUENTAS y el levantamiento del " +
+        "aseguramiento que fue decretado previamente. Se solicita la liberación de fondos de la cuenta " +
+        "12345678, que corresponde al expediente A/AS1-2505-088637-PHM que originó el bloqueo inicial. " +
+        "Atentamente, SUBDELEGACION 8 SAN ANGEL.";
+
+    private const string SampleDocumentacion =
+        "Por medio del presente oficio se requiere la presentación de documentación correspondiente al " +
+        "cliente identificado. Se solicita la entrega de documentación requerida, incluyendo estados de " +
+        "cuenta del periodo, así como la certificación de saldos y movimientos de la cuenta 12345678. " +
+        "Atentamente, SUBDELEGACION 8 SAN ANGEL.";
+
+    private const string SampleTransferencia =
+        "Por medio del presente oficio se ordena la transferencia de fondos de la cuenta del cliente hacia " +
+        "la cuenta de abono 002180012345678901. El monto a transferir es de $250,000.00 pesos. Se instruye " +
+        "realizar la transferencia de recursos a la brevedad. Atentamente, SUBDELEGACION 8 SAN ANGEL.";
+
+    private const string SampleInformacion =
+        "Por medio del presente oficio se requiere información relativa a las operaciones del cliente. " +
+        "Se solicita información sobre los movimientos y saldos, así como cualquier dato de identificación " +
+        "disponible. Atentamente, SUBDELEGACION 8 SAN ANGEL.";
+}
