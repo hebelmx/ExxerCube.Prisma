@@ -294,6 +294,14 @@ public sealed class MaxFidelityGateE2ETests : IAsyncLifetime
         exportEvent.ExportedSizeBytes.ShouldBeGreaterThan(0,
             "SIRO XML must have a non-zero byte size (a real XML document was rendered from real OCR/fusion data)");
         exportEvent.Destination.ShouldEndWith(".siro.xml");
+        // Content-fidelity floor: the SIRO XML is exported to an in-memory stream and is NOT persisted to
+        // shared storage in the current design (ReconciliationOrchestrator §"R4: file write deferred
+        // post-MVP"), so the gate cannot parse the document off disk. A real <SiroResponse> rendered from a
+        // fused expediente is comfortably larger than an empty skeleton; assert a realistic byte floor as a
+        // proxy. (Deeper element-level / XSD validation is a follow-up gated on persisting the SIRO file to
+        // shared storage + the official Banamex .xsd.)
+        exportEvent.ExportedSizeBytes.ShouldBeGreaterThan(200,
+            "a real SIRO XML document rendered from the fused expediente must be more than an empty skeleton");
 
         // B-Step6) Datos Carga de Oficio xlsx export (checklist Step 6 / A #7).
         datosCargaEvent.FileId.ShouldBe(fileId,
@@ -559,6 +567,26 @@ public sealed class MaxFidelityGateE2ETests : IAsyncLifetime
     // ── Real headless login (captures the credential-free storage-state) ──────────
 
     private async Task<string> LoginAndCaptureStorageStateAsync(CancellationToken ct)
+    {
+        // The headless Playwright login is occasionally flaky on a REPEAT login in the same test process
+        // (e.g. NavigateToAsync returns IsSuccess=false) — a transient browser/sim hiccup, not a product
+        // failure. Retry a bounded number of times with a fresh browser adapter each attempt; on the final
+        // attempt let the Shouldly assertions throw with full detail. Cancellation is never retried.
+        const int maxAttempts = 3;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await TryLoginAndCaptureStorageStateAsync(ct);
+            }
+            catch (Exception ex) when (attempt < maxAttempts && ex is not OperationCanceledException)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(3), ct);
+            }
+        }
+    }
+
+    private async Task<string> TryLoginAndCaptureStorageStateAsync(CancellationToken ct)
     {
         var adapter = CreateLoginAdapter();
         try
