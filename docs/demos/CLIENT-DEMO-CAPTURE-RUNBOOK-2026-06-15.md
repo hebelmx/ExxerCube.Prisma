@@ -47,6 +47,26 @@ path and any OCR-bearing path as **separate launches** (this is exactly what the
 Record the **stable, high-impact** segments first (Etapa 3 Excel, Etapa 2 extraction), then the
 live download (Etapa 1) last. Re-recording one clip is cheap; that's the point of clip-per-etapa.
 
+### 0.6 ⚠️ Apply the latest schema — the review dashboard depends on it (REQUIRED)
+**Captures 2 (Paso 5 alertamiento) and 5 (review/audit) read the manual-review dashboard, which
+shows cases the *real pipeline* flags.** Before the `DropReviewCaseFileMetadataFk` fix (2026-06-15),
+every worker `INSERT` into `ReviewCases` failed on `FK_ReviewCases_FileMetadata_FileId` (the worker
+persists by `FileId` with no `FileMetadata` parent) and was silently swallowed — so the dashboard
+showed **nothing** from the live pipeline. Ensure the demo database has the FK dropped:
+- If the DB is created fresh from the current EF model (`EnsureCreated`) or by applying migrations
+  (`DropReviewCaseFileMetadataFk`), it is already correct — nothing to do.
+- If you reuse an **older** demo DB, either re-create it or run `dotnet ef database update` so the FK
+  is dropped; otherwise Paso 5 and the close will look empty even though the pipeline ran.
+Proven by `ReviewCaseFkDropIntegrationTests` (real-SQL). The audit trail is unaffected (its FK was
+already dropped).
+
+### 0.7 DOCX field extraction is fixed (issue #2)
+Paso 4 over the real Word doc now surfaces the **CNBV "Oficio Núm."** (`222/AAA/-4444444444/2025`,
+not the embedded source oficio) and the **"Folio Núm."** expediente (whitespace normalised), and
+the worker's DOCX→fusion path now actually receives `NumeroOficio`. So the Word companion genuinely
+contributes to cross-source fusion. Pinned by `DocxFieldExtractorTests` + the hardened
+`DemoChecklistSevenStepsTests` Step 4.
+
 ---
 
 ## 1. Capture sequence (the shot list)
