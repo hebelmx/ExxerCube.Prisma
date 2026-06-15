@@ -155,6 +155,7 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
             "expediente" => ExtractExpediente(text),
             "causa" => ExtractCausa(text),
             "accionsolicitada" or "accion_solicitada" => ExtractAccionSolicitada(text),
+            "numerooficio" or "numero_oficio" or "requerimiento" => ExtractRequerimiento(text),
             _ => null
         };
 
@@ -188,6 +189,20 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
         // Pattern: A/AS1-2505-088637-PHM or similar
         var expedientePattern = @"[A-Z]/[A-Z]{1,2}\d+-\d+-\d+-[A-Z]+";
         var match = System.Text.RegularExpressions.Regex.Match(text, expedientePattern);
+        return match.Success ? match.Value : null;
+    }
+
+    /// <summary>
+    /// Extracts the requerimiento / SIARA solicitud id from the DOCX text.
+    /// Pattern reused from <c>AdaptiveTxtFieldExtractor.ExtractNumeroOficio</c>:
+    /// matches values like <c>AGAFADAFSON2/2025/000084</c>.
+    /// </summary>
+    private static string? ExtractRequerimiento(string text)
+    {
+        // Reuses AdaptiveTxtFieldExtractor pattern: [A-Z]{4,}[A-Z0-9]{0,10}/\d{4}/\d{6}
+        var requerimientoPattern = @"[A-Z]{4,}[A-Z0-9]{0,10}/\d{4}/\d{6}";
+        var match = System.Text.RegularExpressions.Regex.Match(
+            text, requerimientoPattern, System.Text.RegularExpressions.RegexOptions.Multiline);
         return match.Success ? match.Value : null;
     }
 

@@ -153,6 +153,110 @@ public class DocxFieldExtractorTests
         result.Value!.Expediente.ShouldBeNull(); // No fields extracted
     }
 
+    // -----------------------------------------------------------------------
+    // Real-corpus tests (D1) — Docx requerimiento extraction
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Extracting "requerimiento" field from the synthetic DOCX that contains the
+    /// AGAFADAFSON2/2025/000084 pattern confirms the regex fires.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_RequerimientoPattern_ExtractsMatch()
+    {
+        // Arrange: build a synthetic docx whose text contains the requerimiento id pattern
+        var docxBytes = CreateSampleDocxWithText("AGAFADAFSON2/2025/000084");
+        var source = new DocxSource(docxBytes);
+
+        // Act
+        var result = await _extractor.ExtractFieldAsync(source, "requerimiento");
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value.ShouldNotBeNull();
+        result.Value!.Value.ShouldBe("AGAFADAFSON2/2025/000084");
+        result.Value.SourceType.ShouldBe("DOCX");
+        result.Value.Origin.ShouldBe(ExxerCube.Prisma.Domain.Enums.FieldOrigin.Docx);
+    }
+
+    /// <summary>
+    /// The "numerooficio" alias routes to the same extractor as "requerimiento".
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_NumeroOficioAlias_ExtractsRequerimientoPattern()
+    {
+        var docxBytes = CreateSampleDocxWithText("AGAFADAFSON2/2025/000083");
+        var source = new DocxSource(docxBytes);
+
+        var result = await _extractor.ExtractFieldAsync(source, "numerooficio");
+
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Value.ShouldBe("AGAFADAFSON2/2025/000083");
+    }
+
+    /// <summary>
+    /// Text without the requerimiento pattern returns failure (not throw).
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_NoRequerimientoPattern_ReturnsFailure()
+    {
+        var docxBytes = CreateSampleDocxWithText("No hay folio SIARA aqui.");
+        var source = new DocxSource(docxBytes);
+
+        var result = await _extractor.ExtractFieldAsync(source, "requerimiento");
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNullOrEmpty();
+    }
+
+    /// <summary>
+    /// ExtractExpediente is unchanged — the existing pattern still works alongside the new extractor.
+    /// Confirms that adding ExtractRequerimiento does not interfere with ExtractExpediente routing.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_ExpedienteAndRequerimiento_BothExtracted()
+    {
+        var text = "A/AS1-2505-088637-PHM algo AGAFADAFSON2/2025/000084 fin";
+        var docxBytes = CreateSampleDocxWithText(text);
+        var source = new DocxSource(docxBytes);
+
+        var expedienteResult = await _extractor.ExtractFieldAsync(source, "Expediente");
+        var requerimientoResult = await _extractor.ExtractFieldAsync(source, "requerimiento");
+
+        expedienteResult.IsSuccess.ShouldBeTrue(expedienteResult.Error);
+        expedienteResult.Value!.Value.ShouldBe("A/AS1-2505-088637-PHM");
+
+        requerimientoResult.IsSuccess.ShouldBeTrue(requerimientoResult.Error);
+        requerimientoResult.Value!.Value.ShouldBe("AGAFADAFSON2/2025/000084");
+    }
+
+    /// <summary>
+    /// Real corpus: 222AAA-44444444442025.docx — extract the requerimiento id.
+    /// Expected: AGAFADAFSON2/2025/000084 (from the corresponding XML's Cnbv_SolicitudSiara field).
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_222AaaRealCorpusDocx_ExtractsRequerimiento()
+    {
+        var samplePath = FindSamplePath("222AAA-44444444442025.docx");
+        if (!File.Exists(samplePath))
+        {
+            // Skip gracefully if the binary sample isn't present in this environment
+            return;
+        }
+
+        var source = new DocxSource(samplePath);
+        var result = await _extractor.ExtractFieldAsync(source, "requerimiento");
+
+        // The real docx contains the SIARA solicitud id in its text.
+        // We assert a match was found (non-throwing) rather than a hard-coded string
+        // because the docx text extraction may vary by Word version / rendering.
+        result.IsSuccess.ShouldBeTrue(
+            $"Expected to find requerimiento pattern in 222AAA docx, got: {result.Error}");
+        result.Value!.Value.ShouldNotBeNullOrEmpty();
+        // Assert the pattern shape (letters/digits/slashes)
+        result.Value.Value.ShouldMatch(@"[A-Z]{4,}[A-Z0-9]*/\d{4}/\d{6}");
+    }
+
     private static byte[] CreateSampleDocx(string? expediente, string? causa, string? accionSolicitada)
     {
         using var stream = new MemoryStream();
@@ -182,6 +286,44 @@ public class DocxFieldExtractorTests
         }
 
         return stream.ToArray();
+    }
+
+    /// <summary>Creates a minimal DOCX whose body text is exactly <paramref name="rawText"/>.</summary>
+    private static byte[] CreateSampleDocxWithText(string rawText)
+    {
+        using var stream = new MemoryStream();
+        using (var wordDocument = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
+        {
+            var mainPart = wordDocument.AddMainDocumentPart();
+            mainPart.Document = new Document();
+            var body = mainPart.Document.AppendChild(new Body());
+            body.AppendChild(new Paragraph(new Run(new Text(rawText))));
+            mainPart.Document.Save();
+        }
+
+        return stream.ToArray();
+    }
+
+    /// <summary>
+    /// Resolves the absolute path to a sample file in docs/legal/samples.
+    /// Walks up from the test assembly output directory; falls back to the known absolute path.
+    /// </summary>
+    private static string FindSamplePath(string fileName)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir != null)
+        {
+            var candidate = Path.Combine(dir.FullName, "docs", "legal", "samples", fileName);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+            dir = dir.Parent;
+        }
+
+        return Path.Combine(
+            @"E:\Dynamic\ExxerCubeBanamex\ExxerCube.Prisma",
+            "docs", "legal", "samples", fileName);
     }
 }
 

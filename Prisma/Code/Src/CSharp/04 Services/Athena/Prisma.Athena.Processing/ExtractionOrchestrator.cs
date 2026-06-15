@@ -557,6 +557,26 @@ public sealed class ExtractionOrchestrator
             Referencia2 = fields.AccionSolicitada ?? string.Empty,
         };
 
+        // Populate the primary SolicitudParte from the name parts and Domicilio that
+        // XmlFieldExtractor surfaces in AdditionalFields.  The FusionExpedienteService
+        // reads xml.SolicitudPartes[0] to fuse Paterno/Materno/Nombre/Domicilio into the
+        // output Expediente so BuildDescripcion in DatosCargaOficioProjection gets a value.
+        var paterno   = additional.GetValueOrDefault("Paterno");
+        var materno   = additional.GetValueOrDefault("Materno");
+        var nombre    = additional.GetValueOrDefault("Nombre");
+        var domicilio = additional.GetValueOrDefault("Domicilio");
+
+        if (paterno != null || materno != null || nombre != null || domicilio != null)
+        {
+            expediente.SolicitudPartes.Add(new SolicitudParte
+            {
+                Paterno   = paterno,
+                Materno   = materno,
+                Nombre    = nombre ?? string.Empty,
+                Domicilio = domicilio,
+            });
+        }
+
         foreach (var kvp in additional)
         {
             if (kvp.Value != null && !expediente.AdditionalFields.ContainsKey(kvp.Key))

@@ -73,6 +73,44 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
                 }
             }
 
+            // Oficio number (distinct from expediente; feeds NumeroOficio in fusion)
+            var numeroOficio = Value(root, "Cnbv_NumeroOficio");
+            if (!string.IsNullOrWhiteSpace(numeroOficio))
+            {
+                additional["NumeroOficio"] = numeroOficio;
+            }
+
+            // Primary persona (first PersonasSolicitud): Domicilio + name parts
+            var solicitudEspecificaEl = root.Element(Ns + "SolicitudEspecifica");
+            var primerPersona = solicitudEspecificaEl?.Element(Ns + "PersonasSolicitud");
+            if (primerPersona != null)
+            {
+                var domicilio = Value(primerPersona, "Domicilio");
+                if (!string.IsNullOrWhiteSpace(domicilio))
+                {
+                    additional["Domicilio"] = domicilio;
+                }
+
+                // Name parts — surfaced individually so MapExtractedFieldsToExpediente can
+                // populate SolicitudPartes[0] for the DatosCarga Descripcion column.
+                var paterno = Value(primerPersona, "Paterno");
+                var materno = Value(primerPersona, "Materno");
+                var nombre = Value(primerPersona, "Nombre");
+                if (!string.IsNullOrWhiteSpace(paterno)) additional["Paterno"] = paterno;
+                if (!string.IsNullOrWhiteSpace(materno)) additional["Materno"] = materno;
+                if (!string.IsNullOrWhiteSpace(nombre)) additional["Nombre"] = nombre;
+
+                // Composed Descripcion = "Paterno Materno Nombre" (blanks skipped)
+                var parts = new List<string>(3);
+                if (!string.IsNullOrWhiteSpace(paterno)) parts.Add(paterno!);
+                if (!string.IsNullOrWhiteSpace(materno)) parts.Add(materno!);
+                if (!string.IsNullOrWhiteSpace(nombre)) parts.Add(nombre!);
+                if (parts.Count > 0)
+                {
+                    additional["Descripcion"] = string.Join(" ", parts);
+                }
+            }
+
             // Identity: RFC variants + CURP (from complementarios)
             var rfcs = CollectRfcVariants(root);
             if (rfcs.Count > 0)
