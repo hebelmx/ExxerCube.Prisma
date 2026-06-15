@@ -31,7 +31,13 @@ public static class ServiceCollectionExtensions
         // Call services.AddAdaptiveDocxExtraction() in your API/Host Startup/Program.cs after calling AddExtractionServices()
 
         // Register generic field extractors for Story 1.3
-        // OLD (replaced by adaptive extraction): services.AddScoped<IFieldExtractor<DocxSource>, DocxFieldExtractor>();
+        // DocxFieldExtractor accepts an optional IOcrExecutor (D2 image-OCR path).
+        // The executor is resolved from the container so the existing TesseractOcrExecutor singleton/scoped
+        // instance is REUSED — do NOT new up a second engine (Tesseract same-process second-init DEADLOCK).
+        services.AddScoped<IFieldExtractor<DocxSource>>(sp =>
+            new Teseract.DocxFieldExtractor(
+                sp.GetRequiredService<ILogger<Teseract.DocxFieldExtractor>>(),
+                sp.GetService<IOcrExecutor>()));
         services.AddScoped<IFieldExtractor<PdfSource>, PdfOcrFieldExtractor>();
         // Register XML field extractor for CNBV/PRP1 structured XML documents
         services.AddScoped<IFieldExtractor<XmlSource>, XmlFieldExtractor>();

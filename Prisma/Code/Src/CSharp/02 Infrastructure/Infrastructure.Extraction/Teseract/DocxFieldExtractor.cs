@@ -7,18 +7,32 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 public class DocxFieldExtractor : IFieldExtractor<DocxSource>
 {
     private readonly ILogger<DocxFieldExtractor> _logger;
+    private readonly IOcrExecutor? _ocrExecutor;
+
+    /// <summary>
+    /// Minimum OCR confidence (0–100) required to accept a remitente name from an image.
+    /// Below this threshold the result is treated as unreliable and discarded (fail-open).
+    /// </summary>
+    internal const float MinimumRemitenteConfidence = 30f;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocxFieldExtractor"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    public DocxFieldExtractor(ILogger<DocxFieldExtractor> logger)
+    /// <param name="ocrExecutor">
+    /// Optional OCR executor used to read the signing-functionary name from embedded images (D2).
+    /// When <see langword="null"/> the image-OCR path is skipped entirely; existing text extraction
+    /// is unaffected. The injected instance MUST be the already-registered <see cref="TesseractOcrExecutor"/>
+    /// — do NOT new-up a second engine (Tesseract same-process second-init DEADLOCK).
+    /// </param>
+    public DocxFieldExtractor(ILogger<DocxFieldExtractor> logger, IOcrExecutor? ocrExecutor = null)
     {
         _logger = logger;
+        _ocrExecutor = ocrExecutor;
     }
 
     /// <inheritdoc />
-    public Task<Result<ExtractedFields>> ExtractFieldsAsync(DocxSource source, FieldDefinition[] fieldDefinitions)
+    public async Task<Result<ExtractedFields>> ExtractFieldsAsync(DocxSource source, FieldDefinition[] fieldDefinitions)
     {
         try
         {
@@ -36,14 +50,14 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
             }
             else
             {
-                return Task.FromResult(Result<ExtractedFields>.WithFailure("DOCX source must have either FileContent or valid FilePath"));
+                return Result<ExtractedFields>.WithFailure("DOCX source must have either FileContent or valid FilePath");
             }
 
             // Extract text from DOCX
             var textResult = ExtractTextFromDocx(fileContent);
             if (textResult.IsFailure)
             {
-                return Task.FromResult(Result<ExtractedFields>.WithFailure($"Failed to extract text from DOCX: {textResult.Error}"));
+                return Result<ExtractedFields>.WithFailure($"Failed to extract text from DOCX: {textResult.Error}");
             }
 
             var text = textResult.Value ?? string.Empty;
@@ -61,18 +75,30 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
                 }
             }
 
+            // D2: image-OCR path — enumerate embedded images and extract remitente name (fail-open).
+            // IOcrExecutor.ExecuteOcrAsync does not accept CancellationToken; CancellationToken not propagated.
+            if (_ocrExecutor != null)
+            {
+                var remitente = await ExtractRemitenteFromImagesAsync(fileContent).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(remitente))
+                {
+                    extractedFields.AdditionalFields["Remitente"] = remitente;
+                    _logger.LogDebug("Remitente extracted from DOCX embedded image: {Remitente}", remitente);
+                }
+            }
+
             _logger.LogDebug("Successfully extracted {Count} fields from DOCX document", fieldDefinitions.Length);
-            return Task.FromResult(Result<ExtractedFields>.Success(extractedFields));
+            return Result<ExtractedFields>.Success(extractedFields);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error extracting fields from DOCX");
-            return Task.FromResult(Result<ExtractedFields>.WithFailure($"Error extracting DOCX fields: {ex.Message}", default(ExtractedFields), ex));
+            return Result<ExtractedFields>.WithFailure($"Error extracting DOCX fields: {ex.Message}", default(ExtractedFields), ex);
         }
     }
 
     /// <inheritdoc />
-    public Task<Result<FieldValue>> ExtractFieldAsync(DocxSource source, string fieldName)
+    public async Task<Result<FieldValue>> ExtractFieldAsync(DocxSource source, string fieldName)
     {
         try
         {
@@ -90,14 +116,27 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
             }
             else
             {
-                return Task.FromResult(Result<FieldValue>.WithFailure("DOCX source must have either FileContent or valid FilePath"));
+                return Result<FieldValue>.WithFailure("DOCX source must have either FileContent or valid FilePath");
+            }
+
+            // D2: "remitente" field name routed to image-OCR path (only when executor available).
+            if (string.Equals(fieldName, "remitente", StringComparison.OrdinalIgnoreCase) && _ocrExecutor != null)
+            {
+                var remitente = await ExtractRemitenteFromImagesAsync(fileContent).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(remitente))
+                {
+                    return Result<FieldValue>.Success(
+                        new FieldValue(fieldName, remitente, MinimumRemitenteConfidence / 100f, "DOCX-Image", FieldOrigin.Docx));
+                }
+
+                return Result<FieldValue>.WithFailure("Field 'remitente' could not be read from DOCX embedded images");
             }
 
             // Extract text from DOCX
             var textResult = ExtractTextFromDocx(fileContent);
             if (textResult.IsFailure)
             {
-                return Task.FromResult(Result<FieldValue>.WithFailure($"Failed to extract text from DOCX: {textResult.Error}"));
+                return Result<FieldValue>.WithFailure($"Failed to extract text from DOCX: {textResult.Error}");
             }
 
             var text = textResult.Value ?? string.Empty;
@@ -107,17 +146,226 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
             var fieldResult = ExtractFieldByName(text, fieldName, confidence);
             if (fieldResult.IsSuccess && fieldResult.Value != null)
             {
-                return Task.FromResult(Result<FieldValue>.Success(fieldResult.Value));
+                return Result<FieldValue>.Success(fieldResult.Value);
             }
 
-            return Task.FromResult(Result<FieldValue>.WithFailure($"Field '{fieldName}' not found in DOCX document"));
+            return Result<FieldValue>.WithFailure($"Field '{fieldName}' not found in DOCX document");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error extracting field {FieldName} from DOCX", fieldName);
-            return Task.FromResult(Result<FieldValue>.WithFailure($"Error extracting field from DOCX: {ex.Message}", default(FieldValue), ex));
+            return Result<FieldValue>.WithFailure($"Error extracting field from DOCX: {ex.Message}", default(FieldValue), ex);
         }
     }
+
+    // -------------------------------------------------------------------------
+    // D2: image-OCR — remitente name extraction
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Enumerates all embedded image parts in the DOCX, runs OCR on each via the injected executor,
+    /// and returns the best-effort remitente (signing functionary) name. The method is fail-open:
+    /// any exception is caught and logged at Warning; an empty/null return means no name was found.
+    /// </summary>
+    /// <remarks>
+    /// Name-heuristic: for each OCR text result, we look for a non-empty line near an
+    /// "Atentamente" keyword (common Spanish closing). The first plausible name found wins.
+    /// A "plausible name" is a line of 2–5 words, each capitalised, with no digits and a
+    /// minimum length of 4 characters per word.
+    /// </remarks>
+    private async Task<string?> ExtractRemitenteFromImagesAsync(byte[] fileContent)
+    {
+        try
+        {
+            using var stream = new MemoryStream(fileContent);
+            using var wordDocument = WordprocessingDocument.Open(stream, false);
+
+            var mainPart = wordDocument.MainDocumentPart;
+            if (mainPart == null)
+            {
+                return null;
+            }
+
+            var imageParts = mainPart.ImageParts.ToList();
+            if (imageParts.Count == 0)
+            {
+                _logger.LogDebug("DOCX has no embedded image parts; skipping remitente OCR.");
+                return null;
+            }
+
+            for (var i = 0; i < imageParts.Count; i++)
+            {
+                var imagePart = imageParts[i];
+                var partUri = imagePart.Uri.ToString();
+
+                byte[] imageBytes;
+                try
+                {
+                    using var imageStream = imagePart.GetStream();
+                    using var ms = new MemoryStream();
+                    await imageStream.CopyToAsync(ms).ConfigureAwait(false);
+                    imageBytes = ms.ToArray();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "D2: Could not read image bytes from DOCX part {PartUri}; skipping.", partUri);
+                    continue;
+                }
+
+                if (imageBytes.Length == 0)
+                {
+                    continue;
+                }
+
+                var imageData = new ImageData(imageBytes, partUri, pageNumber: i + 1, totalPages: imageParts.Count);
+                var ocrConfig = new OCRConfig
+                {
+                    Language = "spa",
+                    OEM = 1,
+                    PSM = 6,
+                    FallbackLanguage = "eng",
+                    ConfidenceThreshold = 0.3f
+                };
+
+                Result<OCRResult> ocrResult;
+                try
+                {
+                    ocrResult = await _ocrExecutor!.ExecuteOcrAsync(imageData, ocrConfig).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "D2: OCR executor threw for DOCX image part {PartUri}; skipping.", partUri);
+                    continue;
+                }
+
+                if (!ocrResult.IsSuccess || ocrResult.Value == null)
+                {
+                    _logger.LogDebug("D2: OCR returned failure for image part {PartUri}: {Error}", partUri, ocrResult.Error);
+                    continue;
+                }
+
+                var ocr = ocrResult.Value;
+                if (ocr.ConfidenceAvg < MinimumRemitenteConfidence)
+                {
+                    _logger.LogDebug(
+                        "D2: OCR confidence {Confidence:F1} below threshold {Threshold} for image part {PartUri}; skipping.",
+                        ocr.ConfidenceAvg, MinimumRemitenteConfidence, partUri);
+                    continue;
+                }
+
+                var name = ParseRemitenteFromOcrText(ocr.Text);
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    return name;
+                }
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "D2: Unexpected error during remitente image-OCR; returning null (fail-open).");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Parses the remitente (signing-functionary) name from raw OCR text.
+    /// Strategy: prefer a capitalised name line appearing AFTER "Atentamente" (Spanish formal sign-off).
+    /// Falls back to scanning all lines for a plausible name if no Atentamente context is found.
+    /// </summary>
+    /// <returns>The best-effort name string, or <see langword="null"/> if none found.</returns>
+    public static string? ParseRemitenteFromOcrText(string? ocrText)
+    {
+        if (string.IsNullOrWhiteSpace(ocrText))
+        {
+            return null;
+        }
+
+        var lines = ocrText
+            .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(l => l.Trim())
+            .Where(l => l.Length > 0)
+            .ToList();
+
+        // Phase 1: prefer lines immediately after "Atentamente" (common Spanish formal sign-off)
+        for (var i = 0; i < lines.Count; i++)
+        {
+            if (lines[i].Contains("Atentamente", StringComparison.OrdinalIgnoreCase)
+                || lines[i].Contains("Atentamente,", StringComparison.OrdinalIgnoreCase))
+            {
+                // Check the next few lines for a plausible name
+                for (var j = i + 1; j < Math.Min(i + 4, lines.Count); j++)
+                {
+                    if (IsPlausibleName(lines[j]))
+                    {
+                        return lines[j];
+                    }
+                }
+            }
+        }
+
+        // Phase 2: fallback — scan all lines for a plausible capitalised name
+        foreach (var line in lines)
+        {
+            if (IsPlausibleName(line))
+            {
+                return line;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="line"/> looks like a Spanish full name:
+    /// 2–5 words, each at least 3 characters long, starts with an uppercase letter,
+    /// contains no digits, and does not look like a label (ends in colon / is all-caps).
+    /// </summary>
+    private static bool IsPlausibleName(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return false;
+        }
+
+        // Reject obvious non-name lines
+        if (line.EndsWith(':') || line.All(c => char.IsUpper(c) || c == ' '))
+        {
+            return false;
+        }
+
+        var words = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length < 2 || words.Length > 6)
+        {
+            return false;
+        }
+
+        foreach (var word in words)
+        {
+            // Each word must: start with uppercase, have no digits, be at least 3 chars
+            if (word.Length < 3)
+            {
+                return false;
+            }
+
+            if (!char.IsUpper(word[0]))
+            {
+                return false;
+            }
+
+            if (word.Any(char.IsDigit))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // -------------------------------------------------------------------------
+    // Text-field helpers (unchanged from D1)
+    // -------------------------------------------------------------------------
 
     private Result<string> ExtractTextFromDocx(byte[] fileContent)
     {
@@ -222,4 +470,3 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
         return match.Success && match.Groups.Count > 1 ? match.Groups[1].Value.Trim() : null;
     }
 }
-
