@@ -13,19 +13,37 @@ the "Atención a Autoridades" 7-step demo) and the product, so the full 7 steps 
 | A | Step 6 — Excel "Datos Carga de Oficio" layout produced + wired into Stage 5 | **#7** | ✅ **DONE** (cdb9d4f + hardening b6abdc6) — closed | L |
 | B | Step 3 — Manifest reconciliation (missing + extra vs expected Listado) | **#8** | ✅ **DONE** (db65f52 range + b6abdc6) — closed | M |
 | C | Step 5 — Surface cross-validation mismatch as an alertamiento | **#9** | ✅ **DONE** (395fb3c range) — closed; dashboard value-hydration deferred | M |
-| D | Step 4 — Field-extraction completeness (XML Domicilio/NumeroOficio, Descripción, Docx requerimiento regex, Word signature OCR) | **#10** | 🟡 Partial | M (image-OCR: L) |
-| E | Step 7 — Per-category sub-answer extraction | **#11** | 🟡 Categories built, sub-answers all TODO | L–XL |
+| D | Step 4 — Field-extraction completeness (XML Domicilio/NumeroOficio, Descripción, Docx requerimiento regex, Word signature OCR) | **#10** | ✅ **DONE** (D1 f7c808e + D2 c13584a) — closed | M (image-OCR: L) |
+| E | Step 7 — Per-category sub-answer extraction | **#11** | ✅ **DONE** (E1 f120e20 + E2 4768c3f) — closed | L–XL |
 | F | Step 2 — Explicit per-cycle downloaded-file list report | **#12** | ✅ **DONE** (folded into B, db65f52 range) — closed | S |
-| G | Cross-cutting — Mexican-holiday business-day calendar (conclusion date) | **#13** | 🟡 Weekend-only | S–M |
+| G | Cross-cutting — Mexican-holiday business-day calendar (conclusion date) | **#13** | ✅ **DONE** (56bc68e + wiring fix 6493d37) — closed | S–M |
 
-> **Progress — Phase 1 COMPLETE (2026-06-14, branch Kt2):** A (#7), B+F (#8/#12), C (#9) implemented, ITDD-tested,
-> ground-truth verified (build 0/0; arch 22/22), committed/pushed, issues closed. A phase-boundary adversarial
-> review (plan-completion-reviewer) caught 2 arch-guardrail Blockers + 2 wiring Majors → fixed in `b6abdc6`.
-> Per-item design notes: `ITEM-A-DATOS-CARGA-DESIGN.md`, `ITEM-BF-MANIFEST-RECONCILIATION-DESIGN.md`,
-> `ITEM-C-ALERTAMIENTO-DESIGN.md`. Known carry-overs: (C) persist UnifiedMetadataRecord to IUnifiedMetadataStore
-> for dashboard per-source conflict-value hydration; (A) classifier-driven Tipo de asunto (heuristic for now);
-> pre-existing unrelated red `IngestionHubWireTests.Broadcast_DocumentDownloadedEvent_IsReceivedByConnectedClient`
-> (SignalR, fails on clean HEAD). **Next: Phase 2 — D (#10) then G (#13).**
+> **✅ ALL 7 ITEMS COMPLETE — issues #7–#13 closed (branch Kt2, 2026-06-15).** Every item ITDD-tested and
+> ground-truth verified by the orchestrator (per-project build 0/0; architecture 22/22 throughout; targeted
+> `dotnet test` green). Two adversarial-review gates (plan-completion-reviewer) ran at the Phase 1 and Phase 2/3
+> boundaries and BOTH caught real, ground-truth-confirmed defects that were fixed: Phase 1 → 2 arch-guardrail
+> Blockers + Orion storage wiring (`b6abdc6`); Phase 2/3 → Athena Worker fusion calculator not injected =
+> weekend-only in production (`6493d37`). Phase 4 capstone (`24252e9`): a deterministic 7-step demo test over the
+> real sample corpus (`docs/legal/samples/*`) GREEN, plus the live `MaxFidelityGateE2ETests` extended to assert
+> the Datos-Carga Excel alongside SIRO XML on the real 3-process pipeline (builds; runs on a Docker+Playwright+
+> Tesseract host).
+>
+> **Owner decisions applied:** A=template-repo driven; B=config/file Listado; C=annotate+route to review;
+> D=include Word-image OCR; G=PublicHoliday `MexicoPublicHoliday` adapter; E=hybrid regex + Ollama.
+>
+> **Per-item design notes:** `ITEM-{A,BF,C,D,E,G}-*.md` in this folder.
+>
+> **Known carry-overs / deferred (logged, non-blocking):**
+> - (C) persist `UnifiedMetadataRecord` to `IUnifiedMetadataStore` so the dashboard hydrates per-source conflict
+>   *values* (today the case is flagged `FieldMismatch` + alerts live on the record).
+> - (A) classifier-driven Tipo de asunto — `ComplianceActions` aren't available at Stage 5, so it uses the
+>   documented `TieneAseguramiento`/`AreaDescripcion` heuristic (itself a `Requirements.md` signal).
+> - (E) Ollama free-text enrichment is `Enabled=false` by default + Docker-gated integration test (not run in CI);
+>   structured sub-answers run everywhere.
+> - (Minor, accepted) the `Infrastructure_Projects_Should_Not_Depend_On_Each_Other` arch test doesn't enumerate the
+>   new `Infrastructure.Calendar` shared-kernel (leaf, no cycle); adding it would false-fail the rule.
+> - Pre-existing, UNRELATED red: `IngestionHubWireTests.Broadcast_DocumentDownloadedEvent_IsReceivedByConnectedClient`
+>   (SignalR timing; fails identically on clean HEAD — not introduced by this work).
 
 ---
 
