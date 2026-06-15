@@ -1,6 +1,7 @@
 using FuzzySharp;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Domain.Sanitizers;
 using ExxerCube.Prisma.Domain.Validators;
@@ -26,18 +27,26 @@ public class FusionExpedienteService : IFusionExpediente
 {
     private readonly ILogger<FusionExpedienteService> _logger;
     private readonly FusionCoefficients _coefficients;
+    private readonly IBusinessDayCalculator? _businessDayCalculator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FusionExpedienteService"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    /// <param name="coefficients">Fusion coefficients (optional, defaults to FusionCoefficients).</param>
+    /// <param name="coefficients">Fusion coefficients (optional, defaults to <see cref="FusionCoefficients"/>).</param>
+    /// <param name="businessDayCalculator">
+    /// Optional holiday-aware business-day calculator. When provided, FechaEstimadaConclusion
+    /// is computed using Mexican federal holidays in addition to weekends. When <see langword="null"/>,
+    /// the built-in weekend-only fallback is used (backwards-compatible behaviour).
+    /// </param>
     public FusionExpedienteService(
         ILogger<FusionExpedienteService> logger,
-        FusionCoefficients? coefficients = null)
+        FusionCoefficients? coefficients = null,
+        IBusinessDayCalculator? businessDayCalculator = null)
     {
         _logger = logger;
         _coefficients = coefficients ?? new FusionCoefficients();
+        _businessDayCalculator = businessDayCalculator;
     }
 
     /// <inheritdoc />
@@ -117,7 +126,9 @@ public class FusionExpedienteService : IFusionExpediente
             // Calculate FechaEstimadaConclusion (FechaRecepcion + DiasPlazo business days)
             if (fusedExpediente.FechaRecepcion != default && fusedExpediente.DiasPlazo > 0)
             {
-                fusedExpediente.FechaEstimadaConclusion = CalculateBusinessDays(fusedExpediente.FechaRecepcion, fusedExpediente.DiasPlazo);
+                fusedExpediente.FechaEstimadaConclusion = _businessDayCalculator is not null
+                    ? _businessDayCalculator.AddBusinessDays(fusedExpediente.FechaRecepcion, fusedExpediente.DiasPlazo)
+                    : CalculateBusinessDays(fusedExpediente.FechaRecepcion, fusedExpediente.DiasPlazo);
                 _logger.LogDebug("Calculated FechaEstimadaConclusion: {FechaEstimada} (FechaRecepcion: {FechaRecepcion} + {DiasPlazo} business days)",
                     fusedExpediente.FechaEstimadaConclusion, fusedExpediente.FechaRecepcion, fusedExpediente.DiasPlazo);
             }
@@ -2771,11 +2782,12 @@ public class FusionExpedienteService : IFusionExpediente
     /// <param name="businessDays">The number of business days to add.</param>
     /// <returns>The calculated end date.</returns>
     /// <remarks>
-    /// Simplification: Only skips weekends (Saturday/Sunday).
-    /// Does not account for Mexican federal holidays.
-    /// For production, integrate with holiday calendar service.
+    /// Weekend-only fallback used when no <see cref="IBusinessDayCalculator"/> is injected.
+    /// Only skips weekends (Saturday/Sunday); does not account for Mexican federal holidays.
+    /// In production the MexicoBusinessDayCalculator adapter is injected via DI,
+    /// making this path unreachable for normal operation.
     /// </remarks>
-    private DateTime CalculateBusinessDays(DateTime startDate, int businessDays)
+    private static DateTime CalculateBusinessDays(DateTime startDate, int businessDays)
     {
         var currentDate = startDate;
         var daysAdded = 0;

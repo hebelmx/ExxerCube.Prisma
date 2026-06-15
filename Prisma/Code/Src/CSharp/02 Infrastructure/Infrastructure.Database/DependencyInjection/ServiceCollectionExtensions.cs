@@ -1,6 +1,8 @@
 using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.Calendar;
 using ExxerCube.Prisma.Infrastructure.Database.Repositories;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 
@@ -52,11 +54,25 @@ public static class ServiceCollectionExtensions
             return new Services.QueuedAuditLoggerService(processorService, scopeFactory, logger);
         });
 
+        // Register holiday-aware business-day calculator (Mexico federal holidays via PublicHoliday package).
+        // Registered as singleton — MexicoPublicHoliday is stateless calendar math, one instance per host.
+        // TryAddSingleton so a composition root that already registered IBusinessDayCalculator (e.g. when
+        // AddClassificationServices runs first) is not overwritten with a second instance.
+        services.TryAddSingleton<IBusinessDayCalculator, MexicoBusinessDayCalculator>();
+
         // Register SLA metrics collector (singleton for metrics consistency)
         services.AddSingleton<SLAMetricsCollector>();
 
-        // Register SLAEnforcerService as implementation
-        services.AddScoped<SLAEnforcerService>();
+        // Register SLAEnforcerService as implementation — inject IBusinessDayCalculator for holiday awareness.
+        services.AddScoped<SLAEnforcerService>(sp =>
+        {
+            var dbContext = sp.GetRequiredService<PrismaDbContext>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SLAEnforcerService>>();
+            var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SLAOptions>>();
+            var metricsCollector = sp.GetRequiredService<SLAMetricsCollector>();
+            var calculator = sp.GetRequiredService<IBusinessDayCalculator>();
+            return new SLAEnforcerService(dbContext, logger, options, metricsCollector, calculator);
+        });
 
         // Register ResilientSLAEnforcerService as the ISLAEnforcer interface
         // This wraps SLAEnforcerService with circuit breaker, retry, and timeout policies

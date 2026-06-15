@@ -37,6 +37,8 @@
 		<PackageVersion Include="Tesseract" Version="5.2.0" />
 		<!-- PDFtoImage for PDF rendering (cross-platform, high-level API) -->
 		<PackageVersion Include="PDFtoImage" Version="5.2.1" />
+		<!-- PublicHoliday for holiday-aware business-day calendar (Mexico federal holidays) -->
+		<PackageVersion Include="PublicHoliday" Version="3.13.0" />
 		<!-- Polly for resilience and transient-fault-handling -->
 		<PackageVersion Include="Polly" Version="8.6.6" />
 		<!-- Drawing elements  -->

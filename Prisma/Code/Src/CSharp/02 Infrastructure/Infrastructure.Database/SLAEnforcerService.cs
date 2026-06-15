@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 
 namespace ExxerCube.Prisma.Infrastructure.Database;
 
@@ -11,6 +12,7 @@ public class SLAEnforcerService : ISLAEnforcer
     private readonly ILogger<SLAEnforcerService> _logger;
     private readonly SLAOptions _options;
     private readonly SLAMetricsCollector _metricsCollector;
+    private readonly IBusinessDayCalculator? _businessDayCalculator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SLAEnforcerService"/> class.
@@ -19,16 +21,23 @@ public class SLAEnforcerService : ISLAEnforcer
     /// <param name="logger">The logger instance.</param>
     /// <param name="options">The SLA configuration options.</param>
     /// <param name="metricsCollector">The metrics collector for SLA operations.</param>
+    /// <param name="businessDayCalculator">
+    /// Optional holiday-aware business-day calculator. When provided, deadline and elapsed-day calculations
+    /// skip Mexican federal holidays in addition to weekends. When <see langword="null"/>, the built-in
+    /// weekend-only fallback methods are used (backwards-compatible behaviour).
+    /// </param>
     public SLAEnforcerService(
         PrismaDbContext dbContext,
         ILogger<SLAEnforcerService> logger,
         IOptions<SLAOptions> options,
-        SLAMetricsCollector metricsCollector)
+        SLAMetricsCollector metricsCollector,
+        IBusinessDayCalculator? businessDayCalculator = null)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _metricsCollector = metricsCollector ?? throw new ArgumentNullException(nameof(metricsCollector));
+        _businessDayCalculator = businessDayCalculator;
     }
 
     /// <inheritdoc />
@@ -63,8 +72,10 @@ public class SLAEnforcerService : ISLAEnforcer
             _logger.LogInformation("Calculating SLA status for file: {FileId}, intake date: {IntakeDate}, days plazo: {DaysPlazo}",
                 fileId, intakeDate, daysPlazo);
 
-            // Calculate deadline by adding business days (excluding weekends)
-            var deadline = AddBusinessDays(intakeDate, daysPlazo);
+            // Calculate deadline by adding business days (excluding weekends and holidays when calculator is injected)
+            var deadline = _businessDayCalculator is not null
+                ? _businessDayCalculator.AddBusinessDays(intakeDate, daysPlazo)
+                : AddBusinessDays(intakeDate, daysPlazo);
             var now = DateTime.UtcNow;
             var remainingTime = deadline > now ? deadline - now : TimeSpan.Zero;
             var isBreached = deadline <= now;
@@ -429,7 +440,9 @@ public class SLAEnforcerService : ISLAEnforcer
 
         try
         {
-            var businessDays = CalculateBusinessDays(startDate, endDate);
+            var businessDays = _businessDayCalculator is not null
+                ? _businessDayCalculator.CountBusinessDays(startDate, endDate)
+                : CalculateBusinessDays(startDate, endDate);
             return Result<int>.Success(businessDays);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -445,7 +458,9 @@ public class SLAEnforcerService : ISLAEnforcer
     }
 
     /// <summary>
-    /// Adds business days to a date, excluding weekends.
+    /// Weekend-only fallback: adds business days to a date, excluding weekends only.
+    /// Used when no <see cref="IBusinessDayCalculator"/> is injected (e.g. in unit tests that construct the
+    /// service without DI). In production the holiday-aware adapter is injected and this path is unused.
     /// </summary>
     /// <param name="startDate">The start date.</param>
     /// <param name="businessDays">The number of business days to add.</param>
@@ -469,7 +484,9 @@ public class SLAEnforcerService : ISLAEnforcer
     }
 
     /// <summary>
-    /// Calculates the number of business days between two dates, excluding weekends.
+    /// Weekend-only fallback: calculates the number of business days between two dates, excluding weekends only.
+    /// Used when no <see cref="IBusinessDayCalculator"/> is injected. In production the holiday-aware adapter
+    /// is injected and this path is unused.
     /// </summary>
     /// <param name="startDate">The start date (inclusive).</param>
     /// <param name="endDate">The end date (exclusive).</param>
