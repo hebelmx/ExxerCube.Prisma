@@ -7,6 +7,7 @@ using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.Services;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Infrastructure.Export.Adaptive;
 using Microsoft.Extensions.DependencyInjection;
@@ -157,9 +158,14 @@ public sealed class ReconciliationOrchestrator
             // so this is safe to construct directly.
             var effectiveClassification = classificationResult ?? new ClassificationResult();
 
+            // Build field-conflict alerts (alertamiento — Item C, #9) from the fusion result.
+            // FieldConflictAlertBuilder.From is pure/sync; empty when all fields agree.
+            var conflictAlerts = FieldConflictAlertBuilder.From(fusionResult);
+
             var metadata = new UnifiedMetadataRecord
             {
-                Expediente = fusionResult?.FusedExpediente
+                Expediente = fusionResult?.FusedExpediente,
+                FieldConflictAlerts = conflictAlerts,
             };
 
             using var scope = _reviewCaseScopeFactory.CreateScope();

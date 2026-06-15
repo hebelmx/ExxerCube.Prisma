@@ -66,6 +66,14 @@ public class UnifiedMetadataRecord
     public List<ComplianceAction> ComplianceActions { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the cross-document field mismatch alerts (alertamiento) produced by the fusion stage.
+    /// Non-empty when at least one field has conflicting values across document sources.
+    /// Empty when all sources agree (no alertamiento). Populated by
+    /// <c>FieldConflictAlertBuilder.From(FusionResult)</c> before <see cref="IManualReviewerPanel.IdentifyReviewCasesAsync"/>.
+    /// </summary>
+    public List<FieldConflictAlert> FieldConflictAlerts { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the validation state (warnings/missing fields) for the consolidated record.
     /// </summary>
     public ValidationState Validation { get; set; } = new();

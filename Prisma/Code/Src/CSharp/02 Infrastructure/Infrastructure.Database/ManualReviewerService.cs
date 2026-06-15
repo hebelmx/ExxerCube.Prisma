@@ -528,6 +528,66 @@ public class ManualReviewerService : IManualReviewerPanel
             }
 
             // ----------------------------------------------------------------
+            // FIELD-MISMATCH DIMENSION (alertamiento — Item C, #9)
+            // Orthogonal to confidence/ambiguity/extraction — mirrors the IncompleteCase pattern:
+            // idempotent flag when alerts are present, heal (close) when alerts are cleared.
+            // ----------------------------------------------------------------
+            var hasFieldMismatchAlerts = metadata.FieldConflictAlerts?.Count > 0;
+
+            if (hasFieldMismatchAlerts)
+            {
+                var alreadyFlaggedMismatch = existingNonCompleted
+                    .Any(c => c.RequiresReviewReason == ReviewReason.FieldMismatch);
+
+                if (!alreadyFlaggedMismatch)
+                {
+                    var mismatchCase = new ReviewCase
+                    {
+                        CaseId = $"CASE-{Guid.NewGuid():N}",
+                        FileId = fileId,
+                        RequiresReviewReason = ReviewReason.FieldMismatch,
+                        ConfidenceLevel = classification.Confidence,
+                        ClassificationAmbiguity = false,
+                        Status = ReviewStatus.Pending,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    reviewCases.Add(mismatchCase);
+                    await _dbContext.ReviewCases.AddAsync(mismatchCase, cancellationToken).ConfigureAwait(false);
+                    anyChanges = true;
+                    _logger.LogInformation(
+                        "Field-mismatch alertamiento flagged: {CaseId} for file {FileId} ({AlertCount} conflicting field(s))",
+                        mismatchCase.CaseId, fileId, metadata.FieldConflictAlerts!.Count);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Field-mismatch alertamiento already pending for file {FileId} — skipping duplicate", fileId);
+                }
+            }
+            else
+            {
+                // Heal: if alerts are now empty, close any pending FieldMismatch rows.
+                var pendingMismatch = existingNonCompleted
+                    .Where(c => c.RequiresReviewReason == ReviewReason.FieldMismatch
+                                && (c.Status == ReviewStatus.Pending || c.Status == ReviewStatus.InProgress))
+                    .ToList();
+
+                if (pendingMismatch.Count > 0)
+                {
+                    foreach (var row in pendingMismatch)
+                    {
+                        row.Status = ReviewStatus.Completed;
+                    }
+
+                    anyChanges = true;
+                    _logger.LogInformation(
+                        "Healed {Count} field-mismatch alertamiento row(s) for file {FileId} (no alerts present)",
+                        pendingMismatch.Count, fileId);
+                }
+            }
+
+            // ----------------------------------------------------------------
             // CONFIDENCE / AMBIGUITY / EXTRACTION DIMENSION
             // Dedup: only add these when NO non-Completed case of ANY kind exists yet
             // (existing guard, unchanged — only skips creation, not the incomplete heal above).
