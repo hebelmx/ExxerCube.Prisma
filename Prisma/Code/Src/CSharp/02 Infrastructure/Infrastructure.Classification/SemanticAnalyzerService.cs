@@ -82,7 +82,7 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
 
             // 1. Check for Unblock directives (HIGHEST PRIORITY)
             //    "desbloquear el aseguramiento" should be Unblock, not Block
-            DetectUnblockRequirement(documentText, semanticAnalysis);
+            DetectUnblockRequirement(documentText, semanticAnalysis, expediente?.NumeroExpediente);
 
             // 2. Check for Block directives
             DetectBlockRequirement(documentText, semanticAnalysis);
@@ -136,19 +136,23 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
                 matchedPhrase,
                 confidence);
 
-            analysis.RequiereBloqueo = new BloqueoRequirement
+            var bloqueo = new BloqueoRequirement
             {
                 EsRequerido = true,
                 Confidence = confidence
-                // TODO: Extract specific details (accounts, amounts) in future enhancement
             };
+            RequirementDetailExtractor.PopulateBloqueo(documentText, bloqueo);
+            analysis.RequiereBloqueo = bloqueo;
         }
     }
 
     /// <summary>
     /// Detects Unblock (asset unfreeze) requirements using fuzzy phrase matching.
     /// </summary>
-    private void DetectUnblockRequirement(string documentText, SemanticAnalysis analysis)
+    private void DetectUnblockRequirement(
+        string documentText,
+        SemanticAnalysis analysis,
+        string? currentExpedienteId)
     {
         var (matched, confidence, matchedPhrase) = FindBestPhraseMatch(
             documentText,
@@ -161,12 +165,16 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
                 matchedPhrase,
                 confidence);
 
-            analysis.RequiereDesbloqueo = new DesbloqueoRequirement
+            var desbloqueo = new DesbloqueoRequirement
             {
                 EsRequerido = true,
                 Confidence = confidence
-                // TODO: Extract expediente reference in future enhancement
             };
+            RequirementDetailExtractor.PopulateDesbloqueo(
+                documentText,
+                currentExpedienteId,
+                desbloqueo);
+            analysis.RequiereDesbloqueo = desbloqueo;
         }
     }
 
@@ -186,12 +194,13 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
                 matchedPhrase,
                 confidence);
 
-            analysis.RequiereDocumentacion = new DocumentacionRequirement
+            var documentacion = new DocumentacionRequirement
             {
                 EsRequerido = true,
                 Confidence = confidence
-                // TODO: Extract document types in future enhancement
             };
+            RequirementDetailExtractor.PopulateDocumentacion(documentText, documentacion);
+            analysis.RequiereDocumentacion = documentacion;
         }
     }
 
@@ -211,12 +220,13 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
                 matchedPhrase,
                 confidence);
 
-            analysis.RequiereTransferencia = new TransferenciaRequirement
+            var transferencia = new TransferenciaRequirement
             {
                 EsRequerido = true,
                 Confidence = confidence
-                // TODO: Extract destination account, amount in future enhancement
             };
+            RequirementDetailExtractor.PopulateTransferencia(documentText, transferencia);
+            analysis.RequiereTransferencia = transferencia;
         }
     }
 
@@ -236,12 +246,13 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
                 matchedPhrase,
                 confidence);
 
-            analysis.RequiereInformacionGeneral = new InformacionGeneralRequirement
+            var informacion = new InformacionGeneralRequirement
             {
                 EsRequerido = true,
                 Confidence = confidence
-                // TODO: Extract information description in future enhancement
             };
+            RequirementDetailExtractor.PopulateInformacion(documentText, informacion);
+            analysis.RequiereInformacionGeneral = informacion;
         }
     }
 
