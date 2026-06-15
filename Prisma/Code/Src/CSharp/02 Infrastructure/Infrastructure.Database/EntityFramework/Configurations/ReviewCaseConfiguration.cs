@@ -59,11 +59,11 @@ public class ReviewCaseConfiguration : IEntityTypeConfiguration<ReviewCase>
         builder.Property(c => c.CreatedAt)
             .IsRequired();
 
-        // Foreign key relationship to FileMetadata
-        builder.HasOne<FileMetadata>()
-            .WithMany()
-            .HasForeignKey(c => c.FileId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // No referential constraint to FileMetadata: worker processes (the 3-process split) persist
+        // ReviewCases keyed by FileId BEFORE a FileMetadata row exists, so an FK caused every worker
+        // INSERT to fail and the review case to be silently dropped (fail-open) — the dashboard then
+        // showed nothing from the real pipeline. FileId stays a plain indexed column. This mirrors the
+        // owner-approved decision already applied to AuditRecords (see DropAuditFileMetadataFk).
 
         // Indexes for performance
         builder.HasIndex(c => c.FileId)
