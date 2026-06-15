@@ -156,11 +156,12 @@ cd "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI"; dotnet run
 
 ## Capture 3 — Etapa 3: Layout SIRO "Datos Carga de Oficio" (Paso 6, ~3 min)
 
-> ⚠️ **Do NOT use the `/export-management` page for this.** Its "Excel FR18" button calls the
-> legacy 12-column `ExcelLayoutGenerator` with **placeholder** metadata (`FileId` as expediente,
-> `"SYSTEM"` as authority) — it would show empty/wrong values on camera. The correct **24-column
-> "Datos Carga de Oficio"** layout is produced only by the **Reconciliator/Athena pipeline
-> (Stage 5b)** and written to `exports/{fileId}.datos-carga-oficio.xlsx` under `Storage:BasePath`.
+> ✅ **Fixed (GH #14):** `/export-management` → "Datos Carga de Oficio (Excel)" now calls the real
+> 24-column `DatosCargaOficioLayoutGenerator`, hydrating the **real** consolidated metadata from
+> `IUnifiedMetadataStore` (keyed by FileId). It no longer fabricates placeholder values — if a case
+> hasn't been processed through the pipeline yet, it fails with a clear message instead of producing
+> a wrong file. **For the demo, prefer the pipeline artifact** (below) for guaranteed reliability;
+> the in-UI download is now a correct secondary path once the case has been processed.
 
 **Faithful source — pick one:**
 
@@ -249,11 +250,13 @@ días hábiles + recepción, holiday-aware via the Mexican-holiday calendar); **
 | 3 Cotejo listado | `ManifestReconciliationService` (Missing/Extra/Partial) | Orion worker; 777XXX/555CCC pair | ✅ live |
 | 4 Extracción | XML/PDF/DOCX extractors (incl. Word signature-image OCR) | `/document-processing` | ✅ live |
 | 5 Validación cruzada → alertamiento | fusion conflict → `FieldConflictAlert` / `ReviewReason.FieldMismatch` | `/manual-review/{id}` warning banner | ✅ live |
-| 6 Layout Datos Carga de Oficio (24 col) | `DatosCargaOficioLayoutGenerator`, pipeline Stage 5b | xlsx artifact opened in Excel | ⚠️ artifact (NOT the `/export-management` button) |
+| 6 Layout Datos Carga de Oficio (24 col) | `DatosCargaOficioLayoutGenerator`, pipeline Stage 5b + `/export-management` (GH #14) | xlsx artifact opened in Excel (UI download is a correct secondary path post-processing) | ✅ pipeline; UI fixed |
 | 7 Resumen 5 apartados | `SemanticAnalyzerService` | `/oficio-summary` live page (built 2026-06-15) | ✅ live |
 
 **Integrity note for whoever films:**
-1. `/export-management` "Excel FR18" ≠ the client's layout (legacy 12-col generator + placeholder
-   data). Use the **pipeline xlsx** `exports/{id}.datos-carga-oficio.xlsx` (Capture 3).
+1. `/export-management` "Datos Carga de Oficio (Excel)" now produces the real 24-column layout
+   (GH #14 fixed) — but it needs the case to have been **processed** (metadata in
+   `IUnifiedMetadataStore`); otherwise it fails cleanly. For a guaranteed take, use the **pipeline
+   xlsx** `exports/{id}.datos-carga-oficio.xlsx` (Capture 3).
 </content>
 </invoke>

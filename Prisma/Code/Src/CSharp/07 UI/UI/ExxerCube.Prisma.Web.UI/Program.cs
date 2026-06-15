@@ -293,7 +293,11 @@ Inner Stack Trace:
         // Add Story 1.7 & 1.8 services: Export Generation (SIRO XML, Excel, PDF Signing)
         services.AddExportServices(configuration);
         services.AddAdaptiveExportServices(applicationConnectionString);
-        // Legacy ExportService (still used by ExportManagement.razor)
+        // "Datos Carga de Oficio" 24-column layout generator (checklist Paso 6) — used by
+        // ExportManagement.razor for the real SIRO load layout (GH #14). Scoped so it can consume
+        // the scoped ITemplateRepository registered by AddAdaptiveExportServices.
+        services.AddDatosCargaOficioExportServices(ServiceLifetime.Scoped);
+        // Legacy ExportService (still used by ExportManagement.razor for SIRO XML + signed PDF)
         services.AddScoped<ExxerCube.Prisma.Application.Services.ExportService>();
 
         // Add Story 1.9 services: Audit Reporting

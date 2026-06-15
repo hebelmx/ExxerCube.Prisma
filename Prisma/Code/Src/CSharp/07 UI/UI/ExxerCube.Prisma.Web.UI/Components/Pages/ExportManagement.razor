@@ -12,6 +12,8 @@
 @attribute [Authorize]
 
 @inject ExportService ExportService
+@inject IUnifiedMetadataStore UnifiedMetadataStore
+@inject IDatosCargaOficioLayoutGenerator DatosCargaGenerator
 @inject FileMetadataQueryService FileMetadataQueryService
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
@@ -102,13 +104,13 @@
                             <MudRadio T="ExportFormat" Value="@ExportFormat.SiroXml" Color="Color.Primary" HelperText="Regulatory-compliant XML format for SIRO submission">
                                 SIRO XML
                             </MudRadio>
-                            <MudRadio T="ExportFormat" Value="@ExportFormat.ExcelFr18" Color="Color.Primary" HelperText="Excel layout for SIRO registration systems">
-                                Excel FR18
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.ExcelFr18" Color="Color.Primary" HelperText="Layout SIRO de 24 columnas 'Datos Carga de Oficio'">
+                                Datos Carga de Oficio (Excel)
                             </MudRadio>
                             <MudRadio T="ExportFormat" Value="@ExportFormat.Pdf" Color="Color.Primary" HelperText="Cryptographically signed PDF with requirement summarization">
                                 Signed PDF
                             </MudRadio>
-                            <MudRadio T="ExportFormat" Value="@ExportFormat.Both" Color="Color.Primary" HelperText="Generate both SIRO XML and Excel FR18">
+                            <MudRadio T="ExportFormat" Value="@ExportFormat.Both" Color="Color.Primary" HelperText="Generate both SIRO XML and the Datos Carga de Oficio layout">
                                 Both Formats (XML + Excel)
                             </MudRadio>
                         </MudRadioGroup>
@@ -538,8 +540,25 @@
 
             foreach (var fileMetadata in selectedCases)
             {
-                // Create minimal UnifiedMetadataRecord from FileMetadata
-                var metadata = CreateUnifiedMetadataRecord(fileMetadata);
+                // Hydrate the REAL consolidated metadata persisted by the pipeline (keyed by FileId).
+                // We never fabricate placeholder values — if the case has not been processed yet, fail
+                // this export with an actionable message instead of producing a wrong/empty layout (GH #14).
+                var metadataResult = await UnifiedMetadataStore.GetByFileIdAsync(
+                    fileMetadata.FileId, CancellationToken.None);
+
+                if (metadataResult.IsFailure || metadataResult.Value is null)
+                {
+                    job.Status = "Failed";
+                    job.ErrorMessage =
+                        $"No hay metadatos procesados para el caso {fileMetadata.FileId}. " +
+                        "Procese el caso en el pipeline (extracción + reconciliación) antes de exportar.";
+                    job.CompletedAt = DateTime.UtcNow;
+                    StateHasChanged();
+                    Snackbar.Add(job.ErrorMessage, Severity.Error);
+                    return;
+                }
+
+                var metadata = metadataResult.Value;
 
                 // Generate exports based on selected format
                 if (exportFormat == ExportFormat.SiroXml || exportFormat == ExportFormat.Both)
@@ -576,16 +595,16 @@
                     StateHasChanged();
 
                     using var excelStream = new MemoryStream();
-                    var excelResult = await ExportService.GenerateExcelLayoutAsync(
+                    // Real 24-column "Datos Carga de Oficio" layout (GH #14) — NOT the legacy
+                    // ExcelLayoutGenerator. Driven by the hydrated UnifiedMetadataRecord.
+                    var excelResult = await DatosCargaGenerator.GenerateAsync(
                         metadata,
                         excelStream,
-                        fileMetadata.FileId,
-                        correlationId,
                         CancellationToken.None);
 
                     if (excelResult.IsSuccess)
                     {
-                        job.GeneratedFiles[$"{fileMetadata.FileId}_fr18.xlsx"] = excelStream.ToArray();
+                        job.GeneratedFiles[$"{fileMetadata.FileId}.datos-carga-oficio.xlsx"] = excelStream.ToArray();
                     }
                     else if (excelResult.IsFailure)
                     {
@@ -655,33 +674,14 @@
         }
     }
 
-    private UnifiedMetadataRecord CreateUnifiedMetadataRecord(FileMetadata fileMetadata)
-    {
-        // Create minimal Expediente from FileMetadata
-        // In a real scenario, this would query the database for full Expediente data
-        var expediente = new Expediente
-        {
-            NumeroExpediente = fileMetadata.FileId, // Using FileId as expediente number for now
-            NumeroOficio = fileMetadata.FileName, // Using filename as oficio number for now
-            FechaPublicacion = fileMetadata.DownloadTimestamp,
-            AreaDescripcion = "EXPORT",
-            AutoridadNombre = "SYSTEM"
-        };
-
-        return new UnifiedMetadataRecord
-        {
-            Expediente = expediente
-        };
-    }
-
     private List<string> GetFormatsList()
     {
         return exportFormat switch
         {
             ExportFormat.SiroXml => new List<string> { "SIRO XML" },
-            ExportFormat.ExcelFr18 => new List<string> { "Excel FR18" },
+            ExportFormat.ExcelFr18 => new List<string> { "Datos Carga de Oficio" },
             ExportFormat.Pdf => new List<string> { "Signed PDF" },
-            ExportFormat.Both => new List<string> { "SIRO XML", "Excel FR18" },
+            ExportFormat.Both => new List<string> { "SIRO XML", "Datos Carga de Oficio" },
             _ => new List<string>()
         };
     }
@@ -792,7 +792,7 @@
         return format switch
         {
             "SIRO XML" => Color.Primary,
-            "Excel FR18" => Color.Secondary,
+            "Datos Carga de Oficio" => Color.Secondary,
             "Signed PDF" => Color.Error,
             "PDF" => Color.Error,
             _ => Color.Default
