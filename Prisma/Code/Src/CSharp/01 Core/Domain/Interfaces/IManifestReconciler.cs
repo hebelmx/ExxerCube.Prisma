@@ -1,6 +1,6 @@
-using System.Collections.Generic;
+using ExxerCube.Prisma.Domain.Services.Manifest;
 
-namespace ExxerCube.Prisma.Domain.Services.Manifest;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
 /// Pure domain service that reconciles a set of discovered SIARA cases against the operator-supplied
@@ -19,7 +19,7 @@ public interface IManifestReconciler
     /// flat downloaded-file list (F).
     /// </summary>
     /// <param name="expected">
-    /// The expected manifest loaded for this cycle. Use <see cref="ExpectedManifest.Empty"/> when no
+    /// The expected manifest loaded for this cycle. Use <c>ExpectedManifest.Empty</c> when no
     /// manifest is configured — every discovered oficio will land in <em>Extra</em>.
     /// </param>
     /// <param name="actual">The oficios discovered (and partially downloaded) during this cycle.</param>

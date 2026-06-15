@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 
 namespace ExxerCube.Prisma.Domain.Services.Manifest;
 

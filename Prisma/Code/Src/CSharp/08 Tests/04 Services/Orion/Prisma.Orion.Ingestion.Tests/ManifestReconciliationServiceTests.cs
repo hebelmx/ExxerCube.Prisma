@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Services.Manifest;
 
 namespace ExxerCube.Prisma.Orion.Ingestion.Tests;

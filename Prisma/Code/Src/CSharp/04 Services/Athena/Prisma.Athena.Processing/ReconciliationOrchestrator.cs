@@ -306,6 +306,13 @@ public sealed class ReconciliationOrchestrator
         _logger.LogInformation("Stage 5: SIRO XML Export - FileId: {FileId}", fileId);
 
         // Build the UnifiedMetadataRecord wrapper that SiroXmlExporter expects (MVP-PATH #8 §2.1).
+        // NOTE (ComplianceActions — Task 4): ComplianceActions are NOT available at this stage. Neither
+        // ClassificationResult nor FusionResult carries them; they are populated in the Application layer
+        // (FieldMatchingService / ExportService) which does not run in the Reconciliator path. As a result
+        // DatosCargaOficioProjection.From() falls back to the TieneAseguramiento/AreaDescripcion heuristics
+        // for TipoAsunto derivation. Threading ComplianceActions here would require either (a) adding them
+        // to FusionResult/ClassificationResult (domain change) or (b) running the Application-layer
+        // field-matching step before export. Deferred as a post-MVP improvement.
         var metadata = new UnifiedMetadataRecord { Expediente = fusionResult.FusedExpediente };
 
         // Export to an in-memory stream; ExportedSizeBytes is captured for the event (R4: file

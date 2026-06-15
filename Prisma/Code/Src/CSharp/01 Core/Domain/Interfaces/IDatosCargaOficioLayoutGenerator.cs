@@ -1,20 +1,14 @@
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using ExxerCube.Prisma.Domain.ValueObjects;
-using IndQuestResults;
-
-namespace ExxerCube.Prisma.Infrastructure.Export.Adaptive;
+namespace ExxerCube.Prisma.Domain.Interfaces;
 
 /// <summary>
 /// Generates the "Datos Carga de Oficio" Excel workbook (24 columns) from a
 /// <see cref="UnifiedMetadataRecord"/> using a template-driven layout.
 /// </summary>
 /// <remarks>
-/// Column layout is defined by <see cref="DatosCargaOficioTemplate.Default"/> and can be
-/// overridden via <see cref="ExxerCube.Prisma.Domain.Interfaces.ITemplateRepository"/>
+/// Column layout is defined by the built-in DatosCargaOficioTemplate.Default and can be
+/// overridden via <see cref="ITemplateRepository"/>
 /// (type key <c>"DatosCargaOficio"</c>). Fixed values are carried as
-/// <see cref="ExxerCube.Prisma.Domain.ValueObjects.FieldMapping.DefaultValue"/> entries in the
+/// <see cref="FieldMapping.DefaultValue"/> entries in the
 /// template so they are config-editable without code changes.
 /// </remarks>
 public interface IDatosCargaOficioLayoutGenerator

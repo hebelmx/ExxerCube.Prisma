@@ -827,6 +827,12 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
             "ExxerCube.Prisma.Domain.Interfaces.IEnumModel",
             "ExxerCube.Prisma.Domain.Interfaces.ILookupEntity",
             "ExxerCube.Prisma.Domain.Interfaces.ILookUpTable",
+            // IManifestReconciler: implemented by ManifestReconciliationService, which is a pure
+            // synchronous Domain value-object service (no I/O). It lives in Domain.Services.Manifest by
+            // design (co-located with its model types ExpectedManifest/DiscoveredOficio) and is
+            // deliberately NOT in Infrastructure. The arch test's implementation search covers only
+            // Infrastructure + Service + Application assemblies, not the Domain assembly itself.
+            "ExxerCube.Prisma.Domain.Interfaces.IManifestReconciler",
             // Intentional domain-only ports pending adapters
             //"ExxerCube.Prisma.Domain.Interfaces.IFilterSelectionStrategy",
             //"ExxerCube.Prisma.Domain.Interfaces.IImageEnhancementFilter",

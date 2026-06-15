@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Services.Manifest;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.FileSystem;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
@@ -189,6 +190,13 @@ builder.Services.Configure<ExpectedManifestOptions>(
     builder.Configuration.GetSection(ExpectedManifestOptions.SectionName));
 builder.Services.AddSingleton<IExpectedManifestProvider, FileExpectedManifestProvider>();
 builder.Services.AddSingleton<IManifestReconciler, ManifestReconciliationService>();
+
+// Shared document storage (ADR-011): the Downloader mounts its own storage base and emits only the
+// relative path on the event. IStoragePathResolver turns that relative path into a locally-loadable
+// absolute path for the cycle-report persist step in SiaraWatchLoop (and any downstream consumer).
+builder.Services.Configure<StorageOptions>(
+    builder.Configuration.GetSection(StorageOptions.SectionName));
+builder.Services.AddSingleton<IStoragePathResolver, SharedStoragePathResolver>();
 
 builder.Services.AddSingleton<SiaraWatchLoop>();
 builder.Services.AddHostedService<OrionWorkerService>();
