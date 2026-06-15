@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Infrastructure.Calendar;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
 
@@ -31,8 +32,39 @@ public static class ServiceCollectionExtensions
         // Register identity resolution service
         services.AddScoped<IPersonIdentityResolver, PersonIdentityResolverService>();
 
-        // Register semantic analyzer service with fuzzy phrase matching
-        services.AddScoped<ISemanticAnalyzer, SemanticAnalyzerService>();
+        // Register Ollama LLM client (typed HttpClient + options).
+        // OllamaHttpClient is always registered; the SemanticAnalyzerService checks OllamaOptions.Enabled
+        // at call time, so environments without a running Ollama instance are unaffected.
+        if (configuration != null)
+        {
+            var ollamaSection = configuration.GetSection(OllamaOptions.SectionName);
+            if (ollamaSection.Exists())
+            {
+                services.Configure<OllamaOptions>(ollamaSection);
+            }
+            else
+            {
+                services.Configure<OllamaOptions>(_ => { }); // defaults (Enabled=false)
+            }
+        }
+        else
+        {
+            services.Configure<OllamaOptions>(_ => { }); // defaults (Enabled=false)
+        }
+
+        services.AddHttpClient<OllamaHttpClient>();
+        services.AddScoped<IOllamaClient>(sp => sp.GetRequiredService<OllamaHttpClient>());
+
+        // Register semantic analyzer service with fuzzy phrase matching and optional LLM enrichment.
+        // IOllamaClient is resolved from DI; when Enabled=false in OllamaOptions the service no-ops.
+        services.AddScoped<ISemanticAnalyzer>(sp =>
+        {
+            var textComparer = sp.GetRequiredService<ITextComparer>();
+            var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<SemanticAnalyzerService>>();
+            var ollamaClient = sp.GetRequiredService<IOllamaClient>();
+            var ollamaOptions = sp.GetRequiredService<IOptions<OllamaOptions>>();
+            return new SemanticAnalyzerService(textComparer, logger, ollamaClient, ollamaOptions);
+        });
 
         // Register adapter that bridges ILegalDirectiveClassifier → ISemanticAnalyzer
         // This allows DecisionLogicService to use the new fuzzy matching implementation

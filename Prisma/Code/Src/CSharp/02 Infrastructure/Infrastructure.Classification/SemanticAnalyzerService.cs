@@ -7,6 +7,7 @@ using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndQuestResults;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification;
 
@@ -36,35 +37,59 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
 {
     private readonly ITextComparer _textComparer;
     private readonly ILogger<SemanticAnalyzerService> _logger;
+    private readonly IOllamaClient? _ollamaClient;
+    private readonly OllamaOptions _ollamaOptions;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SemanticAnalyzerService"/> class.
+    /// Grounded prompt used to ask the LLM what information the authority requests.
+    /// The document text is appended before this question at call time.
+    /// </summary>
+    internal const string InformacionLlmQuestion =
+        "\n\n¿Qué información solicita la autoridad en este oficio? " +
+        "Responde solo con la información solicitada, en una o dos oraciones breves.";
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SemanticAnalyzerService"/> class
+    /// with an optional <see cref="IOllamaClient"/> for LLM-based enrichment of interpreted fields.
     /// </summary>
     /// <param name="textComparer">Text comparer for fuzzy phrase matching.</param>
     /// <param name="logger">Logger instance.</param>
+    /// <param name="ollamaClient">
+    /// Optional Ollama LLM client.  When <see langword="null"/> or when
+    /// <see cref="OllamaOptions.Enabled"/> is <see langword="false"/> the analyzer runs in
+    /// structured-only mode (E1 result) and never calls the LLM.
+    /// </param>
+    /// <param name="ollamaOptions">
+    /// Ollama configuration (Enabled, Endpoint, Model, Timeout).
+    /// Defaults to a disabled instance when not supplied.
+    /// </param>
     public SemanticAnalyzerService(
         ITextComparer textComparer,
-        ILogger<SemanticAnalyzerService> logger)
+        ILogger<SemanticAnalyzerService> logger,
+        IOllamaClient? ollamaClient = null,
+        IOptions<OllamaOptions>? ollamaOptions = null)
     {
         _textComparer = textComparer;
         _logger = logger;
+        _ollamaClient = ollamaClient;
+        _ollamaOptions = ollamaOptions?.Value ?? new OllamaOptions();
     }
 
     /// <inheritdoc />
-    public Task<Result<SemanticAnalysis>> AnalyzeDirectivesAsync(
+    public async Task<Result<SemanticAnalysis>> AnalyzeDirectivesAsync(
         string documentText,
         Expediente? expediente = null,
         CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
         {
-            return Task.FromResult(Result<SemanticAnalysis>.WithFailure("Operation was cancelled."));
+            return Result<SemanticAnalysis>.WithFailure("Operation was cancelled.");
         }
 
         if (string.IsNullOrWhiteSpace(documentText))
         {
             _logger.LogWarning("Document text cannot be null or empty for semantic analysis");
-            return Task.FromResult(Result<SemanticAnalysis>.WithFailure("Document text cannot be null or empty."));
+            return Result<SemanticAnalysis>.WithFailure("Document text cannot be null or empty.");
         }
 
         try
@@ -96,6 +121,21 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
             // 5. Check for Information directives (LOWEST PRIORITY - catch-all)
             DetectInformationRequirement(documentText, semanticAnalysis);
 
+            // E2: LLM enrichment — only for Información interpreted free-text,
+            // only when a client is wired, the feature is enabled, the requirement
+            // was detected, and E1 left InformacionSolicitada empty/weak.
+            if (_ollamaClient != null
+                && _ollamaOptions.Enabled
+                && semanticAnalysis.RequiereInformacionGeneral != null
+                && string.IsNullOrWhiteSpace(semanticAnalysis.RequiereInformacionGeneral.InformacionSolicitada))
+            {
+                await EnrichInformacionWithLlmAsync(
+                    documentText,
+                    semanticAnalysis.RequiereInformacionGeneral,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             // Log results
             var detectedRequirements = CountDetectedRequirements(semanticAnalysis);
             _logger.LogDebug(
@@ -108,15 +148,61 @@ public class SemanticAnalyzerService : ISemanticAnalyzer
                 semanticAnalysis.RequiereTransferencia != null ? 1 : 0,
                 semanticAnalysis.RequiereInformacionGeneral != null ? 1 : 0);
 
-            return Task.FromResult(Result<SemanticAnalysis>.Success(semanticAnalysis));
+            return Result<SemanticAnalysis>.Success(semanticAnalysis);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error analyzing legal directives");
-            return Task.FromResult(Result<SemanticAnalysis>.WithFailure(
+            return Result<SemanticAnalysis>.WithFailure(
                 $"Error analyzing legal directives: {ex.Message}",
                 default(SemanticAnalysis),
-                ex));
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Calls the LLM with a grounded prompt to fill <see cref="InformacionGeneralRequirement.InformacionSolicitada"/>
+    /// when E1 left it empty. Fails-open: any error is logged and the structured result is kept unchanged.
+    /// The LLM NEVER overwrites a confidently-extracted structured value; this method is only called
+    /// when the field is empty after structured extraction.
+    /// </summary>
+    private async Task EnrichInformacionWithLlmAsync(
+        string documentText,
+        InformacionGeneralRequirement requirement,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Truncate very long documents to stay within reasonable token budgets
+            const int MaxDocChars = 4000;
+            var docExcerpt = documentText.Length > MaxDocChars
+                ? documentText[..MaxDocChars]
+                : documentText;
+
+            var prompt = docExcerpt + InformacionLlmQuestion;
+
+            _logger.LogDebug("Calling Ollama LLM to enrich InformacionSolicitada ({DocChars} chars).", docExcerpt.Length);
+
+            var llmResult = await _ollamaClient!.GenerateAsync(prompt, cancellationToken).ConfigureAwait(false);
+
+            if (llmResult.IsSuccess && !string.IsNullOrWhiteSpace(llmResult.Value))
+            {
+                requirement.InformacionSolicitada = llmResult.Value!.Trim();
+                _logger.LogInformation(
+                    "LLM enriched InformacionSolicitada ({Length} chars).",
+                    requirement.InformacionSolicitada.Length);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "LLM enrichment failed or returned empty (fail-open): {Error}",
+                    llmResult.IsFailure ? llmResult.Error : "empty response");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fail-open: keep E1 result, do not rethrow.
+            _logger.LogWarning(ex, "LLM enrichment threw unexpectedly (fail-open); E1 result kept.");
         }
     }
 
