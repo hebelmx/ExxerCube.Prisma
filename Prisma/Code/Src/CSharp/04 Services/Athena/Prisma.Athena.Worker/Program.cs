@@ -9,6 +9,7 @@ using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using ExxerCube.Prisma.Infrastructure.Calendar;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
@@ -74,7 +75,13 @@ builder.Services.AddSingleton<IPdfToImageConverter, PdfToImageConverter>();
 builder.Services.AddSingleton<IFileLoader, FileSystemLoader>();
 builder.Services.AddSingleton<IImageQualityAnalyzer, PolynomialImageQualityAnalyzer>();
 builder.Services.AddSingleton<IOcrExecutor, TesseractOcrExecutor>();
-builder.Services.AddSingleton<IFusionExpediente, FusionExpedienteService>();
+// Holiday-aware business-day calculator (Item G #13): inject IBusinessDayCalculator into
+// FusionExpediente so FechaEstimadaConclusion accounts for Mexican federal holidays, not
+// just weekends. Without this the optional ctor param defaults to null → weekend-only fallback.
+builder.Services.AddSingleton<IBusinessDayCalculator, MexicoBusinessDayCalculator>();
+builder.Services.AddSingleton<IFusionExpediente>(sp => new FusionExpedienteService(
+    sp.GetRequiredService<ILogger<FusionExpedienteService>>(),
+    businessDayCalculator: sp.GetRequiredService<IBusinessDayCalculator>()));
 builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
 // The Extractor (Athena Worker) does NOT run Stage 5 export — export is handled exclusively by the
 // Reconciliator process (3-process split, ADR-011). ProcessingOrchestrator takes IResponseExporter?
