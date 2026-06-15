@@ -10,6 +10,11 @@ namespace Prisma.Orion.Ingestion;
 /// <param name="FileSizeBytes">Size of the file in bytes.</param>
 /// <param name="CorrelationId">End-to-end correlation identifier for tracing.</param>
 /// <param name="WasDuplicate">True if the document was a duplicate (idempotent skip), false if newly ingested.</param>
+/// <param name="IsComplete">
+/// True when all companion files that were discovered for the case were also downloaded successfully.
+/// Mirrors the same flag emitted on <c>DocumentDownloadedEvent</c>. Used by the per-cycle
+/// reconciliation report (Item B #8 + F #12) in the watch loop.
+/// </param>
 public sealed record IngestionResult(
     Guid FileId,
     string FileName,
@@ -17,4 +22,5 @@ public sealed record IngestionResult(
     string StoredPath,
     long FileSizeBytes,
     Guid CorrelationId,
-    bool WasDuplicate);
+    bool WasDuplicate,
+    bool IsComplete = true);

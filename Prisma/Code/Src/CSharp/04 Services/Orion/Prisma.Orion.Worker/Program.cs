@@ -2,6 +2,7 @@ using System.Text;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Domain.Services.Manifest;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
@@ -181,6 +182,14 @@ builder.Services.AddScoped<IngestionOrchestrator>(sp =>
 // discovery scope + a fresh scope per document). Driven by the hosted worker.
 builder.Services.Configure<WatchLoopOptions>(
     builder.Configuration.GetSection(WatchLoopOptions.SectionName));
+
+// Per-cycle manifest reconciliation (Item B #8 + F #12): opt-in via ExpectedManifest:Enabled=true.
+// When disabled (default), the watch loop behaves exactly as before.
+builder.Services.Configure<ExpectedManifestOptions>(
+    builder.Configuration.GetSection(ExpectedManifestOptions.SectionName));
+builder.Services.AddSingleton<IExpectedManifestProvider, FileExpectedManifestProvider>();
+builder.Services.AddSingleton<IManifestReconciler, ManifestReconciliationService>();
+
 builder.Services.AddSingleton<SiaraWatchLoop>();
 builder.Services.AddHostedService<OrionWorkerService>();
 

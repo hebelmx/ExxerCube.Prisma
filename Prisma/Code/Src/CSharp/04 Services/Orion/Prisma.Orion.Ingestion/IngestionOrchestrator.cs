@@ -346,7 +346,8 @@ public class IngestionOrchestrator
                 StoredPath: primaryRelativePath ?? string.Empty,
                 FileSizeBytes: primarySizeBytes,
                 CorrelationId: correlationId,
-                WasDuplicate: true));
+                WasDuplicate: true,
+                IsComplete: true)); // Duplicate: the case was fully seen before.
         }
 
         // Post-write flush delay: give the filesystem time to flush before the Extractor acts on the event.
@@ -402,7 +403,8 @@ public class IngestionOrchestrator
             StoredPath: primaryRelativePath ?? string.Empty,
             FileSizeBytes: primarySizeBytes,
             CorrelationId: correlationId,
-            WasDuplicate: false));
+            WasDuplicate: false,
+            IsComplete: evt.IsComplete));
     }
 
     // -------------------------------------------------------------------------
