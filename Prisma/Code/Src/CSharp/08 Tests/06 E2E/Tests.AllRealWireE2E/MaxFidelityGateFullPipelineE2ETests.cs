@@ -179,12 +179,14 @@ public sealed class MaxFidelityGateFullPipelineE2ETests : MaxFidelityGateE2EBase
             .ShouldNotBeNullOrWhiteSpace("NumeroExpediente must be populated in the SIRO XML from the fused expediente");
         siroDoc.Root.Element(siroNs + "NumeroOficio")!.Value
             .ShouldNotBeNullOrWhiteSpace("NumeroOficio must be populated in the SIRO XML from the fused expediente");
-        // At least one of the descriptive elements must be present.
-        var hasDescriptiveElement =
-            siroDoc.Root.Element(siroNs + "AreaDescripcion") is not null ||
-            siroDoc.Root.Element(siroNs + "AutoridadNombre") is not null;
-        hasDescriptiveElement.ShouldBeTrue(
-            "SIRO XML must contain at least one descriptive element (AreaDescripcion or AutoridadNombre)");
+        // At least one descriptive element must carry a NON-EMPTY value (both are always emitted, so
+        // existence proves nothing — a populated value proves real fused data reached the export).
+        var areaDescripcion = siroDoc.Root.Element(siroNs + "AreaDescripcion")?.Value;
+        var autoridadNombre = siroDoc.Root.Element(siroNs + "AutoridadNombre")?.Value;
+        (!string.IsNullOrWhiteSpace(areaDescripcion) || !string.IsNullOrWhiteSpace(autoridadNombre))
+            .ShouldBeTrue(
+                "at least one descriptive element (AreaDescripcion or AutoridadNombre) must carry a " +
+                "non-empty value from the fused expediente");
 
         // B-Step6) Datos Carga de Oficio xlsx export (checklist Step 6 / A #7).
         datosCargaEvent.FileId.ShouldBe(fileId,

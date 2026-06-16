@@ -59,6 +59,9 @@ public sealed class FakeProcessClearanceTokenService : IProcessClearanceTokenSer
             ActorType = actor.ActorType,
             Clearance = clearance,
             FileId = fileId,
+            // Stable per-token jti so the fake round-trips a unique id — keeps it usable in front of a
+            // forwarder (whose replay guard fail-closes on a missing jti) without dropping the event.
+            Jti = Guid.NewGuid().ToString("D"),
         };
 
         lock (_gate)

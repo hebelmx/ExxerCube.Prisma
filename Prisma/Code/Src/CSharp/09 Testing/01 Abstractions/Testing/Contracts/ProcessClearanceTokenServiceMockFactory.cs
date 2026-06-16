@@ -74,6 +74,9 @@ public static class ProcessClearanceTokenServiceMockFactory
                     ActorType = Domain.Enum.SiaraActorType.ServiceAccount,
                     Clearance = clearance,
                     FileId = fileId,
+                    // Carry a jti so the mock is safe in front of a forwarder (replay guard fail-closes
+                    // on a missing jti); regenerated per validate call, which is fine for contract use.
+                    Jti = Guid.NewGuid().ToString("D"),
                 });
             });
 
