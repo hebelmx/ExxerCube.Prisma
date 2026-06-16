@@ -5,6 +5,7 @@ using ExxerCube.Prisma.Infrastructure.Events;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Prisma.Athena.Processing;
 using Prisma.Athena.Processing.Ingestion;
 
 namespace ExxerCube.Prisma.Athena.Processing.Tests;
@@ -35,6 +36,7 @@ public sealed class IngestionEventForwarderTests
                 ActorType = SiaraActorType.ServiceAccount,
                 Clearance = clearance,
                 FileId = fileId,
+                Jti = Guid.NewGuid().ToString("D"),
             }));
         return mock;
     }
@@ -50,7 +52,8 @@ public sealed class IngestionEventForwarderTests
     private static IngestionEventForwarder CreateForwarder(
         IEventPublisher publisher,
         IProcessClearanceTokenService? tokenService = null,
-        string? basePath = null)
+        string? basePath = null,
+        IClearanceReplayGuard? replayGuard = null)
     {
         var resolver = new SharedStoragePathResolver(
             Options.Create(new StorageOptions
@@ -63,7 +66,8 @@ public sealed class IngestionEventForwarderTests
             publisher,
             resolver,
             tokenService ?? Substitute.For<IProcessClearanceTokenService>(),
-            NullLogger<IngestionEventForwarder>.Instance);
+            NullLogger<IngestionEventForwarder>.Instance,
+            replayGuard ?? new InMemoryClearanceReplayGuard());
     }
 
     // ---------------------------------------------------------------------------
@@ -194,7 +198,8 @@ public sealed class IngestionEventForwarderTests
                 Substitute.For<IEventPublisher>(),
                 null!,
                 Substitute.For<IProcessClearanceTokenService>(),
-                NullLogger<IngestionEventForwarder>.Instance));
+                NullLogger<IngestionEventForwarder>.Instance,
+                new InMemoryClearanceReplayGuard()));
 
     [Fact]
     [Trait("Category", "Unit")]
@@ -204,7 +209,19 @@ public sealed class IngestionEventForwarderTests
                 Substitute.For<IEventPublisher>(),
                 Substitute.For<IStoragePathResolver>(),
                 null!,
-                NullLogger<IngestionEventForwarder>.Instance));
+                NullLogger<IngestionEventForwarder>.Instance,
+                new InMemoryClearanceReplayGuard()));
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public void Constructor_NullReplayGuard_Throws() =>
+        Should.Throw<ArgumentNullException>(() =>
+            new IngestionEventForwarder(
+                Substitute.For<IEventPublisher>(),
+                Substitute.For<IStoragePathResolver>(),
+                Substitute.For<IProcessClearanceTokenService>(),
+                NullLogger<IngestionEventForwarder>.Instance,
+                null!));
 
     // ---------------------------------------------------------------------------
     // A5 DoD tests: clearance enforcement on the ingestion edge
@@ -333,6 +350,76 @@ public sealed class IngestionEventForwarderTests
 
         // Assert: event published (file_id unchanged; the forwarded event is the same record or a
         // storage-resolved copy — match on FileId which is always preserved)
+        publisher.Received(1).Publish(Arg.Is<DocumentDownloadedEvent>(e => e.FileId == fileId));
+    }
+
+    // ---------------------------------------------------------------------------
+    // Issue #2.2: reject Guid.Empty file_id
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ForwardAsync_RejectsEvent_WhenFileIdIsEmpty()
+    {
+        // Arrange — token carries Guid.Empty file_id (connection-scope token, not per-document)
+        // and the event also carries Guid.Empty, so the mismatch check would otherwise pass.
+        var ct = TestContext.Current.CancellationToken;
+        var publisher = Substitute.For<IEventPublisher>();
+        var mock = Substitute.For<IProcessClearanceTokenService>();
+        mock.ValidateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ClearanceTokenClaims>.Success(new ClearanceTokenClaims
+            {
+                ActorId = "orion-downloader",
+                ActorType = SiaraActorType.ServiceAccount,
+                Clearance = ProcessClearance.Download,
+                FileId = Guid.Empty, // connection-scope — no per-document binding
+                Jti = Guid.NewGuid().ToString("D"),
+            }));
+        var forwarder = CreateForwarder(publisher, mock);
+        var evt = new DocumentDownloadedEvent
+        {
+            FileId = Guid.Empty,
+            FileName = "doc.pdf",
+            Source = "SIARA",
+            ClearanceToken = "connection-scope-token",
+        };
+
+        // Act
+        await forwarder.ForwardAsync(evt, ct);
+
+        // Assert: nothing published — empty file_id must always be rejected
+        publisher.DidNotReceive().Publish(Arg.Any<DocumentDownloadedEvent>());
+    }
+
+    // ---------------------------------------------------------------------------
+    // Issue #2.1: jti replay guard
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ForwardAsync_RejectsReplay_WhenSameTokenForwardedTwice()
+    {
+        // Arrange — one forwarder + one shared guard, same token forwarded twice.
+        // The first forward must publish; the second must be silently dropped.
+        var ct = TestContext.Current.CancellationToken;
+        var fileId = Guid.NewGuid();
+        var publisher = Substitute.For<IEventPublisher>();
+        var sharedGuard = new InMemoryClearanceReplayGuard();
+        var tokenService = BuildAcceptingTokenService(fileId, clearance: ProcessClearance.Download);
+        var forwarder = CreateForwarder(publisher, tokenService, replayGuard: sharedGuard);
+        var evt = new DocumentDownloadedEvent
+        {
+            FileId = fileId,
+            FileName = "doc.pdf",
+            Source = "SIARA",
+            ClearanceToken = "replay-test-token",
+        };
+
+        // Act — forward the same event twice
+        await forwarder.ForwardAsync(evt, ct);
+        await forwarder.ForwardAsync(evt, ct);
+
+        // Assert — the publisher was called exactly once; the second forward was rejected
         publisher.Received(1).Publish(Arg.Is<DocumentDownloadedEvent>(e => e.FileId == fileId));
     }
 }

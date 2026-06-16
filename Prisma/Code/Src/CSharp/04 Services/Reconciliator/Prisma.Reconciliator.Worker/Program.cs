@@ -47,6 +47,7 @@ builder.Services.AddSingleton<IEventPublisher, EventPublisher>();
 // ExtractionCompletedEvent onto the local stream the pipeline subscribes to.
 builder.Services.Configure<ReconciliationClientOptions>(
     builder.Configuration.GetSection(ReconciliationClientOptions.SectionName));
+builder.Services.AddSingleton<IClearanceReplayGuard, InMemoryClearanceReplayGuard>();
 builder.Services.AddSingleton<ReconciliationEventForwarder>();
 builder.Services.AddHostedService<ReconciliationHubClient>();
 

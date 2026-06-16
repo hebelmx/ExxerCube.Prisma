@@ -44,6 +44,7 @@ public sealed class IngestionEventForwarder
     private readonly IEventPublisher _eventPublisher;
     private readonly IStoragePathResolver _storagePathResolver;
     private readonly IProcessClearanceTokenService _clearanceTokenService;
+    private readonly IClearanceReplayGuard _replayGuard;
     private readonly ILogger<IngestionEventForwarder> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="IngestionEventForwarder"/> class.</summary>
@@ -51,16 +52,19 @@ public sealed class IngestionEventForwarder
     /// <param name="storagePathResolver">Resolves the event's storage-relative path against this process's shared-storage base.</param>
     /// <param name="clearanceTokenService">Validates the per-document process clearance token carried on each cross-process event (MVP-PATH 1.5, A5).</param>
     /// <param name="logger">The logger.</param>
+    /// <param name="replayGuard">Per-process anti-replay guard; rejects any clearance token whose jti has already been seen (issue #2.1).</param>
     public IngestionEventForwarder(
         IEventPublisher eventPublisher,
         IStoragePathResolver storagePathResolver,
         IProcessClearanceTokenService clearanceTokenService,
-        ILogger<IngestionEventForwarder> logger)
+        ILogger<IngestionEventForwarder> logger,
+        IClearanceReplayGuard replayGuard)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _storagePathResolver = storagePathResolver ?? throw new ArgumentNullException(nameof(storagePathResolver));
         _clearanceTokenService = clearanceTokenService ?? throw new ArgumentNullException(nameof(clearanceTokenService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _replayGuard = replayGuard ?? throw new ArgumentNullException(nameof(replayGuard));
     }
 
     /// <summary>
@@ -110,10 +114,27 @@ public sealed class IngestionEventForwarder
             return;
         }
 
+        // Issue #2.2: connection-scope tokens (Guid.Empty file_id) are not permitted on the
+        // per-message edge — each forwarded event must be bound to a specific document.
+        if (claims.FileId == Guid.Empty)
+        {
+            LogAndReject(downloadEvent.FileId, claims.ActorId,
+                "clearance token file_id is empty (connection-scope token not permitted on the per-message edge)");
+            return;
+        }
+
         if (claims.FileId != downloadEvent.FileId)
         {
             LogAndReject(downloadEvent.FileId, claims.ActorId,
                 "clearance token file_id mismatch (replay/tamper)");
+            return;
+        }
+
+        // Issue #2.1: anti-replay gate — each jti must be seen exactly once within the retention window.
+        if (!_replayGuard.TryRegister(claims.Jti))
+        {
+            LogAndReject(downloadEvent.FileId, claims.ActorId,
+                "clearance token replay detected (jti already seen or missing)");
             return;
         }
 

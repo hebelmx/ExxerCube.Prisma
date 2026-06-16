@@ -65,6 +65,7 @@ builder.Services.Configure<StorageOptions>(
     builder.Configuration.GetSection(StorageOptions.SectionName));
 builder.Services.AddSingleton<IStoragePathResolver, SharedStoragePathResolver>();
 
+builder.Services.AddSingleton<IClearanceReplayGuard, InMemoryClearanceReplayGuard>();
 builder.Services.AddSingleton<IngestionEventForwarder>();
 builder.Services.AddHostedService<SiaraIngestionHubClient>();
 

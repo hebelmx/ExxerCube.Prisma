@@ -2,6 +2,7 @@ using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
+using Prisma.Athena.Processing;
 using Prisma.Athena.Processing.Reconciliation;
 
 namespace ExxerCube.Prisma.Athena.Processing.Tests;
@@ -29,6 +30,7 @@ public sealed class ReconciliationEventForwarderTests
                 ActorType = SiaraActorType.ServiceAccount,
                 Clearance = clearance,
                 FileId = fileId,
+                Jti = Guid.NewGuid().ToString("D"),
             }));
         return mock;
     }
@@ -43,11 +45,13 @@ public sealed class ReconciliationEventForwarderTests
 
     private static ReconciliationEventForwarder CreateForwarder(
         IEventPublisher publisher,
-        IProcessClearanceTokenService? tokenService = null)
+        IProcessClearanceTokenService? tokenService = null,
+        IClearanceReplayGuard? replayGuard = null)
         => new ReconciliationEventForwarder(
             publisher,
             tokenService ?? Substitute.For<IProcessClearanceTokenService>(),
-            NullLogger<ReconciliationEventForwarder>.Instance);
+            NullLogger<ReconciliationEventForwarder>.Instance,
+            replayGuard ?? new InMemoryClearanceReplayGuard());
 
     // ---------------------------------------------------------------------------
     // Existing behavioural tests (updated for ForwardAsync + clearance token)
@@ -93,7 +97,18 @@ public sealed class ReconciliationEventForwarderTests
             new ReconciliationEventForwarder(
                 Substitute.For<IEventPublisher>(),
                 null!,
-                NullLogger<ReconciliationEventForwarder>.Instance));
+                NullLogger<ReconciliationEventForwarder>.Instance,
+                new InMemoryClearanceReplayGuard()));
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public void Constructor_NullReplayGuard_Throws() =>
+        Should.Throw<ArgumentNullException>(() =>
+            new ReconciliationEventForwarder(
+                Substitute.For<IEventPublisher>(),
+                Substitute.For<IProcessClearanceTokenService>(),
+                NullLogger<ReconciliationEventForwarder>.Instance,
+                null!));
 
     // ---------------------------------------------------------------------------
     // A5 DoD tests: clearance enforcement on the reconciliation edge
@@ -216,6 +231,74 @@ public sealed class ReconciliationEventForwarderTests
         await sut.ForwardAsync(evt, ct);
 
         // Assert: the exact event instance is published onto the local stream
+        publisher.Received(1).Publish(Arg.Is<ExtractionCompletedEvent>(e => ReferenceEquals(e, evt)));
+    }
+
+    // ---------------------------------------------------------------------------
+    // Issue #2.2: reject Guid.Empty file_id
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ForwardAsync_RejectsEvent_WhenFileIdIsEmpty()
+    {
+        // Arrange — token carries Guid.Empty file_id (connection-scope token, not per-document)
+        // and the event also carries Guid.Empty, so the mismatch check would otherwise pass.
+        var ct = TestContext.Current.CancellationToken;
+        var publisher = Substitute.For<IEventPublisher>();
+        var mock = Substitute.For<IProcessClearanceTokenService>();
+        mock.ValidateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<ClearanceTokenClaims>.Success(new ClearanceTokenClaims
+            {
+                ActorId = "athena-extractor",
+                ActorType = SiaraActorType.ServiceAccount,
+                Clearance = ProcessClearance.Extract,
+                FileId = Guid.Empty, // connection-scope — no per-document binding
+                Jti = Guid.NewGuid().ToString("D"),
+            }));
+        var sut = CreateForwarder(publisher, mock);
+        var evt = new ExtractionCompletedEvent
+        {
+            FileId = Guid.Empty,
+            Path = "2026/06/12/doc.fusion.json",
+            ClearanceToken = "connection-scope-token",
+        };
+
+        // Act
+        await sut.ForwardAsync(evt, ct);
+
+        // Assert: nothing published — empty file_id must always be rejected
+        publisher.DidNotReceive().Publish(Arg.Any<ExtractionCompletedEvent>());
+    }
+
+    // ---------------------------------------------------------------------------
+    // Issue #2.1: jti replay guard
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task ForwardAsync_RejectsReplay_WhenSameTokenForwardedTwice()
+    {
+        // Arrange — one forwarder + one shared guard, same token forwarded twice.
+        // The first forward must publish; the second must be silently dropped.
+        var ct = TestContext.Current.CancellationToken;
+        var fileId = Guid.NewGuid();
+        var publisher = Substitute.For<IEventPublisher>();
+        var sharedGuard = new InMemoryClearanceReplayGuard();
+        var tokenService = BuildAcceptingTokenService(fileId, clearance: ProcessClearance.Extract);
+        var sut = CreateForwarder(publisher, tokenService, replayGuard: sharedGuard);
+        var evt = new ExtractionCompletedEvent
+        {
+            FileId = fileId,
+            Path = "2026/06/12/doc.fusion.json",
+            ClearanceToken = "replay-test-token",
+        };
+
+        // Act — forward the same event twice
+        await sut.ForwardAsync(evt, ct);
+        await sut.ForwardAsync(evt, ct);
+
+        // Assert — the publisher was called exactly once; the second forward was rejected
         publisher.Received(1).Publish(Arg.Is<ExtractionCompletedEvent>(e => ReferenceEquals(e, evt)));
     }
 }

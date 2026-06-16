@@ -164,6 +164,7 @@ public sealed class JwtProcessClearanceTokenService : IProcessClearanceTokenServ
             var actorTypeStr = principal.FindFirst(ClaimActorType)?.Value;
             var clearanceStr = principal.FindFirst(ClaimClearance)?.Value;
             var fileIdStr = principal.FindFirst(ClaimFileId)?.Value;
+            var jti = principal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
 
             if (string.IsNullOrWhiteSpace(actorId)
                 || string.IsNullOrWhiteSpace(actorTypeStr)
@@ -198,6 +199,7 @@ public sealed class JwtProcessClearanceTokenService : IProcessClearanceTokenServ
                 ActorType = actorType,
                 Clearance = clearance,
                 FileId = fileId,
+                Jti = jti ?? string.Empty,
             };
 
             return Task.FromResult(Result<ClearanceTokenClaims>.Success(claims));

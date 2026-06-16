@@ -128,10 +128,12 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
                 ActorType = SiaraActorType.ServiceAccount,
                 Clearance = ProcessClearance.Extract,
                 FileId = fileId, // matched against the event's FileId by the forwarder
+                Jti = Guid.NewGuid().ToString("D"),
             }));
 
         var reconciliationForwarder = new ReconciliationEventForwarder(
-            _reconciliatorPublisher, reconciliationTokenService, NullLogger<ReconciliationEventForwarder>.Instance);
+            _reconciliatorPublisher, reconciliationTokenService, NullLogger<ReconciliationEventForwarder>.Instance,
+            new InMemoryClearanceReplayGuard());
 
         // ---- Edge 2 (Extractor → Reconciliator): a hub stub bridges the broadcast to the Reconciliator ----
         var reconciliationHub = Substitute.For<IExxerHub<ExtractionCompletedEvent>>();
@@ -165,10 +167,12 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
                 ActorType = SiaraActorType.ServiceAccount,
                 Clearance = ProcessClearance.Download,
                 FileId = fileId,
+                Jti = Guid.NewGuid().ToString("D"),
             }));
 
         var ingestionForwarder = new IngestionEventForwarder(
-            _extractorPublisher, storageResolver, ingestionTokenService, NullLogger<IngestionEventForwarder>.Instance);
+            _extractorPublisher, storageResolver, ingestionTokenService, NullLogger<IngestionEventForwarder>.Instance,
+            new InMemoryClearanceReplayGuard());
 
         // Act — a document is downloaded (Orion) and crosses into the Extractor.
         await ingestionForwarder.ForwardAsync(new DocumentDownloadedEvent

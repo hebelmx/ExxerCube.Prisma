@@ -24,6 +24,7 @@ file static class TokenServiceHelper
                 ActorType = SiaraActorType.ServiceAccount,
                 Clearance = ProcessClearance.Download,
                 FileId = fileId,
+                Jti = Guid.NewGuid().ToString("D"),
             }));
         return mock;
     }
@@ -38,6 +39,7 @@ file static class TokenServiceHelper
                 ActorType = SiaraActorType.ServiceAccount,
                 Clearance = ProcessClearance.Extract,
                 FileId = fileId,
+                Jti = Guid.NewGuid().ToString("D"),
             }));
         return mock;
     }
@@ -101,7 +103,8 @@ public sealed class SharedStorageForwardingEndToEndTests : IDisposable
             NullLogger<SharedStoragePathResolver>.Instance);
         var tokenService = TokenServiceHelper.AcceptingDownload(fileId);
         var forwarder = new IngestionEventForwarder(
-            _eventPublisher, resolver, tokenService, NullLogger<IngestionEventForwarder>.Instance);
+            _eventPublisher, resolver, tokenService, NullLogger<IngestionEventForwarder>.Instance,
+            new InMemoryClearanceReplayGuard());
 
         // Act — the Athena hub client hands the received cross-process event to the forwarder.
         await forwarder.ForwardAsync(new DocumentDownloadedEvent

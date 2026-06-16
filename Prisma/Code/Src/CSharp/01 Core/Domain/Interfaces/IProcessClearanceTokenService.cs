@@ -90,4 +90,15 @@ public sealed record ClearanceTokenClaims
     /// event's <c>FileId</c> to detect replay or tamper attempts.
     /// </summary>
     public required Guid FileId { get; init; }
+
+    /// <summary>
+    /// Gets the <c>jti</c> (JWT ID) claim — the per-token unique id used by the receiving forwarder's
+    /// replay guard to reject a second use of the same token.
+    /// </summary>
+    /// <remarks>
+    /// Optional: defaults to <see cref="string.Empty"/> so existing construction sites that do not yet
+    /// set this property continue to compile. A token without a <c>jti</c> will be rejected fail-closed
+    /// by the forwarder's <see cref="IClearanceReplayGuard"/>.
+    /// </remarks>
+    public string Jti { get; init; } = string.Empty;
 }
