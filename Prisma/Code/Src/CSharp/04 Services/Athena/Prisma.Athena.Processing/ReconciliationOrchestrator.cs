@@ -315,8 +315,9 @@ public sealed class ReconciliationOrchestrator
         // field-matching step before export. Deferred as a post-MVP improvement.
         var metadata = new UnifiedMetadataRecord { Expediente = fusionResult.FusedExpediente };
 
-        // Export to an in-memory stream; ExportedSizeBytes is captured for the event (R4: file
-        // write to shared storage is deferred to post-MVP per design §2.4).
+        // Export to an in-memory stream; size is captured for the event, then the stream is
+        // written to shared storage when IStoragePathResolver is wired (fail-open: any I/O error
+        // is logged at Warning and the pipeline continues — the SIRO XML export already succeeded).
         using var stream = new MemoryStream();
         var exportResult = await _exporter.ExportSiroXmlAsync(metadata, stream, cancellationToken);
 
@@ -328,6 +329,39 @@ public sealed class ReconciliationOrchestrator
         }
 
         var exportedSizeBytes = (int)stream.Length;
+        var destination = $"exports/{fileId}.siro.xml";
+
+        // Persist SIRO XML to shared storage when the resolver is wired (mirrors Stage 5b xlsx pattern).
+        if (_storagePathResolver is not null)
+        {
+            var resolveResult = _storagePathResolver.Resolve(destination);
+            if (resolveResult.IsSuccess && !string.IsNullOrWhiteSpace(resolveResult.Value))
+            {
+                try
+                {
+                    var absPath = resolveResult.Value!;
+                    var dir = Path.GetDirectoryName(absPath);
+                    if (!string.IsNullOrWhiteSpace(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+
+                    stream.Position = 0;
+                    await using var fileOut = new FileStream(absPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await stream.CopyToAsync(fileOut, cancellationToken).ConfigureAwait(false);
+
+                    _logger.LogInformation(
+                        "Stage 5: SIRO XML written to {Path} ({Size} bytes)",
+                        absPath, exportedSizeBytes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex,
+                        "Stage 5: Failed to write SIRO XML to storage for FileId {FileId} (pipeline continues)",
+                        fileId);
+                }
+            }
+        }
 
         var exportEvent = new ExportCompletedEvent
         {
@@ -335,7 +369,7 @@ public sealed class ReconciliationOrchestrator
             Timestamp = DateTime.UtcNow,
             CorrelationId = correlationId,
             FileId = fileId,
-            Destination = $"exports/{fileId}.siro.xml",
+            Destination = destination,
             Format = "SiroXml",
             ExportedSizeBytes = exportedSizeBytes
         };

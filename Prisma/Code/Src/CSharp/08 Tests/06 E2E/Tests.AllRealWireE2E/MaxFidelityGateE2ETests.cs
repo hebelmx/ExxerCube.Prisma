@@ -294,14 +294,27 @@ public sealed class MaxFidelityGateE2ETests : IAsyncLifetime
         exportEvent.ExportedSizeBytes.ShouldBeGreaterThan(0,
             "SIRO XML must have a non-zero byte size (a real XML document was rendered from real OCR/fusion data)");
         exportEvent.Destination.ShouldEndWith(".siro.xml");
-        // Content-fidelity floor: the SIRO XML is exported to an in-memory stream and is NOT persisted to
-        // shared storage in the current design (ReconciliationOrchestrator §"R4: file write deferred
-        // post-MVP"), so the gate cannot parse the document off disk. A real <SiroResponse> rendered from a
-        // fused expediente is comfortably larger than an empty skeleton; assert a realistic byte floor as a
-        // proxy. (Deeper element-level / XSD validation is a follow-up gated on persisting the SIRO file to
-        // shared storage + the official Banamex .xsd.)
-        exportEvent.ExportedSizeBytes.ShouldBeGreaterThan(200,
-            "a real SIRO XML document rendered from the fused expediente must be more than an empty skeleton");
+        // Content-fidelity: the SIRO XML is now persisted to shared storage by Stage 5 (IStoragePathResolver
+        // wired in Prisma.Reconciliator.Worker/Program.cs). Parse it and assert key elements are present.
+        var siroFiles = Directory.GetFiles(_sharedStorageDir, "*.siro.xml", SearchOption.AllDirectories);
+        siroFiles.Length.ShouldBeGreaterThanOrEqualTo(1,
+            "Stage 5 must have written the SIRO XML file to shared storage " +
+            "(IStoragePathResolver is wired in Prisma.Reconciliator.Worker/Program.cs)");
+
+        System.Xml.Linq.XNamespace siroNs = "http://siro.regulatory.namespace";
+        var siroDoc = System.Xml.Linq.XDocument.Load(siroFiles[0]);
+        siroDoc.Root!.Name.ShouldBe(siroNs + "SiroResponse",
+            "SIRO XML root element must be {http://siro.regulatory.namespace}SiroResponse");
+        siroDoc.Root.Element(siroNs + "NumeroExpediente")!.Value
+            .ShouldNotBeNullOrWhiteSpace("NumeroExpediente must be populated in the SIRO XML from the fused expediente");
+        siroDoc.Root.Element(siroNs + "NumeroOficio")!.Value
+            .ShouldNotBeNullOrWhiteSpace("NumeroOficio must be populated in the SIRO XML from the fused expediente");
+        // At least one of the descriptive elements must be present.
+        var hasDescriptiveElement =
+            siroDoc.Root.Element(siroNs + "AreaDescripcion") is not null ||
+            siroDoc.Root.Element(siroNs + "AutoridadNombre") is not null;
+        hasDescriptiveElement.ShouldBeTrue(
+            "SIRO XML must contain at least one descriptive element (AreaDescripcion or AutoridadNombre)");
 
         // B-Step6) Datos Carga de Oficio xlsx export (checklist Step 6 / A #7).
         datosCargaEvent.FileId.ShouldBe(fileId,
