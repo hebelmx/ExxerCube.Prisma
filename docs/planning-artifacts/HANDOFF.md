@@ -25,12 +25,25 @@ Solution 1 production source modified.
   `Tests.Infrastructure.BrowserAutomation.E2E` (missing global `using`s — the branch was NOT green at
   handoff despite the §8 claim) was repaired so the full-solution green gate holds.
 
-**Carry-forward (P2):** the Story 1.3 "both contexts coexist on one DB" AC is proven by schema-isolation
-code review, **not** a live test. Owed: a Testcontainers MsSql coexistence test (tracked).
+**Epic 2 — Ingestion & Reference Data: DONE** (commits `1f3ce25d`→`f73f77c2`), adversarially reviewed
+(findings closed in `f73f77c2`). Built on the client-independent path + a documented-default CSV adapter
+(per owner ruling — the client's first-adapter choice in §6 is still open but the port makes swapping cheap).
+- **2.1** Idempotent `StatementIngestionService` (SHA-256 hash, `%PDF-` guard, EF-backed dedupe) → exactly
+  one `VerificationJob`. Application.Tests 13/13.
+- **2.2** `IVecReferenceDataProvider` + `VecReferenceBundle` model + standalone draft-2020-12
+  `ReferenceBundleSchemaValidator` (embedded schema) + `CsvReferenceDataAdapter`. Net-new pinned:
+  `JsonSchema.Net 7.3.3`, `CsvHelper 33.0.1`. ReferenceData.Tests 17/17 (incl. example.json round-trip).
+- **2.3** `ProductResolver` (alias match, no silent default → BLOCKED `UNKNOWN_PRODUCT`) + `BundleBinder`
+  → `VerificationContext` + per-capability `ReferenceDataAvailability` (missing TASA degrades only
+  rate checks). `StatementModel` is a null placeholder for Epic 3.
 
-**Next:** Epic 2 (Ingestion & Reference Data) — but Story 2.2 (which reference-data adapter ships first)
-is gated on the open client answers in §6. Story 2.1 (idempotent job ingest) + 2.3 (graceful
-degradation) are largely client-independent.
+**Carry-forwards (P2, tracked):** (1) Story 1.3 "both contexts coexist on one DB" — proven by code
+review, owes a Testcontainers test. (2) The CSV adapter only fills core sections (products/rates/
+tolerances/constants); legends/images/promotions/transactions sections await later adapters.
+
+**Next:** Epic 3 (Field Extraction, FR-4/FR-5) — fills the `StatementModel`. §6 OQ-4 (digital vs scanned
+PDFs) gates OCR scope, but the architecture assumes a text layer for v1, so text-layer extraction is
+buildable now.
 
 ---
 
