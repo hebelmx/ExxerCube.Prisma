@@ -47,10 +47,11 @@ reviewed. PdfPig text-layer extraction (pure C#, no OCR/Python) of the real Dumm
 - **OQ-4 (digital vs scanned):** the 3 fixtures are confirmed text-layer, so v1 text extraction is proven;
   a scanned-PDF/OCR path remains v2 (still gated on whether production PDFs are ever scanned).
 
-**Carry-forwards (P2, tracked):** (1) Story 1.3 coexistence Testcontainers test. (2) CSV adapter fills
-only core sections (legends/images/promotions/transactions await later adapters). (3) Veriqan does not
-yet consume any Prisma Shared-Core extraction type (extraction is PdfPig-native by choice) — the arch
-"reuse" claim is aspirational; revisit if a shared seam emerges.
+**Carry-forwards:** ✅ CLOSED 2026-06-17 — (1) Story 1.3 coexistence is now proven by a real
+Testcontainers SQL Server test (`b7634048`); (2) the CSV adapter now fills ALL bundle sections
+(`70da5f4d`, ReferenceData.Tests 38). Remaining note (not actionable): Veriqan extraction is PdfPig-native
+and does not consume a Prisma Shared-Core extraction type — the arch "reuse" claim is aspirational;
+revisit only if a shared seam emerges.
 
 **Next:** Epic 4 (Financial Consistency Engine, FR-6/7/8/25) — the deterministic `IVecValidationRule`
 engine + intra-statement arithmetic, cross-period, and movement-detail reconciliation. Highest-value core.
