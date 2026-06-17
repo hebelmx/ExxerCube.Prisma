@@ -82,8 +82,21 @@
   <ItemGroup Label="Service Layer References (for interface-implementation detection across Orion/Athena/Auth)">
     <ProjectReference Include="..\..\..\04 Services\Orion\Prisma.Orion.Ingestion\ExxerCube.Prisma.Orion.Ingestion.csproj" />
     <ProjectReference Include="..\..\..\04 Services\Orion\Prisma.Orion.HealthChecks\ExxerCube.Prisma.Orion.HealthChecks.csproj" />
+    <!-- Athena.Processing hosts InMemoryClearanceReplayGuard (IClearanceReplayGuard) and other
+         domain-interface adapters that live in the service layer rather than Infrastructure.
+         Required for All_Domain_Interfaces_Should_Have_At_Least_One_Implementation to find them. -->
+    <ProjectReference Include="..\..\..\04 Services\Athena\Prisma.Athena.Processing\ExxerCube.Prisma.Athena.Processing.csproj" />
     <ProjectReference Include="..\..\..\04 Services\Athena\Prisma.Athena.HealthChecks\ExxerCube.Prisma.Athena.HealthChecks.csproj" />
     <ProjectReference Include="..\..\..\04 Services\Auth\Prisma.Auth.Infrastructure\ExxerCube.Prisma.Auth.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Veriqan VEC References (for dependency-direction enforcement; Story 1.2)">
+    <!-- Veriqan.Orchestration transitively pulls in Veriqan.Application + all 6 Veriqan.Infrastructure.*
+         projects, which in turn pull Veriqan.Domain. All 10 Veriqan assemblies land in the test output dir
+         so VeriqanDependencyDirectionTests can load them by name via Assembly.Load. We do NOT reference
+         Veriqan.Worker here because its SDK.Web entry-point introduces ASP.NET runtime deps not needed for
+         the arch check and would complicate the output layout. Orchestration coverage is sufficient. -->
+    <ProjectReference Include="..\..\..\03 Orchestration\Veriqan.Orchestration\ExxerCube.Prisma.Veriqan.Orchestration.csproj" />
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

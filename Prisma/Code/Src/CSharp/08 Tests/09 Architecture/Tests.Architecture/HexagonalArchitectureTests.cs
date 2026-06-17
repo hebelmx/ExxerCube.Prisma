@@ -38,6 +38,10 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
                 ApplicationAssembly,
                 typeof(global::Prisma.Orion.Ingestion.FileIngestionJournal).Assembly,
                 typeof(global::Prisma.Orion.HealthChecks.OrionHealthCheckService).Assembly,
+                // Athena.Processing hosts service-layer domain-interface adapters such as
+                // InMemoryClearanceReplayGuard (IClearanceReplayGuard, issue #2.1). Including it here
+                // ensures All_Domain_Interfaces_Should_Have_At_Least_One_Implementation can find them.
+                typeof(global::Prisma.Athena.Processing.InMemoryClearanceReplayGuard).Assembly,
                 typeof(global::Prisma.Athena.HealthChecks.AthenaHealthCheckService).Assembly,
                 typeof(global::Prisma.Auth.Infrastructure.InMemoryIdentityProvider).Assembly,
             })
