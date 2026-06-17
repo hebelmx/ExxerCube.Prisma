@@ -1,0 +1,3 @@
+order,productId,imageId,imageUri,imageSha256,imagePerceptualHash,imageWidth,imageHeight,imageDescription
+1,TC-NL,seq-nl-1,catalog/sequential/nl-1.png,,,,,
+2,TC-NL,seq-nl-2,catalog/sequential/nl-2.png,,,,,

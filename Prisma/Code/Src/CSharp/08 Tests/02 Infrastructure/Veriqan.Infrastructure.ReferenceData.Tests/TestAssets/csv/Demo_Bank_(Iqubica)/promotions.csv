@@ -1,0 +1,2 @@
+promotionId,validFrom,validTo,appliesToProducts,imageId,imageUri,imageSha256,imagePerceptualHash,imageWidth,imageHeight,imageDescription
+promo-sep-2025-a,2025-09-01,2025-09-30,TC-NL,promo-a,catalog/promotions/sep-a.png,,,,,
