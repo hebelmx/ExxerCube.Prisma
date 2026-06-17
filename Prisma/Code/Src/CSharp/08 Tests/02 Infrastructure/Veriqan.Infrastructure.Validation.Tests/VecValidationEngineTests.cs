@@ -1,0 +1,376 @@
+using ExxerCube.Prisma.Veriqan.Application.Binding;
+using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Binding;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Verification;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
+using IndQuestResults;
+using IndQuestResults.Operations;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Shouldly;
+using Xunit;
+
+namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Tests;
+
+/// <summary>
+/// Integration tests for <see cref="VecValidationEngine"/> covering:
+/// DI assembly-scan discovery (FR-6 base), determinism (NFR-5),
+/// batch isolation (NFR-6), InsufficientData path (FR-20), factory contracts,
+/// and cancellation.
+/// </summary>
+public sealed class VecValidationEngineTests
+{
+    // -----------------------------------------------------------------------
+    // Fixture helpers
+    // -----------------------------------------------------------------------
+
+    private static BundleMetadata MinimalMetadata() =>
+        new("1.0.0", "Test Bank", null, null, null, null);
+
+    private static VecProduct OneProduct() =>
+        new(
+            ProductId: "TC-TEST",
+            ProductName: "Test Product",
+            Aliases: null,
+            HasRewardsProgram: false,
+            CardImage: null,
+            ImportantMessageImage: null,
+            Tariffs: null);
+
+    /// <summary>
+    /// Builds a bundle with NO interest-rate section so that
+    /// <see cref="ReferenceCapability.Rate"/> is InsufficientData.
+    /// </summary>
+    private static VecReferenceBundle BundleWithoutRate() =>
+        new(
+            BundleMetadata: MinimalMetadata(),
+            Products: [OneProduct()],
+            InterestRates: null,           // ← Rate capability absent
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: null,
+            ToleranceConfig: null,
+            ValidationConstants: null);
+
+    /// <summary>
+    /// Builds a bundle WITH an interest-rate section so that
+    /// <see cref="ReferenceCapability.Rate"/> is Available.
+    /// </summary>
+    private static VecReferenceBundle BundleWithRate() =>
+        new(
+            BundleMetadata: MinimalMetadata(),
+            Products: [OneProduct()],
+            InterestRates:
+            [
+                new InterestRateEntry("TC-TEST",
+                [
+                    new RateByPeriod(0.1975m, "Sep Oct", "2025-09-01", "2025-10-31")
+                ])
+            ],
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: null,
+            ToleranceConfig: null,
+            ValidationConstants: null);
+
+    private static VerificationContext BuildContext(VecReferenceBundle bundle) =>
+        new(
+            bundle: bundle,
+            resolvedProduct: OneProduct(),
+            availability: ReferenceDataAvailability.FromBundle(bundle),
+            priorStatement: null,
+            toleranceConfig: null,
+            statementModel: null);
+
+    /// <summary>
+    /// Builds a <see cref="ServiceProvider"/> with <see cref="AddVeriqanValidation"/> applied,
+    /// which exercises the Scrutor assembly scan path.
+    /// </summary>
+    private static ServiceProvider BuildServiceProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging(b => b.SetMinimumLevel(LogLevel.Debug));
+        services.AddVeriqanValidation();
+        return services.BuildServiceProvider();
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 1: DI discovery — Scrutor finds and registers example rules
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// After <see cref="AddVeriqanValidation"/> the engine runs all Scrutor-discovered
+    /// rules and returns a finding per rule.
+    /// </summary>
+    [Fact]
+    public async Task Engine_DiscoversAndRunsRegisteredRules_ReturnsFindingPerRule()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var sp = BuildServiceProvider();
+        var engine = sp.GetRequiredService<IVecValidationEngine>();
+        var ctx = BuildContext(BundleWithRate());
+
+        var result = await engine.RunAsync(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue($"Engine failed: {result.Error}");
+        var findings = result.Value!;
+
+        // At least the two example rules must have been discovered
+        findings.Count.ShouldBeGreaterThanOrEqualTo(2);
+
+        // Both example check-ids must appear
+        findings.Select(f => f.CheckId).ShouldContain("CL-EXAMPLE-PASS");
+        findings.Select(f => f.CheckId).ShouldContain("CL-EXAMPLE-RATE-CAP");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 2: Determinism — same context, same output twice (NFR-5)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Running the engine twice with the same context produces identical findings
+    /// in the same order (NFR-5: determinism).
+    /// </summary>
+    [Fact]
+    public async Task Engine_SameContextTwice_ProducesIdenticalFindings()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var sp = BuildServiceProvider();
+        var engine = sp.GetRequiredService<IVecValidationEngine>();
+        var ctx = BuildContext(BundleWithRate());
+
+        var first = (await engine.RunAsync(ctx, ct)).Value!;
+        var second = (await engine.RunAsync(ctx, ct)).Value!;
+
+        first.Count.ShouldBe(second.Count);
+
+        for (var i = 0; i < first.Count; i++)
+        {
+            first[i].CheckId.ShouldBe(second[i].CheckId,
+                $"Index {i}: CheckId mismatch — order is not deterministic");
+            first[i].Verdict.ShouldBe(second[i].Verdict,
+                $"Index {i}: Verdict changed between identical runs");
+        }
+
+        // Verify that CheckIds are in ascending ordinal order
+        var checkIds = first.Select(f => f.CheckId).ToList();
+        var sorted = checkIds.OrderBy(id => id, StringComparer.Ordinal).ToList();
+        checkIds.ShouldBe(sorted, "Findings must be sorted by CheckId (NFR-5)");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 3: Batch isolation — a rule returning failure does NOT abort the batch (NFR-6)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When one of the registered rules returns a failure <see cref="Result{T}"/>,
+    /// the engine still returns findings for the other rules (NFR-6 batch isolation).
+    /// </summary>
+    [Fact]
+    public async Task Engine_RuleReturningFailure_DoesNotAbortBatch_OtherRulesStillRun()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Build a service collection with the real engine + one failing rule + one passing rule
+        var services = new ServiceCollection();
+        services.AddLogging(b => b.SetMinimumLevel(LogLevel.Debug));
+        services.AddTransient<IVecValidationEngine, VecValidationEngine>();
+        services.AddTransient<IVecValidationRule, AlwaysFailResultRule>();
+        services.AddTransient<IVecValidationRule, AlwaysPassInlineRule>();
+
+        await using var sp = services.BuildServiceProvider();
+        var engine = sp.GetRequiredService<IVecValidationEngine>();
+        var ctx = BuildContext(BundleWithRate());
+
+        var result = await engine.RunAsync(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue("Engine should succeed even when a rule returns failure");
+        var findings = result.Value!;
+
+        // Both rules must have produced a finding (batch not aborted)
+        findings.Count.ShouldBe(2);
+
+        // The failing rule must produce an InsufficientData finding (not a hard failure)
+        var failingFinding = findings.Single(f => f.CheckId == AlwaysFailResultRule.Id);
+        failingFinding.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "A rule that returns failure Result must be captured as InsufficientData");
+
+        // The passing rule must still produce a Pass finding
+        var passFinding = findings.Single(f => f.CheckId == AlwaysPassInlineRule.Id);
+        passFinding.Verdict.ShouldBe(FindingVerdict.Pass,
+            "A passing rule must not be affected by another rule's failure");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 4: InsufficientData path — missing capability (FR-20)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The <c>CL-EXAMPLE-RATE-CAP</c> rule emits InsufficientData when the Rate
+    /// capability is absent from the bundle (FR-20).
+    /// </summary>
+    [Fact]
+    public async Task Engine_RuleNeedingMissingCapability_EmitsInsufficientData()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var sp = BuildServiceProvider();
+        var engine = sp.GetRequiredService<IVecValidationEngine>();
+
+        // Bundle WITHOUT interest rates → Rate capability = InsufficientData
+        var ctx = BuildContext(BundleWithoutRate());
+
+        var result = await engine.RunAsync(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var findings = result.Value!;
+
+        var rateFinding = findings.Single(f => f.CheckId == "CL-EXAMPLE-RATE-CAP");
+        rateFinding.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Rate-dependent rule must emit InsufficientData when Rate capability is absent");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 5: RuleFinding factory contracts
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Verifies that <see cref="RuleFinding.Pass"/>, <see cref="RuleFinding.Fail"/>,
+    /// and <see cref="RuleFinding.InsufficientData"/> factories populate all fields correctly.
+    /// </summary>
+    [Fact]
+    public void RuleFinding_Factories_SetVerdictAndFields()
+    {
+        const string checkId = "CL-FACTORY-TEST";
+        const string version = "2.0.0";
+        const decimal tolerance = 0.50m;
+
+        // Pass factory
+        var pass = RuleFinding.Pass(
+            checkId: checkId,
+            technique: TechniqueClass.Deterministic,
+            engineVersion: version,
+            observed: "100.00",
+            toleranceApplied: tolerance,
+            locator: Domain.Extraction.FieldLocator.PageHint(2));
+
+        pass.CheckId.ShouldBe(checkId);
+        pass.Verdict.ShouldBe(FindingVerdict.Pass);
+        pass.Technique.ShouldBe(TechniqueClass.Deterministic);
+        pass.Severity.ShouldBe(FindingSeverity.Info);
+        pass.EngineVersion.ShouldBe(version);
+        pass.Observed.ShouldBe("100.00");
+        pass.ToleranceApplied.ShouldBe(tolerance);
+        pass.Locator.ShouldNotBeNull();
+        pass.Locator!.PageNumber.ShouldBe(2);
+        pass.Expected.ShouldBeNull();
+
+        // Fail factory
+        var fail = RuleFinding.Fail(
+            checkId: checkId,
+            technique: TechniqueClass.LightweightCv,
+            severity: FindingSeverity.Critical,
+            engineVersion: version,
+            expected: "200.00",
+            observed: "150.00",
+            toleranceApplied: tolerance);
+
+        fail.CheckId.ShouldBe(checkId);
+        fail.Verdict.ShouldBe(FindingVerdict.Fail);
+        fail.Technique.ShouldBe(TechniqueClass.LightweightCv);
+        fail.Severity.ShouldBe(FindingSeverity.Critical);
+        fail.EngineVersion.ShouldBe(version);
+        fail.Expected.ShouldBe("200.00");
+        fail.Observed.ShouldBe("150.00");
+        fail.ToleranceApplied.ShouldBe(tolerance);
+        fail.Locator.ShouldBeNull();
+
+        // InsufficientData factory
+        var insufficient = RuleFinding.InsufficientData(
+            checkId: checkId,
+            technique: TechniqueClass.Ml,
+            engineVersion: version,
+            reason: "model-not-loaded");
+
+        insufficient.CheckId.ShouldBe(checkId);
+        insufficient.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        insufficient.Technique.ShouldBe(TechniqueClass.Ml);
+        insufficient.Severity.ShouldBe(FindingSeverity.Warning);
+        insufficient.EngineVersion.ShouldBe(version);
+        insufficient.Observed.ShouldBe("model-not-loaded");
+        insufficient.Expected.ShouldBeNull();
+        insufficient.ToleranceApplied.ShouldBeNull();
+        insufficient.Locator.ShouldBeNull();
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 6: Cancellation — pre-cancelled token → cancelled result
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When the <see cref="CancellationToken"/> is already cancelled before
+    /// <see cref="IVecValidationEngine.RunAsync"/> is called, the engine returns a
+    /// cancelled result without running any rules.
+    /// </summary>
+    [Fact]
+    public async Task Engine_Cancelled_ReturnsCancelled()
+    {
+        await using var sp = BuildServiceProvider();
+        var engine = sp.GetRequiredService<IVecValidationEngine>();
+        var ctx = BuildContext(BundleWithRate());
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var result = await engine.RunAsync(ctx, cts.Token);
+
+        result.IsFailure.ShouldBeTrue("A cancelled run must return a failure result");
+        result.IsCancelled().ShouldBeTrue("The result must be specifically marked as cancelled");
+        result.Value.ShouldBeNull("No findings should be returned on cancellation");
+    }
+
+    // -----------------------------------------------------------------------
+    // Helper rules used only by the isolation test (Test 3)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Inline rule that always returns a failure <see cref="Result{T}"/> (not InsufficientData —
+    /// a genuine internal error path) to exercise engine batch isolation (NFR-6).
+    /// </summary>
+    private sealed class AlwaysFailResultRule : IVecValidationRule
+    {
+        public const string Id = "TEST-FAIL-RESULT";
+
+        public string CheckId => Id;
+        public TechniqueClass Technique => TechniqueClass.Deterministic;
+
+        public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default) =>
+            Result<RuleFinding>.WithFailure("simulated rule internal error");
+    }
+
+    /// <summary>
+    /// Inline rule that always returns Pass — used alongside <see cref="AlwaysFailResultRule"/>
+    /// to confirm the passing rule's finding is present even after the other rule fails.
+    /// </summary>
+    private sealed class AlwaysPassInlineRule : IVecValidationRule
+    {
+        public const string Id = "TEST-ALWAYS-PASS";
+
+        public string CheckId => Id;
+        public TechniqueClass Technique => TechniqueClass.Deterministic;
+
+        public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default) =>
+            Result<RuleFinding>.WithSuccess(
+                RuleFinding.Pass(
+                    checkId: CheckId,
+                    technique: Technique,
+                    engineVersion: "test-1.0.0"));
+    }
+}

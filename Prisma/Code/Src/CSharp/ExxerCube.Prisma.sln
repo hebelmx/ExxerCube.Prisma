@@ -302,6 +302,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Veriqan.In
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure.Database", "Infrastructure.Database", "{220D62AD-90EA-5A86-A9EF-50BE19251D90}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Veriqan.Infrastructure.Validation.Tests", "Veriqan.Infrastructure.Validation.Tests", "{F92215D2-E2B7-72DF-58D3-29625C8D0E96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Tests", "08 Tests\02 Infrastructure\Veriqan.Infrastructure.Validation.Tests\ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Tests.csproj", "{7B05388F-5421-4643-846E-E18177E1D965}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Veriqan.Infrastructure.Validation", "Veriqan.Infrastructure.Validation", "{3F2D6701-5F08-3A52-10B3-652622158793}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Veriqan.Infrastructure.Validation", "02 Infrastructure\Veriqan.Infrastructure.Validation\ExxerCube.Prisma.Veriqan.Infrastructure.Validation.csproj", "{2261055E-D136-4EBB-BC66-12F1887F6D41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1344,6 +1352,30 @@ Global
 		{CA4E1B54-6C94-42C9-AA99-0646C0FE1FA6}.Release|x64.Build.0 = Release|Any CPU
 		{CA4E1B54-6C94-42C9-AA99-0646C0FE1FA6}.Release|x86.ActiveCfg = Release|Any CPU
 		{CA4E1B54-6C94-42C9-AA99-0646C0FE1FA6}.Release|x86.Build.0 = Release|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Debug|x64.Build.0 = Debug|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Debug|x86.Build.0 = Debug|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Release|x64.ActiveCfg = Release|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Release|x64.Build.0 = Release|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Release|x86.ActiveCfg = Release|Any CPU
+		{7B05388F-5421-4643-846E-E18177E1D965}.Release|x86.Build.0 = Release|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Debug|x64.Build.0 = Debug|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Debug|x86.Build.0 = Debug|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Release|x64.ActiveCfg = Release|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Release|x64.Build.0 = Release|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Release|x86.ActiveCfg = Release|Any CPU
+		{2261055E-D136-4EBB-BC66-12F1887F6D41}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1488,6 +1520,10 @@ Global
 		{B7F73F8D-BDF1-4788-5E87-994A931C3590} = {A4638C92-261B-45C3-9443-AACCC792015D}
 		{CA4E1B54-6C94-42C9-AA99-0646C0FE1FA6} = {B7F73F8D-BDF1-4788-5E87-994A931C3590}
 		{220D62AD-90EA-5A86-A9EF-50BE19251D90} = {3166389F-1D09-47D5-A74A-5F2F2DDB9120}
+		{F92215D2-E2B7-72DF-58D3-29625C8D0E96} = {56E66B46-BE15-4AD1-B371-252E84EDB669}
+		{7B05388F-5421-4643-846E-E18177E1D965} = {F92215D2-E2B7-72DF-58D3-29625C8D0E96}
+		{3F2D6701-5F08-3A52-10B3-652622158793} = {3166389F-1D09-47D5-A74A-5F2F2DDB9120}
+		{2261055E-D136-4EBB-BC66-12F1887F6D41} = {3F2D6701-5F08-3A52-10B3-652622158793}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F4D9C48-36D8-465A-9065-D491D435A0F6}
