@@ -1,4 +1,6 @@
+using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -32,6 +34,8 @@ public static class VeriqanPersistenceExtensions
             options.UseSqlServer(
                 connectionString,
                 b => b.MigrationsHistoryTable("__EFMigrationsHistory", "veriqan")));
+
+        services.AddScoped<IVerificationJobRepository, EfVerificationJobRepository>();
 
         return services;
     }
