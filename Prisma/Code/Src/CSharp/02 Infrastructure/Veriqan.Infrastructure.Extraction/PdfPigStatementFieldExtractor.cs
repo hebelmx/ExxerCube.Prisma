@@ -209,6 +209,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // corrupt band grouping (PdfPig resets Y per page).
             var periodSummary = ExtractPeriodSummary(allPage1Words);
 
+            // ---- DESGLOSE DE MOVIMIENTOS DEL PERIODO — Story 4.4 ----------
+            // Scan all pages for the DESGLOSE section header, then reconstruct
+            // transaction rows using Y-band grouping + X-column assignment.
+            var (movements, movementsStatus) = ExtractMovements(doc);
+
             var model = new StatementModel(
                 clientName: clientName,
                 address: address,
@@ -219,6 +224,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 rfc: rfc)
             {
                 PeriodSummary = periodSummary,
+                Movements = movements,
+                MovementsStatus = movementsStatus,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -967,6 +974,338 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+    }
+
+    // -----------------------------------------------------------------------
+    // DESGLOSE DE MOVIMIENTOS DEL PERIODO extraction (Story 4.4)
+    // -----------------------------------------------------------------------
+
+    // Column X-range constants (empirically measured from Dummie VEC fixtures).
+    // PDF-point coordinates; origin bottom-left. Page width ≈ 540 pt.
+    //
+    //   Fecha de la operación  — words whose Left ≤ 95
+    //   Fecha de cargo         — words whose Left is 96–157
+    //   Descripción            — words whose Left is 158–422
+    //   Monto sign (+/−)       — words whose Left is 423–435
+    //   Monto amount           — words whose Left is 436–530
+    //
+    // The DESGLOSE section header line contains the word "DESGLOSE" at Y≈663
+    // on each table page.  Total/summary rows ("Total cargos", "Total abonos")
+    // appear after the last data row with text starting at X≈346 and no sign token.
+
+    private const double DesgloseOperationDateXMax = 95.0;
+    private const double DeskglosechargeDateXMin = 96.0;
+    private const double DesgloseChargeDateXMax = 157.0;
+    private const double DesgloseDescriptionXMin = 158.0;
+    private const double DesgloseDescriptionXMax = 422.0;
+    private const double DesgloseSignXMin = 423.0;
+    private const double DesgloseSignXMax = 438.0;
+    private const double DesgloseAmountXMin = 436.0;
+
+    // Y-band tolerance tighter than the header (14 pt row spacing; 4 pt avoids merging adjacent rows).
+    private const double DesgloseBandTolerance = 4.0;
+
+    // Sign tokens as they appear in the PDF.
+    private const string SignChargeToken = "+";
+    // Minus sign can appear as ASCII hyphen-minus or Unicode minus sign.
+    private const string SignCreditAscii = "-";
+    private const string SignCreditUnicode = "−";
+
+    /// <summary>
+    /// Amount with sign token, e.g. "+ $329.00", "- $6,523.00".
+    /// Pattern: optional "$", digit groups with commas, optional decimal.
+    /// </summary>
+    private static readonly Regex DesgloseAmountPattern = new(
+        @"^\$?([\d,]+(?:\.\d+)?)$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Loose date pattern used to identify operation/charge-date tokens in the table.
+    /// Accepts truncated years (e.g. "07-jul-202") as well as full "dd-mmm-yyyy".
+    /// </summary>
+    private static readonly Regex DesgloseDatePattern = new(
+        @"^\d{1,2}-[a-záéíóúñü]+-\d{2,4}$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    /// <summary>
+    /// Extracts all movement rows from the DESGLOSE DE MOVIMIENTOS DEL PERIODO table
+    /// across all pages of the document.
+    /// </summary>
+    /// <param name="doc">The open <see cref="PdfDocument"/>.</param>
+    /// <returns>
+    /// A tuple of the parsed movement list and the extraction status.
+    /// The list is in top-to-bottom, page-ascending order.
+    /// Never throws — individual row parse failures are silently skipped.
+    /// </returns>
+    private (IReadOnlyList<StatementMovement> movements, MovementsExtractionStatus status)
+        ExtractMovements(PdfDocument doc)
+    {
+        var movements = new List<StatementMovement>();
+        var sectionFound = false;
+
+        for (var pageIndex = 1; pageIndex <= doc.NumberOfPages; pageIndex++)
+        {
+            var page = doc.GetPage(pageIndex);
+            var words = page.GetWords().ToList();
+
+            // Check whether this page contains the DESGLOSE section header.
+            // The header line has "DESGLOSE" at Y≈663 (empirically measured).
+            var hasDesgloseHeader = words.Any(w =>
+                string.Equals(w.Text, "DESGLOSE", StringComparison.OrdinalIgnoreCase));
+
+            if (!hasDesgloseHeader)
+                continue;
+
+            sectionFound = true;
+
+            // Group all words into Y-bands using the tighter DESGLOSE tolerance.
+            var bands = GroupIntoBandsWithTolerance(words, DesgloseBandTolerance);
+
+            // Sort bands top-to-bottom (highest Y = top of page in PDF coordinates).
+            var sortedBands = bands
+                .OrderByDescending(kv => kv.Key)
+                .ToList();
+
+            StatementMovement? lastMovement = null;
+
+            foreach (var (bandY, bandWords) in sortedBands)
+            {
+                var row = TryParseMovementRow(bandWords, pageIndex);
+
+                if (row is not null)
+                {
+                    movements.Add(row);
+                    lastMovement = row;
+                    continue;
+                }
+
+                // Check for FX-rate continuation row (TC1*/TC2*/U.S. DOLLAR):
+                // these words have no date column and no sign token but belong to
+                // the description of the preceding row. We fold them into the description
+                // by tracking lastMovement. Because StatementMovement is a record (immutable),
+                // we replace the last entry with an updated description.
+                if (lastMovement is not null && IsFxContinuationRow(bandWords))
+                {
+                    var fxText = BuildDescription(bandWords,
+                        DesgloseDescriptionXMin, DesgloseDescriptionXMax);
+                    if (!string.IsNullOrWhiteSpace(fxText))
+                    {
+                        var updated = new StatementMovement(
+                            lastMovement.OperationDate,
+                            lastMovement.ChargeDate,
+                            lastMovement.Description + " | " + fxText,
+                            lastMovement.Amount,
+                            lastMovement.Sign,
+                            lastMovement.Locator);
+                        movements[movements.Count - 1] = updated;
+                        lastMovement = updated;
+                    }
+                }
+                // Other non-data bands (column headers, section title, page footer,
+                // totals rows) are simply skipped.
+            }
+        }
+
+        if (!sectionFound)
+            return ([], MovementsExtractionStatus.SectionNotFound);
+
+        if (movements.Count == 0)
+            return ([], MovementsExtractionStatus.NoRowsParsed);
+
+        _logger.LogInformation(
+            "DESGLOSE extraction: {Count} movements parsed across {Pages} page(s).",
+            movements.Count, doc.NumberOfPages);
+
+        return (movements, MovementsExtractionStatus.Extracted);
+    }
+
+    /// <summary>
+    /// Attempts to parse a Y-band as a DESGLOSE data row.
+    /// Returns <see langword="null"/> for non-data bands (headers, footers, totals, FX rows).
+    /// </summary>
+    private static StatementMovement? TryParseMovementRow(List<Word> bandWords, int pageNumber)
+    {
+        // A data row must have:
+        //   1. At least one date-like token in the operation-date column (X ≤ 95)
+        //   2. A sign token (+/−) in the Monto column (X 423–438)
+        var operationDateWords = bandWords
+            .Where(w => w.BoundingBox.Left <= DesgloseOperationDateXMax
+                     && DesgloseDatePattern.IsMatch(w.Text))
+            .OrderBy(w => w.BoundingBox.Left)
+            .ToList();
+
+        var signWords = bandWords
+            .Where(w => w.BoundingBox.Left >= DesgloseSignXMin
+                     && w.BoundingBox.Left <= DesgloseSignXMax
+                     && IsSignToken(w.Text))
+            .ToList();
+
+        if (operationDateWords.Count == 0 || signWords.Count == 0)
+            return null;
+
+        // ---- Operation date ---------------------------------------------------
+        DateOnly? operationDate = null;
+        var opDateToken = operationDateWords[0].Text;
+        if (TryParseSpanishDate(opDateToken, out var opDate))
+            operationDate = opDate;
+
+        // ---- Charge date (X 96–157; year may be truncated to "dd-mmm-202") ---
+        var chargeDateWords = bandWords
+            .Where(w => w.BoundingBox.Left >= DeskglosechargeDateXMin
+                     && w.BoundingBox.Left <= DesgloseChargeDateXMax
+                     && DesgloseDatePattern.IsMatch(w.Text))
+            .OrderBy(w => w.BoundingBox.Left)
+            .ToList();
+
+        DateOnly? chargeDate = null;
+        if (chargeDateWords.Count > 0)
+        {
+            var cdToken = chargeDateWords[0].Text;
+            if (TryParseSpanishDate(cdToken, out var cd))
+            {
+                chargeDate = cd;
+            }
+            else
+            {
+                // Attempt year-repair: "07-jul-202" → try appending "5" from context.
+                // The operation date year is the safest context; fall back to current year.
+                var repairedYear = operationDate?.Year ?? DateTimeOffset.UtcNow.Year;
+                var repaired = RepairTruncatedDate(cdToken, repairedYear);
+                if (repaired is not null && TryParseSpanishDate(repaired, out var repairedDate))
+                    chargeDate = repairedDate;
+            }
+        }
+
+        // ---- Description (X 158–422) -----------------------------------------
+        var description = BuildDescription(bandWords, DesgloseDescriptionXMin, DesgloseDescriptionXMax);
+
+        // ---- Sign -----------------------------------------------------------
+        var signToken = signWords[0].Text;
+        var sign = IsCreditToken(signToken) ? MovementSign.Credit : MovementSign.Charge;
+
+        // ---- Amount (X ≥ 436) -----------------------------------------------
+        var amountWords = bandWords
+            .Where(w => w.BoundingBox.Left >= DesgloseAmountXMin)
+            .OrderBy(w => w.BoundingBox.Left)
+            .ToList();
+
+        decimal amount = 0m;
+        foreach (var aw in amountWords)
+        {
+            var m = DesgloseAmountPattern.Match(aw.Text);
+            if (!m.Success)
+                continue;
+            var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
+            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            {
+                amount = parsed;
+                break;
+            }
+        }
+
+        // ---- Locator --------------------------------------------------------
+        var locator = BoundingBoxOf(bandWords, pageNumber);
+
+        return new StatementMovement(
+            operationDate,
+            chargeDate,
+            description,
+            amount,
+            sign,
+            locator);
+    }
+
+    /// <summary>
+    /// Builds a description string from words within the description column X-range.
+    /// Words are sorted left-to-right and joined with a single space.
+    /// </summary>
+    private static string BuildDescription(List<Word> bandWords, double xMin, double xMax)
+    {
+        var descWords = bandWords
+            .Where(w => w.BoundingBox.Left >= xMin && w.BoundingBox.Left <= xMax)
+            .OrderBy(w => w.BoundingBox.Left)
+            .Select(w => w.Text)
+            .ToList();
+        return string.Join(" ", descWords).Trim();
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the band looks like an FX-rate continuation row
+    /// (contains "TC1*" or "TC2*" or "U.S." — no date/sign tokens).
+    /// </summary>
+    private static bool IsFxContinuationRow(List<Word> bandWords)
+    {
+        return bandWords.Any(w =>
+            w.Text.StartsWith("TC1", StringComparison.OrdinalIgnoreCase)
+            || w.Text.StartsWith("TC2", StringComparison.OrdinalIgnoreCase)
+            || w.Text.Equals("U.S.", StringComparison.OrdinalIgnoreCase)
+            || w.Text.Equals("DOLLAR", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the token is a recognized sign token (+/−).
+    /// </summary>
+    private static bool IsSignToken(string text)
+        => text == SignChargeToken || text == SignCreditAscii || text == SignCreditUnicode;
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the token represents a credit (abono).
+    /// </summary>
+    private static bool IsCreditToken(string text)
+        => text == SignCreditAscii || text == SignCreditUnicode;
+
+    /// <summary>
+    /// Attempts to repair a truncated date token where the year is missing its last digit,
+    /// e.g. "07-jul-202" → "07-jul-2025" when <paramref name="contextYear"/> is 2025.
+    /// </summary>
+    /// <param name="raw">Raw date token that may be truncated.</param>
+    /// <param name="contextYear">Year to use for repair (from operation date or current year).</param>
+    /// <returns>Repaired token, or <see langword="null"/> if repair cannot be applied.</returns>
+    private static string? RepairTruncatedDate(string raw, int contextYear)
+    {
+        // Pattern: "dd-mmm-YYY" — 3-digit year (missing last digit).
+        var m = Regex.Match(raw, @"^(\d{1,2}-[a-záéíóúñü]+-\d{3})$",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (!m.Success)
+            return null;
+
+        // Append the last digit of the context year.
+        var lastDigit = (contextYear % 10).ToString(
+            System.Globalization.CultureInfo.InvariantCulture);
+        return raw + lastDigit;
+    }
+
+    /// <summary>
+    /// Groups words into horizontal Y-bands using a custom tolerance value.
+    /// Uses the same first-match algorithm as <see cref="GroupIntoBands"/> but with
+    /// a caller-specified tolerance instead of the header's <see cref="YBandTolerance"/>.
+    /// </summary>
+    private static Dictionary<double, List<Word>> GroupIntoBandsWithTolerance(
+        List<Word> words, double tolerance)
+    {
+        var result = new Dictionary<double, List<Word>>();
+
+        foreach (var word in words)
+        {
+            var y = word.BoundingBox.Bottom;
+            var matched = false;
+
+            foreach (var key in result.Keys)
+            {
+                if (Math.Abs(key - y) <= tolerance)
+                {
+                    result[key].Add(word);
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched)
+                result[y] = [word];
+        }
+
+        return result;
     }
 
     // -----------------------------------------------------------------------

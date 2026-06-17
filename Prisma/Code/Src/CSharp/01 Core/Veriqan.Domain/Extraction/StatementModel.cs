@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ExxerCube.Prisma.Veriqan.Domain.Extraction;
 
 /// <summary>
@@ -108,4 +110,37 @@ public sealed class StatementModel
     /// which extracts both header and period/summary fields in a single pass.
     /// </remarks>
     public PeriodSummary? PeriodSummary { get; init; }
+
+    // -----------------------------------------------------------------------
+    // DESGLOSE DE MOVIMIENTOS DEL PERIODO — transaction table (Story 4.4)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Parsed transaction rows from the "DESGLOSE DE MOVIMIENTOS DEL PERIODO" table.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story 4.4).  An empty list combined with
+    /// <see cref="MovementsStatus"/> == <see cref="MovementsExtractionStatus.SectionNotFound"/>
+    /// indicates the DESGLOSE section was absent from the PDF (e.g. minimal test PDFs).
+    /// </para>
+    /// <para>
+    /// The list is ordered as encountered top-to-bottom across all DESGLOSE pages.
+    /// Each row carries a <see cref="StatementMovement.Locator"/> with page number and
+    /// bounding-box coordinates.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<StatementMovement> Movements { get; init; } = [];
+
+    /// <summary>
+    /// Indicates the outcome of extracting the DESGLOSE transaction table (Story 4.4).
+    /// </summary>
+    /// <remarks>
+    /// <see cref="MovementsExtractionStatus.SectionNotFound"/> when the "DESGLOSE DE MOVIMIENTOS"
+    /// section header was not found in any page of the PDF.
+    /// <see cref="MovementsExtractionStatus.Extracted"/> when at least one row was parsed.
+    /// <see cref="MovementsExtractionStatus.NoRowsParsed"/> when the section was found but
+    /// no valid data rows could be reconstructed.
+    /// </remarks>
+    public MovementsExtractionStatus MovementsStatus { get; init; } = MovementsExtractionStatus.SectionNotFound;
 }

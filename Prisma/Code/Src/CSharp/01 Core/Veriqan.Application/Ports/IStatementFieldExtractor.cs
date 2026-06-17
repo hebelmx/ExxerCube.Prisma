@@ -18,6 +18,12 @@ namespace ExxerCube.Prisma.Veriqan.Application.Ports;
 /// header identity fields and period/summary fields, returning a <see cref="StatementModel"/>
 /// with <see cref="StatementModel.PeriodSummary"/> populated.
 /// </para>
+/// <para>
+/// Story 4.4 — <see cref="ExtractFullAsync"/> also populates
+/// <see cref="StatementModel.Movements"/> with the parsed DESGLOSE DE MOVIMIENTOS DEL PERIODO
+/// transaction rows and sets <see cref="StatementModel.MovementsStatus"/> to indicate
+/// whether the section was found and how many rows were reconstructed.
+/// </para>
 /// </remarks>
 public interface IStatementFieldExtractor
 {
@@ -44,9 +50,8 @@ public interface IStatementFieldExtractor
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Extracts all fields from a VEC statement PDF — both header identity fields and
-    /// period/summary fields — in a single pass, returning a fully-populated
-    /// <see cref="StatementModel"/> with <see cref="StatementModel.PeriodSummary"/> set.
+    /// Extracts all fields from a VEC statement PDF — header identity fields, period/summary
+    /// fields, and the DESGLOSE DE MOVIMIENTOS DEL PERIODO transaction table — in a single pass.
     /// </summary>
     /// <param name="pdf">Raw bytes of the statement PDF.</param>
     /// <param name="cancellationToken">Cancellation token propagated to all async operations.</param>
@@ -56,9 +61,19 @@ public interface IStatementFieldExtractor
     /// a failure result when the PDF cannot be opened or is structurally unrecognisable.
     /// </returns>
     /// <remarks>
+    /// <para>
     /// Extraction never throws for missing or format-invalid fields.
     /// All fields in <see cref="StatementModel.PeriodSummary"/> that were not found carry
     /// <see cref="Domain.Extraction.ExtractionStatus.NotExtracted"/> with a page-level locator hint.
+    /// </para>
+    /// <para>
+    /// When the DESGLOSE section is absent (e.g. minimal test PDFs),
+    /// <see cref="StatementModel.Movements"/> is empty and
+    /// <see cref="StatementModel.MovementsStatus"/> is
+    /// <see cref="Domain.Extraction.MovementsExtractionStatus.SectionNotFound"/>.
+    /// Partial parse failures (unreadable date/amount on individual rows) produce a
+    /// <see langword="null"/> field on that row rather than a failure result.
+    /// </para>
     /// </remarks>
     Task<Result<StatementModel>> ExtractFullAsync(
         byte[] pdf,
