@@ -12,8 +12,32 @@ This is a *resume point* so you don't inherit a huge context. Read this, then
 ## 1. How to resume
 
 Re-invoke the `bmad-orchestrator` skill with arg `docs/planning-artifacts/HANDOFF.md` (or just continue the
-loop manually). **Next work = Epic 4 (Financial Consistency Engine).** The user has been approving
-epic-by-epic; check in at the Epic 4 boundary. The owner is remote — surface design forks via AskUserQuestion.
+loop manually). **Epic 4 is now DONE (2026-06-17).** **Next work = Epic 5 (Visual & Print-Quality).** The
+user approves epic-by-epic; check in at boundaries. The owner is remote — surface design forks via
+AskUserQuestion. **E5 partially needs the image-catalog open client answer (§6)** — font (CL-35),
+text-overlap (CL-28/29), pagination/blank/per-page (CL-31/33/34/48) are buildable now from PdfPig
+geometry + render; the catalog IMAGE-PRESENCE checks (CL-27/30/47, pHash) need the catalog delivery/keying
+answer.
+
+**Epic 4 (Financial Consistency Engine) — DONE** (commits `6cf5683d`,`eb8d34c4`,`c0609b62`,`f47a9042`,
+`f9d189ae`,`77360987`, findings `f51d20ff`), adversarially reviewed; every checklist formula confirmed
+correct + two semantics points owner-adjudicated. `IVecValidationRule`+`VecValidationEngine` (Scrutor DI,
+deterministic, batch-isolated); RuleFinding (Domain.Verification). Real PASS/FAIL: CL-10 (CAT,
+percentage-point tolerance), CL-17, CL-18, CL-19, CL-20 (credits-only — confirmed via MX cargo/abono
+semantics + CONDUSEF), CL-21, CL-22, CL-24, CL-25, CL-42, CL-44 (credits side), CL-45, item-58. Validation.Tests 96, Extraction.Tests 54.
+
+**Legal context (NEW, authoritative):** `docs/legal/regulations/` holds the CONDUSEF
+`Acuerdo_estado_de_cuenta.pdf` (+ SIARA/DGAAC docs). VEC terminology + regulatory checks (esp. Epic 6
+legends/sections, and cargo/abono semantics) MUST accord with it.
+
+**Epic 4 carry-forwards (P2, deliberate InsufficientData — honest degradation, never false PASS/FAIL):**
+- `TotalCargos` not extracted on the fixtures → CL-44 charge side InsufficientData (credits validated
+  exactly). Needs extractor tuning to find the "Total de cargos" footer.
+- CL-26 needs a separately-extracted "crédito disponible para disposiciones de efectivo" value (now
+  InsufficientData, was vacuously always-Pass).
+- COMPRAS-A-MESES installment-table extraction is UNSCHEDULED → CL-23/40/41 InsufficientData.
+- Rewards-section extraction + a rewards-bearing fixture (all 3 fixtures are BSSB/no-rewards) → CL-36/37/39.
+- CL-43 per-page DESGLOSE range header not captured → InsufficientData.
 
 ## 2. What is DONE (Epics 1–3 + P2 hardening) — all on `Liv`, pushed
 

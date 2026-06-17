@@ -57,9 +57,21 @@ Testcontainers SQL Server test (`b7634048`); (2) the CSV adapter now fills ALL b
 and does not consume a Prisma Shared-Core extraction type — the arch "reuse" claim is aspirational;
 revisit only if a shared seam emerges.
 
-**Next:** Epic 4 (Financial Consistency Engine, FR-6/7/8/25) — the deterministic `IVecValidationRule`
-engine + intra-statement arithmetic, cross-period, and movement-detail reconciliation. Highest-value core.
-Builds on the now-real `StatementModel` + `VerificationContext` + `ReferenceDataAvailability` + `TasaMatcher`.
+**Epic 4 — Financial Consistency Engine: DONE** (2026-06-17; commits `6cf5683d`→`f51d20ff`),
+adversarially reviewed — every checklist formula confirmed correct, two semantics points owner-adjudicated
+(CL-10 percentage-point tolerance; CL-20 credits-only per MX cargo/abono + CONDUSEF). `IVecValidationRule`
+engine (Scrutor DI, deterministic) + RuleFinding; real PASS/FAIL on CL-10/17/18/19/20/21/22/24/25/42/44/45/
+item-58. Validation.Tests 96, Extraction.Tests 54. Carry-forwards (P2, honest InsufficientData): TotalCargos
+extraction gap (CL-44 charge side; credits validated exactly), CL-26 separate efectivo field, COMPRAS-A-MESES
+installment extraction (CL-23/40/41), rewards extraction+fixture (CL-36/37/39), CL-43 page-range header.
+
+**Legal context (authoritative):** `docs/legal/regulations/` — CONDUSEF `Acuerdo_estado_de_cuenta.pdf` +
+SIARA/DGAAC docs. Terminology + regulatory checks (esp. Epic 6) must accord with it.
+
+**Next:** Epic 5 (Visual & Print-Quality, FR-9..12) — font (CL-35), text-overlap/headers (CL-28/29),
+pagination/blank/per-page (CL-31/33/34/48) are buildable now (PdfPig geometry + PDFtoImage render); catalog
+image-presence (CL-27/30/47, pHash) needs the §6 image-catalog client answer. Full plan + carry-forwards +
+orchestration gotchas: `ORCHESTRATION-HANDOFF-2026-06-17.md`.
 
 ---
 
