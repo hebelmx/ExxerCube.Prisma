@@ -63,14 +63,6 @@ public static class TasaMatcher
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentException.ThrowIfNullOrWhiteSpace(productId);
 
-        // Require extracted TASA.
-        if (periodSummary is null
-            || periodSummary.Tasa.Status != ExtractionStatus.Extracted
-            || periodSummary.Tasa.Value is var extractedRate && false)
-        {
-            // Unreachable branch above; evaluate properly below.
-        }
-
         if (periodSummary is null || periodSummary.Tasa.Status != ExtractionStatus.Extracted)
         {
             return new TasaMatchResult(

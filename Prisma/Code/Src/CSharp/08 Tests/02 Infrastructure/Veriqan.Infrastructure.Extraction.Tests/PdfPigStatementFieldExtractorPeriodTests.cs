@@ -4,6 +4,9 @@ using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
 using IndQuestResults.Operations;
 using Meziantou.Extensions.Logging.Xunit.v3;
+using UglyToad.PdfPig.Core;
+using UglyToad.PdfPig.Fonts.Standard14Fonts;
+using UglyToad.PdfPig.Writer;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests;
 
@@ -204,6 +207,8 @@ public sealed class PdfPigStatementFieldExtractorPeriodTests
     /// Build a VecReferenceBundle whose TASA for product "TC-BSSB" / period "Jul Ago 2025"
     /// is set to the value printed in fixture #1 (extracted at runtime).
     /// TasaMatcher.Match must return Matched.
+    /// Fixture #1 must yield an extracted TASA — if it does not, the test fails so
+    /// we catch the regression immediately rather than silently deflecting.
     /// </summary>
     [Fact]
     public async Task RateMatch_ExtractedRateAgainstBundleTasa_Matches()
@@ -211,23 +216,9 @@ public sealed class PdfPigStatementFieldExtractorPeriodTests
         var ct = TestContext.Current.CancellationToken;
         var ps = await GetJulAgoPeriodSummaryAsync(ct);
 
-        // If TASA was not extracted, we still validate InsufficientData is returned
-        // rather than a false positive.
-        if (ps.Tasa.Status != ExtractionStatus.Extracted)
-        {
-            // TASA not on this fixture — test the InsufficientData path instead
-            // (covered in S3.2-5b; skip here so the test isn't misleading).
-            // We cannot Assert.Skip in xunit v3 MTP without the DSL, so we use a
-            // conditional assert on the correct outcome.
-            var noTasaBundle = BuildBundleWithTasa("TC-BSSB", "Jul Ago 2025",
-                "2025-07-05", "2025-08-04", 0.1975m);
-
-            var noTasaResult = TasaMatcher.Match(ps, noTasaBundle, "TC-BSSB");
-            noTasaResult.Outcome.ShouldBe(TasaMatchOutcome.ExtractedTasaMissing,
-                "When TASA is not in the statement, outcome must be ExtractedTasaMissing");
-            noTasaResult.IsInsufficientData.ShouldBeTrue();
-            return;
-        }
+        // Fixture #1 must have an extracted TASA; if not, the fixture or extractor is broken.
+        ps.Tasa.Status.ShouldBe(ExtractionStatus.Extracted,
+            "Fixture #1 must yield an extracted TASA so the Matched path is actually exercised");
 
         // TASA was extracted — build a bundle with the same rate so it matches.
         var extractedRate = ps.Tasa.Value!;
@@ -247,6 +238,55 @@ public sealed class PdfPigStatementFieldExtractorPeriodTests
         result.BundleRate.ShouldBe(extractedRate);
         result.AbsoluteDifference.ShouldBe(0m);
         result.MatchedPeriodLabel.ShouldBe("Jul Ago 2025");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test S3.2-5a-missing: Rate match — TASA field not extracted → ExtractedTasaMissing
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When the PeriodSummary carries a Missing TASA field, TasaMatcher must return
+    /// <see cref="TasaMatchOutcome.ExtractedTasaMissing"/> regardless of what the bundle says.
+    /// Uses a synthetic PeriodSummary so the test is independent of any fixture PDF.
+    /// </summary>
+    [Fact]
+    public void RateMatch_ExtractedTasaMissing_ReturnsInsufficientData()
+    {
+        var missing = FieldLocator.PageHint(1);
+        var ps = new PeriodSummary(
+            product: ExtractedField<string>.Missing(missing),
+            periodStart: ExtractedField<DateOnly>.Missing(missing),
+            periodCutDate: ExtractedField<DateOnly>.Missing(missing),
+            paymentDueDate: ExtractedField<DateOnly>.Missing(missing),
+            dayCountPrinted: ExtractedField<int>.Missing(missing),
+            dayCount: DayCountVerification.Compute(
+                ExtractedField<DateOnly>.Missing(missing),
+                ExtractedField<DateOnly>.Missing(missing),
+                ExtractedField<int>.Missing(missing)),
+            pagoParaNoGenerarIntereses: ExtractedField<decimal>.Missing(missing),
+            pagoMinimo: ExtractedField<decimal>.Missing(missing),
+            pagoMinimoMasMeses: ExtractedField<decimal>.Missing(missing),
+            tasa: ExtractedField<decimal>.Missing(missing),   // ← Missing TASA
+            cat: ExtractedField<decimal>.Missing(missing),
+            saldoDeudorTotal: ExtractedField<decimal>.Missing(missing),
+            creditoDisponible: ExtractedField<decimal>.Missing(missing));
+
+        var bundle = BuildBundleWithTasa(
+            productId: "TC-BSSB",
+            periodLabel: "Jul Ago 2025",
+            periodStart: "2025-07-05",
+            periodEnd: "2025-08-04",
+            rate: 0.1975m);
+
+        var result = TasaMatcher.Match(ps, bundle, "TC-BSSB");
+
+        result.Outcome.ShouldBe(TasaMatchOutcome.ExtractedTasaMissing,
+            "When TASA is not extracted, outcome must be ExtractedTasaMissing");
+        result.IsInsufficientData.ShouldBeTrue(
+            "ExtractedTasaMissing must satisfy IsInsufficientData");
+        result.ExtractedRate.ShouldBeNull("No extracted rate is available");
+        result.BundleRate.ShouldBeNull("Bundle rate is not looked up when extracted TASA is missing");
+        result.Detail.ShouldNotBeNullOrWhiteSpace("Detail must explain why the match failed");
     }
 
     // -----------------------------------------------------------------------
@@ -437,6 +477,65 @@ public sealed class PdfPigStatementFieldExtractorPeriodTests
             $"Extracted {extractedRate:P4} vs bundle {differentRate:P4} (diff 0.05) must be Mismatch");
         result.IsMatch.ShouldBeFalse();
         result.AbsoluteDifference.ShouldBe(0.05m);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test S3.2-11: Real-parse on a PDF with no VEC labels → NotExtracted with page hint
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Builds a minimal in-memory PDF (single page, unrelated text) using
+    /// <see cref="UglyToad.PdfPig.Writer.PdfDocumentBuilder"/>, then runs the real
+    /// <see cref="PdfPigStatementFieldExtractor"/> over it.
+    /// Asserts that every header identity field is reported as
+    /// <see cref="ExtractionStatus.NotExtracted"/> with a non-null page-hint Locator
+    /// that has no bounding box — proving the extractor degrades honestly on absent fields
+    /// rather than throwing or returning null/blank values.
+    /// </summary>
+    [Fact]
+    public async Task ExtractHeader_MinimalPdfWithNoLabeledFields_HeaderFieldsAreNotExtracted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+
+        // Build a single-page PDF whose text contains no VEC labels.
+        var builder = new PdfDocumentBuilder();
+        var page = builder.AddPage(595, 842); // A4 in PDF points
+        var font = builder.AddStandard14Font(Standard14Font.Helvetica);
+        page.AddText("Hello", 12, new PdfPoint(50, 750), font);
+        var pdfBytes = builder.Build();
+
+        var result = await extractor.ExtractHeaderAsync(pdfBytes, ct);
+
+        result.IsSuccess.ShouldBeTrue(
+            $"Extractor must succeed (not throw) on a valid PDF that lacks VEC labels. Error: {result.Error}");
+
+        var model = result.Value!;
+
+        // Every labeled header field must be NotExtracted with a page-hint locator.
+        AssertNotExtractedWithPageHint(model.CardNumber, nameof(model.CardNumber));
+        AssertNotExtractedWithPageHint(model.Clabe, nameof(model.Clabe));
+        AssertNotExtractedWithPageHint(model.ClientNumber, nameof(model.ClientNumber));
+        AssertNotExtractedWithPageHint(model.Rfc, nameof(model.Rfc));
+        AssertNotExtractedWithPageHint(model.BranchNumber, nameof(model.BranchNumber));
+    }
+
+    /// <summary>
+    /// Asserts that <paramref name="field"/> has <see cref="ExtractionStatus.NotExtracted"/>,
+    /// a null value, a non-null page-hint locator on page 1, and no bounding box.
+    /// </summary>
+    private static void AssertNotExtractedWithPageHint<T>(ExtractedField<T> field, string name)
+    {
+        field.Status.ShouldBe(ExtractionStatus.NotExtracted,
+            $"{name} must be NotExtracted when no VEC labels are present in the PDF");
+        field.Value.ShouldBe(default,
+            $"{name}.Value must be null/default when NotExtracted");
+        field.Locator.ShouldNotBeNull(
+            $"{name}.Locator must not be null — missing fields always carry a page hint");
+        field.Locator.PageNumber.ShouldBe(1,
+            $"{name}.Locator.PageNumber must be 1 (page-level hint)");
+        field.Locator.HasBoundingBox.ShouldBeFalse(
+            $"{name}.Locator must NOT have a bounding box when the field was not found");
     }
 
     // -----------------------------------------------------------------------
