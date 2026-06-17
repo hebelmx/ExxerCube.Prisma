@@ -145,6 +145,47 @@ public sealed class StatementModel
     public MovementsExtractionStatus MovementsStatus { get; init; } = MovementsExtractionStatus.SectionNotFound;
 
     // -----------------------------------------------------------------------
+    // Text-overlap incidents (Story 5.2 — CL-28)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Text-overlap incidents detected during extraction (Story 5.2 — CL-28).
+    /// Each entry represents a pair of words on the same horizontal band whose
+    /// X-extents intersect by more than 2.0 PDF points (the extraction epsilon).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// An empty list indicates no overlapping words were found across any page.
+    /// Normal kerning (glyphs touching but not crossing) does NOT produce incidents.
+    /// </para>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story 5.2).  Always non-null.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<TextOverlapIncident> TextOverlapIncidents { get; init; } = [];
+
+    // -----------------------------------------------------------------------
+    // Section-header styles (Story 5.2 — CL-29)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Typographic style of each detected section header (Story 5.2 — CL-29).
+    /// Headers are identified by matching known Spanish section-title strings
+    /// (case-insensitive) against page text on every page.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// An empty list indicates none of the known section titles were found in the PDF.
+    /// Rules that depend on this list must treat an empty result as
+    /// <c>InsufficientData</c> rather than Pass.
+    /// </para>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story 5.2).  Always non-null.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<SectionHeaderStyle> SectionHeaderStyles { get; init; } = [];
+
+    // -----------------------------------------------------------------------
     // Font runs (Story 5.1 — CL-35 embedded-font compliance)
     // -----------------------------------------------------------------------
 

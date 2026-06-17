@@ -218,6 +218,16 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Collect distinct (normalized-family, page) font runs from ALL pages.
             var (fontRuns, fontExtractionStatus) = ExtractFontRuns(doc);
 
+            // ---- Text-overlap incidents — Story 5.2 (CL-28) ---------------
+            // Detect word pairs on the same horizontal band whose X-extents
+            // intersect by more than the extraction epsilon (2.0 PDF points).
+            var textOverlapIncidents = ExtractTextOverlapIncidents(doc);
+
+            // ---- Section-header styles — Story 5.2 (CL-29) ----------------
+            // Match known VEC section titles against page text and capture
+            // whether each detected header is bold and/or uppercase.
+            var sectionHeaderStyles = ExtractSectionHeaderStyles(doc);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -260,6 +270,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 MovementsStatus = movementsStatus,
                 FontRuns = fontRuns,
                 FontExtractionStatus = fontExtractionStatus,
+                TextOverlapIncidents = textOverlapIncidents,
+                SectionHeaderStyles = sectionHeaderStyles,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -1995,4 +2007,327 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
         return true;
     }
+
+    // -----------------------------------------------------------------------
+    // Text-overlap incident extraction (Story 5.2 — CL-28)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The minimum X-axis intersection magnitude (in PDF points) required for two words
+    /// to be recorded as a <see cref="TextOverlapIncident"/>.
+    /// </summary>
+    /// <remarks>
+    /// Set to <b>2.0 PDF points</b> (~0.7 mm) to exclude normal kerning and glyph
+    /// touching (adjacent letters that share a boundary but do not physically overlap).
+    /// Only intersections that exceed this epsilon represent genuine layout-level overlap.
+    /// </remarks>
+    private const double TextOverlapEpsilon = 2.0;
+
+    /// <summary>
+    /// Y-band tolerance used when grouping words for overlap detection.
+    /// Slightly tighter than the header tolerance to avoid merging separate lines
+    /// that happen to sit close together vertically.
+    /// </summary>
+    private const double OverlapBandTolerance = 4.0;
+
+    /// <summary>
+    /// Scans every page of <paramref name="doc"/> for word pairs on the same horizontal
+    /// band whose X-extents intersect by more than <see cref="TextOverlapEpsilon"/> points.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Algorithm:</b> per page, group all words into horizontal Y-bands using
+    /// <see cref="OverlapBandTolerance"/>.  Within each band, sort words left-to-right.
+    /// For each consecutive pair (wordA, wordB) where wordB.Left &lt; wordA.Right,
+    /// the intersection magnitude is <c>wordA.Right − wordB.Left</c>.
+    /// Only pairs where this exceeds <see cref="TextOverlapEpsilon"/> are recorded.
+    /// </para>
+    /// <para>
+    /// Checking only consecutive sorted pairs is sufficient because genuine layout
+    /// overlap is a local phenomenon — a word that overlaps a non-adjacent word
+    /// also overlaps the intervening ones.
+    /// </para>
+    /// </remarks>
+    /// <param name="doc">The open <see cref="PdfDocument"/>.</param>
+    /// <returns>
+    /// A (possibly empty) list of <see cref="TextOverlapIncident"/> records.
+    /// Never throws — exceptions per page are swallowed silently.
+    /// </returns>
+    private static IReadOnlyList<TextOverlapIncident> ExtractTextOverlapIncidents(PdfDocument doc)
+    {
+        var incidents = new List<TextOverlapIncident>();
+
+        for (var pageIndex = 1; pageIndex <= doc.NumberOfPages; pageIndex++)
+        {
+            try
+            {
+                var page = doc.GetPage(pageIndex);
+                var words = page.GetWords().ToList();
+
+                if (words.Count == 0)
+                    continue;
+
+                var bands = GroupIntoBandsWithTolerance(words, OverlapBandTolerance);
+
+                foreach (var (_, bandWords) in bands)
+                {
+                    // Sort left-to-right by the left edge of each word's bounding box.
+                    var sorted = bandWords
+                        .OrderBy(w => w.BoundingBox.Left)
+                        .ToList();
+
+                    for (var i = 0; i + 1 < sorted.Count; i++)
+                    {
+                        var a = sorted[i];
+                        var b = sorted[i + 1];
+
+                        // X-axis overlap: how far b's left edge is inside a's right edge.
+                        var overlap = a.BoundingBox.Right - b.BoundingBox.Left;
+
+                        if (overlap <= TextOverlapEpsilon)
+                            continue;
+
+                        // Build a locator spanning both words.
+                        var left = Math.Min(a.BoundingBox.Left, b.BoundingBox.Left);
+                        var bottom = Math.Min(a.BoundingBox.Bottom, b.BoundingBox.Bottom);
+                        var right = Math.Max(a.BoundingBox.Right, b.BoundingBox.Right);
+                        var top = Math.Max(a.BoundingBox.Top, b.BoundingBox.Top);
+                        var locator = new FieldLocator(pageIndex, left, bottom, right - left, top - bottom);
+
+                        var sample = $"'{a.Text}' ∩ '{b.Text}'";
+                        incidents.Add(new TextOverlapIncident(pageIndex, overlap, locator, sample));
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Silently skip pages that cannot be read; the rule will report
+                // InsufficientData only when the entire model is absent.
+            }
+        }
+
+        return incidents;
+    }
+
+    // -----------------------------------------------------------------------
+    // Section-header style extraction (Story 5.2 — CL-29)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Known VEC section-title strings used for header detection (CL-29).
+    /// Matching is performed case-insensitively against the normalized page text.
+    /// </summary>
+    /// <remarks>
+    /// The list covers the primary section headings defined by the VEC template.
+    /// A band that begins with any of these tokens (after normalization) is recorded
+    /// as a <see cref="SectionHeaderStyle"/>.
+    /// </remarks>
+    private static readonly string[] s_knownHeaderPhrases =
+    [
+        "RESUMEN DE CARGOS Y ABONOS DEL PERIODO",
+        "NIVEL DE USO DE TU TARJETA",
+        "DESGLOSE DE MOVIMIENTOS DEL PERIODO",
+        "PROGRAMAS DE BENEFICIOS DE LA TARJETA",
+        "COMPRAS Y CARGOS DIFERIDOS A MESES SIN INTERESES",
+        "PROMOCIONES",
+    ];
+
+    /// <summary>
+    /// Scans every page of <paramref name="doc"/> for bands whose concatenated text
+    /// starts with one of the known section-title phrases.  For each match, records
+    /// whether the first letter of the band is rendered in a Bold font and whether
+    /// all alphabetic characters in the printed text are uppercase.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Bold detection:</b> the raw font name of the <em>first letter glyph</em>
+    /// within the matched band is checked for the sub-string <c>"Bold"</c>
+    /// (case-insensitive).
+    /// </para>
+    /// <para>
+    /// <b>Uppercase detection:</b> applied to the concatenated band text (all word
+    /// tokens joined with a space) — if every alphabetic character is uppercase the
+    /// header is considered all-caps.
+    /// </para>
+    /// <para>
+    /// Band grouping uses <see cref="YBandTolerance"/> (5 pt) to match the rest of
+    /// the extractor, so that header text spread across a few fractional-Y positions
+    /// is still captured on a single band.
+    /// </para>
+    /// </remarks>
+    /// <param name="doc">The open <see cref="PdfDocument"/>.</param>
+    /// <returns>
+    /// A list of <see cref="SectionHeaderStyle"/> records for each detected header.
+    /// Each known phrase appears at most once (first occurrence wins).
+    /// Never throws.
+    /// </returns>
+    private static IReadOnlyList<SectionHeaderStyle> ExtractSectionHeaderStyles(PdfDocument doc)
+    {
+        var results = new List<SectionHeaderStyle>();
+
+        // Track which phrases have already been matched (first-occurrence wins).
+        var matched = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        for (var pageIndex = 1; pageIndex <= doc.NumberOfPages; pageIndex++)
+        {
+            try
+            {
+                var page = doc.GetPage(pageIndex);
+                var words = page.GetWords().ToList();
+
+                if (words.Count == 0)
+                    continue;
+
+                // Build a letter-level lookup: map each word's bounding-box bottom to
+                // the first letter found in that vicinity so we can determine the font.
+                var lettersByBandY = BuildLetterBandMap(page, words);
+
+                var bands = GroupIntoBandsWithTolerance(words, YBandTolerance);
+
+                // Process bands top-to-bottom (descending Y).
+                foreach (var (bandY, bandWords) in bands.OrderByDescending(kv => kv.Key))
+                {
+                    if (matched.Count == s_knownHeaderPhrases.Length)
+                        break; // all phrases found — stop scanning
+
+                    var sorted = bandWords.OrderBy(w => w.BoundingBox.Left).ToList();
+                    var bandText = string.Join(" ", sorted.Select(w => w.Text)).Trim();
+
+                    // Check whether the band text starts with any known header phrase.
+                    string? matchedPhrase = null;
+                    foreach (var phrase in s_knownHeaderPhrases)
+                    {
+                        if (matched.Contains(phrase))
+                            continue;
+
+                        if (bandText.StartsWith(phrase, StringComparison.OrdinalIgnoreCase)
+                            || NormalizeHeaderText(bandText).StartsWith(
+                                NormalizeHeaderText(phrase), StringComparison.OrdinalIgnoreCase))
+                        {
+                            matchedPhrase = phrase;
+                            break;
+                        }
+                    }
+
+                    if (matchedPhrase is null)
+                        continue;
+
+                    matched.Add(matchedPhrase);
+
+                    // Determine bold: find the first letter glyph on this band.
+                    var isBold = IsBandBold(bandY, lettersByBandY);
+
+                    // Determine uppercase: check every alphabetic character in the printed text.
+                    var isUppercase = IsAllUppercase(bandText);
+
+                    var locator = BoundingBoxOf(sorted, pageIndex);
+                    results.Add(new SectionHeaderStyle(bandText, isBold, isUppercase, pageIndex, locator));
+                }
+            }
+            catch (Exception)
+            {
+                // Silently skip pages that cannot be read.
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Builds a map from approximate Y-band coordinate to the first letter glyph
+    /// found in that band, used for bold detection in section-header extraction.
+    /// </summary>
+    private static Dictionary<double, UglyToad.PdfPig.Content.Letter> BuildLetterBandMap(
+        UglyToad.PdfPig.Content.Page page,
+        List<Word> wordsOnPage)
+    {
+        // Collect band Y keys from the word bands so we can snap letter Y values to them.
+        var bands = GroupIntoBandsWithTolerance(wordsOnPage, YBandTolerance);
+        var bandKeys = bands.Keys.ToList();
+
+        var result = new Dictionary<double, UglyToad.PdfPig.Content.Letter>();
+
+        foreach (var letter in page.Letters)
+        {
+            if (string.IsNullOrEmpty(letter.FontName))
+                continue;
+
+            var letterY = letter.BoundingBox.BottomLeft.Y;
+
+            // Snap to nearest band key.
+            var nearestKey = double.NaN;
+            var nearestDist = double.MaxValue;
+            foreach (var key in bandKeys)
+            {
+                var dist = Math.Abs(key - letterY);
+                if (dist < nearestDist)
+                {
+                    nearestDist = dist;
+                    nearestKey = key;
+                }
+            }
+
+            if (double.IsNaN(nearestKey) || nearestDist > YBandTolerance)
+                continue;
+
+            // Store only the first letter found for each band.
+            result.TryAdd(nearestKey, letter);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the first letter glyph on the given band Y
+    /// uses a font that contains <c>"Bold"</c> in its name (case-insensitive).
+    /// </summary>
+    private static bool IsBandBold(
+        double bandY,
+        Dictionary<double, UglyToad.PdfPig.Content.Letter> letterBandMap)
+    {
+        // Find the letter closest to bandY within the tolerance.
+        var nearestKey = double.NaN;
+        var nearestDist = double.MaxValue;
+        foreach (var key in letterBandMap.Keys)
+        {
+            var dist = Math.Abs(key - bandY);
+            if (dist < nearestDist)
+            {
+                nearestDist = dist;
+                nearestKey = key;
+            }
+        }
+
+        if (double.IsNaN(nearestKey) || nearestDist > YBandTolerance)
+            return false;
+
+        return letterBandMap.TryGetValue(nearestKey, out var letter)
+            && letter.FontName is not null
+            && letter.FontName.Contains("Bold", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when every alphabetic character in
+    /// <paramref name="text"/> is uppercase (digits, spaces, and punctuation are ignored).
+    /// </summary>
+    private static bool IsAllUppercase(string text)
+    {
+        var hasAlpha = false;
+        foreach (var c in text)
+        {
+            if (!char.IsLetter(c))
+                continue;
+            hasAlpha = true;
+            if (char.IsLower(c))
+                return false;
+        }
+
+        return hasAlpha; // empty/no-alpha → false (can't confirm uppercase)
+    }
+
+    /// <summary>
+    /// Collapses multiple spaces and trims the string for loose header matching.
+    /// </summary>
+    private static string NormalizeHeaderText(string text) =>
+        System.Text.RegularExpressions.Regex.Replace(text.Trim(), @"\s+", " ");
 }
