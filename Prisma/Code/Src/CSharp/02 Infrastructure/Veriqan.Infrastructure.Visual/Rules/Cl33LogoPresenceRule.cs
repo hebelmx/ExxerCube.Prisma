@@ -68,7 +68,8 @@ internal sealed class Cl33LogoPresenceRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"All {model.Pages.Count} page(s) contain at least one embedded image."));
+                    observed: $"All {model.Pages.Count} page(s) contain at least one embedded image " +
+                              "(image presence only — escudo content matching deferred to v2)."));
         }
 
         var pageNumbers = string.Join(", ", pagesWithoutImages.Select(p => p.PageNumber));

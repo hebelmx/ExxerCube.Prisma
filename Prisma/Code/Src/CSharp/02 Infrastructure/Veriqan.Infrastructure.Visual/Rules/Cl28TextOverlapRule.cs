@@ -12,8 +12,8 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 
 /// <summary>
 /// CL-28: Verifies that no text in the statement PDF contains layout-level word overlap —
-/// i.e. no two words on the same horizontal band have X-extents that intersect beyond a
-/// configurable threshold.
+/// i.e. no two words on the same horizontal band have X-extents that intersect beyond the
+/// rule threshold.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -23,11 +23,14 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 /// <para>
 /// <b>Overlap threshold (ADR-V3):</b> the threshold applied at rule time (in PDF points)
 /// is recorded on every <see cref="RuleFinding"/> in <c>ToleranceApplied</c>.
-/// The default constant is <b><see cref="DefaultOverlapThresholdPoints"/> = 1.0 pt</b>
-/// (~0.35 mm), which is deliberately below the extraction epsilon of 2.0 pt so that any
-/// incident that made it through the extractor is also flagged here.
-/// An operator may override the threshold via
-/// <c>ctx.ToleranceConfig.VisualOverlapThresholdPoints</c> if the bundle carries one.
+/// The threshold is a <b>fixed compile-time constant</b>:
+/// <see cref="DefaultOverlapThresholdPoints"/> = 1.0 pt (~0.35 mm), chosen to be
+/// deliberately below the extraction epsilon of 2.0 pt so that any incident that made it
+/// through the extractor is also flagged here.
+/// <c>ctx.ToleranceConfig</c> is consulted but does not currently expose a
+/// <c>VisualOverlapThresholdPoints</c> field (that would require a bundle schema change).
+/// Bundle-configurable override is a <b>future enhancement</b>; until then the fixed
+/// default is always applied.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
@@ -137,15 +140,20 @@ internal sealed class Cl28TextOverlapRule : IVecValidationRule
 
     /// <summary>
     /// Returns the overlap threshold to apply.
-    /// Uses <see cref="DefaultOverlapThresholdPoints"/> unless the bundle supplies a
-    /// numeric visual-overlap threshold via <c>ToleranceConfig</c>.
+    /// Always returns <see cref="DefaultOverlapThresholdPoints"/>.
     /// </summary>
+    /// <remarks>
+    /// <c>ToleranceConfig</c> does not currently expose a
+    /// <c>VisualOverlapThresholdPoints</c> field — bundle-configurable override is a
+    /// future enhancement (requires a bundle schema change).  This method is a dedicated
+    /// extension point so that adding the lookup later is a localised, one-line change.
+    /// </remarks>
     private static double ResolveThreshold(VerificationContext ctx)
     {
-        // ToleranceConfig does not currently carry a VisualOverlapThresholdPoints field
-        // (that would require a bundle schema change).  Fall back to the constant.
-        // If a future story adds it, implement the lookup here.
-        _ = ctx.ToleranceConfig; // consumed — suppress unused-variable warning
+        // ToleranceConfig consulted for forward-compatibility; no field exists yet.
+        // Future enhancement: read ctx.ToleranceConfig.VisualOverlapThresholdPoints
+        // once the bundle schema carries it.
+        _ = ctx.ToleranceConfig;
         return DefaultOverlapThresholdPoints;
     }
 }

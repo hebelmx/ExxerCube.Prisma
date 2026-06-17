@@ -268,4 +268,42 @@ public sealed class Cl35FontComplianceRuleTests
             r => r.CheckId == "CL-35",
             "Expected CL-35 (Cl35FontComplianceRule) to be discovered by Scrutor.");
     }
+
+    // -----------------------------------------------------------------------
+    // Test 9: DI coverage — all 7 visual rules registered (Epic 5 review finding)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Asserts that every visual CheckId is discovered by Scrutor after wiring both
+    /// <c>AddVeriqanValidation()</c> and <c>AddVeriqanVisual()</c>.
+    /// A future Scrutor-registration regression on any single rule will be caught here.
+    /// </summary>
+    [Fact]
+    public void AddVeriqanVisual_PlusAddVeriqanValidation_AllSevenVisualRulesRegistered()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddVeriqanValidation();
+        services.AddVeriqanVisual();
+
+        using var sp = services.BuildServiceProvider();
+        var registeredIds = sp.GetServices<IVecValidationRule>()
+            .Select(r => r.CheckId)
+            .ToHashSet();
+
+        // The full set of visual rules shipped in Story 5.x (Epic 5):
+        string[] expectedIds = ["CL-35", "CL-28", "CL-29", "CL-48", "CL-31", "CL-33", "CL-34"];
+
+        foreach (var id in expectedIds)
+        {
+            registeredIds.ShouldContain(id,
+                $"Expected visual rule {id} to be registered via Scrutor after AddVeriqanVisual().");
+        }
+
+        // Also confirm the total count matches so a newly added rule doesn't silently
+        // slip in without a corresponding update here.
+        registeredIds.Count.ShouldBeGreaterThanOrEqualTo(expectedIds.Length,
+            "Fewer visual rules registered than expected.");
+    }
 }

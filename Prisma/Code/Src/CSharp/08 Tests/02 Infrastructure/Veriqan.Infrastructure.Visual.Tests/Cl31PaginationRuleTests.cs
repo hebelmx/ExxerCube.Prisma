@@ -168,4 +168,50 @@ public sealed class Cl31PaginationRuleTests
         var result = rule.Evaluate(Ctx(model: null), cts.Token);
         result.IsCancelled().ShouldBeTrue();
     }
+
+    // -----------------------------------------------------------------------
+    // CL-31 gap tests (Epic 5 adversarial-review finding)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A labeled sequence of {1, 3, 4} de 4 is missing page 2 — the contiguity check
+    /// must catch this even though there are no duplicates and the declared total matches.
+    /// Non-vacuity: if the gap check is removed this test will regress to Pass.
+    /// </summary>
+    [Fact]
+    public void Evaluate_GappedPaginationSequence_ReturnsFail()
+    {
+        // Pages labeled "1 de 4", "3 de 4", "4 de 4" — gap at 2.
+        var model = ModelWithPages([
+            PageFact(1, current: 1, total: 4),
+            PageFact(2, current: 3, total: 4),
+            PageFact(3, current: 4, total: 4),
+        ], pageCount: 4);
+        var rule = GetCl31Rule();
+        var result = rule.Evaluate(Ctx(model), TestContext.Current.CancellationToken);
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        finding.Verdict.ShouldBe(FindingVerdict.Fail);
+        finding.CheckId.ShouldBe("CL-31");
+        // The finding must mention the gap (keyword "gap" or "Gap").
+        finding.Observed.ShouldNotBeNullOrEmpty();
+        finding.Observed!.ToLowerInvariant().ShouldContain("gap");
+    }
+
+    /// <summary>
+    /// A perfectly contiguous labeled sequence must still pass the new contiguity check.
+    /// </summary>
+    [Fact]
+    public void Evaluate_ContiguousPaginationSequence_ReturnsPass()
+    {
+        var model = ModelWithPages([
+            PageFact(1, current: 1, total: 3),
+            PageFact(2, current: 2, total: 3),
+            PageFact(3, current: 3, total: 3),
+        ], pageCount: 3);
+        var rule = GetCl31Rule();
+        var result = rule.Evaluate(Ctx(model), TestContext.Current.CancellationToken);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
 }

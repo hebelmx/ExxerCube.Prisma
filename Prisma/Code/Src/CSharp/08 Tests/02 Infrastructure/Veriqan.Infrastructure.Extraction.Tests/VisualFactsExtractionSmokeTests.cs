@@ -144,4 +144,49 @@ public sealed class VisualFactsExtractionSmokeTests
             h.PageNumber.ShouldBeGreaterThan(0, "Header page number must be 1-based.");
         }
     }
+
+    // -----------------------------------------------------------------------
+    // Test 3: CL-29 regression — DESGLOSE header IsUppercase must be true (Epic 5 fix)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Regression for the CL-29 false-FAIL (Epic 5 adversarial review, finding CL-29).
+    /// The jul_ago fixture has a DESGLOSE section header whose band text includes a
+    /// trailing date range ("DESGLOSE DE MOVIMIENTOS DEL PERIODO 5-jul-2025 al 04-ago-2025").
+    /// Before the fix, <c>IsAllUppercase</c> was evaluated on the FULL band text, making
+    /// the lowercase "jul" / "al" force <c>IsUppercase = false</c> — a false FAIL from
+    /// CL-29.  After the fix the check is evaluated against the matched canonical phrase
+    /// only ("DESGLOSE DE MOVIMIENTOS DEL PERIODO"), which is all-caps.
+    /// Non-vacuity: reverting the fix (restoring <c>IsAllUppercase(bandText)</c>) will
+    /// make this assertion fail because the fixture really contains the lowercase suffix.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_JulAgoFixture_DesgloseHeaderIsUppercaseTrue()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var fixturePath = FixturePath("01+Dummie+VEC+jul_ago+20252.pdf");
+
+        File.Exists(fixturePath).ShouldBeTrue($"Fixture not found at: {fixturePath}");
+        var pdfBytes = await File.ReadAllBytesAsync(fixturePath, ct);
+        var extractor = CreateExtractor();
+
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+
+        var headers = result.Value!.SectionHeaderStyles;
+
+        // Find the DESGLOSE DE MOVIMIENTOS DEL PERIODO header.
+        var desglose = headers.FirstOrDefault(
+            h => h.HeaderText.Contains("DESGLOSE", StringComparison.OrdinalIgnoreCase));
+
+        desglose.ShouldNotBeNull(
+            "Expected 'DESGLOSE DE MOVIMIENTOS DEL PERIODO' header in jul_ago fixture. " +
+            "If the fixture PDF changed, update this test accordingly.");
+
+        // Core assertion: the matched canonical phrase is all-caps → IsUppercase must be true.
+        desglose!.IsUppercase.ShouldBeTrue(
+            $"DESGLOSE header IsUppercase should be true after the CL-29 fix. " +
+            $"HeaderText recorded: \"{desglose.HeaderText}\". " +
+            "If false, the fix was reverted or IsAllUppercase is still evaluated on bandText.");
+    }
 }

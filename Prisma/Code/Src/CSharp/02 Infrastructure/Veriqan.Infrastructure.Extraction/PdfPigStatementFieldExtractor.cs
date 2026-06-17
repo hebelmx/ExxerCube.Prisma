@@ -2222,11 +2222,18 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                     // Determine bold: find the first letter glyph on this band.
                     var isBold = IsBandBold(bandY, lettersByBandY);
 
-                    // Determine uppercase: check every alphabetic character in the printed text.
-                    var isUppercase = IsAllUppercase(bandText);
+                    // Determine uppercase: evaluate only the MATCHED CANONICAL PHRASE portion
+                    // of the band text — not the full band text which may contain trailing
+                    // date-range suffixes (e.g. "DESGLOSE DE MOVIMIENTOS DEL PERIODO 5-jul-2025
+                    // al 04-ago-2025") that include lowercase characters and would incorrectly
+                    // force IsUppercase = false for a compliant all-caps section title.
+                    var isUppercase = IsAllUppercase(matchedPhrase);
 
+                    // Record the canonical matched phrase as the header text (not the full band
+                    // text with date suffixes) so downstream rules and findings reference the
+                    // section title itself rather than the title + trailing annotation.
                     var locator = BoundingBoxOf(sorted, pageIndex);
-                    results.Add(new SectionHeaderStyle(bandText, isBold, isUppercase, pageIndex, locator));
+                    results.Add(new SectionHeaderStyle(matchedPhrase, isBold, isUppercase, pageIndex, locator));
                 }
             }
             catch (Exception)

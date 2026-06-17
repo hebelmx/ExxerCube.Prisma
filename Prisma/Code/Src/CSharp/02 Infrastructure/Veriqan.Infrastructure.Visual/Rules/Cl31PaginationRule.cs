@@ -136,11 +136,33 @@ internal sealed class Cl31PaginationRule : IVecValidationRule
                     locator: labeledPages[0].Locator));
         }
 
+        // Check: labeled current-page numbers form a contiguous sequence (no gaps).
+        // Convention: the check applies to the set of labeled pages only.  If not every
+        // page carries a label the span [min..max] must still be gap-free among the labeled
+        // subset, because a missing label is already surfaced by the total-mismatch check
+        // above.  Example: {1, 3, 4} de 4 → Max−Min+1 (4) ≠ Count (3) → gap at 2 → FAIL.
+        var minCurrent = currents.Min();
+        var maxCurrent = currents.Max();
+        var expectedSpan = maxCurrent - minCurrent + 1;
+        if (expectedSpan != currents.Count)
+        {
+            var currentsList = string.Join(", ", currents.OrderBy(c => c));
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.Fail(
+                    checkId: CheckId,
+                    technique: Technique,
+                    severity: FindingSeverity.Critical,
+                    engineVersion: Version,
+                    expected: $"Labeled current-page numbers form a contiguous sequence (no gaps) between {minCurrent} and {maxCurrent}",
+                    observed: $"Gap detected in labeled pagination sequence: found [{currentsList}] but expected {expectedSpan} contiguous value(s).",
+                    locator: labeledPages[0].Locator));
+        }
+
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.Pass(
                 checkId: CheckId,
                 technique: Technique,
                 engineVersion: Version,
-                observed: $"Pagination consistent: {labeledPages.Count} labeled page(s), all agree M={declaredTotal}, matches document page count."));
+                observed: $"Pagination consistent: {labeledPages.Count} labeled page(s), all agree M={declaredTotal}, matches document page count, sequence contiguous."));
     }
 }
