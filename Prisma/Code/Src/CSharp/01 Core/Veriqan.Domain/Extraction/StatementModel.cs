@@ -252,6 +252,23 @@ public sealed class StatementModel
     public string NormalizedFullText { get; init; } = string.Empty;
 
     // -----------------------------------------------------------------------
+    // Fiscal block (Story 6.2 — CL-50..53)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Fiscal block facts extracted from the CFDI legend page (Story 6.2 — CL-50..53).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see langword="null"/> when the full extraction pass has not run (<c>ExtractHeaderAsync</c> only).
+    /// When populated by <c>ExtractFullAsync</c>, <see cref="FiscalBlock.BlockPresent"/> is
+    /// <see langword="false"/> when no CFDI legend page is found in the document —
+    /// it is never <see langword="null"/> after the full extraction pass.
+    /// </para>
+    /// </remarks>
+    public FiscalBlock? FiscalBlock { get; init; }
+
+    // -----------------------------------------------------------------------
     // Per-page inspection facts (Story 5.3)
     // -----------------------------------------------------------------------
 

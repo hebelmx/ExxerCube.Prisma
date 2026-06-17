@@ -25,6 +25,8 @@
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp" />
+    <!-- ZXing.Net: QR encode/decode used in fiscal round-trip test (Story 6.2) -->
+    <PackageReference Include="ZXing.Net" />
   </ItemGroup>
   <ItemGroup Label="Logging">
     <PackageReference Include="Microsoft.Extensions.Logging" />

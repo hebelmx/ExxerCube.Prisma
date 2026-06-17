@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -13,6 +14,8 @@ using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using PDFtoImage;
+using ZXing;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
 
@@ -236,6 +239,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Concatenate all page words, upper-case, strip diacritics, collapse whitespace.
             var normalizedFullText = BuildNormalizedFullText(doc);
 
+            // ---- Fiscal block — Story 6.2 (CL-50..53) ----------------------
+            // Find the CFDI fiscal legend page, render it, scan for QR, extract text fields.
+            var fiscalBlock = ExtractFiscalBlock(doc, pdf, normalizedFullText);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -283,6 +290,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 Pages = pages,
                 PageCount = pageCount,
                 NormalizedFullText = normalizedFullText,
+                FiscalBlock = fiscalBlock,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -2473,6 +2481,220 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </summary>
     private static readonly Regex WhitespaceCollapsePattern =
         new(@"\s+", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    // -----------------------------------------------------------------------
+    // Fiscal block extraction constants (Story 6.2 — CL-50..53)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Normalized legend text used to locate the fiscal block page.
+    /// Matches "REPRESENTACIÓN IMPRESA SIN VALIDEZ FISCAL" after NormalizeText().
+    /// </summary>
+    private const string FiscalLegendNormalized = "REPRESENTACION IMPRESA SIN VALIDEZ FISCAL";
+
+    /// <summary>
+    /// DPI at which the fiscal-block page is rendered for QR scanning.
+    /// 150 DPI balances speed vs. QR readability.
+    /// </summary>
+    private const int FiscalPageRenderDpi = 150;
+
+    /// <summary>
+    /// Pattern for extracting RFC tokens from fiscal-block page text.
+    /// Matches Mexican RFC for both persons (4-char) and companies (3-char).
+    /// </summary>
+    private static readonly Regex FiscalRfcTokenPattern = new(
+        @"\b([A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3})\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Pattern for extracting a UUID-style fiscal code (folio fiscal / UUID CFDI):
+    /// 8-4-4-4-12 hex groups separated by hyphens.
+    /// </summary>
+    private static readonly Regex FiscalCodeUuidPattern = new(
+        @"\b([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    // -----------------------------------------------------------------------
+    // Fiscal block extraction (Story 6.2 — CL-50..53)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Locates the CFDI fiscal block page, renders it via PDFtoImage, scans for a QR code
+    /// using ZXing, and extracts the fiscal code + issuer/receiver RFC from page text.
+    /// </summary>
+    /// <param name="doc">The open PdfPig document (for per-page text).</param>
+    /// <param name="pdfBytes">The raw PDF bytes (needed by PDFtoImage for rendering).</param>
+    /// <param name="normalizedFullText">Pre-built normalized full text for quick legend search.</param>
+    /// <returns>
+    /// A <see cref="FiscalBlock"/> record. Never throws — all render/decode failures are caught
+    /// and result in <see cref="FiscalBlock.QrDecoded"/> == <see langword="false"/>.
+    /// </returns>
+    private FiscalBlock ExtractFiscalBlock(
+        UglyToad.PdfPig.PdfDocument doc,
+        byte[] pdfBytes,
+        string normalizedFullText)
+    {
+        // Fast path: if the legend is not in the normalized full text, block is absent.
+        if (!normalizedFullText.Contains(FiscalLegendNormalized, StringComparison.Ordinal))
+            return FiscalBlock.NotPresent();
+
+        // Find which page has the CFDI legend.
+        int fiscalPageNumber = -1;
+        for (var i = 1; i <= doc.NumberOfPages; i++)
+        {
+            try
+            {
+                var page = doc.GetPage(i);
+                var pageWords = page.GetWords();
+                var pageText = string.Join(" ", pageWords.Select(w => w.Text));
+                var normalized = NormalizeText(pageText);
+                if (normalized.Contains(FiscalLegendNormalized, StringComparison.Ordinal))
+                {
+                    fiscalPageNumber = i;
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Could not read page {Page} while searching for fiscal legend.", i);
+            }
+        }
+
+        if (fiscalPageNumber < 0)
+        {
+            // Full-text said yes but per-page scan found nothing — treat as absent.
+            return FiscalBlock.NotPresent();
+        }
+
+        var locator = FieldLocator.PageHint(fiscalPageNumber);
+
+        // ---- Extract text fields (fiscal code + RFCs) from page text --------
+        string? fiscalCode = null;
+        string? issuerRfc = null;
+        string? receiverRfc = null;
+
+        try
+        {
+            var fiscalPage = doc.GetPage(fiscalPageNumber);
+            var allPageText = string.Join(" ", fiscalPage.GetWords().Select(w => w.Text));
+
+            // UUID-style fiscal code (folio fiscal / UUID CFDI).
+            var uuidMatch = FiscalCodeUuidPattern.Match(allPageText);
+            if (uuidMatch.Success)
+                fiscalCode = uuidMatch.Groups[1].Value.ToUpperInvariant();
+
+            // RFC tokens — first occurrence = issuer, second = receiver
+            // (order on CFDI representation: Emisor RFC then Receptor RFC).
+            var rfcMatches = FiscalRfcTokenPattern.Matches(allPageText);
+            if (rfcMatches.Count >= 1)
+                issuerRfc = rfcMatches[0].Groups[1].Value.ToUpperInvariant();
+            if (rfcMatches.Count >= 2)
+                receiverRfc = rfcMatches[1].Groups[1].Value.ToUpperInvariant();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to extract text fields from fiscal page {Page}.", fiscalPageNumber);
+        }
+
+        // ---- Render page and scan for QR with ZXing -------------------------
+        bool qrDecoded = false;
+        string? qrPayload = null;
+
+        try
+        {
+            // PDFtoImage page index is 0-based.
+            var pageIndex0 = fiscalPageNumber - 1;
+            using var pdfStream = new MemoryStream(pdfBytes);
+#pragma warning disable CA1416 // PDFtoImage is cross-platform
+            using var bitmap = Conversion.ToImage(
+                pdfStream,
+                leaveOpen: false,
+                page: pageIndex0,
+                options: new RenderOptions(Dpi: FiscalPageRenderDpi));
+#pragma warning restore CA1416
+
+            if (bitmap is not null && bitmap.Width > 0 && bitmap.Height > 0)
+            {
+                // SKBitmap.Bytes gives BGRA32 row-major data.
+                var bgraBytes = bitmap.Bytes;
+
+                if (bgraBytes is not null && bgraBytes.Length == bitmap.Width * bitmap.Height * 4)
+                {
+                    // Convert BGRA → BGR for RGBLuminanceSource.
+                    var bgrBytes = ConvertBgraToRgbForZXing(bgraBytes, bitmap.Width, bitmap.Height);
+
+                    var luminance = new RGBLuminanceSource(
+                        bgrBytes,
+                        bitmap.Width,
+                        bitmap.Height,
+                        RGBLuminanceSource.BitmapFormat.BGR24);
+
+                    var reader = new BarcodeReaderGeneric
+                    {
+                        AutoRotate = true,
+                        Options = new ZXing.Common.DecodingOptions
+                        {
+                            TryHarder = true,
+                            PossibleFormats = [ZXing.BarcodeFormat.QR_CODE],
+                        },
+                    };
+
+                    var decoded = reader.Decode(luminance);
+                    if (decoded is not null && !string.IsNullOrWhiteSpace(decoded.Text))
+                    {
+                        qrDecoded = true;
+                        qrPayload = decoded.Text;
+
+                        // If QR payload contains a UUID and we didn't find one in page text, extract it.
+                        if (fiscalCode is null)
+                        {
+                            var uuidInQr = FiscalCodeUuidPattern.Match(qrPayload);
+                            if (uuidInQr.Success)
+                                fiscalCode = uuidInQr.Groups[1].Value.ToUpperInvariant();
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex,
+                "QR scan failed for fiscal page {Page}; QrDecoded will be false.", fiscalPageNumber);
+        }
+
+        _logger.LogInformation(
+            "Fiscal block: page={Page} blockPresent=true qrDecoded={QrDecoded} "
+            + "fiscalCode={FiscalCode} issuerRfc={IssuerRfc} receiverRfc={ReceiverRfc}",
+            fiscalPageNumber, qrDecoded, fiscalCode ?? "null", issuerRfc ?? "null", receiverRfc ?? "null");
+
+        return new FiscalBlock(
+            BlockPresent: true,
+            QrDecoded: qrDecoded,
+            QrPayload: qrPayload,
+            FiscalCode: fiscalCode,
+            IssuerRfc: issuerRfc,
+            ReceiverRfc: receiverRfc,
+            Locator: locator);
+    }
+
+    /// <summary>
+    /// Converts a BGRA byte array to a BGR byte array for ZXing <c>RGBLuminanceSource</c>.
+    /// Each 4-byte BGRA pixel becomes a 3-byte BGR pixel (alpha channel dropped).
+    /// </summary>
+    private static byte[] ConvertBgraToRgbForZXing(byte[] bgra, int width, int height)
+    {
+        var bgr = new byte[width * height * 3];
+        for (var i = 0; i < width * height; i++)
+        {
+            var srcBase = i * 4;
+            var dstBase = i * 3;
+            bgr[dstBase]     = bgra[srcBase];     // B
+            bgr[dstBase + 1] = bgra[srcBase + 1]; // G
+            bgr[dstBase + 2] = bgra[srcBase + 2]; // R
+        }
+
+        return bgr;
+    }
 
     /// <summary>
     /// Builds a normalized concatenation of all page text in the document for legend-presence checks.
