@@ -310,6 +310,30 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         // ---- Crédito Disponible at Y≈139 --------------------------------
         var creditoDisponible = ExtractCreditoDisponible(sorted, bands);
 
+        // ---- RESUMEN DE CARGOS Y ABONOS DEL PERIODO (Story 4.2) ---------
+        // Right-side block at Y ≈ 292–357.
+        var adeudoPeriodoAnterior = ExtractResumenField(sorted, bands,
+            ["Adeudo", "del", "periodo", "anterior"]);
+        var cargosRegularesNoMeses = ExtractResumenField(sorted, bands,
+            ["Cargos", "regulares", "(no"]);
+        var cargosComprasAMesesCapital = ExtractResumenField(sorted, bands,
+            ["Cargos", "compras", "a", "meses", "(capital)"]);
+        var montoIntereses = ExtractResumenField(sorted, bands,
+            ["Monto", "de", "Intereses"]);
+        var montoComisiones = ExtractResumenField(sorted, bands,
+            ["Monto", "de", "comisiones"]);
+        var ivaInteresesYComisiones = ExtractResumenField(sorted, bands,
+            ["IVA", "de", "Intereses"]);
+        var pagosYAbonos = ExtractResumenField(sorted, bands,
+            ["Pagos", "y", "abonos"]);
+
+        // ---- NIVEL DE USO DE TU TARJETA (Story 4.2) ---------------------
+        // Right-side block at Y ≈ 171–183.
+        var saldoCargosRegulares = ExtractNivelDeUsoField(sorted, bands,
+            ["Saldo", "cargos", "regulares:"]);
+        var saldoCargosAMeses = ExtractNivelDeUsoField(sorted, bands,
+            ["Saldo", "cargos", "a", "meses:"]);
+
         // ---- Day-count verification -------------------------------------
         var dayCount = DayCountVerification.Compute(periodStart, periodCutDate, dayCountPrinted);
 
@@ -326,7 +350,16 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             tasa: tasa,
             cat: cat,
             saldoDeudorTotal: saldoDeudor,
-            creditoDisponible: creditoDisponible);
+            creditoDisponible: creditoDisponible,
+            adeudoPeriodoAnterior: adeudoPeriodoAnterior,
+            cargosRegularesNoMeses: cargosRegularesNoMeses,
+            cargosComprasAMesesCapital: cargosComprasAMesesCapital,
+            montoIntereses: montoIntereses,
+            montoComisiones: montoComisiones,
+            ivaInteresesYComisiones: ivaInteresesYComisiones,
+            pagosYAbonos: pagosYAbonos,
+            saldoCargosRegulares: saldoCargosRegulares,
+            saldoCargosAMeses: saldoCargosAMeses);
     }
 
     // -----------------------------------------------------------------------
@@ -799,6 +832,138 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             if (result.Status == ExtractionStatus.Extracted)
                 return result;
             // If not found on this band, try next occurrence.
+        }
+
+        return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+    }
+
+    // -----------------------------------------------------------------------
+    // RESUMEN DE CARGOS Y ABONOS DEL PERIODO extraction (Story 4.2)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Extracts an amount from the right-side "RESUMEN DE CARGOS Y ABONOS DEL PERIODO" block
+    /// by matching a label prefix (case-insensitive) on a band whose anchor word has X ≥ 283
+    /// (right column).  The amount is to the right of the label, preceded by an optional
+    /// sign token ("+", "-", "=") and an optional footnote-digit, followed by a "$" + digits.
+    /// </summary>
+    /// <param name="sorted">All page-1 words sorted top-to-bottom, left-to-right.</param>
+    /// <param name="bands">Band dictionary for same-line extraction.</param>
+    /// <param name="labelTokens">
+    /// Leading token sequence that identifies the RESUMEN row
+    /// (e.g. <c>["Adeudo", "del", "periodo", "anterior"]</c>).
+    /// </param>
+    /// <returns>
+    /// An <see cref="ExtractedField{T}"/> containing the parsed amount, or
+    /// <see cref="ExtractedField{T}.Missing"/> if the label is not found or the amount
+    /// cannot be parsed.
+    /// </returns>
+    private static ExtractedField<decimal> ExtractResumenField(
+        List<Word> sorted,
+        Dictionary<double, List<Word>> bands,
+        string[] labelTokens)
+    {
+        // The RESUMEN block is in the right column (X ≥ ~283).
+        // We iterate sorted words looking for the first token of the label in the right column.
+        for (var i = 0; i + labelTokens.Length - 1 < sorted.Count; i++)
+        {
+            if (sorted[i].BoundingBox.Left < 280)
+                continue;   // left-column guard — RESUMEN is on the right
+
+            if (!string.Equals(sorted[i].Text, labelTokens[0], StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            // Verify the rest of the label tokens appear in sorted order on the same band.
+            var bandY = sorted[i].BoundingBox.Bottom;
+            var band = GetBand(bands, bandY);
+            var bandSorted = band.OrderBy(x => x.BoundingBox.Left).ToList();
+
+            // Locate the first label token in the band.
+            var labelStart = bandSorted.FindIndex(x =>
+                string.Equals(x.Text, labelTokens[0], StringComparison.OrdinalIgnoreCase)
+                && x.BoundingBox.Left >= 280);
+
+            if (labelStart < 0)
+                continue;
+
+            // Verify subsequent label tokens match consecutively.
+            var allMatch = true;
+            for (var t = 1; t < labelTokens.Length; t++)
+            {
+                if (labelStart + t >= bandSorted.Count
+                    || !string.Equals(bandSorted[labelStart + t].Text, labelTokens[t],
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    allMatch = false;
+                    break;
+                }
+            }
+
+            if (!allMatch)
+                continue;
+
+            var locator = BoundingBoxOf(band, 1);
+
+            // The amount in the RESUMEN block appears as a split "$ 32,446.69" pair
+            // at the far right (X ≈ 435-480).  Footnote markers and sign tokens precede it.
+            return FindAmountInBandSplitDollar(band, locator);
+        }
+
+        return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+    }
+
+    /// <summary>
+    /// Extracts an amount from the "NIVEL DE USO DE TU TARJETA" block.
+    /// These rows appear at Y ≈ 172–183 in the right column and use the same
+    /// split-dollar pattern: "$ 32,446.69".
+    /// </summary>
+    /// <param name="sorted">All page-1 words sorted top-to-bottom, left-to-right.</param>
+    /// <param name="bands">Band dictionary for same-line extraction.</param>
+    /// <param name="labelTokens">
+    /// Leading token sequence (e.g. <c>["Saldo", "cargos", "regulares:"]</c>).
+    /// </param>
+    private static ExtractedField<decimal> ExtractNivelDeUsoField(
+        List<Word> sorted,
+        Dictionary<double, List<Word>> bands,
+        string[] labelTokens)
+    {
+        // NIVEL-DE-USO rows are in the right column (X ≥ ~283) at Y ≈ 171–183.
+        for (var i = 0; i + labelTokens.Length - 1 < sorted.Count; i++)
+        {
+            if (sorted[i].BoundingBox.Left < 280)
+                continue;
+
+            if (!string.Equals(sorted[i].Text, labelTokens[0], StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var bandY = sorted[i].BoundingBox.Bottom;
+            var band = GetBand(bands, bandY);
+            var bandSorted = band.OrderBy(x => x.BoundingBox.Left).ToList();
+
+            var labelStart = bandSorted.FindIndex(x =>
+                string.Equals(x.Text, labelTokens[0], StringComparison.OrdinalIgnoreCase)
+                && x.BoundingBox.Left >= 280);
+
+            if (labelStart < 0)
+                continue;
+
+            var allMatch = true;
+            for (var t = 1; t < labelTokens.Length; t++)
+            {
+                if (labelStart + t >= bandSorted.Count
+                    || !string.Equals(bandSorted[labelStart + t].Text, labelTokens[t],
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    allMatch = false;
+                    break;
+                }
+            }
+
+            if (!allMatch)
+                continue;
+
+            var locator = BoundingBoxOf(band, 1);
+            return FindAmountInBandSplitDollar(band, locator);
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));

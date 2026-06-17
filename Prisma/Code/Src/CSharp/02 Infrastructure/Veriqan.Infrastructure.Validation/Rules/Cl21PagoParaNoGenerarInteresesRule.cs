@@ -1,0 +1,124 @@
+using System;
+using System.Threading;
+using ExxerCube.Prisma.Veriqan.Application.Binding;
+using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Verification;
+using IndQuestResults;
+using IndQuestResults.Operations;
+
+namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
+
+/// <summary>
+/// CL-21: Validates the printed "Pago para no generar intereses" against the formula:
+/// <c>PagoParaNoGenerarIntereses = AdeudoPeriodoAnterior + CargosRegularesNoMeses
+///     + CargosComprasAMesesCapital + MontoIntereses + MontoComisiones
+///     + IvaInteresesYComisiones − PagosYAbonos</c>.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>Tolerance (ADR-V3):</b> ±$0.50 MXN from
+/// <c>ToleranceConfig.CurrencyToleranceMxn</c>.
+/// </para>
+/// <para>
+/// <b>InsufficientData paths:</b>
+/// <list type="bullet">
+///   <item>Null <c>VerificationContext.ToleranceConfig</c>.</item>
+///   <item>Any required RESUMEN subtotal field is <see cref="ExtractionStatus.NotExtracted"/>.</item>
+///   <item><see cref="PeriodSummary.PagoParaNoGenerarIntereses"/> is NotExtracted.</item>
+/// </list>
+/// </para>
+/// </remarks>
+internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
+{
+    private const string Version = "1.0.0";
+
+    /// <inheritdoc />
+    public string CheckId => "CL-21";
+
+    /// <inheritdoc />
+    public TechniqueClass Technique => TechniqueClass.Deterministic;
+
+    /// <inheritdoc />
+    public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default)
+    {
+        if (ct.IsCancellationRequested)
+            return ResultExtensions.Cancelled<RuleFinding>();
+
+        // Tolerance required — ADR-V3
+        if (ctx.ToleranceConfig is null)
+            return InsufficientData("ToleranceConfig is absent from the bundle.");
+
+        var tolerance = ctx.ToleranceConfig.CurrencyToleranceMxn ?? 0.50m;
+
+        var ps = ctx.StatementModel?.PeriodSummary;
+        if (ps is null)
+            return InsufficientData("StatementModel or PeriodSummary is not populated.");
+
+        // All RESUMEN subtotal inputs must be extracted
+        if (ps.AdeudoPeriodoAnterior.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"AdeudoPeriodoAnterior is {ps.AdeudoPeriodoAnterior.Status}.");
+        if (ps.CargosRegularesNoMeses.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"CargosRegularesNoMeses is {ps.CargosRegularesNoMeses.Status}.");
+        if (ps.CargosComprasAMesesCapital.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"CargosComprasAMesesCapital is {ps.CargosComprasAMesesCapital.Status}.");
+        if (ps.MontoIntereses.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"MontoIntereses is {ps.MontoIntereses.Status}.");
+        if (ps.MontoComisiones.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"MontoComisiones is {ps.MontoComisiones.Status}.");
+        if (ps.IvaInteresesYComisiones.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"IvaInteresesYComisiones is {ps.IvaInteresesYComisiones.Status}.");
+        if (ps.PagosYAbonos.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"PagosYAbonos is {ps.PagosYAbonos.Status}.");
+
+        // Target field to compare against
+        if (ps.PagoParaNoGenerarIntereses.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"PagoParaNoGenerarIntereses is {ps.PagoParaNoGenerarIntereses.Status}.");
+
+        // CL-21 formula
+        var computed =
+            ps.AdeudoPeriodoAnterior.Value
+            + ps.CargosRegularesNoMeses.Value
+            + ps.CargosComprasAMesesCapital.Value
+            + ps.MontoIntereses.Value
+            + ps.MontoComisiones.Value
+            + ps.IvaInteresesYComisiones.Value
+            - ps.PagosYAbonos.Value;
+
+        var observed = ps.PagoParaNoGenerarIntereses.Value;
+        var diff = Math.Abs(computed - observed);
+
+        var locator = ps.PagoParaNoGenerarIntereses.Locator;
+
+        if (diff <= tolerance)
+        {
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.Pass(
+                    checkId: CheckId,
+                    technique: Technique,
+                    engineVersion: Version,
+                    observed: $"{observed:F2}",
+                    toleranceApplied: tolerance,
+                    locator: locator));
+        }
+
+        return Result<RuleFinding>.WithSuccess(
+            RuleFinding.Fail(
+                checkId: CheckId,
+                technique: Technique,
+                severity: FindingSeverity.Critical,
+                engineVersion: Version,
+                expected: $"{computed:F2}",
+                observed: $"{observed:F2}",
+                toleranceApplied: tolerance,
+                locator: locator));
+    }
+
+    private Result<RuleFinding> InsufficientData(string reason) =>
+        Result<RuleFinding>.WithSuccess(
+            RuleFinding.InsufficientData(
+                checkId: CheckId,
+                technique: Technique,
+                engineVersion: Version,
+                reason: reason));
+}

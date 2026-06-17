@@ -103,12 +103,12 @@ public sealed class VecValidationEngineTests
     }
 
     // -----------------------------------------------------------------------
-    // Test 1: DI discovery — Scrutor finds and registers example rules
+    // Test 1: DI discovery — Scrutor finds and registers all Story 4.2 rules
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// After <see cref="AddVeriqanValidation"/> the engine runs all Scrutor-discovered
-    /// rules and returns a finding per rule.
+    /// After <see cref="AddVeriqanValidation"/> the engine discovers and runs all rules
+    /// registered via Scrutor scan and returns a finding per rule (CL-10, CL-18 through CL-26).
     /// </summary>
     [Fact]
     public async Task Engine_DiscoversAndRunsRegisteredRules_ReturnsFindingPerRule()
@@ -123,12 +123,21 @@ public sealed class VecValidationEngineTests
         result.IsSuccess.ShouldBeTrue($"Engine failed: {result.Error}");
         var findings = result.Value!;
 
-        // At least the two example rules must have been discovered
-        findings.Count.ShouldBeGreaterThanOrEqualTo(2);
+        // Story 4.2 ships 10 rules: CL-10, CL-18, CL-19, CL-20, CL-21, CL-22, CL-23, CL-24, CL-25, CL-26
+        findings.Count.ShouldBeGreaterThanOrEqualTo(10);
 
-        // Both example check-ids must appear
-        findings.Select(f => f.CheckId).ShouldContain("CL-EXAMPLE-PASS");
-        findings.Select(f => f.CheckId).ShouldContain("CL-EXAMPLE-RATE-CAP");
+        // All Story 4.2 check-ids must appear
+        var checkIds = findings.Select(f => f.CheckId).ToList();
+        checkIds.ShouldContain("CL-10");
+        checkIds.ShouldContain("CL-18");
+        checkIds.ShouldContain("CL-19");
+        checkIds.ShouldContain("CL-20");
+        checkIds.ShouldContain("CL-21");
+        checkIds.ShouldContain("CL-22");
+        checkIds.ShouldContain("CL-23");
+        checkIds.ShouldContain("CL-24");
+        checkIds.ShouldContain("CL-25");
+        checkIds.ShouldContain("CL-26");
     }
 
     // -----------------------------------------------------------------------
@@ -210,21 +219,22 @@ public sealed class VecValidationEngineTests
     }
 
     // -----------------------------------------------------------------------
-    // Test 4: InsufficientData path — missing capability (FR-20)
+    // Test 4: InsufficientData path — null ToleranceConfig (FR-20, ADR-V3)
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// The <c>CL-EXAMPLE-RATE-CAP</c> rule emits InsufficientData when the Rate
-    /// capability is absent from the bundle (FR-20).
+    /// All Story 4.2 arithmetic rules emit <see cref="FindingVerdict.InsufficientData"/>
+    /// when <c>ToleranceConfig</c> is absent from the bundle (ADR-V3: no magic numbers;
+    /// FR-20: missing required reference data).
     /// </summary>
     [Fact]
-    public async Task Engine_RuleNeedingMissingCapability_EmitsInsufficientData()
+    public async Task Engine_NullToleranceConfig_AllArithmeticRulesEmitInsufficientData()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var sp = BuildServiceProvider();
         var engine = sp.GetRequiredService<IVecValidationEngine>();
 
-        // Bundle WITHOUT interest rates → Rate capability = InsufficientData
+        // Bundle without ToleranceConfig; statementModel is also null in BuildContext
         var ctx = BuildContext(BundleWithoutRate());
 
         var result = await engine.RunAsync(ctx, ct);
@@ -232,9 +242,15 @@ public sealed class VecValidationEngineTests
         result.IsSuccess.ShouldBeTrue();
         var findings = result.Value!;
 
-        var rateFinding = findings.Single(f => f.CheckId == "CL-EXAMPLE-RATE-CAP");
-        rateFinding.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            "Rate-dependent rule must emit InsufficientData when Rate capability is absent");
+        // All arithmetic rules (CL-10, CL-21, CL-22, CL-24, CL-25, CL-26) must be InsufficientData
+        // because ToleranceConfig is null. CL-18/19/20/23 also emit InsufficientData regardless.
+        foreach (var arithmeticId in new[] { "CL-10", "CL-18", "CL-19", "CL-20", "CL-21", "CL-22", "CL-23", "CL-24", "CL-25", "CL-26" })
+        {
+            var finding = findings.SingleOrDefault(f => f.CheckId == arithmeticId);
+            finding.ShouldNotBeNull($"Rule {arithmeticId} must have been discovered and run");
+            finding!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+                $"Rule {arithmeticId} must emit InsufficientData when ToleranceConfig is absent");
+        }
     }
 
     // -----------------------------------------------------------------------
