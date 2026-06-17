@@ -1,0 +1,864 @@
+using System.Text.RegularExpressions;
+using ExxerCube.Prisma.Veriqan.Application.Binding;
+using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Binding;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Verification;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
+using IndQuestResults;
+using IndQuestResults.Operations;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Tests;
+
+/// <summary>
+/// Unit tests for the Story 4.4 movement-detail validation rules:
+/// CL-42, CL-44, CL-45, ITEM-58, and the updated CL-18, CL-19, CL-20.
+/// </summary>
+/// <remarks>
+/// All rules are discovered via Scrutor DI (the same path used in production).
+/// Tests construct minimal <see cref="StatementModel"/> / <see cref="VerificationContext"/>
+/// objects to drive specific code paths.
+/// </remarks>
+public sealed class MovementRulesTests
+{
+    private const decimal Tol = 0.50m;
+    private const string ProductId = "TC-MOV-TEST";
+
+    // -----------------------------------------------------------------------
+    // Shared fixture helpers
+    // -----------------------------------------------------------------------
+
+    private static BundleMetadata Metadata() =>
+        new("1.0.0", "Test Bank", null, null, null, null);
+
+    private static VecProduct Product() =>
+        new(ProductId: ProductId, ProductName: "Test Card",
+            Aliases: null, HasRewardsProgram: false,
+            CardImage: null, ImportantMessageImage: null,
+            Tariffs: null);
+
+    private static ToleranceConfig Tolerance() =>
+        new(CurrencyToleranceMxn: Tol, PointsTolerance: null,
+            RewardsPesosToleranceMxn: null, PointsToPesosExchangeRate: null);
+
+    private static FieldLocator P1() => FieldLocator.PageHint(1);
+
+    private static ExtractedField<decimal> Found(decimal value) =>
+        ExtractedField<decimal>.Found(value, P1());
+
+    private static ExtractedField<decimal> Missing() =>
+        ExtractedField<decimal>.Missing(P1());
+
+    private static ExtractedField<DateOnly> DateFound(int year, int month, int day) =>
+        ExtractedField<DateOnly>.Found(new DateOnly(year, month, day), P1());
+
+    private static ExtractedField<DateOnly> DateMissing() =>
+        ExtractedField<DateOnly>.Missing(P1());
+
+    /// <summary>
+    /// Builds a VecReferenceBundle with ToleranceConfig and a single client account.
+    /// </summary>
+    private static VecReferenceBundle BundleWithAccount() =>
+        new(
+            BundleMetadata: Metadata(),
+            Products: [Product()],
+            InterestRates: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts:
+            [
+                new ClientAccount(
+                    ClientId: "C-001",
+                    ClientName: null,
+                    Rfc: null,
+                    ClientNumber: null,
+                    Address: null,
+                    Accounts:
+                    [
+                        new AccountEntry(
+                            AccountRef: "REF-001",
+                            ProductId: ProductId,
+                            CardNumber: null,
+                            Clabe: null,
+                            BranchNumber: null,
+                            CreditLine: 100_000m,
+                            AccountOpenDate: null)
+                    ])
+            ],
+            PriorStatements: null,
+            ExpectedTransactions: null,
+            ToleranceConfig: Tolerance(),
+            ValidationConstants: null);
+
+    /// <summary>Bundle with NO ToleranceConfig.</summary>
+    private static VecReferenceBundle BundleNoTolerance() =>
+        new(
+            BundleMetadata: Metadata(),
+            Products: [Product()],
+            InterestRates: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: null,
+            ToleranceConfig: null,
+            ValidationConstants: null);
+
+    /// <summary>Bundle with ToleranceConfig and expected transactions.</summary>
+    private static VecReferenceBundle BundleWithExpected(
+        IReadOnlyList<ExpectedTransaction> transactions,
+        string accountRef = "REF-001") =>
+        new(
+            BundleMetadata: Metadata(),
+            Products: [Product()],
+            InterestRates: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: [new ExpectedTransactionGroup(accountRef, transactions)],
+            ToleranceConfig: Tolerance(),
+            ValidationConstants: null);
+
+    /// <summary>Bundle with ToleranceConfig but no expected transactions.</summary>
+    private static VecReferenceBundle BundleNoExpected() =>
+        new(
+            BundleMetadata: Metadata(),
+            Products: [Product()],
+            InterestRates: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: null,
+            ToleranceConfig: Tolerance(),
+            ValidationConstants: null);
+
+    private static VerificationContext Ctx(VecReferenceBundle bundle, StatementModel? model = null) =>
+        new(
+            bundle: bundle,
+            resolvedProduct: Product(),
+            availability: ReferenceDataAvailability.FromBundle(bundle),
+            priorStatement: null,
+            toleranceConfig: bundle.ToleranceConfig,
+            statementModel: model);
+
+    private static IVecValidationRule GetRule(string checkId)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging(b => b.SetMinimumLevel(LogLevel.Debug));
+        services.AddVeriqanValidation();
+        var sp = services.BuildServiceProvider();
+        var rules = sp.GetServices<IVecValidationRule>();
+        foreach (var r in rules)
+            if (r.CheckId == checkId) return r;
+        throw new InvalidOperationException($"Rule {checkId} not found in DI.");
+    }
+
+    /// <summary>
+    /// Builds a minimal <see cref="StatementModel"/> with the supplied <see cref="PeriodSummary"/>
+    /// and empty movements.
+    /// </summary>
+    private static StatementModel ModelWith(PeriodSummary? ps)
+    {
+        var missingStr = ExtractedField<string>.Missing(P1());
+        var missingName = ExtractedField<ExtractedClientName>.Missing(P1());
+        var missingAddr = ExtractedField<ExtractedAddress>.Missing(P1());
+        return new StatementModel(
+            clientName: missingName,
+            address: missingAddr,
+            branchNumber: missingStr,
+            cardNumber: missingStr,
+            clabe: missingStr,
+            clientNumber: missingStr,
+            rfc: missingStr)
+        {
+            PeriodSummary = ps
+        };
+    }
+
+    /// <summary>
+    /// Builds a <see cref="StatementModel"/> with the supplied movements and extraction status.
+    /// </summary>
+    private static StatementModel ModelWithMovements(
+        PeriodSummary? ps,
+        IReadOnlyList<StatementMovement> movements,
+        MovementsExtractionStatus status = MovementsExtractionStatus.Extracted)
+    {
+        var missingStr = ExtractedField<string>.Missing(P1());
+        var missingName = ExtractedField<ExtractedClientName>.Missing(P1());
+        var missingAddr = ExtractedField<ExtractedAddress>.Missing(P1());
+        return new StatementModel(
+            clientName: missingName,
+            address: missingAddr,
+            branchNumber: missingStr,
+            cardNumber: missingStr,
+            clabe: missingStr,
+            clientNumber: missingStr,
+            rfc: missingStr)
+        {
+            PeriodSummary = ps,
+            Movements = movements,
+            MovementsStatus = status,
+        };
+    }
+
+    /// <summary>Creates a <see cref="PeriodSummary"/> with just the period dates populated.</summary>
+    private static PeriodSummary MakeSummaryWithDates(
+        ExtractedField<DateOnly>? periodStart = null,
+        ExtractedField<DateOnly>? periodCutDate = null,
+        ExtractedField<decimal>? cargosRegularesNoMeses = null,
+        ExtractedField<decimal>? cargosComprasAMesesCapital = null,
+        ExtractedField<decimal>? pagosYAbonos = null,
+        ExtractedField<decimal>? totalCargos = null,
+        ExtractedField<decimal>? totalAbonos = null)
+    {
+        var missingDate = DateMissing();
+        var missingInt = ExtractedField<int>.Missing(P1());
+        var missingStr = ExtractedField<string>.Missing(P1());
+        var dayCount = new DayCountVerification(PrintedDays: 31, ComputedSpanDays: 30, IsConsistent: true);
+
+        return new PeriodSummary(
+            product: missingStr,
+            periodStart: periodStart ?? missingDate,
+            periodCutDate: periodCutDate ?? missingDate,
+            paymentDueDate: missingDate,
+            dayCountPrinted: missingInt,
+            dayCount: dayCount,
+            pagoParaNoGenerarIntereses: Missing(),
+            pagoMinimo: Missing(),
+            pagoMinimoMasMeses: Missing(),
+            tasa: Missing(),
+            cat: Missing(),
+            saldoDeudorTotal: Missing(),
+            creditoDisponible: Missing(),
+            cargosRegularesNoMeses: cargosRegularesNoMeses,
+            cargosComprasAMesesCapital: cargosComprasAMesesCapital,
+            pagosYAbonos: pagosYAbonos,
+            totalCargos: totalCargos,
+            totalAbonos: totalAbonos);
+    }
+
+    private static StatementMovement MakeMovement(
+        decimal amount,
+        MovementSign sign,
+        string description,
+        DateOnly? opDate = null,
+        DateOnly? chargeDate = null) =>
+        new(opDate, chargeDate, description, amount, sign, FieldLocator.PageHint(3));
+
+    // -----------------------------------------------------------------------
+    // CL-42 tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Cl42_AllDatesInPeriod_ReturnsPass()
+    {
+        var rule = GetRule("CL-42");
+        var periodStart = new DateOnly(2025, 7, 5);
+        var periodCut = new DateOnly(2025, 8, 4);
+
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX", new DateOnly(2025, 7, 5), null),
+            MakeMovement(200m, MovementSign.Credit, "ABONO",  new DateOnly(2025, 7, 20), null),
+            MakeMovement(300m, MovementSign.Charge, "COMPRA", new DateOnly(2025, 8, 4),  null),
+        };
+
+        var ps = MakeSummaryWithDates(
+            periodStart: DateFound(2025, 7, 5),
+            periodCutDate: DateFound(2025, 8, 4));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.CheckId.ShouldBe("CL-42");
+        result.Value.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
+    [Fact]
+    public void Cl42_OneOutOfRangeDate_ReturnsFail()
+    {
+        var rule = GetRule("CL-42");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "OK",      new DateOnly(2025, 7, 10), null),
+            MakeMovement(200m, MovementSign.Charge, "TOO_LATE", new DateOnly(2025, 8, 5), null), // after cut
+        };
+
+        var ps = MakeSummaryWithDates(
+            periodStart: DateFound(2025, 7, 5),
+            periodCutDate: DateFound(2025, 8, 4));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+        result.Value.Observed.ShouldNotBeNull();
+        result.Value.Observed!.ShouldContain("2025-08-05");
+    }
+
+    [Fact]
+    public void Cl42_NullPeriodDates_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-42");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "ANY", new DateOnly(2025, 7, 10), null),
+        };
+
+        var ps = MakeSummaryWithDates(
+            periodStart: DateMissing(),        // ← not extracted
+            periodCutDate: DateFound(2025, 8, 4));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    [Fact]
+    public void Cl42_NoMovements_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-42");
+        var ps = MakeSummaryWithDates(
+            periodStart: DateFound(2025, 7, 5),
+            periodCutDate: DateFound(2025, 8, 4));
+
+        // ModelWith(ps) has no movements, status = SectionNotFound
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    [Fact]
+    public void Cl42_CancellationRequested_ReturnsCancelled()
+    {
+        var rule = GetRule("CL-42");
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var ctx = Ctx(BundleWithAccount());
+        var result = rule.Evaluate(ctx, cts.Token);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    // -----------------------------------------------------------------------
+    // CL-44 tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Cl44_PrintedTotalsMatchSum_ReturnsPass()
+    {
+        var rule = GetRule("CL-44");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge,  "CARGO1",  null, null),
+            MakeMovement(200m, MovementSign.Charge,  "CARGO2",  null, null),
+            MakeMovement(50m,  MovementSign.Credit,  "ABONO1",  null, null),
+        };
+
+        var ps = MakeSummaryWithDates(
+            totalCargos: Found(300m),   // 100 + 200
+            totalAbonos: Found(50m));   // 50
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.ToleranceApplied.ShouldBe(Tol);
+    }
+
+    [Fact]
+    public void Cl44_CargosTotalMismatch_ReturnsFail()
+    {
+        var rule = GetRule("CL-44");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "CARGO1", null, null),
+            MakeMovement(200m, MovementSign.Charge, "CARGO2", null, null),
+            MakeMovement(50m,  MovementSign.Credit, "ABONO1", null, null),
+        };
+
+        var ps = MakeSummaryWithDates(
+            totalCargos: Found(999m),   // should be 300 — off by 699 > tolerance
+            totalAbonos: Found(50m));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+    }
+
+    [Fact]
+    public void Cl44_TotalCargosNotExtracted_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-44");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "CARGO", null, null),
+        };
+
+        var ps = MakeSummaryWithDates(
+            totalCargos: Missing(),     // not extracted
+            totalAbonos: Found(0m));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    [Fact]
+    public void Cl44_NoMovements_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-44");
+        var ps = MakeSummaryWithDates(
+            totalCargos: Found(300m),
+            totalAbonos: Found(50m));
+
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    [Fact]
+    public void Cl44_NullToleranceConfig_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-44");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "CARGO", null, null),
+        };
+
+        var ps = MakeSummaryWithDates(
+            totalCargos: Found(100m),
+            totalAbonos: Found(0m));
+
+        var ctx = Ctx(BundleNoTolerance(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    // -----------------------------------------------------------------------
+    // CL-45 tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Cl45_AllDescriptionsMatch_ReturnsPass()
+    {
+        var rule = GetRule("CL-45");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX COM CR",    null, null),
+            MakeMovement(200m, MovementSign.Credit, "SU ABONO GRACIAS",  null, null),
+        };
+
+        var expected = new List<ExpectedTransaction>
+        {
+            new("NETFLIX COM CR",   100m, null, null, "+"),
+            new("SU ABONO GRACIAS", 200m, null, null, "-"),
+        };
+
+        var ctx = Ctx(BundleWithExpected(expected), ModelWithMovements(null, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
+    [Fact]
+    public void Cl45_MissingMovement_ReturnsFail()
+    {
+        var rule = GetRule("CL-45");
+        // Expected has "BANCA DIGITAL" but movements don't
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX COM CR", null, null),
+        };
+
+        var expected = new List<ExpectedTransaction>
+        {
+            new("NETFLIX COM CR",  100m, null, null, "+"),
+            new("BANCA DIGITAL",   500m, null, null, "-"),  // ← missing from statement
+        };
+
+        var ctx = Ctx(BundleWithExpected(expected), ModelWithMovements(null, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+    }
+
+    [Fact]
+    public void Cl45_ExtraMovement_ReturnsFail()
+    {
+        var rule = GetRule("CL-45");
+        // Statement has "COMPRA EXTRA" but expected doesn't
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX COM CR", null, null),
+            MakeMovement(999m, MovementSign.Charge, "COMPRA EXTRA",   null, null),  // ← extra
+        };
+
+        var expected = new List<ExpectedTransaction>
+        {
+            new("NETFLIX COM CR", 100m, null, null, "+"),
+        };
+
+        var ctx = Ctx(BundleWithExpected(expected), ModelWithMovements(null, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+    }
+
+    [Fact]
+    public void Cl45_NoExpectedTransactions_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-45");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX", null, null),
+        };
+
+        var ctx = Ctx(BundleNoExpected(), ModelWithMovements(null, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    [Fact]
+    public void Cl45_CancellationRequested_ReturnsCancelled()
+    {
+        var rule = GetRule("CL-45");
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var ctx = Ctx(BundleWithAccount());
+        var result = rule.Evaluate(ctx, cts.Token);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.IsCancelled().ShouldBeTrue();
+    }
+
+    // -----------------------------------------------------------------------
+    // ITEM-58 tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Item58_AmountsMatch_ReturnsPass()
+    {
+        var rule = GetRule("ITEM-58");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(329.00m, MovementSign.Charge, "NETFLIX COM CR", null, null),
+            MakeMovement(500.00m, MovementSign.Credit, "SU ABONO",       null, null),
+        };
+
+        var expected = new List<ExpectedTransaction>
+        {
+            new("NETFLIX COM CR", 329.00m, null, null, "+"),
+            new("SU ABONO",       500.00m, null, null, "-"),
+        };
+
+        var ctx = Ctx(BundleWithExpected(expected), ModelWithMovements(null, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.ToleranceApplied.ShouldBe(Tol);
+    }
+
+    [Fact]
+    public void Item58_AmountExceedsTolerance_ReturnsFail()
+    {
+        var rule = GetRule("ITEM-58");
+        // Movement amount = 330.00, expected = 329.00 → diff = 1.00 > 0.50
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(330.00m, MovementSign.Charge, "NETFLIX COM CR", null, null),
+        };
+
+        var expected = new List<ExpectedTransaction>
+        {
+            new("NETFLIX COM CR", 329.00m, null, null, "+"),
+        };
+
+        var ctx = Ctx(BundleWithExpected(expected), ModelWithMovements(null, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+        result.Value.ToleranceApplied.ShouldBe(Tol);
+    }
+
+    [Fact]
+    public void Item58_NoExpectedTransactions_ReturnsInsufficientData()
+    {
+        var rule = GetRule("ITEM-58");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX", null, null),
+        };
+
+        var ctx = Ctx(BundleNoExpected(), ModelWithMovements(null, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    [Fact]
+    public void Item58_NullToleranceConfig_ReturnsInsufficientData()
+    {
+        var rule = GetRule("ITEM-58");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX", null, null),
+        };
+
+        var expected = new List<ExpectedTransaction>
+        {
+            new("NETFLIX", 100m, null, null, "+"),
+        };
+
+        // Bundle with no tolerance
+        var bundle = new VecReferenceBundle(
+            BundleMetadata: Metadata(),
+            Products: [Product()],
+            InterestRates: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: [new ExpectedTransactionGroup("REF-001", expected)],
+            ToleranceConfig: null,
+            ValidationConstants: null);
+
+        var ctx = Ctx(bundle, ModelWithMovements(null, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    // -----------------------------------------------------------------------
+    // CL-18 tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Cl18_NonMsiChargesMatchTarget_ReturnsPass()
+    {
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX COM CR",          null, null),  // non-MSI
+            MakeMovement(200m, MovementSign.Charge, "BODEGA AURRERA",          null, null),  // non-MSI
+            MakeMovement(500m, MovementSign.Credit, "ABONO",                   null, null),  // credit
+        };
+
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(300m));   // 100 + 200
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.ToleranceApplied.ShouldBe(Tol);
+    }
+
+    [Fact]
+    public void Cl18_NonMsiChargesDeviate_ReturnsFail()
+    {
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX", null, null),
+            MakeMovement(200m, MovementSign.Charge, "BODEGA",  null, null),
+        };
+
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(999m));   // off by 699
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+    }
+
+    [Fact]
+    public void Cl18_MsiMovementsExcluded_CorrectlyClassified()
+    {
+        var rule = GetRule("CL-18");
+        // "005 de 012" matches MSI pattern — should NOT count in CL-18 sum
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "REGULAR PURCHASE",             null, null),
+            MakeMovement(500m, MovementSign.Charge, "DON COLCHON CUMBRES 005 de 012", null, null), // MSI
+        };
+
+        // target = 100 (only the regular charge, MSI excluded)
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(100m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
+    [Fact]
+    public void Cl18_NoMovements_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-18");
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(300m));
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    [Fact]
+    public void Cl18_TargetNotExtracted_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(100m, MovementSign.Charge, "NETFLIX", null, null),
+        };
+
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Missing());    // ← not extracted
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    // -----------------------------------------------------------------------
+    // CL-19 tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Cl19_MsiChargesMatchTarget_ReturnsPass()
+    {
+        var rule = GetRule("CL-19");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(985.39m, MovementSign.Charge, "MSI CARGO 001 de 012",  null, null),  // MSI
+            MakeMovement(100m,    MovementSign.Charge, "REGULAR PURCHASE",       null, null),  // non-MSI
+        };
+
+        var ps = MakeSummaryWithDates(cargosComprasAMesesCapital: Found(985.39m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
+    [Fact]
+    public void Cl19_MsiChargesDeviate_ReturnsFail()
+    {
+        var rule = GetRule("CL-19");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(985.39m, MovementSign.Charge, "MSI 001 de 012", null, null),
+        };
+
+        var ps = MakeSummaryWithDates(cargosComprasAMesesCapital: Found(1000m)); // off by 14.61
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+    }
+
+    [Fact]
+    public void Cl19_MsiPatternDetected_CorrectlyClassified()
+    {
+        var rule = GetRule("CL-19");
+        // Only the MSI charge should count in CL-19 sum
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(985.39m, MovementSign.Charge, "DON COLCHON 005 de 012", null, null),  // MSI
+            MakeMovement(100m,    MovementSign.Charge, "REGULAR PURCHASE",        null, null),  // non-MSI
+        };
+
+        var ps = MakeSummaryWithDates(cargosComprasAMesesCapital: Found(985.39m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
+    // -----------------------------------------------------------------------
+    // CL-20 tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Cl20_AbonoCreditSumMatchesPagosYAbonos_ReturnsPass()
+    {
+        var rule = GetRule("CL-20");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(6523.00m,  MovementSign.Credit, "PROGRAMA FOR LIFE",  null, null),
+            MakeMovement(61273.35m, MovementSign.Credit, "SU ABONO GRACIAS",   null, null),
+            MakeMovement(100m,      MovementSign.Charge, "NETFLIX",             null, null),  // not counted
+        };
+
+        var ps = MakeSummaryWithDates(pagosYAbonos: Found(67796.35m));  // 6523 + 61273.35
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.ToleranceApplied.ShouldBe(Tol);
+    }
+
+    [Fact]
+    public void Cl20_AbonoSumDeviates_ReturnsFail()
+    {
+        var rule = GetRule("CL-20");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(6523.00m, MovementSign.Credit, "PROGRAMA FOR LIFE", null, null),
+        };
+
+        var ps = MakeSummaryWithDates(pagosYAbonos: Found(99999m)); // off by a lot
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+    }
+
+    [Fact]
+    public void Cl20_NoMovements_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-20");
+        var ps = MakeSummaryWithDates(pagosYAbonos: Found(67796.35m));
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    [Fact]
+    public void Cl20_CancellationRequested_ReturnsCancelled()
+    {
+        var rule = GetRule("CL-20");
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var ctx = Ctx(BundleWithAccount());
+        var result = rule.Evaluate(ctx, cts.Token);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.IsCancelled().ShouldBeTrue();
+    }
+}

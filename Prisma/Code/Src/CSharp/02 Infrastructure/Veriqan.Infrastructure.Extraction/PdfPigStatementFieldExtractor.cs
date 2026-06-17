@@ -212,7 +212,35 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // ---- DESGLOSE DE MOVIMIENTOS DEL PERIODO — Story 4.4 ----------
             // Scan all pages for the DESGLOSE section header, then reconstruct
             // transaction rows using Y-band grouping + X-column assignment.
-            var (movements, movementsStatus) = ExtractMovements(doc);
+            var (movements, movementsStatus, totalCargos, totalAbonos) = ExtractMovements(doc);
+
+            // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
+            // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
+            var periodSummaryWithTotals = new PeriodSummary(
+                product: periodSummary.Product,
+                periodStart: periodSummary.PeriodStart,
+                periodCutDate: periodSummary.PeriodCutDate,
+                paymentDueDate: periodSummary.PaymentDueDate,
+                dayCountPrinted: periodSummary.DayCountPrinted,
+                dayCount: periodSummary.DayCount,
+                pagoParaNoGenerarIntereses: periodSummary.PagoParaNoGenerarIntereses,
+                pagoMinimo: periodSummary.PagoMinimo,
+                pagoMinimoMasMeses: periodSummary.PagoMinimoMasMeses,
+                tasa: periodSummary.Tasa,
+                cat: periodSummary.Cat,
+                saldoDeudorTotal: periodSummary.SaldoDeudorTotal,
+                creditoDisponible: periodSummary.CreditoDisponible,
+                adeudoPeriodoAnterior: periodSummary.AdeudoPeriodoAnterior,
+                cargosRegularesNoMeses: periodSummary.CargosRegularesNoMeses,
+                cargosComprasAMesesCapital: periodSummary.CargosComprasAMesesCapital,
+                montoIntereses: periodSummary.MontoIntereses,
+                montoComisiones: periodSummary.MontoComisiones,
+                ivaInteresesYComisiones: periodSummary.IvaInteresesYComisiones,
+                pagosYAbonos: periodSummary.PagosYAbonos,
+                saldoCargosRegulares: periodSummary.SaldoCargosRegulares,
+                saldoCargosAMeses: periodSummary.SaldoCargosAMeses,
+                totalCargos: totalCargos,
+                totalAbonos: totalAbonos);
 
             var model = new StatementModel(
                 clientName: clientName,
@@ -223,7 +251,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 clientNumber: clientNumber,
                 rfc: rfc)
             {
-                PeriodSummary = periodSummary,
+                PeriodSummary = periodSummaryWithTotals,
                 Movements = movements,
                 MovementsStatus = movementsStatus,
             };
@@ -1029,19 +1057,26 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
     /// <summary>
     /// Extracts all movement rows from the DESGLOSE DE MOVIMIENTOS DEL PERIODO table
-    /// across all pages of the document.
+    /// across all pages of the document, plus the printed "Total cargos" and "Total abonos"
+    /// summary rows at the bottom of the last table page.
     /// </summary>
     /// <param name="doc">The open <see cref="PdfDocument"/>.</param>
     /// <returns>
-    /// A tuple of the parsed movement list and the extraction status.
-    /// The list is in top-to-bottom, page-ascending order.
+    /// A tuple of the parsed movement list, the extraction status, and the two printed
+    /// DESGLOSE totals (TotalCargos / TotalAbonos).
+    /// The movement list is in top-to-bottom, page-ascending order.
     /// Never throws — individual row parse failures are silently skipped.
     /// </returns>
-    private (IReadOnlyList<StatementMovement> movements, MovementsExtractionStatus status)
+    private (IReadOnlyList<StatementMovement> movements,
+             MovementsExtractionStatus status,
+             ExtractedField<decimal> totalCargos,
+             ExtractedField<decimal> totalAbonos)
         ExtractMovements(PdfDocument doc)
     {
         var movements = new List<StatementMovement>();
         var sectionFound = false;
+        ExtractedField<decimal>? totalCargos = null;
+        ExtractedField<decimal>? totalAbonos = null;
 
         for (var pageIndex = 1; pageIndex <= doc.NumberOfPages; pageIndex++)
         {
@@ -1100,23 +1135,116 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                         movements[movements.Count - 1] = updated;
                         lastMovement = updated;
                     }
+                    continue;
                 }
-                // Other non-data bands (column headers, section title, page footer,
-                // totals rows) are simply skipped.
+
+                // Check for "Total cargos" / "Total abonos" summary rows.
+                // These have description text starting at X≈346 and NO sign token.
+                var totalResult = TryParseTotalRow(bandWords, pageIndex);
+                if (totalResult.HasValue)
+                {
+                    if (totalResult.Value.isCharge)
+                        totalCargos = totalResult.Value.amount;
+                    else
+                        totalAbonos = totalResult.Value.amount;
+                }
+                // Other non-data bands (column headers, section title, page footer) are skipped.
             }
         }
 
+        var missingTotal = ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+
         if (!sectionFound)
-            return ([], MovementsExtractionStatus.SectionNotFound);
+            return ([], MovementsExtractionStatus.SectionNotFound, missingTotal, missingTotal);
 
         if (movements.Count == 0)
-            return ([], MovementsExtractionStatus.NoRowsParsed);
+            return ([], MovementsExtractionStatus.NoRowsParsed, totalCargos ?? missingTotal, totalAbonos ?? missingTotal);
 
         _logger.LogInformation(
             "DESGLOSE extraction: {Count} movements parsed across {Pages} page(s).",
             movements.Count, doc.NumberOfPages);
 
-        return (movements, MovementsExtractionStatus.Extracted);
+        return (movements, MovementsExtractionStatus.Extracted,
+                totalCargos ?? missingTotal, totalAbonos ?? missingTotal);
+    }
+
+    /// <summary>
+    /// Attempts to parse a "Total cargos" or "Total abonos" summary row from a DESGLOSE band.
+    /// </summary>
+    /// <param name="bandWords">Words on the candidate band.</param>
+    /// <param name="pageNumber">Page number for the locator.</param>
+    /// <returns>
+    /// A tuple of (isCharge, <see cref="ExtractedField{T}"/> amount) when the band matches
+    /// a total row; <see langword="null"/> otherwise.
+    /// </returns>
+    private static (bool isCharge, ExtractedField<decimal> amount)?
+        TryParseTotalRow(List<Word> bandWords, int pageNumber)
+    {
+        // A "Total" row has:
+        //  - A "Total" token in the description column (X 158–422)
+        //  - Followed by "cargos" or "abonos" in the same column
+        //  - NO sign token (X 423–438)
+        //  - An amount token (X ≥ 436)
+
+        var hasSignToken = bandWords.Any(w =>
+            w.BoundingBox.Left >= DesgloseSignXMin
+            && w.BoundingBox.Left <= DesgloseSignXMax
+            && IsSignToken(w.Text));
+
+        if (hasSignToken)
+            return null;
+
+        var descWords = bandWords
+            .Where(w => w.BoundingBox.Left >= DesgloseDescriptionXMin
+                     && w.BoundingBox.Left <= DesgloseDescriptionXMax)
+            .OrderBy(w => w.BoundingBox.Left)
+            .ToList();
+
+        if (descWords.Count < 2)
+            return null;
+
+        // Find "Total" token
+        var totalIdx = descWords.FindIndex(w =>
+            string.Equals(w.Text, "Total", StringComparison.OrdinalIgnoreCase));
+        if (totalIdx < 0 || totalIdx + 1 >= descWords.Count)
+            return null;
+
+        var nextToken = descWords[totalIdx + 1].Text;
+        bool? isCharge = null;
+
+        if (string.Equals(nextToken, "cargos", StringComparison.OrdinalIgnoreCase))
+            isCharge = true;
+        else if (string.Equals(nextToken, "abonos", StringComparison.OrdinalIgnoreCase))
+            isCharge = false;
+
+        if (isCharge is null)
+            return null;
+
+        // Parse amount (X ≥ 436)
+        var amountWords = bandWords
+            .Where(w => w.BoundingBox.Left >= DesgloseAmountXMin)
+            .OrderBy(w => w.BoundingBox.Left)
+            .ToList();
+
+        if (amountWords.Count == 0)
+            return null;
+
+        var locator = BoundingBoxOf(bandWords, pageNumber);
+
+        foreach (var aw in amountWords)
+        {
+            var m = DesgloseAmountPattern.Match(aw.Text);
+            if (!m.Success)
+                continue;
+            var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
+            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            {
+                return (isCharge.Value, ExtractedField<decimal>.Found(parsed, locator));
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

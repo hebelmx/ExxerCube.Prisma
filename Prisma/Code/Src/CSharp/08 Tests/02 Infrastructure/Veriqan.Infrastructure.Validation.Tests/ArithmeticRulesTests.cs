@@ -326,18 +326,15 @@ public sealed class ArithmeticRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // CL-18, CL-19, CL-20, CL-23 — always InsufficientData (Story 4.4 pending)
+    // CL-23 — always InsufficientData (pending cross-period data)
     // -----------------------------------------------------------------------
 
     [Theory]
-    [InlineData("CL-18")]
-    [InlineData("CL-19")]
-    [InlineData("CL-20")]
     [InlineData("CL-23")]
-    public void Cl18_19_20_23_AlwaysReturnsInsufficientData(string checkId)
+    public void Cl23_AlwaysReturnsInsufficientData(string checkId)
     {
         var rule = GetRule(checkId);
-        // Even with ToleranceConfig and a full StatementModel these rules emit InsufficientData
+        // CL-23 requires cross-period installment data not yet available.
         var ps = MakeSummary(
             adeudoPeriodoAnterior: Found(100m),
             cargosRegularesNoMeses: Found(200m),
@@ -350,7 +347,34 @@ public sealed class ArithmeticRulesTests
         result.IsSuccess.ShouldBeTrue();
         result.Value!.CheckId.ShouldBe(checkId);
         result.Value.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            $"{checkId} must emit InsufficientData until Story 4.4 table extraction is done.");
+            $"{checkId} must emit InsufficientData (cross-period data pending).");
+    }
+
+    // -----------------------------------------------------------------------
+    // CL-18, CL-19, CL-20 — InsufficientData when movements not extracted
+    // (Story 4.4: these rules now compute real sums; no movements → InsufficientData)
+    // -----------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("CL-18")]
+    [InlineData("CL-19")]
+    [InlineData("CL-20")]
+    public void Cl18_19_20_ReturnsInsufficientData_WhenNoMovements(string checkId)
+    {
+        var rule = GetRule(checkId);
+        // StatementModel has no movements (MovementsStatus = SectionNotFound by default)
+        var ps = MakeSummary(
+            cargosRegularesNoMeses: Found(200m),
+            cargosComprasAMesesCapital: Found(100m),
+            pagosYAbonos: Found(50m));
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.CheckId.ShouldBe(checkId);
+        result.Value.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            $"{checkId} must emit InsufficientData when DESGLOSE movements are not extracted.");
     }
 
     // -----------------------------------------------------------------------
@@ -676,7 +700,9 @@ public sealed class ArithmeticRulesTests
     /// <summary>
     /// Runs the full engine with fixture-consistent values; the arithmetic rules that
     /// have all their inputs available (CL-21, CL-22, CL-24, CL-25, CL-26) should Pass;
-    /// the table-pending rules (CL-18/19/20/23) should InsufficientData;
+    /// CL-18/19/20 now compute real DESGLOSE sums but the context has no movements
+    /// (MovementsStatus = SectionNotFound) → InsufficientData;
+    /// CL-23 is always InsufficientData (cross-period data pending);
     /// CL-10 needs CAT+TASA which are left Missing here → InsufficientData.
     /// </summary>
     [Fact]
@@ -718,7 +744,8 @@ public sealed class ArithmeticRulesTests
         findings.Single(f => f.CheckId == "CL-10").Verdict
             .ShouldBe(FindingVerdict.InsufficientData);
 
-        // CL-18/19/20/23: InsufficientData (table pending Story 4.4)
+        // CL-18/19/20: InsufficientData — compute real sums but context has no movements (SectionNotFound)
+        // CL-23: InsufficientData — cross-period installment data pending
         foreach (var id in new[] { "CL-18", "CL-19", "CL-20", "CL-23" })
             findings.Single(f => f.CheckId == id).Verdict
                 .ShouldBe(FindingVerdict.InsufficientData, $"{id} should be InsufficientData");

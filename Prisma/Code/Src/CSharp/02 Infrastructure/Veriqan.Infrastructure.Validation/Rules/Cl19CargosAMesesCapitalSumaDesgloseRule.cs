@@ -1,6 +1,9 @@
+using System;
+using System.Linq;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -8,19 +11,21 @@ using IndQuestResults.Operations;
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 
 /// <summary>
-/// CL-19: Validates that "Cargos a meses (capital)" equals the sum of MSI amounts in the
-/// DESGLOSE DE OPERACIONES table.
+/// CL-19: Validates that the RESUMEN field "Cargos compras a meses (capital)" equals
+/// the sum of MSI charge amounts extracted from the DESGLOSE DE OPERACIONES table.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Formula:</b> <c>CargosComprasAMesesCapital = Σ amount of MSI rows in DESGLOSE table</c>.
+/// <b>Formula:</b>
+/// <c>CargosComprasAMesesCapital ≈ Σ Amount of Charge movements where Description ∈ MSI pattern</c>.
 /// </para>
 /// <para>
-/// <b>Status (Story 4.2):</b> Always returns <see cref="Domain.Enums.FindingVerdict.InsufficientData"/>
-/// because DESGLOSE table row extraction is not yet implemented.
+/// MSI installment rows are identified by the "NNN de NNN" fragment in the description
+/// (e.g. "DON COLCHON CUMBRES 005 de 012") via <see cref="MovementClassifier.IsMsi"/>.
 /// </para>
-/// <note type="todo">TODO(4.4): Replace InsufficientData path with real DESGLOSE sum comparison
-/// once <c>PeriodSummary.DesgloseOperaciones</c> (MSI rows) is populated by Story 4.4.</note>
+/// <para>
+/// <b>Tolerance (ADR-V3):</b> ±<c>ToleranceConfig.CurrencyToleranceMxn</c> MXN.
+/// </para>
 /// </remarks>
 internal sealed class Cl19CargosAMesesCapitalSumaDesgloseRule : IVecValidationRule
 {
@@ -38,17 +43,59 @@ internal sealed class Cl19CargosAMesesCapitalSumaDesgloseRule : IVecValidationRu
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        // TODO(4.4): DESGLOSE table rows are not yet extracted.
-        // When Story 4.4 populates PeriodSummary.DesgloseOperaciones, replace this with:
-        //   var msiRows = ps.DesgloseOperaciones.Where(r => r.IsMsi);
-        //   var computed = msiRows.Sum(r => r.Amount);
-        //   Compare to ps.CargosComprasAMesesCapital.
+        if (ctx.ToleranceConfig is null)
+            return InsufficientData("ToleranceConfig is absent from the bundle.");
+
+        var tolerance = ctx.ToleranceConfig.CurrencyToleranceMxn ?? 0.50m;
+
+        var ps = ctx.StatementModel?.PeriodSummary;
+        if (ps is null)
+            return InsufficientData("StatementModel or PeriodSummary is not populated.");
+
+        var movStatus = ctx.StatementModel!.MovementsStatus;
+        if (movStatus != MovementsExtractionStatus.Extracted || ctx.StatementModel.Movements.Count == 0)
+            return InsufficientData($"DESGLOSE movements not extracted (status: {movStatus}).");
+
+        if (ps.CargosComprasAMesesCapital.Status != ExtractionStatus.Extracted)
+            return InsufficientData($"CargosComprasAMesesCapital is {ps.CargosComprasAMesesCapital.Status}.");
+
+        var sumMsi = ctx.StatementModel.Movements
+            .Where(m => m.Sign == MovementSign.Charge && MovementClassifier.IsMsi(m.Description))
+            .Sum(m => m.Amount);
+
+        var target = ps.CargosComprasAMesesCapital.Value;
+        var diff = Math.Abs(sumMsi - target);
+        var locator = ps.CargosComprasAMesesCapital.Locator;
+
+        if (diff <= tolerance)
+        {
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.Pass(
+                    checkId: CheckId,
+                    technique: Technique,
+                    engineVersion: Version,
+                    observed: $"{sumMsi:F2}",
+                    toleranceApplied: tolerance,
+                    locator: locator));
+        }
+
         return Result<RuleFinding>.WithSuccess(
+            RuleFinding.Fail(
+                checkId: CheckId,
+                technique: Technique,
+                severity: FindingSeverity.Critical,
+                engineVersion: Version,
+                expected: $"{target:F2}",
+                observed: $"{sumMsi:F2}",
+                toleranceApplied: tolerance,
+                locator: locator));
+    }
+
+    private Result<RuleFinding> InsufficientData(string reason) =>
+        Result<RuleFinding>.WithSuccess(
             RuleFinding.InsufficientData(
                 checkId: CheckId,
                 technique: Technique,
                 engineVersion: Version,
-                reason: "DESGLOSE table extraction is pending (Story 4.4). " +
-                        "CL-19 requires MSI row detail not yet available."));
-    }
+                reason: reason));
 }
