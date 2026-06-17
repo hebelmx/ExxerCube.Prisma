@@ -1,5 +1,12 @@
 # Getting Started - VEC Python Visual & Font Identification
 
+> ⚠️ **SUPERSEDED / RECONCILIATION NOTICE (2026-06-16).** This Python module is an **untrusted
+> prototype** — it cannot import as-is (missing `models/` package; `PdfProcessor` typo) and has never
+> run. **v1 of Veriqan VEC is pure C# (no Python/GPU)**; this Python/ML path is **v2-only**. Salvage
+> only the verified-good logic (`visual/image_quality.py`, `font/font_detector.py` as reference,
+> `utils/model_cache.py`, the CSnakes wrapper). See `docs/planning-artifacts/architecture.md` (ADR-V7/V8)
+> and `docs/planning-artifacts/HANDOFF.md`.
+
 ## Overview
 
 This Python package provides visual identification (logo detection) and font identification capabilities for VEC statement processing. It uses HuggingFace Transformers (CLIP), PyTorch, Pydantic, and pytest following clean architecture principles.

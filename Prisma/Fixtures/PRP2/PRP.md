@@ -1,5 +1,18 @@
 # VEC Statement PDF Extraction & Validation System - Product Requirements Package (PRP)
 
+> ⚠️ **SUPERSEDED / RECONCILIATION NOTICE (2026-06-16).** Earlier draft, retained for history only.
+> Known inaccuracies vs. the current authoritative set: rule count "**115+**" is wrong — the
+> authoritative checklist is the Excel `Check+list+demo+v2+Iqubica.xlsx` = **55 items** (the "115+"
+> conflated a separate, out-of-scope Vector brokerage family); the canonical statement font is
+> **Aptos** (not Arial/Times); v1 scope is **credit-card statements only**, deterministic-first, ML
+> deferred to v2.
+>
+> **Authoritative artifacts (use these instead):** PRD
+> `docs/planning-artifacts/prds/prd-veriqan-vec-2026-06-16/prd.md` · Architecture
+> `docs/planning-artifacts/architecture.md` · Epics `docs/planning-artifacts/epics.md` · Analysis
+> `Prisma/Fixtures/PRP2/REUSE-VS-STANDALONE-RECOMMENDATION.md` · Reference data
+> `Prisma/Fixtures/PRP2/reference-data/` · Handoff `docs/planning-artifacts/HANDOFF.md`
+
 **Project:** ExxerCube.Veriqan - VEC Statement Processing
 **Document Version:** 2.5 (Project Rename & Corrections)
 **Last Updated:** 2025-01-24

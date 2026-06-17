@@ -1,0 +1,91 @@
+# Veriqan VEC — Handoff
+
+**Date:** 2026-06-16 · **Branch:** `Liv` · **Status:** Planning complete (PRD + Architecture + Epics),
+reviewed. Ready for sprint planning / Epic 1 implementation. No production code written yet.
+
+Read this first, then the authoritative artifacts below. Everything else under `Prisma/Fixtures/PRP2/`
+that predates 2026-06-16 carries a **SUPERSEDED** banner — history only.
+
+---
+
+## 1. What Veriqan VEC is
+
+An automated quality gate for **bank credit-card statements** (PDF). It runs the bank's **55-item
+checklist** (financial/arithmetic consistency, field extraction, visual/print-quality, regulatory &
+fiscal) and produces a **color-marked PDF + email alert** that a human QA analyst reviews. It is built
+as an **additive module of the existing ExxerCube.Prisma platform** (which hosts Solution 1, the
+oficio / "Atención a Autoridades" product). VEC = Solution 2.
+
+## 2. Authoritative artifacts (source of truth, in reading order)
+
+| Artifact | Path |
+|---|---|
+| Reuse vs standalone analysis | `Prisma/Fixtures/PRP2/REUSE-VS-STANDALONE-RECOMMENDATION.md` |
+| **Checklist source of truth (the Excel)** | `Prisma/Fixtures/PRP2/Check+list+demo+v2+Iqubica.xlsx` |
+| Reference-data JSON contract | `Prisma/Fixtures/PRP2/reference-data/` (README + schema + example) |
+| **PRD** (final) | `docs/planning-artifacts/prds/prd-veriqan-vec-2026-06-16/prd.md` |
+| PRD addendum (tech how) | `docs/planning-artifacts/prds/prd-veriqan-vec-2026-06-16/addendum.md` |
+| **Architecture** (8 ADRs) | `docs/planning-artifacts/architecture.md` |
+| **Epics & Stories** | `docs/planning-artifacts/epics.md` |
+| Decision log (24 decisions) | `docs/planning-artifacts/prds/prd-veriqan-vec-2026-06-16/.decision-log.md` |
+| Review reports (4) | `docs/planning-artifacts/review-*.md` + `…/prds/…/review-*.md` |
+
+## 3. Decisions already made (do not relitigate without reason)
+
+1. **Module, not standalone.** New `ExxerCube.Prisma.Veriqan.*` projects in the existing solution;
+   dependency `Veriqan → Prisma` only; ~50–60% Shared-Core reuse.
+2. **Excel is the source of truth** = **55 checklist items** (CL-1…CL-55). Docs saying "115+" are wrong.
+3. **Font = Aptos** (not Arial/Times).
+4. **Deterministic-first, pure C# in v1** — PdfPig (fonts/geometry), PDFtoImage/EmguCV (render),
+   ZXing.NET (QR), a perceptual-hash nuget (image presence). **No Python, no GPU in v1.** ML
+   (LayoutLMv3/CLIP) + catalog-order image matching are **v2** behind defined ports.
+5. **Human-in-the-loop** — VEC flags; it never auto-rejects in v1.
+6. **Reference data** via one JSON contract + pluggable CSV/DB/API adapters, with **graceful
+   degradation** (missing data ⇒ `INSUFFICIENT_DATA`, never a false FAIL).
+7. **Existing PRP2 VEC scaffolding is an untrusted prototype (~5–15% real)** — it cannot import, never
+   ran. Salvage only verified-good files; rebuild the rest.
+8. **Phase-0 does NOT refactor Solution 1.** VEC v1 is single-source, so the planned genericization of
+   the 2,811-line `FusionExpedienteService` is **deferred** (biggest risk removed from v1).
+9. **Persistence = separate `VeriqanDbContext` + `veriqan` schema** (never touch `PrismaDbContext`).
+
+## 4. Plan shape (8 epics, value-sequenced — see epics.md)
+
+E1 Foundation & Isolation → E2 Ingestion & Reference Data → E3 Field Extraction →
+**E4 Financial Consistency Engine (highest value)** → E5 Visual & Print-Quality → E6 Regulatory &
+Fiscal → E7 Findings/Reporting/QA Console → E8 Batch & Observability.
+
+All 27 FRs mapped; every CL item has an FR home (PRD §17 + epics coverage map).
+
+## 5. Recommended next step
+
+**Start Epic 1 (Foundation & Isolation)** — it is low-risk scaffolding that cannot break Solution 1
+and establishes the safety net (NetArchTest dependency rule, separate `VeriqanDbContext`, net-new
+packages, pure-C# smoke test). It needs **none** of the open client answers below. Suggested entry:
+`bmad-sprint-planning` then `bmad-dev-story` (or `bmad-quick-dev`) on Story 1.1.
+
+## 6. Open questions — BLOCKED ON CLIENT (do not guess)
+
+These don't block Epic 1 but gate scope/dates for E2+:
+1. **Sample size + SLA window** (docs assume 1% of 13–20M ≈ 130k–200k/month, 3–5 business days).
+2. **Which reference-data delivery mechanism ships first** (CSV / DB / API) → picks the first adapter.
+3. **How image catalogs are delivered/keyed** (needed even for v1 presence checks).
+4. **Are production PDFs digital (text layer) or scanned?** → drives OCR investment (v1 assumes text layer).
+5. Accuracy/false-positive acceptance bar; alert recipients/channel; final namespace
+   (`ExxerCube.Prisma.Veriqan`).
+
+## 7. Gotchas for the next agent
+
+- **Brownfield safety is non-negotiable:** any change must keep Solution 1's test suite green
+  (SM-5). The NetArchTest rule (Story 1.2) must be authored — it does not exist yet.
+- The C# arch test stack is **NetArchTest** (not ArchUnitNET). Existing cross-infra isolation
+  guardrails will need curation for Veriqan's multi-infra composition.
+- `ZXing.NET` and a perceptual-hash nuget are **net-new** dependencies (add to
+  `Directory.Packages.props`) — they are outside the "reuse" headline.
+- Don't resurrect the Python ML path for v1. It's v2-only.
+- Reference-bundle JSON validates against `Prisma/Fixtures/PRP2/reference-data/vec-reference-bundle.schema.json`.
+
+## 8. Repo state at handoff
+
+- Branch `Liv` (off `kat` dev line). `main` and `kat` are at the prior release (`v1.4.0-rc.1` tag).
+- This commit adds **planning artifacts only** (no production code) + SUPERSEDED banners on the stale
+  PRP2 docs. Nothing in Solution 1 was touched.

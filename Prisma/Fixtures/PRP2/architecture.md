@@ -22,6 +22,19 @@ externalDependencies:
 
 # Architecture Decision Document
 
+> ⚠️ **SUPERSEDED / RECONCILIATION NOTICE (2026-06-16).** Earlier draft, retained for history only.
+> The current authoritative architecture is `docs/planning-artifacts/architecture.md`. Corrections vs.
+> this draft: canonical font is **Aptos** (not Arial/Times); rule count is **55** (Excel
+> `Check+list+demo+v2+Iqubica.xlsx`), not "115+"; v1 is **pure C#** (PdfPig/PDFtoImage, no Python/GPU);
+> Phase-0 does **not** genericize `FusionExpedienteService` (VEC v1 is single-source); persistence is a
+> **separate `VeriqanDbContext`** (not an extension of `PrismaDbContext`).
+>
+> **Authoritative artifacts (use these instead):** PRD
+> `docs/planning-artifacts/prds/prd-veriqan-vec-2026-06-16/prd.md` · Architecture
+> `docs/planning-artifacts/architecture.md` · Epics `docs/planning-artifacts/epics.md` · Analysis
+> `Prisma/Fixtures/PRP2/REUSE-VS-STANDALONE-RECOMMENDATION.md` · Reference data
+> `Prisma/Fixtures/PRP2/reference-data/` · Handoff `docs/planning-artifacts/HANDOFF.md`
+
 _This document builds collaboratively through step-by-step discovery. Sections are appended as we work through each architectural decision together._
 
 ## Project Context Analysis

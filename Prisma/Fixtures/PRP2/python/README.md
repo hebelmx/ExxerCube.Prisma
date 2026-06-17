@@ -1,5 +1,9 @@
 # VEC Statement Processing - Python ML Pipeline
 
+> ⚠️ **SUPERSEDED / RECONCILIATION NOTICE (2026-06-16).** Untrusted prototype (cannot import, never
+> run). **Veriqan VEC v1 is pure C# (no Python/GPU)**; this ML pipeline is **v2-only**. See
+> `docs/planning-artifacts/architecture.md` (ADR-V7/V8) and `docs/planning-artifacts/HANDOFF.md`.
+
 Clean Python implementation for visual identification and font identification using HuggingFace Transformers, PyTorch, Pydantic, and pytest.
 
 ## Project Structure

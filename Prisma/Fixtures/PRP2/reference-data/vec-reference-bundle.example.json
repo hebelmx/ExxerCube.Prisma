@@ -1,0 +1,149 @@
+{
+  "$schema": "./vec-reference-bundle.schema.json",
+  "bundleMetadata": {
+    "bundleId": "demo-2025-09",
+    "schemaVersion": "1.0.0",
+    "generatedAt": "2026-06-16T00:00:00Z",
+    "institution": "Demo Bank (Iqubica)",
+    "period": { "label": "Sep-Oct 2025", "start": "2025-09-01", "end": "2025-09-30" },
+    "source": { "mechanism": "manual", "reference": "Check+list+demo+v2+Iqubica.xlsx", "notes": "Seed values from the source-of-truth Excel." }
+  },
+
+  "products": [
+    {
+      "productId": "TC-NL",
+      "productName": "Tarjeta de Crédito NL",
+      "aliases": ["NL"],
+      "hasRewardsProgram": true,
+      "cardImage": { "imageId": "card-nl", "uri": "catalog/cards/nl.png", "perceptualHash": "p:TBD" },
+      "importantMessageImage": { "imageId": "msg-nl", "uri": "catalog/messages/nl.png", "perceptualHash": "p:TBD" },
+      "tariffs": { "annualCommission": 1500, "currency": "MXN", "otherCharges": [] }
+    },
+    {
+      "productId": "TC-TOR",
+      "productName": "Tarjeta de Crédito TOR",
+      "aliases": ["TOR"],
+      "hasRewardsProgram": false,
+      "cardImage": { "imageId": "card-tor", "uri": "catalog/cards/tor.png", "perceptualHash": "p:TBD" },
+      "tariffs": { "annualCommission": 1500, "currency": "MXN" }
+    },
+    {
+      "productId": "TC-BSSB",
+      "productName": "Tarjeta de Crédito BSSB",
+      "aliases": ["BSSB"],
+      "hasRewardsProgram": false,
+      "tariffs": { "annualCommission": 1500, "currency": "MXN" }
+    }
+  ],
+
+  "interestRates": [
+    {
+      "productId": "TC-NL",
+      "ratesByPeriod": [
+        { "periodLabel": "Jul Ago", "annualOrdinaryFixedRate": 0.1975 },
+        { "periodLabel": "Ago Sep", "annualOrdinaryFixedRate": 0.1975 },
+        { "periodLabel": "Sep Oct", "annualOrdinaryFixedRate": 0.1975 }
+      ]
+    },
+    {
+      "productId": "TC-TOR",
+      "ratesByPeriod": [
+        { "periodLabel": "Ago Sep", "annualOrdinaryFixedRate": 0.1243 },
+        { "periodLabel": "Sep Oct", "annualOrdinaryFixedRate": 0.1243 }
+      ]
+    },
+    {
+      "productId": "TC-BSSB",
+      "ratesByPeriod": [
+        { "periodLabel": "Ago Sep", "annualOrdinaryFixedRate": 0.2851 },
+        { "periodLabel": "Sep Oct", "annualOrdinaryFixedRate": 0.2851 }
+      ]
+    }
+  ],
+
+  "mandatoryLegends": [
+    {
+      "legendId": "repr-impresa",
+      "text": "ESTE DOCUMENTO ES UNA REPRESENTACIÓN IMPRESA SIN VALIDEZ FISCAL",
+      "matchMode": "normalized",
+      "section": "fiscal",
+      "required": true
+    }
+  ],
+
+  "sequentialImages": [
+    { "productId": "TC-NL", "order": 1, "image": { "imageId": "seq-nl-1", "uri": "catalog/sequential/nl-1.png", "perceptualHash": "p:TBD" } },
+    { "productId": "TC-NL", "order": 2, "image": { "imageId": "seq-nl-2", "uri": "catalog/sequential/nl-2.png", "perceptualHash": "p:TBD" } }
+  ],
+
+  "promotions": [
+    {
+      "promotionId": "promo-sep-2025-a",
+      "image": { "imageId": "promo-a", "uri": "catalog/promotions/sep-a.png", "perceptualHash": "p:TBD" },
+      "validFrom": "2025-09-01",
+      "validTo": "2025-09-30",
+      "appliesToProducts": ["TC-NL"]
+    }
+  ],
+
+  "clientAccounts": [
+    {
+      "clientId": "CLI-0001",
+      "clientName": { "firstNames": "Eugenio", "lastNames": "Garcia Zavala", "full": "Eugenio Garcia Zavala" },
+      "rfc": "GAZE800101AAA",
+      "clientNumber": "1234567",
+      "address": { "street": "Av. Cumbres", "number": "100", "neighborhood": "Cumbres", "postalCode": "64610", "state": "Nuevo Leon" },
+      "accounts": [
+        {
+          "accountRef": "ACC-0001",
+          "productId": "TC-NL",
+          "cardNumber": "5512 34** **** 7890",
+          "clabe": "012345678901234567",
+          "branchNumber": "0420",
+          "creditLine": 100000,
+          "accountOpenDate": "2020-01-15"
+        }
+      ]
+    }
+  ],
+
+  "priorStatements": [
+    {
+      "accountRef": "ACC-0001",
+      "period": { "label": "Ago-Sep 2025", "start": "2025-08-01", "end": "2025-08-31" },
+      "closingBalances": {
+        "pagoParaNoGenerarIntereses": 18540.32,
+        "saldoDeudorTotal": 18540.32,
+        "rewardsPointsBalance": 5400,
+        "rewardsPesosBalance": 540.0
+      },
+      "installments": [
+        { "purchaseId": "MSI-DONCOLCHON", "description": "DON COLCHON CUMBRES", "saldoPendiente": 2914.38, "pagoRequerido": 485.73, "numeroDePago": 5, "totalPagos": 12 }
+      ],
+      "documentRef": { "uri": "PRP2/01+Dummie+VEC+jul_ago+20252.pdf" }
+    }
+  ],
+
+  "expectedTransactions": [
+    {
+      "accountRef": "ACC-0001",
+      "transactions": [
+        { "operationDate": "2025-07-05", "chargeDate": "2025-07-07", "description": "NETFLIX COM CR NME 110513PI3", "amount": 329.00, "sign": "+" },
+        { "operationDate": "2025-07-09", "chargeDate": "2025-07-09", "description": "PROGRAMA FOR LIFE", "amount": 6523.00, "sign": "-" }
+      ]
+    }
+  ],
+
+  "toleranceConfig": {
+    "currencyToleranceMxn": 0.50,
+    "pointsTolerance": 1.00,
+    "rewardsPesosToleranceMxn": 1.00,
+    "pointsToPesosExchangeRate": 0.10
+  },
+
+  "validationConstants": {
+    "requiredFontFamily": "Aptos",
+    "bankingYearDays": 360,
+    "catAnnualCommissionMxn": 1500
+  }
+}

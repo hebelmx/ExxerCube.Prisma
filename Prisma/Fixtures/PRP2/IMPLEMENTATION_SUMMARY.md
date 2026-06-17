@@ -1,5 +1,17 @@
 # VEC Statement Extraction - Complete Implementation
 
+> ⚠️ **SUPERSEDED / RECONCILIATION NOTICE (2026-06-16).** Earlier draft, retained for history only.
+> Its **"95% complete / production ready"** claim is **not accurate** — independent verification found
+> the Python package cannot import (missing `models/` package), has never run, uses non-fine-tuned
+> models, and the C# side is DI wiring with no tests. Treat the prior VEC code as an **untrusted
+> prototype (~5–15% real)**, salvaged selectively.
+>
+> **Authoritative artifacts (use these instead):** PRD
+> `docs/planning-artifacts/prds/prd-veriqan-vec-2026-06-16/prd.md` · Architecture
+> `docs/planning-artifacts/architecture.md` · Epics `docs/planning-artifacts/epics.md` · Analysis
+> `Prisma/Fixtures/PRP2/REUSE-VS-STANDALONE-RECOMMENDATION.md` · Reference data
+> `Prisma/Fixtures/PRP2/reference-data/` · Handoff `docs/planning-artifacts/HANDOFF.md`
+
 **Date:** December 7, 2025
 **Status:** ✅ **PRODUCTION READY (95% Complete)**
 **Next Step:** Manual Python Environment Setup → Console Demo Testing
