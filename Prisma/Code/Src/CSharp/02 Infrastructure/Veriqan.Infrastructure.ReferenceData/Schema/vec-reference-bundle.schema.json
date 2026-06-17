@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://exxercube.dev/schemas/vec-reference-bundle/1.0.0",
+  "title": "VEC Reference Data Bundle",
+  "description": "Source-agnostic reference/ground-truth data for verifying bank credit-card statements (VEC). Filled by CSV/DB/API/manual adapters. Any section may be omitted; missing data yields INSUFFICIENT_REFERENCE_DATA findings for the affected checks rather than false results.",
+  "type": "object",
+  "required": ["bundleMetadata"],
+  "additionalProperties": false,
+  "properties": {
+    "bundleMetadata": {
+      "type": "object",
+      "required": ["schemaVersion", "institution"],
+      "additionalProperties": false,
+      "properties": {
+        "bundleId": { "type": "string", "description": "Unique id for this bundle instance." },
+        "schemaVersion": { "type": "string", "const": "1.0.0" },
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "institution": { "type": "string", "description": "Bank / issuer name." },
+        "period": { "$ref": "#/$defs/period" },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mechanism": { "type": "string", "enum": ["csv", "database", "api", "manual", "mixed"] },
+            "reference": { "type": "string", "description": "Connection string id / file set / endpoint (no secrets)." },
+            "notes": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "products": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/product" }
+    },
+
+    "interestRates": {
+      "type": "array",
+      "description": "TASA table. Annual ordinary fixed rate per product per period.",
+      "items": {
+        "type": "object",
+        "required": ["productId", "ratesByPeriod"],
+        "additionalProperties": false,
+        "properties": {
+          "productId": { "type": "string" },
+          "ratesByPeriod": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["annualOrdinaryFixedRate"],
+              "additionalProperties": false,
+              "properties": {
+                "periodLabel": { "type": "string", "description": "e.g. 'Sep Oct'." },
+                "periodStart": { "type": "string", "format": "date" },
+                "periodEnd": { "type": "string", "format": "date" },
+                "annualOrdinaryFixedRate": { "type": "number", "description": "Decimal fraction, e.g. 0.1975 = 19.75%." }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "mandatoryLegends": {
+      "type": "array",
+      "description": "Legends that must appear (checklist item 46).",
+      "items": {
+        "type": "object",
+        "required": ["legendId", "text"],
+        "additionalProperties": false,
+        "properties": {
+          "legendId": { "type": "string" },
+          "text": { "type": "string" },
+          "matchMode": { "type": "string", "enum": ["exact", "normalized", "contains"], "default": "normalized" },
+          "appliesToProducts": { "type": "array", "items": { "type": "string" }, "description": "Empty/absent = all products." },
+          "section": { "type": "string" },
+          "required": { "type": "boolean", "default": true }
+        }
+      }
+    },
+
+    "sequentialImages": {
+      "type": "array",
+      "description": "Ordered images expected between DESGLOSE DE MOVIMIENTOS and PROMOCIONES (item 47).",
+      "items": {
+        "type": "object",
+        "required": ["order", "image"],
+        "additionalProperties": false,
+        "properties": {
+          "productId": { "type": "string", "description": "Absent = all products." },
+          "order": { "type": "integer", "minimum": 1 },
+          "image": { "$ref": "#/$defs/imageRef" }
+        }
+      }
+    },
+
+    "promotions": {
+      "type": "array",
+      "description": "Promotional inserts with validity windows (item 49).",
+      "items": {
+        "type": "object",
+        "required": ["promotionId", "image", "validFrom", "validTo"],
+        "additionalProperties": false,
+        "properties": {
+          "promotionId": { "type": "string" },
+          "image": { "$ref": "#/$defs/imageRef" },
+          "validFrom": { "type": "string", "format": "date" },
+          "validTo": { "type": "string", "format": "date" },
+          "appliesToProducts": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+
+    "clientAccounts": {
+      "type": "array",
+      "description": "Client master data for header field validation (items 2-8).",
+      "items": {
+        "type": "object",
+        "required": ["clientId"],
+        "additionalProperties": false,
+        "properties": {
+          "clientId": { "type": "string" },
+          "clientName": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "firstNames": { "type": "string" },
+              "lastNames": { "type": "string" },
+              "full": { "type": "string" }
+            }
+          },
+          "rfc": { "type": "string" },
+          "clientNumber": { "type": "string" },
+          "address": { "$ref": "#/$defs/address" },
+          "accounts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["accountRef", "productId"],
+              "additionalProperties": false,
+              "properties": {
+                "accountRef": { "type": "string", "description": "Internal join key for prior statements / transactions." },
+                "productId": { "type": "string" },
+                "cardNumber": { "type": "string", "description": "May be masked; matcher honors masking." },
+                "clabe": { "type": "string" },
+                "branchNumber": { "type": "string" },
+                "creditLine": { "type": "number" },
+                "accountOpenDate": { "type": "string", "format": "date" }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "priorStatements": {
+      "type": "array",
+      "description": "Closing values of the previous month, for cross-period checks (items 17, 36, 40).",
+      "items": {
+        "type": "object",
+        "required": ["accountRef", "period"],
+        "additionalProperties": false,
+        "properties": {
+          "accountRef": { "type": "string" },
+          "period": { "$ref": "#/$defs/period" },
+          "closingBalances": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "pagoParaNoGenerarIntereses": { "type": "number" },
+              "saldoDeudorTotal": { "type": "number" },
+              "rewardsPointsBalance": { "type": "number" },
+              "rewardsPesosBalance": { "type": "number" }
+            }
+          },
+          "installments": {
+            "type": "array",
+            "description": "Open MSI purchases carried from prior month (item 40/41).",
+            "items": {
+              "type": "object",
+              "required": ["purchaseId"],
+              "additionalProperties": false,
+              "properties": {
+                "purchaseId": { "type": "string" },
+                "description": { "type": "string" },
+                "saldoPendiente": { "type": "number" },
+                "pagoRequerido": { "type": "number" },
+                "numeroDePago": { "type": "integer" },
+                "totalPagos": { "type": "integer" }
+              }
+            }
+          },
+          "documentRef": { "$ref": "#/$defs/documentRef" }
+        }
+      }
+    },
+
+    "expectedTransactions": {
+      "type": "array",
+      "description": "Ground-truth transaction detail (Excel 'Detalle de operaciones') for items 45/58.",
+      "items": {
+        "type": "object",
+        "required": ["accountRef", "transactions"],
+        "additionalProperties": false,
+        "properties": {
+          "accountRef": { "type": "string" },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["description", "amount"],
+              "additionalProperties": false,
+              "properties": {
+                "operationDate": { "type": "string", "format": "date" },
+                "chargeDate": { "type": "string", "format": "date" },
+                "description": { "type": "string" },
+                "amount": { "type": "number" },
+                "sign": { "type": "string", "enum": ["+", "-"] }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "toleranceConfig": {
+      "type": "object",
+      "description": "Tolerance bands from the Excel (green vs red).",
+      "additionalProperties": false,
+      "properties": {
+        "currencyToleranceMxn": { "type": "number", "default": 0.50 },
+        "pointsTolerance": { "type": "number", "default": 1.00 },
+        "rewardsPesosToleranceMxn": { "type": "number", "default": 1.00 },
+        "pointsToPesosExchangeRate": { "type": "number", "default": 0.10 }
+      }
+    },
+
+    "validationConstants": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requiredFontFamily": { "type": "string", "default": "Aptos" },
+        "bankingYearDays": { "type": "integer", "default": 360 },
+        "catAnnualCommissionMxn": { "type": "number", "default": 1500 }
+      }
+    }
+  },
+
+  "$defs": {
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": { "type": "string", "description": "e.g. 'Sep-Oct 2025'." },
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" }
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": ["productId", "productName"],
+      "additionalProperties": false,
+      "properties": {
+        "productId": { "type": "string", "description": "Canonical id." },
+        "productName": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } },
+        "hasRewardsProgram": { "type": "boolean" },
+        "cardImage": { "$ref": "#/$defs/imageRef" },
+        "importantMessageImage": { "$ref": "#/$defs/imageRef" },
+        "tariffs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "annualCommission": { "type": "number" },
+            "currency": { "type": "string", "default": "MXN" },
+            "otherCharges": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name", "amount"],
+                "additionalProperties": false,
+                "properties": {
+                  "name": { "type": "string" },
+                  "amount": { "type": "number" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "address": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "street": { "type": "string" },
+        "number": { "type": "string" },
+        "neighborhood": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "state": { "type": "string" }
+      }
+    },
+    "imageRef": {
+      "type": "object",
+      "description": "Reference to a catalog image. Provide at least a uri or a hash.",
+      "additionalProperties": false,
+      "properties": {
+        "imageId": { "type": "string" },
+        "uri": { "type": "string", "description": "Path or URL; resolved at runtime, not embedded." },
+        "sha256": { "type": "string" },
+        "perceptualHash": { "type": "string", "description": "pHash/dHash for fuzzy visual comparison." },
+        "width": { "type": "integer" },
+        "height": { "type": "integer" },
+        "description": { "type": "string" }
+      }
+    },
+    "documentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "uri": { "type": "string" },
+        "sha256": { "type": "string" }
+      }
+    }
+  }
+}

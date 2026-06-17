@@ -1,0 +1,2 @@
+schemaVersion,institution,bundleId,generatedAt,periodLabel,periodStart,periodEnd,sourceMechanism,sourceReference,sourceNotes
+1.0.0,Demo Bank (Iqubica),demo-csv-test,2026-06-16T00:00:00Z,Sep-Oct 2025,2025-09-01,2025-09-30,csv,test-data,CSV adapter test data
