@@ -10,6 +10,10 @@ that predates 2026-06-16 carries a **SUPERSEDED** banner — history only.
 
 ## 0. Implementation status (updated 2026-06-17)
 
+> **Resuming the build?** Read `ORCHESTRATION-HANDOFF-2026-06-17.md` first — it is the canonical
+> resume point (what's done, Epic 4 plan + the building blocks it plugs into, and the orchestration
+> mechanics/gotchas). The summary below is the short form.
+
 **Epic 1 — Foundation & Isolation: DONE** (branch `Liv`, commits `83e5701f`→`f5ef52c0`),
 adversarially reviewed (1.1/1.2/1.4 genuinely done; 1.3 done-with-caveat). All additive — no
 Solution 1 production source modified.
