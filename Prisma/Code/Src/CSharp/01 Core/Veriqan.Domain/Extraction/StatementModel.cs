@@ -2,6 +2,20 @@ using System.Collections.Generic;
 
 namespace ExxerCube.Prisma.Veriqan.Domain.Extraction;
 
+// Normalization contract (Story 6.1 — CL-32/46):
+//
+// NormalizedFullText is the concatenated text of all PDF pages, transformed to a
+// canonical form for legend-presence checks:
+//   1. All characters are upper-cased (InvariantCulture).
+//   2. Unicode diacritics (accents) are stripped via NFD decomposition followed by
+//      removal of non-spacing marks (UnicodeCategory.NonSpacingMark).
+//   3. Whitespace runs (spaces, tabs, newlines) are collapsed to a single ASCII space.
+//   4. Leading/trailing whitespace is trimmed.
+//
+// Consequence: "Compara tu Tarjeta" → "COMPARA TU TARJETA"; "Adeúdo" → "ADEUDO".
+// Rules must apply the same NormalizeText() transformation to any search string
+// before calling String.Contains so that comparisons are consistent.
+
 /// <summary>
 /// Structured model extracted from a VEC (Estado de Cuenta) statement PDF.
 /// Produced by the extraction pipeline (Story 3.1 header fields; Story 3.2 period/summary fields).
@@ -213,6 +227,29 @@ public sealed class StatementModel
     /// found (scanned PDF or empty document).
     /// </remarks>
     public FontExtractionStatus FontExtractionStatus { get; init; } = FontExtractionStatus.NotFound;
+
+    // -----------------------------------------------------------------------
+    // Normalized full text (Story 6.1 — CL-32/46 legend presence checks)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Normalized concatenation of all page text in the statement PDF, suitable for
+    /// legend-presence substring checks (CL-32, CL-46).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Normalization (applied by the extraction stage — see comment block at top of file):
+    /// upper-cased, accent-stripped (NFD + remove non-spacing marks), whitespace collapsed to
+    /// a single ASCII space. Never <see langword="null"/>; empty string when the PDF has no
+    /// text layer or contains no words.
+    /// </para>
+    /// <para>
+    /// Rules that search this property must apply the same normalization to any search string
+    /// before calling <see cref="string.Contains(string, System.StringComparison)"/>
+    /// with <see cref="System.StringComparison.Ordinal"/>.
+    /// </para>
+    /// </remarks>
+    public string NormalizedFullText { get; init; } = string.Empty;
 
     // -----------------------------------------------------------------------
     // Per-page inspection facts (Story 5.3)

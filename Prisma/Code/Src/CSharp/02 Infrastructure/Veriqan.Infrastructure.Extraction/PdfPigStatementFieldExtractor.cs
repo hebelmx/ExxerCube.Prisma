@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -231,6 +232,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // ---- Per-page inspection facts — Story 5.3 (CL-31/33/34/48) ------
             var (pages, pageCount) = ExtractPageInspectionFacts(doc, cardNumber);
 
+            // ---- Normalized full text — Story 6.1 (CL-32/46 legend checks) ----
+            // Concatenate all page words, upper-case, strip diacritics, collapse whitespace.
+            var normalizedFullText = BuildNormalizedFullText(doc);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -277,6 +282,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 SectionHeaderStyles = sectionHeaderStyles,
                 Pages = pages,
                 PageCount = pageCount,
+                NormalizedFullText = normalizedFullText,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -2456,5 +2462,87 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         }
 
         return (pages, pageCount);
+    }
+
+    // -----------------------------------------------------------------------
+    // Normalized full text (Story 6.1 — CL-32/46)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Whitespace-collapse regex: one or more whitespace characters → single space.
+    /// </summary>
+    private static readonly Regex WhitespaceCollapsePattern =
+        new(@"\s+", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Builds a normalized concatenation of all page text in the document for legend-presence checks.
+    /// </summary>
+    /// <remarks>
+    /// Normalization steps (mirrors the contract in <see cref="Domain.Extraction.StatementModel"/>):
+    /// <list type="number">
+    ///   <item>All characters upper-cased (<see cref="String.ToUpperInvariant"/>).</item>
+    ///   <item>Accent stripping: NFD Unicode decomposition followed by removal of
+    ///         <see cref="UnicodeCategory.NonSpacingMark"/> characters.</item>
+    ///   <item>Whitespace runs collapsed to a single ASCII space; result trimmed.</item>
+    /// </list>
+    /// Returns <see cref="string.Empty"/> when the document has no pages or no text layer.
+    /// Never throws — individual page failures produce no contribution.
+    /// </remarks>
+    /// <param name="doc">The open PdfPig document.</param>
+    /// <returns>Normalized full-text string.</returns>
+    private static string BuildNormalizedFullText(PdfDocument doc)
+    {
+        var sb = new StringBuilder();
+
+        for (var i = 1; i <= doc.NumberOfPages; i++)
+        {
+            try
+            {
+                var page = doc.GetPage(i);
+                foreach (var word in page.GetWords())
+                {
+                    if (sb.Length > 0)
+                        sb.Append(' ');
+                    sb.Append(word.Text);
+                }
+            }
+            catch (Exception)
+            {
+                // Silently skip unreadable pages.
+            }
+        }
+
+        return NormalizeText(sb.ToString());
+    }
+
+    /// <summary>
+    /// Normalizes a text string for legend-presence matching:
+    /// upper-cases, strips diacritics (NFD + remove non-spacing marks), and
+    /// collapses whitespace runs to a single space.
+    /// </summary>
+    /// <param name="text">The raw text to normalize. May be null or empty.</param>
+    /// <returns>
+    /// Normalized string, or <see cref="string.Empty"/> when the input is null or whitespace.
+    /// </returns>
+    internal static string NormalizeText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        // Step 1: upper-case (invariant to avoid Turkish-I issues).
+        var upper = text.ToUpperInvariant();
+
+        // Step 2: strip diacritics via NFD decomposition.
+        var normalized = upper.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(normalized.Length);
+        foreach (var c in normalized)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                sb.Append(c);
+        }
+
+        // Step 3: collapse whitespace.
+        var collapsed = WhitespaceCollapsePattern.Replace(sb.ToString(), " ").Trim();
+        return collapsed;
     }
 }
