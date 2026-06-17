@@ -37,13 +37,24 @@ Solution 1 production source modified.
   → `VerificationContext` + per-capability `ReferenceDataAvailability` (missing TASA degrades only
   rate checks). `StatementModel` is a null placeholder for Epic 3.
 
-**Carry-forwards (P2, tracked):** (1) Story 1.3 "both contexts coexist on one DB" — proven by code
-review, owes a Testcontainers test. (2) The CSV adapter only fills core sections (products/rates/
-tolerances/constants); legends/images/promotions/transactions sections await later adapters.
+**Epic 3 — Field Extraction: DONE** (commits `346614cf`, `c9d8cf45`, findings `1a9ace21`), adversarially
+reviewed. PdfPig text-layer extraction (pure C#, no OCR/Python) of the real Dummie VEC fixtures.
+- **3.1** `StatementModel` + `ExtractedField<T>`/`FieldLocator`/`ExtractionStatus`; header identity
+  fields via PdfPig bounding-box label↔value association; card=16/CLABE=18/RFC validated. Honest finding:
+  the fixtures carry a 13-digit CLABE → reported `ExtractedInvalidFormat` (not hidden).
+- **3.2** `PeriodSummary` (dates, day-count consistency, pago amounts, CAT/TASA, saldos) + Spanish date
+  parsing; `TasaMatcher` (extracted rate vs bundle TASA → Match/Mismatch/InsufficientData). Extraction.Tests 33/33.
+- **OQ-4 (digital vs scanned):** the 3 fixtures are confirmed text-layer, so v1 text extraction is proven;
+  a scanned-PDF/OCR path remains v2 (still gated on whether production PDFs are ever scanned).
 
-**Next:** Epic 3 (Field Extraction, FR-4/FR-5) — fills the `StatementModel`. §6 OQ-4 (digital vs scanned
-PDFs) gates OCR scope, but the architecture assumes a text layer for v1, so text-layer extraction is
-buildable now.
+**Carry-forwards (P2, tracked):** (1) Story 1.3 coexistence Testcontainers test. (2) CSV adapter fills
+only core sections (legends/images/promotions/transactions await later adapters). (3) Veriqan does not
+yet consume any Prisma Shared-Core extraction type (extraction is PdfPig-native by choice) — the arch
+"reuse" claim is aspirational; revisit if a shared seam emerges.
+
+**Next:** Epic 4 (Financial Consistency Engine, FR-6/7/8/25) — the deterministic `IVecValidationRule`
+engine + intra-statement arithmetic, cross-period, and movement-detail reconciliation. Highest-value core.
+Builds on the now-real `StatementModel` + `VerificationContext` + `ReferenceDataAvailability` + `TasaMatcher`.
 
 ---
 
