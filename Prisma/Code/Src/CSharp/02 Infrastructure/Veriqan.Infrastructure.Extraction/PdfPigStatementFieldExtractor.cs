@@ -214,6 +214,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // transaction rows using Y-band grouping + X-column assignment.
             var (movements, movementsStatus, totalCargos, totalAbonos) = ExtractMovements(doc);
 
+            // ---- Font runs — Story 5.1 (CL-35) ----------------------------
+            // Collect distinct (normalized-family, page) font runs from ALL pages.
+            var (fontRuns, fontExtractionStatus) = ExtractFontRuns(doc);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -254,6 +258,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 PeriodSummary = periodSummaryWithTotals,
                 Movements = movements,
                 MovementsStatus = movementsStatus,
+                FontRuns = fontRuns,
+                FontExtractionStatus = fontExtractionStatus,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -1856,5 +1862,137 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         var top = words.Max(w => w.BoundingBox.Top);
 
         return new FieldLocator(pageNumber, left, bottom, right - left, top - bottom);
+    }
+
+    // -----------------------------------------------------------------------
+    // Font run extraction (Story 5.1 — CL-35)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Style suffixes stripped from embedded font names when normalising to a family name.
+    /// Ordered longest-first so that "-BoldItalic" is tried before "-Bold" / "-Italic".
+    /// </summary>
+    private static readonly string[] s_fontStyleSuffixes =
+        ["-BoldItalic", "-Bold", "-Italic", "-Light", "-SemiBold", "-Medium", "-Regular", "-Thin"];
+
+    /// <summary>
+    /// Collects distinct (normalized-family, page) font runs from ALL pages of the document.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Normalization:</b>
+    /// <list type="bullet">
+    ///   <item>Strip the 6-uppercase-letter + '+' subset prefix (e.g. "ABCDEF+" → stripped).</item>
+    ///   <item>Strip known style suffixes ("-Bold", "-Italic", etc.) to get the family name.</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// One <see cref="FontUsage"/> is produced per distinct (normalized-family, pageNumber) pair.
+    /// The <see cref="FontUsage.FontName"/> is the raw name of the <em>first</em> letter on that
+    /// page that maps to the given normalized family; the <see cref="FontUsage.Locator"/> is that
+    /// letter's bounding rectangle.
+    /// </para>
+    /// </remarks>
+    /// <param name="doc">The open <see cref="PdfDocument"/>.</param>
+    /// <returns>
+    /// A tuple of the distinct font-run list and the extraction status.
+    /// Never throws — individual letter failures are silently skipped.
+    /// </returns>
+    private static (IReadOnlyList<FontUsage> fontRuns, FontExtractionStatus status)
+        ExtractFontRuns(PdfDocument doc)
+    {
+        // Two-level dictionary: normalizedFamily → (pageNumber → first FontUsage).
+        // OrdinalIgnoreCase on the outer key ensures "Aptos" == "aptos" grouping.
+        var seenKeys = new Dictionary<string, Dictionary<int, FontUsage>>(StringComparer.OrdinalIgnoreCase);
+
+        var anyLetterFound = false;
+
+        for (var pageIndex = 1; pageIndex <= doc.NumberOfPages; pageIndex++)
+        {
+            var page = doc.GetPage(pageIndex);
+
+            foreach (var letter in page.Letters)
+            {
+                var rawName = letter.FontName;
+                if (string.IsNullOrEmpty(rawName))
+                    continue;
+
+                anyLetterFound = true;
+
+                var normalizedFamily = NormalizeFontFamily(rawName);
+
+                if (!seenKeys.TryGetValue(normalizedFamily, out var pageMap))
+                {
+                    pageMap = [];
+                    seenKeys[normalizedFamily] = pageMap;
+                }
+
+                if (!pageMap.ContainsKey(pageIndex))
+                {
+                    // First occurrence of (normalizedFamily, page) — capture the locator.
+                    var bb = letter.BoundingBox;
+                    var locator = new FieldLocator(
+                        pageIndex,
+                        bb.BottomLeft.X,
+                        bb.BottomLeft.Y,
+                        bb.Width,
+                        bb.Height);
+
+                    pageMap[pageIndex] = new FontUsage(rawName, pageIndex, locator);
+                }
+            }
+        }
+
+        if (!anyLetterFound)
+            return (Array.Empty<FontUsage>(), FontExtractionStatus.NotFound);
+
+        // Flatten to a stable (page-ascending, family-alphabetical) list.
+        var runs = seenKeys
+            .SelectMany(kv => kv.Value.Values)
+            .OrderBy(r => r.PageNumber)
+            .ThenBy(r => r.FontName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        return (runs, FontExtractionStatus.Extracted);
+    }
+
+    /// <summary>
+    /// Normalises a raw PDF font name to its family name.
+    /// </summary>
+    /// <param name="fontName">Raw embedded font name (e.g. <c>"ABCDEF+Aptos-Bold"</c>).</param>
+    /// <returns>
+    /// The normalized family name (e.g. <c>"Aptos"</c>).
+    /// </returns>
+    private static string NormalizeFontFamily(string fontName)
+    {
+        var name = fontName;
+
+        // Strip 6-uppercase-letter + '+' subset prefix (e.g. "ABCDEF+").
+        if (name.Length > 7 && name[6] == '+' && IsUpperAlpha(name.AsSpan(0, 6)))
+            name = name[7..];
+
+        // Strip known style suffixes (longest first to avoid partial strip of "-BoldItalic").
+        foreach (var suffix in s_fontStyleSuffixes)
+        {
+            if (name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                name = name[..^suffix.Length];
+                break;
+            }
+        }
+
+        return name;
+    }
+
+    /// <summary>Returns <see langword="true"/> when all characters in the span are A–Z.</summary>
+    private static bool IsUpperAlpha(ReadOnlySpan<char> span)
+    {
+        foreach (var c in span)
+        {
+            if (c is < 'A' or > 'Z')
+                return false;
+        }
+
+        return true;
     }
 }

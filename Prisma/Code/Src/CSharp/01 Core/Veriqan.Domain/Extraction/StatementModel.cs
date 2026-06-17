@@ -143,4 +143,33 @@ public sealed class StatementModel
     /// no valid data rows could be reconstructed.
     /// </remarks>
     public MovementsExtractionStatus MovementsStatus { get; init; } = MovementsExtractionStatus.SectionNotFound;
+
+    // -----------------------------------------------------------------------
+    // Font runs (Story 5.1 — CL-35 embedded-font compliance)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Distinct (normalized-family, page) font runs collected from the PDF text layer.
+    /// One entry per unique combination; the <see cref="FontUsage.Locator"/> captures the
+    /// first occurrence of that font on that page.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story 5.1).  Always non-null; an empty list
+    /// combined with <see cref="FontExtractionStatus"/> ==
+    /// <see cref="FontExtractionStatus.NotFound"/> indicates a scanned-image PDF with no
+    /// text layer.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<FontUsage> FontRuns { get; init; } = Array.Empty<FontUsage>();
+
+    /// <summary>
+    /// Indicates the outcome of the font-run extraction pass (Story 5.1 — CL-35).
+    /// </summary>
+    /// <remarks>
+    /// <see cref="FontExtractionStatus.Extracted"/> when the PDF text layer contained at least
+    /// one letter glyph.  <see cref="FontExtractionStatus.NotFound"/> when no letters were
+    /// found (scanned PDF or empty document).
+    /// </remarks>
+    public FontExtractionStatus FontExtractionStatus { get; init; } = FontExtractionStatus.NotFound;
 }
