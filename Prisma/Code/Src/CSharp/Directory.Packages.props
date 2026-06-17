@@ -37,6 +37,10 @@
 		<PackageVersion Include="Tesseract" Version="5.2.0" />
 		<!-- PDFtoImage for PDF rendering (cross-platform, high-level API) -->
 		<PackageVersion Include="PDFtoImage" Version="5.2.1" />
+		<!-- ZXing.Net for QR-code / barcode encode-decode (Veriqan Story 1.4) -->
+		<PackageVersion Include="ZXing.Net" Version="0.16.11" />
+		<!-- CoenM.ImageSharp.ImageHash for perceptual image hashing over SixLabors.ImageSharp (Veriqan Story 1.4) -->
+		<PackageVersion Include="CoenM.ImageSharp.ImageHash" Version="1.3.6" />
 		<!-- PublicHoliday for holiday-aware business-day calendar (Mexico federal holidays) -->
 		<PackageVersion Include="PublicHoliday" Version="3.13.0" />
 		<!-- Polly for resilience and transient-fault-handling -->
