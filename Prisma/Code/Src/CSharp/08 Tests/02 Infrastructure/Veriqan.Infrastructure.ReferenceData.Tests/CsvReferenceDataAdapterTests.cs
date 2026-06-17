@@ -1,6 +1,7 @@
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Adapters;
 using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Validation;
+using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -143,5 +144,6 @@ public sealed class CsvReferenceDataAdapterTests
         var result = await adapter.GetBundleAsync(key, cts.Token);
 
         result.IsSuccess.ShouldBeFalse();
+        result.IsCancelled().ShouldBeTrue();
     }
 }

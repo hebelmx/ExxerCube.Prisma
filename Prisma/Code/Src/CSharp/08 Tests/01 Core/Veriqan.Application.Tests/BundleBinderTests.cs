@@ -267,7 +267,86 @@ public sealed class BundleBinderTests
     }
 
     // -----------------------------------------------------------------------
-    // Test 5: Pre-cancelled token → cancelled result, no provider call
+    // Test 5: Provider failure → BLOCKED InvalidBundle, not a silent skip
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When the reference-data provider returns a failure (e.g. schema validation rejected
+    /// the stored bundle), BindAsync must surface a BLOCKED result with reason
+    /// <see cref="BlockReason.InvalidBundle"/> — it must NOT silently succeed or swallow the error.
+    /// </summary>
+    [Fact]
+    public async Task Bind_ProviderReturnsFailure_ReturnsBlockedInvalidBundle()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Arrange: provider always fails (simulates a schema-rejected bundle)
+        var providerFailure = Result<VecReferenceBundle>.WithFailure("simulated schema failure");
+        var binder = BuildBinder(providerFailure);
+        var job = BuildJob();
+
+        // Act
+        var result = await binder.BindAsync(job, DefaultKey(), "TC-NL", ct);
+
+        // Assert: binding must fail
+        result.IsSuccess.ShouldBeFalse();
+        result.IsFailure.ShouldBeTrue();
+
+        // Assert: the error encodes a BlockedOutcome with reason InvalidBundle
+        BlockedOutcome.TryParse(result.Error, out var outcome).ShouldBeTrue(
+            $"Expected error to be a BLOCKED outcome string but got: '{result.Error}'");
+        outcome.ShouldNotBeNull();
+        outcome!.Reason.ShouldBe(BlockReason.InvalidBundle);
+        outcome.Detail.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 6: ProductResolver — token with extra internal spaces still resolves
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// <see cref="ProductResolver.Resolve"/> normalises internal whitespace before comparing,
+    /// so a token with extra internal spaces resolves to the same product as the clean token.
+    /// </summary>
+    [Fact]
+    public void Resolve_TokenWithExtraInternalSpaces_StillResolves()
+    {
+        // Arrange: add a product whose ProductId contains a single internal space ("TC NL")
+        var resolver = new ProductResolver();
+        var bundleWithSpacedId = new VecReferenceBundle(
+            BundleMetadata: MinimalMetadata(),
+            Products:
+            [
+                new VecProduct(
+                    ProductId: "TC NL",
+                    ProductName: "Tarjeta de Crédito NL (spaced)",
+                    Aliases: null,
+                    HasRewardsProgram: false,
+                    CardImage: null,
+                    ImportantMessageImage: null,
+                    Tariffs: null)
+            ],
+            InterestRates: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: null,
+            ToleranceConfig: null,
+            ValidationConstants: null);
+
+        // Act: token has extra leading/trailing/internal whitespace
+        var result = resolver.Resolve("  TC   NL  ", bundleWithSpacedId);
+
+        // Assert: normalisation collapses the spaces and the product is found
+        result.IsSuccess.ShouldBeTrue(
+            $"Token '  TC   NL  ' should resolve after whitespace collapse. Error: {result.Error}");
+        result.Value!.ProductId.ShouldBe("TC NL");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 7: Pre-cancelled token → cancelled result, no provider call
     // -----------------------------------------------------------------------
 
     /// <summary>

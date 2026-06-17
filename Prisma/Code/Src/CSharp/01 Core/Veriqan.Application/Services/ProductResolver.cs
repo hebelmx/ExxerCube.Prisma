@@ -68,8 +68,11 @@ internal sealed class ProductResolver : IProductResolver
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Returns a lowercase, whitespace-collapsed string suitable for token comparison.
+    /// Returns an upper-case, whitespace-collapsed string suitable for token comparison.
+    /// Leading/trailing whitespace is stripped and any run of internal whitespace is
+    /// collapsed to a single space before uppercasing.
     /// </summary>
     private static string Normalise(string value) =>
-        value.Trim().ToUpperInvariant();
+        string.Join(" ", value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+              .ToUpperInvariant();
 }

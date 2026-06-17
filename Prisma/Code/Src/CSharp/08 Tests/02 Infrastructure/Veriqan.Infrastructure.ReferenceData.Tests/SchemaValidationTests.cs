@@ -78,4 +78,34 @@ public sealed class SchemaValidationTests
         result.IsSuccess.ShouldBeTrue(
             $"Minimal bundle with only bundleMetadata should be valid. Error: {result.Error}");
     }
+
+    [Fact]
+    public void Validate_InvalidSchemaVersion_ReturnsFailure()
+    {
+        // Arrange: the schema pins schemaVersion to "1.0.0" via "const".
+        // A bundle that carries "2.0.0" must be REJECTED even if every other field is valid.
+        var invalidBundle = new VecReferenceBundle(
+            BundleMetadata: new BundleMetadata("2.0.0", "Test Bank", null, null, null, null),
+            Products: null,
+            InterestRates: null,
+            MandatoryLegends: null,
+            SequentialImages: null,
+            Promotions: null,
+            ClientAccounts: null,
+            PriorStatements: null,
+            ExpectedTransactions: null,
+            ToleranceConfig: null,
+            ValidationConstants: null
+        );
+
+        var validator = new ReferenceBundleSchemaValidator();
+
+        // Act
+        var result = validator.Validate(invalidBundle);
+
+        // Assert: must REJECT — the "const" constraint is violated
+        result.IsSuccess.ShouldBeFalse(
+            "A bundle with schemaVersion '2.0.0' violates the schema 'const: 1.0.0' and must be rejected.");
+        result.Error.ShouldNotBeNullOrEmpty();
+    }
 }
