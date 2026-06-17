@@ -8,6 +8,32 @@ that predates 2026-06-16 carries a **SUPERSEDED** banner — history only.
 
 ---
 
+## 0. Implementation status (updated 2026-06-17)
+
+**Epic 1 — Foundation & Isolation: DONE** (branch `Liv`, commits `83e5701f`→`f5ef52c0`),
+adversarially reviewed (1.1/1.2/1.4 genuinely done; 1.3 done-with-caveat). All additive — no
+Solution 1 production source modified.
+- **1.1** 10 `ExxerCube.Prisma.Veriqan.*` projects scaffolded across the numbered layers; full sln
+  builds 0/0.
+- **1.2** `VeriqanDependencyDirectionTests` (in `Tests.Architecture`) enforces `Veriqan → Prisma` only
+  via two non-vacuous checks (CLR manifest + `.deps.json`); Architecture suite 26/26.
+- **1.3** Separate `VeriqanDbContext` + isolated `veriqan` schema + `InitialVeriqanSchema` migration
+  (zero `dbo` refs; history table pinned to `veriqan`). PrismaDbContext untouched.
+- **1.4** Net-new pinned packages `ZXing.Net 0.16.11` + `CoenM.ImageSharp.ImageHash 1.3.6`; pure-C#
+  smoke test (PdfPig/PDFtoImage/ZXing/pHash) 4/4, no Python/GPU.
+- **Incidental fix (`7da2547f`):** a pre-existing compile break in
+  `Tests.Infrastructure.BrowserAutomation.E2E` (missing global `using`s — the branch was NOT green at
+  handoff despite the §8 claim) was repaired so the full-solution green gate holds.
+
+**Carry-forward (P2):** the Story 1.3 "both contexts coexist on one DB" AC is proven by schema-isolation
+code review, **not** a live test. Owed: a Testcontainers MsSql coexistence test (tracked).
+
+**Next:** Epic 2 (Ingestion & Reference Data) — but Story 2.2 (which reference-data adapter ships first)
+is gated on the open client answers in §6. Story 2.1 (idempotent job ingest) + 2.3 (graceful
+degradation) are largely client-independent.
+
+---
+
 ## 1. What Veriqan VEC is
 
 An automated quality gate for **bank credit-card statements** (PDF). It runs the bank's **55-item
