@@ -213,4 +213,31 @@ public sealed class StatementModel
     /// found (scanned PDF or empty document).
     /// </remarks>
     public FontExtractionStatus FontExtractionStatus { get; init; } = FontExtractionStatus.NotFound;
+
+    // -----------------------------------------------------------------------
+    // Per-page inspection facts (Story 5.3)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Total number of pages in the statement PDF.
+    /// Zero when the extraction stage has not run.
+    /// </summary>
+    /// <remarks>
+    /// Populated by <c>ExtractFullAsync</c> (Story 5.3). Set to <c>doc.NumberOfPages</c>.
+    /// </remarks>
+    public int PageCount { get; init; }
+
+    /// <summary>
+    /// Per-page structural metadata collected during the full extraction pass (Story 5.3).
+    /// Each entry corresponds to one page of the PDF (ordered by page number, 1-based).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// An empty list indicates the extraction stage did not run the per-page pass.
+    /// </para>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story 5.3). Always non-null.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<PageInspectionFacts> Pages { get; init; } = [];
 }

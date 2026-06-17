@@ -228,6 +228,9 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // whether each detected header is bold and/or uppercase.
             var sectionHeaderStyles = ExtractSectionHeaderStyles(doc);
 
+            // ---- Per-page inspection facts — Story 5.3 (CL-31/33/34/48) ------
+            var (pages, pageCount) = ExtractPageInspectionFacts(doc, cardNumber);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -272,6 +275,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 FontExtractionStatus = fontExtractionStatus,
                 TextOverlapIncidents = textOverlapIncidents,
                 SectionHeaderStyles = sectionHeaderStyles,
+                Pages = pages,
+                PageCount = pageCount,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -2330,4 +2335,119 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </summary>
     private static string NormalizeHeaderText(string text) =>
         System.Text.RegularExpressions.Regex.Replace(text.Trim(), @"\s+", " ");
+
+    // -----------------------------------------------------------------------
+    // Per-page inspection facts (Story 5.3)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Pagination "N de M" pattern: matches labels like "1 de 4", "2 de 4", etc.
+    /// </summary>
+    private static readonly Regex PaginationPattern = new(
+        @"\b(\d+)\s+de\s+(\d+)\b",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    /// <summary>
+    /// Collects per-page structural metadata from all pages of the document.
+    /// </summary>
+    /// <param name="doc">The open <see cref="PdfDocument"/>.</param>
+    /// <param name="cardNumber">
+    /// The extracted card number field. Used to check card-number presence per page.
+    /// The card number is compared digits-only (spaces stripped) against page text.
+    /// </param>
+    /// <returns>
+    /// A tuple of the per-page facts list (ordered by page number) and the document page count.
+    /// Never throws — individual page failures are silently skipped (HasContent = false, ImageCount = 0).
+    /// </returns>
+    private static (IReadOnlyList<PageInspectionFacts> pages, int pageCount)
+        ExtractPageInspectionFacts(PdfDocument doc, ExtractedField<string> cardNumber)
+    {
+        var pageCount = doc.NumberOfPages;
+        var pages = new List<PageInspectionFacts>(pageCount);
+
+        // Extract digits-only card number for contains check.
+        var cardDigits = string.Empty;
+        if (cardNumber.Status != ExtractionStatus.NotExtracted)
+        {
+            var raw = cardNumber.Value ?? string.Empty;
+            cardDigits = DigitsOnly.Replace(raw, string.Empty);
+        }
+
+        for (var pageIndex = 1; pageIndex <= pageCount; pageIndex++)
+        {
+            try
+            {
+                var page = doc.GetPage(pageIndex);
+                var words = page.GetWords().ToList();
+
+                // HasContent: any words on the page.
+                var hasContent = words.Count > 0;
+
+                // ImageCount: number of embedded images (proxy for logo).
+                var imageCount = page.GetImages().Count();
+
+                // Collect all page text (stripped of spaces, lower-case) for card-number check.
+                var pageTextStripped = string.Concat(words.Select(w => w.Text))
+                    .Replace(" ", string.Empty, StringComparison.Ordinal)
+                    .ToLowerInvariant();
+
+                // ContainsCardNumber: card digits appear in page text.
+                bool containsCardNumber;
+                if (string.IsNullOrEmpty(cardDigits))
+                {
+                    containsCardNumber = false;
+                }
+                else
+                {
+                    var cardDigitsLower = cardDigits.ToLowerInvariant();
+                    containsCardNumber = pageTextStripped.Contains(
+                        cardDigitsLower, StringComparison.OrdinalIgnoreCase);
+                }
+
+                // PaginationCurrent / PaginationTotal: parse "N de M" from page text.
+                var pageText = string.Join(" ", words.Select(w => w.Text));
+                int? paginationCurrent = null;
+                int? paginationTotal = null;
+                var paginationMatch = PaginationPattern.Match(pageText);
+                if (paginationMatch.Success
+                    && int.TryParse(paginationMatch.Groups[1].Value,
+                        System.Globalization.NumberStyles.Integer,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var current)
+                    && int.TryParse(paginationMatch.Groups[2].Value,
+                        System.Globalization.NumberStyles.Integer,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var total))
+                {
+                    paginationCurrent = current;
+                    paginationTotal = total;
+                }
+
+                var locator = FieldLocator.PageHint(pageIndex);
+
+                pages.Add(new PageInspectionFacts(
+                    PageNumber: pageIndex,
+                    HasContent: hasContent,
+                    ImageCount: imageCount,
+                    ContainsCardNumber: containsCardNumber,
+                    PaginationCurrent: paginationCurrent,
+                    PaginationTotal: paginationTotal,
+                    Locator: locator));
+            }
+            catch (Exception)
+            {
+                // Silently skip unreadable pages with safe defaults.
+                pages.Add(new PageInspectionFacts(
+                    PageNumber: pageIndex,
+                    HasContent: false,
+                    ImageCount: 0,
+                    ContainsCardNumber: false,
+                    PaginationCurrent: null,
+                    PaginationTotal: null,
+                    Locator: FieldLocator.PageHint(pageIndex)));
+            }
+        }
+
+        return (pages, pageCount);
+    }
 }
