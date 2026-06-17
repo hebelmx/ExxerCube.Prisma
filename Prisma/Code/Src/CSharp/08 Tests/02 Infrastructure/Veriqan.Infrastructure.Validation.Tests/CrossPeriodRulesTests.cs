@@ -479,7 +479,9 @@ public sealed class CrossPeriodRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // CL-40: Saldo pendiente (installments — always InsufficientData in Story 4.3)
+    // CL-40: Saldo pendiente (installments — always InsufficientData, unscheduled future work)
+    // Epic 4 adversarial review: TODO pointer updated — Story 4.4 delivered DESGLOSE extraction,
+    // not COMPRAS-A-MESES table extraction; this work is currently unscheduled.
     // -----------------------------------------------------------------------
 
     [Theory]
@@ -495,8 +497,11 @@ public sealed class CrossPeriodRulesTests
         result.IsSuccess.ShouldBeTrue();
         result.Value!.CheckId.ShouldBe(checkId);
         result.Value.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            $"{checkId} must emit InsufficientData until Story 4.4 installment extraction is done.");
-        result.Value.Observed!.ShouldContain("Story 4.4");
+            $"{checkId} must emit InsufficientData; COMPRAS-A-MESES table extraction is unscheduled future work.");
+        // The reason must mention unscheduled future work (not a specific story, as the TODO was corrected).
+        result.Value.Observed!
+            .Contains("unscheduled future work", StringComparison.OrdinalIgnoreCase)
+            .ShouldBeTrue($"{checkId} reason must reflect updated TODO: Story 4.4 did not deliver this extraction.");
     }
 
     [Theory]

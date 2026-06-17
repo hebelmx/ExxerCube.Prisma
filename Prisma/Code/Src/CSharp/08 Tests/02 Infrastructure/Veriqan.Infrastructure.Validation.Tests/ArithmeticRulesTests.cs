@@ -291,8 +291,8 @@ public sealed class ArithmeticRulesTests
         // = ((100000 × 0.1975 + 1500) / 100000) × 100
         // = (19750 + 1500) / 100000 × 100 = 21250/100000*100 = 21.25%
         // As fraction: 0.2125
-        // Tolerance in fraction space: 0.50/100000 = 0.000005 — very tight
-        // Set extractedCat = exactly computed fraction
+        // New tolerance: percentage-point space, ±0.50 pct-pt.
+        // Set extractedCat = exactly computed fraction (diff = 0 pct-pts → Pass).
         const decimal tasa = 0.1975m;
         const decimal commission = 1500m;
         var computedCatPercent = ((CreditLine * tasa + commission) / CreditLine) * 100m;
@@ -313,7 +313,8 @@ public sealed class ArithmeticRulesTests
     [Fact]
     public void Cl10_CatBeyondTolerance_ReturnsFail()
     {
-        // Computed fraction ≈ 0.2125; set extracted to 0.3000 (way off)
+        // Computed fraction ≈ 0.2125 (21.25%); set extracted to 0.3000 (30.00%)
+        // Diff = 8.75 pct-pts >> 0.50 → Fail.
         const decimal tasa = 0.1975m;
         var rule = GetRule("CL-10");
         var ps = MakeSummary(cat: Found(0.3000m), tasa: Found(tasa));
@@ -322,6 +323,61 @@ public sealed class ArithmeticRulesTests
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+    }
+
+    /// <summary>
+    /// Boundary-discriminating test: extracted CAT differs from computed by ~0.30 pct-pt.
+    /// Under the owner-ruled percentage-point tolerance (±0.50 pct-pt) this is within band → Pass.
+    /// Under the old fraction-space tolerance (±0.50/100000 = 0.000005) this would have FAILED.
+    /// </summary>
+    [Fact]
+    public void Cl10_CatDiffersBy030PctPt_ReturnsPass_NewToleranceSemantics()
+    {
+        // Computed: CAT% = ((100000 × 0.1975 + 1500) / 100000) × 100 = 21.25%
+        // Extracted: 21.25% + 0.30 pct-pt = 21.55% → as fraction: 0.2155
+        // Diff = 0.30 pct-pt ≤ 0.50 pct-pt → Pass (owner ruling).
+        const decimal tasa = 0.1975m;
+        const decimal commission = 1500m;
+        var computedCatPercent = ((CreditLine * tasa + commission) / CreditLine) * 100m; // 21.25
+        var extractedCatFraction = (computedCatPercent + 0.30m) / 100m;               // 0.2155
+
+        var rule = GetRule("CL-10");
+        var ps = MakeSummary(cat: Found(extractedCatFraction), tasa: Found(tasa));
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "0.30 pct-pt difference is within the ±0.50 pct-pt owner-ruled tolerance");
+        result.Value.ToleranceApplied.ShouldBe(Tol);
+    }
+
+    /// <summary>
+    /// Boundary-discriminating test: extracted CAT differs from computed by ~0.80 pct-pt.
+    /// Under the owner-ruled percentage-point tolerance (±0.50 pct-pt) this is outside band → Fail.
+    /// </summary>
+    [Fact]
+    public void Cl10_CatDiffersBy080PctPt_ReturnsFail_NewToleranceSemantics()
+    {
+        // Computed: CAT% = ((100000 × 0.1975 + 1500) / 100000) × 100 = 21.25%
+        // Extracted: 21.25% + 0.80 pct-pt = 22.05% → as fraction: 0.2205
+        // Diff = 0.80 pct-pt > 0.50 pct-pt → Fail.
+        const decimal tasa = 0.1975m;
+        const decimal commission = 1500m;
+        var computedCatPercent = ((CreditLine * tasa + commission) / CreditLine) * 100m; // 21.25
+        var extractedCatFraction = (computedCatPercent + 0.80m) / 100m;               // 0.2205
+
+        var rule = GetRule("CL-10");
+        var ps = MakeSummary(cat: Found(extractedCatFraction), tasa: Found(tasa));
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "0.80 pct-pt difference exceeds the ±0.50 pct-pt owner-ruled tolerance");
         result.Value.Severity.ShouldBe(FindingSeverity.Critical);
     }
 
@@ -614,11 +670,17 @@ public sealed class ArithmeticRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // CL-26 tests
+    // CL-26 tests (owner ruling: always InsufficientData — adversarial review finding)
     // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// CL-26 must return InsufficientData even when CreditoDisponible is extracted,
+    /// because the separate "crédito disponible para disposiciones de efectivo" field is not
+    /// yet extracted — comparing CreditoDisponible to itself is a tautology and is disallowed.
+    /// Owner ruling applied during Epic 4 adversarial review.
+    /// </summary>
     [Fact]
-    public void Cl26_CreditoDisponibleExtracted_ReturnsPass()
+    public void Cl26_CreditoDisponibleExtracted_ReturnsInsufficientData()
     {
         var rule = GetRule("CL-26");
         var ps = MakeSummary(creditoDisponible: Found(47612.15m));
@@ -627,7 +689,10 @@ public sealed class ArithmeticRulesTests
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.Value!.CheckId.ShouldBe("CL-26");
-        result.Value.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "CL-26 must not emit a tautological Pass; efectivo field is not separately extracted");
+        result.Value.Observed.ShouldNotBeNullOrEmpty(
+            "InsufficientData must carry a reason (in Observed) explaining the missing efectivo field");
     }
 
     [Fact]
@@ -655,6 +720,8 @@ public sealed class ArithmeticRulesTests
 
     // -----------------------------------------------------------------------
     // ToleranceApplied contract (ADR-V3) — checked on a sampling of rules
+    // Note: CL-26 is intentionally excluded — it always returns InsufficientData
+    // (owner ruling: tautology fix — separate efectivo field not yet extracted).
     // -----------------------------------------------------------------------
 
     [Theory]
@@ -662,7 +729,6 @@ public sealed class ArithmeticRulesTests
     [InlineData("CL-22")]
     [InlineData("CL-24")]
     [InlineData("CL-25")]
-    [InlineData("CL-26")]
     public void AllArithmeticRules_WhenPassing_RecordToleranceApplied(string checkId)
     {
         // Build a context where the named rule can Pass
@@ -699,10 +765,11 @@ public sealed class ArithmeticRulesTests
 
     /// <summary>
     /// Runs the full engine with fixture-consistent values; the arithmetic rules that
-    /// have all their inputs available (CL-21, CL-22, CL-24, CL-25, CL-26) should Pass;
+    /// have all their inputs available (CL-21, CL-22, CL-24, CL-25) should Pass;
+    /// CL-26 is always InsufficientData (owner ruling: tautology fix — efectivo field not extracted);
     /// CL-18/19/20 now compute real DESGLOSE sums but the context has no movements
     /// (MovementsStatus = SectionNotFound) → InsufficientData;
-    /// CL-23 is always InsufficientData (cross-period data pending);
+    /// CL-23 is always InsufficientData (COMPRAS-A-MESES table extraction unscheduled);
     /// CL-10 needs CAT+TASA which are left Missing here → InsufficientData.
     /// </summary>
     [Fact]
@@ -745,13 +812,14 @@ public sealed class ArithmeticRulesTests
             .ShouldBe(FindingVerdict.InsufficientData);
 
         // CL-18/19/20: InsufficientData — compute real sums but context has no movements (SectionNotFound)
-        // CL-23: InsufficientData — cross-period installment data pending
-        foreach (var id in new[] { "CL-18", "CL-19", "CL-20", "CL-23" })
+        // CL-23: InsufficientData — COMPRAS-A-MESES table extraction unscheduled
+        // CL-26: InsufficientData — owner ruling: separate efectivo field not extracted (tautology fix)
+        foreach (var id in new[] { "CL-18", "CL-19", "CL-20", "CL-23", "CL-26" })
             findings.Single(f => f.CheckId == id).Verdict
                 .ShouldBe(FindingVerdict.InsufficientData, $"{id} should be InsufficientData");
 
-        // CL-21, CL-22, CL-24, CL-25, CL-26: Pass (fixture-consistent)
-        foreach (var id in new[] { "CL-21", "CL-22", "CL-24", "CL-25", "CL-26" })
+        // CL-21, CL-22, CL-24, CL-25: Pass (fixture-consistent)
+        foreach (var id in new[] { "CL-21", "CL-22", "CL-24", "CL-25" })
             findings.Single(f => f.CheckId == id).Verdict
                 .ShouldBe(FindingVerdict.Pass, $"{id} should Pass with fixture-consistent values");
     }

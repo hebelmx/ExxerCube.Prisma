@@ -17,12 +17,14 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// <c>SaldoCargosAMeses = Σ SaldoPendiente of rows in COMPRAS-A-MESES table</c>.
 /// </para>
 /// <para>
-/// <b>Status (Story 4.2):</b> Always returns <see cref="Domain.Enums.FindingVerdict.InsufficientData"/>
-/// because the COMPRAS-A-MESES table extraction is not yet implemented.
+/// <b>Status:</b> Always returns <see cref="Domain.Enums.FindingVerdict.InsufficientData"/>
+/// because the COMPRAS-A-MESES installment-table extraction is not yet implemented.
 /// </para>
-/// <note type="todo">TODO(4.4): Replace InsufficientData path with real COMPRAS-A-MESES sum
-/// once <c>PeriodSummary.ComprasAMeses</c> (installment rows with SaldoPendiente) is
-/// populated by Story 4.4.</note>
+/// <note type="todo">TODO (unscheduled future work): Replace InsufficientData with a real
+/// COMPRAS-A-MESES sum once <c>PeriodSummary.ComprasAMeses</c> (installment rows with
+/// SaldoPendiente) is populated by a dedicated extraction story. Note: Story 4.4 delivered
+/// DESGLOSE movement extraction, not COMPRAS-A-MESES table extraction; this work item
+/// has no assigned story and is currently unscheduled.</note>
 /// </remarks>
 internal sealed class Cl23SaldoCargosAMesesSumaComprasRule : IVecValidationRule
 {
@@ -40,8 +42,9 @@ internal sealed class Cl23SaldoCargosAMesesSumaComprasRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        // TODO(4.4): COMPRAS-A-MESES table rows are not yet extracted.
-        // When Story 4.4 populates PeriodSummary.ComprasAMeses, replace this with:
+        // TODO (unscheduled future work): COMPRAS-A-MESES installment-table rows are not yet extracted.
+        // Story 4.4 delivered DESGLOSE movement extraction — not COMPRAS-A-MESES table extraction.
+        // When a future story populates PeriodSummary.ComprasAMeses, replace this with:
         //   var computed = ps.ComprasAMeses.Sum(r => r.SaldoPendiente);
         //   Compare to ps.SaldoCargosAMeses within tolerance.
         return Result<RuleFinding>.WithSuccess(
@@ -49,7 +52,7 @@ internal sealed class Cl23SaldoCargosAMesesSumaComprasRule : IVecValidationRule
                 checkId: CheckId,
                 technique: Technique,
                 engineVersion: Version,
-                reason: "COMPRAS-A-MESES table extraction is pending (Story 4.4). " +
+                reason: "COMPRAS-A-MESES installment-table extraction is not yet implemented (unscheduled future work). " +
                         "CL-23 requires individual saldo-pendiente row detail not yet available."));
     }
 }

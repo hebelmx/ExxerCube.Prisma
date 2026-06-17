@@ -798,6 +798,58 @@ public sealed class MovementRulesTests
     }
 
     // -----------------------------------------------------------------------
+    // MovementClassifier — MSI regex negative test (Epic 4 adversarial review)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Documents a known edge-case in the MSI regex pattern (<c>\b\d{1,3}\s+de\s+\d{1,3}\b</c>):
+    /// a description that contains "N de N" digits but is NOT an MSI installment — e.g. an
+    /// address fragment "LOC 5 de ENE" or a product name "3 de ENERO" — will currently match the
+    /// pattern and be incorrectly classified as MSI.
+    /// <br/>
+    /// This test pins current (known) behavior: such descriptions ARE classified as MSI.
+    /// The owner decision is to document the limitation rather than tighten the regex, because:
+    /// <list type="bullet">
+    ///   <item>Real Banamex fixtures show no such ambiguous descriptions in practice.</item>
+    ///   <item>Tightening the regex risks false negatives on real MSI rows.</item>
+    ///   <item>CL-19 / CL-18 have low practical error risk given the corpus.</item>
+    /// </list>
+    /// If a future corpus introduces ambiguous descriptions, revisit this test and the regex.
+    /// </summary>
+    [Fact]
+    public void MovementClassifier_NNN_De_NNN_NonMsiDescription_CurrentlyMatchesMsiPattern()
+    {
+        // "5 de 12" embedded in what could be a non-MSI context.
+        // e.g. "COMPRA LOCAL 5 de 12 CALZ" — syntactically matches but semantically not MSI.
+        // Current regex: \b\d{1,3}\s+de\s+\d{1,3}\b → matches "5 de 12"
+        // This test PINS current behavior (match = true) so any future regex change is visible.
+        const string edgeDescription = "COMPRA LOCAL 5 de 12 CALZ";
+
+        // Access via CL-18 PASS/FAIL to indirectly exercise the classifier.
+        // If classified as MSI, CL-18 excludes it → non-MSI sum = 0 → mismatch with target 300.
+        // If NOT classified as MSI, CL-18 includes it → non-MSI sum = 300 → matches target.
+        var rule = GetRule("CL-18");
+        var movements = new List<StatementMovement>
+        {
+            MakeMovement(300m, MovementSign.Charge, edgeDescription, null, null),
+        };
+
+        // Target = 300 (if edge description treated as non-MSI → sum = 300 → Pass)
+        // Target = 0  (if edge description treated as MSI     → sum = 0   → Fail)
+        var ps = MakeSummaryWithDates(cargosRegularesNoMeses: Found(300m));
+        var ctx = Ctx(BundleWithAccount(), ModelWithMovements(ps, movements));
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        // CURRENT BEHAVIOR: "5 de 12" matches the MSI pattern, so the charge is EXCLUDED from
+        // the CL-18 non-MSI sum → mismatch → Fail.
+        // This test pins this behavior. If the regex is tightened to avoid false positives,
+        // this test will flip to Pass — update it and the summary comment accordingly.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "Current MSI regex matches '5 de 12' in non-MSI descriptions — " +
+            "known limitation, pinned behavior (Epic 4 review finding)");
+    }
+
+    // -----------------------------------------------------------------------
     // CL-20 tests
     // -----------------------------------------------------------------------
 

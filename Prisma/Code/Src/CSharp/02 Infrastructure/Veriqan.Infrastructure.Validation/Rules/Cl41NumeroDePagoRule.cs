@@ -19,15 +19,18 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// current statement.
 /// </para>
 /// <para>
-/// <b>Status (Story 4.3):</b> This rule always returns
+/// <b>Status:</b> This rule always returns
 /// <see cref="Domain.Enums.FindingVerdict.InsufficientData"/> because the statement's
-/// COMPRAS-A-MESES installment table rows are not extracted until Story 4.4.
+/// COMPRAS-A-MESES installment table rows are not yet extracted.
 /// The formula is documented here so the intent is preserved; the rule will emit real
-/// PASS/FAIL verdicts once Story 4.4 adds installment-row extraction.
+/// PASS/FAIL verdicts once a dedicated extraction story adds installment-row extraction.
+/// Note: Story 4.4 delivered DESGLOSE movement extraction, not COMPRAS-A-MESES table
+/// extraction — this work item is currently unscheduled.
 /// </para>
-/// <note type="todo">TODO(4.4): Replace InsufficientData with real per-installment
-/// NumeroDePago increment check once <c>PeriodSummary.InstallmentRows</c> is populated
-/// by Story 4.4. Future-dated purchases (NumeroDePago == 0 or a sentinel future flag)
+/// <note type="todo">TODO (unscheduled future work): Replace InsufficientData with real
+/// per-installment NumeroDePago increment check once <c>PeriodSummary.InstallmentRows</c>
+/// is populated by a future extraction story (currently unscheduled; Story 4.4 did not
+/// cover this). Future-dated purchases (NumeroDePago == 0 or a sentinel future flag)
 /// must be excluded from this check.</note>
 /// <para>
 /// <b>Reference data shape:</b>
@@ -51,8 +54,10 @@ internal sealed class Cl41NumeroDePagoRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        // TODO(4.4): The statement's COMPRAS-A-MESES installment table rows are not extracted yet.
-        // When Story 4.4 populates PeriodSummary.InstallmentRows, replace this with:
+        // TODO (unscheduled future work): The statement's COMPRAS-A-MESES installment table rows
+        // are not yet extracted. Story 4.4 delivered DESGLOSE movement extraction — not
+        // COMPRAS-A-MESES table extraction. When a future story populates
+        // PeriodSummary.InstallmentRows, replace this with:
         //   For each currentRow in ps.InstallmentRows (excluding future-dated entries):
         //     var prior = ctx.PriorStatement?.Installments
         //                     .SingleOrDefault(i => i.PurchaseId == currentRow.PurchaseId);
@@ -64,7 +69,7 @@ internal sealed class Cl41NumeroDePagoRule : IVecValidationRule
                 checkId: CheckId,
                 technique: Technique,
                 engineVersion: Version,
-                reason: "COMPRAS-A-MESES installment table extraction is pending (Story 4.4). " +
+                reason: "COMPRAS-A-MESES installment-table extraction is not yet implemented (unscheduled future work). " +
                         "CL-41 requires per-installment NumeroDePago rows not yet available."));
     }
 }

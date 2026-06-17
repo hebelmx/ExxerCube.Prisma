@@ -22,9 +22,15 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// and <c>catAnnualCommissionMxn</c> defaults to 1500 when not supplied.
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> the comparison uses ±$0.50 MXN from
-/// <c>ToleranceConfig.CurrencyToleranceMxn</c>.  The applied tolerance is recorded
-/// in <see cref="RuleFinding.ToleranceApplied"/>.
+/// <b>Tolerance (ADR-V3, owner ruling):</b> the ±0.50 value from
+/// <c>ToleranceConfig.CurrencyToleranceMxn</c> is applied in
+/// <b>percentage-point space</b>, not fraction space.
+/// Both the extracted CAT and the computed CAT are expressed as percentages
+/// (e.g. 28.86 for 28.86%) before comparison:
+/// <c>|extractedCatPercent − computedCatPercent| ≤ 0.50</c>.
+/// Note: the extracted <c>Cat</c> field is stored as a decimal fraction (e.g. 0.2886 = 28.86%);
+/// it is multiplied by 100 before comparison.
+/// The applied tolerance (0.50) is recorded in <see cref="RuleFinding.ToleranceApplied"/>.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
@@ -89,24 +95,20 @@ internal sealed class Cl10CatRule : IVecValidationRule
 
         // CAT formula: ((creditLine × tasa + annualCommission) / creditLine) × 100
         // The formula yields a percentage value (e.g. 28.86 for 28.86%).
-        // The extracted Cat is stored as a fraction (0.2886), so multiply computed by 0.01
-        // to convert from percentage to fraction for comparison.
         var computedCatPercent = ((creditLine.Value * tasa + annualCommission) / creditLine.Value) * 100m;
-        var computedCatFraction = computedCatPercent / 100m;
 
-        // Compare extracted fraction to computed fraction within tolerance (applied in fraction space)
-        // Note: tolerance is ±$0.50 currency — but CAT is a % rate comparison, so we apply
-        // the tolerance in percentage-point space: tolerance% = tolerance / creditLine * 100
-        // ADR-V3 clarification: the ±$0.50 tolerance is specified as a currency tolerance band.
-        // For the CAT percentage comparison we compare |extractedCat% - computedCat%| ≤ (0.50/creditLine)×100
-        var toleranceInFraction = tolerance / creditLine.Value;
-        var diff = Math.Abs(extractedCat - computedCatFraction);
+        // The extracted Cat field is stored as a decimal fraction (e.g. 0.2886 = 28.86%).
+        // Convert to percentage points for comparison (owner ruling: tolerance is in pct-pt space).
+        var extractedCatPercent = extractedCat * 100m;
+
+        // Compare both in percentage-point space: |extractedCatPercent − computedCatPercent| ≤ 0.50
+        var diff = Math.Abs(extractedCatPercent - computedCatPercent);
 
         var locator = ps.Cat.Locator;
-        var expectedStr = $"{computedCatFraction:P4}";
-        var observedStr = $"{extractedCat:P4}";
+        var expectedStr = $"{computedCatPercent:F4}%";
+        var observedStr = $"{extractedCatPercent:F4}%";
 
-        if (diff <= toleranceInFraction)
+        if (diff <= tolerance)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(

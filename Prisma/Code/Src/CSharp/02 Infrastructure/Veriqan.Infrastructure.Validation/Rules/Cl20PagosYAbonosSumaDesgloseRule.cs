@@ -16,11 +16,21 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Interpretation:</b> CL-20 interprets "suma de todas las operaciones de cargo y abono
-/// que aparecen en el DESGLOSE" as the total of all Credit (abono) movements in the DESGLOSE.
-/// While the checklist label mentions both "cargo" and "abono", the reference field
-/// <c>PagosYAbonos</c> tracks payments received, which correspond to Credit movements only.
-/// Charge movements are separately accounted for in CL-18 and CL-19.
+/// <b>Semantics (owner confirmed correct — adversarial review finding closed):</b>
+/// Under Mexican bank-statement conventions, <em>cargos</em> are charges (money owed by the
+/// customer) and <em>abonos</em> are credits or payments received (money flowing in).
+/// "Pagos y abonos" therefore refers to the abono (Credit) movements only — summing credits
+/// is correct and non-redundant with the other checks:
+/// <list type="bullet">
+///   <item>CL-18 sums non-MSI <em>cargos</em> (charges); CL-19 sums MSI capital cargos.</item>
+///   <item>CL-20 sums <em>abonos</em> (credits/payments).</item>
+///   <item>CL-44 checks both charge and credit totals against the DESGLOSE footer row.</item>
+///   <item>CL-21 subtracts "Pagos y abonos" in the balance formula — consistent with this rule.</item>
+/// </list>
+/// The checklist note's literal "cargo y abono" describes the <em>contents</em> of the DESGLOSE
+/// section (it has both types), not the scope of what CL-20 sums.
+/// Terminology basis: CONDUSEF <c>Acuerdo_estado_de_cuenta.pdf</c>
+/// (see <c>docs/legal/regulations/Acuerdo_estado_de_cuenta.pdf</c>).
 /// </para>
 /// <para>
 /// <b>Formula:</b>

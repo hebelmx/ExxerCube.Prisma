@@ -16,30 +16,23 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// <para>
 /// Both values appear in the NIVEL-DE-USO block of the statement.
 /// Per the VEC checklist, the efectivo line must replicate the total crédito disponible.
-/// This rule uses only extracted statement fields (no bundle credit-line lookup required).
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> ±$0.50 MXN from
-/// <c>ToleranceConfig.CurrencyToleranceMxn</c>.
+/// <b>Current status: always InsufficientData (owner ruling — adversarial review finding).</b>
+/// The statement extractor captures only a single <see cref="PeriodSummary.CreditoDisponible"/>
+/// field (the first occurrence wins). The "crédito disponible para disposiciones de efectivo"
+/// line is a distinct, separately printed value that is not yet extracted into its own field.
+/// Comparing <c>CreditoDisponible</c> to itself is a tautology — it can never Fail — and
+/// therefore emits a misleading Pass. This rule is changed to return InsufficientData until
+/// a dedicated <c>CreditoDisponibleEfectivo</c> field is added to the extractor and the
+/// two values can be genuinely compared.
 /// </para>
-/// <para>
-/// <b>InsufficientData paths:</b>
-/// <list type="bullet">
-///   <item>Null <c>VerificationContext.ToleranceConfig</c>.</item>
-///   <item><see cref="PeriodSummary.CreditoDisponible"/> is <see cref="ExtractionStatus.NotExtracted"/>.</item>
-///   <item>"Crédito disponible para disposiciones de efectivo" is not yet a dedicated field on
-///     <see cref="PeriodSummary"/> (it will be added in Story 4.3 or later); for now this rule
-///     re-uses <see cref="PeriodSummary.CreditoDisponible"/> as the sole extracted value and
-///     checks self-consistency. When a second dedicated field is added, update this rule.</item>
-/// </list>
-/// </para>
-/// <note type="note">
-/// The fixture shows "Crédito disponible para disposiciones de efectivo = $47,612.15" at Y≈128
-/// and "Crédito disponible = $47,612.15" at Y≈139.  Both are currently captured under
-/// <see cref="PeriodSummary.CreditoDisponible"/> (the first occurrence wins in the extractor).
-/// A future extraction refinement may split them; this rule will then compare the two.
-/// For now it always emits Pass when CreditoDisponible is extracted (the field is internally
-/// consistent), which is still a meaningful structural check.
+/// <note type="todo">
+/// TODO (unscheduled): Add a dedicated <c>PeriodSummary.CreditoDisponibleEfectivo</c>
+/// extraction field that captures the "crédito disponible para disposiciones de efectivo"
+/// line separately from <c>CreditoDisponible</c>. Once both fields are populated,
+/// update this rule to compare them within <c>ToleranceConfig.CurrencyToleranceMxn</c>.
+/// The fixture shows the efectivo line at Y≈128 and the total disponible at Y≈139.
 /// </note>
 /// </remarks>
 internal sealed class Cl26CreditoDisponibleEfectivoRule : IVecValidationRule
@@ -58,33 +51,12 @@ internal sealed class Cl26CreditoDisponibleEfectivoRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        if (ctx.ToleranceConfig is null)
-            return InsufficientData("ToleranceConfig is absent from the bundle.");
-
-        var tolerance = ctx.ToleranceConfig.CurrencyToleranceMxn ?? 0.50m;
-
-        var ps = ctx.StatementModel?.PeriodSummary;
-        if (ps is null)
-            return InsufficientData("StatementModel or PeriodSummary is not populated.");
-
-        if (ps.CreditoDisponible.Status != ExtractionStatus.Extracted)
-            return InsufficientData($"CreditoDisponible is {ps.CreditoDisponible.Status}.");
-
-        // Both "Crédito disponible" and "Crédito disponible para disposiciones de efectivo" are
-        // currently captured as the same CreditoDisponible field (first occurrence wins).
-        // When Story 4.3+ introduces a distinct field, update this rule to compare the two.
-        // For now: the field is present → emit Pass (self-consistent by extraction).
-        var value = ps.CreditoDisponible.Value;
-        var locator = ps.CreditoDisponible.Locator;
-
-        return Result<RuleFinding>.WithSuccess(
-            RuleFinding.Pass(
-                checkId: CheckId,
-                technique: Technique,
-                engineVersion: Version,
-                observed: $"{value:F2}",
-                toleranceApplied: tolerance,
-                locator: locator));
+        // The separate "crédito disponible para disposiciones de efectivo" value is not yet
+        // extracted into its own field. Comparing CreditoDisponible to itself would be a
+        // tautology (always Pass, never Fail) — see class-level XML doc for owner ruling.
+        return InsufficientData(
+            "The separate 'crédito disponible para disposiciones de efectivo' value is not " +
+            "extracted — cannot validate equality; field extraction is a future (unscheduled) enhancement.");
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>

@@ -1,3 +1,4 @@
+using System.Linq;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
 using Meziantou.Extensions.Logging.Xunit.v3;
@@ -109,6 +110,122 @@ public sealed class PdfPigStatementFieldExtractorTotalsTests
         {
             ps.TotalAbonos.Value.ShouldBeGreaterThanOrEqualTo(0m,
                 "Printed 'Total abonos' should be non-negative");
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Extraction-completeness test (Epic 4 adversarial review finding)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// All three Dummie VEC fixtures (jul-ago, ago-sep, sep-oct).
+    /// </summary>
+    public static IEnumerable<object[]> AllFixturesForCompleteness =>
+    [
+        [Path.Combine(AppContext.BaseDirectory, "Fixtures", "01+Dummie+VEC+jul_ago+20252.pdf"), "jul_ago"],
+        [Path.Combine(AppContext.BaseDirectory, "Fixtures", "02+Dummie+VEC+ago_sep+2025.pdf"),  "ago_sep"],
+        [Path.Combine(AppContext.BaseDirectory, "Fixtures", "03+Dummie+VEC+sep_oct+2025.pdf"),  "sep_oct"],
+    ];
+
+    /// <summary>
+    /// Movement extraction-completeness check (Epic 4 adversarial review finding).
+    /// Extracts all movements from each fixture and sums Charge and Credit amounts,
+    /// then asserts that the sums match the printed TotalCargos / TotalAbonos within $1.00.
+    /// <para>
+    /// The printed footer totals are the ground truth.  If the sums do NOT match, the
+    /// extractor has silently dropped rows — which would cause CL-18/19/20/44 to compute
+    /// wrong sums while the loose &gt; 0 count assertion still passes.
+    /// </para>
+    /// <para>
+    /// If TotalCargos or TotalAbonos is NotExtracted on a fixture, the completeness check
+    /// for that total is skipped with a diagnostic log message — it is NOT considered passing.
+    /// The test reports ACTUAL numbers so the orchestrator can evaluate any gap.
+    /// </para>
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(AllFixturesForCompleteness))]
+    public async Task Extract_MovementSums_MatchPrintedTotals_CompletenessCheck(
+        string fixturePath, string label)
+    {
+        const decimal CompletenessToleranceMxn = 1.00m;
+
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+        var log = CreateDiagLogger();
+
+        File.Exists(fixturePath).ShouldBeTrue($"[{label}] Fixture not found: {fixturePath}");
+        var pdf = File.ReadAllBytes(fixturePath);
+
+        var result = await extractor.ExtractFullAsync(pdf, ct);
+        result.IsSuccess.ShouldBeTrue($"[{label}] ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        var ps = model.PeriodSummary;
+        ps.ShouldNotBeNull($"[{label}] PeriodSummary must be populated");
+
+        // Compute sums from extracted movements.
+        var sumCharges = model.Movements
+            .Where(m => m.Sign == MovementSign.Charge)
+            .Sum(m => m.Amount);
+        var sumCredits = model.Movements
+            .Where(m => m.Sign == MovementSign.Credit)
+            .Sum(m => m.Amount);
+        var movCount   = model.Movements.Count;
+
+        log.LogInformation(
+            "[{Label}] Movement count={Count}; Σcharges={SumCharges:F2}; Σcredits={SumCredits:F2}",
+            label, movCount, sumCharges, sumCredits);
+
+        log.LogInformation(
+            "[{Label}] TotalCargos: status={CargosStatus} value={CargosValue:F2}; " +
+            "TotalAbonos: status={AbonosStatus} value={AbonosValue:F2}",
+            label,
+            ps!.TotalCargos.Status, ps.TotalCargos.Value,
+            ps.TotalAbonos.Status, ps.TotalAbonos.Value);
+
+        // Charges completeness.
+        if (ps.TotalCargos.Status == ExtractionStatus.Extracted)
+        {
+            var diffCargos = Math.Abs(sumCharges - ps.TotalCargos.Value);
+            log.LogInformation(
+                "[{Label}] Charges completeness: |Σcharges({SumCharges:F2}) - TotalCargos({Total:F2})| = {Diff:F2}",
+                label, sumCharges, ps.TotalCargos.Value, diffCargos);
+
+            diffCargos.ShouldBeLessThanOrEqualTo(
+                CompletenessToleranceMxn,
+                $"[{label}] COMPLETENESS GAP DETECTED: Σ charge amounts ({sumCharges:F2}) " +
+                $"does not match printed TotalCargos ({ps.TotalCargos.Value:F2}). " +
+                $"Diff = {diffCargos:F2}. The extractor may have dropped charge rows. " +
+                $"Movement count = {movCount}.");
+        }
+        else
+        {
+            log.LogWarning(
+                "[{Label}] TotalCargos not extracted — skipping charges completeness assertion. " +
+                "Σcharges from movements = {Sum:F2}",
+                label, sumCharges);
+        }
+
+        // Credits completeness.
+        if (ps.TotalAbonos.Status == ExtractionStatus.Extracted)
+        {
+            var diffAbonos = Math.Abs(sumCredits - ps.TotalAbonos.Value);
+            log.LogInformation(
+                "[{Label}] Credits completeness: |Σcredits({SumCredits:F2}) - TotalAbonos({Total:F2})| = {Diff:F2}",
+                label, sumCredits, ps.TotalAbonos.Value, diffAbonos);
+
+            diffAbonos.ShouldBeLessThanOrEqualTo(
+                CompletenessToleranceMxn,
+                $"[{label}] COMPLETENESS GAP DETECTED: Σ credit amounts ({sumCredits:F2}) " +
+                $"does not match printed TotalAbonos ({ps.TotalAbonos.Value:F2}). " +
+                $"Diff = {diffAbonos:F2}. The extractor may have dropped credit rows. " +
+                $"Movement count = {movCount}.");
+        }
+        else
+        {
+            log.LogWarning(
+                "[{Label}] TotalAbonos not extracted — skipping credits completeness assertion. " +
+                "Σcredits from movements = {Sum:F2}",
+                label, sumCredits);
         }
     }
 }
