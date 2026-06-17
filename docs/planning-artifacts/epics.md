@@ -50,6 +50,24 @@ arithmetic (highest value) → visual → regulatory → report → scale.** v1 
 - FR-26: Verify promotions are current — CL-49.
 - FR-27: Phase-0 non-breaking isolation setup (no Solution 1 refactor in v1).
 
+#### Tranche 2 — Regulatory Completeness (CONDUSEF Acuerdo, added 2026-06-17)
+
+Derived from `docs/planning-artifacts/LAW-VS-CHECKLIST-GAP-2026-06-17.md`. Intra-statement, self-contained
+(verify against the statement's own reported figures; see NFR-8).
+
+- FR-28: Verify all 28 mandatory sections are present and in the fixed legal order, no inter-section blank gap >2 cm (§1–28).
+- FR-29: Verify §6 "Cuánto pagarías por tus compras regulares" by recomputing months-to-pay & total interest from reported pago mínimo / tasa ordinaria / pago para no generar intereses (revolving-balance recursion).
+- FR-30: Verify §19 "Saldo sobre el que se calcularon los intereses": per-row `monto ≈ saldo_base × (tasa/360) × días` over the 6 interest types.
+- FR-31: Verify §20 "Distribución de tu último pago" 7-column waterfall identity.
+- FR-32: Verify §8 "Indicadores del costo anual" (12-month interest/commission/annuity) presence & coherence.
+- FR-33: Verify §16 "Información de otras líneas de crédito" (conditional 9-column table + arithmetic).
+- FR-34: Verify mandatory verbatim text blocks — §26 (13 notas aclaratorias), §27 (15-term glosario), §24 (atención de quejas legend), §17 (art-6-IV mensajes adicionales legends), §11 (two exact URLs).
+- FR-35: Verify conditional sections §23 "Cargos no reconocidos" (status enum) and §25 "Reestructura".
+- FR-36: Verify the typography legal floor (≥8 pt Arial-equivalent; fecha límite ≥10 pt bold; the ~10 specific bold fields) — separate from the client Aptos brand rule (CL-35).
+- FR-37: Verify advertising placement (no ads outside free sections; §12 mensajes importantes ≤700 chars; section size caps §17 ≤¼, §21/§28 ≤⅓ page).
+- FR-38: Verify §18 "Programas de beneficios" structural completeness (all concepts incl. "0", CL-38) and §13 "crédito disponible para transferencia".
+- FR-39: Multi-tenant rule profile — per-tenant selection of legal-baseline rules (default-on) + client-overlay rules + tolerance bands, as configuration with no per-bank hardcoding.
+
 ### NonFunctional Requirements
 
 - NFR-1: Performance/throughput (≤10s p95/statement; ≥1 stmt/s/worker; sample within window).
