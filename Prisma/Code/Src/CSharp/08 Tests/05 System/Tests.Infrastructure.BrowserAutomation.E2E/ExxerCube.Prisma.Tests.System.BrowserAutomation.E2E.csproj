@@ -91,5 +91,16 @@
     <Using Include="System.Linq" />
     <Using Include="System.Threading" />
     <Using Include="System.Threading.Tasks" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.Text" />
+    <Using Include="System.Net" />
+    <Using Include="System.Net.Sockets" />
+    <Using Include="Microsoft.Extensions.Options" />
+    <Using Include="ExxerCube.Prisma.Domain.Entities" />
+    <Using Include="ExxerCube.Prisma.Domain.Interfaces" />
+    <Using Include="ExxerCube.Prisma.Infrastructure.BrowserAutomation" />
+    <Using Include="ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract" />
+    <Using Include="ExxerCube.Prisma.Testing.Infrastructure" />
+    <Using Include="ExxerCube.Prisma.Testing.Infrastructure.Logging" />
   </ItemGroup>
 </Project>
