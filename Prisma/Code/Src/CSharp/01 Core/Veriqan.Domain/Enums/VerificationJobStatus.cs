@@ -19,4 +19,11 @@ public enum VerificationJobStatus
 
     /// <summary>The job was cancelled before completion.</summary>
     Cancelled = 4,
+
+    /// <summary>
+    /// The job cannot proceed because a pre-check condition was not met
+    /// (e.g. unknown product, invalid bundle).  The associated
+    /// <see cref="BlockReason"/> carries the machine-readable reason code.
+    /// </summary>
+    Blocked = 5,
 }
