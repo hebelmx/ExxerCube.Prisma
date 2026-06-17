@@ -85,6 +85,12 @@ public sealed class PeriodSummary
     /// MSI-charges balance from the NIVEL-DE-USO block ("Saldo cargos a meses:").
     /// Used by CL-24 arithmetic check.
     /// </param>
+    /// <param name="totalCargos">
+    /// Printed total de cargos from the DESGLOSE section ('Total cargos'). Used by CL-44.
+    /// </param>
+    /// <param name="totalAbonos">
+    /// Printed total de abonos from the DESGLOSE section ('Total abonos'). Used by CL-44.
+    /// </param>
     public PeriodSummary(
         ExtractedField<string> product,
         ExtractedField<DateOnly> periodStart,
@@ -107,7 +113,9 @@ public sealed class PeriodSummary
         ExtractedField<decimal>? ivaInteresesYComisiones = null,
         ExtractedField<decimal>? pagosYAbonos = null,
         ExtractedField<decimal>? saldoCargosRegulares = null,
-        ExtractedField<decimal>? saldoCargosAMeses = null)
+        ExtractedField<decimal>? saldoCargosAMeses = null,
+        ExtractedField<decimal>? totalCargos = null,
+        ExtractedField<decimal>? totalAbonos = null)
     {
         Product = product ?? throw new ArgumentNullException(nameof(product));
         PeriodStart = periodStart ?? throw new ArgumentNullException(nameof(periodStart));
@@ -131,6 +139,8 @@ public sealed class PeriodSummary
         PagosYAbonos = pagosYAbonos ?? ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
         SaldoCargosRegulares = saldoCargosRegulares ?? ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
         SaldoCargosAMeses = saldoCargosAMeses ?? ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+        TotalCargos = totalCargos ?? ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
+        TotalAbonos = totalAbonos ?? ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
     }
 
     // -----------------------------------------------------------------------
@@ -319,4 +329,22 @@ public sealed class PeriodSummary
     /// Used by CL-24.
     /// </summary>
     public ExtractedField<decimal> SaldoCargosAMeses { get; }
+
+    // -----------------------------------------------------------------------
+    // DESGLOSE DE MOVIMIENTOS DEL PERIODO totals (Story 4.4)
+    // Bottom-of-table summary rows extracted from the DESGLOSE pages.
+    // Used by CL-44.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Printed total de cargos from the DESGLOSE section ('Total cargos'). Used by CL-44.
+    /// <see cref="ExtractionStatus.NotExtracted"/> when the row is not found or not parsed.
+    /// </summary>
+    public ExtractedField<decimal> TotalCargos { get; }
+
+    /// <summary>
+    /// Printed total de abonos from the DESGLOSE section ('Total abonos'). Used by CL-44.
+    /// <see cref="ExtractionStatus.NotExtracted"/> when the row is not found or not parsed.
+    /// </summary>
+    public ExtractedField<decimal> TotalAbonos { get; }
 }
