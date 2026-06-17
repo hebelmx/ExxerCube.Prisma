@@ -382,6 +382,29 @@ public sealed class FiscalBlockRuleTests
         result.Value.Observed.ShouldBe("INVALID-RFC");
     }
 
+    /// <summary>
+    /// Verifies that the RFC pattern <c>^[A-ZÑ&amp;]{3,4}\d{6}[A-Z0-9]{3}$</c> correctly
+    /// accepts an Ñ-containing issuer RFC.  Mexican RFCs for persons whose first surname
+    /// begins with Ñ (e.g. "Ñoño") must not be rejected by the rule.
+    /// </summary>
+    [Fact]
+    public void Cl52_IssuerRfcWithEnye_ReturnsPass()
+    {
+        var rule = new Cl52IssuerRfcRule();
+        var fb = FiscalBlockWith(blockPresent: true, qrDecoded: true,
+            issuerRfc: "ÑOXX010101AAA");
+        var sm = MakeModel(fb, montoComisiones: 100m);
+        var ctx = MakeContext(sm);
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = rule.Evaluate(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "RFC pattern ^[A-ZÑ&]{3,4}\\d{6}[A-Z0-9]{3}$ must accept Ñ in the name prefix");
+        result.Value.Observed.ShouldBe("ÑOXX010101AAA");
+    }
+
     [Fact]
     public void Cl52_Cancellation_ReturnsCancelled()
     {
@@ -459,6 +482,29 @@ public sealed class FiscalBlockRuleTests
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
         result.Value.Observed.ShouldBe("12345");
+    }
+
+    /// <summary>
+    /// Verifies that the RFC pattern <c>^[A-ZÑ&amp;]{3,4}\d{6}[A-Z0-9]{3}$</c> correctly
+    /// accepts an Ñ-containing receiver RFC.  Mexican RFCs for persons whose first surname
+    /// begins with Ñ (e.g. "Ñoño") must not be rejected by the rule.
+    /// </summary>
+    [Fact]
+    public void Cl53_ReceiverRfcWithEnye_ReturnsPass()
+    {
+        var rule = new Cl53ReceiverRfcRule();
+        var fb = FiscalBlockWith(blockPresent: true, qrDecoded: true,
+            receiverRfc: "ÑOXX010101AAA");
+        var sm = MakeModel(fb, montoComisiones: 100m);
+        var ctx = MakeContext(sm);
+        var ct = TestContext.Current.CancellationToken;
+
+        var result = rule.Evaluate(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "RFC pattern ^[A-ZÑ&]{3,4}\\d{6}[A-Z0-9]{3}$ must accept Ñ in the name prefix");
+        result.Value.Observed.ShouldBe("ÑOXX010101AAA");
     }
 
     [Fact]

@@ -2476,12 +2476,6 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // Normalized full text (Story 6.1 — CL-32/46)
     // -----------------------------------------------------------------------
 
-    /// <summary>
-    /// Whitespace-collapse regex: one or more whitespace characters → single space.
-    /// </summary>
-    private static readonly Regex WhitespaceCollapsePattern =
-        new(@"\s+", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
     // -----------------------------------------------------------------------
     // Fiscal block extraction constants (Story 6.2 — CL-50..53)
     // -----------------------------------------------------------------------
@@ -2700,13 +2694,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// Builds a normalized concatenation of all page text in the document for legend-presence checks.
     /// </summary>
     /// <remarks>
-    /// Normalization steps (mirrors the contract in <see cref="Domain.Extraction.StatementModel"/>):
-    /// <list type="number">
-    ///   <item>All characters upper-cased (<see cref="String.ToUpperInvariant"/>).</item>
-    ///   <item>Accent stripping: NFD Unicode decomposition followed by removal of
-    ///         <see cref="UnicodeCategory.NonSpacingMark"/> characters.</item>
-    ///   <item>Whitespace runs collapsed to a single ASCII space; result trimmed.</item>
-    /// </list>
+    /// Normalization is applied via <see cref="VecTextNormalizer.Normalize"/> — the canonical
+    /// shared implementation used by both this assembly and the Validation assembly.
     /// Returns <see cref="string.Empty"/> when the document has no pages or no text layer.
     /// Never throws — individual page failures produce no contribution.
     /// </remarks>
@@ -2738,33 +2727,13 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     }
 
     /// <summary>
-    /// Normalizes a text string for legend-presence matching:
-    /// upper-cases, strips diacritics (NFD + remove non-spacing marks), and
-    /// collapses whitespace runs to a single space.
+    /// Normalizes a text string for legend-presence matching.
+    /// Delegates to <see cref="VecTextNormalizer.Normalize"/> — the canonical single-source
+    /// implementation shared with the Validation assembly.
     /// </summary>
     /// <param name="text">The raw text to normalize. May be null or empty.</param>
     /// <returns>
     /// Normalized string, or <see cref="string.Empty"/> when the input is null or whitespace.
     /// </returns>
-    internal static string NormalizeText(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return string.Empty;
-
-        // Step 1: upper-case (invariant to avoid Turkish-I issues).
-        var upper = text.ToUpperInvariant();
-
-        // Step 2: strip diacritics via NFD decomposition.
-        var normalized = upper.Normalize(NormalizationForm.FormD);
-        var sb = new StringBuilder(normalized.Length);
-        foreach (var c in normalized)
-        {
-            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
-                sb.Append(c);
-        }
-
-        // Step 3: collapse whitespace.
-        var collapsed = WhitespaceCollapsePattern.Replace(sb.ToString(), " ").Trim();
-        return collapsed;
-    }
+    internal static string NormalizeText(string? text) => VecTextNormalizer.Normalize(text);
 }

@@ -44,7 +44,7 @@ namespace ExxerCube.Prisma.Veriqan.Domain.Extraction;
 /// </param>
 /// <param name="Locator">
 /// Page-level locator for the fiscal block (page on which the CFDI legend was found).
-/// <see cref="FieldLocator.PageHint(int)"/> when no block was found.
+/// <see cref="FieldLocator.NoPage()"/> when no block was found (sentinel — page 0).
 /// </param>
 public sealed record FiscalBlock(
     bool BlockPresent,
@@ -59,6 +59,11 @@ public sealed record FiscalBlock(
     /// Returns a <see cref="FiscalBlock"/> representing the absence of any fiscal block in the document.
     /// Used when no CFDI legend page is found.
     /// </summary>
+    /// <remarks>
+    /// The <see cref="Locator"/> is <see cref="FieldLocator.NoPage()"/> (page 0) rather than a
+    /// page-1 hint so that Pass (n/a) findings for CL-50..53 do not misleadingly cite "page 1"
+    /// when no fiscal block exists.
+    /// </remarks>
     public static FiscalBlock NotPresent() =>
         new(
             BlockPresent: false,
@@ -67,5 +72,5 @@ public sealed record FiscalBlock(
             FiscalCode: null,
             IssuerRfc: null,
             ReceiverRfc: null,
-            Locator: FieldLocator.PageHint(1));
+            Locator: FieldLocator.NoPage());
 }

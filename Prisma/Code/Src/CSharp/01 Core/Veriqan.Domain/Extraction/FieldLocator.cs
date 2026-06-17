@@ -36,6 +36,15 @@ public sealed record FieldLocator(
     public static FieldLocator PageHint(int pageNumber = 1) => new(pageNumber);
 
     /// <summary>
+    /// Returns a sentinel locator that explicitly represents "no page" — used when the
+    /// associated block or field is wholly absent from the document (e.g.
+    /// <see cref="FiscalBlock.NotPresent()"/>).
+    /// <see cref="PageNumber"/> is set to <c>0</c> to distinguish this from a
+    /// valid page hint (page numbers are 1-based in PdfPig).
+    /// </summary>
+    public static FieldLocator NoPage() => new(PageNumber: 0);
+
+    /// <summary>
     /// Returns <see langword="true"/> when precise bounding-box coordinates are available.
     /// </summary>
     public bool HasBoundingBox =>
