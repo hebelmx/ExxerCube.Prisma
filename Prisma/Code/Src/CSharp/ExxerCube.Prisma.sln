@@ -288,6 +288,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Veriqan.Infrastructure.Refe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData", "02 Infrastructure\Veriqan.Infrastructure.ReferenceData\ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.csproj", "{678488ED-AD7F-47EF-B300-1C5FA7E2E753}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Veriqan.Infrastructure.Extraction.Tests", "Veriqan.Infrastructure.Extraction.Tests", "{35165175-35B9-F5FE-DC8A-DB37B235C9CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests", "08 Tests\02 Infrastructure\Veriqan.Infrastructure.Extraction.Tests\ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.Tests.csproj", "{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Veriqan.Infrastructure.Extraction", "Veriqan.Infrastructure.Extraction", "{0B317172-6394-373D-5809-26255312B240}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExxerCube.Prisma.Veriqan.Infrastructure.Extraction", "02 Infrastructure\Veriqan.Infrastructure.Extraction\ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.csproj", "{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1294,6 +1302,30 @@ Global
 		{678488ED-AD7F-47EF-B300-1C5FA7E2E753}.Release|x64.Build.0 = Release|Any CPU
 		{678488ED-AD7F-47EF-B300-1C5FA7E2E753}.Release|x86.ActiveCfg = Release|Any CPU
 		{678488ED-AD7F-47EF-B300-1C5FA7E2E753}.Release|x86.Build.0 = Release|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Debug|x64.Build.0 = Debug|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Debug|x86.Build.0 = Debug|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Release|x64.ActiveCfg = Release|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Release|x64.Build.0 = Release|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Release|x86.ActiveCfg = Release|Any CPU
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA}.Release|x86.Build.0 = Release|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Debug|x64.Build.0 = Debug|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Debug|x86.Build.0 = Debug|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Release|x64.ActiveCfg = Release|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Release|x64.Build.0 = Release|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Release|x86.ActiveCfg = Release|Any CPU
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1431,6 +1463,10 @@ Global
 		{A6F0168B-2B75-4CC1-B133-69DC1FAA1431} = {C4908485-F738-B65B-B2F3-CDC16E20C05F}
 		{10010E28-41A2-2794-22EF-968CEB91511D} = {3166389F-1D09-47D5-A74A-5F2F2DDB9120}
 		{678488ED-AD7F-47EF-B300-1C5FA7E2E753} = {10010E28-41A2-2794-22EF-968CEB91511D}
+		{35165175-35B9-F5FE-DC8A-DB37B235C9CD} = {56E66B46-BE15-4AD1-B371-252E84EDB669}
+		{5E17C944-B503-4D58-AEF4-01A9D67F6BCA} = {35165175-35B9-F5FE-DC8A-DB37B235C9CD}
+		{0B317172-6394-373D-5809-26255312B240} = {3166389F-1D09-47D5-A74A-5F2F2DDB9120}
+		{6D74E92A-B0BD-4B97-B359-90D5B0ED819C} = {0B317172-6394-373D-5809-26255312B240}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9F4D9C48-36D8-465A-9065-D491D435A0F6}

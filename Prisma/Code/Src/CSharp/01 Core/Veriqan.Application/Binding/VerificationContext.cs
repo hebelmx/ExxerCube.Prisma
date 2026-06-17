@@ -1,5 +1,6 @@
 using System;
 using ExxerCube.Prisma.Veriqan.Domain.Binding;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 
 namespace ExxerCube.Prisma.Veriqan.Application.Binding;
@@ -11,9 +12,11 @@ namespace ExxerCube.Prisma.Veriqan.Application.Binding;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The <see cref="StatementModel"/> slot is always <see langword="null"/> in Story 2.3;
-/// it is reserved for the extracted statement model that Epic 3 will populate.
-/// Checks that need the statement model must guard on <c>StatementModel is null</c>.
+/// The <see cref="StatementModel"/> slot carries the extracted statement model produced by
+/// <see cref="Ports.IStatementFieldExtractor"/> (Story 3.1+).
+/// At bind time it is always <see langword="null"/>; it is populated by a separate extraction
+/// stage before checks run.  Checks that need the statement model must guard on
+/// <c>StatementModel is null</c>.
 /// </para>
 /// </remarks>
 public sealed class VerificationContext
@@ -31,7 +34,8 @@ public sealed class VerificationContext
     /// Tolerance bands from the bundle, if present; otherwise <see langword="null"/>.
     /// </param>
     /// <param name="statementModel">
-    /// The extracted statement model (Epic 3); always <see langword="null"/> in Story 2.3.
+    /// The extracted statement model populated after the extraction stage (Story 3.1+);
+    /// <see langword="null"/> until extraction completes or when not yet run.
     /// </param>
     public VerificationContext(
         VecReferenceBundle bundle,
@@ -39,7 +43,7 @@ public sealed class VerificationContext
         ReferenceDataAvailability availability,
         PriorStatement? priorStatement,
         ToleranceConfig? toleranceConfig,
-        StatementModelPlaceholder? statementModel)
+        StatementModel? statementModel)
     {
         Bundle = bundle ?? throw new ArgumentNullException(nameof(bundle));
         ResolvedProduct = resolvedProduct ?? throw new ArgumentNullException(nameof(resolvedProduct));
@@ -96,12 +100,10 @@ public sealed class VerificationContext
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Structured model extracted from the statement PDF by the OCR pipeline (Epic 3).
-    /// Always <see langword="null"/> in Story 2.3.
-    /// Checks must guard on <c>StatementModel is null</c> and emit a suitable result when absent.
+    /// Structured model extracted from the statement PDF by the extraction pipeline (Story 3.1+).
+    /// <see langword="null"/> until the extraction stage runs (or when not applicable).
+    /// Checks that depend on extracted fields must guard on <c>StatementModel is null</c>
+    /// and emit an appropriate result when absent.
     /// </summary>
-    /// <remarks>
-    /// TODO (Epic 3): populate this from the OCR/extraction pipeline output.
-    /// </remarks>
-    public StatementModelPlaceholder? StatementModel { get; }
+    public StatementModel? StatementModel { get; }
 }

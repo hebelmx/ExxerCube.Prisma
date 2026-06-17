@@ -126,7 +126,7 @@ internal sealed class BundleBinder : IBundleBinder
             availability: availability,
             priorStatement: priorStatement,
             toleranceConfig: toleranceConfig,
-            statementModel: null); // Epic 3: will be populated by the extraction pipeline.
+            statementModel: null); // Story 3.1+: populated by a separate extraction stage.
 
         _logger.LogDebug(
             "Bound context for job {JobId}: product={ProductId}, " +

@@ -13,6 +13,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="IndQuestResults" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <!-- PdfPig: text-layer extraction with word bounding boxes (pinned in Directory.Packages.props) -->
+    <PackageReference Include="PdfPig" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\01 Core\Veriqan.Application\ExxerCube.Prisma.Veriqan.Application.csproj" />
   </ItemGroup>
 
