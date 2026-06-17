@@ -95,17 +95,17 @@ public sealed class StatementModel
     public ExtractedField<string> Rfc { get; }
 
     // -----------------------------------------------------------------------
-    // Period / summary section (Story 3.2 — reserved slot)
+    // Period / summary section (Story 3.2)
     // -----------------------------------------------------------------------
 
     /// <summary>
     /// Period and summary fields extracted in Story 3.2.
-    /// Always <see langword="null"/> in Story 3.1 output.
+    /// <see langword="null"/> when only the header stage has run (Story 3.1 output).
     /// Checklist checks that depend on period/summary data must guard on this.
     /// </summary>
     /// <remarks>
-    /// This property is intentionally left as a nullable object-typed slot so that
-    /// Story 3.2 can add a concrete type here without touching the Story 3.1 contract.
+    /// Populated by the full extraction method (Story 3.2 — <c>ExtractFullAsync</c>),
+    /// which extracts both header and period/summary fields in a single pass.
     /// </remarks>
-    public object? PeriodSummary { get; init; }
+    public PeriodSummary? PeriodSummary { get; init; }
 }
