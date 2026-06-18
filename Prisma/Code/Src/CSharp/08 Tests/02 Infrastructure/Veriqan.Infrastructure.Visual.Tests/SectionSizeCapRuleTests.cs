@@ -604,4 +604,100 @@ public sealed class SectionSizeCapRuleTests
             r => r.CheckId == CheckId,
             $"Expected {CheckId} to be discovered by Scrutor.");
     }
+
+    // -----------------------------------------------------------------------
+    // Two-column / out-of-numeric-order regression tests (Story 12.4 fix)
+    //
+    // These exercise the positional-successor selection that was the bug:
+    // the old code picked the numerically-next section, not the physically-nearest.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// False-Fail regression: §17 at Bottom=700; physically-nearest below is §19 at Bottom=690
+    /// (gap only 10 pt, tiny). But §18 is also present at Bottom=120 (far below, e.g. second column).
+    /// Old code: picks §18 as "next" (lowest numerically-higher) → extent 580 → false-Fail.
+    /// New code: picks §19 (largest Bottom still below 700, i.e. 690) → extent 10 → within ¼ → Pass.
+    /// </summary>
+    [Fact]
+    public void Evaluate_TwoColumn_OutOfNumericOrder_PicksPhysicallyNearestSuccessor_ReturnsPass()
+    {
+        // §17 bottom=700; §19 bottom=690 (nearest physically below — gap 10 pt)
+        // §18 bottom=120 (far below in second column, numeric-next but NOT physical-next)
+        // extent with correct successor = 700 - 690 = 10 → 10/792 ≈ 0.013 → well within ¼
+        // extent with wrong (old) successor = 700 - 120 = 580 → 580/792 ≈ 0.73 → false-Fail
+        var rule = GetRule();
+        var sections = new List<DetectedSection>
+        {
+            PresentWithGeometry(17, pageNumber: 1, bottom: 700.0),
+            PresentWithGeometry(18, pageNumber: 1, bottom: 120.0),  // far below — second column
+            PresentWithGeometry(19, pageNumber: 1, bottom: 690.0),  // immediately below §17
+        };
+        var model = ModelWith(sections, [Page(1)]);
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "Positional selection must pick §19 (Bottom=690, nearest below §17 at 700) " +
+            "not §18 (Bottom=120, numerically next but far below). " +
+            "Extent = 10/792 ≈ 1.3% is well within the ¼-page cap.");
+    }
+
+    /// <summary>
+    /// False-Pass guard: §17 at Bottom=700; immediate physical successor §18 at Bottom=300
+    /// (extent 400 / 792 ≈ 50.5% — genuinely oversized). Must Fail even with positional selection.
+    /// </summary>
+    [Fact]
+    public void Evaluate_TwoColumn_GenuinelyOversizedSection_WithPositionalSuccessor_ReturnsFail()
+    {
+        // §17 bottom=700; §18 bottom=300 → extent = 400 → 400/792 ≈ 0.505 > 0.27 → Fail
+        var rule = GetRule();
+        var sections = new List<DetectedSection>
+        {
+            PresentWithGeometry(17, pageNumber: 1, bottom: 700.0),
+            PresentWithGeometry(18, pageNumber: 1, bottom: 300.0),
+        };
+        var model = ModelWith(sections, [Page(1)]);
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        finding.Verdict.ShouldBe(FindingVerdict.Fail,
+            "§17 occupies ~50% of the page (400/792). Positional selection must still Fail " +
+            "when the nearest-below heading correctly bounds a genuinely oversized section.");
+        finding.Severity.ShouldBe(FindingSeverity.Critical);
+        finding.Observed.ShouldNotBeNullOrEmpty();
+        finding.Observed!.ShouldContain("§17");
+        finding.Locator.ShouldNotBeNull();
+    }
+
+    /// <summary>
+    /// Positional selection abstains correctly when no same-page heading sits below the target.
+    /// §17 is the only present section on its page → no successor → abstain.
+    /// §21 and §28 absent → all abstain → InsufficientData.
+    /// </summary>
+    [Fact]
+    public void Evaluate_TwoColumn_NoPhysicalSuccessorOnPage_Abstains_ReturnsInsufficientData()
+    {
+        // §17 at Bottom=700 is the only present section on page 1. No section has Bottom < 700 on page 1.
+        var rule = GetRule();
+        var sections = new List<DetectedSection>
+        {
+            PresentWithGeometry(17, pageNumber: 1, bottom: 700.0),
+            AbsentSection(21),
+            AbsentSection(28),
+        };
+        var model = ModelWith(sections, [Page(1)]);
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "When §17 is the only present section on its page, there is no physical successor " +
+            "to bound the extent — rule must abstain, never Fail.");
+    }
 }

@@ -208,7 +208,8 @@ internal sealed class SectionSizeCapRule : IVecValidationRule
 
     /// <summary>
     /// Attempts to measure section <paramref name="sectionNumber"/>'s vertical extent
-    /// as the gap from its heading down to the next present section's heading on the same page.
+    /// as the gap from its heading down to the immediately-adjacent present heading
+    /// physically below it on the same page (positional, not numeric succession).
     /// </summary>
     private static MeasureResult MeasureSection(
         int sectionNumber,
@@ -241,33 +242,37 @@ internal sealed class SectionSizeCapRule : IVecValidationRule
         if (!pageHeights.TryGetValue(targetPage, out var pageHeight) || pageHeight <= 0.0)
             return Abstain($"§{sectionNumber} page {targetPage} has no valid height");
 
-        // Find the next present section on the same page that is physically below the target
-        // (i.e. has a smaller Bottom value in PDF coordinates, where higher Y = higher on page).
+        // Find the immediate physically-adjacent heading below the target on the SAME page.
+        // "Below" in PDF coordinates means a smaller Bottom value (origin is bottom-left).
+        // Among all present sections on this page (other than the target itself) that have
+        // Bottom < targetBottom, pick the one with the LARGEST Bottom — that is the heading
+        // sitting closest beneath the target in reading order, regardless of section number.
+        // Section number is intentionally NOT used as a filter: in two-column layouts sections
+        // can be detected out of numeric / physical order, and filtering by number causes both
+        // false-Fails (numerically-next heading is far below in another column) and false-Passes
+        // (numerically-higher heading sits just below while the section actually extends further).
         (int SectionNumber, int PageNumber, double Bottom, FieldLocator Locator) nextEntry = default;
         var foundNext = false;
 
         foreach (var entry in presentWithGeometry)
         {
-            // Must be a different section with a higher section number (logically "next").
-            if (entry.SectionNumber <= sectionNumber)
+            // Exclude the target section itself.
+            if (entry.SectionNumber == sectionNumber)
                 continue;
 
             // Must be on the same page.
             if (entry.PageNumber != targetPage)
                 continue;
 
-            // Must be physically below the target (smaller Bottom = lower on page).
+            // Must be physically below the target (smaller Bottom = lower on page in PDF coords).
             if (entry.Bottom >= targetBottom)
                 continue;
 
-            // Take the candidate with the largest SectionNumber that is still below (closest next heading).
-            // Because presentWithGeometry is sorted by SectionNumber ascending, the first match
-            // (smallest SectionNumber greater than target) is what we want for the "next section" gap.
-            if (!foundNext)
+            // Keep the candidate with the largest Bottom seen so far (nearest heading below target).
+            if (!foundNext || entry.Bottom > nextEntry.Bottom)
             {
                 nextEntry = entry;
                 foundNext = true;
-                break; // List is sorted ascending by SectionNumber; first match is the immediate next.
             }
         }
 
