@@ -7,6 +7,20 @@ The **original 55-item-checklist MVP (Epics 1–8) is COMPLETE, end-to-end prove
 reviewed.** Remaining work = the **Tranche 2 regulatory tranche (E9–E13)**. Read this, then
 `docs/planning-artifacts/epics-tranche2-regulatory.md` + `epics.md` + `architecture.md`.
 
+> **UPDATE 2026-06-18 — Epic 9 (the seam) is COMPLETE + adversarially reviewed + remediated** on `Liv`
+> (commits `da72eb49`→`0314045b`, all pushed). Stories 9.1–9.6 delivered: dual legal/tenant verdict on
+> `RuleFinding`, required `DofNumeral` (NFR-7) on all 35 rules + coverage map, `RuleClassification`
+> (BaselineLocked/TenantTightenableOnly/TenantOverridable), typed range-bounded `Tolerance` with legal
+> defaults in an **encrypted read-only SQL store** (AES column converter, `VeriqanLegalBaselineStartupService`
+> seeds/initialises + fails loud — owner ruling), `TenantProfile` resolution (tighten applies; sub-legal
+> loosening → reject + loud `TenantDeviation` + fall back to legal floor), confidence-driven abstain
+> (`MinFieldConfidence` floor 0.8). A 2-skeptic review found and a remediation closed: the SQL store was
+> registered-but-unwired, the confidence floor was droppable, the pipeline path was dead, and the legal
+> verdict wasn't statement-level-separable. Whole Veriqan footprint green (~510 tests; e2e still RED).
+> **Carry-forwards:** persist `LegalBaselineVerdict` for the E13 traceability export; FiscalBlock
+> (CL-50..53) extraction-confidence so a garbled QR abstains, not false-Fail; tolerance ranges + CL-46
+> numeral pending legal review (tighten in E10). **NEXT = Epic 10 (Structural & Textual Completeness).**
+
 ---
 
 ## 1. How to resume
