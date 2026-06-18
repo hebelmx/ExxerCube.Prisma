@@ -1,0 +1,176 @@
+using System.Collections.Generic;
+using System.Threading;
+using ExxerCube.Prisma.Veriqan.Application.Binding;
+using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Verification;
+using IndQuestResults;
+using IndQuestResults.Operations;
+
+namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
+
+/// <summary>
+/// LAW-§11-URLS: Verifies that the two CONDUSEF-mandated URLs appear in section 11
+/// ("Compara tu tarjeta") of the credit-card statement.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>Legal basis:</b> CONDUSEF <i>Acuerdo</i> (DOF 29-Dec-2022) §11 requires the statement
+/// to display the following two portal URLs so cardholders can compare products:
+/// <list type="bullet">
+///   <item><c>https://tarjetas.condusef.gob.mx/index.php</c></item>
+///   <item><c>https://comparador.banxico.org.mx/</c></item>
+/// </list>
+/// </para>
+/// <para>
+/// <b>Matching:</b> tolerant similarity via <see cref="VerbatimBlockMatcher"/> /
+/// <see cref="VecTextMatcher"/>. For short URL strings the normalized-contains fast-path
+/// fires almost immediately.
+/// </para>
+/// <para>
+/// <b>Abstain (InsufficientData) paths — never false-Fail:</b>
+/// <list type="bullet">
+///   <item><see cref="VerificationContext.StatementModel"/> is null or
+///     <see cref="Domain.Extraction.StatementModel.NormalizedFullText"/> is empty.</item>
+///   <item>Section 11 was not detected (host section absent or not applicable) — the rule
+///     defers to Story 10.1 which owns section-detection; it never fires on a blank/missing
+///     section.</item>
+/// </list>
+/// </para>
+/// <para>
+/// <b>Classification:</b> <see cref="RuleClassification.BaselineLocked"/> — verbatim legal
+/// text; tenant profiles may NOT relax this rule.
+/// </para>
+/// </remarks>
+internal sealed class Section11ComparaUrlsRule : IVecValidationRule
+{
+    private const string Version = "1.0.0";
+
+    /// <inheritdoc />
+    public string CheckId => "LAW-§11-URLS";
+
+    /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §11";
+
+    /// <inheritdoc />
+    public RuleClassification Classification => RuleClassification.BaselineLocked;
+
+    /// <inheritdoc />
+    public TechniqueClass Technique => TechniqueClass.Deterministic;
+
+    /// <summary>
+    /// Pre-normalized expected URL blocks for fast-path matching.
+    /// </summary>
+    private static readonly IReadOnlyList<(string Id, string NormalizedText)> NormalizedBlocks =
+    [
+        ("§11-url1", VecTextMatcher.Normalize(CondusefVerbatimCatalog.Section11Url1)),
+        ("§11-url2", VecTextMatcher.Normalize(CondusefVerbatimCatalog.Section11Url2)),
+    ];
+
+    /// <inheritdoc />
+    public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default)
+    {
+        if (ct.IsCancellationRequested)
+            return ResultExtensions.Cancelled<RuleFinding>();
+
+        var model = ctx.StatementModel;
+        if (model is null || string.IsNullOrEmpty(model.NormalizedFullText))
+            return InsufficientData("StatementModel or NormalizedFullText is not populated.");
+
+        // Abstain when section 11 detection has not run (empty Sections list).
+        if (model.Sections.Count == 0)
+            return InsufficientData(
+                "Section-detection pass has not run (Sections list is empty); " +
+                "cannot verify §11 URL blocks.");
+
+        // Abstain when §11 was not detected in the document.
+        var section11 = FindSection(model.Sections, 11);
+        if (section11 is null || !section11.IsApplicable || !section11.IsPresent)
+            return InsufficientData(
+                "Section §11 (COMPARA TU TARJETA) was not detected in the document; " +
+                "deferring to MandatorySectionsPresenceRule.");
+
+        var threshold = ResolveThreshold(ctx);
+        var docText = model.NormalizedFullText;
+
+        var failing = VerbatimBlockMatcher.FindFailingBlocks(docText, NormalizedBlocks, threshold);
+
+        if (failing.Count == 0)
+        {
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.Pass(
+                    checkId: CheckId,
+                    technique: Technique,
+                    engineVersion: Version,
+                    observed: "Both §11 CONDUSEF URLs found in statement text.",
+                    toleranceApplied: (decimal)threshold,
+                    locator: section11.Locator));
+        }
+
+        var detail = BuildFailDetail(failing);
+        return Result<RuleFinding>.WithSuccess(
+            RuleFinding.Fail(
+                checkId: CheckId,
+                technique: Technique,
+                severity: FindingSeverity.Critical,
+                engineVersion: Version,
+                expected: "Both CONDUSEF URLs present (§11): " +
+                          CondusefVerbatimCatalog.Section11Url1 + " and " +
+                          CondusefVerbatimCatalog.Section11Url2,
+                observed: $"Missing/low-similarity §11 URL block(s): {detail}",
+                toleranceApplied: (decimal)threshold,
+                locator: section11.Locator));
+    }
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Resolves the similarity threshold. Currently returns the catalog default
+    /// (<see cref="CondusefVerbatimCatalog.DefaultSimilarityThreshold"/>).
+    /// A future story may expose a per-tenant verbatim threshold via <c>ToleranceConfig</c>;
+    /// this method is the single point to add that override.
+    /// </summary>
+    private static double ResolveThreshold(VerificationContext ctx)
+    {
+        // ToleranceConfig currently carries currency/points tolerances only;
+        // verbatim-text threshold is not yet a per-tenant knob.
+        _ = ctx; // parameter reserved for future tenant-profile lookup.
+        return CondusefVerbatimCatalog.DefaultSimilarityThreshold;
+    }
+
+    private static DetectedSection? FindSection(
+        System.Collections.Generic.IReadOnlyList<DetectedSection> sections,
+        int number)
+    {
+        foreach (var s in sections)
+            if (s.SectionNumber == number)
+                return s;
+
+        return null;
+    }
+
+    private static string BuildFailDetail(List<(string BlockId, double Score)> failing)
+    {
+        var parts = new System.Text.StringBuilder();
+        foreach (var (id, score) in failing)
+        {
+            if (parts.Length > 0)
+                parts.Append("; ");
+
+            parts.Append(id);
+            parts.Append($" (similarity={score:F3})");
+        }
+
+        return parts.ToString();
+    }
+
+    private Result<RuleFinding> InsufficientData(string reason) =>
+        Result<RuleFinding>.WithSuccess(
+            RuleFinding.InsufficientData(
+                checkId: CheckId,
+                technique: Technique,
+                engineVersion: Version,
+                reason: reason));
+}
