@@ -36,6 +36,7 @@ public static class VeriqanPersistenceExtensions
                 b => b.MigrationsHistoryTable("__EFMigrationsHistory", "veriqan")));
 
         services.AddScoped<IVerificationJobRepository, EfVerificationJobRepository>();
+        services.AddScoped<IDispositionRepository, EfDispositionRepository>();
 
         return services;
     }

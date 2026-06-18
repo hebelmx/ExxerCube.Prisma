@@ -31,6 +31,13 @@ public sealed class VeriqanDbContext : DbContext
     /// <summary>Gets or sets the rollup job-verdict entity set.</summary>
     public DbSet<JobVerdict> JobVerdicts { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the append-only human-reviewer disposition audit set (AR-9, FR-18).
+    /// Rows in this set are never updated or deleted; use <c>AddAsync</c> / <c>AddRangeAsync</c>
+    /// only.
+    /// </summary>
+    public DbSet<Disposition> Dispositions { get; set; } = null!;
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,5 +49,6 @@ public sealed class VeriqanDbContext : DbContext
         modelBuilder.ApplyConfiguration(new VerificationJobConfiguration());
         modelBuilder.ApplyConfiguration(new FindingConfiguration());
         modelBuilder.ApplyConfiguration(new JobVerdictConfiguration());
+        modelBuilder.ApplyConfiguration(new DispositionConfiguration());
     }
 }
