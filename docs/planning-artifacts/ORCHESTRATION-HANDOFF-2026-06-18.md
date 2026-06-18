@@ -1,7 +1,10 @@
 # Veriqan VEC — MVP-Complete Continuation Handoff (Tranche 2 resume point)
 
 **Date:** 2026-06-18 · **Branch:** `Liv` · **Latest commit:** `217ced7d` (all pushed to `origin/Liv`)
-**Supersedes** `ORCHESTRATION-HANDOFF-2026-06-17.md` (Epic-4-era). This is the canonical resume point.
+**Supersedes** `ORCHESTRATION-HANDOFF-2026-06-17.md` (Epic-4-era).
+
+> ➤ **E9 AND E10 ARE NOW DONE. To resume, read `ORCHESTRATION-HANDOFF-2026-06-18c-E11.md`** (canonical resume
+> point — next = Epic 11). This doc remains accurate for the E1–E10 done-state detail + orchestration gotchas.
 
 The **original 55-item-checklist MVP (Epics 1–8) is COMPLETE, end-to-end proven, and adversarially
 reviewed.** Remaining work = the **Tranche 2 regulatory tranche (E9–E13)**. Read this, then

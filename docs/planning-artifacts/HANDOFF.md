@@ -8,12 +8,15 @@ that predates 2026-06-16 carries a **SUPERSEDED** banner — history only.
 
 ---
 
-## 0. Implementation status (updated 2026-06-17)
+## 0. Implementation status (updated 2026-06-18)
 
-> **Resuming the build?** Read `ORCHESTRATION-HANDOFF-2026-06-18.md` first — it is the canonical resume
-> point: the original MVP (E1–8) is COMPLETE + end-to-end proven; next is Tranche 2 (E9–E13, E9 seam
-> first). It has the full done-state, building blocks, Tranche-2 plan + gates, carry-forwards, and the
-> orchestration mechanics/gotchas. The summary below is the short form.
+> **Resuming the build?** Read `ORCHESTRATION-HANDOFF-2026-06-18c-E11.md` first — it is the canonical resume
+> point. The original MVP (**E1–E8**) plus Tranche-2 **E9 (seam)** and **E10 (structural & textual
+> completeness)** are all COMPLETE + adversarially reviewed + remediated on `Liv`. **Next = Epic 11
+> (Regulatory Computation Verification — the moat), gated on a table-extraction spike (Story 11.1) + a
+> real-statement corpus.** That doc has the building blocks, the E11 plan + gate, carry-forwards, and the
+> orchestration mechanics/gotchas. (`ORCHESTRATION-HANDOFF-2026-06-18.md` remains accurate for the
+> E1–E10 done-state detail.) The summary below is the short form.
 
 **Epic 1 — Foundation & Isolation: DONE** (branch `Liv`, commits `83e5701f`→`f5ef52c0`),
 adversarially reviewed (1.1/1.2/1.4 genuinely done; 1.3 done-with-caveat). All additive — no
