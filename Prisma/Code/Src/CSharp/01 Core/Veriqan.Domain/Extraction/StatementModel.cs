@@ -355,6 +355,37 @@ public sealed class StatementModel
     public IReadOnlyList<SectionGap> SectionGaps { get; init; } = [];
 
     // -----------------------------------------------------------------------
+    // Word-level typography samples (Epic 12 — point-size + bold checks)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Word-level typography samples collected from the PDF text layer (Epic 12).
+    /// One entry per non-whitespace word across all pages; each sample carries the
+    /// rendered <see cref="TextTypographySample.PointSize"/>, raw
+    /// <see cref="TextTypographySample.FontName"/>, and bounding-box
+    /// <see cref="TextTypographySample.Locator"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Epic 12).  Always non-null; an empty list
+    /// combined with <see cref="TypographyExtractionStatus"/> ==
+    /// <see cref="TypographyExtractionStatus.NotFound"/> indicates a scanned-image PDF with no
+    /// text layer.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<TextTypographySample> TypographySamples { get; init; } = Array.Empty<TextTypographySample>();
+
+    /// <summary>
+    /// Indicates the outcome of the word-level typography extraction pass (Epic 12).
+    /// </summary>
+    /// <remarks>
+    /// <see cref="TypographyExtractionStatus.Extracted"/> when the PDF text layer contained at least
+    /// one non-whitespace word.  <see cref="TypographyExtractionStatus.NotFound"/> when no such words
+    /// were found (scanned PDF or empty document).
+    /// </remarks>
+    public TypographyExtractionStatus TypographyExtractionStatus { get; init; } = TypographyExtractionStatus.NotFound;
+
+    // -----------------------------------------------------------------------
     // Financial regulatory tables (Story 11.1 — §8, §19, §20, §16)
     // -----------------------------------------------------------------------
 

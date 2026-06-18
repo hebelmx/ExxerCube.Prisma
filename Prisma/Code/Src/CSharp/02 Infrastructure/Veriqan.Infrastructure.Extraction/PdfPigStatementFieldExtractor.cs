@@ -257,6 +257,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Single-pass: reuses the open doc (no second PDF open).
             var financialTables = ExtractFinancialTables(doc, detectedSections);
 
+            // ---- Word-level typography samples — Epic 12 --------------------
+            // Collect rendered point-size and font-name per word across all pages.
+            var (typographySamples, typographyExtractionStatus) = ExtractTypographySamples(doc);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -308,6 +312,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 Sections = detectedSections,
                 SectionGaps = sectionGaps,
                 FinancialTables = financialTables,
+                TypographySamples = typographySamples,
+                TypographyExtractionStatus = typographyExtractionStatus,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -2002,6 +2008,85 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             .ToList();
 
         return (runs, FontExtractionStatus.Extracted);
+    }
+
+    /// <summary>
+    /// Collects word-level typography samples from every page of the PDF (Epic 12).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Uses PdfPig's built-in word grouper (<c>page.GetWords()</c>) to reconstruct words
+    /// from individual letter glyphs.  For each word, the rendered point size and raw font
+    /// name are taken from the word's first letter (<c>word.Letters[0]</c>) — this is
+    /// consistent with how <c>ExtractFontRuns</c> reads per-letter metrics.
+    /// </para>
+    /// <para>
+    /// <see cref="TextTypographySample.PointSize"/> is the CTM-accounted rendered size
+    /// as reported by PdfPig's <c>letter.PointSize</c> property.
+    /// </para>
+    /// <para>
+    /// Never throws — individual word failures are silently skipped (mirror of the
+    /// <c>ExtractFontRuns</c> "individual letter failures silently skipped" contract).
+    /// </para>
+    /// </remarks>
+    /// <param name="doc">The open <see cref="PdfDocument"/>.</param>
+    /// <returns>
+    /// A tuple of the word-level typography sample list and the extraction status.
+    /// </returns>
+    private static (IReadOnlyList<TextTypographySample> samples, TypographyExtractionStatus status)
+        ExtractTypographySamples(PdfDocument doc)
+    {
+        var samples = new List<TextTypographySample>();
+        var anyWordFound = false;
+
+        for (var pageIndex = 1; pageIndex <= doc.NumberOfPages; pageIndex++)
+        {
+            UglyToad.PdfPig.Content.Page page;
+            try
+            {
+                page = doc.GetPage(pageIndex);
+            }
+            catch (Exception)
+            {
+                // Skip unreadable pages (silently — mirrors ExtractFontRuns behaviour).
+                continue;
+            }
+
+            foreach (var word in page.GetWords())
+            {
+                // Skip empty words and pure-whitespace tokens.
+                if (word.Letters.Count == 0 || string.IsNullOrWhiteSpace(word.Text))
+                    continue;
+
+                anyWordFound = true;
+
+                var firstLetter = word.Letters[0];
+                var rawFontName = firstLetter.FontName ?? string.Empty;
+                var pointSize = firstLetter.PointSize;
+                var isBold = rawFontName.Contains("bold", StringComparison.OrdinalIgnoreCase);
+
+                var bb = word.BoundingBox;
+                var locator = new FieldLocator(
+                    pageIndex,
+                    bb.BottomLeft.X,
+                    bb.BottomLeft.Y,
+                    bb.Width,
+                    bb.Height);
+
+                samples.Add(new TextTypographySample(
+                    Text: word.Text,
+                    PointSize: pointSize,
+                    FontName: rawFontName,
+                    IsBold: isBold,
+                    PageNumber: pageIndex,
+                    Locator: locator));
+            }
+        }
+
+        if (!anyWordFound)
+            return (Array.Empty<TextTypographySample>(), TypographyExtractionStatus.NotFound);
+
+        return (samples, TypographyExtractionStatus.Extracted);
     }
 
     /// <summary>
