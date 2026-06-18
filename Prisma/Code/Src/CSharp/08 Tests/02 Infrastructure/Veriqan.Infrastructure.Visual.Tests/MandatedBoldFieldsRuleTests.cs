@@ -220,6 +220,7 @@ public sealed class MandatedBoldFieldsRuleTests
 
     // -----------------------------------------------------------------------
     // Test (b): All mandated fields bold (FontName "Aptos-Bold") → Pass
+    // All 9 fields at the same bottom with one bold sample — quorum (≥3) is met.
     // -----------------------------------------------------------------------
 
     [Fact]
@@ -271,13 +272,15 @@ public sealed class MandatedBoldFieldsRuleTests
     }
 
     // -----------------------------------------------------------------------
-    // Test (c): One mandated field in "Aptos" (clean family, no bold) → Fail
+    // Test (c): One mandated field with explicit non-bold weight token → Fail
+    // CHANGED: was "Aptos" (bare family → previously NotBold, now Indeterminate → not Fail).
+    // Now uses "Aptos-Regular" which carries the explicit "-Regular" token → confident NotBold.
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Evaluate_OneMandatedFieldInAptosPlain_ReturnsFail()
+    public void Evaluate_OneMandatedFieldWithExplicitRegularToken_ReturnsFail()
     {
-        // "Aptos" is a known family — without any bold token, ClassifyWeight → NotBold.
+        // "Aptos-Regular" carries the explicit "-Regular" weight token → ClassifyWeight → NotBold.
         const double bottom = 300.0;
         var fieldLocator = LocatorAt(bottom);
 
@@ -288,7 +291,7 @@ public sealed class MandatedBoldFieldsRuleTests
 
         var samples = new List<TextTypographySample>
         {
-            BoldSample("25-ago-2025", "Aptos", bottom), // known family, no bold token → NotBold
+            BoldSample("25-ago-2025", "Aptos-Regular", bottom), // explicit non-bold token → NotBold
         };
 
         var model = ModelWithSamples(samples, periodSummary: summary);
@@ -304,7 +307,7 @@ public sealed class MandatedBoldFieldsRuleTests
         finding.Expected.ShouldBe("negrillas (bold)");
         finding.Observed.ShouldNotBeNullOrEmpty();
         finding.Observed!.ShouldContain("fecha límite de pago");
-        finding.Observed.ShouldContain("Aptos");
+        finding.Observed.ShouldContain("Aptos-Regular");
         finding.Locator.ShouldNotBeNull();
     }
 
@@ -357,7 +360,7 @@ public sealed class MandatedBoldFieldsRuleTests
         {
             // Sample at a location for the Missing paymentDueDate locator (PageHint = no Bottom).
             // This sample won't be joined because the field locator has no Bottom.
-            BoldSample("anything", "Aptos", bottom),
+            BoldSample("anything", "Aptos-Regular", bottom),
         };
 
         var summary = MinimalPeriodSummary(); // all fields Missing/NotExtracted
@@ -377,28 +380,35 @@ public sealed class MandatedBoldFieldsRuleTests
 
     // -----------------------------------------------------------------------
     // Test (f): Mixed — most bold, one confidently NotBold → Fail naming that field
+    // CHANGED: "Arial" (bare family) is now Indeterminate (not NotBold).
+    // Now uses "Arial-Regular" (explicit token) for the confident NotBold field.
     // -----------------------------------------------------------------------
 
     [Fact]
     public void Evaluate_MostBoldOneNotBold_FailsNamingOffender()
     {
-        // Two mandated fields:
-        // (1) paymentDueDate at bottom=500 → sample "Aptos-Bold" → Bold
-        // (2) saldoDeudorTotal at bottom=400 → sample "Arial" → NotBold (known family, no bold token)
-        var boldLocator = LocatorAt(500.0);
+        // Three mandated fields:
+        // (1) paymentDueDate at bottom=500 → "Aptos-Bold" → Bold
+        // (2) pagoParaNoGenerarIntereses at bottom=450 → "Aptos-Bold" → Bold
+        // (3) saldoDeudorTotal at bottom=400 → "Arial-Regular" → NotBold (explicit token)
+        var boldLocator1 = LocatorAt(500.0);
+        var boldLocator2 = LocatorAt(450.0);
         var notBoldLocator = LocatorAt(400.0);
 
-        var paymentDueDate = ExtractedField<DateOnly>.Found(new DateOnly(2025, 8, 25), boldLocator);
+        var paymentDueDate = ExtractedField<DateOnly>.Found(new DateOnly(2025, 8, 25), boldLocator1);
+        var pagoParaNoGenerarIntereses = ExtractedField<decimal>.Found(32446.69m, boldLocator2);
         var saldoDeudorTotal = ExtractedField<decimal>.Found(32446.69m, notBoldLocator);
 
         var summary = MinimalPeriodSummary(
             paymentDueDate: paymentDueDate,
+            pagoParaNoGenerarIntereses: pagoParaNoGenerarIntereses,
             saldoDeudorTotal: saldoDeudorTotal);
 
         var samples = new List<TextTypographySample>
         {
-            BoldSample("25-ago-2025", "Aptos-Bold", 500.0),    // Bold — paymentDueDate line
-            BoldSample("32446.69",    "Arial",      400.0),    // NotBold — saldoDeudorTotal line
+            BoldSample("25-ago-2025", "Aptos-Bold",     500.0),    // Bold — paymentDueDate line
+            BoldSample("32446.69",    "Aptos-Bold",     450.0),    // Bold — pagoParaNoGenerarIntereses line
+            BoldSample("32446.69",    "Arial-Regular",  400.0),    // NotBold — saldoDeudorTotal line
         };
 
         var model = ModelWithSamples(samples, periodSummary: summary);
@@ -413,12 +423,15 @@ public sealed class MandatedBoldFieldsRuleTests
         finding.Severity.ShouldBe(FindingSeverity.Critical);
         finding.Observed.ShouldNotBeNullOrEmpty();
         finding.Observed!.ShouldContain("saldo deudor total");
-        finding.Observed.ShouldContain("Arial");
+        finding.Observed.ShouldContain("Arial-Regular");
     }
 
     // -----------------------------------------------------------------------
-    // Additional: ClassifyWeight unit tests (internal method, tested via reflection path
-    // or accessible because it's internal and the test is in the same assembly).
+    // Additional: ClassifyWeight unit tests
+    // CHANGED: bare known-family names ("Aptos", "Arial", "Helvetica", "Calibri",
+    //   "TimesNewRoman") now → Indeterminate (not NotBold), because a bare family
+    //   name carries no explicit non-bold weight token.
+    //   Only an explicit token like "-Regular", "-Light" etc. → NotBold.
     // -----------------------------------------------------------------------
 
     [Theory]
@@ -427,13 +440,18 @@ public sealed class MandatedBoldFieldsRuleTests
     [InlineData("BlackItalic", WeightClass.Bold)]
     [InlineData("HeavyText", WeightClass.Bold)]
     [InlineData("SemiBoldVariant", WeightClass.Bold)]
-    [InlineData("Aptos", WeightClass.NotBold)]
-    [InlineData("Arial", WeightClass.NotBold)]
-    [InlineData("Helvetica", WeightClass.NotBold)]
-    [InlineData("Calibri", WeightClass.NotBold)]
+    // Bare family names — no weight token → Indeterminate (CHANGED from NotBold).
+    [InlineData("Aptos", WeightClass.Indeterminate)]
+    [InlineData("Arial", WeightClass.Indeterminate)]
+    [InlineData("Helvetica", WeightClass.Indeterminate)]
+    [InlineData("Calibri", WeightClass.Indeterminate)]
+    [InlineData("TimesNewRoman", WeightClass.Indeterminate)]
+    // Explicit non-bold tokens → NotBold.
     [InlineData("ABCDEF+Aptos-Regular", WeightClass.NotBold)]
     [InlineData("Aptos-Light", WeightClass.NotBold)]
-    [InlineData("TimesNewRoman", WeightClass.NotBold)]
+    [InlineData("Arial-Regular", WeightClass.NotBold)]
+    [InlineData("ArialMT-Regular", WeightClass.NotBold)]
+    // Mangled/unknown names → Indeterminate.
     [InlineData("ABCDEE+QWERTY", WeightClass.Indeterminate)]
     [InlineData("XF1234+ZXQ9", WeightClass.Indeterminate)]
     [InlineData("", WeightClass.Indeterminate)]
@@ -508,12 +526,13 @@ public sealed class MandatedBoldFieldsRuleTests
 
     // -----------------------------------------------------------------------
     // Additional: Band-join — sample outside tolerance is not joined
+    // Tolerance is now 5 pt; the sample is 10 pt away → still not joined.
     // -----------------------------------------------------------------------
 
     [Fact]
     public void Evaluate_SampleOutsideTolerance_IsNotJoined_ReturnsInsufficientData()
     {
-        // Field at bottom=400, sample at bottom=410 (distance=10 > SameLineTolerance=3).
+        // Field at bottom=400, sample at bottom=410 (distance=10 > SameLineTolerance=5).
         const double fieldBottom = 400.0;
         const double sampleBottom = 410.0;
 
@@ -524,8 +543,8 @@ public sealed class MandatedBoldFieldsRuleTests
 
         var samples = new List<TextTypographySample>
         {
-            // This sample is too far from the field locator — must not be joined.
-            BoldSample("Aptos", "Aptos", sampleBottom),
+            // This sample is too far from the field locator (10 pt > 5 pt tolerance) — must not be joined.
+            BoldSample("Aptos", "Aptos-Regular", sampleBottom),
         };
 
         var model = ModelWithSamples(samples, periodSummary: summary);
@@ -542,12 +561,62 @@ public sealed class MandatedBoldFieldsRuleTests
 
     // -----------------------------------------------------------------------
     // Additional: Mixed bold + indeterminate on same band → field is Bold (ANY bold wins)
+    // CHANGED: with quorum=3 and only 1 extracted field (paymentDueDate), boldCount=1 < 3.
+    // Now uses 3 extracted fields all bold so quorum is met → Pass.
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Evaluate_BoldAndIndeterminateSamplesOnBand_FieldClassifiedAsBold()
+    public void Evaluate_BoldAndIndeterminateSamplesOnBand_QuorumMet_FieldClassifiedAsBold()
     {
-        const double bottom = 500.0;
+        const double bottom1 = 500.0;
+        const double bottom2 = 450.0;
+        const double bottom3 = 400.0;
+
+        var locator1 = LocatorAt(bottom1);
+        var locator2 = LocatorAt(bottom2);
+        var locator3 = LocatorAt(bottom3);
+
+        var paymentDueDate = ExtractedField<DateOnly>.Found(new DateOnly(2025, 8, 25), locator1);
+        var pagoParaNoGenerarIntereses = ExtractedField<decimal>.Found(32446.69m, locator2);
+        var pagoMinimoMasMeses = ExtractedField<decimal>.Found(3145.39m, locator3);
+
+        var summary = MinimalPeriodSummary(
+            paymentDueDate: paymentDueDate,
+            pagoParaNoGenerarIntereses: pagoParaNoGenerarIntereses,
+            pagoMinimoMasMeses: pagoMinimoMasMeses);
+
+        var samples = new List<TextTypographySample>
+        {
+            // Field 1: one bold sample + one indeterminate in band → bold wins (ANY bold rule).
+            BoldSample("25-ago-2025", "ABCDEF+Aptos-Bold", bottom1),     // Bold
+            BoldSample("etiqueta",    "ABCDEE+QWERTY",     bottom1 + 1), // Indeterminate (within 5 pt tolerance)
+            // Field 2: bold sample.
+            BoldSample("32446.69", "Aptos-Bold", bottom2),
+            // Field 3: bold sample.
+            BoldSample("3145.39", "Aptos-Bold", bottom3),
+        };
+
+        var model = ModelWithSamples(samples, periodSummary: summary);
+        var rule = GetRule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        // All 3 fields are Bold, quorum (≥3) is met → Pass.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW Test (quorum): Only 1 bold field located, rest NotExtracted → InsufficientData
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_OnlyOneBoldFieldLocated_RestNotExtracted_ReturnsInsufficientData()
+    {
+        // Only paymentDueDate is extracted (bold). The other 8 mandated fields are Missing.
+        // boldCount = 1 < QuorumThreshold (3) → InsufficientData.
+        const double bottom = 400.0;
         var fieldLocator = LocatorAt(bottom);
         var paymentDueDate = ExtractedField<DateOnly>.Found(new DateOnly(2025, 8, 25), fieldLocator);
 
@@ -555,9 +624,115 @@ public sealed class MandatedBoldFieldsRuleTests
 
         var samples = new List<TextTypographySample>
         {
-            // One bold sample and one indeterminate on the same line.
-            BoldSample("25-ago-2025", "ABCDEF+Aptos-Bold", bottom),     // Bold
-            BoldSample("etiqueta",    "ABCDEE+QWERTY",     bottom + 1), // Indeterminate (within tolerance)
+            BoldSample("25-ago-2025", "Aptos-Bold", bottom),
+        };
+
+        var model = ModelWithSamples(samples, periodSummary: summary);
+        var rule = GetRule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        // Only 1 bold field found — quorum not met.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Pass);
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW Test (bare-family): Bare family name → Indeterminate → InsufficientData (not Fail)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_BareFamilyNameMandatedField_ReturnsInsufficientData_NotFail()
+    {
+        // "Aptos" bare — no weight token — ClassifyWeight → Indeterminate.
+        // With only 1 indeterminate field → InsufficientData, NOT Fail.
+        const double bottom = 300.0;
+        var fieldLocator = LocatorAt(bottom);
+        var paymentDueDate = ExtractedField<DateOnly>.Found(new DateOnly(2025, 8, 25), fieldLocator);
+
+        var summary = MinimalPeriodSummary(paymentDueDate: paymentDueDate);
+
+        var samples = new List<TextTypographySample>
+        {
+            BoldSample("25-ago-2025", "Aptos", bottom), // bare family, no token → Indeterminate
+        };
+
+        var model = ModelWithSamples(samples, periodSummary: summary);
+        var rule = GetRule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        // A bare family name must NOT produce Fail — it's Indeterminate → InsufficientData.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW Test (explicit -Regular token): Mandated field with "ArialMT-Regular" → Fail
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_ExplicitRegularTokenMandatedField_ReturnsFail()
+    {
+        // "ArialMT-Regular" has the explicit "-Regular" non-bold token → ClassifyWeight → NotBold.
+        // A mandated bold field that is confidently NotBold → Fail.
+        const double bottom = 350.0;
+        var fieldLocator = LocatorAt(bottom);
+        var paymentDueDate = ExtractedField<DateOnly>.Found(new DateOnly(2025, 8, 25), fieldLocator);
+
+        var summary = MinimalPeriodSummary(paymentDueDate: paymentDueDate);
+
+        var samples = new List<TextTypographySample>
+        {
+            BoldSample("25-ago-2025", "ArialMT-Regular", bottom),
+        };
+
+        var model = ModelWithSamples(samples, periodSummary: summary);
+        var rule = GetRule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        // Explicit non-bold token → NotBold → Fail regardless of quorum.
+        finding.Verdict.ShouldBe(FindingVerdict.Fail);
+        finding.Severity.ShouldBe(FindingSeverity.Critical);
+        finding.Observed.ShouldNotBeNullOrEmpty();
+        finding.Observed!.ShouldContain("ArialMT-Regular");
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW Test (3 bold fields meet quorum): Exactly QuorumThreshold bold → Pass
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_ExactlyThreeBoldFieldsLocated_ReturnsPass()
+    {
+        // Exactly 3 extracted bold fields → quorum met → Pass.
+        var loc1 = LocatorAt(500.0);
+        var loc2 = LocatorAt(450.0);
+        var loc3 = LocatorAt(400.0);
+
+        var paymentDueDate = ExtractedField<DateOnly>.Found(new DateOnly(2025, 8, 25), loc1);
+        var pagoParaNoGenerarIntereses = ExtractedField<decimal>.Found(32446.69m, loc2);
+        var pagoMinimoMasMeses = ExtractedField<decimal>.Found(3145.39m, loc3);
+
+        var summary = MinimalPeriodSummary(
+            paymentDueDate: paymentDueDate,
+            pagoParaNoGenerarIntereses: pagoParaNoGenerarIntereses,
+            pagoMinimoMasMeses: pagoMinimoMasMeses);
+
+        var samples = new List<TextTypographySample>
+        {
+            BoldSample("valor1", "Aptos-Bold", 500.0),
+            BoldSample("valor2", "Aptos-Bold", 450.0),
+            BoldSample("valor3", "Aptos-Bold", 400.0),
         };
 
         var model = ModelWithSamples(samples, periodSummary: summary);
@@ -568,5 +743,6 @@ public sealed class MandatedBoldFieldsRuleTests
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.InsufficientData);
     }
 }

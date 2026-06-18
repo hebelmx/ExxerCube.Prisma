@@ -29,17 +29,35 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 /// triggers a <c>Fail</c>.
 /// </para>
 /// <para>
-/// <b>Proximity join:</b> for each mandated field whose
-/// <see cref="ExtractedField{T}.Status"/> is <see cref="ExtractionStatus.Extracted"/>
+/// <b>Bare-family-name rule (anti-false-Fail):</b> a font name whose family is recognized
+/// (e.g. bare <c>"Aptos"</c>, <c>"Arial"</c>) but carries NO explicit weight token is
+/// classified <see cref="WeightClass.Indeterminate"/>, not <see cref="WeightClass.NotBold"/>.
+/// A compliant pipeline may render bold via stroke-width synthesis while retaining the base
+/// family name; without glyph-level stroke-width data we cannot distinguish the two cases.
+/// Only an <em>explicit non-bold weight token</em> in the font name (e.g. <c>"-Regular"</c>,
+/// <c>"-Light"</c>) yields a confident <see cref="WeightClass.NotBold"/>.
+/// </para>
+/// <para>
+/// <b>Proximity join (band + X-proximity, two-column safety):</b> for each mandated field
+/// whose <see cref="ExtractedField{T}.Status"/> is <see cref="ExtractionStatus.Extracted"/>
 /// the rule locates <see cref="TextTypographySample"/> instances on the same page within a
 /// ±<see cref="SameLineTolerance"/> vertical band of the field's
-/// <see cref="FieldLocator.Bottom"/> coordinate.  When multiple samples fall in that band
-/// the field is classified as:
+/// <see cref="FieldLocator.Bottom"/> coordinate AND within a horizontal window of the
+/// label's <see cref="FieldLocator.Left"/> so that samples in adjacent columns are not
+/// mistakenly joined.  When multiple samples fall in that band the field is classified as:
 /// <list type="bullet">
 ///   <item><see cref="WeightClass.Bold"/> if ANY joined sample is bold.</item>
 ///   <item><see cref="WeightClass.NotBold"/> only if ALL joined samples are confidently NotBold.</item>
 ///   <item><see cref="WeightClass.Indeterminate"/> otherwise.</item>
 /// </list>
+/// </para>
+/// <para>
+/// <b>Coverage quorum:</b> the rule returns <c>Pass</c> only when at least
+/// <see cref="QuorumThreshold"/> mandated fields were located <em>and</em> all located
+/// fields are <see cref="WeightClass.Bold"/>.  Fewer located fields, or a mix of Bold and
+/// Indeterminate with no NotBold, yields <c>InsufficientData</c>.
+/// Note: the last-page fiscal block has no extracted locator and is not assessed here
+/// (documented abstain — the proximity join cannot reach it).
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
@@ -48,7 +66,8 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 ///   <item><see cref="TypographyExtractionStatus.NotFound"/> (scanned/image PDF — no text layer).</item>
 ///   <item><see cref="StatementModel.TypographySamples"/> is empty.</item>
 ///   <item><see cref="StatementModel.PeriodSummary"/> is <see langword="null"/>.</item>
-///   <item>No mandated field could be located (all NotExtracted or all Indeterminate).</item>
+///   <item>Fewer than <see cref="QuorumThreshold"/> mandated fields could be located.</item>
+///   <item>All located fields are Indeterminate (no confident bold or not-bold signal).</item>
 /// </list>
 /// </para>
 /// </remarks>
@@ -56,8 +75,17 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
 
-    // Vertical-band tolerance for "same line" heuristic (matches 12.1's value).
-    private const double SameLineTolerance = 3.0;
+    // Vertical-band tolerance for "same line" heuristic.
+    // Aligned to the extractor's Y-band tolerance (~5 pt) to avoid missing value glyphs.
+    private const double SameLineTolerance = 5.0;
+
+    // Horizontal window for the proximity join (two-column safety).
+    private const double HorizLeftSlack = 5.0;
+    private const double HorizRightLimit = 300.0;
+
+    // Minimum number of mandated fields that must be located (Bold or NotBold) before
+    // the rule can return Pass.  Fewer → InsufficientData (quorum not met).
+    private const int QuorumThreshold = 3;
 
     // -----------------------------------------------------------------------
     // IVecValidationRule
@@ -101,7 +129,7 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
         var samples = model.TypographySamples;
 
         // Enumerate each mandated field (label + ExtractedField accessor).
-        // The last-page fiscal block has no extracted locator — skip it per spec.
+        // The last-page fiscal block has no extracted locator — documented abstain.
         var mandatedFields = BuildMandatedFields(summary);
 
         // Per-field tallies.
@@ -165,12 +193,13 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
         // Verdict
         // -----------------------------------------------------------------------
 
-        // At least one mandated field is confidently NOT bold → Fail.
+        // At least one mandated field is confidently NOT bold → Fail (highest precedence).
         if (notBoldCount > 0)
         {
             var detail = $"Field '{offenderLabel}' is not bold (font(s): {offenderFontNames}). " +
                          $"Tally — bold: {boldCount}, not-bold: {notBoldCount}, " +
-                         $"indeterminate: {indeterminateCount}, not-located: {notLocatedCount}.";
+                         $"indeterminate: {indeterminateCount}, not-located: {notLocatedCount}. " +
+                         "Note: last-page fiscal block is not locator-addressable and was not assessed.";
 
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Fail(
@@ -183,8 +212,9 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
                     locator: offenderLocator ?? FieldLocator.PageHint(1)));
         }
 
-        // At least one mandated field was located and determinately bold → Pass.
-        if (boldCount > 0)
+        // Pass requires quorum: at least QuorumThreshold fields located AND all located are Bold.
+        // (notBoldCount == 0 here — Fail already handled above.)
+        if (boldCount >= QuorumThreshold)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
@@ -193,17 +223,21 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
                     engineVersion: Version,
                     observed: $"Mandated-bold check passed — bold: {boldCount}, " +
                                $"indeterminate (skipped): {indeterminateCount}, " +
-                               $"not-located/not-extracted: {notLocatedCount}."));
+                               $"not-located/not-extracted: {notLocatedCount}. " +
+                               "Note: last-page fiscal block is not locator-addressable and was not assessed."));
         }
 
-        // No mandated field could be determinately classified (all indeterminate or not-located).
+        // Quorum not met, or all located were Indeterminate → InsufficientData.
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.InsufficientData(
                 checkId: CheckId,
                 technique: Technique,
                 engineVersion: Version,
-                reason: $"No mandated-bold field could be confidently located or classified — " +
-                        $"indeterminate: {indeterminateCount}, not-located/not-extracted: {notLocatedCount}."));
+                reason: $"Quorum not met or no confident bold signal — " +
+                        $"bold: {boldCount} (need ≥{QuorumThreshold}), " +
+                        $"indeterminate: {indeterminateCount}, " +
+                        $"not-located/not-extracted: {notLocatedCount}. " +
+                        "Note: last-page fiscal block is not locator-addressable and was not assessed."));
     }
 
     // -----------------------------------------------------------------------
@@ -211,8 +245,9 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Joins typography samples on the same page and within
+    /// Joins typography samples on the same page, within
     /// ±<see cref="SameLineTolerance"/> of the field's <paramref name="fieldLocator"/> Bottom,
+    /// AND within the horizontal window of the field's Left (when available),
     /// then classifies the aggregate weight.
     /// </summary>
     /// <param name="samples">All typography samples for the document.</param>
@@ -235,8 +270,9 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
 
         var labelBottom = fieldLocator.Bottom!.Value;
         var labelPage = fieldLocator.PageNumber;
+        var labelLeft = fieldLocator.Left; // may be null
 
-        // Collect samples in the vertical band.
+        // Collect samples in the vertical + horizontal band.
         var hasBold = false;
         var hasIndeterminate = false;
         var notBoldFonts = new List<string>();
@@ -248,9 +284,20 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
             if (sample.Locator.Bottom is null)
                 continue;
 
+            // Vertical band.
             var vertDist = Math.Abs(sample.Locator.Bottom.Value - labelBottom);
             if (vertDist > SameLineTolerance)
                 continue;
+
+            // Horizontal window (only applied when the label locator has a Left value).
+            if (labelLeft is not null && sample.Locator.Left is not null)
+            {
+                var sampleLeft = sample.Locator.Left.Value;
+                var lo = labelLeft.Value - HorizLeftSlack;
+                var hi = labelLeft.Value + HorizRightLimit;
+                if (sampleLeft < lo || sampleLeft > hi)
+                    continue;
+            }
 
             var weight = ClassifyWeight(sample.FontName);
 
@@ -289,39 +336,18 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Known clean family names (subset-prefix stripped, style-suffix stripped) that
-    /// are confidently non-bold when no bold weight token is present.
-    /// </summary>
-    private static readonly HashSet<string> s_knownFamilies =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            "Aptos",
-            "Arial",
-            "Helvetica",
-            "Calibri",
-            "Times",
-            "TimesNewRoman",
-            "Verdana",
-            "Tahoma",
-        };
-
-    /// <summary>
-    /// Style suffixes stripped from embedded font names when normalizing to a family name.
-    /// Ordered longest-first so that "-BoldItalic" is tried before "-Bold" / "-Italic".
-    /// </summary>
-    private static readonly string[] s_styleSuffixes =
-        ["-BoldItalic", "-Bold", "-Italic", "-Light", "-SemiBold", "-Medium", "-Regular", "-Thin", "-Book", "-Roman"];
-
-    /// <summary>
     /// Bold weight tokens (OrdinalIgnoreCase).
     /// Semibold, Black, and Heavy are treated as bold to avoid false-Fail.
+    /// Matched as substrings anywhere in the font name.
     /// </summary>
     private static readonly string[] s_boldTokens =
         ["bold", "black", "heavy", "semibold"];
 
     /// <summary>
     /// Confident non-bold weight tokens (OrdinalIgnoreCase).
-    /// If any of these appear in the raw font name (and no bold token does), the font is NotBold.
+    /// These are matched only when preceded by a <c>-</c> or <c> </c> delimiter, so that
+    /// "TimesNewRoman" (family name containing "roman") is NOT classified as NotBold, while
+    /// "Times-Roman" and "Aptos-Regular" are.  This avoids false-Fail on bare family names.
     /// </summary>
     private static readonly string[] s_notBoldTokens =
         ["regular", "light", "thin", "book", "roman", "medium"];
@@ -329,11 +355,20 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
     /// <summary>
     /// Classifies the weight signal carried by a raw PDF embedded font name.
     /// </summary>
+    /// <remarks>
+    /// <b>Bare-family rule:</b> a recognized family name with NO weight token (e.g. bare
+    /// <c>"Aptos"</c> or <c>"Arial"</c>) is classified <see cref="WeightClass.Indeterminate"/>,
+    /// NOT <see cref="WeightClass.NotBold"/>.  A compliant pipeline may synthesize bold via
+    /// stroke-width while retaining the base family name; without glyph-level stroke-width data
+    /// we cannot distinguish the two cases.  Only an explicit non-bold token such as
+    /// <c>"-Regular"</c> or <c>"-Light"</c> yields a confident <see cref="WeightClass.NotBold"/>.
+    /// </remarks>
     /// <returns>
     /// <see cref="WeightClass.Bold"/> — font is confidently bold (contains a bold-weight token);
-    /// <see cref="WeightClass.NotBold"/> — font is confidently non-bold (known family with clear
-    /// non-bold weight token, or known family whose stripped name matches without any bold token);
-    /// <see cref="WeightClass.Indeterminate"/> — signal is ambiguous or font name is mangled.
+    /// <see cref="WeightClass.NotBold"/> — font carries an explicit non-bold weight token
+    ///     (e.g. <c>"Aptos-Regular"</c>, <c>"Arial-Light"</c>);
+    /// <see cref="WeightClass.Indeterminate"/> — signal is ambiguous: bare family name with no
+    ///     weight token, mangled/unknown name, or empty string.
     /// </returns>
     internal static WeightClass ClassifyWeight(string fontName)
     {
@@ -348,59 +383,48 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
         }
 
         // Check explicit non-bold tokens.
+        // A bare family name (no token) does NOT fall here — it falls through to Indeterminate.
+        // Tokens are matched only when preceded by '-' or ' ' to avoid false-Fail on family names
+        // that happen to contain the token string (e.g. "TimesNewRoman" contains "roman" but is
+        // not a weight designator; "Times-Roman" is).
         foreach (var notBoldToken in s_notBoldTokens)
         {
-            if (fontName.Contains(notBoldToken, StringComparison.OrdinalIgnoreCase))
+            if (ContainsDelimitedToken(fontName, notBoldToken))
                 return WeightClass.NotBold;
         }
 
-        // Normalize family (strip subset prefix + style suffix) and test against known families.
-        var family = NormalizeFamily(fontName);
-        if (s_knownFamilies.Contains(family))
-            return WeightClass.NotBold;
-
-        // No weight signal recognized — conservatively Indeterminate.
+        // No weight signal recognized (includes bare family names and mangled names).
+        // Conservatively Indeterminate — never false-Fail.
         return WeightClass.Indeterminate;
     }
 
     // -----------------------------------------------------------------------
-    // Font name normalization (mirrors Cl35FontComplianceRule logic)
+    // Token-match helper
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Strips the 6-uppercase-char '+' subset prefix and known style suffixes from a raw PDF
-    /// font name to recover the bare family name.
+    /// Returns <see langword="true"/> when <paramref name="token"/> appears in
+    /// <paramref name="source"/> preceded by a <c>-</c> or <c> </c> delimiter,
+    /// case-insensitively.  This prevents false-Fail on family names that happen to
+    /// contain a token substring (e.g. "TimesNewRoman" contains "roman" but is not a
+    /// weight designator; "Times-Roman" is preceded by <c>-</c> and matches correctly).
     /// </summary>
-    private static string NormalizeFamily(string fontName)
+    private static bool ContainsDelimitedToken(string source, string token)
     {
-        var name = fontName;
-
-        // Strip 6-uppercase-letter + '+' subset prefix (e.g. "ABCDEF+Aptos-Bold" → "Aptos-Bold").
-        if (name.Length > 7 && name[6] == '+' && IsUpperAlpha(name.AsSpan(0, 6)))
-            name = name[7..];
-
-        // Strip known style suffixes (longest first).
-        foreach (var suffix in s_styleSuffixes)
+        // Search case-insensitively.
+        var idx = source.IndexOf(token, StringComparison.OrdinalIgnoreCase);
+        while (idx >= 0)
         {
-            if (name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
-            {
-                name = name[..^suffix.Length];
-                break;
-            }
+            // Accept only when the token is preceded by a recognised delimiter.
+            // A token at position 0 is never a valid weight suffix (it would be the family name).
+            if (idx > 0 && source[idx - 1] is '-' or ' ')
+                return true;
+
+            // Advance search past this occurrence.
+            idx = source.IndexOf(token, idx + 1, StringComparison.OrdinalIgnoreCase);
         }
 
-        return name;
-    }
-
-    private static bool IsUpperAlpha(ReadOnlySpan<char> span)
-    {
-        foreach (var c in span)
-        {
-            if (c is < 'A' or > 'Z')
-                return false;
-        }
-
-        return true;
+        return false;
     }
 
     // -----------------------------------------------------------------------
@@ -410,7 +434,8 @@ internal sealed class MandatedBoldFieldsRule : IVecValidationRule
     /// <summary>
     /// Builds the enumerable of (human-readable label, locator, extraction status) tuples
     /// for every Acuerdo-mandated bold field that has an extracted locator.
-    /// The last-page fiscal block has no locator and is intentionally excluded per spec.
+    /// The last-page fiscal block has no locator and is intentionally excluded per spec
+    /// (documented abstain — not locator-addressable via proximity join).
     /// </summary>
     private static IEnumerable<(string Label, FieldLocator Locator, ExtractionStatus Status)>
         BuildMandatedFields(PeriodSummary summary)
@@ -467,14 +492,16 @@ internal enum WeightClass
     Bold,
 
     /// <summary>
-    /// Font is confidently non-bold (recognized non-bold family / weight token).
+    /// Font is confidently non-bold (carries an explicit non-bold weight token such as
+    /// "-Regular", "-Light", "-Thin", "-Book", "-Roman", or "-Medium").
+    /// A bare family name with no weight token is <see cref="Indeterminate"/>, not NotBold.
     /// Only a <c>NotBold</c> field that is mandated to be bold yields a <c>Fail</c>.
     /// </summary>
     NotBold,
 
     /// <summary>
-    /// Font-weight signal is ambiguous (mangled/unknown name with no weight token).
-    /// Such fields are skipped — never treated as a violation.
+    /// Font-weight signal is ambiguous: bare family name with no weight token, mangled/unknown
+    /// name, or empty string.  Such fields are skipped — never treated as a violation.
     /// </summary>
     Indeterminate,
 

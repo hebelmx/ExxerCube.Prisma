@@ -37,8 +37,8 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 ///   <item>
 ///     Prefer the <see cref="PeriodSummary.PaymentDueDate"/> extracted field when it is in
 ///     <see cref="ExtractionStatus.Extracted"/> status — its locator gives the exact label
-///     region; the PointSize of the nearest typography sample on the same page near that
-///     locator is used for the size check.
+///     region; the PointSize of the typography sample <b>nearest to the right of</b> that
+///     locator on the same page and vertical band is used for the size check.
 ///   </item>
 ///   <item>
 ///     If no extracted field is available, scan <see cref="StatementModel.TypographySamples"/>
@@ -46,10 +46,16 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 ///     accent-stripped lower-cased text forms the phrase "fecha limite de pago".
 ///   </item>
 ///   <item>
-///     If the field cannot be confidently located, the sub-check is skipped (not a Fail
-///     and not an InsufficientData for the whole rule).
+///     If the field cannot be confidently located, the rule returns
+///     <c>InsufficientData</c> (the ≥10 pt floor could not be verified).
 ///   </item>
 /// </list>
+/// </para>
+/// <para>
+/// <b>Band + X-proximity join (two-column safety):</b> when joining typography samples
+/// to the PaymentDueDate locator, only samples within ±<see cref="SameLineTolerance"/>
+/// vertically AND within a horizontal window of the label's <c>Left</c> coordinate are
+/// considered, so that the join does not cross into an adjacent column.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
@@ -57,6 +63,8 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 ///   <item><c>StatementModel</c> is <see langword="null"/> (extraction stage did not run).</item>
 ///   <item><see cref="TypographyExtractionStatus.NotFound"/> (scanned/image PDF — no text layer).</item>
 ///   <item><see cref="StatementModel.TypographySamples"/> is empty.</item>
+///   <item>No real-word body samples exist (nothing checkable against the 8 pt floor).</item>
+///   <item>Body floor is OK but the fecha-límite sub-check could not be located.</item>
 /// </list>
 /// </para>
 /// </remarks>
@@ -71,14 +79,22 @@ internal sealed class TypographyPointSizeFloorRule : IVecValidationRule
     // Epsilon biases toward Pass: only a CONFIDENT breach (size strictly below floor - epsilon) Fails.
     private const double Epsilon = 0.25;
 
-    // Vertical-band tolerance for "same line" heuristic when scanning for the fecha-límite phrase.
-    private const double SameLineTolerance = 3.0;
+    // Vertical-band tolerance for "same line" heuristic.
+    // Matched to the extractor's Y-band tolerance (~5 pt) so value glyphs sitting up to 5 pt
+    // off the locator Bottom are still joined.
+    private const double SameLineTolerance = 5.0;
+
+    // Horizontal window for the Strategy-1 proximity join (two-column safety).
+    // Samples must start at or to the right of the label left minus a small slack,
+    // and no further than 300 pt to the right of the label.
+    private const double HorizLeftSlack = 5.0;
+    private const double HorizRightLimit = 300.0;
 
     /// <inheritdoc />
     public string CheckId => "LAW-TYPO-MINSIZE";
 
     /// <inheritdoc />
-    public string DofNumeral => "Acuerdo Anexo — Tipografía (puntaje mínimo)";
+    public string DofNumeral => "Acuerdo Anexo / Guía de llenado — Tipografía (puntaje mínimo)";
 
     /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
@@ -134,75 +150,18 @@ internal sealed class TypographyPointSizeFloorRule : IVecValidationRule
             }
         }
 
-        // -----------------------------------------------------------------------
-        // Fecha-límite sub-check (best-effort — skipped on uncertainty).
-        // -----------------------------------------------------------------------
-
-        TextTypographySample? fechaOffender = null;
-        var fechaSubCheckLocated = false;
-        double? fechaMinPt = null;
-
-        // Strategy 1: use the extracted PaymentDueDate field locator when available.
-        if (model.PeriodSummary?.PaymentDueDate is { Status: ExtractionStatus.Extracted } paymentField)
+        // InsufficientData: no real-word samples means we cannot evaluate the body floor.
+        if (realWordCount == 0)
         {
-            fechaSubCheckLocated = true;
-            var labelLocator = paymentField.Locator;
-
-            // Find the typography sample on the same page closest to the label's vertical band.
-            // We take all samples on that page within the vertical band (± SameLineTolerance of
-            // the locator bottom) and pick the one with the smallest PointSize.
-            if (labelLocator.Bottom is not null)
-            {
-                var labelBottom = labelLocator.Bottom.Value;
-                var labelPage = labelLocator.PageNumber;
-                double? minPt = null;
-                TextTypographySample? candidate = null;
-
-                foreach (var sample in model.TypographySamples)
-                {
-                    if (sample.PageNumber != labelPage)
-                        continue;
-                    if (sample.Locator.Bottom is null)
-                        continue;
-
-                    var vertDist = Math.Abs(sample.Locator.Bottom.Value - labelBottom);
-                    if (vertDist > SameLineTolerance)
-                        continue;
-
-                    if (minPt is null || sample.PointSize < minPt)
-                    {
-                        minPt = sample.PointSize;
-                        candidate = sample;
-                    }
-                }
-
-                if (minPt is not null && candidate is not null)
-                {
-                    fechaMinPt = minPt;
-                    if (minPt < FechaLimiteFloorPt - Epsilon)
-                        fechaOffender = candidate;
-                }
-            }
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.InsufficientData(
+                    checkId: CheckId,
+                    technique: Technique,
+                    engineVersion: Version,
+                    reason: "No real-word body samples to evaluate the floor (all samples are single-character glyphs)."));
         }
 
-        // Strategy 2: phrase scan — only when Strategy 1 did not locate the field.
-        if (!fechaSubCheckLocated)
-        {
-            var phraseResult = TryLocateFechaLimitePhrase(model.TypographySamples);
-            if (phraseResult is not null)
-            {
-                fechaSubCheckLocated = true;
-                fechaMinPt = phraseResult.PointSize;
-                if (phraseResult.PointSize < FechaLimiteFloorPt - Epsilon)
-                    fechaOffender = phraseResult;
-            }
-        }
-
-        // -----------------------------------------------------------------------
-        // Verdict precedence: body violation > fecha violation > Pass.
-        // -----------------------------------------------------------------------
-
-        // Body violation takes highest precedence (most violations likely here).
+        // Body violation takes highest precedence — report immediately.
         if (bodyOffender is not null)
         {
             var detail = bodyViolationCount > 1
@@ -222,7 +181,96 @@ internal sealed class TypographyPointSizeFloorRule : IVecValidationRule
                     locator: bodyOffender.Locator));
         }
 
-        // Fecha-límite violation.
+        // -----------------------------------------------------------------------
+        // Fecha-límite sub-check (best-effort — abstain on uncertainty).
+        // -----------------------------------------------------------------------
+
+        TextTypographySample? fechaOffender = null;
+        var fechaSubCheckLocated = false;
+        double? fechaMinPt = null;
+
+        // Strategy 1: use the extracted PaymentDueDate field locator when available.
+        if (model.PeriodSummary?.PaymentDueDate is { Status: ExtractionStatus.Extracted } paymentField)
+        {
+            var labelLocator = paymentField.Locator;
+
+            // Find the typography sample on the same page closest to (just right of) the label.
+            // Two-column safety: constrain both vertically (±SameLineTolerance) AND horizontally
+            // (within [labelLeft - HorizLeftSlack, labelLeft + HorizRightLimit]).
+            if (labelLocator.Bottom is not null)
+            {
+                fechaSubCheckLocated = true;
+
+                var labelBottom = labelLocator.Bottom.Value;
+                var labelPage = labelLocator.PageNumber;
+                var labelLeft = labelLocator.Left; // may be null
+
+                TextTypographySample? candidate = null;
+                double? candidateLeftDist = null; // distance from label Left (smaller = nearer)
+
+                foreach (var sample in model.TypographySamples)
+                {
+                    if (sample.PageNumber != labelPage)
+                        continue;
+                    if (sample.Locator.Bottom is null)
+                        continue;
+
+                    // Vertical band.
+                    var vertDist = Math.Abs(sample.Locator.Bottom.Value - labelBottom);
+                    if (vertDist > SameLineTolerance)
+                        continue;
+
+                    // Horizontal window (only applied when the label locator has a Left value).
+                    if (labelLeft is not null && sample.Locator.Left is not null)
+                    {
+                        var sampleLeft = sample.Locator.Left.Value;
+                        var lo = labelLeft.Value - HorizLeftSlack;
+                        var hi = labelLeft.Value + HorizRightLimit;
+                        if (sampleLeft < lo || sampleLeft > hi)
+                            continue;
+                    }
+
+                    // Pick the sample whose Left is closest to labelLeft (nearest right of label).
+                    double dist;
+                    if (labelLeft is not null && sample.Locator.Left is not null)
+                        dist = Math.Abs(sample.Locator.Left.Value - labelLeft.Value);
+                    else
+                        dist = 0; // no X info — treat as nearest
+
+                    if (candidateLeftDist is null || dist < candidateLeftDist)
+                    {
+                        candidateLeftDist = dist;
+                        candidate = sample;
+                    }
+                }
+
+                if (candidate is not null)
+                {
+                    fechaMinPt = candidate.PointSize;
+                    if (candidate.PointSize < FechaLimiteFloorPt - Epsilon)
+                        fechaOffender = candidate;
+                }
+            }
+        }
+
+        // Strategy 2: phrase scan — only when Strategy 1 did not locate the field.
+        if (!fechaSubCheckLocated)
+        {
+            var phraseResult = TryLocateFechaLimitePhrase(model.TypographySamples);
+            if (phraseResult is not null)
+            {
+                fechaSubCheckLocated = true;
+                fechaMinPt = phraseResult.PointSize;
+                if (phraseResult.PointSize < FechaLimiteFloorPt - Epsilon)
+                    fechaOffender = phraseResult;
+            }
+        }
+
+        // -----------------------------------------------------------------------
+        // Verdict — body is OK at this point; now decide on fecha sub-check.
+        // -----------------------------------------------------------------------
+
+        // Fecha-límite confident violation.
         if (fechaOffender is not null)
         {
             var detail = $"'Fecha límite de pago' field rendered at {fechaOffender.PointSize:F2} pt " +
@@ -239,18 +287,31 @@ internal sealed class TypographyPointSizeFloorRule : IVecValidationRule
                     locator: fechaOffender.Locator));
         }
 
-        // Pass — build a summary for auditability.
-        var minBodyDisplay = minBodyPt == double.MaxValue ? "n/a" : $"{minBodyPt:F2} pt";
-        var fechaStatus = fechaSubCheckLocated
-            ? $"fecha-límite sub-check located (min {fechaMinPt:F2} pt — OK)"
-            : "fecha-límite sub-check skipped (label not confidently located)";
+        // Body floor OK but fecha sub-check could not be located → abstain.
+        // A clean Pass that hides an unverified mandated floor would be a false-Pass.
+        if (!fechaSubCheckLocated)
+        {
+            var minBodyDisplay = $"{minBodyPt:F2} pt";
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.InsufficientData(
+                    checkId: CheckId,
+                    technique: Technique,
+                    engineVersion: Version,
+                    reason: $"Body floor OK at min {minBodyDisplay}, but the ≥{FechaLimiteFloorPt} pt " +
+                            "fecha-límite floor could not be verified — the label was not located " +
+                            "(skipped: label not confidently located)."));
+        }
+
+        // Body OK AND fecha located and OK → Pass.
+        var minBodyStr = $"{minBodyPt:F2} pt";
+        var fechaStatusStr = $"fecha-límite sub-check located (min {fechaMinPt:F2} pt — OK)";
 
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.Pass(
                 checkId: CheckId,
                 technique: Technique,
                 engineVersion: Version,
-                observed: $"{realWordCount} real-word sample(s) checked; min body size: {minBodyDisplay}; {fechaStatus}."));
+                observed: $"{realWordCount} real-word sample(s) checked; min body size: {minBodyStr}; {fechaStatusStr}."));
     }
 
     // -----------------------------------------------------------------------

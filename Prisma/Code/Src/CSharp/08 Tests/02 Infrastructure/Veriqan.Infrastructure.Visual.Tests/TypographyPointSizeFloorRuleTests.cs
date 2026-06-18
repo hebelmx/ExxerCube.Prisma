@@ -268,21 +268,22 @@ public sealed class TypographyPointSizeFloorRuleTests
     }
 
     // -----------------------------------------------------------------------
-    // Test (e): Single-char glyph (Text length < 2) does NOT cause Fail
+    // Test (e): Single-char glyphs ONLY (no real words) → InsufficientData
+    // CHANGED: was "DoesNotFail → Pass"; now "no real-word body samples → InsufficientData".
+    // Rationale: with no real-word samples the body floor cannot be evaluated; abstaining is
+    // correct per the cardinal rule — never false-Pass an unverified floor.
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Evaluate_SingleCharGlyphBelowFloor_DoesNotFail()
+    public void Evaluate_OnlySingleCharGlyphs_NoRealWords_ReturnsInsufficientData()
     {
-        // A single-character sample at 4 pt must be ignored (superscript, ®, etc.).
-        // All real-word samples are above the floor.
+        // All samples are single-character glyphs (length < 2); realWordCount == 0.
         var samples = new List<TextTypographySample>
         {
             new("®", 4.0, "Arial", false, 1,
-                new FieldLocator(1, 100.0, 750.0, 5.0, 4.0)),   // single char — must be ignored
+                new FieldLocator(1, 100.0, 750.0, 5.0, 4.0)),
             new("*", 3.0, "Arial", false, 1,
-                new FieldLocator(1, 200.0, 750.0, 5.0, 3.0)),   // single char — must be ignored
-            Sample("Texto", 9.0),  // real word — above floor
+                new FieldLocator(1, 200.0, 750.0, 5.0, 3.0)),
         };
         var model = ModelWithSamples(samples);
         var rule = GetRule();
@@ -291,17 +292,48 @@ public sealed class TypographyPointSizeFloorRuleTests
         var result = rule.Evaluate(ctx, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    /// <summary>
+    /// Single-char glyphs do NOT drag the body floor below threshold; a real-word sample above
+    /// the floor is still evaluated correctly.  When the fecha sub-check is not locatable the
+    /// rule abstains (InsufficientData) rather than issuing a false Pass.
+    /// </summary>
+    [Fact]
+    public void Evaluate_SingleCharGlyphBelowFloor_RealWordAboveFloor_FechaAbsent_ReturnsInsufficientData()
+    {
+        // ® at 4 pt is skipped (single char).  "Texto" at 9 pt → body OK.
+        // No fecha phrase / no PaymentDueDate → fecha not located → InsufficientData.
+        var samples = new List<TextTypographySample>
+        {
+            new("®", 4.0, "Arial", false, 1,
+                new FieldLocator(1, 100.0, 750.0, 5.0, 4.0)),
+            Sample("Texto", 9.0),
+        };
+        var model = ModelWithSamples(samples);
+        var rule = GetRule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        // Body OK but fecha sub-check cannot be verified → InsufficientData (abstain).
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
     }
 
     // -----------------------------------------------------------------------
-    // Test (f): Fecha-límite label absent but body OK → Pass (sub-check skipped)
+    // Test (f): Fecha-límite label absent, body OK → InsufficientData
+    // CHANGED: was "Pass (sub-check skipped)"; now InsufficientData because a clean Pass
+    // that hides an unverified ≥10 pt mandated floor would be a false-Pass.
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Evaluate_FechaLimiteLabelAbsent_BodyOk_ReturnsPass()
+    public void Evaluate_FechaLimiteLabelAbsent_BodyOk_ReturnsInsufficientData()
     {
         // No fecha-límite label tokens in the samples, body is fine.
+        // No PaymentDueDate extracted field either.
         var samples = new List<TextTypographySample>
         {
             Sample("Saldo", 10.0),
@@ -315,8 +347,11 @@ public sealed class TypographyPointSizeFloorRuleTests
         var result = rule.Evaluate(ctx, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
-        // The observed text should mention that the sub-check was skipped.
+        // Body floor is OK but the fecha-límite ≥10 pt floor was not verified → abstain.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+        // The reason must mention that the label was not located. InsufficientData stores
+        // its reason in the Observed field (see RuleFinding.InsufficientData factory).
         result.Value.Observed.ShouldNotBeNullOrEmpty();
         result.Value.Observed!.ShouldContain("skipped");
     }
@@ -359,16 +394,23 @@ public sealed class TypographyPointSizeFloorRuleTests
     }
 
     // -----------------------------------------------------------------------
-    // Additional: Body exactly at floor (8.0 pt) → Pass (not a confident breach)
+    // Additional: Body exactly at floor (8.0 pt) with fecha present → Pass
+    // CHANGED: added fecha-límite phrase so Strategy 2 can locate it;
+    // otherwise body-OK + fecha-absent → InsufficientData (not Pass).
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Evaluate_BodyExactlyAtFloor_ReturnsPass()
+    public void Evaluate_BodyExactlyAtFloor_WithFechaPhrase_ReturnsPass()
     {
         // 8.0 pt is exactly the floor — Epsilon guards against this: 8.0 < 8.0 - 0.25 is false.
+        var fechaBottom = 500.0;
         var samples = new List<TextTypographySample>
         {
             Sample("Texto", 8.0),
+            SampleAt("Fecha", 11.0, 10.0, fechaBottom),
+            SampleAt("límite", 11.0, 50.0, fechaBottom),
+            SampleAt("de", 11.0, 90.0, fechaBottom),
+            SampleAt("pago", 11.0, 130.0, fechaBottom),
         };
         var model = ModelWithSamples(samples);
         var rule = GetRule();
@@ -381,8 +423,34 @@ public sealed class TypographyPointSizeFloorRuleTests
     }
 
     // -----------------------------------------------------------------------
-    // Additional: Body just above Epsilon threshold (7.76 pt) → Fail
-    //             Body in the Epsilon tolerance band (7.80 pt) → Pass
+    // Additional: Body without fecha present → InsufficientData (abstain)
+    // CHANGED (formerly Evaluate_BodyExactlyAtFloor_ReturnsPass /
+    //          Evaluate_BodyWithinEpsilonTolerance_ReturnsPass):
+    // those tests assumed Pass when fecha was absent; the new verdict is InsufficientData.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_BodyOnlyNoFecha_ReturnsInsufficientData()
+    {
+        // Body at 8.0 pt (exactly at floor) but no fecha phrase or PaymentDueDate.
+        var samples = new List<TextTypographySample>
+        {
+            Sample("Texto", 8.0),
+        };
+        var model = ModelWithSamples(samples);
+        var rule = GetRule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        // Body OK but fecha not verified → InsufficientData.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    // -----------------------------------------------------------------------
+    // Additional: Body just above Epsilon threshold (7.74 pt) → Fail
+    //             Body in the Epsilon tolerance band (7.80 pt) + fecha → Pass
     // -----------------------------------------------------------------------
 
     [Fact]
@@ -404,12 +472,18 @@ public sealed class TypographyPointSizeFloorRuleTests
     }
 
     [Fact]
-    public void Evaluate_BodyWithinEpsilonTolerance_ReturnsPass()
+    public void Evaluate_BodyWithinEpsilonTolerance_WithFechaPhrase_ReturnsPass()
     {
-        // 7.80 pt is NOT < 7.75 (floor - epsilon) → not a confident breach → Pass.
+        // 7.80 pt is NOT < 7.75 (floor - epsilon) → not a confident breach.
+        // Provide the fecha phrase so that Strategy 2 locates it and the rule can Pass.
+        var fechaBottom = 500.0;
         var samples = new List<TextTypographySample>
         {
             Sample("Adeudo", 7.80),
+            SampleAt("Fecha", 11.0, 10.0, fechaBottom),
+            SampleAt("límite", 11.0, 50.0, fechaBottom),
+            SampleAt("de", 11.0, 90.0, fechaBottom),
+            SampleAt("pago", 11.0, 130.0, fechaBottom),
         };
         var model = ModelWithSamples(samples);
         var rule = GetRule();
@@ -428,8 +502,8 @@ public sealed class TypographyPointSizeFloorRuleTests
     [Fact]
     public void Evaluate_FechaLimiteLocatedViaPeriodSummary_BelowFloor_ReturnsFail()
     {
-        // PaymentDueDate is extracted with a locator on page 1 at bottom=400.
-        // A typography sample on page 1 near bottom=400 is at 8 pt (below 10 pt floor).
+        // PaymentDueDate is extracted with a locator on page 1 at bottom=400, left=10.
+        // A typography sample on page 1 near bottom=401 and left=30 (within X window) at 8 pt.
         var labelLocator = new FieldLocator(1, 10.0, 400.0, 120.0, 10.0);
         var paymentDueDate = ExtractedField<DateOnly>.Found(
             new DateOnly(2025, 8, 25), labelLocator);
@@ -450,10 +524,10 @@ public sealed class TypographyPointSizeFloorRuleTests
             creditoDisponible: ExtractedField<decimal>.Missing(P1()));
 
         // Body text is fine at 10 pt; the fecha-límite region has a sample at 8 pt (breach).
+        // Sample at bottom=401 (within 5 pt tolerance), left=30 (within X window of label left=10).
         var samples = new List<TextTypographySample>
         {
-            Sample("Saldo", 10.0),          // body — OK
-            // Sample near the PaymentDueDate locator bottom (400 ± 3 pt tolerance).
+            Sample("Saldo", 10.0),
             SampleAt("límite", 8.0, 30.0, 401.0),   // fecha-límite area — breach
         };
 
@@ -526,5 +600,109 @@ public sealed class TypographyPointSizeFloorRuleTests
         // The observed message should mention the violation count (2).
         result.Value.Observed.ShouldNotBeNull();
         result.Value.Observed!.ShouldContain("2");
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW Test: Two-column band safety — small sample in adjacent column must NOT
+    // drag the fecha-límite sub-check below 10 pt (no false-Fail).
+    //
+    // Layout: label at left=10, bottom=400. Compliant value at left=130 (same band,
+    // 11 pt). A small 8 pt sample in the OTHER column at left=600 (same bottom=400)
+    // must be excluded by the X-proximity window.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_TwoColumnBand_AdjacentColumnSampleDoesNotDragFechaBelow10pt()
+    {
+        // Strategy 1: PaymentDueDate locator at page 1, bottom=400, left=10.
+        var labelLocator = new FieldLocator(1, 10.0, 400.0, 120.0, 10.0);
+        var paymentDueDate = ExtractedField<DateOnly>.Found(
+            new DateOnly(2025, 8, 25), labelLocator);
+
+        var periodSummary = new PeriodSummary(
+            product: ExtractedField<string>.Missing(P1()),
+            periodStart: ExtractedField<DateOnly>.Missing(P1()),
+            periodCutDate: ExtractedField<DateOnly>.Missing(P1()),
+            paymentDueDate: paymentDueDate,
+            dayCountPrinted: ExtractedField<int>.Missing(P1()),
+            dayCount: new DayCountVerification(null, null, false),
+            pagoParaNoGenerarIntereses: ExtractedField<decimal>.Missing(P1()),
+            pagoMinimo: ExtractedField<decimal>.Missing(P1()),
+            pagoMinimoMasMeses: ExtractedField<decimal>.Missing(P1()),
+            tasa: ExtractedField<decimal>.Missing(P1()),
+            cat: ExtractedField<decimal>.Missing(P1()),
+            saldoDeudorTotal: ExtractedField<decimal>.Missing(P1()),
+            creditoDisponible: ExtractedField<decimal>.Missing(P1()));
+
+        var samples = new List<TextTypographySample>
+        {
+            Sample("Saldo", 10.0),                    // body — OK
+            SampleAt("25-ago-2025", 11.0, 130.0, 400.0),  // value, same column, 11 pt — compliant
+            // Adjacent column: left=600, same band (bottom=400) — 8 pt.
+            // Must be excluded by X-proximity constraint (600 > 10 + 300 = 310).
+            SampleAt("OtroValor", 8.0, 600.0, 400.0),
+        };
+
+        var model = ModelWithSamples(samples, periodSummary: periodSummary);
+        var rule = GetRule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        // The 8 pt adjacent-column sample must NOT trigger a Fail — the compliant 11 pt
+        // value is the only one in the X window and it is above the 10 pt floor.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW Test: 5pt vertical tolerance — value glyph 4 pt off the label Bottom
+    // must still be joined by Strategy 1 and NOT cause a false Fail.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_ValueGlyph4ptOffLabelBottom_IsStillJoined_NoFalseFail()
+    {
+        // Label locator bottom=400, left=10.
+        // Value glyph bottom=404 (4 pt off — within 5 pt tolerance) at 11 pt — compliant.
+        // Under the OLD 3 pt tolerance this would have been missed, leaving fecha unlocated.
+        // Under the NEW 5 pt tolerance it must be joined.
+        var labelLocator = new FieldLocator(1, 10.0, 400.0, 120.0, 10.0);
+        var paymentDueDate = ExtractedField<DateOnly>.Found(
+            new DateOnly(2025, 8, 25), labelLocator);
+
+        var periodSummary = new PeriodSummary(
+            product: ExtractedField<string>.Missing(P1()),
+            periodStart: ExtractedField<DateOnly>.Missing(P1()),
+            periodCutDate: ExtractedField<DateOnly>.Missing(P1()),
+            paymentDueDate: paymentDueDate,
+            dayCountPrinted: ExtractedField<int>.Missing(P1()),
+            dayCount: new DayCountVerification(null, null, false),
+            pagoParaNoGenerarIntereses: ExtractedField<decimal>.Missing(P1()),
+            pagoMinimo: ExtractedField<decimal>.Missing(P1()),
+            pagoMinimoMasMeses: ExtractedField<decimal>.Missing(P1()),
+            tasa: ExtractedField<decimal>.Missing(P1()),
+            cat: ExtractedField<decimal>.Missing(P1()),
+            saldoDeudorTotal: ExtractedField<decimal>.Missing(P1()),
+            creditoDisponible: ExtractedField<decimal>.Missing(P1()));
+
+        var samples = new List<TextTypographySample>
+        {
+            Sample("Saldo", 10.0),
+            // Value glyph 4 pt off the label bottom — must be joined with 5 pt tolerance.
+            SampleAt("25-ago-2025", 11.0, 130.0, 404.0),
+        };
+
+        var model = ModelWithSamples(samples, periodSummary: periodSummary);
+        var rule = GetRule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        // Value glyph is joined (5 pt tolerance) and is at 11 pt → above floor → Pass.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail);
     }
 }
