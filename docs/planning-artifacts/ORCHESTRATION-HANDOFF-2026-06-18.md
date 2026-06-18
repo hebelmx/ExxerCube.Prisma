@@ -21,6 +21,26 @@ reviewed.** Remaining work = the **Tranche 2 regulatory tranche (E9–E13)**. Re
 > (CL-50..53) extraction-confidence so a garbled QR abstains, not false-Fail; tolerance ranges + CL-46
 > numeral pending legal review (tighten in E10). **NEXT = Epic 10 (Structural & Textual Completeness).**
 
+> **UPDATE 2026-06-18b — Epic 10 (Structural & Textual Completeness) is COMPLETE + adversarially reviewed +
+> remediated (3 passes)** on `Liv` (commits `d00784c8`→`0aa79400`, all pushed). Stories 10.1–10.6 (all
+> against the E9 seam, BaselineLocked + Deterministic, always abstain rather than false-Fail): §1–28 heading
+> detection (`StatementModel.Sections`/`DetectedSection` w/ `SectionDetectionStatus` + per-section
+> `SectionText`; §21/§28 optional; §1 logo Indeterminate; per-page geometry); order + >2 cm blank-gap
+> (`SectionGaps`); the `VecTextMatcher` tolerant primitive; 5 verbatim rules (§11/§17/§24/§26/§27 vs the
+> `Acuerdo` PDF text); conditional §23/§25; §18/§13 completeness. A 2-skeptic review found a SYSTEMIC
+> false-Pass (rules matched whole-doc, so §27's glossary made §9/§10 false-present and labels leaked across
+> sections) + false-FAILs (§21/§28 wrongly mandatory; null-geometry order; 2-column `SectionText`
+> truncation). R1/R2/R3 closed them: heading-based presence + tightened anchors, optional §21/§28, section-
+> scoped short-label rules (§18/§13/§23), and whole-doc matching for the long unique verbatim blocks (host-
+> section abstain gate retained). Whole E10 footprint green (App 115, Extraction 93, Validation 359,
+> Orchestration 36, Visual 48, ReferenceData 38, Reporting 21, Smoke 4; build 0/0). **Residuals (honest,
+> never false-block):** §9/§10 presence assumes legal print-order; §18 `SectionText` can over-extend when
+> §19/§20 absent (synthetic-fixture artifact); §23/§25 use token-presence (no per-row extraction); verbatim
+> threshold 0.82 is a constant (per-tenant knob deferred). **NEXT = Epic 11 (Regulatory Computation
+> Verification — the moat). E11 PREREQ: a PdfPig table-row/cell reconstruction spike + a real-CONDUSEF-
+> statement corpus — schedule the spike before the recompute rules; without the corpus they are only
+> synthetically testable.**
+
 ---
 
 ## 1. How to resume
