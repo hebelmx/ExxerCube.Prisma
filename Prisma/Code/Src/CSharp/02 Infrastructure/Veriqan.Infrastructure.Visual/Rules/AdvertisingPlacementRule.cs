@@ -44,10 +44,16 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 /// </list>
 /// </para>
 /// <para>
-/// <b>§12 length sub-check:</b> objective and deterministic.  If §12 is Present with
-/// non-empty text exceeding <see cref="Section12MaxChars"/> characters, that is a
-/// confident finding.  If §12 is Absent, Indeterminate, or has empty text, this
-/// sub-check is skipped (not Fail).
+/// <b>§12 length sub-check:</b> objective and deterministic.  The legal ceiling is
+/// <see cref="Section12LegalMaxChars"/> (700 chars).  However, the Epic-10 section-boundary
+/// extractor can over-extend a section's text in two-column or missing-adjacent-section
+/// layouts (a known E10 carry-forward: text bleeds from §12 into the next section when
+/// boundaries are uncertain).  A compliant §12 can therefore read &gt;700 chars purely
+/// from extraction bleed.  To avoid false-Fails the rule only fires when
+/// <c>SectionText.Length &gt; Section12LegalMaxChars * Section12UncertaintyMargin</c>
+/// (i.e. &gt; <see cref="Section12FailThreshold"/> chars).  The 700–805-char band is
+/// treated as within-extraction-uncertainty and is NOT a finding.
+/// If §12 is Absent, Indeterminate, or has empty text, this sub-check is skipped (not Fail).
 /// </para>
 /// <para>
 /// <b>Advertising heuristic sub-check:</b> scans section text — after
@@ -56,14 +62,31 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 /// ("meses sin intereses", "CAT", "pago", "tasa", "credito") are excluded from the
 /// marker list and will never trigger a Fail.
 /// </para>
+/// <para>
+/// <b>página-cero (unmodeled permitted zone — carry-forward):</b> the CONDUSEF
+/// Acuerdo also permits promotional content on the cover page ("página cero"), which
+/// precedes §1.  This concept is not modeled anywhere in the codebase (no §0 section
+/// type exists in the domain).  When página-cero modeling is added, this rule must be
+/// updated to treat it as a permitted zone alongside §21/§28.  Until then the gap is
+/// silent at runtime (no page-zero section is ever surfaced to the rule).
+/// </para>
 /// </remarks>
 internal sealed class AdvertisingPlacementRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
 
-    // §12 "Mensajes importantes" character ceiling.
-    // An over-length §12 is a high-confidence finding (the section has a fixed purpose).
-    private const int Section12MaxChars = 700;
+    // §12 "Mensajes importantes" character ceiling — the legal cap defined by the CONDUSEF Acuerdo.
+    private const int Section12LegalMaxChars = 700;
+
+    // Extraction-uncertainty margin (Epic-10 carry-forward): the section-boundary extractor can
+    // over-extend §12 text in two-column / missing-adjacent-section layouts, so a compliant §12
+    // can read slightly over 700 chars purely from extraction bleed.  The 700–805-char band is
+    // treated as within uncertainty.  Only fire when length > 700 * 1.15 ≈ 805 chars.
+    private const double Section12UncertaintyMargin = 1.15;
+
+    // Derived Fail threshold: Section12LegalMaxChars * Section12UncertaintyMargin = 805.
+    // Kept as a named constant so the magic number is not repeated and the intent is auditable.
+    private const int Section12FailThreshold = (int)(Section12LegalMaxChars * Section12UncertaintyMargin); // 805
 
     // Only §21 and §28 are the "sección opcional libre" — advertising is lawful there.
     private static readonly int[] PermittedAdvertisingSections = [21, 28];
@@ -85,6 +108,18 @@ internal sealed class AdvertisingPlacementRule : IVecValidationRule
     /// language.
     /// </para>
     /// <para>
+    /// <b>Pruned for substring-collision safety (Story 12.3 adversarial review):</b>
+    /// the following phrases were removed because they are substrings of, or identical to,
+    /// text that appears in mandated CONDUSEF/legal statement content and would cause
+    /// false-Fails on compliant statements:
+    /// <list type="bullet">
+    ///   <item><c>"SOLICITA TU"</c> — collides with "SOLICITA TU ACLARACIÓN" and
+    ///     "SOLICITA TUS COMPROBANTES" (standard CONDUSEF directive language).</item>
+    ///   <item><c>"ADQUIERE TU"</c> — can appear in legitimate product/rate disclosures.</item>
+    ///   <item><c>"TASA PREFERENCIAL"</c> — can appear in legitimate §10/§17 rate disclosure text.</item>
+    /// </list>
+    /// </para>
+    /// <para>
     /// Calibration carry-forward: this list must be validated against a real
     /// CONDUSEF-statement corpus.  Add entries only after confirmed false-negatives;
     /// remove entries that trigger false-positives in the wild.
@@ -94,11 +129,8 @@ internal sealed class AdvertisingPlacementRule : IVecValidationRule
     [
         "CONTRATA YA",
         "CONTRATA HOY",
-        "ADQUIERE TU",
-        "SOLICITA TU",
         "PROMOCION ESPECIAL",
         "OFERTA EXCLUSIVA",
-        "TASA PREFERENCIAL",
         "FELICIDADES HAS SIDO PRESELECCIONADO",
         "PREAPROBADO",
         "VISITA NUESTRA PAGINA PARA CONTRATAR",
@@ -149,10 +181,16 @@ internal sealed class AdvertisingPlacementRule : IVecValidationRule
             && !string.IsNullOrEmpty(section12.SectionText))
         {
             var len = section12.SectionText.Length;
-            if (len > Section12MaxChars)
+            // The legal ceiling is Section12LegalMaxChars (700 chars).
+            // However, the Epic-10 extractor can over-extend §12 text into the next
+            // section in two-column / missing-adjacent-section layouts (known E10 carry-forward).
+            // To avoid false-Fails on compliant statements, we only fire when length exceeds
+            // Section12FailThreshold (805 chars = 700 * 1.15).  The 700–805-char band is
+            // treated as within extraction uncertainty and is NOT flagged.
+            if (len > Section12FailThreshold)
             {
                 findings.Add((
-                    Detail: $"§12 SectionText is {len} chars, exceeding the {Section12MaxChars}-char ceiling by {len - Section12MaxChars} chars.",
+                    Detail: $"§12 SectionText is {len} chars, exceeding the {Section12LegalMaxChars}-char legal ceiling by {len - Section12LegalMaxChars} chars (Fail threshold: {Section12FailThreshold} chars, margin: {Section12UncertaintyMargin:P0} for extraction uncertainty).",
                     Locator: section12.Locator,
                     IsOverLength: true));
             }
@@ -207,7 +245,7 @@ internal sealed class AdvertisingPlacementRule : IVecValidationRule
                 : 0;
 
             var passNote = s12Len > 0
-                ? $"§12 length OK ({s12Len} chars ≤ {Section12MaxChars}); no advertising markers in non-permitted sections."
+                ? $"§12 length OK ({s12Len} chars ≤ {Section12FailThreshold} Fail threshold / {Section12LegalMaxChars} legal cap); no advertising markers in non-permitted sections."
                 : $"§12 length sub-check skipped (§12 absent/indeterminate or empty text); no advertising markers in non-permitted sections.";
 
             return Result<RuleFinding>.WithSuccess(
@@ -232,7 +270,7 @@ internal sealed class AdvertisingPlacementRule : IVecValidationRule
                 technique: Technique,
                 severity: severity,
                 engineVersion: Version,
-                expected: $"§12 ≤ {Section12MaxChars} chars; no promotional markers outside §21/§28.",
+                expected: $"§12 ≤ {Section12LegalMaxChars} chars (legal cap); no promotional markers outside §21/§28.",
                 observed: observed,
                 locator: primaryLocator));
     }

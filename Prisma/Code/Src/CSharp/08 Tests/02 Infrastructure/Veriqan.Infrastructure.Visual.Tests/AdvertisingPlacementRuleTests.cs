@@ -490,11 +490,15 @@ public sealed class AdvertisingPlacementRuleTests
     }
 
     // -----------------------------------------------------------------------
-    // Additional: §12 at 701 chars (1 over) → Fail
+    // Additional: §12 at 701 chars — within extraction-uncertainty margin → Pass
     // -----------------------------------------------------------------------
+    // CHANGED (Story 12.3 adversarial remediation): previously asserted Fail.
+    // The Fail threshold is now 805 (700 * 1.15), so 701 is within the uncertainty
+    // band (extraction bleed from Epic-10 boundary detector).  Preventive-gate
+    // cardinal rule: never false-Fail a compliant statement.
 
     [Fact]
-    public void Evaluate_Section12At701Chars_ReturnsFail()
+    public void Evaluate_Section12At701Chars_WithinUncertaintyMargin_ReturnsPass()
     {
         var rule = GetRule();
         var sections = new List<DetectedSection>
@@ -507,8 +511,114 @@ public sealed class AdvertisingPlacementRuleTests
         var result = rule.Evaluate(ctx, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
-            "§12 at 701 chars is 1 over the 700-char ceiling — must Fail.");
-        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "§12 at 701 chars is within the extraction-uncertainty margin (Fail threshold 805); must Pass, not Fail.");
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW: §12 at 750 chars — within uncertainty margin (700–805 band) → Pass
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_Section12At750Chars_WithinUncertaintyMargin_ReturnsPass()
+    {
+        var rule = GetRule();
+        var sections = new List<DetectedSection>
+        {
+            PresentSection(12, new string('D', 750)),
+        };
+        var model = ModelWithSections(sections);
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "§12 at 750 chars is within the 700–805 extraction-uncertainty band; must Pass.");
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW: §12 at 900 chars — beyond Fail threshold (805) → Fail Critical
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_Section12At900Chars_BeyondFailThreshold_ReturnsFail_Critical()
+    {
+        var rule = GetRule();
+        var sections = new List<DetectedSection>
+        {
+            PresentSection(12, new string('E', 900)),
+        };
+        var model = ModelWithSections(sections);
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        finding.Verdict.ShouldBe(FindingVerdict.Fail,
+            "§12 at 900 chars exceeds the 805-char Fail threshold — must Fail.");
+        finding.Severity.ShouldBe(FindingSeverity.Critical);
+        finding.Observed.ShouldNotBeNullOrEmpty();
+        finding.Observed!.ShouldContain("900");
+        finding.Observed.ShouldContain("700"); // legal cap still referenced in message
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW: Removed marker "SOLICITA TU ACLARACION" in a mandated section → NOT a Fail
+    // -----------------------------------------------------------------------
+    // "SOLICITA TU" was removed from the marker list because it is a substring of
+    // "SOLICITA TU ACLARACIÓN" / "SOLICITA TUS COMPROBANTES" — standard CONDUSEF
+    // directive language that appears in mandatory sections.
+
+    [Fact]
+    public void Evaluate_SolicitaTuAclaracion_InMandatedSection_DoesNotFail()
+    {
+        // Standard CONDUSEF directive language — must NEVER trigger Fail.
+        const string mandatedText =
+            "SOLICITA TU ACLARACION en un plazo no mayor a 45 dias habiles. " +
+            "SOLICITA TUS COMPROBANTES de cada operacion realizada.";
+
+        var rule = GetRule();
+        var sections = new List<DetectedSection>
+        {
+            PresentSection(3, mandatedText),
+        };
+        var model = ModelWithSections(sections);
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "\"SOLICITA TU\" was removed from the marker list — it collides with standard CONDUSEF directive text; must NOT trigger Fail.");
+    }
+
+    // -----------------------------------------------------------------------
+    // NEW: Kept marker "OFERTA EXCLUSIVA" in §3 (non-permitted) → Fail
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_OfertaExclusiva_InNonPermittedSection_ReturnsFail()
+    {
+        const string advertisingText = "Oferta exclusiva para clientes preferenciales — contrata ahora.";
+
+        var rule = GetRule();
+        var sections = new List<DetectedSection>
+        {
+            PresentSection(3, advertisingText),
+        };
+        var model = ModelWithSections(sections);
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        finding.Verdict.ShouldBe(FindingVerdict.Fail,
+            "\"OFERTA EXCLUSIVA\" is a kept promotional marker in a non-permitted section — must Fail.");
+        finding.Observed.ShouldNotBeNullOrEmpty();
+        finding.Observed!.ShouldContain("OFERTA EXCLUSIVA");
+        finding.Observed.ShouldContain("§3");
     }
 }
