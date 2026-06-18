@@ -30,13 +30,13 @@
 
   <ItemGroup>
     <!-- Copy Python module to output directory -->
-    <None Include="..\..\..\..\..\Fixtures\PRP2\python\vec_visual_font_identification\**\*.py">
+    <None Include="..\..\..\..\..\..\PRP\PRP2\python\vec_visual_font_identification\**\*.py">
       <Link>python\vec_visual_font_identification\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
     <!-- Copy test fixtures -->
-    <None Include="..\..\..\..\..\Fixtures\PRP2\*.pdf">
+    <None Include="..\..\..\..\..\..\Fixtures\PRP2\*.pdf">
       <Link>test_fixtures\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
