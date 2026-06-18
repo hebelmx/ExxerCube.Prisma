@@ -10,6 +10,7 @@ using ExxerCube.Prisma.Veriqan.Infrastructure.Visual.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
+using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -18,14 +19,15 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
 
 /// <summary>
 /// Composite <see cref="IServiceCollection"/> extension that registers the entire Veriqan VEC
-/// stack — application layer, all infrastructure adapters, pipeline, and batch processor — in
-/// a single call suitable for use in worker hosts and integration tests.
+/// stack — application layer, all infrastructure adapters, pipeline, batch processor, and the
+/// resume/reprocess services — in a single call suitable for use in worker hosts and integration
+/// tests.
 /// </summary>
 public static class VeriqanOrchestrationExtensions
 {
     /// <summary>
-    /// Registers all Veriqan VEC services required to run the end-to-end verification pipeline
-    /// and batch processor.
+    /// Registers all Veriqan VEC services required to run the end-to-end verification pipeline,
+    /// batch processor, resume-aware batching, and explicit reprocess.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -73,17 +75,22 @@ public static class VeriqanOrchestrationExtensions
             services.AddVeriqanInMemoryPersistence();
         }
 
-        // Pipeline + batch
+        // Pipeline + batch + resume/reprocess
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
+        services.AddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
+        services.AddSingleton<IReprocessAuditRepository, InMemoryReprocessAuditRepository>();
+        services.AddScoped<IReprocessService, ReprocessService>();
 
         return services;
     }
 
     /// <summary>
-    /// Registers lightweight in-memory stubs for <see cref="IVerificationJobRepository"/> and
-    /// <see cref="IDispositionRepository"/>. Intended for use without a database connection
-    /// (integration tests, local dev, unit test hosts).
+    /// Registers lightweight in-memory stubs for <see cref="IVerificationJobRepository"/>,
+    /// <see cref="IDispositionRepository"/>, <see cref="IVerificationResultStore"/>, and
+    /// <see cref="IReprocessAuditRepository"/>.
+    /// Intended for use without a database connection (integration tests, local dev, unit test
+    /// hosts).
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
     /// <returns>The service collection for chaining.</returns>
@@ -94,6 +101,8 @@ public static class VeriqanOrchestrationExtensions
 
         services.TryAddScoped<IVerificationJobRepository, InMemoryVerificationJobRepository>();
         services.TryAddScoped<IDispositionRepository, InMemoryDispositionRepository>();
+        services.TryAddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
+        services.TryAddSingleton<IReprocessAuditRepository, InMemoryReprocessAuditRepository>();
 
         return services;
     }

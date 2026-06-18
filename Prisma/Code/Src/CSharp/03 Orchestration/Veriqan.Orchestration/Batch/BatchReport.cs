@@ -9,14 +9,16 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// </summary>
 /// <param name="Outcomes">
 /// All <see cref="VerificationOutcome"/> instances produced by items that completed
-/// the pipeline successfully (including Blocked verdicts).
+/// the pipeline successfully during this run (including Blocked verdicts).
+/// Does not include items that were skipped due to resume.
 /// </param>
 /// <param name="ExceptionQueue">
 /// Items that could not be processed due to a pipeline failure or unexpected exception.
 /// </param>
 /// <param name="TotalSubmitted">Total number of submissions in the original batch.</param>
 /// <param name="CompletedCount">
-/// Number of items that produced a <see cref="VerificationOutcome"/> (Green + Red + Blocked).
+/// Number of items that produced a <see cref="VerificationOutcome"/> during this run
+/// (Green + Red + Blocked).  Does not include <see cref="AlreadyCompletedCount"/>.
 /// </param>
 /// <param name="BlockedCount">
 /// Subset of <see cref="CompletedCount"/> where the verdict is
@@ -31,6 +33,13 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// Number of completed items whose verdict signal is
 /// <see cref="ExxerCube.Prisma.Veriqan.Domain.Enums.VerdictSignal.Red"/>.
 /// </param>
+/// <param name="AlreadyCompletedCount">
+/// Number of items skipped because their content hash was already present in the
+/// <see cref="ExxerCube.Prisma.Veriqan.Orchestration.Reprocess.IVerificationResultStore"/>
+/// (only non-zero when <see cref="BatchOptions.Resume"/> is <see langword="true"/>).
+/// Resuming a fully-completed batch produces <c>AlreadyCompletedCount == TotalSubmitted</c>
+/// and zero pipeline invocations — the idempotent case.
+/// </param>
 public sealed record BatchReport(
     IReadOnlyList<VerificationOutcome> Outcomes,
     IReadOnlyList<ExceptionQueueEntry> ExceptionQueue,
@@ -39,4 +48,5 @@ public sealed record BatchReport(
     int BlockedCount,
     int FailedCount,
     int GreenCount,
-    int RedCount);
+    int RedCount,
+    int AlreadyCompletedCount = 0);

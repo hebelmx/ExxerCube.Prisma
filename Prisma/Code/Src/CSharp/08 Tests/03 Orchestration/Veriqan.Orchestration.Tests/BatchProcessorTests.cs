@@ -6,7 +6,9 @@ using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
+using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
+using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +44,8 @@ public sealed class BatchProcessorTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddScoped<IVerificationPipeline>(_ => pipeline);
+        // IVerificationResultStore is required by BatchProcessor (used when Resume=true)
+        services.AddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
         return services.BuildServiceProvider().GetRequiredService<IBatchProcessor>();
     }
@@ -180,6 +184,8 @@ public sealed class BatchProcessorTests
         services.AddLogging();
         services.AddScoped<IVerificationPipeline>(_ =>
             new DelayedPipeline(tracker, delayMs: 30, greenOutcome));
+        // IVerificationResultStore required by BatchProcessor constructor
+        services.AddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
         var processor = services.BuildServiceProvider().GetRequiredService<IBatchProcessor>();
 
