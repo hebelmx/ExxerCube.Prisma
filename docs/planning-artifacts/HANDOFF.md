@@ -83,10 +83,23 @@ PDF (PdfSharp, PdfPig→PdfSharp Y-flip, pixel-verified); RED email alert (Polly
 log-not-drop); human Disposition append-only audit (actor required, no auto-disposition; veriqan-schema
 migration). QA Console UI is a deferred thin surface.
 
-**Next:** Epic 8 (Batch Processing & Observability, FR-21/22; NFR-1/3/4) — bounded-concurrency batch worker
-+ exception queue, resume/reprocess idempotently, per-job metrics + measured throughput. Completes the
-original 55-item MVP. (Then: the Tranche 2 regulatory tranche E9–E13 — E9 seam first.) Full plan +
-carry-forwards + orchestration gotchas: `ORCHESTRATION-HANDOFF-2026-06-17.md`.
+**Epic 8 — Batch Processing & Observability: DONE** (commits `067a58b4`→`80acd33e`), reviewed. End-to-end
+`VerificationPipeline` (ingest→extract→bind→engine→verdict) + bounded-concurrency `BatchProcessor` +
+exception queue (NFR-3); resume (skip-completed by content hash) + reprocess (replace + append-only audit,
+actor required); metrics (Meter duration histogram / verdict-tagged counter / exceptions, throughput + p95)
++ correlation-id scopes. **PROVEN END-TO-END:** the pipeline ran over a real Dummie fixture → verdict RED,
+35 findings (CL-10/17/18/19/20…). One corrective Solution-1 touch (a `<Compile Remove>` so the Prisma
+Orchestration project stops globbing the additive `Veriqan.Orchestration` subfolder; arch suite still 26/26).
+
+**🎉 The original 55-item-checklist MVP (Epics 1–8) is COMPLETE** on `Liv`, end-to-end proven, ~430+
+Veriqan tests green, full solution 0/0.
+
+**Next:** the Tranche 2 regulatory-completeness tranche **E9–E13** (`docs/planning-artifacts/epics-tranche2-regulatory.md`)
+— **E9 (the rule-contract seam) first** (it retrofits the existing rules), then the new CONDUSEF checks;
+E11 needs a table-extraction spike; E13 gated on issue #17 (buyer discovery). Data-alignment carry-forward:
+reference-data product aliases must cover the extracted product token (e.g. "Tarjeta de Crédito BSSB", not
+just "BSSB") or binding BLOCKs. Full plan + carry-forwards + orchestration gotchas:
+`ORCHESTRATION-HANDOFF-2026-06-17.md`.
 
 ---
 
