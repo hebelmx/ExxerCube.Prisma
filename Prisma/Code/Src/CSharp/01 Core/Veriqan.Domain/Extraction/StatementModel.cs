@@ -353,4 +353,25 @@ public sealed class StatementModel
     /// </para>
     /// </remarks>
     public IReadOnlyList<SectionGap> SectionGaps { get; init; } = [];
+
+    // -----------------------------------------------------------------------
+    // Financial regulatory tables (Story 11.1 — §8, §19, §20, §16)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Reconstructed regulatory financial grids from sections §8, §19, §20, and §16 (when present).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story 11.1).  Always non-null; empty list when
+    /// the extraction stage predates Story 11.1 or the document has no text layer.
+    /// </para>
+    /// <para>
+    /// Each entry represents one section's grid.  Check
+    /// <see cref="FinancialTable.Status"/> before consuming rows — validation rules
+    /// MUST return InsufficientData rather than Fail when status is not
+    /// <see cref="TableExtractionStatus.Extracted"/>.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<FinancialTable> FinancialTables { get; init; } = [];
 }

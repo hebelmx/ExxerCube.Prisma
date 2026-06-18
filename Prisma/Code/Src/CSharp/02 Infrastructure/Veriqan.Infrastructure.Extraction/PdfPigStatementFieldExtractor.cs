@@ -252,6 +252,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Compute same-page vertical whitespace between consecutive present sections.
             var sectionGaps = ComputeSectionGaps(doc, detectedSections);
 
+            // ---- Financial regulatory tables — Story 11.1 -------------------
+            // Extract §8, §19, §20, §16 grids into typed rows/cells.
+            // Single-pass: reuses the open doc (no second PDF open).
+            var financialTables = ExtractFinancialTables(doc, detectedSections);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -302,6 +307,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 FiscalBlock = fiscalBlock,
                 Sections = detectedSections,
                 SectionGaps = sectionGaps,
+                FinancialTables = financialTables,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -3162,6 +3168,895 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         }
 
         return results;
+    }
+
+    // -----------------------------------------------------------------------
+    // Financial regulatory table extraction (Story 11.1)
+    // §8  — INDICADORES DEL COSTO ANUAL DE LA TARJETA
+    // §19 — SALDO SOBRE EL QUE SE CALCULARON LOS INTERESES DEL PERIODO
+    // §20 — DISTRIBUCIÓN DE TU ÚLTIMO PAGO
+    // §16 — INFORMACIÓN DE OTRAS LÍNEAS DE CRÉDITO  (conditional — absent → NotFound)
+    // -----------------------------------------------------------------------
+
+    // ---- §19 row labels (fixed, 6 rows) -----------------------------------
+    // Normalized anchor fragments used to detect each row in the §19 grid.
+    // Matching is done against the normalized (upper+accent-stripped) band text.
+    private static readonly string[] s_sec19RowLabels =
+    [
+        "ORDINARIOS",
+        "MORATORIO",
+        "DE SALDO REVOLVENTE A TASA PREFERENCIAL",
+        "DE COMPRAS Y CARGOS DIFERIDOS A MESES CON INTERESES",
+        "POR DISPOSICIONES DE EFECTIVO",
+        "POR DISPOSICIONES DE EFECTIVO DE OTRAS LINEAS",
+    ];
+
+    // Canonical display names (same order as anchors above).
+    private static readonly string[] s_sec19RowNames =
+    [
+        "Ordinarios",
+        "Moratorio",
+        "De saldo revolvente a tasa preferencial",
+        "De compras y cargos diferidos a meses con intereses",
+        "Por disposiciones de efectivo",
+        "Por disposiciones de efectivo de otras líneas de crédito",
+    ];
+
+    // ---- §19 column X-ranges (PDF points, bottom-left origin) -----------
+    // Empirically measured from Dummie VEC fixtures.
+    // Row label: X ≈ 15–195
+    // Saldo base: X ≈ 196–268
+    // Núm. de días: X ≈ 269–305
+    // Tasa de interés anual: X ≈ 306–365
+    // Monto de intereses: X ≈ 366–530
+    private const double Sec19LabelXMax = 195.0;
+    private const double Sec19SaldoXMin = 196.0;
+    private const double Sec19SaldoXMax = 268.0;
+    private const double Sec19DiasXMin = 269.0;
+    private const double Sec19DiasXMax = 305.0;
+    private const double Sec19TasaXMin = 306.0;
+    private const double Sec19TasaXMax = 365.0;
+    private const double Sec19MontoXMin = 366.0;
+
+    // ---- §20 column X-ranges (PDF points) --------------------------------
+    // §20 "DISTRIBUCIÓN DE TU ÚLTIMO PAGO" — 7 value columns.
+    // Column headers wrap 2-3 lines; values are on separate bands.
+    // Empirically: the single data row has 7 amount tokens spread across the page.
+    // Column layout (approximate, may vary):
+    //   Pagos y abonos:        X ≈ 15–100
+    //   Compras regulares:     X ≈ 101–175
+    //   A meses sin intereses: X ≈ 176–245
+    //   A meses con intereses: X ≈ 246–310
+    //   Intereses y comis.:    X ≈ 311–375
+    //   IVA de intereses:      X ≈ 376–440
+    //   Saldo a favor:         X ≈ 441–530
+    private static readonly (double XMin, double XMax, string ColName)[] s_sec20Columns =
+    [
+        (  0.0, 100.0, "Pagos y abonos"),
+        (101.0, 175.0, "Compras y cargos regulares"),
+        (176.0, 245.0, "Compras y cargos diferidos a meses sin intereses"),
+        (246.0, 310.0, "Compras y cargos diferidos a meses con intereses"),
+        (311.0, 375.0, "Intereses y comisiones"),
+        (376.0, 440.0, "IVA de intereses y comisiones"),
+        (441.0, 540.0, "Saldo a favor"),
+    ];
+
+    // ---- §8 label anchors (3 indicators) ----------------------------------
+    // Normalized text fragments that start each indicator row in the §8 block.
+    private static readonly string[] s_sec8RowAnchors =
+    [
+        "MONTO DE INTERESES PAGADOS EN LOS ULTIMOS 12 MESES",
+        "MONTO DE COMISIONES TOTALES PAGADAS EN LOS ULTIMOS 12 MESES",
+        "MONTO DE ANUALIDAD O COMISIONES",
+    ];
+
+    private static readonly string[] s_sec8RowNames =
+    [
+        "Monto de intereses pagados en los últimos 12 meses",
+        "Monto de comisiones totales pagadas en los últimos 12 meses",
+        "Monto de anualidad o comisiones por administración pagadas en los últimos 12 meses",
+    ];
+
+    // §8 is in the LEFT column; the RESUMEN block is in the RIGHT column.
+    // Guard: §8 values have X ≤ ~280 (left-column boundary).
+    private const double Sec8ValueXMax = 280.0;
+
+    // ---- Signed-amount pattern for §20 (may start with −/$) --------------
+    private static readonly Regex SignedAmountPattern = new(
+        @"^[+\-−]?\$?([\d,]+(?:\.\d+)?)$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Extracts the financial regulatory tables §8, §19, §20 (and §16 when present)
+    /// from the already-open <see cref="PdfDocument"/>.
+    /// </summary>
+    /// <remarks>
+    /// Reuses the open document — no second PDF open.
+    /// Uses <paramref name="detectedSections"/> to locate heading bands for each section
+    /// (page number + bounding-box Y) so that the extractor can scope its word-range scan.
+    /// Never throws — individual table failures yield Indeterminate or NotFound.
+    /// </remarks>
+    private IReadOnlyList<FinancialTable> ExtractFinancialTables(
+        PdfDocument doc,
+        IReadOnlyList<DetectedSection> detectedSections)
+    {
+        var tables = new List<FinancialTable>(4);
+
+        // Collect all bands in reading order once (reuse pattern from §-detection).
+        var allBands = CollectAllBandsInReadingOrder(doc);
+
+        tables.Add(ExtractSection8Table(allBands, detectedSections));
+        tables.Add(ExtractSection19Table(allBands, detectedSections));
+        tables.Add(ExtractSection20Table(allBands, detectedSections));
+        tables.Add(ExtractSection16Table(allBands, detectedSections));
+
+        return tables;
+    }
+
+    // -----------------------------------------------------------------------
+    // §8 — INDICADORES DEL COSTO ANUAL DE LA TARJETA
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Extracts the §8 "Indicadores del costo anual" block (3 label : amount indicator rows).
+    /// </summary>
+    /// <remarks>
+    /// §8 and §7 (RESUMEN DE CARGOS) share the same Y-bands in a two-column layout.
+    /// We guard against right-column bleed by capping X at <see cref="Sec8ValueXMax"/>.
+    /// </remarks>
+    private FinancialTable ExtractSection8Table(
+        List<BandEntry> allBands,
+        IReadOnlyList<DetectedSection> detectedSections)
+    {
+        const int secNum = 8;
+        const string secName = "Indicadores del costo anual de la tarjeta";
+
+        var sec = detectedSections.FirstOrDefault(s => s.SectionNumber == secNum);
+        if (sec is null || !sec.IsPresent)
+            return FinancialTable.NotFound(secNum, secName);
+
+        var headingLocator = sec.Locator;
+
+        try
+        {
+            // Find the band-index range for §8: from heading band to next present section band.
+            var headingBandIdx = FindBandIndexForSection(allBands, sec);
+            var (startBandIdx, endBandIdx) = GetSectionBandRange(allBands, detectedSections, secNum);
+
+            if (startBandIdx < 0)
+                return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+
+            // Get all words in the section band range.
+            var sectionWords = GetWordsInBandRange(allBands, startBandIdx, endBandIdx);
+
+            // Re-group into bands with tolerance.
+            var bands = GroupIntoBandsWithTolerance(sectionWords, YBandTolerance);
+            var sortedBands = bands.OrderByDescending(kv => kv.Key).ToList();
+
+            var rows = new List<TableRow>();
+
+            foreach (var (anchorNorm, rowName) in s_sec8RowAnchors.Zip(s_sec8RowNames))
+            {
+                // Find the band(s) containing this row label.
+                // §8 rows can wrap across 2 bands. We find the first band whose normalized
+                // text contains the anchor fragment.
+                var matchBand = sortedBands.FirstOrDefault(
+                    kv => NormalizeText(BandText(kv.Value)).Contains(anchorNorm, StringComparison.Ordinal));
+
+                if (matchBand.Value is null)
+                {
+                    // Row not found — produce a missing row but don't fail the whole table.
+                    var missingLoc = headingLocator;
+                    rows.Add(new TableRow(
+                        TableCell.LabelCell(rowName, missingLoc),
+                        [TableCell.Missing(missingLoc)]));
+                    continue;
+                }
+
+                var bandWords = matchBand.Value;
+                var bandLocator = BoundingBoxOf(bandWords, allBands.FirstOrDefault(b => b.Words == bandWords)?.PageNumber ?? headingLocator.PageNumber);
+
+                var labelCell = TableCell.LabelCell(rowName, bandLocator);
+
+                // Amount is in the left column (X ≤ Sec8ValueXMax).
+                // It appears as a split-dollar "$ 1,234.56" or combined "$1,234.56".
+                var leftColWords = bandWords.Where(w => w.BoundingBox.Left <= Sec8ValueXMax).ToList();
+                var amountCell = ParseAmountCellFromWords(leftColWords, bandLocator);
+
+                // If not found on this band, check 1-2 bands below (multi-line row).
+                if (amountCell.Kind == CellKind.Empty && amountCell.Confidence == 0.0)
+                {
+                    var bandIdx = sortedBands.IndexOf(matchBand);
+                    for (var nextIdx = bandIdx + 1; nextIdx < Math.Min(bandIdx + 3, sortedBands.Count); nextIdx++)
+                    {
+                        var nextBandWords = sortedBands[nextIdx].Value
+                            .Where(w => w.BoundingBox.Left <= Sec8ValueXMax)
+                            .ToList();
+                        var nextLoc = BoundingBoxOf(nextBandWords.Count > 0 ? nextBandWords : sortedBands[nextIdx].Value,
+                            allBands.FirstOrDefault(b => b.Words == sortedBands[nextIdx].Value)?.PageNumber ?? headingLocator.PageNumber);
+                        var candidate = ParseAmountCellFromWords(nextBandWords, nextLoc);
+                        if (candidate.Kind == CellKind.Amount || candidate.Kind == CellKind.NotApplicable)
+                        {
+                            amountCell = candidate;
+                            break;
+                        }
+                    }
+                }
+
+                rows.Add(new TableRow(labelCell, [amountCell]));
+            }
+
+            if (rows.Count == 0)
+                return FinancialTable.NoRows(secNum, secName, headingLocator);
+
+            return new FinancialTable(secNum, secName, TableExtractionStatus.Extracted, rows, headingLocator);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "§8 table extraction failed; returning Indeterminate.");
+            return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // §19 — SALDO SOBRE EL QUE SE CALCULARON LOS INTERESES DEL PERIODO
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Extracts the §19 interest-basis grid (6 rows × 4 value columns).
+    /// </summary>
+    /// <remarks>
+    /// Columns: Saldo base | Núm. de días | Tasa anual | Monto de intereses.
+    /// Many cells are "NA" in fixtures where only one product class is active.
+    /// </remarks>
+    private FinancialTable ExtractSection19Table(
+        List<BandEntry> allBands,
+        IReadOnlyList<DetectedSection> detectedSections)
+    {
+        const int secNum = 19;
+        const string secName = "Saldo sobre el que se calcularon los intereses del periodo";
+
+        var sec = detectedSections.FirstOrDefault(s => s.SectionNumber == secNum);
+        if (sec is null || !sec.IsPresent)
+            return FinancialTable.NotFound(secNum, secName);
+
+        var headingLocator = sec.Locator;
+
+        try
+        {
+            var (startBandIdx, endBandIdx) = GetSectionBandRange(allBands, detectedSections, secNum);
+            if (startBandIdx < 0)
+                return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+
+            var sectionWords = GetWordsInBandRange(allBands, startBandIdx, endBandIdx);
+            var bands = GroupIntoBandsWithTolerance(sectionWords, YBandTolerance);
+            var sortedBands = bands.OrderByDescending(kv => kv.Key).ToList();
+
+            var rows = new List<TableRow>();
+
+            for (var rIdx = 0; rIdx < s_sec19RowLabels.Length; rIdx++)
+            {
+                var anchorNorm = s_sec19RowLabels[rIdx];
+                var rowName = s_sec19RowNames[rIdx];
+
+                // Find the band whose text starts with or contains the row anchor.
+                // Row labels may span across 2 bands (long text wraps) — use the first band
+                // containing the anchor's start word.
+                var matchBand = sortedBands.FirstOrDefault(
+                    kv => NormalizeText(BandText(kv.Value)).Contains(anchorNorm, StringComparison.Ordinal));
+
+                int pageNum = headingLocator.PageNumber;
+                if (matchBand.Value is null)
+                {
+                    // Partial anchor match: try individual leading words.
+                    var anchorWords = anchorNorm.Split(' ');
+                    if (anchorWords.Length > 0)
+                    {
+                        matchBand = sortedBands.FirstOrDefault(
+                            kv => NormalizeText(BandText(kv.Value)).Contains(anchorWords[0], StringComparison.Ordinal)
+                                && NormalizeText(BandText(kv.Value)).Contains(anchorWords[Math.Min(1, anchorWords.Length - 1)], StringComparison.Ordinal));
+                    }
+                }
+
+                if (matchBand.Value is null)
+                {
+                    rows.Add(new TableRow(
+                        TableCell.LabelCell(rowName, headingLocator),
+                        [
+                            TableCell.Missing(headingLocator),
+                            TableCell.Missing(headingLocator),
+                            TableCell.Missing(headingLocator),
+                            TableCell.Missing(headingLocator),
+                        ]));
+                    continue;
+                }
+
+                var bandWords = matchBand.Value;
+                // Determine page number from allBands.
+                var bandEntryPage = allBands.FirstOrDefault(b => b.BandY == matchBand.Key && b.PageNumber == headingLocator.PageNumber)?.PageNumber
+                    ?? allBands.FirstOrDefault(b => b.Words.Count > 0 && b.Words[0].BoundingBox.Bottom == matchBand.Key)?.PageNumber
+                    ?? headingLocator.PageNumber;
+                pageNum = bandEntryPage;
+
+                var labelLoc = BoundingBoxOf(bandWords.Where(w => w.BoundingBox.Left <= Sec19LabelXMax).ToList(), pageNum);
+                if (!labelLoc.HasBoundingBox) labelLoc = headingLocator;
+                var labelCell = TableCell.LabelCell(rowName, labelLoc);
+
+                // Value cells — extract by X-column range.
+                var saldoCell = ExtractSec19Cell(bandWords, Sec19SaldoXMin, Sec19SaldoXMax, CellKind.Amount, pageNum);
+                var diasCell = ExtractSec19Cell(bandWords, Sec19DiasXMin, Sec19DiasXMax, CellKind.Days, pageNum);
+                var tasaCell = ExtractSec19Cell(bandWords, Sec19TasaXMin, Sec19TasaXMax, CellKind.Rate, pageNum);
+                var montoCell = ExtractSec19Cell(bandWords, Sec19MontoXMin, double.MaxValue, CellKind.Amount, pageNum);
+
+                rows.Add(new TableRow(labelCell, [saldoCell, diasCell, tasaCell, montoCell]));
+            }
+
+            if (rows.Count == 0)
+                return FinancialTable.NoRows(secNum, secName, headingLocator);
+
+            return new FinancialTable(secNum, secName, TableExtractionStatus.Extracted, rows, headingLocator);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "§19 table extraction failed; returning Indeterminate.");
+            return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+        }
+    }
+
+    /// <summary>
+    /// Extracts a single §19 value cell from a band's words within an X-column range.
+    /// </summary>
+    private static TableCell ExtractSec19Cell(
+        List<Word> bandWords,
+        double xMin,
+        double xMax,
+        CellKind expectedKind,
+        int pageNum)
+    {
+        var colWords = bandWords
+            .Where(w => w.BoundingBox.Left >= xMin && w.BoundingBox.Left <= xMax)
+            .OrderBy(w => w.BoundingBox.Left)
+            .ToList();
+
+        if (colWords.Count == 0)
+            return TableCell.Missing(FieldLocator.PageHint(pageNum));
+
+        var rawText = string.Join(" ", colWords.Select(w => w.Text)).Trim();
+        var locator = BoundingBoxOf(colWords, pageNum);
+
+        // NA check (present but not applicable).
+        if (string.Equals(rawText, "NA", StringComparison.OrdinalIgnoreCase)
+            || rawText.StartsWith("NA", StringComparison.OrdinalIgnoreCase))
+            return TableCell.NotApplicableCell(rawText, locator);
+
+        // Try to parse based on expected kind.
+        if (expectedKind == CellKind.Days)
+        {
+            // Day count: integer or decimal (e.g. "31").
+            var normalized = rawText.Replace(",", string.Empty, StringComparison.Ordinal)
+                                    .TrimStart('$');
+            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var days))
+                return TableCell.Days(days, rawText, locator);
+
+            return TableCell.ParseFailure(rawText, locator);
+        }
+
+        if (expectedKind == CellKind.Rate)
+        {
+            // Rate: may be "27.36%" or "0.2736".
+            var rateStr = rawText.TrimEnd('%');
+            if (decimal.TryParse(rateStr, System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var rateParsed))
+            {
+                // If > 1, it's in percent form — divide by 100.
+                var rateVal = rawText.EndsWith('%') ? rateParsed / 100m : rateParsed;
+                return TableCell.Rate(rateVal, rawText, locator);
+            }
+
+            return TableCell.ParseFailure(rawText, locator);
+        }
+
+        // Amount: strip $ and commas.
+        var amtStr = rawText.TrimStart('$').Replace(",", string.Empty, StringComparison.Ordinal);
+        if (decimal.TryParse(amtStr, System.Globalization.NumberStyles.Number,
+                System.Globalization.CultureInfo.InvariantCulture, out var amt))
+            return TableCell.Amount(amt, rawText, locator);
+
+        // Split-dollar: check for bare "$" token followed by number.
+        if (colWords.Count >= 2)
+        {
+            var dollarIdx = colWords.FindIndex(w => w.Text == "$");
+            if (dollarIdx >= 0 && dollarIdx + 1 < colWords.Count)
+            {
+                var numStr = colWords[dollarIdx + 1].Text.Replace(",", string.Empty, StringComparison.Ordinal);
+                if (decimal.TryParse(numStr, System.Globalization.NumberStyles.Number,
+                        System.Globalization.CultureInfo.InvariantCulture, out var splitAmt))
+                    return TableCell.Amount(splitAmt, rawText, locator);
+            }
+        }
+
+        return TableCell.ParseFailure(rawText, locator);
+    }
+
+    // -----------------------------------------------------------------------
+    // §20 — DISTRIBUCIÓN DE TU ÚLTIMO PAGO
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Extracts the §20 payment-distribution row (1 row with 7 value columns).
+    /// </summary>
+    /// <remarks>
+    /// The column headers wrap across 2-3 text bands; the actual values sit on a separate
+    /// band below the headers.  Column assignment is by X-range (geometry-based), not
+    /// text-order.  Values are signed currency amounts (e.g. "-$67,796.35").
+    /// </remarks>
+    private FinancialTable ExtractSection20Table(
+        List<BandEntry> allBands,
+        IReadOnlyList<DetectedSection> detectedSections)
+    {
+        const int secNum = 20;
+        const string secName = "Distribución de tu último pago";
+
+        var sec = detectedSections.FirstOrDefault(s => s.SectionNumber == secNum);
+        if (sec is null || !sec.IsPresent)
+            return FinancialTable.NotFound(secNum, secName);
+
+        var headingLocator = sec.Locator;
+
+        try
+        {
+            var (startBandIdx, endBandIdx) = GetSectionBandRange(allBands, detectedSections, secNum);
+            if (startBandIdx < 0)
+                return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+
+            var sectionWords = GetWordsInBandRange(allBands, startBandIdx, endBandIdx);
+            var bands = GroupIntoBandsWithTolerance(sectionWords, YBandTolerance);
+            var sortedBands = bands.OrderByDescending(kv => kv.Key).ToList();
+
+            // Find the value row: the first band (below the heading) that contains
+            // amount-looking tokens (signed currency).  The column header bands contain
+            // only word text (no amounts).
+            List<Word>? valueBandWords = null;
+            var valueBandPage = headingLocator.PageNumber;
+
+            foreach (var (bandY, bandWords) in sortedBands)
+            {
+                // Skip the heading band itself (it contains the section anchor).
+                var normText = NormalizeText(BandText(bandWords));
+                if (normText.Contains("DISTRIBUCION DE TU ULTIMO PAGO", StringComparison.Ordinal))
+                    continue;
+
+                // Check whether this band has at least 3 proper currency amount tokens
+                // (must contain a decimal point, e.g. "67,796.35" or "$0.00" or "-$5.79").
+                // This guards against picking the card-number band or column-header bands.
+                var amtCount = bandWords.Count(w => IsCurrencyAmountToken(w.Text));
+                if (amtCount >= 3)
+                {
+                    valueBandWords = bandWords;
+                    // Try to determine page number.
+                    var matchingBand = allBands.FirstOrDefault(b => Math.Abs(b.BandY - bandY) < 1.0);
+                    if (matchingBand is not null)
+                        valueBandPage = matchingBand.PageNumber;
+                    break;
+                }
+            }
+
+            if (valueBandWords is null)
+                return FinancialTable.NoRows(secNum, secName, headingLocator);
+
+            // Build the single data row with 7 value cells.
+            // Strategy: collect ALL value tokens from the band sorted left-to-right,
+            // then try to assign them to the 7 columns in order.
+            // §20 values may be split-dollar ("$ 67,796.35") or combined ("-$67,796.35").
+            // We group consecutive tokens that form one amount (sign + $ + digits) together.
+            var valueCells = BuildSection20ValueCells(valueBandWords, valueBandPage);
+
+            var rowLabel = TableCell.LabelCell("Distribución", headingLocator);
+            var row = new TableRow(rowLabel, valueCells);
+
+            return new FinancialTable(secNum, secName, TableExtractionStatus.Extracted, [row], headingLocator);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "§20 table extraction failed; returning Indeterminate.");
+            return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // §16 — INFORMACIÓN DE OTRAS LÍNEAS DE CRÉDITO (conditional)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Extracts the §16 table. Since §16 is conditional (only present when the
+    /// account has other credit lines), absence is the expected case for most fixtures.
+    /// Returns <see cref="FinancialTable.NotFound"/> when absent — never a failure.
+    /// </summary>
+    private FinancialTable ExtractSection16Table(
+        List<BandEntry> allBands,
+        IReadOnlyList<DetectedSection> detectedSections)
+    {
+        const int secNum = 16;
+        const string secName = "Información de otras líneas de crédito";
+
+        var sec = detectedSections.FirstOrDefault(s => s.SectionNumber == secNum);
+        if (sec is null || !sec.IsPresent)
+            return FinancialTable.NotFound(secNum, secName);
+
+        var headingLocator = sec.Locator;
+
+        try
+        {
+            var (startBandIdx, endBandIdx) = GetSectionBandRange(allBands, detectedSections, secNum);
+            if (startBandIdx < 0)
+                return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+
+            var sectionWords = GetWordsInBandRange(allBands, startBandIdx, endBandIdx);
+            var bands = GroupIntoBandsWithTolerance(sectionWords, YBandTolerance);
+
+            // §16 table structure varies by product; extract all amount-bearing rows.
+            var rows = new List<TableRow>();
+            foreach (var (_, bandWords) in bands.OrderByDescending(kv => kv.Key))
+            {
+                // Skip header bands.
+                var normText = NormalizeText(BandText(bandWords));
+                if (normText.Contains("OTRAS LINEAS DE CREDITO", StringComparison.Ordinal))
+                    continue;
+
+                // Rows with at least one amount token.
+                var hasAmt = bandWords.Any(w => AmountPattern.IsMatch(w.Text) || IsAmountOrSignedAmountToken(w.Text));
+                if (!hasAmt)
+                    continue;
+
+                var pageNum = allBands.FirstOrDefault(b => b.Words.Count > 0
+                    && Math.Abs(b.BandY - bandWords[0].BoundingBox.Bottom) < YBandTolerance)?.PageNumber
+                    ?? headingLocator.PageNumber;
+
+                var labelWords = bandWords.Where(w => w.BoundingBox.Left < 200.0).ToList();
+                var rawLabel = string.Join(" ", labelWords.Select(w => w.Text)).Trim();
+                var labelLoc = labelWords.Count > 0 ? BoundingBoxOf(labelWords, pageNum) : FieldLocator.PageHint(pageNum);
+                var labelCell = TableCell.LabelCell(string.IsNullOrWhiteSpace(rawLabel) ? "(row)" : rawLabel, labelLoc);
+
+                var amtWords = bandWords.Where(w => w.BoundingBox.Left >= 200.0).ToList();
+                var amtLoc = amtWords.Count > 0 ? BoundingBoxOf(amtWords, pageNum) : FieldLocator.PageHint(pageNum);
+                var rawAmt = string.Join(" ", amtWords.Select(w => w.Text)).Trim();
+                var amtCell = ParseAmountCellFromWords(amtWords, amtLoc);
+
+                rows.Add(new TableRow(labelCell, [amtCell]));
+            }
+
+            if (rows.Count == 0)
+                return FinancialTable.NoRows(secNum, secName, headingLocator);
+
+            return new FinancialTable(secNum, secName, TableExtractionStatus.Extracted, rows, headingLocator);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "§16 table extraction failed; returning Indeterminate.");
+            return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Financial table helpers
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Builds the 7 value cells for a §20 row by grouping consecutive tokens into amounts.
+    /// </summary>
+    /// <remarks>
+    /// Handles three token patterns for each amount:
+    /// <list type="bullet">
+    ///   <item>"$67,796.35" — single token (combined)</item>
+    ///   <item>"$ 67,796.35" — two tokens (split dollar)</item>
+    ///   <item>"-$67,796.35" or "-" then "$" then "67,796.35" — sign-prefixed</item>
+    ///   <item>"=", "$", "67,796.35" — equality-sign-prefixed (right-hand side of equation)</item>
+    /// </list>
+    /// Words are sorted left-to-right on the band. We scan forward and greedily
+    /// consume sign/dollar/digit tokens into groups, then parse each group.
+    /// Exactly 7 cells are returned (padded with Missing or trimmed to 7).
+    /// </remarks>
+    private static IReadOnlyList<TableCell> BuildSection20ValueCells(List<Word> bandWords, int pageNum)
+    {
+        // Sort left-to-right.
+        var sorted = bandWords.OrderBy(w => w.BoundingBox.Left).ToList();
+
+        // Group tokens into "amount groups": a group is a sequence of consecutive tokens
+        // that together form one monetary value.  Heuristic:
+        //   - Start a new group when a token looks like a sign (+/-/−/=), a "$", or a digit-amount.
+        //   - Continue accumulating if next token is "$" or a digit-amount (no gap > 10 pt between tokens).
+        var groups = new List<List<Word>>();
+        var current = new List<Word>();
+
+        for (var i = 0; i < sorted.Count; i++)
+        {
+            var w = sorted[i];
+            var text = w.Text;
+
+            // The "=" glyph is a STRUCTURAL separator between "Pagos y abonos" (LHS)
+            // and the component columns (RHS) — it is NOT a value sign. Skip it entirely
+            // so it does not occupy a column slot (which previously pushed the real
+            // 7th column "Saldo a favor" past the 7-cell cap and silently dropped it).
+            if (text == "=")
+                continue;
+
+            var isSign = text is "+" or "-" or "−";
+            var isDollar = text == "$";
+            var isAmount = IsCurrencyAmountToken(text);
+            var isCombinedSignedAmount = text.Length > 2
+                && (text[0] is '+' or '-' or '−')
+                && IsCurrencyAmountToken(text[1..].TrimStart('$'));
+
+            if (isSign || isDollar || isAmount || isCombinedSignedAmount)
+            {
+                // Check if this should extend the current group (within 15 pt of previous token).
+                bool extendsCurrent = current.Count > 0
+                    && (w.BoundingBox.Left - current[^1].BoundingBox.Right) <= 15.0;
+
+                if (extendsCurrent && (isDollar || isAmount))
+                {
+                    current.Add(w);
+                }
+                else
+                {
+                    // Save previous group (if non-empty) and start a new one.
+                    if (current.Count > 0)
+                        groups.Add(current);
+                    current = [w];
+                }
+            }
+            // Non-amount tokens (column header text that leaked in) are skipped.
+        }
+
+        // Save last group.
+        if (current.Count > 0)
+            groups.Add(current);
+
+        // Parse each group into a TableCell.
+        var cells = new List<TableCell>(7);
+        foreach (var group in groups)
+        {
+            var groupWords = group.OrderBy(w => w.BoundingBox.Left).ToList();
+            var rawText = string.Join(" ", groupWords.Select(w => w.Text)).Trim();
+            var loc = BoundingBoxOf(groupWords, pageNum);
+            var cell = ParseSignedAmountCell(rawText, loc);
+            cells.Add(cell);
+        }
+
+        // Pad or trim to exactly 7.
+        while (cells.Count < 7)
+            cells.Add(TableCell.Missing(FieldLocator.PageHint(pageNum)));
+
+        // If more than 7 (rare layout artifacts), keep the 7 leftmost.
+        if (cells.Count > 7)
+            cells = cells.Take(7).ToList();
+
+        return cells;
+    }
+
+    /// <summary>
+    /// Returns (startBandIdx, endBandIdx) — the range of <paramref name="allBands"/>
+    /// indices that belong to section <paramref name="sectionNumber"/>.
+    /// startBandIdx = index of the section's heading band.
+    /// endBandIdx = index of the next present section's heading band (exclusive), or allBands.Count.
+    /// Returns (-1, -1) when the section heading cannot be located.
+    /// </summary>
+    private static (int startBandIdx, int endBandIdx) GetSectionBandRange(
+        List<BandEntry> allBands,
+        IReadOnlyList<DetectedSection> detectedSections,
+        int sectionNumber)
+    {
+        // Find the section anchor text.
+        var anchorEntry = s_sectionAnchors.FirstOrDefault(a => a.Number == sectionNumber);
+        if (anchorEntry == default || string.IsNullOrEmpty(anchorEntry.NormalizedAnchor))
+            return (-1, -1);
+
+        var anchor = anchorEntry.NormalizedAnchor;
+
+        // Find the heading band.
+        var headingIdx = -1;
+        for (var i = 0; i < allBands.Count; i++)
+        {
+            if (allBands[i].NormalizedText.Contains(anchor, StringComparison.Ordinal))
+            {
+                headingIdx = i;
+                break;
+            }
+        }
+
+        if (headingIdx < 0)
+            return (-1, -1);
+
+        // Find the next present section's heading band (reading-order successor).
+        // Build a sorted list of present section band indices.
+        var presentBandIndices = new List<int>();
+        foreach (var s in detectedSections.Where(s => s.IsPresent))
+        {
+            var a = s_sectionAnchors.FirstOrDefault(x => x.Number == s.SectionNumber);
+            if (string.IsNullOrEmpty(a.NormalizedAnchor))
+                continue;
+
+            for (var i = 0; i < allBands.Count; i++)
+            {
+                if (allBands[i].NormalizedText.Contains(a.NormalizedAnchor, StringComparison.Ordinal))
+                {
+                    presentBandIndices.Add(i);
+                    break;
+                }
+            }
+        }
+
+        presentBandIndices.Sort();
+
+        // Find the next band index after headingIdx.
+        var endBandIdx = allBands.Count;
+        foreach (var idx in presentBandIndices)
+        {
+            if (idx > headingIdx)
+            {
+                endBandIdx = idx;
+                break;
+            }
+        }
+
+        return (headingIdx, endBandIdx);
+    }
+
+    /// <summary>
+    /// Finds the band index in <paramref name="allBands"/> for the heading of
+    /// <paramref name="section"/> using its locator page + Y coordinate.
+    /// </summary>
+    private static int FindBandIndexForSection(List<BandEntry> allBands, DetectedSection section)
+    {
+        if (!section.IsPresent)
+            return -1;
+
+        var anchorEntry = s_sectionAnchors.FirstOrDefault(a => a.Number == section.SectionNumber);
+        if (string.IsNullOrEmpty(anchorEntry.NormalizedAnchor))
+            return -1;
+
+        for (var i = 0; i < allBands.Count; i++)
+        {
+            if (allBands[i].NormalizedText.Contains(anchorEntry.NormalizedAnchor, StringComparison.Ordinal))
+                return i;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Returns all words from bands in the range [startIdx, endIdx).
+    /// </summary>
+    private static List<Word> GetWordsInBandRange(
+        List<BandEntry> allBands,
+        int startIdx,
+        int endIdx)
+    {
+        var words = new List<Word>();
+        for (var i = startIdx; i < endIdx && i < allBands.Count; i++)
+            words.AddRange(allBands[i].Words);
+        return words;
+    }
+
+    /// <summary>
+    /// Parses an amount cell from a list of words using the split-dollar pattern.
+    /// Returns Missing(0.0) when no amount is found.
+    /// </summary>
+    private static TableCell ParseAmountCellFromWords(List<Word> words, FieldLocator locator)
+    {
+        if (words.Count == 0)
+            return TableCell.Missing(locator);
+
+        var rawText = string.Join(" ", words.Select(w => w.Text)).Trim();
+
+        // NA check.
+        if (string.Equals(rawText, "NA", StringComparison.OrdinalIgnoreCase))
+            return TableCell.NotApplicableCell(rawText, locator);
+
+        // Try combined AmountPattern first.
+        var amtWord = words.FirstOrDefault(w => AmountPattern.IsMatch(w.Text));
+        if (amtWord is not null)
+        {
+            var m = AmountPattern.Match(amtWord.Text);
+            var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
+            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var amt))
+                return TableCell.Amount(amt, rawText, locator);
+        }
+
+        // Try split-dollar.
+        var dollarIdx = words.FindIndex(w => w.Text == "$");
+        if (dollarIdx >= 0 && dollarIdx + 1 < words.Count)
+        {
+            var numToken = words[dollarIdx + 1];
+            if (!IsSingleDigit(numToken.Text))
+            {
+                var numStr = numToken.Text.Replace(",", string.Empty, StringComparison.Ordinal);
+                if (decimal.TryParse(numStr, System.Globalization.NumberStyles.Number,
+                        System.Globalization.CultureInfo.InvariantCulture, out var val))
+                    return TableCell.Amount(val, rawText, locator);
+            }
+
+            if (dollarIdx + 2 < words.Count && IsSingleDigit(words[dollarIdx + 1].Text))
+            {
+                var numStr = words[dollarIdx + 2].Text.Replace(",", string.Empty, StringComparison.Ordinal);
+                if (decimal.TryParse(numStr, System.Globalization.NumberStyles.Number,
+                        System.Globalization.CultureInfo.InvariantCulture, out var val))
+                    return TableCell.Amount(val, rawText, locator);
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(rawText))
+            return TableCell.Missing(locator);
+
+        return TableCell.ParseFailure(rawText, locator);
+    }
+
+    /// <summary>
+    /// Parses a signed amount cell from raw text (e.g. "-$67,796.35", "+$60,041.34", "$0.00").
+    /// </summary>
+    private static TableCell ParseSignedAmountCell(string rawText, FieldLocator locator)
+    {
+        if (string.IsNullOrWhiteSpace(rawText))
+            return TableCell.Missing(locator);
+
+        if (string.Equals(rawText, "NA", StringComparison.OrdinalIgnoreCase))
+            return TableCell.NotApplicableCell(rawText, locator);
+
+        // Strip sign, $, commas.
+        var negative = rawText.StartsWith('-') || rawText.StartsWith('−');
+        var stripped = rawText.TrimStart('+', '-', '−', '$').Replace(",", string.Empty, StringComparison.Ordinal);
+
+        if (decimal.TryParse(stripped, System.Globalization.NumberStyles.Number,
+                System.Globalization.CultureInfo.InvariantCulture, out var val))
+        {
+            var signed = negative ? -val : val;
+            return TableCell.Amount(signed, rawText, locator);
+        }
+
+        // Try signed-amount pattern.
+        var m = SignedAmountPattern.Match(rawText);
+        if (m.Success)
+        {
+            var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
+            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            {
+                var signed = negative ? -parsed : parsed;
+                return TableCell.Amount(signed, rawText, locator);
+            }
+        }
+
+        return TableCell.ParseFailure(rawText, locator);
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the token looks like a currency amount
+    /// (with or without sign) — used to detect the §20 value band.
+    /// </summary>
+    private static bool IsAmountOrSignedAmountToken(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+
+        var stripped = text.TrimStart('+', '-', '−');
+        return AmountPattern.IsMatch(stripped) || AmountPattern.IsMatch(text);
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the token is a currency amount that contains
+    /// a decimal point (e.g. "67,796.35", "$0.00", "-$5.79").
+    /// This is stricter than <see cref="IsAmountOrSignedAmountToken"/> and is used to
+    /// avoid matching card-number bands (digits without decimals).
+    /// </summary>
+    private static bool IsCurrencyAmountToken(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || !text.Contains('.'))
+            return false;
+
+        var stripped = text.TrimStart('+', '-', '−', '=').TrimStart('$');
+        return AmountPattern.IsMatch(stripped) || AmountPattern.IsMatch(text.TrimStart('+', '-', '−', '='));
     }
 
     // -----------------------------------------------------------------------
