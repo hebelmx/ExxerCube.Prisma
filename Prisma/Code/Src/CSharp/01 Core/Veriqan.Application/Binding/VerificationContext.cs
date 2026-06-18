@@ -2,6 +2,7 @@ using System;
 using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 
 namespace ExxerCube.Prisma.Veriqan.Application.Binding;
 
@@ -37,13 +38,19 @@ public sealed class VerificationContext
     /// The extracted statement model populated after the extraction stage (Story 3.1+);
     /// <see langword="null"/> until extraction completes or when not yet run.
     /// </param>
+    /// <param name="tenantProfile">
+    /// The resolved tenant profile that contains effective per-rule tolerance overrides
+    /// (Story 9.3b); <see langword="null"/> when no tenant context is available, in which
+    /// case all rules apply the CONDUSEF legal baseline tolerances.
+    /// </param>
     public VerificationContext(
         VecReferenceBundle bundle,
         VecProduct resolvedProduct,
         ReferenceDataAvailability availability,
         PriorStatement? priorStatement,
         ToleranceConfig? toleranceConfig,
-        StatementModel? statementModel)
+        StatementModel? statementModel,
+        ResolvedTenantProfile? tenantProfile = null)
     {
         Bundle = bundle ?? throw new ArgumentNullException(nameof(bundle));
         ResolvedProduct = resolvedProduct ?? throw new ArgumentNullException(nameof(resolvedProduct));
@@ -51,6 +58,7 @@ public sealed class VerificationContext
         PriorStatement = priorStatement;
         ToleranceConfig = toleranceConfig;
         StatementModel = statementModel;
+        TenantProfile = tenantProfile;
     }
 
     // -----------------------------------------------------------------------
@@ -106,4 +114,20 @@ public sealed class VerificationContext
     /// and emit an appropriate result when absent.
     /// </summary>
     public StatementModel? StatementModel { get; }
+
+    // -----------------------------------------------------------------------
+    // Tenant profile (Story 9.3b)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The resolved tenant profile containing accepted per-rule tolerance overrides
+    /// (Story 9.3b). <see langword="null"/> when no tenant context is available;
+    /// rules must fall back to the CONDUSEF legal baseline in that case.
+    /// </summary>
+    /// <remarks>
+    /// Use <see cref="ResolvedTenantProfile.GetEffectiveTolerance"/> to obtain the
+    /// effective tolerance for a given <c>CheckId</c>, passing the legal default as the fallback.
+    /// Rules that do not use tolerance bands need not consult this property.
+    /// </remarks>
+    public ResolvedTenantProfile? TenantProfile { get; }
 }

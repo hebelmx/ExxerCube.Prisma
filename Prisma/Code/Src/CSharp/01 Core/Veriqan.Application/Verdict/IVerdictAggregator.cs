@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 
@@ -47,6 +48,11 @@ public interface IVerdictAggregator
     /// Propagated cancellation token.  Returns a cancelled <c>Result</c> immediately
     /// when cancellation is already requested on entry.
     /// </param>
+    /// <param name="tenantDeviations">
+    /// Optional list of rejected tenant override deviations produced during tenant-profile
+    /// resolution (Story 9.3b). Pass <see langword="null"/> (or omit) when no tenant profile
+    /// was applied; treated as an empty list in the resulting <see cref="VerdictSummary"/>.
+    /// </param>
     /// <returns>
     /// A successful <see cref="Result{T}"/> wrapping a <see cref="VerdictSummary"/>;
     /// a cancelled result if <paramref name="ct"/> was cancelled; or a failure result
@@ -55,5 +61,6 @@ public interface IVerdictAggregator
     Result<VerdictSummary> Aggregate(
         IReadOnlyList<RuleFinding> findings,
         BlockedOutcome? blocked = null,
-        CancellationToken ct = default);
+        CancellationToken ct = default,
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null);
 }

@@ -201,13 +201,16 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         var bindCtx = bindResult.Value!;
 
         // Stage 5 — Build FINAL VerificationContext with the extracted StatementModel
+        // Story 9.3b: TenantProfile is null here — legal-baseline path.
+        // Story 9.7 will wire tenant resolution from the job context.
         var finalCtx = new VerificationContext(
             bindCtx.Bundle,
             bindCtx.ResolvedProduct,
             bindCtx.Availability,
             bindCtx.PriorStatement,
             bindCtx.ToleranceConfig,
-            statementModel);
+            statementModel,
+            tenantProfile: null);
 
         // Stage 6 — Validation Engine
         var engineResult = await _engine.RunAsync(finalCtx, ct).ConfigureAwait(false);

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -34,7 +35,8 @@ public sealed class VerdictAggregator : IVerdictAggregator
     public Result<VerdictSummary> Aggregate(
         IReadOnlyList<RuleFinding> findings,
         BlockedOutcome? blocked = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null)
     {
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<VerdictSummary>();
@@ -46,7 +48,8 @@ public sealed class VerdictAggregator : IVerdictAggregator
         // Precedence 1: BLOCKED (binding never completed)
         // ------------------------------------------------------------------
         if (blocked is not null)
-            return Result<VerdictSummary>.WithSuccess(VerdictSummary.Blocked(blocked));
+            return Result<VerdictSummary>.WithSuccess(
+                VerdictSummary.Blocked(blocked, tenantDeviations));
 
         // ------------------------------------------------------------------
         // Partition findings by verdict category
@@ -85,7 +88,8 @@ public sealed class VerdictAggregator : IVerdictAggregator
                     passCount: passCount,
                     insufficientDataCount: insufficientIds.Count,
                     failCheckIds: failIds,
-                    insufficientDataCheckIds: insufficientIds));
+                    insufficientDataCheckIds: insufficientIds,
+                    tenantDeviations: tenantDeviations));
         }
 
         // ------------------------------------------------------------------
@@ -95,6 +99,7 @@ public sealed class VerdictAggregator : IVerdictAggregator
             VerdictSummary.Green(
                 passCount: passCount,
                 insufficientDataCount: insufficientIds.Count,
-                insufficientDataCheckIds: insufficientIds));
+                insufficientDataCheckIds: insufficientIds,
+                tenantDeviations: tenantDeviations));
     }
 }

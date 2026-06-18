@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
@@ -76,10 +77,19 @@ internal sealed class Cl10CatRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        // Resolve tolerance — legal default applies when bundle has no override
-        var resolution = _toleranceProvider.For(CheckId)
-            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
-        var tolerance = resolution.EffectiveValue;
+        // CL-10 is the ONLY rule demonstrating dual-verdict divergence in Story 9.3b.
+        // Full per-rule adoption is Story 9.6.
+
+        // Resolve LEGAL tolerance: always use LegalDefault (no override)
+        var legalResolution = _toleranceProvider.For(CheckId).Resolve(null);
+        var legalTolerance = legalResolution.EffectiveValue;
+
+        // Resolve TENANT-EFFECTIVE tolerance from the resolved tenant profile (if any)
+        var effectiveTolerance = ctx.TenantProfile?.GetEffectiveTolerance(CheckId, legalTolerance)
+            ?? legalTolerance;
+
+        // Keep 'tolerance' as an alias for the effective value used in comparisons
+        var tolerance = effectiveTolerance;
 
         // StatementModel must be present
         var ps = ctx.StatementModel?.PeriodSummary;
@@ -123,7 +133,11 @@ internal sealed class Cl10CatRule : IVecValidationRule
         var expectedStr = $"{computedCatPercent:F4}%";
         var observedStr = $"{extractedCatPercent:F4}%";
 
-        if (diff <= tolerance)
+        // Compute both verdicts
+        var legalPasses = diff <= legalTolerance;
+        var tenantPasses = diff <= effectiveTolerance;
+
+        if (tenantPasses)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
@@ -131,8 +145,11 @@ internal sealed class Cl10CatRule : IVecValidationRule
                     technique: Technique,
                     engineVersion: Version,
                     observed: observedStr,
-                    toleranceApplied: tolerance,
-                    locator: locator));
+                    toleranceApplied: effectiveTolerance,
+                    locator: locator,
+                    legalBaselineVerdict: legalPasses
+                        ? FindingVerdict.Pass
+                        : FindingVerdict.Fail));
         }
 
         return Result<RuleFinding>.WithSuccess(
@@ -143,8 +160,11 @@ internal sealed class Cl10CatRule : IVecValidationRule
                 engineVersion: Version,
                 expected: expectedStr,
                 observed: observedStr,
-                toleranceApplied: tolerance,
-                locator: locator));
+                toleranceApplied: effectiveTolerance,
+                locator: locator,
+                legalBaselineVerdict: legalPasses
+                    ? FindingVerdict.Pass
+                    : FindingVerdict.Fail));
     }
 
     /// <summary>

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 
 namespace ExxerCube.Prisma.Veriqan.Application.Verdict;
 
@@ -44,7 +45,8 @@ public sealed record VerdictSummary
         int total,
         IReadOnlyList<string> failCheckIds,
         IReadOnlyList<string> insufficientDataCheckIds,
-        BlockedOutcome? blockedOutcome)
+        BlockedOutcome? blockedOutcome,
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null)
     {
         Signal = signal;
         FailCount = failCount;
@@ -54,6 +56,7 @@ public sealed record VerdictSummary
         FailCheckIds = failCheckIds;
         InsufficientDataCheckIds = insufficientDataCheckIds;
         BlockedOutcome = blockedOutcome;
+        TenantDeviations = tenantDeviations ?? [];
     }
 
     // -----------------------------------------------------------------------
@@ -92,15 +95,31 @@ public sealed record VerdictSummary
     /// </summary>
     public BlockedOutcome? BlockedOutcome { get; }
 
+    /// <summary>
+    /// Gets the list of rejected tenant override deviations produced during tenant-profile
+    /// resolution (Story 9.3b). Empty when no tenant profile was applied or when all
+    /// overrides were accepted.
+    /// </summary>
+    /// <remarks>
+    /// Surfaced here so that compliance reviewers examining the verdict summary can see
+    /// which tenant tolerance overrides were silently reverted to the CONDUSEF legal baseline.
+    /// </remarks>
+    public IReadOnlyList<TenantDeviation> TenantDeviations { get; }
+
     // -----------------------------------------------------------------------
     // Static factories
     // -----------------------------------------------------------------------
 
     /// <summary>Creates a <see cref="VerdictSignal.Green"/> summary from aggregated counts.</summary>
+    /// <param name="passCount">Count of passing findings.</param>
+    /// <param name="insufficientDataCount">Count of InsufficientData findings.</param>
+    /// <param name="insufficientDataCheckIds">Check IDs with InsufficientData verdicts.</param>
+    /// <param name="tenantDeviations">Rejected tenant override deviations, if any.</param>
     internal static VerdictSummary Green(
         int passCount,
         int insufficientDataCount,
-        IReadOnlyList<string> insufficientDataCheckIds) =>
+        IReadOnlyList<string> insufficientDataCheckIds,
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null) =>
         new(
             signal: VerdictSignal.Green,
             failCount: 0,
@@ -109,15 +128,23 @@ public sealed record VerdictSummary
             total: passCount + insufficientDataCount,
             failCheckIds: [],
             insufficientDataCheckIds: insufficientDataCheckIds,
-            blockedOutcome: null);
+            blockedOutcome: null,
+            tenantDeviations: tenantDeviations);
 
     /// <summary>Creates a <see cref="VerdictSignal.Red"/> summary from aggregated counts.</summary>
+    /// <param name="failCount">Count of failing findings.</param>
+    /// <param name="passCount">Count of passing findings.</param>
+    /// <param name="insufficientDataCount">Count of InsufficientData findings.</param>
+    /// <param name="failCheckIds">Check IDs with Fail verdicts.</param>
+    /// <param name="insufficientDataCheckIds">Check IDs with InsufficientData verdicts.</param>
+    /// <param name="tenantDeviations">Rejected tenant override deviations, if any.</param>
     internal static VerdictSummary Red(
         int failCount,
         int passCount,
         int insufficientDataCount,
         IReadOnlyList<string> failCheckIds,
-        IReadOnlyList<string> insufficientDataCheckIds) =>
+        IReadOnlyList<string> insufficientDataCheckIds,
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null) =>
         new(
             signal: VerdictSignal.Red,
             failCount: failCount,
@@ -126,10 +153,15 @@ public sealed record VerdictSummary
             total: failCount + passCount + insufficientDataCount,
             failCheckIds: failCheckIds,
             insufficientDataCheckIds: insufficientDataCheckIds,
-            blockedOutcome: null);
+            blockedOutcome: null,
+            tenantDeviations: tenantDeviations);
 
     /// <summary>Creates a <see cref="VerdictSignal.Blocked"/> summary from a binding failure.</summary>
-    internal static VerdictSummary Blocked(BlockedOutcome blockedOutcome) =>
+    /// <param name="blockedOutcome">The blocking outcome from the binder.</param>
+    /// <param name="tenantDeviations">Rejected tenant override deviations, if any.</param>
+    internal static VerdictSummary Blocked(
+        BlockedOutcome blockedOutcome,
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null) =>
         new(
             signal: VerdictSignal.Blocked,
             failCount: 0,
@@ -138,7 +170,8 @@ public sealed record VerdictSummary
             total: 0,
             failCheckIds: [],
             insufficientDataCheckIds: [],
-            blockedOutcome: blockedOutcome);
+            blockedOutcome: blockedOutcome,
+            tenantDeviations: tenantDeviations);
 
     // -----------------------------------------------------------------------
     // Projection
