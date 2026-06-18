@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
@@ -7,6 +8,7 @@ using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
+using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
@@ -28,6 +30,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     private readonly IBundleBinder _binder;
     private readonly IVecValidationEngine _engine;
     private readonly IVerdictAggregator _aggregator;
+    private readonly VeriqanMetrics _metrics;
     private readonly ILogger<VerificationPipeline> _logger;
 
     /// <summary>
@@ -39,6 +42,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         IBundleBinder binder,
         IVecValidationEngine engine,
         IVerdictAggregator aggregator,
+        VeriqanMetrics metrics,
         ILogger<VerificationPipeline> logger)
     {
         _ingestion = ingestion ?? throw new ArgumentNullException(nameof(ingestion));
@@ -46,6 +50,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         _binder = binder ?? throw new ArgumentNullException(nameof(binder));
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _aggregator = aggregator ?? throw new ArgumentNullException(nameof(aggregator));
+        _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -59,9 +64,19 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<VerificationOutcome>();
 
+        // Correlation id for the call — used in structured logging before the job id is known.
+        var correlationId = Guid.NewGuid();
+        var sw = Stopwatch.StartNew();
+
+        using var scope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["VeriqanCorrelationId"] = correlationId,
+        });
+
         _logger.LogInformation(
-            "Pipeline starting for {FileName}",
-            submission.FileName);
+            "Pipeline starting for {FileName} CorrelationId={CorrelationId}",
+            submission.FileName,
+            correlationId);
 
         // Stage 1 — Ingestion
         var ingestResult = await _ingestion.IngestAsync(submission.Pdf, submission.FileName, ct)
@@ -83,6 +98,13 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         }
 
         var job = ingestResult.Value!;
+
+        // Extend the ambient scope with the now-known job id.
+        using var jobScope = _logger.BeginScope(new Dictionary<string, object>
+        {
+            ["VerificationJobId"] = job.Id,
+        });
+
         _logger.LogInformation(
             "Ingestion succeeded for {FileName}. JobId={JobId}",
             submission.FileName,
@@ -155,8 +177,17 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 if (blockedVerdictResult.IsFailure)
                     return Result<VerificationOutcome>.WithFailure(blockedVerdictResult.Error ?? "Verdict aggregation failed");
 
+                sw.Stop();
+                var blockedDuration = sw.Elapsed;
+                _metrics.RecordStatement(blockedDuration.TotalMilliseconds, Domain.Enums.VerdictSignal.Blocked);
+                _logger.LogInformation(
+                    "Pipeline blocked for {FileName} in {DurationMs:F1} ms JobId={JobId}",
+                    submission.FileName,
+                    blockedDuration.TotalMilliseconds,
+                    job.Id);
+
                 return Result<VerificationOutcome>.WithSuccess(
-                    new VerificationOutcome(job, blockedVerdictResult.Value!, Array.Empty<RuleFinding>()));
+                    new VerificationOutcome(job, blockedVerdictResult.Value!, Array.Empty<RuleFinding>(), blockedDuration));
             }
 
             // Unexpected non-BLOCKED bind failure
@@ -221,12 +252,20 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         }
 
         var summary = verdictResult.Value!;
+
+        sw.Stop();
+        var elapsed = sw.Elapsed;
+        _metrics.RecordStatement(elapsed.TotalMilliseconds, summary.Signal);
+
         _logger.LogInformation(
-            "Pipeline complete for {FileName}. Signal={VerdictSignal} Fails={FailCount}",
+            "Pipeline complete for {FileName}. Signal={VerdictSignal} Fails={FailCount} DurationMs={DurationMs:F1} JobId={JobId}",
             submission.FileName,
             summary.Signal,
-            summary.FailCount);
+            summary.FailCount,
+            elapsed.TotalMilliseconds,
+            job.Id);
 
-        return Result<VerificationOutcome>.WithSuccess(new VerificationOutcome(job, summary, findings));
+        return Result<VerificationOutcome>.WithSuccess(
+            new VerificationOutcome(job, summary, findings, elapsed));
     }
 }

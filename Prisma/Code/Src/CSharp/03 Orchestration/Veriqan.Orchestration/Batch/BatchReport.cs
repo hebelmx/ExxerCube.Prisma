@@ -40,6 +40,17 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// Resuming a fully-completed batch produces <c>AlreadyCompletedCount == TotalSubmitted</c>
 /// and zero pipeline invocations — the idempotent case.
 /// </param>
+/// <param name="ThroughputPerSecond">
+/// Statements completed per second over the whole-batch wall-clock duration.
+/// Zero when no items completed or elapsed time was effectively zero.
+/// NFR-4 observability metric.
+/// </param>
+/// <param name="P95LatencyMs">
+/// 95th-percentile per-statement processing latency in milliseconds, computed from the
+/// <see cref="VerificationOutcome.ProcessingDuration"/> values of completed items.
+/// <c>null</c> when no items carried a measured duration (e.g. legacy outcomes or zero
+/// completions).  NFR-1 observability metric.
+/// </param>
 public sealed record BatchReport(
     IReadOnlyList<VerificationOutcome> Outcomes,
     IReadOnlyList<ExceptionQueueEntry> ExceptionQueue,
@@ -49,4 +60,6 @@ public sealed record BatchReport(
     int FailedCount,
     int GreenCount,
     int RedCount,
-    int AlreadyCompletedCount = 0);
+    int AlreadyCompletedCount = 0,
+    double ThroughputPerSecond = 0.0,
+    double? P95LatencyMs = null);

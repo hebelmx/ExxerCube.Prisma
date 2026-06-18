@@ -10,6 +10,7 @@ using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Visual.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
+using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using IndQuestResults;
 using Microsoft.Extensions.DependencyInjection;
@@ -63,6 +64,9 @@ public sealed class VerificationPipelineEndToEndTests
 
         // In-memory persistence stubs (no SQL Server needed)
         services.AddVeriqanInMemoryPersistence();
+
+        // Metrics singleton required by VerificationPipeline (Story 8.3)
+        services.AddSingleton<VeriqanMetrics>();
 
         // Pipeline
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();

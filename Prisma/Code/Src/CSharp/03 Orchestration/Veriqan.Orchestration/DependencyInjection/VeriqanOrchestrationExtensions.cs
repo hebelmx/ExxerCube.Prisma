@@ -9,6 +9,7 @@ using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Visual.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
+using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
 using Microsoft.Extensions.Configuration;
@@ -74,6 +75,9 @@ public static class VeriqanOrchestrationExtensions
         {
             services.AddVeriqanInMemoryPersistence();
         }
+
+        // Metrics — singleton so the same Meter lives for the process lifetime.
+        services.AddSingleton<VeriqanMetrics>();
 
         // Pipeline + batch + resume/reprocess
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();

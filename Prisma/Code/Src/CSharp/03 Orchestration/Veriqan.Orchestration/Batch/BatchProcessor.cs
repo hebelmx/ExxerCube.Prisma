@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
 using IndQuestResults;
@@ -39,6 +42,7 @@ internal sealed class BatchProcessor : IBatchProcessor
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IVerificationResultStore _resultStore;
+    private readonly VeriqanMetrics _metrics;
     private readonly ILogger<BatchProcessor> _logger;
 
     /// <summary>
@@ -47,10 +51,12 @@ internal sealed class BatchProcessor : IBatchProcessor
     public BatchProcessor(
         IServiceScopeFactory scopeFactory,
         IVerificationResultStore resultStore,
+        VeriqanMetrics metrics,
         ILogger<BatchProcessor> logger)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _resultStore = resultStore ?? throw new ArgumentNullException(nameof(resultStore));
+        _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -75,6 +81,9 @@ internal sealed class BatchProcessor : IBatchProcessor
             total,
             maxParallelism,
             options.Resume);
+
+        // Wall-clock for throughput calculation (NFR-4).
+        var batchSw = Stopwatch.StartNew();
 
         using var semaphore = new SemaphoreSlim(maxParallelism, maxParallelism);
 
@@ -194,6 +203,7 @@ internal sealed class BatchProcessor : IBatchProcessor
                             IsException: false));
 
                         Interlocked.Increment(ref failed);
+                        _metrics.RecordException();
 
                         _logger.LogWarning(
                             "Pipeline failure queued for {FileName}: {Error}",
@@ -210,6 +220,7 @@ internal sealed class BatchProcessor : IBatchProcessor
                         IsException: true));
 
                     Interlocked.Increment(ref failed);
+                    _metrics.RecordException();
 
                     _logger.LogError(
                         ex,
@@ -253,6 +264,17 @@ internal sealed class BatchProcessor : IBatchProcessor
             }
         }
 
+        batchSw.Stop();
+        double elapsedSeconds = batchSw.Elapsed.TotalSeconds;
+
+        // Throughput: completed items / elapsed wall-clock seconds.
+        double throughput = (elapsedSeconds > 0 && outcomeList.Count > 0)
+            ? outcomeList.Count / elapsedSeconds
+            : 0.0;
+
+        // P95 latency: derived from per-outcome ProcessingDuration (non-zero values only).
+        double? p95Ms = ComputeP95Ms(outcomeList);
+
         var report = new BatchReport(
             Outcomes: outcomeList,
             ExceptionQueue: exceptionList,
@@ -262,19 +284,45 @@ internal sealed class BatchProcessor : IBatchProcessor
             FailedCount: exceptionList.Count,
             GreenCount: greenCount,
             RedCount: redCount,
-            AlreadyCompletedCount: Volatile.Read(ref alreadyCompleted));
+            AlreadyCompletedCount: Volatile.Read(ref alreadyCompleted),
+            ThroughputPerSecond: throughput,
+            P95LatencyMs: p95Ms);
 
         _logger.LogInformation(
-            "Batch complete: Total={Total} Completed={Completed} AlreadyCompleted={AlreadyCompleted} Green={Green} Red={Red} Blocked={Blocked} Failed={Failed}",
+            "Batch complete: Total={Total} Completed={Completed} AlreadyCompleted={AlreadyCompleted} Green={Green} Red={Red} Blocked={Blocked} Failed={Failed} ThroughputPerSecond={ThroughputPerSecond:F2} P95LatencyMs={P95LatencyMs}",
             report.TotalSubmitted,
             report.CompletedCount,
             report.AlreadyCompletedCount,
             report.GreenCount,
             report.RedCount,
             report.BlockedCount,
-            report.FailedCount);
+            report.FailedCount,
+            report.ThroughputPerSecond,
+            report.P95LatencyMs);
 
         return Result<BatchReport>.WithSuccess(report);
+    }
+
+    /// <summary>
+    /// Computes the 95th-percentile latency in milliseconds from the
+    /// <see cref="VerificationOutcome.ProcessingDuration"/> values in <paramref name="outcomes"/>.
+    /// Returns <see langword="null"/> when no outcome carries a measured duration.
+    /// </summary>
+    private static double? ComputeP95Ms(IReadOnlyList<VerificationOutcome> outcomes)
+    {
+        var durations = outcomes
+            .Select(o => o.ProcessingDuration.TotalMilliseconds)
+            .Where(ms => ms > 0)
+            .OrderBy(ms => ms)
+            .ToList();
+
+        if (durations.Count == 0)
+            return null;
+
+        // Nearest-rank method: index = ceil(p * n) - 1  (0-based)
+        int rank = (int)Math.Ceiling(0.95 * durations.Count) - 1;
+        rank = Math.Max(0, Math.Min(rank, durations.Count - 1));
+        return durations[rank];
     }
 
     /// <summary>

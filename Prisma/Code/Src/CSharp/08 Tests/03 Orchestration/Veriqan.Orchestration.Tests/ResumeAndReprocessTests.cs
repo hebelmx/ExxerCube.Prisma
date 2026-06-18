@@ -5,6 +5,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
+using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
 using IndQuestResults;
@@ -79,6 +80,7 @@ public sealed class ResumeAndReprocessTests
         services.AddLogging();
         services.AddScoped<IVerificationPipeline>(_ => pipeline);
         services.AddSingleton<IVerificationResultStore>(store);
+        services.AddSingleton<VeriqanMetrics>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
 
         var sp = services.BuildServiceProvider();
