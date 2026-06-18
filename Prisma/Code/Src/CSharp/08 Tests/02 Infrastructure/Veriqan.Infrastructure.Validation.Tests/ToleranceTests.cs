@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
@@ -421,31 +423,50 @@ public sealed class ToleranceTests
     }
 
     /// <summary>
-    /// CL-22 with a valid in-range override (0.25m, which is in [0.00, 1.00]):
-    /// the tightened override applies and a 0.30m diff is within 0.25 → Pass.
-    /// Wait — 0.30 > 0.25 → Fail. Tests the tightened override rejects a previously-passing diff.
+    /// CL-22 with a tenant-profile override of 0.20m (tighter than legal 0.50m):
+    /// a diff of 0.30m exceeds the tenant bar (0.20m) → Fail;
+    /// the legal baseline (0.50m) still passes → LegalBaselineVerdict = Pass.
+    /// Story 9.6: bundle ToleranceConfig is no longer used to drive effective tolerance;
+    /// the tightened bar comes from <c>ResolvedTenantProfile.GetEffectiveTolerance</c> instead.
     /// </summary>
     [Fact]
     public void Cl22_InRangeTightenedOverride_Applies_DiffBeyondTightenedToleranceFails()
     {
         var rule = GetRule("CL-22");
-        // Diff = 0.30m; with default 0.50 → Pass; with tightened 0.20m → Fail
+        // Diff = 0.30m; with legal default 0.50 → Pass; with tenant tightened 0.20m → Fail
         var ps = MinimalSummary(
             saldoCargosRegulares: Found(32446.69m),
             pagoParaNoGenerarIntereses: Found(32446.99m)); // diff = 0.30m
-        var bundle = BundleWith(new ToleranceConfig(
-            CurrencyToleranceMxn: 0.20m,   // in [0.00, 1.00] → accepted (tighter)
-            PointsTolerance: null,
-            RewardsPesosToleranceMxn: null,
-            PointsToPesosExchangeRate: null));
-        var ctx = Ctx(bundle, ModelWith(ps));
+
+        // Story 9.6: effective tolerance comes from TenantProfile, NOT bundle ToleranceConfig.
+        // Bundle may carry any (or no) ToleranceConfig — the rule ignores it for evaluation.
+        var bundle = BundleWith(null);
+        var tenantProfile = new ResolvedTenantProfile(
+            tenantId: "TEST-TENANT",
+            tenantName: "Test Tenant",
+            effectiveTolerances: new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["CL-22"] = 0.20m   // tighter than legal 0.50m
+            },
+            deviations: []);
+
+        var ctx = new VerificationContext(
+            bundle: bundle,
+            resolvedProduct: Product(),
+            availability: ReferenceDataAvailability.FromBundle(bundle),
+            priorStatement: null,
+            toleranceConfig: bundle.ToleranceConfig,
+            statementModel: ModelWith(ps),
+            tenantProfile: tenantProfile);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
-        // Tightened override (0.20m): diff 0.30 > 0.20 → Fail
+        // Tightened override (0.20m) from TenantProfile: diff 0.30 > 0.20 → Fail
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
-        result.Value.ToleranceApplied.ShouldBe(0.20m); // tightened override applied
+        result.Value.ToleranceApplied.ShouldBe(0.20m); // tenant tightened tolerance applied
+        // Legal baseline (0.50m): diff 0.30 ≤ 0.50 → LegalBaselineVerdict = Pass (divergence)
+        result.Value.LegalBaselineVerdict.ShouldBe(FindingVerdict.Pass);
     }
 
     /// <summary>

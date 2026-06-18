@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
@@ -25,8 +27,17 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// (e.g. "DON COLCHON CUMBRES 005 de 012") via <see cref="MovementClassifier.IsMsi"/>.
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
-/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
+/// <b>Tolerance (ADR-V3, Story 9.6):</b> resolved via <see cref="ILegalToleranceProvider"/>
+/// using <c>Resolve(null)</c> for the legal floor; tenant overrides come from
+/// <c>ResolvedTenantProfile.GetEffectiveTolerance</c>.
+/// </para>
+/// <para>
+/// <b>Dual verdict (Story 9.6):</b> <see cref="RuleFinding.LegalBaselineVerdict"/> reflects the
+/// legal floor; <see cref="RuleFinding.Verdict"/> reflects the tenant-effective bar.
+/// </para>
+/// <para>
+/// <b>Confidence guard (Story 9.5 / 9.6):</b> if <see cref="PeriodSummary.CargosRegularesNoMeses"/>
+/// confidence is below the configured threshold the rule abstains (InsufficientData).
 /// </para>
 /// </remarks>
 internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
@@ -63,9 +74,12 @@ internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        var resolution = _toleranceProvider.For(CheckId)
-            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
-        var tolerance = resolution.EffectiveValue;
+        // Resolve LEGAL tolerance: always use LegalDefault (no bundle override — Story 9.6)
+        var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
+
+        // Resolve TENANT-EFFECTIVE tolerance
+        var effectiveTolerance = ctx.TenantProfile?.GetEffectiveTolerance(CheckId, legalTolerance)
+            ?? legalTolerance;
 
         var ps = ctx.StatementModel?.PeriodSummary;
         if (ps is null)
@@ -78,6 +92,14 @@ internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
         if (ps.CargosRegularesNoMeses.Status != ExtractionStatus.Extracted)
             return InsufficientData($"CargosRegularesNoMeses is {ps.CargosRegularesNoMeses.Status}.");
 
+        // Confidence guard (Story 9.5)
+        var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
+            ?? TenantProfile.LegalMinFieldConfidenceDefault;
+
+        if (ConfidenceGuard.BelowThreshold(ps.CargosRegularesNoMeses, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "CargosRegularesNoMeses", ps.CargosRegularesNoMeses.Confidence, confidenceThreshold));
+
         var sumNonMsi = ctx.StatementModel.Movements
             .Where(m => m.Sign == MovementSign.Charge && !MovementClassifier.IsMsi(m.Description))
             .Sum(m => m.Amount);
@@ -86,7 +108,10 @@ internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
         var diff = Math.Abs(sumNonMsi - target);
         var locator = ps.CargosRegularesNoMeses.Locator;
 
-        if (diff <= tolerance)
+        var legalPasses = diff <= legalTolerance;
+        var tenantPasses = diff <= effectiveTolerance;
+
+        if (tenantPasses)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
@@ -94,8 +119,9 @@ internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
                     technique: Technique,
                     engineVersion: Version,
                     observed: $"{sumNonMsi:F2}",
-                    toleranceApplied: tolerance,
-                    locator: locator));
+                    toleranceApplied: effectiveTolerance,
+                    locator: locator,
+                    legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
         }
 
         return Result<RuleFinding>.WithSuccess(
@@ -106,8 +132,9 @@ internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
                 engineVersion: Version,
                 expected: $"{target:F2}",
                 observed: $"{sumNonMsi:F2}",
-                toleranceApplied: tolerance,
-                locator: locator));
+                toleranceApplied: effectiveTolerance,
+                locator: locator,
+                legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>

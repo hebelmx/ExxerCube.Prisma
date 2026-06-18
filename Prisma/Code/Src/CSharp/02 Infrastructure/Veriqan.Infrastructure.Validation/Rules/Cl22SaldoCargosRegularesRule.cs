@@ -2,7 +2,9 @@ using System;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
@@ -21,14 +23,25 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// offsets or other adjustments changed the regular-charges balance.
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
-/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
+/// <b>Tolerance (ADR-V3, Story 9.6):</b> resolved via <see cref="ILegalToleranceProvider"/>
+/// using <c>Resolve(null)</c> for the legal floor; tenant overrides come from
+/// <c>ResolvedTenantProfile.GetEffectiveTolerance</c>.
+/// </para>
+/// <para>
+/// <b>Dual verdict (Story 9.6):</b> <see cref="RuleFinding.LegalBaselineVerdict"/> reflects the
+/// legal floor; <see cref="RuleFinding.Verdict"/> reflects the tenant-effective bar.
+/// </para>
+/// <para>
+/// <b>Confidence guard (Story 9.5 / 9.6):</b> if <see cref="PeriodSummary.SaldoCargosRegulares"/>
+/// or <see cref="PeriodSummary.PagoParaNoGenerarIntereses"/> confidence is below the configured
+/// threshold the rule abstains (InsufficientData).
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
 /// <list type="bullet">
 ///   <item><see cref="PeriodSummary.SaldoCargosRegulares"/> is <see cref="ExtractionStatus.NotExtracted"/>.</item>
 ///   <item><see cref="PeriodSummary.PagoParaNoGenerarIntereses"/> is <see cref="ExtractionStatus.NotExtracted"/>.</item>
+///   <item>Either field has confidence below threshold.</item>
 /// </list>
 /// </para>
 /// </remarks>
@@ -66,9 +79,12 @@ internal sealed class Cl22SaldoCargosRegularesRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        var resolution = _toleranceProvider.For(CheckId)
-            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
-        var tolerance = resolution.EffectiveValue;
+        // Resolve LEGAL tolerance: always use LegalDefault (no bundle override — Story 9.6)
+        var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
+
+        // Resolve TENANT-EFFECTIVE tolerance
+        var effectiveTolerance = ctx.TenantProfile?.GetEffectiveTolerance(CheckId, legalTolerance)
+            ?? legalTolerance;
 
         var ps = ctx.StatementModel?.PeriodSummary;
         if (ps is null)
@@ -79,13 +95,26 @@ internal sealed class Cl22SaldoCargosRegularesRule : IVecValidationRule
         if (ps.PagoParaNoGenerarIntereses.Status != ExtractionStatus.Extracted)
             return InsufficientData($"PagoParaNoGenerarIntereses is {ps.PagoParaNoGenerarIntereses.Status}.");
 
+        // Confidence guard (Story 9.5)
+        var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
+            ?? TenantProfile.LegalMinFieldConfidenceDefault;
+
+        if (ConfidenceGuard.BelowThreshold(ps.SaldoCargosRegulares, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "SaldoCargosRegulares", ps.SaldoCargosRegulares.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.PagoParaNoGenerarIntereses, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "PagoParaNoGenerarIntereses", ps.PagoParaNoGenerarIntereses.Confidence, confidenceThreshold));
+
         var saldo = ps.SaldoCargosRegulares.Value;
         var pago = ps.PagoParaNoGenerarIntereses.Value;
         var diff = Math.Abs(saldo - pago);
 
         var locator = ps.SaldoCargosRegulares.Locator;
+        var legalPasses = diff <= legalTolerance;
+        var tenantPasses = diff <= effectiveTolerance;
 
-        if (diff <= tolerance)
+        if (tenantPasses)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
@@ -93,8 +122,9 @@ internal sealed class Cl22SaldoCargosRegularesRule : IVecValidationRule
                     technique: Technique,
                     engineVersion: Version,
                     observed: $"{saldo:F2}",
-                    toleranceApplied: tolerance,
-                    locator: locator));
+                    toleranceApplied: effectiveTolerance,
+                    locator: locator,
+                    legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
         }
 
         return Result<RuleFinding>.WithSuccess(
@@ -105,8 +135,9 @@ internal sealed class Cl22SaldoCargosRegularesRule : IVecValidationRule
                 engineVersion: Version,
                 expected: $"{pago:F2}",
                 observed: $"{saldo:F2}",
-                toleranceApplied: tolerance,
-                locator: locator));
+                toleranceApplied: effectiveTolerance,
+                locator: locator,
+                legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>

@@ -2,7 +2,9 @@ using System;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
@@ -18,13 +20,24 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
-/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
+/// <b>Tolerance (ADR-V3, Story 9.6):</b> resolved via <see cref="ILegalToleranceProvider"/>
+/// using <c>Resolve(null)</c> for the legal floor; tenant overrides come from
+/// <c>ResolvedTenantProfile.GetEffectiveTolerance</c>.
+/// </para>
+/// <para>
+/// <b>Dual verdict (Story 9.6):</b> <see cref="RuleFinding.LegalBaselineVerdict"/> reflects the
+/// legal floor; <see cref="RuleFinding.Verdict"/> reflects the tenant-effective bar.
+/// </para>
+/// <para>
+/// <b>Confidence guard (Story 9.5 / 9.6):</b> each RESUMEN subtotal input field is checked
+/// for extraction confidence. If any confidence-bearing field is below the threshold the rule
+/// abstains (InsufficientData) to prevent a false verdict from a misread digit.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
 /// <list type="bullet">
 ///   <item>Any required RESUMEN subtotal field is <see cref="ExtractionStatus.NotExtracted"/>.</item>
+///   <item>Any confidence-bearing field is below the confidence threshold.</item>
 ///   <item><see cref="PeriodSummary.PagoParaNoGenerarIntereses"/> is NotExtracted.</item>
 /// </list>
 /// </para>
@@ -63,10 +76,12 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        // Resolve tolerance (ADR-V3)
-        var resolution = _toleranceProvider.For(CheckId)
-            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
-        var tolerance = resolution.EffectiveValue;
+        // Resolve LEGAL tolerance: always use LegalDefault (no bundle override — Story 9.6)
+        var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
+
+        // Resolve TENANT-EFFECTIVE tolerance
+        var effectiveTolerance = ctx.TenantProfile?.GetEffectiveTolerance(CheckId, legalTolerance)
+            ?? legalTolerance;
 
         var ps = ctx.StatementModel?.PeriodSummary;
         if (ps is null)
@@ -92,6 +107,35 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
         if (ps.PagoParaNoGenerarIntereses.Status != ExtractionStatus.Extracted)
             return InsufficientData($"PagoParaNoGenerarIntereses is {ps.PagoParaNoGenerarIntereses.Status}.");
 
+        // Confidence guard (Story 9.5) — check each confidence-bearing input field
+        var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
+            ?? TenantProfile.LegalMinFieldConfidenceDefault;
+
+        if (ConfidenceGuard.BelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "AdeudoPeriodoAnterior", ps.AdeudoPeriodoAnterior.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.CargosRegularesNoMeses, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "CargosRegularesNoMeses", ps.CargosRegularesNoMeses.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.CargosComprasAMesesCapital, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "CargosComprasAMesesCapital", ps.CargosComprasAMesesCapital.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.MontoIntereses, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "MontoIntereses", ps.MontoIntereses.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.MontoComisiones, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "MontoComisiones", ps.MontoComisiones.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.IvaInteresesYComisiones, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "IvaInteresesYComisiones", ps.IvaInteresesYComisiones.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.PagosYAbonos, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "PagosYAbonos", ps.PagosYAbonos.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.PagoParaNoGenerarIntereses, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "PagoParaNoGenerarIntereses", ps.PagoParaNoGenerarIntereses.Confidence, confidenceThreshold));
+
         // CL-21 formula
         var computed =
             ps.AdeudoPeriodoAnterior.Value
@@ -106,8 +150,10 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
         var diff = Math.Abs(computed - observed);
 
         var locator = ps.PagoParaNoGenerarIntereses.Locator;
+        var legalPasses = diff <= legalTolerance;
+        var tenantPasses = diff <= effectiveTolerance;
 
-        if (diff <= tolerance)
+        if (tenantPasses)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
@@ -115,8 +161,9 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
                     technique: Technique,
                     engineVersion: Version,
                     observed: $"{observed:F2}",
-                    toleranceApplied: tolerance,
-                    locator: locator));
+                    toleranceApplied: effectiveTolerance,
+                    locator: locator,
+                    legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
         }
 
         return Result<RuleFinding>.WithSuccess(
@@ -127,8 +174,9 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
                 engineVersion: Version,
                 expected: $"{computed:F2}",
                 observed: $"{observed:F2}",
-                toleranceApplied: tolerance,
-                locator: locator));
+                toleranceApplied: effectiveTolerance,
+                locator: locator,
+                legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>

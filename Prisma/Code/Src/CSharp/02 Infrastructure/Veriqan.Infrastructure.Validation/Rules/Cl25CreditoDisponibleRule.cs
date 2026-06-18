@@ -2,7 +2,9 @@ using System;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
@@ -16,14 +18,25 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
-/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
+/// <b>Tolerance (ADR-V3, Story 9.6):</b> resolved via <see cref="ILegalToleranceProvider"/>
+/// using <c>Resolve(null)</c> for the legal floor; tenant overrides come from
+/// <c>ResolvedTenantProfile.GetEffectiveTolerance</c>.
+/// </para>
+/// <para>
+/// <b>Dual verdict (Story 9.6):</b> <see cref="RuleFinding.LegalBaselineVerdict"/> reflects the
+/// legal floor; <see cref="RuleFinding.Verdict"/> reflects the tenant-effective bar.
+/// </para>
+/// <para>
+/// <b>Confidence guard (Story 9.5 / 9.6):</b> if <see cref="PeriodSummary.CreditoDisponible"/>
+/// or <see cref="PeriodSummary.SaldoDeudorTotal"/> confidence is below the configured threshold
+/// the rule abstains (InsufficientData).
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
 /// <list type="bullet">
 ///   <item><see cref="PeriodSummary.CreditoDisponible"/> is <see cref="ExtractionStatus.NotExtracted"/>.</item>
 ///   <item><see cref="PeriodSummary.SaldoDeudorTotal"/> is <see cref="ExtractionStatus.NotExtracted"/>.</item>
+///   <item>Either field has confidence below threshold.</item>
 ///   <item>No credit line found for the resolved product in the bundle.</item>
 /// </list>
 /// </para>
@@ -62,9 +75,12 @@ internal sealed class Cl25CreditoDisponibleRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        var resolution = _toleranceProvider.For(CheckId)
-            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
-        var tolerance = resolution.EffectiveValue;
+        // Resolve LEGAL tolerance: always use LegalDefault (no bundle override — Story 9.6)
+        var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
+
+        // Resolve TENANT-EFFECTIVE tolerance
+        var effectiveTolerance = ctx.TenantProfile?.GetEffectiveTolerance(CheckId, legalTolerance)
+            ?? legalTolerance;
 
         var ps = ctx.StatementModel?.PeriodSummary;
         if (ps is null)
@@ -75,6 +91,17 @@ internal sealed class Cl25CreditoDisponibleRule : IVecValidationRule
         if (ps.SaldoDeudorTotal.Status != ExtractionStatus.Extracted)
             return InsufficientData($"SaldoDeudorTotal is {ps.SaldoDeudorTotal.Status}.");
 
+        // Confidence guard (Story 9.5)
+        var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
+            ?? TenantProfile.LegalMinFieldConfidenceDefault;
+
+        if (ConfidenceGuard.BelowThreshold(ps.CreditoDisponible, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "CreditoDisponible", ps.CreditoDisponible.Confidence, confidenceThreshold));
+        if (ConfidenceGuard.BelowThreshold(ps.SaldoDeudorTotal, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "SaldoDeudorTotal", ps.SaldoDeudorTotal.Confidence, confidenceThreshold));
+
         var creditLine = ResolveCreditLine(ctx);
         if (creditLine is null)
             return InsufficientData("Credit line not found in bundle for the resolved product.");
@@ -84,8 +111,10 @@ internal sealed class Cl25CreditoDisponibleRule : IVecValidationRule
         var diff = Math.Abs(computed - observed);
 
         var locator = ps.CreditoDisponible.Locator;
+        var legalPasses = diff <= legalTolerance;
+        var tenantPasses = diff <= effectiveTolerance;
 
-        if (diff <= tolerance)
+        if (tenantPasses)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
@@ -93,8 +122,9 @@ internal sealed class Cl25CreditoDisponibleRule : IVecValidationRule
                     technique: Technique,
                     engineVersion: Version,
                     observed: $"{observed:F2}",
-                    toleranceApplied: tolerance,
-                    locator: locator));
+                    toleranceApplied: effectiveTolerance,
+                    locator: locator,
+                    legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
         }
 
         return Result<RuleFinding>.WithSuccess(
@@ -105,8 +135,9 @@ internal sealed class Cl25CreditoDisponibleRule : IVecValidationRule
                 engineVersion: Version,
                 expected: $"{computed:F2}",
                 observed: $"{observed:F2}",
-                toleranceApplied: tolerance,
-                locator: locator));
+                toleranceApplied: effectiveTolerance,
+                locator: locator,
+                legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
     }
 
     private static decimal? ResolveCreditLine(VerificationContext ctx)

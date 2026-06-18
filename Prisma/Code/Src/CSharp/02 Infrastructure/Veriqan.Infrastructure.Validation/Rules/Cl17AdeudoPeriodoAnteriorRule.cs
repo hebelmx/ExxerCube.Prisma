@@ -2,7 +2,9 @@ using System;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
@@ -27,14 +29,26 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// property is <see langword="null"/> and the rule emits <see cref="Domain.Enums.FindingVerdict.InsufficientData"/>.
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
-/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
+/// <b>Tolerance (ADR-V3, Story 9.6):</b> resolved via <see cref="ILegalToleranceProvider"/>
+/// using <c>Resolve(null)</c> for the legal floor; tenant overrides come from
+/// <c>ResolvedTenantProfile.GetEffectiveTolerance</c>.
+/// </para>
+/// <para>
+/// <b>Dual verdict (Story 9.6):</b> <see cref="RuleFinding.LegalBaselineVerdict"/> reflects the
+/// legal floor; <see cref="RuleFinding.Verdict"/> reflects the tenant-effective bar. When no tenant
+/// profile is supplied both verdicts are equal.
+/// </para>
+/// <para>
+/// <b>Confidence guard (Story 9.5 / 9.6):</b> if <see cref="PeriodSummary.AdeudoPeriodoAnterior"/>
+/// confidence is below the configured threshold the rule abstains (InsufficientData).
 /// </para>
 /// <para>
 /// <b>InsufficientData paths (graceful degradation — NFR-2/6):</b>
 /// <list type="bullet">
 ///   <item><see cref="Domain.Extraction.PeriodSummary.AdeudoPeriodoAnterior"/> is
 ///     <see cref="ExtractionStatus.NotExtracted"/>.</item>
+///   <item><see cref="Domain.Extraction.PeriodSummary.AdeudoPeriodoAnterior"/> confidence is
+///     below threshold (confidence guard, Story 9.5).</item>
 ///   <item><see cref="VerificationContext.PriorStatement"/> is <see langword="null"/>
 ///     (no prior statement for this account in the bundle).</item>
 ///   <item><see cref="Domain.ReferenceData.ClosingBalances.PagoParaNoGenerarIntereses"/>
@@ -77,10 +91,12 @@ internal sealed class Cl17AdeudoPeriodoAnteriorRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        // Resolve tolerance — legal default applies when bundle has no override (ADR-V3)
-        var resolution = _toleranceProvider.For(CheckId)
-            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
-        var tolerance = resolution.EffectiveValue;
+        // Resolve LEGAL tolerance: always use LegalDefault (no bundle override — Story 9.6)
+        var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
+
+        // Resolve TENANT-EFFECTIVE tolerance
+        var effectiveTolerance = ctx.TenantProfile?.GetEffectiveTolerance(CheckId, legalTolerance)
+            ?? legalTolerance;
 
         // Statement-side: AdeudoPeriodoAnterior must be extracted
         var ps = ctx.StatementModel?.PeriodSummary;
@@ -90,6 +106,14 @@ internal sealed class Cl17AdeudoPeriodoAnteriorRule : IVecValidationRule
         if (ps.AdeudoPeriodoAnterior.Status != ExtractionStatus.Extracted)
             return InsufficientData(
                 $"AdeudoPeriodoAnterior is {ps.AdeudoPeriodoAnterior.Status}; cannot run cross-period check.");
+
+        // Confidence guard (Story 9.5)
+        var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
+            ?? TenantProfile.LegalMinFieldConfidenceDefault;
+
+        if (ConfidenceGuard.BelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason(
+                "AdeudoPeriodoAnterior", ps.AdeudoPeriodoAnterior.Confidence, confidenceThreshold));
 
         // Reference-data side: prior statement must be present (binder resolved it, or null)
         if (ctx.PriorStatement is null)
@@ -103,14 +127,16 @@ internal sealed class Cl17AdeudoPeriodoAnteriorRule : IVecValidationRule
                 "Prior statement ClosingBalances.PagoParaNoGenerarIntereses is null; " +
                 "cannot run cross-period comparison.");
 
-        // Compare with tolerance
+        // Compare with tolerance — compute both verdicts
         var observed = ps.AdeudoPeriodoAnterior.Value;
         var expected = priorPago.Value;
         var diff = Math.Abs(observed - expected);
 
         var locator = ps.AdeudoPeriodoAnterior.Locator;
+        var legalPasses = diff <= legalTolerance;
+        var tenantPasses = diff <= effectiveTolerance;
 
-        if (diff <= tolerance)
+        if (tenantPasses)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
@@ -118,8 +144,9 @@ internal sealed class Cl17AdeudoPeriodoAnteriorRule : IVecValidationRule
                     technique: Technique,
                     engineVersion: Version,
                     observed: $"{observed:F2}",
-                    toleranceApplied: tolerance,
-                    locator: locator));
+                    toleranceApplied: effectiveTolerance,
+                    locator: locator,
+                    legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
         }
 
         return Result<RuleFinding>.WithSuccess(
@@ -130,8 +157,9 @@ internal sealed class Cl17AdeudoPeriodoAnteriorRule : IVecValidationRule
                 engineVersion: Version,
                 expected: $"{expected:F2}",
                 observed: $"{observed:F2}",
-                toleranceApplied: tolerance,
-                locator: locator));
+                toleranceApplied: effectiveTolerance,
+                locator: locator,
+                legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>

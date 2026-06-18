@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
@@ -25,8 +26,19 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// unmatched descriptions; Item-58 only verifies amounts for matched entries.
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
-/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
+/// <b>Tolerance (ADR-V3, Story 9.6):</b> resolved via <see cref="ILegalToleranceProvider"/>
+/// using <c>Resolve(null)</c> for the legal floor; tenant overrides come from
+/// <c>ResolvedTenantProfile.GetEffectiveTolerance</c>.
+/// </para>
+/// <para>
+/// <b>Dual verdict (Story 9.6):</b> <see cref="RuleFinding.LegalBaselineVerdict"/> reflects the
+/// legal floor; <see cref="RuleFinding.Verdict"/> reflects the tenant-effective bar.
+/// </para>
+/// <para>
+/// <b>Note on confidence guard:</b> individual <see cref="Domain.Extraction.StatementMovement"/>
+/// objects are raw domain values (not <c>ExtractedField&lt;T&gt;</c>) and do not carry per-field
+/// confidence scores. The rule already abstains via <see cref="MovementsExtractionStatus"/> when
+/// the DESGLOSE section was not extracted. No per-movement confidence guard is applied.
 /// </para>
 /// <para>
 /// The first <see cref="ExpectedTransactionGroup"/> in the bundle is used.
@@ -67,9 +79,12 @@ internal sealed class Item58TransactionAmountMatchRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        var resolution = _toleranceProvider.For(CheckId)
-            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
-        var tolerance = resolution.EffectiveValue;
+        // Resolve LEGAL tolerance: always use LegalDefault (no bundle override — Story 9.6)
+        var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
+
+        // Resolve TENANT-EFFECTIVE tolerance
+        var effectiveTolerance = ctx.TenantProfile?.GetEffectiveTolerance(CheckId, legalTolerance)
+            ?? legalTolerance;
 
         var model = ctx.StatementModel;
         if (model is null)
@@ -91,7 +106,10 @@ internal sealed class Item58TransactionAmountMatchRule : IVecValidationRule
             .GroupBy(m => Cl45TransactionDescriptionMatchRule.Normalize(m.Description), StringComparer.Ordinal)
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.Ordinal);
 
-        var failures = new List<string>();
+        // Evaluate with the LEGAL tolerance bar for baseline verdict
+        var legalFailures = new List<string>();
+        // Evaluate with the EFFECTIVE (tenant) tolerance bar for primary verdict
+        var tenantFailures = new List<string>();
         var checkedCount = 0;
 
         foreach (var expected in group.Transactions)
@@ -105,35 +123,43 @@ internal sealed class Item58TransactionAmountMatchRule : IVecValidationRule
             {
                 checkedCount++;
                 var diff = Math.Abs(movement.Amount - expected.Amount);
-                if (diff > tolerance)
-                {
-                    failures.Add(
+
+                if (diff > legalTolerance)
+                    legalFailures.Add(
                         $"'{expected.Description}': expected {expected.Amount:F2}, " +
                         $"observed {movement.Amount:F2} (diff {diff:F2})");
-                }
+
+                if (diff > effectiveTolerance)
+                    tenantFailures.Add(
+                        $"'{expected.Description}': expected {expected.Amount:F2}, " +
+                        $"observed {movement.Amount:F2} (diff {diff:F2})");
             }
         }
 
-        if (failures.Count == 0)
+        var legalPasses = legalFailures.Count == 0;
+        var tenantPasses = tenantFailures.Count == 0;
+
+        if (tenantPasses)
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"All {checkedCount} matched transaction amount(s) within ±{tolerance:F2}",
-                    toleranceApplied: tolerance));
+                    observed: $"All {checkedCount} matched transaction amount(s) within ±{effectiveTolerance:F2}",
+                    toleranceApplied: effectiveTolerance,
+                    legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
         }
 
         var sb = new StringBuilder();
-        foreach (var f in failures.Take(5))
+        foreach (var f in tenantFailures.Take(5))
         {
             if (sb.Length > 0) sb.Append("; ");
             sb.Append(f);
         }
 
-        if (failures.Count > 5)
-            sb.Append($" ... (+{failures.Count - 5} more)");
+        if (tenantFailures.Count > 5)
+            sb.Append($" ... (+{tenantFailures.Count - 5} more)");
 
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.Fail(
@@ -141,9 +167,10 @@ internal sealed class Item58TransactionAmountMatchRule : IVecValidationRule
                 technique: Technique,
                 severity: FindingSeverity.Critical,
                 engineVersion: Version,
-                expected: $"All amounts within ±{tolerance:F2}",
+                expected: $"All amounts within ±{effectiveTolerance:F2}",
                 observed: sb.ToString(),
-                toleranceApplied: tolerance));
+                toleranceApplied: effectiveTolerance,
+                legalBaselineVerdict: legalPasses ? FindingVerdict.Pass : FindingVerdict.Fail));
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>
