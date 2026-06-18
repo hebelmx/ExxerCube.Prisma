@@ -89,17 +89,14 @@ internal sealed class Section26NotasAclaratoriasRule : IVecValidationRule
             return InsufficientData(
                 "§26 detection status is Indeterminate — cannot scope notas check.");
 
-        // Scope match to §26's own section text to prevent false-Pass from note fragments
-        // appearing in other sections (e.g. a paraphrasing in §17 or §24).
-        var sectionText = section26.SectionText;
-        if (string.IsNullOrWhiteSpace(sectionText))
-            return InsufficientData(
-                "§26 SectionText is empty — section-scoped text not available; " +
-                "cannot reliably check §26 notas aclaratorias.");
-
+        // Match against the whole document instead of SectionText to guard against
+        // two-column PDF layouts where the reading-order band scan may truncate
+        // SectionText (false-Fail on a compliant statement). Each nota is a long,
+        // unique, legally-fixed string (~200–400 chars) — the false-Pass risk from a
+        // spurious occurrence elsewhere in the document is not realistic.
         var threshold = ResolveThreshold(ctx);
 
-        var failing = VerbatimBlockMatcher.FindFailingBlocks(sectionText, NormalizedBlocks, threshold);
+        var failing = VerbatimBlockMatcher.FindFailingBlocks(model.NormalizedFullText, NormalizedBlocks, threshold);
 
         if (failing.Count == 0)
         {
@@ -108,7 +105,7 @@ internal sealed class Section26NotasAclaratoriasRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"All {NormalizedBlocks.Count} §26 notas aclaratorias (a–m) found in §26 section text (threshold={threshold:F3}).",
+                    observed: $"All {NormalizedBlocks.Count} §26 notas aclaratorias (a–m) found in document (threshold={threshold:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section26.Locator));
         }

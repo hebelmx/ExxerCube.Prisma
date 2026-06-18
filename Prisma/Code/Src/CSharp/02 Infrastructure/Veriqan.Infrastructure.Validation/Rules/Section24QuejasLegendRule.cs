@@ -74,16 +74,13 @@ internal sealed class Section24QuejasLegendRule : IVecValidationRule
             return InsufficientData(
                 "§24 detection status is Indeterminate — cannot scope quejas legend check.");
 
-        // Scope match to §24's own section text to prevent false-Pass from the quejas
-        // fragment appearing in another section of a multi-page statement.
-        var sectionText = section24.SectionText;
-        if (string.IsNullOrWhiteSpace(sectionText))
-            return InsufficientData(
-                "§24 SectionText is empty — section-scoped text not available; " +
-                "cannot reliably check §24 quejas legend.");
-
+        // Match against the whole document instead of SectionText to guard against
+        // two-column PDF layouts where the reading-order band scan may truncate
+        // SectionText (false-Fail on a compliant statement). The §24 quejas block is
+        // a long, legally-fixed CONDUSEF contact string — an accidental false-Pass
+        // from a spurious occurrence elsewhere is not a realistic risk.
         var threshold = ResolveThreshold(ctx);
-        var score = VerbatimBlockMatcher.BestWindowSimilarity(sectionText, NormalizedExpected);
+        var score = VerbatimBlockMatcher.BestWindowSimilarity(model.NormalizedFullText, NormalizedExpected);
 
         if (score >= threshold)
         {
@@ -92,7 +89,7 @@ internal sealed class Section24QuejasLegendRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"§24 CONDUSEF contact legend found in §24 section text (similarity={score:F3}).",
+                    observed: $"§24 CONDUSEF contact legend found in document (similarity={score:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section24.Locator));
         }

@@ -502,7 +502,7 @@ public sealed class VerbatimBlockRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // LAW-§11-URLS: Pass when both URLs present (tolerance via normalized substring)
+    // LAW-§11-URLS: Pass when both URLs present in NormalizedFullText
     // -----------------------------------------------------------------------
 
     [Fact]
@@ -515,11 +515,12 @@ public sealed class VerbatimBlockRulesTests
         // VecTextMatcher.Normalize uppercases and strips accents/ligatures.
         var url1N = VecTextMatcher.Normalize(Url1);
         var url2N = VecTextMatcher.Normalize(Url2);
-        var sectionText = $"COMPARA TU TARJETA CON OTRAS EN: {url1N} {url2N}";
-        var docText = sectionText + " NOTAS ACLARATORIAS";
+        var docText = $"COMPARA TU TARJETA CON OTRAS EN: {url1N} {url2N} NOTAS ACLARATORIAS";
 
-        // R2: provide SectionText on §11 so the scoped rule finds the URLs.
-        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, sectionText, sections));
+        // R3: rule matches NormalizedFullText — SectionText is intentionally a truncated
+        // slice (simulates two-column PDF reading order) to prove the rule still passes.
+        var truncatedSectionText = "COMPARA TU TARJETA CON OTRAS EN:";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, truncatedSectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -529,19 +530,46 @@ public sealed class VerbatimBlockRulesTests
         result.Value.Severity.ShouldBe(FindingSeverity.Info);
     }
 
+    /// <summary>
+    /// Regression guard for the two-column SectionText-truncation false-Fail bug.
+    /// §11 is detected, SectionText is a short truncated slice (as happens when the
+    /// reading-order band scan runs §27 heading before §11 column-A body at the same Y),
+    /// but NormalizedFullText contains both URLs. The rule MUST Pass.
+    /// </summary>
+    [Fact]
+    public void Section11Rule_TwoColumnTruncation_UrlsOnlyInFullText_StillPasses()
+    {
+        var rule = GetRule("LAW-§11-URLS");
+        var sections = SectionsWithPresent(11);
+
+        var url1N = VecTextMatcher.Normalize(Url1);
+        var url2N = VecTextMatcher.Normalize(Url2);
+
+        // NormalizedFullText has both URLs; SectionText is truncated (no URLs in it).
+        var fullText = $"SECCION 11 COMPARA TU TARJETA {url1N} {url2N} SECCION 27 GLOSARIO";
+        var truncatedSectionText = "SECCION 11 COMPARA TU TARJETA";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(fullText, 11, truncatedSectionText, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.Severity.ShouldBe(FindingSeverity.Info);
+    }
+
     [Fact]
     public void Section11Rule_OneUrlMissing_ReturnsFail_NamingBlockAndScore()
     {
         var rule = GetRule("LAW-§11-URLS");
         var sections = SectionsWithPresent(11);
 
-        // Only url1 is present; url2 is completely absent.
+        // Only url1 is present in the full document; url2 is completely absent.
         var url1N = VecTextMatcher.Normalize(Url1);
-        var sectionText = $"COMPARA TU TARJETA: {url1N}";
-        var docText = sectionText + " NOTAS ACLARATORIAS";
+        var docText = $"COMPARA TU TARJETA: {url1N} NOTAS ACLARATORIAS";
 
-        // R2: SectionText contains only url1.
-        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, sectionText, sections));
+        // SectionText also only has url1 — consistent with the full document.
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, docText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -560,11 +588,10 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§11-URLS");
         var sections = SectionsWithPresent(11);
 
-        var sectionText = "COMPARA TU TARJETA CON OTRAS OPCIONES";
-        var docText = sectionText + " NOTAS ACLARATORIAS";
+        // No URLs anywhere in the document (full text).
+        var docText = "COMPARA TU TARJETA CON OTRAS OPCIONES NOTAS ACLARATORIAS";
 
-        // R2: SectionText contains no URLs.
-        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, sectionText, sections));
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, docText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -576,7 +603,7 @@ public sealed class VerbatimBlockRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // LAW-§17-LEGENDS: Pass when all four legends present (with accent stripping)
+    // LAW-§17-LEGENDS: Pass when all four legends present in NormalizedFullText
     // -----------------------------------------------------------------------
 
     [Fact]
@@ -586,14 +613,15 @@ public sealed class VerbatimBlockRulesTests
         var sections = SectionsWithPresent(17);
 
         // Normalize all four legends (simulates what the PDF extractor produces).
-        // Slight whitespace perturbation (double spaces) to prove tolerance.
-        var sectionText = string.Join(" SEPARADOR ",
+        var legendsText = string.Join(" SEPARADOR ",
             new[] { Legend17A, Legend17B, Legend17C, Legend17D }
                 .Select(l => VecTextMatcher.Normalize(l)));
-        var doc = sectionText + " SIGUIENTE SECCION";
+        var docText = legendsText + " SIGUIENTE SECCION";
 
-        // R2: SectionText scoped to §17 contains all four legends.
-        var ctx = Ctx(ModelWithTextAndSectionText(doc, 17, sectionText, sections));
+        // R3: rule matches NormalizedFullText — SectionText is truncated to simulate
+        // two-column PDF; rule must still Pass because blocks are in full text.
+        var truncatedSectionText = "MENSAJES ADICIONALES";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 17, truncatedSectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -603,18 +631,43 @@ public sealed class VerbatimBlockRulesTests
         result.Value.Severity.ShouldBe(FindingSeverity.Info);
     }
 
+    /// <summary>
+    /// Regression guard: §17 detected, SectionText truncated (two-column layout),
+    /// legends appear only in NormalizedFullText. Rule MUST Pass.
+    /// </summary>
+    [Fact]
+    public void Section17Rule_TwoColumnTruncation_LegendsOnlyInFullText_StillPasses()
+    {
+        var rule = GetRule("LAW-§17-LEGENDS");
+        var sections = SectionsWithPresent(17);
+
+        var legendsN = string.Join(" ",
+            new[] { Legend17A, Legend17B, Legend17C, Legend17D }
+                .Select(VecTextMatcher.Normalize));
+
+        // Full text has all legends; SectionText has none.
+        var fullText = $"SECCION 17 MENSAJES ADICIONALES {legendsN} SECCION 18 SIGUIENTE";
+        var truncatedSectionText = "SECCION 17 MENSAJES ADICIONALES";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(fullText, 17, truncatedSectionText, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
     [Fact]
     public void Section17Rule_OneLegendMissing_ReturnsFail_NamingMissingId()
     {
         var rule = GetRule("LAW-§17-LEGENDS");
         var sections = SectionsWithPresent(17);
 
-        // Only first three legends present; §17-d is absent.
-        var sectionText = string.Join(" ",
+        // Only first three legends in full document; §17-d is absent everywhere.
+        var docText = string.Join(" ",
             new[] { Legend17A, Legend17B, Legend17C }.Select(VecTextMatcher.Normalize));
 
-        // R2: SectionText scoped to §17.
-        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 17, sectionText, sections));
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 17, docText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -635,13 +688,12 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§17-LEGENDS");
         var sections = SectionsWithPresent(17);
 
-        // All four legends normalized (accents stripped, uppercased).
-        var sectionText = string.Join(" ",
+        // All four legends normalized (accents stripped, uppercased) in full document.
+        var docText = string.Join(" ",
             new[] { Legend17A, Legend17B, Legend17C, Legend17D }
                 .Select(VecTextMatcher.Normalize));
 
-        // R2: SectionText scoped to §17.
-        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 17, sectionText, sections));
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 17, docText, sections));
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -649,7 +701,7 @@ public sealed class VerbatimBlockRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // LAW-§24-QUEJAS: Pass when invariant CONDUSEF block present
+    // LAW-§24-QUEJAS: Pass when invariant CONDUSEF block present in NormalizedFullText
     // -----------------------------------------------------------------------
 
     [Fact]
@@ -658,13 +710,13 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§24-QUEJAS");
         var sections = SectionsWithPresent(24);
 
-        // Simulate issuer-specific prefix + invariant CONDUSEF block.
+        // Simulate issuer-specific prefix + invariant CONDUSEF block in full document.
         var invariantN = VecTextMatcher.Normalize(Quejas24Fragment);
-        var sectionText = $"BANCO DEMO RECIBE QUEJAS EN SU UNE. {invariantN}";
-        var docText = sectionText + " REESTRUCTURA DE TU DEUDA";
+        var docText = $"BANCO DEMO RECIBE QUEJAS EN SU UNE. {invariantN} REESTRUCTURA DE TU DEUDA";
 
-        // R2: SectionText scoped to §24 contains the CONDUSEF block.
-        var ctx = Ctx(ModelWithTextAndSectionText(docText, 24, sectionText, sections));
+        // R3: SectionText is truncated (no invariant block in it); rule must Pass via full text.
+        var truncatedSectionText = "BANCO DEMO RECIBE QUEJAS EN SU UNE.";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 24, truncatedSectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -674,18 +726,39 @@ public sealed class VerbatimBlockRulesTests
         result.Value.Severity.ShouldBe(FindingSeverity.Info);
     }
 
+    /// <summary>
+    /// Regression guard: §24 detected, SectionText truncated (two-column layout),
+    /// quejas block present only in NormalizedFullText. Rule MUST Pass.
+    /// </summary>
+    [Fact]
+    public void Section24Rule_TwoColumnTruncation_QuejasOnlyInFullText_StillPasses()
+    {
+        var rule = GetRule("LAW-§24-QUEJAS");
+        var sections = SectionsWithPresent(24);
+
+        var invariantN = VecTextMatcher.Normalize(Quejas24Fragment);
+        var fullText = $"SECCION 24 ATENCION DE QUEJAS {invariantN} SECCION 25 SIGUIENTE";
+        var truncatedSectionText = "SECCION 24 ATENCION DE QUEJAS";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(fullText, 24, truncatedSectionText, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+    }
+
     [Fact]
     public void Section24Rule_QuejasLegendAbsent_ReturnsFail_WithScore()
     {
         var rule = GetRule("LAW-§24-QUEJAS");
         var sections = SectionsWithPresent(24);
 
-        // Document text has the section heading but none of the invariant CONDUSEF contact block.
-        var sectionText = "ATENCION DE QUEJAS BANCO DEMO RECIBE CONSULTAS EN SU UNIDAD ESPECIALIZADA";
-        var docText = sectionText + " SIGUIENTE SECCION";
+        // Document text has the section heading but none of the invariant CONDUSEF block
+        // anywhere in the document (full text).
+        var docText = "ATENCION DE QUEJAS BANCO DEMO RECIBE CONSULTAS EN SU UNIDAD ESPECIALIZADA SIGUIENTE SECCION";
 
-        // R2: SectionText scoped to §24 has no matching block.
-        var ctx = Ctx(ModelWithTextAndSectionText(docText, 24, sectionText, sections));
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 24, docText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -698,7 +771,7 @@ public sealed class VerbatimBlockRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // LAW-§26-NOTAS: Pass when all 13 notes present (with accent tolerance)
+    // LAW-§26-NOTAS: Pass when all 13 notes present in NormalizedFullText
     // -----------------------------------------------------------------------
 
     [Fact]
@@ -707,14 +780,15 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§26-NOTAS");
         var sections = SectionsWithPresent(26);
 
-        // Build doc with all 13 notes normalized, separated by distinct section markers.
-        var sectionText = "NOTAS ACLARATORIAS " +
+        // Build full doc with all 13 notes normalized, separated by distinct section markers.
+        var notesText = "NOTAS ACLARATORIAS " +
                   string.Join(" NOTA ",
                       AllSection26Notes.Select(VecTextMatcher.Normalize));
-        var doc = sectionText + " GLOSARIO DE TERMINOS";
+        var docText = notesText + " GLOSARIO DE TERMINOS";
 
-        // R2: SectionText scoped to §26 contains all notes.
-        var ctx = Ctx(ModelWithTextAndSectionText(doc, 26, sectionText, sections));
+        // R3: SectionText is truncated; all 13 notes in NormalizedFullText only.
+        var truncatedSectionText = "NOTAS ACLARATORIAS";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 26, truncatedSectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -725,18 +799,45 @@ public sealed class VerbatimBlockRulesTests
         result.Value.Observed!.ShouldContain("13");
     }
 
+    /// <summary>
+    /// Regression guard for the two-column SectionText-truncation false-Fail bug (§26).
+    /// §26 is detected, SectionText is a truncated heading-only slice, but all 13 notas
+    /// appear in NormalizedFullText. Rule MUST Pass.
+    /// </summary>
+    [Fact]
+    public void Section26Rule_TwoColumnTruncation_NotasOnlyInFullText_StillPasses()
+    {
+        var rule = GetRule("LAW-§26-NOTAS");
+        var sections = SectionsWithPresent(26);
+
+        var notesText = string.Join(" NOTA ",
+            AllSection26Notes.Select(VecTextMatcher.Normalize));
+        var fullText = $"SECCION 26 NOTAS ACLARATORIAS {notesText} SECCION 27 GLOSARIO";
+        // SectionText contains no note bodies — simulates §27 heading appearing first
+        // in band scan at same Y as §26 body content.
+        var truncatedSectionText = "SECCION 26 NOTAS ACLARATORIAS";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(fullText, 26, truncatedSectionText, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.Observed.ShouldNotBeNull();
+        result.Value.Observed!.ShouldContain("13");
+    }
+
     [Fact]
     public void Section26Rule_MostNotesAbsent_ReturnsFail_NamingMissingNotes()
     {
         var rule = GetRule("LAW-§26-NOTAS");
         var sections = SectionsWithPresent(26);
 
-        // Only notes a and b present; the remaining 11 notes are absent.
-        var sectionText = $"NOTAS ACLARATORIAS {VecTextMatcher.Normalize(Note26A)} " +
+        // Only notes a and b in full document; the remaining 11 notes are absent everywhere.
+        var docText = $"NOTAS ACLARATORIAS {VecTextMatcher.Normalize(Note26A)} " +
                   $"{VecTextMatcher.Normalize(Note26B)} FIN DE NOTAS";
 
-        // R2: SectionText scoped to §26 has only 2 notes.
-        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 26, sectionText, sections));
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 26, docText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -756,13 +857,13 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§26-NOTAS");
         var sections = SectionsWithPresent(26);
 
-        // Simulate all 13 notes as they appear after PDF extraction (accent-stripped, uppercased).
-        var sectionText = "NOTAS ACLARATORIAS " +
+        // Simulate all 13 notes as they appear after PDF extraction (accent-stripped, uppercased)
+        // in NormalizedFullText; SectionText is truncated.
+        var notesText = "NOTAS ACLARATORIAS " +
                   string.Join(" NUMERO ",
                       AllSection26Notes.Select(VecTextMatcher.Normalize));
 
-        // R2: SectionText scoped to §26.
-        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 26, sectionText, sections));
+        var ctx = Ctx(ModelWithTextAndSectionText(notesText, 26, "NOTAS ACLARATORIAS", sections));
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -770,7 +871,7 @@ public sealed class VerbatimBlockRulesTests
     }
 
     // -----------------------------------------------------------------------
-    // LAW-§27-GLOSARIO: Pass when all 15 terms present (with accent tolerance)
+    // LAW-§27-GLOSARIO: Pass when all 15 terms present in NormalizedFullText
     // -----------------------------------------------------------------------
 
     [Fact]
@@ -779,13 +880,14 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§27-GLOSARIO");
         var sections = SectionsWithPresent(27);
 
-        var sectionText = "GLOSARIO DE TERMINOS Y ABREVIATURAS " +
+        var termsText = "GLOSARIO DE TERMINOS Y ABREVIATURAS " +
                   string.Join(" TERMINO ",
                       AllSection27Terms.Select(VecTextMatcher.Normalize));
-        var doc = sectionText + " FIN DEL ESTADO DE CUENTA";
+        var docText = termsText + " FIN DEL ESTADO DE CUENTA";
 
-        // R2: SectionText scoped to §27 contains all 15 terms.
-        var ctx = Ctx(ModelWithTextAndSectionText(doc, 27, sectionText, sections));
+        // R3: SectionText is truncated; all 15 terms in NormalizedFullText only.
+        var truncatedSectionText = "GLOSARIO DE TERMINOS Y ABREVIATURAS";
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 27, truncatedSectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -796,17 +898,44 @@ public sealed class VerbatimBlockRulesTests
         result.Value.Observed!.ShouldContain("15");
     }
 
+    /// <summary>
+    /// Regression guard for the two-column SectionText-truncation false-Fail bug (§27).
+    /// §27 is detected, SectionText is a truncated heading-only slice (§26 body in same Y-band),
+    /// but all 15 glossary terms appear in NormalizedFullText. Rule MUST Pass.
+    /// </summary>
+    [Fact]
+    public void Section27Rule_TwoColumnTruncation_TermsOnlyInFullText_StillPasses()
+    {
+        var rule = GetRule("LAW-§27-GLOSARIO");
+        var sections = SectionsWithPresent(27);
+
+        var termsText = string.Join(" TERMINO ",
+            AllSection27Terms.Select(VecTextMatcher.Normalize));
+        var fullText = $"SECCION 26 NOTAS SECCION 27 GLOSARIO {termsText} FIN";
+        // SectionText has only the heading — simulates §26 notes at same Y-band
+        // appearing first in reading order, truncating §27's body from SectionText.
+        var truncatedSectionText = "SECCION 27 GLOSARIO";
+
+        var ctx = Ctx(ModelWithTextAndSectionText(fullText, 27, truncatedSectionText, sections));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.Observed.ShouldNotBeNull();
+        result.Value.Observed!.ShouldContain("15");
+    }
+
     [Fact]
     public void Section27Rule_MostTermsAbsent_ReturnsFail_NamingMissingTerms()
     {
         var rule = GetRule("LAW-§27-GLOSARIO");
         var sections = SectionsWithPresent(27);
 
-        // Only term a (CAT) and term e (IVA) present; the other 13 are absent.
-        var sectionText = $"GLOSARIO {VecTextMatcher.Normalize(Term27A)} {VecTextMatcher.Normalize(Term27E)} FIN";
+        // Only term a (CAT) and term e (IVA) present in full document; the other 13 are absent.
+        var docText = $"GLOSARIO {VecTextMatcher.Normalize(Term27A)} {VecTextMatcher.Normalize(Term27E)} FIN";
 
-        // R2: SectionText scoped to §27 has only 2 terms.
-        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 27, sectionText, sections));
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 27, docText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -821,16 +950,16 @@ public sealed class VerbatimBlockRulesTests
     [Fact]
     public void Section27Rule_AllTermsPresent_WithAccentStripping_ReturnsPass()
     {
-        // Proves tolerance: document has accent-stripped, uppercased terms.
+        // Proves tolerance: document has accent-stripped, uppercased terms in NormalizedFullText.
         var rule = GetRule("LAW-§27-GLOSARIO");
         var sections = SectionsWithPresent(27);
 
-        var sectionText = "GLOSARIO " +
+        var termsText = "GLOSARIO " +
                   string.Join(" SIGUIENTE ",
                       AllSection27Terms.Select(VecTextMatcher.Normalize));
 
-        // R2: SectionText scoped to §27.
-        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 27, sectionText, sections));
+        // SectionText is truncated; terms are only in full text.
+        var ctx = Ctx(ModelWithTextAndSectionText(termsText, 27, "GLOSARIO", sections));
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();

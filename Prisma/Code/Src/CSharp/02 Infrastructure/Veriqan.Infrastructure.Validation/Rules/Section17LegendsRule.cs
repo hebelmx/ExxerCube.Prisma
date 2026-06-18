@@ -82,17 +82,14 @@ internal sealed class Section17LegendsRule : IVecValidationRule
             return InsufficientData(
                 "§17 detection status is Indeterminate — cannot scope legend check.");
 
-        // Scope match to §17's own section text to prevent false-Pass from legends
-        // appearing in other sections (e.g. in §26 notes or §27 glosario).
-        var sectionText = section17.SectionText;
-        if (string.IsNullOrWhiteSpace(sectionText))
-            return InsufficientData(
-                "§17 SectionText is empty — section-scoped text not available; " +
-                "cannot reliably check §17 legends.");
-
+        // Match against the whole document instead of SectionText to guard against
+        // two-column PDF layouts where the reading-order band scan may truncate
+        // SectionText (false-Fail on a compliant statement). These legend strings are
+        // long, unique, and legally fixed — the false-Pass risk from a spurious match
+        // elsewhere is not realistic.
         var threshold = ResolveThreshold(ctx);
 
-        var failing = VerbatimBlockMatcher.FindFailingBlocks(sectionText, NormalizedBlocks, threshold);
+        var failing = VerbatimBlockMatcher.FindFailingBlocks(model.NormalizedFullText, NormalizedBlocks, threshold);
 
         if (failing.Count == 0)
         {
@@ -101,7 +98,7 @@ internal sealed class Section17LegendsRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"All {NormalizedBlocks.Count} §17 art-6-IV mandatory legends found in §17 section text (threshold={threshold:F3}).",
+                    observed: $"All {NormalizedBlocks.Count} §17 art-6-IV mandatory legends found in document (threshold={threshold:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section17.Locator));
         }

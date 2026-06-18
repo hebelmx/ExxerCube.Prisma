@@ -95,17 +95,14 @@ internal sealed class Section11ComparaUrlsRule : IVecValidationRule
             return InsufficientData(
                 "§11 detection status is Indeterminate — cannot scope URL check.");
 
-        // Scope match to §11's own section text to prevent false-Pass from URLs
-        // appearing elsewhere in the document (e.g. in §27 Glosario links).
-        var sectionText = section11.SectionText;
-        if (string.IsNullOrWhiteSpace(sectionText))
-            return InsufficientData(
-                "§11 SectionText is empty — section-scoped text not available; " +
-                "cannot reliably check §11 URL blocks.");
-
+        // Match against the whole document instead of SectionText to guard against
+        // two-column PDF layouts where the reading-order band scan may truncate
+        // SectionText (false-Fail on a compliant statement). These URL strings are
+        // long, unique, and legally fixed — an accidental false-Pass from a spurious
+        // occurrence elsewhere in the document is not a realistic risk.
         var threshold = ResolveThreshold(ctx);
 
-        var failing = VerbatimBlockMatcher.FindFailingBlocks(sectionText, NormalizedBlocks, threshold);
+        var failing = VerbatimBlockMatcher.FindFailingBlocks(model.NormalizedFullText, NormalizedBlocks, threshold);
 
         if (failing.Count == 0)
         {
@@ -114,7 +111,7 @@ internal sealed class Section11ComparaUrlsRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"Both §11 CONDUSEF URLs found in §11 section text (threshold={threshold:F3}).",
+                    observed: $"Both §11 CONDUSEF URLs found in document (threshold={threshold:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section11.Locator));
         }
