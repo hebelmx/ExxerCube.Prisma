@@ -111,6 +111,15 @@ internal sealed class DefaultLegalToleranceProvider : ILegalToleranceProvider
             ["CL-44"]     = CurrencyMxn,  // DESGLOSE footer total cargos + abonos
             ["ITEM-58"]   = CurrencyMxn,  // Per-transaction amount match
 
+            // Epic 11 — Regulatory Computation Verification (recompute from reported figures).
+            // All reconcile currency amounts in MXN, so CurrencyMxn applies. TenantTightenableOnly
+            // (a tenant may tighten the rounding tolerance; the legal floor holds).
+            ["LAW-§20-WATERFALL"]   = CurrencyMxn,  // §20 payment-distribution 7-col identity
+            ["LAW-§19-INTERES"]     = CurrencyMxn,  // §19 per-row interest monto recompute
+            ["LAW-§6-SIMULACION"]   = CurrencyMxn,  // §6 payment-simulation interest totals
+            ["LAW-§8-INDICADORES"]  = CurrencyMxn,  // §8 12-month annual-cost indicators coherence
+            ["LAW-§16-OTRASLINEAS"] = CurrencyMxn,  // §16 other-credit-lines per-row arithmetic
+
             // PointsTolerance rules
             ["CL-39"]     = Points,       // Saldo total puntos balance formula
 

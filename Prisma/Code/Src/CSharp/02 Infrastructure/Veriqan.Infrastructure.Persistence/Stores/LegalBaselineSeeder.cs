@@ -60,8 +60,11 @@ public static class LegalBaselineSeeder
     {
         // CurrencyMxn: legalDefault=0.50, min=0.00, max=1.00
         // Applies to: CL-10, CL-17, CL-18, CL-19, CL-20, CL-21, CL-22, CL-24, CL-25, CL-44, ITEM-58
+        // + Epic 11 recompute rules (§20/§19/§6/§8/§16) — MUST match DefaultLegalToleranceProvider.
         foreach (var id in new[] { "CL-10", "CL-17", "CL-18", "CL-19", "CL-20", "CL-21",
-                                    "CL-22", "CL-24", "CL-25", "CL-44", "ITEM-58" })
+                                    "CL-22", "CL-24", "CL-25", "CL-44", "ITEM-58",
+                                    "LAW-§20-WATERFALL", "LAW-§19-INTERES", "LAW-§6-SIMULACION",
+                                    "LAW-§8-INDICADORES", "LAW-§16-OTRASLINEAS" })
         {
             yield return new LegalBaselineToleranceRecord
             {
