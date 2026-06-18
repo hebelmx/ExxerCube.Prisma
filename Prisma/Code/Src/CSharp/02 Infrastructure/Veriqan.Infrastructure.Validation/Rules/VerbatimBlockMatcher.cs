@@ -38,10 +38,12 @@ internal static class VerbatimBlockMatcher
     private const double WindowFactor = 1.5;
 
     /// <summary>
-    /// Slide step as a fraction of window size.  0.5 means 50 % overlap between
-    /// adjacent windows — good coverage without O(n²) cost.
+    /// Slide step as a fraction of window size.  0.25 means 75 % overlap between
+    /// adjacent windows — denser coverage than 50% so long blocks embedded in the middle
+    /// of a section reliably find their best alignment.  Section-scoping (R2) keeps the
+    /// search space small, so the extra cost of denser sliding is acceptable.
     /// </summary>
-    private const double SlideStep = 0.5;
+    private const double SlideStep = 0.25;
 
     /// <summary>
     /// Returns the best similarity score in <c>[0.0, 1.0]</c> for <paramref name="expectedNormalized"/>

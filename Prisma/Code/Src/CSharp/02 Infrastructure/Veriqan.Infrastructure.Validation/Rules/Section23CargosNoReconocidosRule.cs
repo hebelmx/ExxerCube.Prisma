@@ -123,31 +123,40 @@ internal sealed class Section23CargosNoReconocidosRule : IVecValidationRule
                     engineVersion: Version,
                     observed: "§23 Cargos no reconocidos is not applicable — trigger condition absent."));
 
-        // §23 is applicable. Guard: need text to search for status tokens.
-        var text = model.NormalizedFullText;
-        if (string.IsNullOrEmpty(text))
+        // If §23 is Indeterminate (no text anchor), abstain — do NOT Fail.
+        if (section23.DetectionStatus == SectionDetectionStatus.Indeterminate)
             return InsufficientData(
-                "§23 is applicable but NormalizedFullText is empty — cannot verify charge-row statuses.");
+                "§23 detection status is Indeterminate — section has no reliable text anchor; " +
+                "cannot scope status-token check.");
 
-        // Search for any valid status token in the normalized text.
-        // Because detailed per-row extraction is not yet built, the rule checks
-        // document-level presence of the status vocabulary.  Finding at least one
-        // valid token is a necessary (not sufficient) condition; absence is a reliable
-        // indicator of a non-compliant §23 section.
+        // Match strictly within §23's own section text — never fall back to the whole
+        // document. A whole-doc scan would re-introduce the false-Pass the review flagged:
+        // a resolved-charge status token (e.g. CONCLUIDA PROCEDENTE) printed in §22 would
+        // satisfy this check even when §23's own rows carry no valid status. If §23 is
+        // present but its section text could not be sliced, abstain (never false-block).
+        var sectionText = section23.SectionText;
+        if (string.IsNullOrEmpty(sectionText))
+            return InsufficientData(
+                "§23 is applicable and present but its section text could not be sliced " +
+                "(empty SectionText); abstaining rather than scanning the whole document.");
+
+        // Search for any valid status token within §23's own section text (scoped).
+        // Finding at least one valid token is a necessary (not sufficient) condition;
+        // absence is a reliable indicator of a non-compliant §23 section.
         foreach (var token in ValidStatusTokens)
         {
-            if (text.Contains(token, System.StringComparison.Ordinal))
+            if (sectionText.Contains(token, System.StringComparison.Ordinal))
             {
                 return Result<RuleFinding>.WithSuccess(
                     RuleFinding.Pass(
                         checkId: CheckId,
                         technique: Technique,
                         engineVersion: Version,
-                        observed: $"§23 present and at least one valid status token found: \"{token}\"."));
+                        observed: $"§23 present and at least one valid status token found in §23 section text: \"{token}\"."));
             }
         }
 
-        // No valid status token found anywhere in the document.
+        // No valid status token found in §23's section text.
         var tokenList = string.Join(", ", ValidStatusTokens);
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.Fail(

@@ -76,10 +76,22 @@ internal sealed class Section27GlosarioRule : IVecValidationRule
                 "Section §27 (GLOSARIO DE TERMINOS Y ABREVIATURAS) was not detected in the " +
                 "document; deferring to MandatorySectionsPresenceRule.");
 
-        var threshold = ResolveThreshold(ctx);
-        var docText = model.NormalizedFullText;
+        // Abstain for Indeterminate sections.
+        if (section27.DetectionStatus == SectionDetectionStatus.Indeterminate)
+            return InsufficientData(
+                "§27 detection status is Indeterminate — cannot scope glosario check.");
 
-        var failing = VerbatimBlockMatcher.FindFailingBlocks(docText, NormalizedBlocks, threshold);
+        // Scope match to §27's own section text to prevent false-Pass from term definitions
+        // appearing in other sections (e.g. CAT referenced in §4 or §9).
+        var sectionText = section27.SectionText;
+        if (string.IsNullOrWhiteSpace(sectionText))
+            return InsufficientData(
+                "§27 SectionText is empty — section-scoped text not available; " +
+                "cannot reliably check §27 glosario terms.");
+
+        var threshold = ResolveThreshold(ctx);
+
+        var failing = VerbatimBlockMatcher.FindFailingBlocks(sectionText, NormalizedBlocks, threshold);
 
         if (failing.Count == 0)
         {
@@ -88,7 +100,7 @@ internal sealed class Section27GlosarioRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"All {NormalizedBlocks.Count} §27 glosario terms (a–o) found.",
+                    observed: $"All {NormalizedBlocks.Count} §27 glosario terms (a–o) found in §27 section text (threshold={threshold:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section27.Locator));
         }

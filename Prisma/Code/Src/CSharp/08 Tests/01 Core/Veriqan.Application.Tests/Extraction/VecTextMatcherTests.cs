@@ -351,4 +351,92 @@ public sealed class VecTextMatcherTests
 
         score.ShouldBe(1.0, tolerance: 0.001);
     }
+
+    // -----------------------------------------------------------------------
+    // R2 (Finding 5): punctuation folding — curly quotes → straight,
+    // N/A → NA normalization.
+    // These tests verify the PunctuationFoldMap in VecTextMatcher.Normalize().
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Normalize_LeftDoubleQuote_FoldedToStraight()
+    {
+        // U+201C " LEFT DOUBLE QUOTATION MARK — common in Word-generated PDFs.
+        var result = VecTextMatcher.Normalize("“GLOSARIO”");
+
+        result.ShouldBe("\"GLOSARIO\"",
+            "U+201C/U+201D must fold to straight ASCII double-quote.");
+    }
+
+    [Fact]
+    public void Normalize_RightDoubleQuote_FoldedToStraight()
+    {
+        // U+201D " RIGHT DOUBLE QUOTATION MARK.
+        var result = VecTextMatcher.Normalize("texto ” fin");
+
+        result.ShouldBe("TEXTO \" FIN");
+    }
+
+    [Fact]
+    public void Normalize_LeftSingleQuote_FoldedToStraight()
+    {
+        // U+2018 ' LEFT SINGLE QUOTATION MARK.
+        var result = VecTextMatcher.Normalize("l’amore");
+
+        result.ShouldBe("L'AMORE");
+    }
+
+    [Fact]
+    public void Normalize_RightSingleQuote_FoldedToStraight()
+    {
+        // U+2019 ' RIGHT SINGLE QUOTATION MARK — apostrophe substitute.
+        var result = VecTextMatcher.Normalize("don’t");
+
+        result.ShouldBe("DON'T");
+    }
+
+    [Fact]
+    public void Normalize_NSlashA_FoldsToNA()
+    {
+        // "N/A" in the catalog should normalize the same way as "NA" in a PDF
+        // that omits the slash.
+        var withSlash = VecTextMatcher.Normalize("N/A");
+        var withoutSlash = VecTextMatcher.Normalize("NA");
+
+        withSlash.ShouldBe(withoutSlash,
+            "N/A and NA must normalize to the same string so §27 term-g matching works.");
+    }
+
+    [Fact]
+    public void Normalize_LowercaseNSlashA_FoldsToNA()
+    {
+        // Lower-case "n/a" should also fold.
+        var result = VecTextMatcher.Normalize("n/a");
+
+        result.ShouldBe("NA");
+    }
+
+    [Fact]
+    public void Similarity_CurlyQuoteInDocument_MatchesStraightQuoteInCatalog()
+    {
+        // §17-legend text in catalog uses straight quotes; PDF has curly.
+        // Both must normalize to the same and Similarity → 1.0.
+        const string catalog = "Consulta la sección \"SALDO SOBRE EL QUE SE CALCULARON LOS INTERESES\"";
+        var extracted = "Consulta la sección “SALDO SOBRE EL QUE SE CALCULARON LOS INTERESES”";
+
+        var score = VecTextMatcher.Similarity(extracted, catalog);
+
+        score.ShouldBe(1.0, tolerance: 0.001,
+            "Curly-quote PDF vs straight-quote catalog must fully match after folding.");
+    }
+
+    [Fact]
+    public void Normalize_CurlyQuoteMixedWithLigature_BothFolded()
+    {
+        // Both ligature fi (U+FB01) and curly quote (U+201C) present.
+        var result = VecTextMatcher.Normalize("“ﬁnanciero”");
+
+        result.ShouldBe("\"FINANCIERO\"",
+            "Ligature fold + punctuation fold must both apply in sequence.");
+    }
 }

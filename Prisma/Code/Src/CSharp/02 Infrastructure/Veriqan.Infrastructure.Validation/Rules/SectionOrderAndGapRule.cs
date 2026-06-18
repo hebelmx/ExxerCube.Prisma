@@ -87,14 +87,19 @@ internal sealed class SectionOrderAndGapRule : IVecValidationRule
             return Abstain(
                 "Sections list is empty — extraction predates Story 10.1 or the PDF has no text layer.");
 
-        // Collect present sections that have a real page locator (PageNumber > 0).
+        // Collect present sections that have a real, complete page locator:
+        // PageNumber > 0 AND Bottom is not null.
+        // A section with PageNumber > 0 but null Bottom would be sorted to y=0 (page bottom)
+        // via the "?? 0.0" fallback, which can produce SPURIOUS out-of-order findings.
+        // Sections without a real bounding box are simply excluded from order evaluation.
         var locatable = sections
-            .Where(s => s.IsPresent && s.Locator.PageNumber > 0)
+            .Where(s => s.IsPresent && s.Locator.PageNumber > 0 && s.Locator.Bottom.HasValue)
             .ToList();
 
         if (locatable.Count < 2)
             return Abstain(
-                "Fewer than two present sections have page geometry; cannot determine reading order.");
+                "Fewer than two present sections have complete page geometry (PageNumber + Bottom); " +
+                "cannot determine reading order.");
 
         // ---- Order check --------------------------------------------------
         // Sort present sections by reading order: (PageNumber ASC, Bottom DESC).
@@ -146,9 +151,10 @@ internal sealed class SectionOrderAndGapRule : IVecValidationRule
     {
         // Sort by reading order: page ascending, then within-page top-to-bottom
         // (descending Bottom because origin is bottom-left).
+        // All entries in locatable have Bottom.HasValue == true (filtered above).
         var readingOrder = locatable
             .OrderBy(s => s.Locator.PageNumber)
-            .ThenByDescending(s => s.Locator.Bottom ?? 0.0)
+            .ThenByDescending(s => s.Locator.Bottom!.Value)
             .ToList();
 
         var violations = new List<(int, DetectedSection, DetectedSection)>();
@@ -184,7 +190,7 @@ internal sealed class SectionOrderAndGapRule : IVecValidationRule
         var orderSeq = string.Join(" → ",
             locatable
                 .OrderBy(s => s.Locator.PageNumber)
-                .ThenByDescending(s => s.Locator.Bottom ?? 0.0)
+                .ThenByDescending(s => s.Locator.Bottom!.Value)
                 .Select(s => $"§{s.SectionNumber}"));
 
         var maxGap = gaps.Count > 0 ? gaps.Max(g => g.GapPoints) : 0.0;

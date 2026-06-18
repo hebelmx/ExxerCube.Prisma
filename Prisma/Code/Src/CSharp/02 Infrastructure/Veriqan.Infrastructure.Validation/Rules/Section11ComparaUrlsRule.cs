@@ -90,10 +90,22 @@ internal sealed class Section11ComparaUrlsRule : IVecValidationRule
                 "Section §11 (COMPARA TU TARJETA) was not detected in the document; " +
                 "deferring to MandatorySectionsPresenceRule.");
 
-        var threshold = ResolveThreshold(ctx);
-        var docText = model.NormalizedFullText;
+        // Abstain for Indeterminate sections (no reliable text anchor).
+        if (section11.DetectionStatus == SectionDetectionStatus.Indeterminate)
+            return InsufficientData(
+                "§11 detection status is Indeterminate — cannot scope URL check.");
 
-        var failing = VerbatimBlockMatcher.FindFailingBlocks(docText, NormalizedBlocks, threshold);
+        // Scope match to §11's own section text to prevent false-Pass from URLs
+        // appearing elsewhere in the document (e.g. in §27 Glosario links).
+        var sectionText = section11.SectionText;
+        if (string.IsNullOrWhiteSpace(sectionText))
+            return InsufficientData(
+                "§11 SectionText is empty — section-scoped text not available; " +
+                "cannot reliably check §11 URL blocks.");
+
+        var threshold = ResolveThreshold(ctx);
+
+        var failing = VerbatimBlockMatcher.FindFailingBlocks(sectionText, NormalizedBlocks, threshold);
 
         if (failing.Count == 0)
         {
@@ -102,7 +114,7 @@ internal sealed class Section11ComparaUrlsRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: "Both §11 CONDUSEF URLs found in statement text.",
+                    observed: $"Both §11 CONDUSEF URLs found in §11 section text (threshold={threshold:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section11.Locator));
         }

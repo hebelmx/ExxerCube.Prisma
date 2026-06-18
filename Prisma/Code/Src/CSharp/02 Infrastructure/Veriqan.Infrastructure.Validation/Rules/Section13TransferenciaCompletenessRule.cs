@@ -106,23 +106,31 @@ internal sealed class Section13TransferenciaCompletenessRule : IVecValidationRul
                 "§13 is applicable but not present in the PDF; " +
                 "MandatorySectionsPresenceRule covers the absence finding.");
 
-        // Guard: NormalizedFullText must be non-empty.
-        var text = model.NormalizedFullText;
-        if (string.IsNullOrWhiteSpace(text))
+        // If §13 is Indeterminate (no text anchor), abstain — do NOT Fail.
+        if (section13.DetectionStatus == SectionDetectionStatus.Indeterminate)
             return InsufficientData(
-                "NormalizedFullText is empty — PDF text layer is unreadable; cannot check §13 transferencia field.");
+                "§13 detection status is Indeterminate — section has no reliable text anchor; " +
+                "cannot scope label check.");
 
-        // Check for the transferencia label.
-        // NormalizedFullText is already upper-cased and accent-stripped (VecTextNormalizer contract).
+        // Prefer section-scoped text to avoid false-Pass from TRANSFERENCIA DE SALDO
+        // appearing as a §7/§22 transaction description in another section.
+        var sectionText = section13.SectionText;
+        if (string.IsNullOrWhiteSpace(sectionText))
+            return InsufficientData(
+                "§13 SectionText is empty — section-scoped text not available; " +
+                "cannot reliably check §13 transferencia label without risking false-Pass from other sections.");
+
+        // Check for the transferencia label within §13's own section text.
+        // SectionText is already upper-cased and accent-stripped (VecTextNormalizer contract).
         // LabelTransferencia is stored in normalized form.
-        if (text.Contains(LabelTransferencia, StringComparison.Ordinal))
+        if (sectionText.Contains(LabelTransferencia, StringComparison.Ordinal))
         {
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"§13 transferencia de saldo field present ('{LabelTransferencia}' found)"));
+                    observed: $"§13 transferencia de saldo field present ('{LabelTransferencia}' found in §13 section text)"));
         }
 
         return Result<RuleFinding>.WithSuccess(
@@ -132,7 +140,7 @@ internal sealed class Section13TransferenciaCompletenessRule : IVecValidationRul
                 severity: FindingSeverity.Critical,
                 engineVersion: Version,
                 expected: LabelTransferencia,
-                observed: $"missing: '{LabelTransferencia}' not found in §13 Nivel de uso section"));
+                observed: $"missing: '{LabelTransferencia}' not found in §13 Nivel de uso section text"));
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>

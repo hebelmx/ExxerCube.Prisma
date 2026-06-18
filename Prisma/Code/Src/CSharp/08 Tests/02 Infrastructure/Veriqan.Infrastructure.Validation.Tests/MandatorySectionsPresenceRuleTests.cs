@@ -328,4 +328,115 @@ public sealed class MandatorySectionsPresenceRuleTests
         var rule = GetRule();
         rule.Technique.ShouldBe(TechniqueClass.Deterministic);
     }
+
+    // -----------------------------------------------------------------------
+    // R2: Indeterminate detection status — must not be counted as missing
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_IndeterminateSection_NotCountedAsMissing_ReturnsPass()
+    {
+        // R2 Finding 2: sections with DetectionStatus == Indeterminate must never be
+        // counted as "missing", even when IsPresent == false.  Visual-only sections
+        // such as §1 (bank logo) cannot be text-detected, so they are Indeterminate by
+        // design. Counting them absent would produce spurious Fail findings.
+        var rule = GetRule();
+
+        // Build 28 sections: all present (IsApplicable+IsPresent=true) except §1 which
+        // is Indeterminate (IsPresent=false, DetectionStatus=Indeterminate, IsApplicable=true).
+        var sections = Enumerable.Range(1, 28)
+            .Select(n =>
+            {
+                if (n == 1)
+                {
+                    return new DetectedSection(
+                        SectionNumber: 1,
+                        Name: "Section 1",
+                        IsPresent: false,            // cannot be text-detected
+                        IsApplicable: true,
+                        Locator: FieldLocator.NoPage())
+                    {
+                        DetectionStatus = SectionDetectionStatus.Indeterminate,
+                    };
+                }
+
+                return new DetectedSection(
+                    SectionNumber: n,
+                    Name: $"Section {n}",
+                    IsPresent: true,
+                    IsApplicable: true,
+                    Locator: P1());
+            })
+            .ToList();
+
+        var model = ModelWithSections(sections);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "§1 with DetectionStatus=Indeterminate must NOT be counted missing — rule must return Pass.");
+    }
+
+    [Fact]
+    public void Evaluate_IndeterminateSectionAndMandatoryAbsent_FailsForMandatoryOnly()
+    {
+        // §1 is Indeterminate (should be ignored) + §6 is genuinely absent → Fail for §6 only.
+        var rule = GetRule();
+
+        var sections = Enumerable.Range(1, 28)
+            .Select(n =>
+            {
+                if (n == 1)
+                {
+                    return new DetectedSection(
+                        SectionNumber: 1,
+                        Name: "Section 1",
+                        IsPresent: false,
+                        IsApplicable: true,
+                        Locator: FieldLocator.NoPage())
+                    {
+                        DetectionStatus = SectionDetectionStatus.Indeterminate,
+                    };
+                }
+
+                if (n == 6)
+                {
+                    return new DetectedSection(
+                        SectionNumber: 6,
+                        Name: "Section 6",
+                        IsPresent: false,
+                        IsApplicable: true,
+                        Locator: FieldLocator.NoPage())
+                    {
+                        DetectionStatus = SectionDetectionStatus.Absent,
+                    };
+                }
+
+                return new DetectedSection(
+                    SectionNumber: n,
+                    Name: $"Section {n}",
+                    IsPresent: true,
+                    IsApplicable: true,
+                    Locator: P1());
+            })
+            .ToList();
+
+        var model = ModelWithSections(sections);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        finding.Verdict.ShouldBe(FindingVerdict.Fail);
+        var observed = finding.Observed;
+        observed.ShouldNotBeNull();
+        // ShouldContain on string needs the non-nullable form to avoid Shouldly IEnumerable overload.
+        observed!.ShouldContain("§6");
+        // Indeterminate §1 must NOT be listed.
+        observed.Contains("§1").ShouldBeFalse(
+            "Indeterminate §1 must not be counted missing (R2 Finding 2).");
+    }
 }

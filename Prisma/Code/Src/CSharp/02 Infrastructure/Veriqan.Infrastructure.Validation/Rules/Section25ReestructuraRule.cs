@@ -19,21 +19,14 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// an active debt restructuring arrangement.
 /// </para>
 /// <para>
-/// <b>Trigger detection:</b> the restructure trigger is detected in two complementary ways,
-/// in order of precedence:
-/// <list type="number">
-///   <item>
-///     <see cref="DetectedSection.IsApplicable"/> on the §25 entry is <c>true</c> — the
-///     section-detection pass (Story 10.1) already resolved applicability from layout/text.
-///   </item>
-///   <item>
-///     Fallback: a restructure-related keyword is found in
-///     <see cref="Domain.Extraction.StatementModel.NormalizedFullText"/> (e.g.
-///     <c>REESTRUCTURA</c> or <c>REESTRUCTURACION</c>).
-///   </item>
-/// </list>
-/// When <b>neither</b> trigger is present the rule returns a <b>Pass</b> with an
-/// "not applicable" observation — it never emits Fail for an untriggered conditional section.
+/// <b>Trigger detection (R2, heading-based only):</b> applicability is determined exclusively
+/// by <see cref="DetectedSection.IsApplicable"/> on the §25 entry — set by the heading-band
+/// detection pass (Story 10.1 / R1) when a REESTRUCTURA heading is detected in the document.
+/// The keyword-body-text fallback has been retired (R2) because it matched keywords appearing
+/// in body sections other than §25 (e.g. a restructure reference in §7), which caused false-Fails.
+/// When <see cref="DetectedSection.IsApplicable"/> is <c>false</c> the rule returns a
+/// <b>Pass</b> with an "not applicable" observation — it never emits Fail for an untriggered
+/// conditional section.
 /// </para>
 /// <para>
 /// <b>Verdict logic (when triggered):</b>
@@ -48,26 +41,12 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 ///   <item><see cref="VerificationContext.StatementModel"/> is null.</item>
 ///   <item><see cref="Domain.Extraction.StatementModel.Sections"/> is empty.</item>
 ///   <item>§25 is not found in the Sections list at all.</item>
-///   <item><see cref="Domain.Extraction.StatementModel.NormalizedFullText"/> is empty
-///         (cannot evaluate the keyword-based fallback trigger).</item>
 /// </list>
 /// </para>
 /// </remarks>
 internal sealed class Section25ReestructuraRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
-
-    // Restructure-trigger keywords (normalized: upper-case, accent-stripped).
-    // "REESTRUCTURACION" covers "reestructuración" and "reestructuracion".
-    // "REESTRUCTURA" covers the shorter form used as a section heading.
-    internal const string TriggerReestructura = "REESTRUCTURA";
-    internal const string TriggerReestructuracion = "REESTRUCTURACION";
-
-    private static readonly string[] TriggerKeywords =
-    [
-        TriggerReestructuracion,   // check longer form first to avoid false substring match
-        TriggerReestructura,
-    ];
 
     /// <inheritdoc />
     public string CheckId => "LAW-§25-REESTRUCTURA";
@@ -99,12 +78,6 @@ internal sealed class Section25ReestructuraRule : IVecValidationRule
                 "Sections list is empty — either the extraction predates Story 10.1 " +
                 "or the PDF has no text layer.");
 
-        // Guard: need text to evaluate the keyword-based trigger fallback.
-        var text = model.NormalizedFullText;
-        if (string.IsNullOrEmpty(text))
-            return InsufficientData(
-                "NormalizedFullText is empty — cannot evaluate the §25 restructure trigger.");
-
         // Locate the §25 DetectedSection entry.
         DetectedSection? section25 = null;
         foreach (var s in sections)
@@ -121,20 +94,20 @@ internal sealed class Section25ReestructuraRule : IVecValidationRule
             return InsufficientData(
                 "§25 was not found in the Sections list — section-detection pass may be incomplete.");
 
-        // Determine whether the restructure trigger is active.
-        // Priority 1: the section-detection pass resolved IsApplicable.
-        // Priority 2: keyword-based fallback in the normalized text.
-        var triggerActive = section25.IsApplicable || TextContainsRestructureTrigger(text);
-
-        if (!triggerActive)
+        // Trigger is now determined solely by the heading-based section-detection pass (R1).
+        // The keyword-fallback (TextContainsRestructureTrigger) has been retired:
+        // R1 sets IsApplicable=true when a REESTRUCTURA heading is detected in the document,
+        // which is the reliable source of truth. A keyword in the document body (not a heading)
+        // is insufficient evidence and caused false-Fails.
+        if (!section25.IsApplicable)
         {
-            // No restructure trigger → rule is not applicable → Pass (N/A).
+            // No restructure trigger detected by the heading-scan → rule is not applicable.
             return Result<RuleFinding>.WithSuccess(
                 RuleFinding.Pass(
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: "§25 Reestructura de tu deuda is not applicable — no restructure trigger detected."));
+                    observed: "§25 Reestructura de tu deuda is not applicable — restructure heading not detected (IsApplicable=false)."));
         }
 
         // Trigger is active: §25 must be present.
@@ -160,17 +133,6 @@ internal sealed class Section25ReestructuraRule : IVecValidationRule
                 observed: "§25 is absent but the restructure trigger was detected in the statement.",
                 toleranceApplied: null,
                 locator: section25.Locator));
-    }
-
-    private static bool TextContainsRestructureTrigger(string normalizedText)
-    {
-        foreach (var keyword in TriggerKeywords)
-        {
-            if (normalizedText.Contains(keyword, System.StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>

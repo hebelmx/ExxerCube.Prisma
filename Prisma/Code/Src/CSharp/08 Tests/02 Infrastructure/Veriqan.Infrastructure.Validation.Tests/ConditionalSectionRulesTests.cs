@@ -9,6 +9,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -144,6 +145,32 @@ public sealed class ConditionalSectionRulesTests
             .ToList();
     }
 
+    /// <summary>
+    /// Like <see cref="SectionsWith"/> but also sets <see cref="DetectedSection.SectionText"/>
+    /// and <see cref="DetectedSection.DetectionStatus"/> on the specified target section.
+    /// </summary>
+    private static List<DetectedSection> SectionsWithSectionText(
+        System.Collections.Generic.Dictionary<int, (bool IsPresent, bool IsApplicable)> overrides,
+        int sectionNumber,
+        string sectionText)
+    {
+        return SectionsWith(overrides)
+            .Select(s =>
+            {
+                if (s.SectionNumber == sectionNumber && s.IsPresent)
+                {
+                    return s with
+                    {
+                        DetectionStatus = SectionDetectionStatus.Present,
+                        SectionText = sectionText,
+                    };
+                }
+
+                return s;
+            })
+            .ToList();
+    }
+
     // -----------------------------------------------------------------------
     // §23 CargosNoReconocidosRule — InsufficientData paths
     // -----------------------------------------------------------------------
@@ -247,7 +274,7 @@ public sealed class ConditionalSectionRulesTests
             [23] = (IsPresent: true, IsApplicable: true),
         };
         var text = "CARGOS NO RECONOCIDOS PENDIENTE EN REVISION CARGO 1 $500.00";
-        var model = ModelWith(sections: SectionsWith(overrides), normalizedFullText: text);
+        var model = ModelWith(sections: SectionsWithSectionText(overrides, 23, text), normalizedFullText: text);
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
@@ -266,7 +293,7 @@ public sealed class ConditionalSectionRulesTests
             [23] = (IsPresent: true, IsApplicable: true),
         };
         var text = "CARGOS NO RECONOCIDOS CONCLUIDA PROCEDENTE CARGO 2 $200.00";
-        var model = ModelWith(sections: SectionsWith(overrides), normalizedFullText: text);
+        var model = ModelWith(sections: SectionsWithSectionText(overrides, 23, text), normalizedFullText: text);
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
@@ -285,7 +312,7 @@ public sealed class ConditionalSectionRulesTests
             [23] = (IsPresent: true, IsApplicable: true),
         };
         var text = "CARGOS NO RECONOCIDOS CONCLUIDA IMPROCEDENTE CARGO 3 $150.00";
-        var model = ModelWith(sections: SectionsWith(overrides), normalizedFullText: text);
+        var model = ModelWith(sections: SectionsWithSectionText(overrides, 23, text), normalizedFullText: text);
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
@@ -309,7 +336,7 @@ public sealed class ConditionalSectionRulesTests
         };
         // Text has §23 content but no valid status token from the mandated enum.
         var text = "CARGOS NO RECONOCIDOS FECHA DESCRIPCION MONTO EN PROCESO";
-        var model = ModelWith(sections: SectionsWith(overrides), normalizedFullText: text);
+        var model = ModelWith(sections: SectionsWithSectionText(overrides, 23, text), normalizedFullText: text);
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
@@ -332,7 +359,7 @@ public sealed class ConditionalSectionRulesTests
             [23] = (IsPresent: true, IsApplicable: true),
         };
         var text = "CARGOS NO RECONOCIDOS ESTADO DESCONOCIDO MONTO $999.00";
-        var model = ModelWith(sections: SectionsWith(overrides), normalizedFullText: text);
+        var model = ModelWith(sections: SectionsWithSectionText(overrides, 23, text), normalizedFullText: text);
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
@@ -393,6 +420,61 @@ public sealed class ConditionalSectionRulesTests
     }
 
     // -----------------------------------------------------------------------
+    // §23 CargosNoReconocidosRule — R2 cross-section scoping tests
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Sec23_StatusTokenInSectionTextOnly_ReturnsPass()
+    {
+        // R2: §23's SectionText contains the valid token → Pass (scoped to §23).
+        var rule = GetRule(CheckId23);
+        const string validToken = Section23CargosNoReconocidosRule.StatusPendienteEnRevision;
+        var overrides = new System.Collections.Generic.Dictionary<int, (bool IsPresent, bool IsApplicable)>
+        {
+            [23] = (IsPresent: true, IsApplicable: true),
+        };
+        // Rebuild §23 with SectionText set.
+        var sections = SectionsWithSectionText(overrides, sectionNumber: 23, sectionText: validToken);
+        var model = ModelWith(sections, normalizedFullText: validToken);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "Valid status token present in §23 SectionText → Pass.");
+    }
+
+    [Fact]
+    public void Sec23_StatusTokenInOtherSectionNotInSec23SectionText_ReturnsFail()
+    {
+        // R2 false-Pass prevention: the resolved charge token appears in §22 (another section)
+        // and in NormalizedFullText, but NOT in §23's own SectionText.
+        // The scoped rule must Fail, not Pass.
+        var rule = GetRule(CheckId23);
+        const string validToken = Section23CargosNoReconocidosRule.StatusConcluidaProcedente;
+
+        var overrides = new System.Collections.Generic.Dictionary<int, (bool IsPresent, bool IsApplicable)>
+        {
+            [23] = (IsPresent: true, IsApplicable: true),
+        };
+        // §23 SectionText does NOT contain the token; NormalizedFullText does (simulates §22 noise).
+        const string section23Text = "CARGOS NO RECONOCIDOS SIN RESOLUCION PENDIENTE";
+        var sections = SectionsWithSectionText(overrides, sectionNumber: 23, sectionText: section23Text);
+        // Full doc has the token (e.g. in a previous §22 transaction).
+        var fullDocText = section23Text + " " + validToken + " MOVIMIENTOS DEL PERIODO";
+        var model = ModelWith(sections, normalizedFullText: fullDocText);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "Valid token in §22 (NormalizedFullText) but absent from §23 SectionText → Fail. " +
+            "Scoped matching must prevent false-Pass from other sections.");
+    }
+
+    // -----------------------------------------------------------------------
     // §25 ReestructuraRule — InsufficientData paths
     // -----------------------------------------------------------------------
 
@@ -438,9 +520,11 @@ public sealed class ConditionalSectionRulesTests
     }
 
     [Fact]
-    public void Sec25_EmptyNormalizedText_ReturnsInsufficientData()
+    public void Sec25_EmptyNormalizedText_Sec25NotApplicable_ReturnsPass()
     {
-        // NormalizedFullText is empty — cannot evaluate trigger.
+        // R2: the keyword-fallback trigger has been retired. Applicability is now determined
+        // solely by IsApplicable from the heading-based detection pass (R1).
+        // Empty NormalizedFullText + §25 not applicable → Pass (not-applicable), never Fail/InsufficientData.
         var rule = GetRule(CheckId25);
         var model = ModelWith(sections: SectionsWith(), normalizedFullText: string.Empty);
         var ctx = Ctx(model);
@@ -448,8 +532,8 @@ public sealed class ConditionalSectionRulesTests
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            "Empty text must yield InsufficientData, not Fail.");
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "§25 not applicable (IsApplicable=false) must yield Pass even when text is empty — keyword fallback retired in R2.");
     }
 
     // -----------------------------------------------------------------------
@@ -482,9 +566,35 @@ public sealed class ConditionalSectionRulesTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Sec25_ReestructuraTriggerInText_Sec25Absent_ReturnsFail()
+    public void Sec25_IsApplicableTrue_FromDetectionPass_Sec25Absent_ReturnsFail()
     {
-        // Text contains "REESTRUCTURA" keyword; §25 is not applicable + not present → Fail.
+        // R2: trigger is now heading-based (IsApplicable from R1 detection pass).
+        // IsApplicable=true + §25 IsPresent=false → Fail.
+        var rule = GetRule(CheckId25);
+        var overrides = new System.Collections.Generic.Dictionary<int, (bool IsPresent, bool IsApplicable)>
+        {
+            [25] = (IsPresent: false, IsApplicable: true),  // heading detected, section absent
+        };
+        var model = ModelWith(
+            sections: SectionsWith(overrides),
+            normalizedFullText: "RESUMEN DE CUENTA MOVIMIENTOS DEL PERIODO");
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        finding.Verdict.ShouldBe(FindingVerdict.Fail,
+            "IsApplicable=true (heading detected) but §25 absent → Fail.");
+        finding.Severity.ShouldBe(FindingSeverity.Critical);
+        finding.Observed.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void Sec25_ReestructuraTriggerInTextOnly_Sec25NotApplicable_ReturnsPassNotApplicable()
+    {
+        // R2: keyword in body text (not a detected heading) no longer triggers the rule.
+        // §25 IsApplicable=false → Pass (not applicable), even if REESTRUCTURA appears in text.
         var rule = GetRule(CheckId25);
         var model = ModelWith(
             sections: SectionsWith(),  // §25 defaults: absent + not-applicable
@@ -494,28 +604,10 @@ public sealed class ConditionalSectionRulesTests
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        var finding = result.Value!;
-        finding.Verdict.ShouldBe(FindingVerdict.Fail,
-            "Restructure trigger present but §25 absent → Fail.");
-        finding.Severity.ShouldBe(FindingSeverity.Critical);
-        finding.Observed.ShouldNotBeNull();
-    }
-
-    [Fact]
-    public void Sec25_ReestructuracionTriggerInText_Sec25Absent_ReturnsFail()
-    {
-        // "REESTRUCTURACION" (longer form) also triggers the rule.
-        var rule = GetRule(CheckId25);
-        var model = ModelWith(
-            sections: SectionsWith(),
-            normalizedFullText: "PROCESO DE REESTRUCTURACION DE DEUDA EN CURSO");
-        var ctx = Ctx(model);
-
-        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
-
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
-            "'REESTRUCTURACION' trigger present but §25 absent → Fail.");
+        // R2: keyword fallback retired — body-text keyword alone does not trigger the rule.
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "Keyword in body text + IsApplicable=false → Pass (not-applicable). " +
+            "Keyword fallback was retired in R2 to prevent false-Fails.");
     }
 
     [Fact]
@@ -544,24 +636,24 @@ public sealed class ConditionalSectionRulesTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Sec25_ReestructuraTriggerInText_Sec25Present_ReturnsPass()
+    public void Sec25_IsApplicableTrue_Sec25Present_ReturnsPass_R2()
     {
-        // Text has trigger keyword AND §25 is present.
+        // R2: heading-based trigger (IsApplicable=true) + §25 present → Pass.
         var rule = GetRule(CheckId25);
         var overrides = new System.Collections.Generic.Dictionary<int, (bool IsPresent, bool IsApplicable)>
         {
-            [25] = (IsPresent: true, IsApplicable: false),  // present but not-applicable from detection
+            [25] = (IsPresent: true, IsApplicable: true),  // heading detected, section present
         };
         var model = ModelWith(
             sections: SectionsWith(overrides),
-            normalizedFullText: "TU CUENTA TIENE UNA REESTRUCTURA ACTIVA CONSULTA LOS TERMINOS");
+            normalizedFullText: "RESUMEN DE CUENTA MOVIMIENTOS DEL PERIODO");
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
-            "Trigger present and §25 present → Pass.");
+            "IsApplicable=true (heading detected) + §25 present → Pass.");
     }
 
     [Fact]

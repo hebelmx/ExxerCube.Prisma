@@ -85,8 +85,14 @@ internal sealed class MandatorySectionsPresenceRule : IVecValidationRule
 
         // Collect missing mandatory-applicable sections.
         // Conditional sections (IsApplicable == false) are excluded from the missing list.
+        // Indeterminate sections (DetectionStatus == Indeterminate) are also excluded:
+        // they represent sections that cannot be confirmed from the text layer (e.g. §1 Logo
+        // is a visual image). Counting them as missing would produce false-Fails.
+        // Only Absent + applicable sections count as genuinely missing.
         var missing = sections
-            .Where(s => s.IsApplicable && !s.IsPresent)
+            .Where(s => s.IsApplicable
+                        && !s.IsPresent
+                        && s.DetectionStatus != SectionDetectionStatus.Indeterminate)
             .OrderBy(s => s.SectionNumber)
             .ToList();
 

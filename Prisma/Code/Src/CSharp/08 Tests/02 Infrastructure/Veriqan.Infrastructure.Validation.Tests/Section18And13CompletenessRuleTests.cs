@@ -114,10 +114,12 @@ public sealed class Section18And13CompletenessRuleTests
     }
 
     /// <summary>
-    /// Builds a 28-section list where the specified section is present and applicable.
-    /// All other sections are also present and applicable.
+    /// Builds a 28-section list where the specified section is present and applicable,
+    /// and sets <see cref="DetectedSection.SectionText"/> for the target section to the
+    /// supplied <paramref name="targetSectionText"/> so that R2 scoped rules can inspect it.
+    /// All other sections are also present and applicable (with empty SectionText).
     /// </summary>
-    private static List<DetectedSection> SectionsWithPresent(int sectionNumber)
+    private static List<DetectedSection> SectionsWithPresent(int sectionNumber, string targetSectionText = "")
     {
         return Enumerable.Range(1, 28)
             .Select(n => new DetectedSection(
@@ -125,7 +127,13 @@ public sealed class Section18And13CompletenessRuleTests
                 Name: $"Section {n}",
                 IsPresent: true,
                 IsApplicable: true,
-                Locator: P1()))
+                Locator: P1())
+            {
+                // Provide SectionText only for the target section so R2 rules can scope within it.
+                // DetectionStatus defaults to Absent (backward compat), so set it to Present for target.
+                DetectionStatus = SectionDetectionStatus.Present,
+                SectionText = n == sectionNumber ? targetSectionText : string.Empty,
+            })
             .ToList();
     }
 
@@ -255,19 +263,21 @@ public sealed class Section18And13CompletenessRuleTests
     }
 
     [Fact]
-    public void Evaluate18_EmptyNormalizedFullText_ReturnsInsufficientData()
+    public void Evaluate18_EmptySectionText_ReturnsInsufficientData()
     {
-        // §18 is present and applicable but the full-text is empty (unreadable PDF).
+        // R2: §18 is present and applicable but SectionText is empty (section-slicing did not run).
+        // Empty SectionText → InsufficientData (abstain), never Fail.
         var rule = GetRule(CheckId18);
-        var sections = SectionsWithPresent(18);
-        var model = ModelWithSectionsAndText(sections, string.Empty);
+        // SectionsWithPresent(18) with no targetSectionText → SectionText = "" for §18.
+        var sections = SectionsWithPresent(18, targetSectionText: string.Empty);
+        var model = ModelWithSectionsAndText(sections, "SOME TEXT IN FULL DOC");
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            "Empty NormalizedFullText (unreadable text layer) must yield InsufficientData.");
+            "Empty §18 SectionText must yield InsufficientData — cannot scope concept check.");
     }
 
     // -----------------------------------------------------------------------
@@ -278,16 +288,17 @@ public sealed class Section18And13CompletenessRuleTests
     public void Evaluate18_AllConceptsPresent_ReturnsPass()
     {
         var rule = GetRule(CheckId18);
-        var sections = SectionsWithPresent(18);
-        var text = TextWithAllSection18Concepts();
-        var model = ModelWithSectionsAndText(sections, text);
+        var sectionText = TextWithAllSection18Concepts();
+        // R2: pass the text as both NormalizedFullText and as §18's SectionText.
+        var sections = SectionsWithPresent(18, targetSectionText: sectionText);
+        var model = ModelWithSectionsAndText(sections, sectionText);
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
-            "All nine §18 concept labels present must yield Pass.");
+            "All nine §18 concept labels present in §18 SectionText must yield Pass.");
         result.Value.CheckId.ShouldBe(CheckId18);
     }
 
@@ -298,7 +309,6 @@ public sealed class Section18And13CompletenessRuleTests
         // The check looks for the LABEL, not for a non-zero value.
         // All concepts present with explicit "0" amounts → Pass.
         var rule = GetRule(CheckId18);
-        var sections = SectionsWithPresent(18);
 
         // Build text where every balance is 0.
         var text =
@@ -313,6 +323,8 @@ public sealed class Section18And13CompletenessRuleTests
             $"{Section18BenefitProgramCompletenessRule.ConceptEquivalenciaEnPesos} $0.00 " +
             $"{Section18BenefitProgramCompletenessRule.ConceptContacto} 800-000-0000";
 
+        // R2: pass the text as §18's SectionText so the scoped rule finds it.
+        var sections = SectionsWithPresent(18, targetSectionText: text);
         var model = ModelWithSectionsAndText(sections, text);
         var ctx = Ctx(model);
 
@@ -331,7 +343,6 @@ public sealed class Section18And13CompletenessRuleTests
     public void Evaluate18_MissingEquivalenciaEnPesos_ReturnsFail()
     {
         var rule = GetRule(CheckId18);
-        var sections = SectionsWithPresent(18);
 
         // Build text with all concepts EXCEPT equivalencia en pesos.
         var text =
@@ -346,6 +357,8 @@ public sealed class Section18And13CompletenessRuleTests
             // ConceptEquivalenciaEnPesos intentionally omitted
             $"{Section18BenefitProgramCompletenessRule.ConceptContacto} 800-000-0000";
 
+        // R2: pass section text scoped to §18.
+        var sections = SectionsWithPresent(18, targetSectionText: text);
         var model = ModelWithSectionsAndText(sections, text);
         var ctx = Ctx(model);
 
@@ -363,7 +376,6 @@ public sealed class Section18And13CompletenessRuleTests
     public void Evaluate18_MissingContacto_ReturnsFail()
     {
         var rule = GetRule(CheckId18);
-        var sections = SectionsWithPresent(18);
 
         var text =
             $"PROGRAMAS DE BENEFICIOS " +
@@ -377,6 +389,8 @@ public sealed class Section18And13CompletenessRuleTests
             $"{Section18BenefitProgramCompletenessRule.ConceptEquivalenciaEnPesos} $0.00";
         // ConceptContacto intentionally omitted
 
+        // R2: pass section text scoped to §18.
+        var sections = SectionsWithPresent(18, targetSectionText: text);
         var model = ModelWithSectionsAndText(sections, text);
         var ctx = Ctx(model);
 
@@ -393,13 +407,14 @@ public sealed class Section18And13CompletenessRuleTests
     public void Evaluate18_MultipleConceptsMissing_FailNamesAllMissing()
     {
         var rule = GetRule(CheckId18);
-        var sections = SectionsWithPresent(18);
 
         // Only saldo inicial and saldo final present — everything else missing.
         var text =
             $"{Section18BenefitProgramCompletenessRule.ConceptSaldoInicial} 0 " +
             $"{Section18BenefitProgramCompletenessRule.ConceptSaldoFinal} 0";
 
+        // R2: pass section text scoped to §18.
+        var sections = SectionsWithPresent(18, targetSectionText: text);
         var model = ModelWithSectionsAndText(sections, text);
         var ctx = Ctx(model);
 
@@ -416,6 +431,65 @@ public sealed class Section18And13CompletenessRuleTests
         finding.Observed.ShouldContain(Section18BenefitProgramCompletenessRule.ConceptUnidad);
         finding.Observed.ShouldContain(Section18BenefitProgramCompletenessRule.ConceptEquivalenciaEnPesos);
         finding.Observed.ShouldContain(Section18BenefitProgramCompletenessRule.ConceptContacto);
+    }
+
+    [Fact]
+    public void Evaluate18_ConceptsInOtherSectionNotIn18SectionText_ReturnsFail()
+    {
+        // Regression R2: false-Pass prevention.
+        // SALDO INICIAL and other labels appear in §7 body text (NormalizedFullText)
+        // but are NOT present in §18's SectionText. The rule must Fail, not Pass.
+        var rule = GetRule(CheckId18);
+
+        // §18's SectionText only has the heading with none of the nine mandated concepts.
+        const string section18Text = "PROGRAMAS DE BENEFICIOS PUNTOS RECOMPENSAS";
+
+        // NormalizedFullText contains all labels (e.g. from §7 and other sections).
+        var fullDocText = TextWithAllSection18Concepts() + " MOVIMIENTOS DEL PERIODO";
+
+        var sections = SectionsWithPresent(18, targetSectionText: section18Text);
+        var model = ModelWithSectionsAndText(sections, fullDocText);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        finding.Verdict.ShouldBe(FindingVerdict.Fail,
+            "Concepts present in NormalizedFullText but absent from §18 SectionText must produce Fail — " +
+            "scoped matching prevents false-Pass from other sections.");
+        finding.Severity.ShouldBe(FindingSeverity.Critical);
+        finding.Observed.ShouldNotBeNull();
+        // All nine mandated concepts absent from §18 section text.
+        finding.Observed!.ShouldContain(Section18BenefitProgramCompletenessRule.ConceptSaldoInicial);
+    }
+
+    [Fact]
+    public void Evaluate13_TransferenciaInOtherSectionNotIn13SectionText_ReturnsFail()
+    {
+        // Regression R2: false-Pass prevention.
+        // TRANSFERENCIA DE SALDO appears in §22 transaction list (NormalizedFullText)
+        // but is NOT present in §13's SectionText. The rule must Fail.
+        var rule = GetRule(CheckId13);
+
+        // §13's SectionText has no transferencia label.
+        const string section13Text = "NIVEL DE USO CREDITO DISPONIBLE $10000.00 EN EFECTIVO $2000.00";
+
+        // NormalizedFullText contains the label (e.g. from §22 transaction).
+        var fullDocText = section13Text + " CARGO: TRANSFERENCIA DE SALDO $500.00 MOVIMIENTOS";
+
+        var sections = SectionsWithPresent(13, targetSectionText: section13Text);
+        var model = ModelWithSectionsAndText(sections, fullDocText);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!;
+        finding.Verdict.ShouldBe(FindingVerdict.Fail,
+            "Label present in §22 transaction (NormalizedFullText) but absent from §13 SectionText " +
+            "must produce Fail — scoped matching prevents false-Pass.");
+        finding.Severity.ShouldBe(FindingSeverity.Critical);
     }
 
     // -----------------------------------------------------------------------
@@ -527,18 +601,20 @@ public sealed class Section18And13CompletenessRuleTests
     }
 
     [Fact]
-    public void Evaluate13_EmptyNormalizedFullText_ReturnsInsufficientData()
+    public void Evaluate13_EmptySectionText_ReturnsInsufficientData()
     {
+        // R2: §13 SectionText is empty (section-slicing did not run) → InsufficientData.
         var rule = GetRule(CheckId13);
-        var sections = SectionsWithPresent(13);
-        var model = ModelWithSectionsAndText(sections, string.Empty);
+        // SectionsWithPresent(13) with no targetSectionText → SectionText = "" for §13.
+        var sections = SectionsWithPresent(13, targetSectionText: string.Empty);
+        var model = ModelWithSectionsAndText(sections, "SOME TEXT");
         var ctx = Ctx(model);
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            "Empty NormalizedFullText must yield InsufficientData.");
+            "Empty §13 SectionText must yield InsufficientData — cannot scope label check.");
     }
 
     // -----------------------------------------------------------------------
@@ -549,11 +625,12 @@ public sealed class Section18And13CompletenessRuleTests
     public void Evaluate13_TransferenciaLabelPresent_ReturnsPass()
     {
         var rule = GetRule(CheckId13);
-        var sections = SectionsWithPresent(13);
 
         var text =
             $"NIVEL DE USO CREDITO DISPONIBLE {Section13TransferenciaCompletenessRule.LabelTransferencia} DE OTRAS TARJETAS $5000.00";
 
+        // R2: pass section text scoped to §13.
+        var sections = SectionsWithPresent(13, targetSectionText: text);
         var model = ModelWithSectionsAndText(sections, text);
         var ctx = Ctx(model);
 
@@ -573,11 +650,12 @@ public sealed class Section18And13CompletenessRuleTests
     public void Evaluate13_TransferenciaLabelMissing_ReturnsFail()
     {
         var rule = GetRule(CheckId13);
-        var sections = SectionsWithPresent(13);
 
         // §13 present but no mention of transferencia de saldo.
         var text = "NIVEL DE USO CREDITO DISPONIBLE $10000.00 CREDITO DISPONIBLE EN EFECTIVO $2000.00";
 
+        // R2: pass section text scoped to §13 (no label present in this text).
+        var sections = SectionsWithPresent(13, targetSectionText: text);
         var model = ModelWithSectionsAndText(sections, text);
         var ctx = Ctx(model);
 

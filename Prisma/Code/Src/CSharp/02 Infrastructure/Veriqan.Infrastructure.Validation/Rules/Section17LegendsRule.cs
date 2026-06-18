@@ -77,10 +77,22 @@ internal sealed class Section17LegendsRule : IVecValidationRule
                 "Section §17 (MENSAJES ADICIONALES) was not detected in the document; " +
                 "deferring to MandatorySectionsPresenceRule.");
 
-        var threshold = ResolveThreshold(ctx);
-        var docText = model.NormalizedFullText;
+        // Abstain for Indeterminate sections.
+        if (section17.DetectionStatus == SectionDetectionStatus.Indeterminate)
+            return InsufficientData(
+                "§17 detection status is Indeterminate — cannot scope legend check.");
 
-        var failing = VerbatimBlockMatcher.FindFailingBlocks(docText, NormalizedBlocks, threshold);
+        // Scope match to §17's own section text to prevent false-Pass from legends
+        // appearing in other sections (e.g. in §26 notes or §27 glosario).
+        var sectionText = section17.SectionText;
+        if (string.IsNullOrWhiteSpace(sectionText))
+            return InsufficientData(
+                "§17 SectionText is empty — section-scoped text not available; " +
+                "cannot reliably check §17 legends.");
+
+        var threshold = ResolveThreshold(ctx);
+
+        var failing = VerbatimBlockMatcher.FindFailingBlocks(sectionText, NormalizedBlocks, threshold);
 
         if (failing.Count == 0)
         {
@@ -89,7 +101,7 @@ internal sealed class Section17LegendsRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"All {NormalizedBlocks.Count} §17 art-6-IV mandatory legends found.",
+                    observed: $"All {NormalizedBlocks.Count} §17 art-6-IV mandatory legends found in §17 section text (threshold={threshold:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section17.Locator));
         }

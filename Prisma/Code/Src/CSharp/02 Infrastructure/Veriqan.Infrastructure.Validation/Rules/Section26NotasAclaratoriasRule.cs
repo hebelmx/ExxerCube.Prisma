@@ -84,10 +84,22 @@ internal sealed class Section26NotasAclaratoriasRule : IVecValidationRule
                 "Section §26 (NOTAS ACLARATORIAS) was not detected in the document; " +
                 "deferring to MandatorySectionsPresenceRule.");
 
-        var threshold = ResolveThreshold(ctx);
-        var docText = model.NormalizedFullText;
+        // Abstain for Indeterminate sections.
+        if (section26.DetectionStatus == SectionDetectionStatus.Indeterminate)
+            return InsufficientData(
+                "§26 detection status is Indeterminate — cannot scope notas check.");
 
-        var failing = VerbatimBlockMatcher.FindFailingBlocks(docText, NormalizedBlocks, threshold);
+        // Scope match to §26's own section text to prevent false-Pass from note fragments
+        // appearing in other sections (e.g. a paraphrasing in §17 or §24).
+        var sectionText = section26.SectionText;
+        if (string.IsNullOrWhiteSpace(sectionText))
+            return InsufficientData(
+                "§26 SectionText is empty — section-scoped text not available; " +
+                "cannot reliably check §26 notas aclaratorias.");
+
+        var threshold = ResolveThreshold(ctx);
+
+        var failing = VerbatimBlockMatcher.FindFailingBlocks(sectionText, NormalizedBlocks, threshold);
 
         if (failing.Count == 0)
         {
@@ -96,7 +108,7 @@ internal sealed class Section26NotasAclaratoriasRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"All {NormalizedBlocks.Count} §26 notas aclaratorias (a–m) found.",
+                    observed: $"All {NormalizedBlocks.Count} §26 notas aclaratorias (a–m) found in §26 section text (threshold={threshold:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section26.Locator));
         }

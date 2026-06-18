@@ -516,4 +516,82 @@ public sealed class SectionOrderAndGapRuleTests
         const double expected = 2.0 / 2.54 * 72.0;
         SectionGap.TwoCmInPoints.ShouldBeInRange(expected - 0.01, expected + 0.01);
     }
+
+    // -----------------------------------------------------------------------
+    // R2 (Finding 3): sections with null Bottom must be excluded from order
+    // evaluation — they must not cause spurious out-of-order findings.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_SectionsWithNullBottom_ExcludedFromOrderCheck_ReturnsPass()
+    {
+        // Two sections have real geometry (§5, §22) in correct order.
+        // One section (§10) has PageNumber > 0 but Bottom = null (geometry partial).
+        // The rule must exclude §10 from order checking and return Pass for §5/§22.
+        var sections = new List<DetectedSection>
+        {
+            new(SectionNumber: 5, Name: "S5", IsPresent: true, IsApplicable: true,
+                Locator: P(1, bottom: 600.0)),   // page 1, higher on page
+            new(SectionNumber: 10, Name: "S10", IsPresent: true, IsApplicable: true,
+                Locator: FieldLocator.PageHint(1)),   // PageNumber=1, Bottom=null — excluded
+            new(SectionNumber: 22, Name: "S22", IsPresent: true, IsApplicable: true,
+                Locator: P(1, bottom: 300.0)),   // page 1, lower on page (comes after §5)
+        };
+        // Pad to 28 entries.
+        for (var n = 1; n <= 28; n++)
+        {
+            if (n is 5 or 10 or 22) continue;
+            bool isConditional = n is 16 or 23 or 25;
+            sections.Add(new DetectedSection(
+                SectionNumber: n, Name: $"S{n}", IsPresent: false,
+                IsApplicable: !isConditional, Locator: FieldLocator.NoPage()));
+        }
+
+        var rule = GetRule();
+        var model = ModelWithSectionsAndGaps(sections, []);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "§10 without real Bottom must be excluded; §5 and §22 are in correct order — Pass.");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Sections with null Bottom must never cause a spurious out-of-order Fail (R2 Finding 3).");
+    }
+
+    [Fact]
+    public void Evaluate_AllSectionsHaveNullBottom_ReturnsInsufficientData()
+    {
+        // All present sections have PageHint (PageNumber > 0) but Bottom = null.
+        // After excluding sections without Bottom, fewer than 2 locatable sections remain.
+        // Rule must abstain (InsufficientData), never Fail.
+        var sections = new List<DetectedSection>
+        {
+            new(SectionNumber: 5, Name: "S5", IsPresent: true, IsApplicable: true,
+                Locator: FieldLocator.PageHint(1)),   // Bottom = null
+            new(SectionNumber: 22, Name: "S22", IsPresent: true, IsApplicable: true,
+                Locator: FieldLocator.PageHint(1)),   // Bottom = null
+        };
+        for (var n = 1; n <= 28; n++)
+        {
+            if (n is 5 or 22) continue;
+            bool isConditional = n is 16 or 23 or 25;
+            sections.Add(new DetectedSection(
+                SectionNumber: n, Name: $"S{n}", IsPresent: false,
+                IsApplicable: !isConditional, Locator: FieldLocator.NoPage()));
+        }
+
+        var rule = GetRule();
+        var model = ModelWithSectionsAndGaps(sections, []);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "When fewer than 2 sections have real Bottom geometry, the rule must abstain.");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Sections with null Bottom must never cause spurious Fail (R2 Finding 3).");
+    }
 }

@@ -51,7 +51,10 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 ///   <item>§18 section is not applicable (product has no rewards/benefit program and trigger absent).</item>
 ///   <item>§18 section is applicable but not present (absent from PDF) — not-applicable result to avoid
 ///     double-penalizing with <c>MandatorySectionsPresenceRule</c>.</item>
-///   <item><see cref="StatementModel.NormalizedFullText"/> is empty — text layer unreadable.</item>
+///   <item><see cref="DetectedSection.SectionText"/> for §18 is empty — section-scoped text not available
+///     (predates R1 section-slicing or synthetic fixture without scoped text).</item>
+///   <item>§18 <see cref="DetectedSection.DetectionStatus"/> is <see cref="SectionDetectionStatus.Indeterminate"/>
+///     — section has no reliable text anchor; the rule must not Fail.</item>
 /// </list>
 /// </para>
 /// </remarks>
@@ -154,19 +157,32 @@ internal sealed class Section18BenefitProgramCompletenessRule : IVecValidationRu
                 "§18 is applicable but not present in the PDF; " +
                 "MandatorySectionsPresenceRule covers the absence finding.");
 
-        // Guard: NormalizedFullText must be non-empty — otherwise text layer is unreadable.
-        var text = model.NormalizedFullText;
-        if (string.IsNullOrWhiteSpace(text))
+        // If §18 is Indeterminate (no text anchor), abstain — do NOT Fail.
+        if (section18.DetectionStatus == SectionDetectionStatus.Indeterminate)
             return InsufficientData(
-                "NormalizedFullText is empty — PDF text layer is unreadable; cannot check §18 concepts.");
+                "§18 detection status is Indeterminate — section has no reliable text anchor; " +
+                "cannot scope concept-label check.");
 
-        // Check each mandated concept label.
-        // We search the whole-document normalized text for the normalized concept label.
-        // NormalizedFullText is already upper-cased and accent-stripped (VecTextNormalizer contract).
+        // Prefer the section-scoped text (heading → next heading) to avoid false-Pass from
+        // labels present in OTHER sections (e.g. SALDO INICIAL in §7, CONTACTO in §24).
+        // Fall back to NormalizedFullText only when SectionText is empty (synthetic fixtures
+        // where section-slicing did not run) — but in that case we cannot guarantee accuracy.
+        var sectionText = section18.SectionText;
+        if (string.IsNullOrWhiteSpace(sectionText))
+        {
+            // SectionText is empty: either an old extraction that predates R1 section-slicing,
+            // or a synthetic fixture. Abstain to avoid a false scope.
+            return InsufficientData(
+                "§18 SectionText is empty — section-scoped text not available; " +
+                "cannot reliably check §18 concepts without risking false-Pass from other sections.");
+        }
+
+        // Check each mandated concept label within §18's own section text.
+        // SectionText is already upper-cased and accent-stripped (VecTextNormalizer contract).
         // The concept constants are already in normalized form (upper-case, no accents).
         // "0" values count as present: we look for the LABEL, not a non-zero value.
         var missing = MandatedConcepts
-            .Where(concept => !text.Contains(concept, StringComparison.Ordinal))
+            .Where(concept => !sectionText.Contains(concept, StringComparison.Ordinal))
             .ToList();
 
         if (missing.Count == 0)

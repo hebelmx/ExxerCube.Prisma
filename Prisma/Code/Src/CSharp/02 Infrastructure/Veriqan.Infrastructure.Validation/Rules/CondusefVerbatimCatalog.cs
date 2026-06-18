@@ -83,9 +83,10 @@ internal static class CondusefVerbatimCatalog
 
     /// <summary>
     /// §17 Leyenda art-6-IV (d): pago mínimo warning.
+    /// DOF text ends with a period ("."); corrected from the original transcription.
     /// </summary>
     public const string Section17Legend4 =
-        "Realizar sólo el pago mínimo aumenta el tiempo de pago y el costo de la deuda";
+        "Realizar sólo el pago mínimo aumenta el tiempo de pago y el costo de la deuda.";
 
     // -----------------------------------------------------------------------
     // §24 — "Atención de quejas" — UNE legend
@@ -296,9 +297,10 @@ internal static class CondusefVerbatimCatalog
 
     /// <summary>
     /// §27 Term g) — N/A definition.
+    /// DOF text uses "N/A:" (with the slash); corrected from the original "NA:" transcription.
     /// </summary>
     public const string Section27TermG =
-        "NA: Indica que el rubro, campo o concepto no es aplicable para la tarjeta del Usuario.";
+        "N/A: Indica que el rubro, campo o concepto no es aplicable para la tarjeta del Usuario.";
 
     /// <summary>
     /// §27 Term h) — Núm. definition.

@@ -69,10 +69,21 @@ internal sealed class Section24QuejasLegendRule : IVecValidationRule
                 "Section §24 (ATENCION DE QUEJAS) was not detected in the document; " +
                 "deferring to MandatorySectionsPresenceRule.");
 
+        // Abstain for Indeterminate sections.
+        if (section24.DetectionStatus == SectionDetectionStatus.Indeterminate)
+            return InsufficientData(
+                "§24 detection status is Indeterminate — cannot scope quejas legend check.");
+
+        // Scope match to §24's own section text to prevent false-Pass from the quejas
+        // fragment appearing in another section of a multi-page statement.
+        var sectionText = section24.SectionText;
+        if (string.IsNullOrWhiteSpace(sectionText))
+            return InsufficientData(
+                "§24 SectionText is empty — section-scoped text not available; " +
+                "cannot reliably check §24 quejas legend.");
+
         var threshold = ResolveThreshold(ctx);
-        var score = VerbatimBlockMatcher.BestWindowSimilarity(
-            model.NormalizedFullText,
-            NormalizedExpected);
+        var score = VerbatimBlockMatcher.BestWindowSimilarity(sectionText, NormalizedExpected);
 
         if (score >= threshold)
         {
@@ -81,7 +92,7 @@ internal sealed class Section24QuejasLegendRule : IVecValidationRule
                     checkId: CheckId,
                     technique: Technique,
                     engineVersion: Version,
-                    observed: $"§24 CONDUSEF contact legend found (similarity={score:F3}).",
+                    observed: $"§24 CONDUSEF contact legend found in §24 section text (similarity={score:F3}).",
                     toleranceApplied: (decimal)threshold,
                     locator: section24.Locator));
         }

@@ -71,6 +71,39 @@ public static class VecTextMatcher
         ("Œ", "OE"),   // Œ LATIN CAPITAL LETTER OE
     ];
 
+    // ------------------------------------------------------------------
+    // Punctuation-folding table (matcher-level only — NOT shared with
+    // VecTextNormalizer, so CL-32/CL-46 existing behaviour is unchanged).
+    // Applied after ligature folding and before invisible-separator removal.
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Punctuation substitutions applied only inside the matcher's own
+    /// <see cref="Normalize"/> pipeline (not in <see cref="VecTextNormalizer"/>).
+    /// <list type="bullet">
+    ///   <item>Curly/smart double and single quotes → straight ASCII equivalents.
+    ///     Handles PDF extraction that preserves typographic quotes.</item>
+    ///   <item>"N/A" slash-normalization: the forward slash in "N/A" is stripped so
+    ///     that "N/A" and "NA" both produce the token "NA" after collapsing.
+    ///     Applied specifically as a targeted replacement to avoid stripping slashes
+    ///     in URLs (which are matched separately, pre-normalized as whole strings).
+    ///     Note: this ONLY affects the two-character pattern "N/A" (case-insensitive
+    ///     after prior ligature folding makes everything pre-uppercase compatible).</item>
+    /// </list>
+    /// Conservative: only truly matching-irrelevant differences are folded.
+    /// </summary>
+    private static readonly (string From, string To)[] PunctuationFoldMap =
+    [
+        ("“", "\""),  // " LEFT DOUBLE QUOTATION MARK → straight "
+        ("”", "\""),  // " RIGHT DOUBLE QUOTATION MARK → straight "
+        ("‘", "'"),   // ' LEFT SINGLE QUOTATION MARK → straight '
+        ("’", "'"),   // ' RIGHT SINGLE QUOTATION MARK → straight '
+        // N/A normalisation: fold "N/A" → "NA" so catalog and PDF variants match.
+        // Case-insensitive match is handled by doing both forms explicitly.
+        ("N/A", "NA"),
+        ("n/a", "na"),
+    ];
+
     /// <summary>Invisible separators that are stripped before normalization.</summary>
     private static readonly char[] InvisibleSeparators =
     [
@@ -103,11 +136,16 @@ public static class VecTextMatcher
         foreach (var (from, to) in LigatureMap)
             folded = folded.Replace(from, to, StringComparison.Ordinal);
 
-        // Step 2: remove invisible separators.
+        // Step 2: fold matching-irrelevant punctuation (curly quotes, N/A slash).
+        // This is applied BEFORE upper-casing so case-sensitive replacements are exact.
+        foreach (var (from, to) in PunctuationFoldMap)
+            folded = folded.Replace(from, to, StringComparison.Ordinal);
+
+        // Step 3: remove invisible separators.
         foreach (var ch in InvisibleSeparators)
             folded = folded.Replace(ch.ToString(), string.Empty, StringComparison.Ordinal);
 
-        // Step 3: delegate to the canonical normalizer (upper + accent-strip + whitespace collapse).
+        // Step 4: delegate to the canonical normalizer (upper + accent-strip + whitespace collapse).
         return VecTextNormalizer.Normalize(folded);
     }
 

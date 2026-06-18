@@ -45,7 +45,8 @@ public sealed class VerbatimBlockRulesTests
     private const string Legend17A = "Al ser tu crédito de tasa variable, los intereses pueden aumentar.";
     private const string Legend17B = "Incumplir tus obligaciones te puede generar comisiones e intereses moratorios.";
     private const string Legend17C = "Contratar créditos que excedan tu capacidad de pago afecta tu historial crediticio.";
-    private const string Legend17D = "Realizar sólo el pago mínimo aumenta el tiempo de pago y el costo de la deuda";
+    // R2 correction: §17 Legend-d now ends with a terminal period (CondusefVerbatimCatalog update).
+    private const string Legend17D = "Realizar sólo el pago mínimo aumenta el tiempo de pago y el costo de la deuda.";
 
     // §24 — invariant CONDUSEF quejas fragment
     private const string Quejas24Fragment =
@@ -151,7 +152,9 @@ public sealed class VerbatimBlockRulesTests
 
     private const string Term27E = "IVA: Impuesto al Valor Agregado.";
     private const string Term27F = "M.N.: Moneda Nacional.";
-    private const string Term27G = "NA: Indica que el rubro, campo o concepto no es aplicable para la tarjeta del Usuario.";
+    // R2 correction: catalog term-g uses "N/A:" (fixed DOF transcription); after normalization
+    // both "N/A" and "NA" fold to "NA" via PunctuationFoldMap, so they will match.
+    private const string Term27G = "N/A: Indica que el rubro, campo o concepto no es aplicable para la tarjeta del Usuario.";
     private const string Term27H = "Núm.: Número.";
 
     private const string Term27I =
@@ -242,6 +245,64 @@ public sealed class VerbatimBlockRulesTests
             NormalizedFullText = normalizedFullText,
             Sections = sections ?? [],
         };
+    }
+
+    /// <summary>
+    /// Builds a StatementModel where the host section's SectionText is set to
+    /// <paramref name="sectionText"/>. R2 rules use SectionText for scoped matching.
+    /// </summary>
+    private static StatementModel ModelWithTextAndSectionText(
+        string normalizedFullText,
+        int hostSectionNumber,
+        string sectionText,
+        IReadOnlyList<DetectedSection>? sections = null)
+    {
+        // If explicit sections are provided, rebuild them with SectionText on the host section.
+        var builtSections = sections is not null
+            ? BuildSectionsWithSectionText(sections, hostSectionNumber, sectionText)
+            : (IReadOnlyList<DetectedSection>)[];
+
+        var missingStr = ExtractedField<string>.Missing(P1());
+        var missingName = ExtractedField<ExtractedClientName>.Missing(P1());
+        var missingAddr = ExtractedField<ExtractedAddress>.Missing(P1());
+
+        return new StatementModel(
+            clientName: missingName,
+            address: missingAddr,
+            branchNumber: missingStr,
+            cardNumber: missingStr,
+            clabe: missingStr,
+            clientNumber: missingStr,
+            rfc: missingStr)
+        {
+            NormalizedFullText = normalizedFullText,
+            Sections = builtSections,
+        };
+    }
+
+    private static IReadOnlyList<DetectedSection> BuildSectionsWithSectionText(
+        IReadOnlyList<DetectedSection> sections,
+        int hostSectionNumber,
+        string sectionText)
+    {
+        var result = new System.Collections.Generic.List<DetectedSection>(sections.Count);
+        foreach (var s in sections)
+        {
+            if (s.SectionNumber == hostSectionNumber && s.IsPresent)
+            {
+                result.Add(s with
+                {
+                    DetectionStatus = SectionDetectionStatus.Present,
+                    SectionText = sectionText,
+                });
+            }
+            else
+            {
+                result.Add(s);
+            }
+        }
+
+        return result;
     }
 
     private static VecReferenceBundle EmptyBundle() =>
@@ -454,9 +515,11 @@ public sealed class VerbatimBlockRulesTests
         // VecTextMatcher.Normalize uppercases and strips accents/ligatures.
         var url1N = VecTextMatcher.Normalize(Url1);
         var url2N = VecTextMatcher.Normalize(Url2);
-        var docText = $"COMPARA TU TARJETA CON OTRAS EN: {url1N} {url2N} NOTAS ACLARATORIAS";
+        var sectionText = $"COMPARA TU TARJETA CON OTRAS EN: {url1N} {url2N}";
+        var docText = sectionText + " NOTAS ACLARATORIAS";
 
-        var ctx = Ctx(ModelWithText(docText, sections));
+        // R2: provide SectionText on §11 so the scoped rule finds the URLs.
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -474,9 +537,11 @@ public sealed class VerbatimBlockRulesTests
 
         // Only url1 is present; url2 is completely absent.
         var url1N = VecTextMatcher.Normalize(Url1);
-        var docText = $"COMPARA TU TARJETA: {url1N} NOTAS ACLARATORIAS";
+        var sectionText = $"COMPARA TU TARJETA: {url1N}";
+        var docText = sectionText + " NOTAS ACLARATORIAS";
 
-        var ctx = Ctx(ModelWithText(docText, sections));
+        // R2: SectionText contains only url1.
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -495,9 +560,11 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§11-URLS");
         var sections = SectionsWithPresent(11);
 
-        var docText = "COMPARA TU TARJETA CON OTRAS OPCIONES NOTAS ACLARATORIAS";
+        var sectionText = "COMPARA TU TARJETA CON OTRAS OPCIONES";
+        var docText = sectionText + " NOTAS ACLARATORIAS";
 
-        var ctx = Ctx(ModelWithText(docText, sections));
+        // R2: SectionText contains no URLs.
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 11, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -520,11 +587,13 @@ public sealed class VerbatimBlockRulesTests
 
         // Normalize all four legends (simulates what the PDF extractor produces).
         // Slight whitespace perturbation (double spaces) to prove tolerance.
-        var doc = string.Join(" SEPARADOR ",
+        var sectionText = string.Join(" SEPARADOR ",
             new[] { Legend17A, Legend17B, Legend17C, Legend17D }
                 .Select(l => VecTextMatcher.Normalize(l)));
+        var doc = sectionText + " SIGUIENTE SECCION";
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §17 contains all four legends.
+        var ctx = Ctx(ModelWithTextAndSectionText(doc, 17, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -541,10 +610,11 @@ public sealed class VerbatimBlockRulesTests
         var sections = SectionsWithPresent(17);
 
         // Only first three legends present; §17-d is absent.
-        var doc = string.Join(" ",
+        var sectionText = string.Join(" ",
             new[] { Legend17A, Legend17B, Legend17C }.Select(VecTextMatcher.Normalize));
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §17.
+        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 17, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -566,11 +636,12 @@ public sealed class VerbatimBlockRulesTests
         var sections = SectionsWithPresent(17);
 
         // All four legends normalized (accents stripped, uppercased).
-        var doc = string.Join(" ",
+        var sectionText = string.Join(" ",
             new[] { Legend17A, Legend17B, Legend17C, Legend17D }
                 .Select(VecTextMatcher.Normalize));
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §17.
+        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 17, sectionText, sections));
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -589,9 +660,11 @@ public sealed class VerbatimBlockRulesTests
 
         // Simulate issuer-specific prefix + invariant CONDUSEF block.
         var invariantN = VecTextMatcher.Normalize(Quejas24Fragment);
-        var docText = $"BANCO DEMO RECIBE QUEJAS EN SU UNE. {invariantN} REESTRUCTURA DE TU DEUDA";
+        var sectionText = $"BANCO DEMO RECIBE QUEJAS EN SU UNE. {invariantN}";
+        var docText = sectionText + " REESTRUCTURA DE TU DEUDA";
 
-        var ctx = Ctx(ModelWithText(docText, sections));
+        // R2: SectionText scoped to §24 contains the CONDUSEF block.
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 24, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -608,9 +681,11 @@ public sealed class VerbatimBlockRulesTests
         var sections = SectionsWithPresent(24);
 
         // Document text has the section heading but none of the invariant CONDUSEF contact block.
-        var docText = "ATENCION DE QUEJAS BANCO DEMO RECIBE CONSULTAS EN SU UNIDAD ESPECIALIZADA";
+        var sectionText = "ATENCION DE QUEJAS BANCO DEMO RECIBE CONSULTAS EN SU UNIDAD ESPECIALIZADA";
+        var docText = sectionText + " SIGUIENTE SECCION";
 
-        var ctx = Ctx(ModelWithText(docText, sections));
+        // R2: SectionText scoped to §24 has no matching block.
+        var ctx = Ctx(ModelWithTextAndSectionText(docText, 24, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -633,11 +708,13 @@ public sealed class VerbatimBlockRulesTests
         var sections = SectionsWithPresent(26);
 
         // Build doc with all 13 notes normalized, separated by distinct section markers.
-        var doc = "NOTAS ACLARATORIAS " +
+        var sectionText = "NOTAS ACLARATORIAS " +
                   string.Join(" NOTA ",
                       AllSection26Notes.Select(VecTextMatcher.Normalize));
+        var doc = sectionText + " GLOSARIO DE TERMINOS";
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §26 contains all notes.
+        var ctx = Ctx(ModelWithTextAndSectionText(doc, 26, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -655,10 +732,11 @@ public sealed class VerbatimBlockRulesTests
         var sections = SectionsWithPresent(26);
 
         // Only notes a and b present; the remaining 11 notes are absent.
-        var doc = $"NOTAS ACLARATORIAS {VecTextMatcher.Normalize(Note26A)} " +
+        var sectionText = $"NOTAS ACLARATORIAS {VecTextMatcher.Normalize(Note26A)} " +
                   $"{VecTextMatcher.Normalize(Note26B)} FIN DE NOTAS";
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §26 has only 2 notes.
+        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 26, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -679,11 +757,12 @@ public sealed class VerbatimBlockRulesTests
         var sections = SectionsWithPresent(26);
 
         // Simulate all 13 notes as they appear after PDF extraction (accent-stripped, uppercased).
-        var doc = "NOTAS ACLARATORIAS " +
+        var sectionText = "NOTAS ACLARATORIAS " +
                   string.Join(" NUMERO ",
                       AllSection26Notes.Select(VecTextMatcher.Normalize));
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §26.
+        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 26, sectionText, sections));
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
@@ -700,11 +779,13 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§27-GLOSARIO");
         var sections = SectionsWithPresent(27);
 
-        var doc = "GLOSARIO DE TERMINOS Y ABREVIATURAS " +
+        var sectionText = "GLOSARIO DE TERMINOS Y ABREVIATURAS " +
                   string.Join(" TERMINO ",
                       AllSection27Terms.Select(VecTextMatcher.Normalize));
+        var doc = sectionText + " FIN DEL ESTADO DE CUENTA";
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §27 contains all 15 terms.
+        var ctx = Ctx(ModelWithTextAndSectionText(doc, 27, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -722,9 +803,10 @@ public sealed class VerbatimBlockRulesTests
         var sections = SectionsWithPresent(27);
 
         // Only term a (CAT) and term e (IVA) present; the other 13 are absent.
-        var doc = $"GLOSARIO {VecTextMatcher.Normalize(Term27A)} {VecTextMatcher.Normalize(Term27E)} FIN";
+        var sectionText = $"GLOSARIO {VecTextMatcher.Normalize(Term27A)} {VecTextMatcher.Normalize(Term27E)} FIN";
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §27 has only 2 terms.
+        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 27, sectionText, sections));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
@@ -743,11 +825,12 @@ public sealed class VerbatimBlockRulesTests
         var rule = GetRule("LAW-§27-GLOSARIO");
         var sections = SectionsWithPresent(27);
 
-        var doc = "GLOSARIO " +
+        var sectionText = "GLOSARIO " +
                   string.Join(" SIGUIENTE ",
                       AllSection27Terms.Select(VecTextMatcher.Normalize));
 
-        var ctx = Ctx(ModelWithText(doc, sections));
+        // R2: SectionText scoped to §27.
+        var ctx = Ctx(ModelWithTextAndSectionText(sectionText, 27, sectionText, sections));
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
