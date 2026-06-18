@@ -12,9 +12,11 @@ using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
 using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
+using ExxerCube.Prisma.Veriqan.Orchestration.Startup;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
 
@@ -65,11 +67,17 @@ public static class VeriqanOrchestrationExtensions
         services.AddVeriqanVisual();
         services.AddVeriqanReporting(config);
 
-        // Persistence — real EF Core when connection string is present, otherwise in-memory
+        // Persistence — real EF Core when connection string is present, otherwise in-memory.
+        // When SQL persistence is selected the startup hosted service wires the encrypted
+        // legal-baseline store (migrate → seed → InitialiseAsync) before traffic is served.
         var cs = config.GetConnectionString("VeriqanDb");
         if (!string.IsNullOrWhiteSpace(cs))
         {
             services.AddVeriqanPersistence(cs);
+            // Startup hook: migrate DB → seed legal baseline → warm SqlLegalToleranceProvider.
+            // Fail-loud: if the DB is unreachable or the cache is empty after seeding the host
+            // aborts.  Never silently fall back to in-code defaults.
+            services.AddHostedService<VeriqanLegalBaselineStartupService>();
         }
         else
         {

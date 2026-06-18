@@ -5,11 +5,14 @@ using System.Diagnostics.Metrics;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Application.Tenant;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
@@ -489,9 +492,25 @@ public sealed class ObservabilityTests : IDisposable
                 return Task.FromResult(ResultExtensions.Cancelled<StatementModel>());
             });
 
+        var tenantResolver = Substitute.For<ITenantProfileResolver>();
+        var defaultProfile = TenantProfile.LegalBaseline();
+        // Resolver returns an empty resolved profile (legal-baseline, no overrides).
+        tenantResolver
+            .Resolve(Arg.Any<TenantProfile>(), Arg.Any<ILegalToleranceProvider>(),
+                     Arg.Any<IReadOnlyList<IVecValidationRule>>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<ResolvedTenantProfile>.WithSuccess(
+                new ResolvedTenantProfile(
+                    "LEGAL-BASELINE", "Legal Baseline (CONDUSEF)",
+                    new Dictionary<string, decimal>(),
+                    new List<TenantDeviation>())));
+        var toleranceProvider = Substitute.For<ILegalToleranceProvider>();
+
         var capturingLogger = new CapturingLogger<VerificationPipeline>();
         var pipeline = new VerificationPipeline(
-            ingestion, extractor, binder, engine, aggregator, _metrics, capturingLogger);
+            ingestion, extractor, binder, engine, aggregator,
+            tenantResolver, defaultProfile,
+            Array.Empty<IVecValidationRule>(), toleranceProvider,
+            _metrics, capturingLogger);
 
         var submission = new StatementSubmission(
             Pdf: [0x25, 0x50, 0x44, 0x46],

@@ -84,6 +84,20 @@ public sealed record TenantProfile
     public const double LegalMinFieldConfidenceDefault = 0.8;
 
     /// <summary>
+    /// The CONDUSEF legal floor for <see cref="MinFieldConfidence"/> (Story 9.5 remediation).
+    /// A tenant may RAISE this threshold (stricter extraction quality required before verdict),
+    /// but may NEVER set it below this value — doing so would bypass the abstain guard on
+    /// <c>InvalidFormat</c> fields (confidence 0.7) and allow a mis-read digit to produce a
+    /// potentially incorrect Pass or Fail verdict.
+    /// </summary>
+    /// <remarks>
+    /// When a tenant supplies a value below this floor, <c>TenantProfileResolver</c> rejects
+    /// the override, records a <see cref="TenantDeviation"/> (CheckId = "MIN-FIELD-CONFIDENCE"),
+    /// and resolves <see cref="MinFieldConfidence"/> to this floor (0.8).
+    /// </remarks>
+    public const double MinFieldConfidenceLegalFloor = 0.8;
+
+    /// <summary>
     /// Initializes a <see cref="TenantProfile"/> with the specified identifiers, override map,
     /// and optional confidence threshold.
     /// </summary>

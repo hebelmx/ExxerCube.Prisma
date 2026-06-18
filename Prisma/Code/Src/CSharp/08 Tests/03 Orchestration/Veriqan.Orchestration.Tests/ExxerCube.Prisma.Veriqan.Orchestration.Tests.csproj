@@ -32,6 +32,7 @@
   </ItemGroup>
   <ItemGroup Label="DI and Config">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
   <ItemGroup Label="Microsoft Testing Platform">

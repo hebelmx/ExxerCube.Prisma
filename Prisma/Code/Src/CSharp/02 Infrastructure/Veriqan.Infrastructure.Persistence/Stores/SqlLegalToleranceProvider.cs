@@ -4,50 +4,81 @@ using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Stores;
 
 /// <summary>
-/// SQL-backed <see cref="ILegalToleranceProvider"/> that loads tolerance specifications
-/// from <see cref="ILegalBaselineStore"/> once per instance lifetime and answers
+/// SQL-backed singleton <see cref="ILegalToleranceProvider"/> that loads tolerance specifications
+/// from <see cref="ILegalBaselineStore"/> once at startup (via a transient scope) and answers
 /// synchronous <see cref="For"/> / <see cref="Has"/> queries from the in-memory cache.
 /// </summary>
 /// <remarks>
 /// <para>
-/// This provider is registered in the SQL/worker composition path. Unit-test code that runs
-/// without a database must use <c>DefaultLegalToleranceProvider</c> (the in-code fallback)
-/// — the SQL provider must NOT be forced into test projects that have no DB.
+/// <b>Lifetime design:</b> registered as a <c>Singleton</c> so that it outlives any individual
+/// request scope. <see cref="ILegalBaselineStore"/> is scoped (EF Core
+/// <c>VeriqanDbContext</c>), so this provider receives an <see cref="IServiceScopeFactory"/>
+/// and creates a short-lived scope only during <see cref="InitialiseAsync"/> — never
+/// during <see cref="For"/> or <see cref="Has"/>, which are pure memory reads.
 /// </para>
 /// <para>
-/// <b>Usage:</b> call <see cref="InitialiseAsync"/> once at startup (or at integration-test
-/// setup) before any synchronous <see cref="For"/> call is made. The DI registration in
-/// <c>AddVeriqanPersistence</c> registers this as a <c>Scoped</c> service; callers that
-/// need it pre-warmed should resolve and call <see cref="InitialiseAsync"/> during host
-/// startup.
+/// <b>Usage:</b> call <see cref="InitialiseAsync"/> exactly once at host startup (from
+/// <c>VeriqanLegalBaselineStartupService</c>) before any synchronous <see cref="For"/>
+/// call is made. If the store cannot be loaded the startup service throws, aborting host
+/// startup — never fall back to in-code defaults silently.
+/// </para>
+/// <para>
+/// Unit-test code that runs without a database must use <c>DefaultLegalToleranceProvider</c>
+/// (the in-code fallback). The SQL provider must NOT be forced into test projects that have
+/// no DB. <c>AddVeriqanValidation</c> alone registers <c>DefaultLegalToleranceProvider</c>;
+/// <c>AddVeriqanPersistence</c> replaces it with this provider.
 /// </para>
 /// </remarks>
 public sealed class SqlLegalToleranceProvider : ILegalToleranceProvider
 {
-    private readonly ILegalBaselineStore _store;
+    private readonly IServiceScopeFactory _scopeFactory;
     private IReadOnlyDictionary<string, Tolerance>? _cache;
 
     /// <summary>
     /// Initializes a new instance of <see cref="SqlLegalToleranceProvider"/>.
     /// </summary>
-    /// <param name="store">The legal-baseline store.</param>
-    public SqlLegalToleranceProvider(ILegalBaselineStore store)
+    /// <param name="scopeFactory">
+    /// The scope factory used to create a short-lived scope during <see cref="InitialiseAsync"/>.
+    /// </param>
+    public SqlLegalToleranceProvider(IServiceScopeFactory scopeFactory)
     {
-        _store = store ?? throw new ArgumentNullException(nameof(store));
+        _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
     }
 
     /// <summary>
     /// Loads tolerances from the SQL store into the in-memory cache.
-    /// Call once at startup before any synchronous <see cref="For"/> query.
+    /// Call exactly once at startup (from <c>VeriqanLegalBaselineStartupService</c>)
+    /// before any synchronous <see cref="For"/> query.
     /// </summary>
     /// <param name="cancellationToken">Propagated cancellation token.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the loaded cache is empty after seeding — this means the DB is reachable
+    /// but contains no tolerance rows, which is a fatal configuration error.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// Propagated when <paramref name="cancellationToken"/> is cancelled.
+    /// </exception>
     public async Task InitialiseAsync(CancellationToken cancellationToken = default)
     {
-        _cache = await _store.LoadTolerancesAsync(cancellationToken).ConfigureAwait(false);
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var store = scope.ServiceProvider.GetRequiredService<ILegalBaselineStore>();
+
+        // LoadTolerancesAsync propagates cancellation (throws OCE) — callers must not
+        // catch OCE and must let it bubble to abort host startup cleanly.
+        var loaded = await store.LoadTolerancesAsync(cancellationToken).ConfigureAwait(false);
+
+        if (loaded.Count == 0)
+            throw new InvalidOperationException(
+                $"{nameof(SqlLegalToleranceProvider)} initialised with an empty tolerance " +
+                "cache. The legal baseline table is empty after seeding — check that " +
+                "LegalBaselineSeeder ran successfully and that the migration was applied.");
+
+        _cache = loaded;
     }
 
     /// <inheritdoc />

@@ -42,8 +42,9 @@ internal sealed class SqlLegalBaselineStore : ILegalBaselineStore
     public async Task<IReadOnlyDictionary<string, Tolerance>> LoadTolerancesAsync(
         CancellationToken cancellationToken = default)
     {
-        if (cancellationToken.IsCancellationRequested)
-            return new Dictionary<string, Tolerance>(StringComparer.OrdinalIgnoreCase);
+        // Finding 3.B: do NOT swallow a pre-cancelled token into an empty dictionary —
+        // propagate cancellation so the startup hook can abort rather than cache an empty baseline.
+        cancellationToken.ThrowIfCancellationRequested();
 
         var records = await _context.LegalBaselineTolerances
             .AsNoTracking()

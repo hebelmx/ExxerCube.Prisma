@@ -28,6 +28,20 @@ namespace ExxerCube.Prisma.Veriqan.Application.Verdict;
 /// They are reported separately through <see cref="VerdictSummary.InsufficientDataCheckIds"/>
 /// and <see cref="VerdictSummary.InsufficientDataCount"/>.
 /// </para>
+/// <para>
+/// <b>Legal-baseline separability (Fix D — Story 9 remediation):</b>
+/// In addition to the effective <see cref="VerdictSummary.Signal"/> (gated on
+/// <see cref="RuleFinding.Verdict"/>), the aggregator computes:
+/// <list type="bullet">
+///   <item><see cref="VerdictSummary.LegalBreachCheckIds"/> — checks whose
+///     <see cref="RuleFinding.LegalBaselineVerdict"/> is Fail.</item>
+///   <item><see cref="VerdictSummary.TenantOnlyFailCheckIds"/> — checks where effective
+///     Verdict is Fail but LegalBaselineVerdict is Pass (purely tenant-driven failures).</item>
+///   <item><see cref="VerdictSummary.LegalBaselineSignal"/> — derived from
+///     <c>LegalBreachCheckIds</c>; informational only, does NOT change gating.</item>
+/// </list>
+/// The pipeline gate ALWAYS remains on <see cref="RuleFinding.Verdict"/>; do not change that.
+/// </para>
 /// </remarks>
 public sealed class VerdictAggregator : IVerdictAggregator
 {
@@ -52,10 +66,12 @@ public sealed class VerdictAggregator : IVerdictAggregator
                 VerdictSummary.Blocked(blocked, tenantDeviations));
 
         // ------------------------------------------------------------------
-        // Partition findings by verdict category
+        // Partition findings by verdict category and legal-signal separation
         // ------------------------------------------------------------------
         List<string> failIds = [];
         List<string> insufficientIds = [];
+        List<string> legalBreachIds = [];
+        List<string> tenantOnlyFailIds = [];
         int passCount = 0;
 
         foreach (var finding in findings)
@@ -64,6 +80,13 @@ public sealed class VerdictAggregator : IVerdictAggregator
             {
                 case FindingVerdict.Fail:
                     failIds.Add(finding.CheckId);
+
+                    // Legal-baseline separation: is this a regulatory breach or tenant-only?
+                    if (finding.LegalBaselineVerdict == FindingVerdict.Fail)
+                        legalBreachIds.Add(finding.CheckId);
+                    else
+                        tenantOnlyFailIds.Add(finding.CheckId);
+
                     break;
 
                 case FindingVerdict.InsufficientData:
@@ -89,7 +112,9 @@ public sealed class VerdictAggregator : IVerdictAggregator
                     insufficientDataCount: insufficientIds.Count,
                     failCheckIds: failIds,
                     insufficientDataCheckIds: insufficientIds,
-                    tenantDeviations: tenantDeviations));
+                    tenantDeviations: tenantDeviations,
+                    legalBreachCheckIds: legalBreachIds,
+                    tenantOnlyFailCheckIds: tenantOnlyFailIds));
         }
 
         // ------------------------------------------------------------------
@@ -100,6 +125,8 @@ public sealed class VerdictAggregator : IVerdictAggregator
                 passCount: passCount,
                 insufficientDataCount: insufficientIds.Count,
                 insufficientDataCheckIds: insufficientIds,
-                tenantDeviations: tenantDeviations));
+                tenantDeviations: tenantDeviations,
+                legalBreachCheckIds: legalBreachIds,
+                tenantOnlyFailCheckIds: tenantOnlyFailIds));
     }
 }

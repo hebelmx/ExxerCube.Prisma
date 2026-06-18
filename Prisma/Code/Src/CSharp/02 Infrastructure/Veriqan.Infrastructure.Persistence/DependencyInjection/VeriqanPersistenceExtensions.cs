@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Crypto;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Repositories;
@@ -6,6 +7,7 @@ using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Stores;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.DependencyInjection;
 
@@ -16,12 +18,36 @@ public static class VeriqanPersistenceExtensions
 {
     /// <summary>
     /// Registers <see cref="VeriqanDbContext"/> and related persistence services for the Veriqan
-    /// compliance-verification subsystem.
+    /// compliance-verification subsystem, and replaces the default in-code
+    /// <see cref="ILegalToleranceProvider"/> with the encrypted SQL-backed
+    /// <see cref="SqlLegalToleranceProvider"/>.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The EF Core migrations-history table is placed in the <c>veriqan</c> SQL schema
     /// (<c>veriqan.__EFMigrationsHistory</c>) so it never collides with <c>PrismaDbContext</c>'s
     /// history table in <c>dbo</c>.
+    /// </para>
+    /// <para>
+    /// <b>Provider lifetime:</b> <see cref="SqlLegalToleranceProvider"/> is registered as a
+    /// <b>singleton</b> — it populates its in-memory cache once at startup and then serves
+    /// synchronous <c>For</c>/<c>Has</c> reads for the process lifetime. Because
+    /// <see cref="ILegalBaselineStore"/> is scoped (EF Core context), the provider receives
+    /// an <see cref="Microsoft.Extensions.DependencyInjection.IServiceScopeFactory"/> and
+    /// creates a short-lived scope only during <see cref="SqlLegalToleranceProvider.InitialiseAsync"/>.
+    /// </para>
+    /// <para>
+    /// <b>Fail-loud startup:</b> <c>VeriqanLegalBaselineStartupService</c> (registered by the
+    /// Orchestration layer via <c>AddVeriqan</c>) runs at host startup, applies migrations,
+    /// seeds the tolerance table, and calls <see cref="SqlLegalToleranceProvider.InitialiseAsync"/>.
+    /// If any of these steps fail the service throws, aborting host startup — the encrypted store
+    /// must NEVER silently fall back to the in-code constants.
+    /// </para>
+    /// <para>
+    /// When this method is NOT called (pure unit tests, in-memory composition),
+    /// <c>AddVeriqanValidation</c> alone registers <c>DefaultLegalToleranceProvider</c> and
+    /// no SQL provider or startup service is involved.
+    /// </para>
     /// </remarks>
     /// <param name="services">The service collection to configure.</param>
     /// <param name="connectionString">SQL Server connection string for the Veriqan database.</param>
@@ -56,9 +82,25 @@ public static class VeriqanPersistenceExtensions
             return new AesEncryptedDecimalConverter(keyProvider.GetKey());
         });
 
-        // Legal-baseline store and SQL tolerance provider
+        // Legal-baseline store — scoped because it depends on the scoped VeriqanDbContext.
         services.AddScoped<ILegalBaselineStore, SqlLegalBaselineStore>();
-        services.AddScoped<SqlLegalToleranceProvider>();
+
+        // SQL tolerance provider — singleton.  It takes IServiceScopeFactory so it can resolve
+        // ILegalBaselineStore (scoped) in a short-lived scope during InitialiseAsync only.
+        // RegisterAsSelf so the startup service can receive the concrete type directly.
+        services.AddSingleton<SqlLegalToleranceProvider>();
+
+        // Replace the DefaultLegalToleranceProvider singleton that AddVeriqanValidation registered
+        // with the SQL-backed singleton.  Rules and the resolver both inject ILegalToleranceProvider,
+        // so this single Replace makes the encrypted store the live implementation.
+        services.Replace(ServiceDescriptor.Singleton<ILegalToleranceProvider>(
+            sp => sp.GetRequiredService<SqlLegalToleranceProvider>()));
+
+        // NOTE: the startup hosted service (VeriqanLegalBaselineStartupService) is registered
+        // by the Orchestration layer (AddVeriqan / AddVeriqanPersistenceStartup) because the
+        // Persistence project does not reference Microsoft.Extensions.Hosting.Abstractions.
+        // Callers that embed AddVeriqanPersistence directly (integration tests) must either
+        // call SqlLegalToleranceProvider.InitialiseAsync themselves or call the startup hook.
 
         return services;
     }

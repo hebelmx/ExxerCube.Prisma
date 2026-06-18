@@ -211,4 +211,114 @@ public sealed class VerdictAggregatorTests
 
         result.IsCancelled().ShouldBeTrue();
     }
+
+    // -----------------------------------------------------------------------
+    // Fix D: legal-baseline separable signal
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A finding that is a TENANT-ONLY fail (Verdict=Fail, LegalBaselineVerdict=Pass) must
+    /// appear in <c>TenantOnlyFailCheckIds</c> but NOT in <c>LegalBreachCheckIds</c>.
+    /// The overall signal is RED (tenant bar failed), but <c>LegalBaselineSignal</c> is GREEN.
+    /// </summary>
+    [Fact]
+    public void Aggregate_TenantOnlyFail_SeparatesLegalBreachFromTenantFail()
+    {
+        // A finding where tenant policy fails but legal floor passes.
+        var tenantOnlyFail = RuleFinding.Fail(
+            checkId: "CL-TENANT-ONLY",
+            technique: TechniqueClass.Deterministic,
+            severity: FindingSeverity.Critical,
+            engineVersion: "1.0.0",
+            legalBaselineVerdict: FindingVerdict.Pass); // legal floor = Pass
+
+        var findings = new[] { tenantOnlyFail };
+
+        var result = _sut.Aggregate(findings, ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var summary = result.Value!;
+
+        // Gate signal is RED (tenant bar failed).
+        summary.Signal.ShouldBe(VerdictSignal.Red,
+            "The pipeline gate must fire on the effective Verdict = Fail.");
+
+        // Legal breach list must be EMPTY (legal floor was not breached).
+        summary.LegalBreachCheckIds.ShouldBeEmpty(
+            "LegalBaselineVerdict = Pass means no regulatory breach.");
+
+        // Tenant-only fail list must contain the check.
+        summary.TenantOnlyFailCheckIds.ShouldContain("CL-TENANT-ONLY",
+            "The check failed only the tenant bar, not the legal floor.");
+
+        // Legal baseline signal must be GREEN (no regulatory breach).
+        summary.LegalBaselineSignal.ShouldBe(VerdictSignal.Green,
+            "LegalBaselineSignal is Green when no LegalBaselineVerdict = Fail finding exists.");
+    }
+
+    /// <summary>
+    /// A finding that breaches the CONDUSEF legal floor (LegalBaselineVerdict=Fail) must appear
+    /// in <c>LegalBreachCheckIds</c> and NOT in <c>TenantOnlyFailCheckIds</c>.
+    /// <c>LegalBaselineSignal</c> must be RED.
+    /// </summary>
+    [Fact]
+    public void Aggregate_LegalBreach_SeparatesLegalBreachFromTenantFail()
+    {
+        // Finding where both tenant and legal floor fail (typical case).
+        var legalBreach = AFail("CL-LEGAL-BREACH");
+        // default: LegalBaselineVerdict = Fail (same as Verdict)
+
+        var findings = new[] { legalBreach };
+
+        var result = _sut.Aggregate(findings, ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var summary = result.Value!;
+
+        summary.Signal.ShouldBe(VerdictSignal.Red);
+        summary.LegalBreachCheckIds.ShouldContain("CL-LEGAL-BREACH",
+            "LegalBaselineVerdict = Fail means this is a regulatory breach.");
+        summary.TenantOnlyFailCheckIds.ShouldBeEmpty(
+            "Both Verdict and LegalBaselineVerdict are Fail — not a tenant-only failure.");
+        summary.LegalBaselineSignal.ShouldBe(VerdictSignal.Red,
+            "At least one LegalBaselineVerdict = Fail → LegalBaselineSignal = Red.");
+    }
+
+    /// <summary>
+    /// A Green summary (all Pass findings) must have empty <c>LegalBreachCheckIds</c>,
+    /// empty <c>TenantOnlyFailCheckIds</c>, and <c>LegalBaselineSignal = Green</c>.
+    /// </summary>
+    [Fact]
+    public void Aggregate_AllPass_LegalSignalFields_AreEmpty_AndGreen()
+    {
+        var findings = new[] { APass("CL-01"), APass("CL-02") };
+
+        var result = _sut.Aggregate(findings, ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var summary = result.Value!;
+        summary.Signal.ShouldBe(VerdictSignal.Green);
+        summary.LegalBreachCheckIds.ShouldBeEmpty();
+        summary.TenantOnlyFailCheckIds.ShouldBeEmpty();
+        summary.LegalBaselineSignal.ShouldBe(VerdictSignal.Green);
+    }
+
+    /// <summary>
+    /// A Blocked summary must have <c>LegalBaselineSignal = Blocked</c> to match the
+    /// statement's overall blocked state (no findings were evaluated).
+    /// </summary>
+    [Fact]
+    public void Aggregate_Blocked_LegalBaselineSignal_IsBlocked()
+    {
+        var blocked = ABlockedOutcome();
+
+        var result = _sut.Aggregate([], blocked, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var summary = result.Value!;
+        summary.Signal.ShouldBe(VerdictSignal.Blocked);
+        summary.LegalBaselineSignal.ShouldBe(VerdictSignal.Blocked);
+        summary.LegalBreachCheckIds.ShouldBeEmpty();
+        summary.TenantOnlyFailCheckIds.ShouldBeEmpty();
+    }
 }

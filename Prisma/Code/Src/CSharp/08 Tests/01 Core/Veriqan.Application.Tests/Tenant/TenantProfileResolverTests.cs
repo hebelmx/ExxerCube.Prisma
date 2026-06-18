@@ -267,4 +267,137 @@ public sealed class TenantProfileResolverTests
 
         result.IsCancelled().ShouldBeTrue();
     }
+
+    // -----------------------------------------------------------------------
+    // Fix B: MinFieldConfidence legal floor enforcement (Story 9 remediation)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A tenant that raises MinFieldConfidence above the legal floor (e.g. 0.95) must have
+    /// the higher value accepted — the resolved profile carries 0.95, no deviation recorded.
+    /// </summary>
+    [Fact]
+    public void Resolve_MinFieldConfidenceRaisedAboveFloor_AcceptsAndCarriesValue()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        // Tenant wants 0.95 — stricter than the legal floor of 0.8 — allowed.
+        var profile = new TenantProfile("T-RAISE", "Tenant Raise", minFieldConfidence: 0.95);
+        var provider = BuildEmptyProvider();
+        var rules = new List<IVecValidationRule>();
+
+        var result = Sut().Resolve(profile, provider, rules, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var resolved = result.Value!;
+        resolved.MinFieldConfidence.ShouldBe(0.95,
+            "Raising the confidence threshold is allowed; the resolved profile must carry 0.95.");
+        resolved.HasDeviations.ShouldBeFalse(
+            "Raising confidence generates no deviation.");
+    }
+
+    /// <summary>
+    /// A tenant that sets MinFieldConfidence below the legal floor (e.g. 0.5) must have
+    /// the value rejected: a deviation with CheckId = "MIN-FIELD-CONFIDENCE" is recorded
+    /// and the effective value is clamped to the legal floor (0.8).
+    /// </summary>
+    [Fact]
+    public void Resolve_MinFieldConfidenceBelowFloor_RejectsAndDeviates_EffectiveValueIsFloor()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        // 0.5 is below the legal floor of 0.8 — must be rejected.
+        var profile = new TenantProfile("T-SUB-FLOOR", "Tenant Sub-floor", minFieldConfidence: 0.5);
+        var provider = BuildEmptyProvider();
+        var rules = new List<IVecValidationRule>();
+
+        var result = Sut().Resolve(profile, provider, rules, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var resolved = result.Value!;
+
+        // Effective value must be the legal floor.
+        resolved.MinFieldConfidence.ShouldBe(TenantProfile.MinFieldConfidenceLegalFloor,
+            "Sub-floor value must be rejected; effective value falls back to the legal floor (0.8).");
+
+        // A deviation must be recorded for the rejection.
+        resolved.HasDeviations.ShouldBeTrue();
+        var dev = resolved.Deviations
+            .FirstOrDefault(d => d.CheckId == "MIN-FIELD-CONFIDENCE");
+        dev.ShouldNotBeNull("A TenantDeviation with CheckId='MIN-FIELD-CONFIDENCE' must be recorded.");
+        dev!.RequestedValue.ShouldBe(0.5m);
+        dev.LegalDefaultUsed.ShouldBe((decimal)TenantProfile.MinFieldConfidenceLegalFloor);
+        dev.Reason.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    /// <summary>
+    /// A profile with the default MinFieldConfidence (0.8 = the legal floor) must be accepted
+    /// with no deviation. (Fix B — no spurious deviation at the exact floor value.)
+    /// </summary>
+    [Fact]
+    public void Resolve_DefaultProfile_MinFieldConfidenceAtFloor_NoDeviation()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var profile = TenantProfile.LegalBaseline(); // MinFieldConfidence = 0.8
+        var provider = BuildEmptyProvider();
+        var rules = new List<IVecValidationRule>();
+
+        var result = Sut().Resolve(profile, provider, rules, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var resolved = result.Value!;
+        resolved.MinFieldConfidence.ShouldBe(TenantProfile.LegalMinFieldConfidenceDefault);
+        resolved.Deviations
+            .ShouldNotContain(d => d.CheckId == "MIN-FIELD-CONFIDENCE",
+                "0.8 is exactly the legal floor — no deviation should be generated.");
+    }
+
+    // -----------------------------------------------------------------------
+    // Fix E: deviation ordering (determinism)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When multiple overrides are rejected the resulting
+    /// <see cref="ResolvedTenantProfile.Deviations"/> list must be sorted by CheckId (ordinal)
+    /// so the audit/output order is deterministic regardless of iteration order.
+    /// </summary>
+    [Fact]
+    public void Resolve_MultipleRejectedOverrides_DeviationsAreSortedByCheckId()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Override two BaselineLocked rules whose CheckIds are intentionally NOT in
+        // alphabetical order in the dictionary — the result must still be sorted.
+        const string id1 = "ZZ-LOCKED";
+        const string id2 = "AA-LOCKED";
+
+        var tol = new Tolerance(legalDefault: 1.00m, min: 0.00m, max: 2.00m);
+        var provider = Substitute.For<ILegalToleranceProvider>();
+        provider.Has(id1).Returns(true);
+        provider.Has(id2).Returns(true);
+        provider.For(id1).Returns(tol);
+        provider.For(id2).Returns(tol);
+
+        var rules = new List<IVecValidationRule>
+        {
+            BuildRule(id1, RuleClassification.BaselineLocked),
+            BuildRule(id2, RuleClassification.BaselineLocked),
+        };
+
+        var overrides = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
+        {
+            [id1] = 0.5m,
+            [id2] = 0.5m,
+        };
+        var profile = new TenantProfile("T-ORDER", "Tenant Order", overrides);
+
+        var result = Sut().Resolve(profile, provider, rules, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var resolved = result.Value!;
+        resolved.Deviations.Count.ShouldBe(2);
+
+        // Deviations must be in CheckId ordinal order: AA-LOCKED < ZZ-LOCKED.
+        resolved.Deviations[0].CheckId.ShouldBe(id2,
+            "Deviations must be sorted by CheckId; 'AA-LOCKED' < 'ZZ-LOCKED' (ordinal).");
+        resolved.Deviations[1].CheckId.ShouldBe(id1);
+    }
 }

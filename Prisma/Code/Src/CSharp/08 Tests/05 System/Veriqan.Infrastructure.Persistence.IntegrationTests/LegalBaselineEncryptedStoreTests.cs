@@ -1,10 +1,12 @@
 using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
+using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Crypto;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Stores;
 using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.IntegrationTests;
 
@@ -145,10 +147,18 @@ public sealed class LegalBaselineEncryptedStoreTests
         _logger.LogInformation("Ciphertext assertion passed — raw column is NOT plaintext decimal.");
 
         // ── Assert 3: SqlLegalToleranceProvider answers For/Has correctly ──────────────
-        await using (var ctx = new VeriqanDbContext(veriqanOptions, converter))
+        // Provider is now a singleton that takes IServiceScopeFactory.  Wire a minimal
+        // service provider so the scope factory can resolve ILegalBaselineStore (scoped).
         {
-            var store = new SqlLegalBaselineStore(ctx);
-            var provider = new SqlLegalToleranceProvider(store);
+            var testServices = new ServiceCollection();
+            testServices.AddDbContext<VeriqanDbContext>(o =>
+                o.UseSqlServer(connectionString,
+                    b => b.MigrationsHistoryTable("__EFMigrationsHistory", "veriqan")));
+            testServices.AddSingleton(converter);
+            testServices.AddScoped<ILegalBaselineStore, SqlLegalBaselineStore>();
+
+            await using var testSp = testServices.BuildServiceProvider();
+            var provider = new SqlLegalToleranceProvider(testSp.GetRequiredService<IServiceScopeFactory>());
             await provider.InitialiseAsync(ct);
 
             provider.Has("CL-10").ShouldBeTrue();
@@ -206,6 +216,90 @@ public sealed class LegalBaselineEncryptedStoreTests
         }
 
         _logger.LogInformation("Idempotency assertion passed.");
+    }
+
+    /// <summary>
+    /// Fix 3.B: <see cref="SqlLegalBaselineStore.LoadTolerancesAsync"/> must propagate
+    /// cancellation (throw <see cref="OperationCanceledException"/>) rather than swallowing
+    /// a pre-cancelled token and returning an empty dictionary.
+    /// </summary>
+    [Fact]
+    public async Task SqlLegalBaselineStore_LoadTolerancesAsync_PropagatesCancellation()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var connectionString = await _fixture.CreateIsolatedDatabaseAsync(
+            "veriqan_cancel_test", ct);
+
+        var converter = new AesEncryptedDecimalConverter(TestKey);
+
+        var veriqanOptions = new DbContextOptionsBuilder<VeriqanDbContext>()
+            .UseSqlServer(connectionString,
+                b => b.MigrationsHistoryTable("__EFMigrationsHistory", "veriqan"))
+            .Options;
+
+        await using (var ctx = new VeriqanDbContext(veriqanOptions, converter))
+        {
+            await ctx.Database.MigrateAsync(ct);
+        }
+
+        // Pre-cancel before calling LoadTolerancesAsync — must throw, not return empty dict.
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await using var ctx2 = new VeriqanDbContext(veriqanOptions, converter);
+        var store = new SqlLegalBaselineStore(ctx2);
+
+        await Should.ThrowAsync<OperationCanceledException>(async () =>
+            await store.LoadTolerancesAsync(cts.Token));
+
+        _logger.LogInformation(
+            "Cancellation-propagation assertion passed — store throws OperationCanceledException.");
+    }
+
+    /// <summary>
+    /// Fix A: <see cref="SqlLegalToleranceProvider.InitialiseAsync"/> must throw
+    /// <see cref="InvalidOperationException"/> when the loaded cache is empty (DB migrated but
+    /// NOT seeded) — proving the fail-loud contract is enforced.
+    /// </summary>
+    [Fact]
+    public async Task SqlLegalToleranceProvider_InitialiseAsync_ThrowsWhenCacheIsEmpty()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var connectionString = await _fixture.CreateIsolatedDatabaseAsync(
+            "veriqan_empty_cache_test", ct);
+
+        var converter = new AesEncryptedDecimalConverter(TestKey);
+
+        var veriqanOptions = new DbContextOptionsBuilder<VeriqanDbContext>()
+            .UseSqlServer(connectionString,
+                b => b.MigrationsHistoryTable("__EFMigrationsHistory", "veriqan"))
+            .Options;
+
+        // Apply migrations — but do NOT seed, so the table is empty.
+        await using (var ctx = new VeriqanDbContext(veriqanOptions, converter))
+        {
+            await ctx.Database.MigrateAsync(ct);
+        }
+
+        // Build a minimal service provider to supply IServiceScopeFactory.
+        var services = new ServiceCollection();
+        services.AddDbContext<VeriqanDbContext>(o =>
+            o.UseSqlServer(connectionString,
+                b => b.MigrationsHistoryTable("__EFMigrationsHistory", "veriqan")));
+        services.AddSingleton(converter);
+        services.AddScoped<ILegalBaselineStore, SqlLegalBaselineStore>();
+
+        await using var sp = services.BuildServiceProvider();
+        var provider = new SqlLegalToleranceProvider(sp.GetRequiredService<IServiceScopeFactory>());
+
+        // Empty cache after migration (no seed) → must throw InvalidOperationException.
+        await Should.ThrowAsync<InvalidOperationException>(async () =>
+            await provider.InitialiseAsync(ct));
+
+        _logger.LogInformation(
+            "Fail-loud assertion passed — InitialiseAsync throws when cache is empty after migration.");
     }
 
     private static bool IsValidBase64(string s)

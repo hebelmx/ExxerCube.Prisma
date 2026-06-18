@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Application.Tenant;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using IndQuestResults;
@@ -17,11 +21,27 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 
 /// <summary>
 /// Default <see cref="IVerificationPipeline"/> implementation that orchestrates all
-/// verification stages in sequence: ingest → extract → bind → run rules → aggregate verdict.
+/// verification stages in sequence: ingest → extract → bind → resolve tenant profile
+/// → run rules → aggregate verdict.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Registered as <b>Scoped</b> so each HTTP request / batch item gets its own instance,
 /// keeping the scoped <c>VeriqanDbContext</c> (accessed via the ingestion service) properly bounded.
+/// </para>
+/// <para>
+/// <b>Tenant profile wiring:</b> the active <see cref="TenantProfile"/> (injected from DI,
+/// defaulting to <see cref="TenantProfile.LegalBaseline()"/>) is resolved once per pipeline run
+/// via <see cref="ITenantProfileResolver"/> before the validation engine runs. The resolved
+/// profile is threaded into <see cref="VerificationContext"/> and the resulting deviations are
+/// passed to <see cref="IVerdictAggregator.Aggregate"/>. With the default legal-baseline profile
+/// (no overrides) this yields all legal defaults and zero deviations — existing pipeline
+/// behaviour (incl. the e2e RED verdict and finding count) is unchanged.
+/// </para>
+/// <para>
+/// Real multi-tenant per-statement profile SELECTION is deferred to FR-39 / Epic 13; this
+/// wiring uses a single configured active profile (default legal baseline).
+/// </para>
 /// </remarks>
 internal sealed class VerificationPipeline : IVerificationPipeline
 {
@@ -30,6 +50,10 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     private readonly IBundleBinder _binder;
     private readonly IVecValidationEngine _engine;
     private readonly IVerdictAggregator _aggregator;
+    private readonly ITenantProfileResolver _tenantResolver;
+    private readonly TenantProfile _activeTenantProfile;
+    private readonly IReadOnlyList<IVecValidationRule> _rules;
+    private readonly ILegalToleranceProvider _toleranceProvider;
     private readonly VeriqanMetrics _metrics;
     private readonly ILogger<VerificationPipeline> _logger;
 
@@ -42,6 +66,10 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         IBundleBinder binder,
         IVecValidationEngine engine,
         IVerdictAggregator aggregator,
+        ITenantProfileResolver tenantResolver,
+        TenantProfile activeTenantProfile,
+        IEnumerable<IVecValidationRule> rules,
+        ILegalToleranceProvider toleranceProvider,
         VeriqanMetrics metrics,
         ILogger<VerificationPipeline> logger)
     {
@@ -50,6 +78,10 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         _binder = binder ?? throw new ArgumentNullException(nameof(binder));
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _aggregator = aggregator ?? throw new ArgumentNullException(nameof(aggregator));
+        _tenantResolver = tenantResolver ?? throw new ArgumentNullException(nameof(tenantResolver));
+        _activeTenantProfile = activeTenantProfile ?? throw new ArgumentNullException(nameof(activeTenantProfile));
+        _rules = (rules ?? throw new ArgumentNullException(nameof(rules))).ToList();
+        _toleranceProvider = toleranceProvider ?? throw new ArgumentNullException(nameof(toleranceProvider));
         _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -200,9 +232,41 @@ internal sealed class VerificationPipeline : IVerificationPipeline
 
         var bindCtx = bindResult.Value!;
 
-        // Stage 5 — Build FINAL VerificationContext with the extracted StatementModel
-        // Story 9.3b: TenantProfile is null here — legal-baseline path.
-        // Story 9.7 will wire tenant resolution from the job context.
+        // Stage 5a — Tenant profile resolution (Fix C).
+        // Resolve the active profile against the legal tolerance spec and the registered rule set.
+        // With the default legal-baseline profile (no overrides) this yields all legal defaults
+        // and zero deviations — existing e2e behaviour (RED verdict, same finding count) unchanged.
+        var resolveResult = _tenantResolver.Resolve(
+            _activeTenantProfile, _toleranceProvider, _rules, ct);
+
+        if (resolveResult.IsCancelled())
+        {
+            _logger.LogWarning("Pipeline cancelled during tenant-profile resolution for {FileName}", submission.FileName);
+            return ResultExtensions.Cancelled<VerificationOutcome>();
+        }
+
+        if (resolveResult.IsFailure)
+        {
+            _logger.LogError(
+                "Tenant-profile resolution failed for {FileName}: {Error}",
+                submission.FileName,
+                resolveResult.Error);
+            return Result<VerificationOutcome>.WithFailure(resolveResult.Error ?? "Tenant profile resolution failed");
+        }
+
+        var resolvedProfile = resolveResult.Value!;
+
+        if (resolvedProfile.HasDeviations)
+        {
+            _logger.LogInformation(
+                "Tenant profile '{TenantId}' has {DeviationCount} override deviation(s) for {FileName}",
+                resolvedProfile.TenantId,
+                resolvedProfile.Deviations.Count,
+                submission.FileName);
+        }
+
+        // Stage 5b — Build FINAL VerificationContext with the extracted StatementModel
+        // and the resolved tenant profile.
         var finalCtx = new VerificationContext(
             bindCtx.Bundle,
             bindCtx.ResolvedProduct,
@@ -210,7 +274,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             bindCtx.PriorStatement,
             bindCtx.ToleranceConfig,
             statementModel,
-            tenantProfile: null);
+            tenantProfile: resolvedProfile);
 
         // Stage 6 — Validation Engine
         var engineResult = await _engine.RunAsync(finalCtx, ct).ConfigureAwait(false);
@@ -237,7 +301,13 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             submission.FileName);
 
         // Stage 7 — Verdict Aggregation
-        var verdictResult = _aggregator.Aggregate(findings, blocked: null, ct: ct);
+        // Thread resolved.Deviations into the aggregator so compliance reviewers can see
+        // which tenant overrides were reverted to the legal baseline.
+        var verdictResult = _aggregator.Aggregate(
+            findings,
+            blocked: null,
+            ct: ct,
+            tenantDeviations: resolvedProfile.Deviations);
 
         if (verdictResult.IsCancelled())
         {

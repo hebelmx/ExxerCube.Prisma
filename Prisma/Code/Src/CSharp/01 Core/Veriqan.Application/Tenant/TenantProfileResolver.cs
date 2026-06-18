@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Tenant;
@@ -156,11 +157,40 @@ public sealed class TenantProfileResolver : ITenantProfileResolver
             }
         }
 
+        // ----------------------------------------------------------------
+        // MinFieldConfidence: enforce the legal floor (Fix B + E)
+        // Owner ruling (2026-06-18): a tenant may RAISE the threshold (stricter,
+        // allowed); a value BELOW the legal floor is REJECTED — deviation recorded,
+        // effective value falls back to the legal floor (0.8).
+        // ----------------------------------------------------------------
+        double effectiveMinFieldConfidence;
+        if (profile.MinFieldConfidence < TenantProfile.MinFieldConfidenceLegalFloor)
+        {
+            deviations.Add(new TenantDeviation(
+                CheckId: "MIN-FIELD-CONFIDENCE",
+                RequestedValue: (decimal)profile.MinFieldConfidence,
+                LegalDefaultUsed: (decimal)TenantProfile.MinFieldConfidenceLegalFloor,
+                Reason: $"MinFieldConfidence {profile.MinFieldConfidence:F4} is below the " +
+                        $"CONDUSEF legal floor {TenantProfile.MinFieldConfidenceLegalFloor:F4}. " +
+                        "Sub-floor values bypass the abstain guard on low-confidence fields " +
+                        "and are rejected; effective value is the legal floor."));
+            effectiveMinFieldConfidence = TenantProfile.MinFieldConfidenceLegalFloor;
+        }
+        else
+        {
+            effectiveMinFieldConfidence = profile.MinFieldConfidence;
+        }
+
+        // Fix E: sort deviations by CheckId (ordinal) so audit/output order is deterministic.
+        deviations.Sort(static (a, b) =>
+            string.Compare(a.CheckId, b.CheckId, StringComparison.Ordinal));
+
         var resolved = new ResolvedTenantProfile(
             tenantId: profile.TenantId,
             tenantName: profile.TenantName,
             effectiveTolerances: effectiveTolerances,
-            deviations: deviations);
+            deviations: deviations,
+            minFieldConfidence: effectiveMinFieldConfidence);
 
         return Result<ResolvedTenantProfile>.WithSuccess(resolved);
     }
