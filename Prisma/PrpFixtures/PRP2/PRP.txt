@@ -1,0 +1,232 @@
+# VEC Statement PDF Extraction & Validation System - Specification Document
+
+## 1. Overview
+
+This document outlines the comprehensive functional and non-functional requirements for a system designed to extract, validate, and audit PDF bank statements from BSSB Bank for the VEC client.
+
+## 2. Scope
+
+The system must:
+
+* Extract structured data from BSSB PDF bank statements
+* Validate field presence, content correctness, formatting, and visual compliance
+* Generate structured outputs and annotated PDF reports for non-conformities
+
+## 3. Functional Requirements
+
+### 3.1 Document Input
+
+* Accept PDF files only
+* Validate readable PDF structure
+* Support batch processing of multiple files
+
+### 3.2 Data Extraction
+
+Extract the following fields:
+
+#### 3.2.1 Client & Account Info
+
+* Full Name
+* RFC
+* Address (full block)
+* Card/Account Number
+* CLABE Interbancaria
+* Customer ID
+* Branch Number
+
+#### 3.2.2 Statement Metadata
+
+* Statement Cut-off Date
+* Period Start/End Dates
+* Period Day Count
+* Payment Due Date
+
+#### 3.2.3 Financial Summary
+
+* Previous Balance
+* Regular Charges
+* Installment Charges (Capital)
+* Interest Amount
+* Commissions & VAT
+* Payments & Credits
+* Minimum Payment
+* Minimum + Installments
+* Full (Interest-Free) Payment
+
+#### 3.2.4 Rates & Projections
+
+* Interest Rate (Annual, Fixed)
+* CAT (Annual Cost Rate without VAT)
+* Monthly payment impact table
+
+#### 3.2.5 Balance Breakdown
+
+* Charges this period
+* Abonos this period
+* Remaining Balance
+* Credit Limit
+* Available Credit
+* Payment Distribution
+
+#### 3.2.6 Visual Elements
+
+* Mandatory Legal Messages
+* Program Benefits
+* Additional Notes/Footnotes
+
+### 3.3 Validation
+
+Each document must be validated against:
+
+#### 3.3.1 Field-Level Checks
+
+* Presence of required fields (esp. Prioritarios)
+* Correct date formats and logic
+* Valid RFC format and name consistency
+* Currency format for monetary fields
+* Correct mathematical balance logic
+
+#### 3.3.2 Visual Layout & Compliance
+
+* **Logos must be present, complete, high quality, and non-overlapping**
+* **Fonts must match Aptos** (as per current spec)
+* **Text must be legible** (no noise or smudging)
+* **Text and elements must not overlap**
+* **Element alignment and expected positions must match baseline PDF layout**
+
+#### 3.3.3 Image & Layout Validation
+
+* Extract and validate presence, size, resolution, and placement of logos/images
+* Detect image corruption, blur, or pixelation
+
+#### 3.3.4 Inter-statement Financial Continuity
+
+* Ensure `Previous Balance` of current statement matches `Remaining Balance` of the previous
+* Ensure continuity for Installment payments
+
+## 4. Output Specifications
+
+### 4.1 Structured Data Export
+
+* Format: CSV or TXT (pipe `|` delimited)
+* One row per document
+* All fields in a defined consistent order
+
+### 4.2 Annotated PDF Report
+
+* For each document with errors:
+
+  * Generate a copy with visual annotations
+  * Mark each issue with a red number in the PDF
+  * Generate a matching numbered list of issues
+  * Ensure clear correlation between annotations and issue list
+
+## 5. Logging & Error Reports
+
+* Log extraction and validation results per file
+* Detail missing fields, mismatches, and anomalies
+* Provide summary and per-field statistics
+
+## 6. Non-Functional Requirements
+
+* Process a single PDF in under 5 seconds
+* Batch support: 100+ files per session
+* Support Spanish language formats
+* Modular for future bank support
+* High reliability and recoverability from corrupted inputs
+
+## 7. Security & Confidentiality
+
+* Sensitive fields (e.g., RFC, account numbers) must be protected
+* Output and logs should be access-restricted
+
+## 8. Future Enhancements
+
+* ML-based OCR fallback for non-selectable PDFs
+* GUI interface for manual annotation review
+* Integration with document management systems
+
+---
+
+## Appendix A: Detailed Analysis and Implicit Requirements
+*(Derived from analysis of sample PDF and CSV files in `Prisma/Fixtures/PRP2/`)*
+
+This appendix complements the requirements above with specific details, formats, validation rules, and newly discovered requirements found in the provided documents.
+
+### 1. Detailed Field Analysis (Examples from sample PDFs)
+
+This section provides concrete examples and locations for key fields to be extracted.
+
+*   **Full Name:**
+    *   **Example:** `GUADALUPE PEPITA PEPITA`
+    *   **Location:** Top right of page 1, below the credit card image.
+    *   **Note:** The system should be able to parse this into First Name and Surnames as per the `Check list` CSV.
+
+*   **Address:**
+    *   **Example:** `PARQUE LIRA S/N SAN MIGUEL CHAPULTEPEC 11850 CDMX, CDMX C.R.00001`
+    *   **Location:** Below the Full Name.
+    *   **Note:** Appears as a single text block. The system must be able to parse this into its constituent parts (Street, City, Postal Code, etc.).
+
+*   **RFC:**
+    *   **Example:** `PEPG780620225`
+    *   **Location:** Within the "Fecha de Corte" box on page 1.
+    *   **Note:** Must be validated against standard Mexican RFC formats (13 characters for individuals).
+
+*   **Card/Account Number:**
+    *   **Example:** `4567 8901 2345 6789`
+    *   **Location:** In the "Fecha de Corte" box and at the top of subsequent pages.
+
+*   **CLABE Interbancaria:**
+    *   **Example:** `9876543210123`
+    *   **Location:** In the "Fecha de Corte" box.
+
+*   **Financial Summary Fields:**
+    *   **Previous Balance (`Adeudo del periodo anterior`):** Located in the "RESUMEN DE CARGOS Y ABONOS DEL PERIODO" section.
+    *   **Full Payment (`PAGO PARA NO GENERAR INTERESES`):** Located in the same section. This value is critical for mathematical validation.
+
+### 2. Detailed Validation Rules
+
+The following specific validation rules were derived from the `Copia de Check list demo v2 Iqubica.csv` and sample PDFs.
+
+*   **Mathematical Validations:**
+    1.  **`[PAGO PARA NO GENERAR INTERESES]`** must equal:
+        `[Adeudo del periodo anterior]`
+        `+ [Cargos regulares (no a meses)]`
+        `+ [Cargos compras a meses (capital)]`
+        `+ [Monto de Intereses]`
+        `+ [Monto de comisiones]`
+        `+ [IVA de Intereses y comisiones]`
+        `- [Pagos y abonos]`
+    2.  **`[Saldo deudor total]`** must equal `[Saldo cargos regulares] + [Saldo cargos a meses]`.
+    3.  **`[Crédito disponible]`** must equal `[Límite de crédito] - [Saldo deudor total]`.
+
+*   **Inter-Statement Continuity:**
+    *   The `Adeudo del periodo anterior` of the current statement (e.g., `02+Dummie+VEC+ago_sep+2025.pdf`) must equal the `Saldo deudor total` from the previous statement (`01+Dummie+VEC+jul_ago+20252.pdf`). This is a critical check for batch processing.
+
+*   **Visual and Compliance Validations:**
+    *   **Font:** The standard font for the document must be validated as **"Aptos"**.
+    *   **Logos:** The **BSSB Bank** logo must be present on every page. The **CONDUSEF "Aviso Importante"** image is mandatory on the first page. This requires an image validation capability.
+    *   **Mandatory Text:** The "Compara tu tarjeta" section and the legal disclaimers in the "NOTAS ACLARATORIAS" section must be present and match a master template.
+
+### 3. Output Specification Clarification
+
+*   **Correction:** The provided file `Copia+de+Check+list+demo+v2+Iqubica.csv` is **not an example of the data export format**. It is a checklist of the validation rules to be performed.
+*   **Implicit Requirement:** The exact column order, header names, and delimiter (`|` as per section 4.1) for the final structured data export (`.csv` or `.txt`) must be formally defined. The checklist can serve as a reference for which fields to include.
+
+### 4. Newly Discovered & Implicit Requirements
+
+These requirements were identified from the sample PDF files but were not explicitly listed in the original specification.
+
+*   **Requirement 3.2.7: Rewards Program Extraction**
+    *   **Description:** The system must extract all data from the "PROGRAMAS DE BENEFICIOS DE LA TARJETA" section.
+    *   **Fields:** `Saldo Inicial (Puntos y Pesos)`, `Generados`, `Redimidos`, `Por vencer`, `Vencidos`, `Saldo Total (Puntos y Pesos)`.
+    *   **Validation:** The system must validate the points-to-pesos conversion rate (appears to be 0.1 from the samples) and the calculation: `Saldo Total = Saldo Inicial + Generados - Redimidos - Vencidos`.
+
+*   **Requirement 3.2.8: Detailed Transaction Extraction**
+    *   **Description:** The system must extract the full list of transactions from the "DESGLOSE DE MOVIMIENTOS DEL PERIODO" section.
+    *   **Fields per transaction:** `Fecha de la operación`, `Fecha de cargo`, `Descripción del movimiento`, `Monto`.
+    *   **Goal:** This enables a full audit of the financial summary by allowing the `Cargos regulares` and `Pagos y abonos` totals to be independently verified by summing the individual transaction amounts.
+
+*   **Requirement 3.3.5: QR Code and Fiscal Data Validation**
+    *   **Description:** Page 11 of the sample PDFs contains a QR code and fiscal data strings ("CADENA ORIGINAL", "Sello Digital").
+    *   **Implicit Requirement:** The system should be able to read the QR code and validate that its contents match the fiscal data printed on the page. This is listed in the checklist PDF.

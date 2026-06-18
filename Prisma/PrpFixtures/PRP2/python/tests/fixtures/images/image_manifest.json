@@ -1,0 +1,125 @@
+{
+  "version": "1.0",
+  "categories": {
+    "card_images": {
+      "total_images": 4,
+      "available_images": 4,
+      "images": [
+        {
+          "filename": "IMAGEN_TAREJETA_Imagen1.jpeg",
+          "size_bytes": 48708,
+          "format": "JPEG",
+          "available": true
+        },
+        {
+          "filename": "IMAGEN_TAREJETA_Picture2.jpeg",
+          "size_bytes": 37928,
+          "format": "JPEG",
+          "available": true
+        },
+        {
+          "filename": "image1.jpeg",
+          "size_bytes": 48708,
+          "format": "JPEG",
+          "available": true
+        },
+        {
+          "filename": "image2.jpeg",
+          "size_bytes": 37928,
+          "format": "JPEG",
+          "available": true
+        }
+      ]
+    },
+    "important_messages": {
+      "total_images": 4,
+      "available_images": 4,
+      "images": [
+        {
+          "filename": "IMAGEN_MENSAJES_IMPORTANTES_Imagen1.emf",
+          "size_bytes": 514104,
+          "format": "EMF",
+          "available": true
+        },
+        {
+          "filename": "IMAGEN_MENSAJES_IMPORTANTES_Imagen4.jpeg",
+          "size_bytes": 22719,
+          "format": "JPEG",
+          "available": true
+        },
+        {
+          "filename": "image3.emf",
+          "size_bytes": 514104,
+          "format": "EMF",
+          "available": true
+        },
+        {
+          "filename": "image4.jpeg",
+          "size_bytes": 22719,
+          "format": "JPEG",
+          "available": true
+        }
+      ]
+    },
+    "marketing_images": {
+      "total_images": 4,
+      "available_images": 4,
+      "images": [
+        {
+          "filename": "IMAGENES_Imagen3.png",
+          "size_bytes": 76366,
+          "format": "PNG",
+          "available": true
+        },
+        {
+          "filename": "IMAGENES_Imagen49.png",
+          "size_bytes": 751604,
+          "format": "PNG",
+          "available": true
+        },
+        {
+          "filename": "image7.png",
+          "size_bytes": 751604,
+          "format": "PNG",
+          "available": true
+        },
+        {
+          "filename": "image8.png",
+          "size_bytes": 76366,
+          "format": "PNG",
+          "available": true
+        }
+      ]
+    },
+    "mandatory_legends": {
+      "total_images": 4,
+      "available_images": 4,
+      "images": [
+        {
+          "filename": "Leyendas_Obligatorios_table1.png",
+          "size_bytes": 10941,
+          "format": "PNG",
+          "available": true
+        },
+        {
+          "filename": "Leyendas_Obligatorios_table2.png",
+          "size_bytes": 2537,
+          "format": "PNG",
+          "available": true
+        },
+        {
+          "filename": "image5.png",
+          "size_bytes": 10941,
+          "format": "PNG",
+          "available": true
+        },
+        {
+          "filename": "image6.png",
+          "size_bytes": 2537,
+          "format": "PNG",
+          "available": true
+        }
+      ]
+    }
+  }
+}
