@@ -69,6 +69,44 @@ public sealed record RuleFinding(
     FieldLocator? Locator = null)
 {
     // -----------------------------------------------------------------------
+    // Dual-verdict contract (Story 9.1)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The CONDUSEF legal-floor verdict — the minimum bar imposed by regulation,
+    /// independent of any tenant-profile strictness.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// By default this equals <see cref="Verdict"/> (no divergence), meaning the
+    /// tenant profile does not override the legal baseline.  When a tenant applies
+    /// a stricter threshold, a rule may produce a finding where
+    /// <c>LegalBaselineVerdict = Pass</c> while <c>Verdict = Fail</c> — the
+    /// statement satisfies the legal floor but fails the tenant bar.
+    /// </para>
+    /// <para>
+    /// <b>Pipeline gating:</b> the engine and <c>VerdictAggregator</c> always gate
+    /// on <see cref="Verdict"/> (the effective / tenant-profile verdict), which is
+    /// the more conservative of the two when divergence occurs.  Do NOT change the
+    /// aggregator to read <c>LegalBaselineVerdict</c>.
+    /// </para>
+    /// </remarks>
+    public FindingVerdict LegalBaselineVerdict { get; init; } = Verdict;
+
+    /// <summary>
+    /// Read alias for <see cref="Verdict"/>: the effective, tenant-profile verdict
+    /// that the pipeline gates on.
+    /// </summary>
+    /// <remarks>
+    /// Provided as an explicit, named accessor so rule authors and reviewers can
+    /// read both verdicts by their intent-revealing names:
+    /// <see cref="LegalBaselineVerdict"/> (the CONDUSEF legal floor) and
+    /// <see cref="TenantProfileVerdict"/> (the effective, possibly-stricter bar).
+    /// When there is no tenant override the two are always equal.
+    /// </remarks>
+    public FindingVerdict TenantProfileVerdict => Verdict;
+
+    // -----------------------------------------------------------------------
     // Convenience factories — enforce consistent field population per verdict
     // -----------------------------------------------------------------------
 
@@ -81,13 +119,22 @@ public sealed record RuleFinding(
     /// <param name="observed">Observed value (equals the expected).</param>
     /// <param name="toleranceApplied">Tolerance that was satisfied, if any.</param>
     /// <param name="locator">Location of the field in the document, if available.</param>
+    /// <param name="legalBaselineVerdict">
+    /// Optional override for <see cref="LegalBaselineVerdict"/>.  Omit (or pass
+    /// <see langword="null"/>) to accept the default, where the baseline equals
+    /// the effective verdict (<see cref="FindingVerdict.Pass"/>).
+    /// Provide an explicit value only when the tenant profile diverges from the
+    /// legal floor (e.g. tenant is more lenient: baseline is
+    /// <see cref="FindingVerdict.Fail"/> but effective is Pass).
+    /// </param>
     public static RuleFinding Pass(
         string checkId,
         TechniqueClass technique,
         string engineVersion,
         string? observed = null,
         decimal? toleranceApplied = null,
-        FieldLocator? locator = null) =>
+        FieldLocator? locator = null,
+        FindingVerdict? legalBaselineVerdict = null) =>
         new(
             CheckId: checkId,
             Verdict: FindingVerdict.Pass,
@@ -97,7 +144,10 @@ public sealed record RuleFinding(
             Expected: null,
             Observed: observed,
             ToleranceApplied: toleranceApplied,
-            Locator: locator);
+            Locator: locator)
+        {
+            LegalBaselineVerdict = legalBaselineVerdict ?? FindingVerdict.Pass,
+        };
 
     /// <summary>
     /// Creates a <see cref="FindingVerdict.Fail"/> finding.
@@ -110,6 +160,15 @@ public sealed record RuleFinding(
     /// <param name="observed">The observed value.</param>
     /// <param name="toleranceApplied">Tolerance that was exceeded, if applicable.</param>
     /// <param name="locator">Location of the field in the document, if available.</param>
+    /// <param name="legalBaselineVerdict">
+    /// Optional override for <see cref="LegalBaselineVerdict"/>.  Omit (or pass
+    /// <see langword="null"/>) to accept the default, where the baseline equals
+    /// the effective verdict (<see cref="FindingVerdict.Fail"/>).
+    /// Provide an explicit value only when the tenant profile diverges from the
+    /// legal floor — the primary case is
+    /// <c>legalBaselineVerdict: <see cref="FindingVerdict.Pass"/></c>, meaning the
+    /// statement passes the CONDUSEF legal floor but fails the stricter tenant bar.
+    /// </param>
     public static RuleFinding Fail(
         string checkId,
         TechniqueClass technique,
@@ -118,7 +177,8 @@ public sealed record RuleFinding(
         string? expected = null,
         string? observed = null,
         decimal? toleranceApplied = null,
-        FieldLocator? locator = null) =>
+        FieldLocator? locator = null,
+        FindingVerdict? legalBaselineVerdict = null) =>
         new(
             CheckId: checkId,
             Verdict: FindingVerdict.Fail,
@@ -128,13 +188,22 @@ public sealed record RuleFinding(
             Expected: expected,
             Observed: observed,
             ToleranceApplied: toleranceApplied,
-            Locator: locator);
+            Locator: locator)
+        {
+            LegalBaselineVerdict = legalBaselineVerdict ?? FindingVerdict.Fail,
+        };
 
     /// <summary>
     /// Creates a <see cref="FindingVerdict.InsufficientData"/> finding.
     /// Used when a required reference-data capability is unavailable (FR-20)
     /// or when the rule cannot determine the verdict from available inputs.
     /// </summary>
+    /// <remarks>
+    /// <see cref="LegalBaselineVerdict"/> is always set to
+    /// <see cref="FindingVerdict.InsufficientData"/> for abstain findings — there is
+    /// no divergence concept here, because the rule could not evaluate the legal floor
+    /// any more than the tenant bar.
+    /// </remarks>
     /// <param name="checkId">Rule identifier.</param>
     /// <param name="technique">Technique the rule would have used.</param>
     /// <param name="engineVersion">Version of the rule implementation.</param>
@@ -156,4 +225,5 @@ public sealed record RuleFinding(
             Observed: reason,
             ToleranceApplied: null,
             Locator: null);
+        // LegalBaselineVerdict defaults to FindingVerdict.InsufficientData via the init property.
 }
