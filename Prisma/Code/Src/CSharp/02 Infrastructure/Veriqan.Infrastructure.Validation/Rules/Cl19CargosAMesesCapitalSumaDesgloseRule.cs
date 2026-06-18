@@ -4,6 +4,7 @@ using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -24,12 +25,25 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// (e.g. "DON COLCHON CUMBRES 005 de 012") via <see cref="MovementClassifier.IsMsi"/>.
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> ±<c>ToleranceConfig.CurrencyToleranceMxn</c> MXN.
+/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
+/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
 /// </para>
 /// </remarks>
 internal sealed class Cl19CargosAMesesCapitalSumaDesgloseRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
+
+    private readonly ILegalToleranceProvider _toleranceProvider;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Cl19CargosAMesesCapitalSumaDesgloseRule"/>.
+    /// </summary>
+    /// <param name="toleranceProvider">The legal tolerance provider.</param>
+    public Cl19CargosAMesesCapitalSumaDesgloseRule(ILegalToleranceProvider toleranceProvider)
+    {
+        _toleranceProvider = toleranceProvider
+            ?? throw new ArgumentNullException(nameof(toleranceProvider));
+    }
 
     /// <inheritdoc />
     public string CheckId => "CL-19";
@@ -46,10 +60,9 @@ internal sealed class Cl19CargosAMesesCapitalSumaDesgloseRule : IVecValidationRu
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        if (ctx.ToleranceConfig is null)
-            return InsufficientData("ToleranceConfig is absent from the bundle.");
-
-        var tolerance = ctx.ToleranceConfig.CurrencyToleranceMxn ?? 0.50m;
+        var resolution = _toleranceProvider.For(CheckId)
+            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
+        var tolerance = resolution.EffectiveValue;
 
         var ps = ctx.StatementModel?.PeriodSummary;
         if (ps is null)

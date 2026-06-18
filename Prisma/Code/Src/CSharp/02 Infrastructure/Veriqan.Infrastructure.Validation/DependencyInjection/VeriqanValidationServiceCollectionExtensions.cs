@@ -1,5 +1,7 @@
 using System;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Tolerances;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
@@ -11,14 +13,19 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection
 public static class VeriqanValidationServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds <see cref="IVecValidationEngine"/> (as <see cref="VecValidationEngine"/>) and
-    /// all <see cref="IVecValidationRule"/> implementations in this assembly to the DI container.
+    /// Adds <see cref="IVecValidationEngine"/> (as <see cref="VecValidationEngine"/>),
+    /// <see cref="ILegalToleranceProvider"/> (as <see cref="DefaultLegalToleranceProvider"/>),
+    /// and all <see cref="IVecValidationRule"/> implementations in this assembly to the DI container.
     /// </summary>
     /// <remarks>
     /// <para>
     /// Rule discovery uses <b>Scrutor 7.0.0</b> assembly scanning. Any class in this
     /// assembly that implements <see cref="IVecValidationRule"/> (including <c>internal</c>
     /// classes) is registered as <c>IVecValidationRule</c> with a <c>Transient</c> lifetime.
+    /// </para>
+    /// <para>
+    /// The <see cref="ILegalToleranceProvider"/> is registered as a singleton because the
+    /// default implementation is stateless and holds only compile-time constants.
     /// </para>
     /// <para>
     /// Adding a new rule for Story 4.2+ requires only:
@@ -33,6 +40,9 @@ public static class VeriqanValidationServiceCollectionExtensions
     public static IServiceCollection AddVeriqanValidation(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+
+        // Legal tolerance provider — singleton because DefaultLegalToleranceProvider is stateless.
+        services.AddSingleton<ILegalToleranceProvider, DefaultLegalToleranceProvider>();
 
         // Register the engine
         services.AddTransient<IVecValidationEngine, VecValidationEngine>();

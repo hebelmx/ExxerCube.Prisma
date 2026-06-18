@@ -4,6 +4,7 @@ using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -26,7 +27,6 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// <para>
 /// <b>InsufficientData paths:</b>
 /// <list type="bullet">
-///   <item>ToleranceConfig is null.</item>
 ///   <item>StatementModel or PeriodSummary is null.</item>
 ///   <item>DESGLOSE movements not extracted.</item>
 ///   <item><see cref="Domain.Extraction.PeriodSummary.TotalCargos"/> is not Extracted.</item>
@@ -37,6 +37,18 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 internal sealed class Cl44DesgloseTotalsMatchRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
+
+    private readonly ILegalToleranceProvider _toleranceProvider;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Cl44DesgloseTotalsMatchRule"/>.
+    /// </summary>
+    /// <param name="toleranceProvider">The legal tolerance provider.</param>
+    public Cl44DesgloseTotalsMatchRule(ILegalToleranceProvider toleranceProvider)
+    {
+        _toleranceProvider = toleranceProvider
+            ?? throw new ArgumentNullException(nameof(toleranceProvider));
+    }
 
     /// <inheritdoc />
     public string CheckId => "CL-44";
@@ -53,10 +65,9 @@ internal sealed class Cl44DesgloseTotalsMatchRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        if (ctx.ToleranceConfig is null)
-            return InsufficientData("ToleranceConfig is absent from the bundle.");
-
-        var tolerance = ctx.ToleranceConfig.CurrencyToleranceMxn ?? 0.50m;
+        var resolution = _toleranceProvider.For(CheckId)
+            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
+        var tolerance = resolution.EffectiveValue;
 
         var model = ctx.StatementModel;
         if (model is null)

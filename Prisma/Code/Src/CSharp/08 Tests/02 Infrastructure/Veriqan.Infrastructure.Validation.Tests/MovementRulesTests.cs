@@ -437,8 +437,12 @@ public sealed class MovementRulesTests
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
     }
 
+    /// <summary>
+    /// Story 9.4: null ToleranceConfig no longer blocks CL-44 (legal default 0.50 MXN applies).
+    /// When the movements exactly match the printed totals the rule now emits Pass.
+    /// </summary>
     [Fact]
-    public void Cl44_NullToleranceConfig_ReturnsInsufficientData()
+    public void Cl44_NullToleranceConfig_LegalDefaultApplies_MatchingTotalsEmitsPass()
     {
         var rule = GetRule("CL-44");
         var movements = new List<StatementMovement>
@@ -450,10 +454,13 @@ public sealed class MovementRulesTests
             totalCargos: Found(100m),
             totalAbonos: Found(0m));
 
+        // null ToleranceConfig → legal default (0.50 MXN) is resolved automatically by story 9.4.
+        // The movements match the totals exactly → Pass.
         var ctx = Ctx(BundleNoTolerance(), ModelWithMovements(ps, movements));
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
-        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.ToleranceApplied.ShouldBe(0.50m); // legal default
     }
 
     // -----------------------------------------------------------------------
@@ -621,8 +628,12 @@ public sealed class MovementRulesTests
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
     }
 
+    /// <summary>
+    /// Story 9.4: null ToleranceConfig no longer blocks ITEM-58 (legal default 0.50 MXN applies).
+    /// When the movement amount exactly matches the expected amount the rule now emits Pass.
+    /// </summary>
     [Fact]
-    public void Item58_NullToleranceConfig_ReturnsInsufficientData()
+    public void Item58_NullToleranceConfig_LegalDefaultApplies_MatchingAmountsReturnPass()
     {
         var rule = GetRule("ITEM-58");
         var movements = new List<StatementMovement>
@@ -635,7 +646,8 @@ public sealed class MovementRulesTests
             new("NETFLIX", 100m, null, null, "+"),
         };
 
-        // Bundle with no tolerance
+        // Bundle with no tolerance → legal default (0.50 MXN) is resolved automatically by story 9.4.
+        // The movement amount matches the expected amount exactly → Pass.
         var bundle = new VecReferenceBundle(
             BundleMetadata: Metadata(),
             Products: [Product()],
@@ -652,7 +664,8 @@ public sealed class MovementRulesTests
         var ctx = Ctx(bundle, ModelWithMovements(null, movements));
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
-        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.ToleranceApplied.ShouldBe(0.50m); // legal default
     }
 
     // -----------------------------------------------------------------------

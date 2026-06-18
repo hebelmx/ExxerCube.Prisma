@@ -3,6 +3,7 @@ using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -15,13 +16,12 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> ±$0.50 MXN from
-/// <c>ToleranceConfig.CurrencyToleranceMxn</c>.
+/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
+/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
 /// <list type="bullet">
-///   <item>Null <c>VerificationContext.ToleranceConfig</c>.</item>
 ///   <item><see cref="PeriodSummary.CreditoDisponible"/> is <see cref="ExtractionStatus.NotExtracted"/>.</item>
 ///   <item><see cref="PeriodSummary.SaldoDeudorTotal"/> is <see cref="ExtractionStatus.NotExtracted"/>.</item>
 ///   <item>No credit line found for the resolved product in the bundle.</item>
@@ -31,6 +31,18 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 internal sealed class Cl25CreditoDisponibleRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
+
+    private readonly ILegalToleranceProvider _toleranceProvider;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Cl25CreditoDisponibleRule"/>.
+    /// </summary>
+    /// <param name="toleranceProvider">The legal tolerance provider.</param>
+    public Cl25CreditoDisponibleRule(ILegalToleranceProvider toleranceProvider)
+    {
+        _toleranceProvider = toleranceProvider
+            ?? throw new ArgumentNullException(nameof(toleranceProvider));
+    }
 
     /// <inheritdoc />
     public string CheckId => "CL-25";
@@ -47,10 +59,9 @@ internal sealed class Cl25CreditoDisponibleRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        if (ctx.ToleranceConfig is null)
-            return InsufficientData("ToleranceConfig is absent from the bundle.");
-
-        var tolerance = ctx.ToleranceConfig.CurrencyToleranceMxn ?? 0.50m;
+        var resolution = _toleranceProvider.For(CheckId)
+            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
+        var tolerance = resolution.EffectiveValue;
 
         var ps = ctx.StatementModel?.PeriodSummary;
         if (ps is null)

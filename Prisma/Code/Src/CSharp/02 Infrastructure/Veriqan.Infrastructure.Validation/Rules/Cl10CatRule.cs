@@ -3,6 +3,7 @@ using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -22,20 +23,17 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// and <c>catAnnualCommissionMxn</c> defaults to 1500 when not supplied.
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3, owner ruling):</b> the ±0.50 value from
-/// <c>ToleranceConfig.CurrencyToleranceMxn</c> is applied in
-/// <b>percentage-point space</b>, not fraction space.
-/// Both the extracted CAT and the computed CAT are expressed as percentages
-/// (e.g. 28.86 for 28.86%) before comparison:
-/// <c>|extractedCatPercent − computedCatPercent| ≤ 0.50</c>.
-/// Note: the extracted <c>Cat</c> field is stored as a decimal fraction (e.g. 0.2886 = 28.86%);
+/// <b>Tolerance (ADR-V3, owner ruling):</b> resolved via <see cref="ILegalToleranceProvider"/>
+/// using the bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
+/// The spec is <c>Tolerance(LegalDefault=0.50, Min=0.00, Max=1.00)</c> in
+/// <b>percentage-point space</b>: <c>|extractedCatPercent − computedCatPercent| ≤ effective</c>.
+/// The extracted <c>Cat</c> field is stored as a decimal fraction (e.g. 0.2886 = 28.86%);
 /// it is multiplied by 100 before comparison.
-/// The applied tolerance (0.50) is recorded in <see cref="RuleFinding.ToleranceApplied"/>.
+/// <see cref="RuleFinding.ToleranceApplied"/> records the effective value.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
 /// <list type="bullet">
-///   <item>Null <c>VerificationContext.ToleranceConfig</c>.</item>
 ///   <item>Extracted CAT field is <see cref="ExtractionStatus.NotExtracted"/>.</item>
 ///   <item>Extracted TASA field is <see cref="ExtractionStatus.NotExtracted"/> (needed for formula).</item>
 ///   <item>No <c>ClientAccount</c> with an <c>AccountEntry</c> for the resolved product.</item>
@@ -47,6 +45,18 @@ internal sealed class Cl10CatRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
     private const decimal DefaultAnnualCommission = 1500m;
+
+    private readonly ILegalToleranceProvider _toleranceProvider;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Cl10CatRule"/>.
+    /// </summary>
+    /// <param name="toleranceProvider">The legal tolerance provider.</param>
+    public Cl10CatRule(ILegalToleranceProvider toleranceProvider)
+    {
+        _toleranceProvider = toleranceProvider
+            ?? throw new ArgumentNullException(nameof(toleranceProvider));
+    }
 
     /// <inheritdoc />
     public string CheckId => "CL-10";
@@ -63,11 +73,10 @@ internal sealed class Cl10CatRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        // Tolerance required — ADR-V3: no magic numbers
-        if (ctx.ToleranceConfig is null)
-            return InsufficientData("ToleranceConfig is absent from the bundle.");
-
-        var tolerance = ctx.ToleranceConfig.CurrencyToleranceMxn ?? 0.50m;
+        // Resolve tolerance — legal default applies when bundle has no override
+        var resolution = _toleranceProvider.For(CheckId)
+            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
+        var tolerance = resolution.EffectiveValue;
 
         // StatementModel must be present
         var ps = ctx.StatementModel?.PeriodSummary;

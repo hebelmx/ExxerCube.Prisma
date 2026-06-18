@@ -7,6 +7,7 @@ using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -24,7 +25,8 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// unmatched descriptions; Item-58 only verifies amounts for matched entries.
 /// </para>
 /// <para>
-/// <b>Tolerance (ADR-V3):</b> ±<c>ToleranceConfig.CurrencyToleranceMxn</c> MXN.
+/// <b>Tolerance (ADR-V3):</b> resolved via <see cref="ILegalToleranceProvider"/> with the
+/// bundle's <c>ToleranceConfig.CurrencyToleranceMxn</c> as the optional override.
 /// </para>
 /// <para>
 /// The first <see cref="ExpectedTransactionGroup"/> in the bundle is used.
@@ -34,6 +36,18 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 internal sealed class Item58TransactionAmountMatchRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
+
+    private readonly ILegalToleranceProvider _toleranceProvider;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="Item58TransactionAmountMatchRule"/>.
+    /// </summary>
+    /// <param name="toleranceProvider">The legal tolerance provider.</param>
+    public Item58TransactionAmountMatchRule(ILegalToleranceProvider toleranceProvider)
+    {
+        _toleranceProvider = toleranceProvider
+            ?? throw new ArgumentNullException(nameof(toleranceProvider));
+    }
 
     /// <inheritdoc />
     public string CheckId => "ITEM-58";
@@ -50,10 +64,9 @@ internal sealed class Item58TransactionAmountMatchRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        if (ctx.ToleranceConfig is null)
-            return InsufficientData("ToleranceConfig is absent from the bundle.");
-
-        var tolerance = ctx.ToleranceConfig.CurrencyToleranceMxn ?? 0.50m;
+        var resolution = _toleranceProvider.For(CheckId)
+            .Resolve(ctx.ToleranceConfig?.CurrencyToleranceMxn);
+        var tolerance = resolution.EffectiveValue;
 
         var model = ctx.StatementModel;
         if (model is null)

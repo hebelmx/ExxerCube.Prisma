@@ -263,8 +263,13 @@ public sealed class CrossPeriodRulesTests
         result.Value.Observed!.ShouldContain("prior statement");
     }
 
+    /// <summary>
+    /// Story 9.4: null ToleranceConfig no longer blocks CL-17 (legal default applies).
+    /// The rule still returns InsufficientData because priorStatement is null,
+    /// but the reason is now the missing prior statement, not the missing tolerance config.
+    /// </summary>
     [Fact]
-    public void Cl17_NullToleranceConfig_ReturnsInsufficientData()
+    public void Cl17_NullToleranceConfig_LegalDefaultApplies_PriorStatementAbsentEmitsInsufficientData()
     {
         var ps = SummaryWith(adeudo: Found(32446.69m));
         var ctx = new VerificationContext(
@@ -277,8 +282,10 @@ public sealed class CrossPeriodRulesTests
 
         var result = GetRule("CL-17").Evaluate(ctx, TestContext.Current.CancellationToken);
 
+        // InsufficientData because prior statement is absent, not because ToleranceConfig is null.
+        // With story 9.4 the legal default tolerance (0.50 MXN) is resolved automatically.
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
-        result.Value.Observed!.ShouldContain("ToleranceConfig");
+        result.Value.Observed!.ShouldContain("prior statement");
     }
 
     [Fact]

@@ -223,18 +223,23 @@ public sealed class VecValidationEngineTests
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// All Story 4.2 arithmetic rules emit <see cref="FindingVerdict.InsufficientData"/>
-    /// when <c>ToleranceConfig</c> is absent from the bundle (ADR-V3: no magic numbers;
-    /// FR-20: missing required reference data).
+    /// Story 9.4: arithmetic rules no longer require a non-null <c>ToleranceConfig</c>;
+    /// the legal default is applied when the bundle has no override.
+    /// When <c>statementModel</c> is also null (as here), all arithmetic rules emit
+    /// <see cref="FindingVerdict.InsufficientData"/> because of the missing statement model,
+    /// not because of the missing tolerance config.
+    /// FR-20: missing required reference data (statement model) still blocks evaluation.
     /// </summary>
     [Fact]
-    public async Task Engine_NullToleranceConfig_AllArithmeticRulesEmitInsufficientData()
+    public async Task Engine_NullToleranceConfig_NoStatementModel_AllArithmeticRulesEmitInsufficientData()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var sp = BuildServiceProvider();
         var engine = sp.GetRequiredService<IVecValidationEngine>();
 
-        // Bundle without ToleranceConfig; statementModel is also null in BuildContext
+        // Bundle without ToleranceConfig; statementModel is also null in BuildContext.
+        // Story 9.4: legal default tolerance applies automatically; InsufficientData here
+        // is caused by the absent StatementModel, not the absent ToleranceConfig.
         var ctx = BuildContext(BundleWithoutRate());
 
         var result = await engine.RunAsync(ctx, ct);
@@ -242,14 +247,13 @@ public sealed class VecValidationEngineTests
         result.IsSuccess.ShouldBeTrue();
         var findings = result.Value!;
 
-        // All arithmetic rules (CL-10, CL-21, CL-22, CL-24, CL-25, CL-26) must be InsufficientData
-        // because ToleranceConfig is null. CL-18/19/20/23 also emit InsufficientData regardless.
+        // All arithmetic rules must still emit InsufficientData (due to null StatementModel).
         foreach (var arithmeticId in new[] { "CL-10", "CL-18", "CL-19", "CL-20", "CL-21", "CL-22", "CL-23", "CL-24", "CL-25", "CL-26" })
         {
             var finding = findings.SingleOrDefault(f => f.CheckId == arithmeticId);
             finding.ShouldNotBeNull($"Rule {arithmeticId} must have been discovered and run");
             finding!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-                $"Rule {arithmeticId} must emit InsufficientData when ToleranceConfig is absent");
+                $"Rule {arithmeticId} must emit InsufficientData when StatementModel is absent");
         }
     }
 
