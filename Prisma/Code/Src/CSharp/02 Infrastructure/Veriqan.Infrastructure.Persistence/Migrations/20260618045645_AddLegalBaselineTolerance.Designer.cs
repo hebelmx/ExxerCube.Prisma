@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(VeriqanDbContext))]
-    partial class VeriqanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260618045645_AddLegalBaselineTolerance")]
+    partial class AddLegalBaselineTolerance
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Crypto;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework.Configurations;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,13 +14,22 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
 /// </summary>
 public sealed class VeriqanDbContext : DbContext
 {
+    private readonly AesEncryptedDecimalConverter? _decimalConverter;
+
     /// <summary>
-    /// Initializes a new instance of <see cref="VeriqanDbContext"/>.
+    /// Initializes a new instance of <see cref="VeriqanDbContext"/> for DI / runtime use.
     /// </summary>
     /// <param name="options">Database context options supplied by DI or the design-time factory.</param>
-    public VeriqanDbContext(DbContextOptions<VeriqanDbContext> options)
+    /// <param name="decimalConverter">
+    /// AES value converter for encrypted decimal columns. Pass <see langword="null"/> for design-time
+    /// migrations (no key available); non-null for runtime use.
+    /// </param>
+    public VeriqanDbContext(
+        DbContextOptions<VeriqanDbContext> options,
+        AesEncryptedDecimalConverter? decimalConverter = null)
         : base(options)
     {
+        _decimalConverter = decimalConverter;
     }
 
     /// <summary>Gets or sets the verification jobs aggregate-root set.</summary>
@@ -38,6 +48,12 @@ public sealed class VeriqanDbContext : DbContext
     /// </summary>
     public DbSet<Disposition> Dispositions { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the read-only legal-baseline tolerance records.
+    /// All numeric columns are AES-encrypted at rest.
+    /// </summary>
+    public DbSet<LegalBaselineToleranceRecord> LegalBaselineTolerances { get; set; } = null!;
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,5 +66,23 @@ public sealed class VeriqanDbContext : DbContext
         modelBuilder.ApplyConfiguration(new FindingConfiguration());
         modelBuilder.ApplyConfiguration(new JobVerdictConfiguration());
         modelBuilder.ApplyConfiguration(new DispositionConfiguration());
+
+        // Legal-baseline table: converter may be null at design time (migrations have no key).
+        // When null, a placeholder no-op converter is used so migrations can scaffold the schema;
+        // actual encryption only occurs at runtime when a real key is provided.
+        var converter = _decimalConverter ?? CreateNoOpConverter();
+        modelBuilder.ApplyConfiguration(new LegalBaselineToleranceConfiguration(converter));
+    }
+
+    /// <summary>
+    /// Creates a no-op converter used at design time when no AES key is available.
+    /// It serialises the decimal as a plain string — migrations only need the CLR→column
+    /// type mapping, not the actual encryption logic.
+    /// </summary>
+    private static AesEncryptedDecimalConverter CreateNoOpConverter()
+    {
+        // 32 zero bytes — a valid AES-256 key length; only used at design time for
+        // migration scaffolding, never for actual data reads/writes.
+        return new AesEncryptedDecimalConverter(new byte[32]);
     }
 }

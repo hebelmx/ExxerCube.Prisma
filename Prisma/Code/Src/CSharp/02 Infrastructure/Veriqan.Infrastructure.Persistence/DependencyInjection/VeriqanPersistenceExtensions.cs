@@ -1,7 +1,10 @@
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Crypto;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Repositories;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Stores;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.DependencyInjection;
@@ -37,6 +40,25 @@ public static class VeriqanPersistenceExtensions
 
         services.AddScoped<IVerificationJobRepository, EfVerificationJobRepository>();
         services.AddScoped<IDispositionRepository, EfDispositionRepository>();
+
+        // Crypto key provider — reads from configuration key "Veriqan:LegalBaseline:EncryptionKey"
+        services.AddSingleton<ILegalBaselineCryptoKeyProvider>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            return new ConfigurationCryptoKeyProvider(config);
+        });
+
+        // AES converter — singleton; shares key-material for the process lifetime.
+        // Also registered as the concrete type so VeriqanDbContext can receive it via DI.
+        services.AddSingleton(sp =>
+        {
+            var keyProvider = sp.GetRequiredService<ILegalBaselineCryptoKeyProvider>();
+            return new AesEncryptedDecimalConverter(keyProvider.GetKey());
+        });
+
+        // Legal-baseline store and SQL tolerance provider
+        services.AddScoped<ILegalBaselineStore, SqlLegalBaselineStore>();
+        services.AddScoped<SqlLegalToleranceProvider>();
 
         return services;
     }

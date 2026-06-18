@@ -69,6 +69,9 @@ internal sealed class Cl28TextOverlapRule : IVecValidationRule
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />
+    public RuleClassification Classification => RuleClassification.BaselineLocked;
+
+    /// <inheritdoc />
     public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default)
     {
         if (ct.IsCancellationRequested)

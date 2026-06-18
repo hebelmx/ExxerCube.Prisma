@@ -370,6 +370,7 @@ public sealed class VecValidationEngineTests
 
         public string CheckId => Id;
         public string DofNumeral => "Acuerdo §1";
+        public RuleClassification Classification => RuleClassification.BaselineLocked;
         public TechniqueClass Technique => TechniqueClass.Deterministic;
 
         public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default) =>
@@ -386,6 +387,7 @@ public sealed class VecValidationEngineTests
 
         public string CheckId => Id;
         public string DofNumeral => "Acuerdo §2";
+        public RuleClassification Classification => RuleClassification.BaselineLocked;
         public TechniqueClass Technique => TechniqueClass.Deterministic;
 
         public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default) =>

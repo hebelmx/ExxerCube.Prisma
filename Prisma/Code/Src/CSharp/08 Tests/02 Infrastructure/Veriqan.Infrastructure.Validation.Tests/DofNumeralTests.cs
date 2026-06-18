@@ -181,6 +181,7 @@ public sealed class DofNumeralTests
 
         public string CheckId => "TEST-NUMERAL-FAIL";
         public string DofNumeral => ExpectedNumeral;
+        public RuleClassification Classification => RuleClassification.BaselineLocked;
         public TechniqueClass Technique => TechniqueClass.Deterministic;
 
         public IndQuestResults.Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default) =>

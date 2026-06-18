@@ -78,6 +78,25 @@ public interface IVecValidationRule
     string DofNumeral { get; }
 
     /// <summary>
+    /// Gets the classification that governs whether, and in which direction, a tenant may
+    /// adjust this rule's effective parameters (e.g. tolerance values).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Enforcement:</b> the registry test in <c>Veriqan.Orchestration.Tests</c> asserts
+    /// that every registered <see cref="IVecValidationRule"/> exposes a defined
+    /// <see cref="RuleClassification"/> value (i.e. not an out-of-range integer).
+    /// A rule missing a sensible classification will cause that test to fail.
+    /// </para>
+    /// <para>
+    /// <b>Consumer:</b> the tenant-profile overlay service (Story 9.3b) consults this property
+    /// before applying any tenant adjustment. <see cref="RuleClassification.BaselineLocked"/>
+    /// rules are never modified regardless of tenant configuration.
+    /// </para>
+    /// </remarks>
+    RuleClassification Classification { get; }
+
+    /// <summary>
     /// Gets the algorithmic technique this rule uses to evaluate the check.
     /// Used to populate <see cref="RuleFinding.Technique"/> without each rule
     /// having to repeat it inside <see cref="Evaluate"/>.

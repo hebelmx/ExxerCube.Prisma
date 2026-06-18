@@ -1,4 +1,7 @@
+using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
+using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Visual.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -206,5 +209,74 @@ public sealed class DofNumeralRegistryTests
         // Annexe typography rules (CL-28, CL-35)
         map["CL-28"].ShouldBe("Acuerdo Anexo — Tipografía");
         map["CL-35"].ShouldBe("Acuerdo Anexo — Tipografía");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 4 (Story 9.3a): Every rule exposes a defined Classification value
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// ALL registered <see cref="IVecValidationRule"/> implementations must expose a
+    /// <see cref="RuleClassification"/> value that is defined in the enum (not an out-of-range
+    /// integer). This is the enforcement gate for Story 9.3a AC-1.
+    /// </summary>
+    [Fact]
+    public void AllRegisteredRules_HaveDefinedClassification()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
+        services.AddVeriqanValidation();
+        services.AddVeriqanVisual();
+
+        using var sp = services.BuildServiceProvider();
+        var rules = sp.GetServices<IVecValidationRule>().ToList();
+
+        rules.Count.ShouldBeGreaterThanOrEqualTo(35,
+            $"Expected at least 35 registered rules. Found {rules.Count}.");
+
+        var violations = rules
+            .Where(r => !Enum.IsDefined(typeof(RuleClassification), r.Classification))
+            .Select(r => r.CheckId)
+            .OrderBy(id => id, StringComparer.Ordinal)
+            .ToList();
+
+        violations.ShouldBeEmpty(
+            $"The following rule(s) have an undefined Classification value: " +
+            string.Join(", ", violations));
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 5 (Story 9.3a): Tolerance-bearing rules must NOT be BaselineLocked
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Any rule that has a registered legal tolerance (i.e. <see cref="ILegalToleranceProvider.Has"/>
+    /// returns <see langword="true"/>) must NOT be classified as
+    /// <see cref="RuleClassification.BaselineLocked"/>. BaselineLocked rules carry no tunable
+    /// tolerance; a rule that has both a tolerance and BaselineLocked is a configuration error.
+    /// </summary>
+    [Fact]
+    public void AllToleranceBearingRules_AreNotBaselineLocked()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
+        services.AddVeriqanValidation();
+        services.AddVeriqanVisual();
+
+        using var sp = services.BuildServiceProvider();
+        var toleranceProvider = sp.GetRequiredService<ILegalToleranceProvider>();
+        var rules = sp.GetServices<IVecValidationRule>().ToList();
+
+        var violations = rules
+            .Where(r => toleranceProvider.Has(r.CheckId)
+                        && r.Classification == RuleClassification.BaselineLocked)
+            .Select(r => $"{r.CheckId}(Classification={r.Classification})")
+            .OrderBy(id => id, StringComparer.Ordinal)
+            .ToList();
+
+        violations.ShouldBeEmpty(
+            $"The following rules have a registered tolerance but are BaselineLocked. " +
+            $"Tolerance-bearing rules should be TenantTightenableOnly or TenantOverridable: " +
+            string.Join(", ", violations));
     }
 }
