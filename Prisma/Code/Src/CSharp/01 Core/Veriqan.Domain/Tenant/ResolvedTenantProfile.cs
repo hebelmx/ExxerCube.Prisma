@@ -53,23 +53,50 @@ public sealed record ResolvedTenantProfile
     public bool HasDeviations => Deviations.Count > 0;
 
     /// <summary>
+    /// Gets the minimum extraction-confidence score a field must reach before a rule
+    /// uses it for comparison. Copied from the tenant profile after resolver validation.
+    /// </summary>
+    /// <remarks>
+    /// Always in [0.0, 1.0]. Defaults to <see cref="TenantProfile.LegalMinFieldConfidenceDefault"/>
+    /// (0.8) when the tenant profile specified no custom threshold or when no profile is available.
+    /// Rules read this value from the context via
+    /// <c>ctx.TenantProfile?.MinFieldConfidence ?? TenantProfile.LegalMinFieldConfidenceDefault</c>.
+    /// </remarks>
+    public double MinFieldConfidence { get; }
+
+    /// <summary>
     /// Initializes a <see cref="ResolvedTenantProfile"/>.
     /// </summary>
     /// <param name="tenantId">Tenant identifier.</param>
     /// <param name="tenantName">Tenant display name.</param>
     /// <param name="effectiveTolerances">Accepted effective tolerances keyed by CheckId.</param>
     /// <param name="deviations">Rejected override records. Pass an empty list when there are none.</param>
+    /// <param name="minFieldConfidence">
+    /// Minimum extraction-confidence threshold in [0.0, 1.0].
+    /// Defaults to <see cref="TenantProfile.LegalMinFieldConfidenceDefault"/> (0.8).
+    /// </param>
     /// <exception cref="ArgumentNullException">
     /// Thrown when <paramref name="effectiveTolerances"/> or <paramref name="deviations"/> is null.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="minFieldConfidence"/> is outside [0.0, 1.0].
     /// </exception>
     public ResolvedTenantProfile(
         string tenantId,
         string tenantName,
         IReadOnlyDictionary<string, decimal> effectiveTolerances,
-        IReadOnlyList<TenantDeviation> deviations)
+        IReadOnlyList<TenantDeviation> deviations,
+        double minFieldConfidence = TenantProfile.LegalMinFieldConfidenceDefault)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantName);
+        if (minFieldConfidence is < TenantProfile.MinFieldConfidenceLowerBound
+                               or > TenantProfile.MinFieldConfidenceUpperBound)
+            throw new ArgumentOutOfRangeException(
+                nameof(minFieldConfidence),
+                minFieldConfidence,
+                $"MinFieldConfidence must be in [{TenantProfile.MinFieldConfidenceLowerBound}, " +
+                $"{TenantProfile.MinFieldConfidenceUpperBound}].");
 
         TenantId = tenantId;
         TenantName = tenantName;
@@ -77,6 +104,7 @@ public sealed record ResolvedTenantProfile
             ?? throw new ArgumentNullException(nameof(effectiveTolerances));
         Deviations = deviations
             ?? throw new ArgumentNullException(nameof(deviations));
+        MinFieldConfidence = minFieldConfidence;
     }
 
     /// <summary>

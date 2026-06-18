@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
@@ -103,6 +104,22 @@ internal sealed class Cl10CatRule : IVecValidationRule
         // TASA is needed for the formula
         if (ps.Tasa.Status != ExtractionStatus.Extracted)
             return InsufficientData($"TASA field is {ps.Tasa.Status}; cannot compute CAT formula.");
+
+        // ----------------------------------------------------------------
+        // Story 9.5 — Extraction-confidence guard.
+        // A field whose confidence is below the threshold must cause abstain
+        // (InsufficientData), never a false Fail.  A misread digit must yield
+        // "cannot verify", not "bank non-compliant".
+        // The other field-reading rules adopt this same guard in Story 9.6.
+        // ----------------------------------------------------------------
+        var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
+            ?? TenantProfile.LegalMinFieldConfidenceDefault;
+
+        if (ConfidenceGuard.BelowThreshold(ps.Cat, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason("CAT", ps.Cat.Confidence, confidenceThreshold));
+
+        if (ConfidenceGuard.BelowThreshold(ps.Tasa, confidenceThreshold))
+            return InsufficientData(ConfidenceGuard.Reason("TASA", ps.Tasa.Confidence, confidenceThreshold));
 
         var extractedCat = ps.Cat.Value;     // decimal fraction (e.g. 0.2886 for 28.86%)
         var tasa = ps.Tasa.Value;            // decimal fraction (e.g. 0.2736)
