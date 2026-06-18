@@ -243,6 +243,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Find the CFDI fiscal legend page, render it, scan for QR, extract text fields.
             var fiscalBlock = ExtractFiscalBlock(doc, pdf, normalizedFullText);
 
+            // ---- §1–28 mandatory CONDUSEF section map — Story 10.1 ----------
+            // Detect all 28 Acuerdo sections using the normalized full text
+            // (avoids a second PDF open) and per-page word bands collected above.
+            var detectedSections = ExtractDetectedSections(doc, normalizedFullText);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -291,6 +296,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 PageCount = pageCount,
                 NormalizedFullText = normalizedFullText,
                 FiscalBlock = fiscalBlock,
+                Sections = detectedSections,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -2446,6 +2452,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
                 var locator = FieldLocator.PageHint(pageIndex);
 
+                // Story 10.1: capture page geometry (PDF points) for Story 10.2 gap computation.
+                var pageWidth = page.Width;
+                var pageHeight = page.Height;
+
                 pages.Add(new PageInspectionFacts(
                     PageNumber: pageIndex,
                     HasContent: hasContent,
@@ -2453,7 +2463,9 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                     ContainsCardNumber: containsCardNumber,
                     PaginationCurrent: paginationCurrent,
                     PaginationTotal: paginationTotal,
-                    Locator: locator));
+                    Locator: locator,
+                    Width: pageWidth,
+                    Height: pageHeight));
             }
             catch (Exception)
             {
@@ -2465,7 +2477,9 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                     ContainsCardNumber: false,
                     PaginationCurrent: null,
                     PaginationTotal: null,
-                    Locator: FieldLocator.PageHint(pageIndex)));
+                    Locator: FieldLocator.PageHint(pageIndex),
+                    Width: 0.0,
+                    Height: 0.0));
             }
         }
 
@@ -2736,4 +2750,172 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// Normalized string, or <see cref="string.Empty"/> when the input is null or whitespace.
     /// </returns>
     internal static string NormalizeText(string? text) => VecTextNormalizer.Normalize(text);
+
+    // -----------------------------------------------------------------------
+    // §1–28 Mandatory CONDUSEF section detection (Story 10.1)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Anchor table: (SectionNumber, CanonicalName, NormalizedAnchor, IsConditional).
+    /// Anchors are the normalized (upper+accent-stripped) minimum phrase that reliably
+    /// identifies each section heading in the Dummie VEC fixture PDFs.
+    /// §16, §23, §25 are conditional: they are not counted missing when absent.
+    /// </summary>
+    private static readonly (int Number, string Name, string NormalizedAnchor, bool IsConditional)[] s_sectionAnchors =
+    [
+        (1,  "Logo del Banco",                                  "LOGO",                                                  false),
+        (2,  "Paginación (Página X de Y)",                      "PAGINA",                                                false),
+        (3,  "Datos de envío",                                   "DATOS DE ENVIO",                                        false),
+        (4,  "Identificación del producto",                      "IDENTIFICACION DEL PRODUCTO",                           false),
+        (5,  "Tu pago requerido",                               "TU PAGO REQUERIDO",                                     false),
+        (6,  "Cuánto pagarías por tus compras",                 "CUANTO PAGARIAS POR TUS COMPRAS",                       false),
+        (7,  "Resumen de cargos y abonos",                      "RESUMEN DE CARGOS Y ABONOS",                            false),
+        (8,  "Indicadores del costo anual",                     "INDICADORES DEL COSTO ANUAL",                           false),
+        (9,  "CAT",                                              "CAT",                                                   false),
+        (10, "Tasa de interés anual ordinaria",                 "TASA DE INTERES ANUAL",                                 false),
+        (11, "Compara tu tarjeta",                              "COMPARA TU TARJETA",                                    false),
+        (12, "Mensajes importantes",                            "MENSAJES IMPORTANTES",                                   false),
+        (13, "Nivel de uso de tu tarjeta",                      "NIVEL DE USO DE TU TARJETA",                            false),
+        (14, "Notas al calce",                                  "NOTAS AL CALCE",                                        false),
+        (15, "Número de cuenta (página 2+)",                    "NUMERO DE CUENTA",                                      false),
+        (16, "Información de otras líneas de crédito",          "OTRAS LINEAS DE CREDITO",                               true),
+        (17, "Mensajes adicionales",                            "MENSAJES ADICIONALES",                                   false),
+        (18, "Programas de beneficios",                         "PROGRAMAS DE BENEFICIOS",                               false),
+        (19, "Saldo sobre el que se calcularon los intereses",  "SALDO SOBRE EL QUE SE CALCULARON LOS INTERESES",        false),
+        (20, "Distribución de tu último pago",                  "DISTRIBUCION DE TU ULTIMO PAGO",                        false),
+        (21, "Sección opcional libre (§21)",                    "SECCION OPCIONAL",                                      false),
+        (22, "Desglose de movimientos",                         "DESGLOSE DE MOVIMIENTOS",                               false),
+        (23, "Cargos no reconocidos",                           "CARGOS NO RECONOCIDOS",                                 true),
+        (24, "Atención de quejas",                              "ATENCION DE QUEJAS",                                    false),
+        (25, "Reestructura de tu deuda",                        "REESTRUCTURA",                                          true),
+        (26, "Notas aclaratorias",                              "NOTAS ACLARATORIAS",                                    false),
+        (27, "Glosario de términos",                            "GLOSARIO DE TERMINOS",                                  false),
+        (28, "Sección opcional libre (§28)",                    "SECCION LIBRE",                                         false),
+    ];
+
+    /// <summary>
+    /// Detects the 28 mandatory CONDUSEF <i>Acuerdo</i> sections in the document.
+    /// Uses the normalized full text for fast containment checks, then scans per-page
+    /// word bands for a precise heading locator when found.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The method reuses the open <see cref="PdfDocument"/> (no second PDF open).
+    /// Section anchors are matched against the normalized full text
+    /// (<see cref="VecTextNormalizer.Normalize"/>).
+    /// </para>
+    /// <para>
+    /// Conditional sections (§16, §23, §25) are marked <see cref="DetectedSection.IsApplicable"/>
+    /// = <see langword="false"/> when their anchor is absent — they are never counted missing.
+    /// </para>
+    /// </remarks>
+    /// <param name="doc">Open PdfPig document (pages are read without re-opening).</param>
+    /// <param name="normalizedFullText">Already-computed normalized full text of the document.</param>
+    /// <returns>
+    /// Exactly 28 <see cref="DetectedSection"/> entries ordered by section number.
+    /// Never throws — individual page/band failures are silently swallowed.
+    /// </returns>
+    private static IReadOnlyList<DetectedSection> ExtractDetectedSections(
+        PdfDocument doc,
+        string normalizedFullText)
+    {
+        // Guard: if no text layer, all sections absent and conditionals are not applicable.
+        if (string.IsNullOrWhiteSpace(normalizedFullText))
+        {
+            return BuildAllAbsent();
+        }
+
+        // Pre-scan: quick containment check per anchor against the full text.
+        // For anchors that are found, do a per-page scan to capture the locator.
+        // For anchors not found, build a NotPresent result immediately.
+
+        var results = new List<DetectedSection>(28);
+
+        foreach (var (number, name, anchor, isConditional) in s_sectionAnchors)
+        {
+            if (!normalizedFullText.Contains(anchor, StringComparison.Ordinal))
+            {
+                // Not in document at all.
+                // Conditional: IsApplicable = false (not counted missing).
+                // Unconditional: IsApplicable = true but IsPresent = false (counted missing).
+                results.Add(new DetectedSection(
+                    SectionNumber: number,
+                    Name: name,
+                    IsPresent: false,
+                    IsApplicable: !isConditional,
+                    Locator: FieldLocator.NoPage()));
+                continue;
+            }
+
+            // Anchor is in the full text — find its first occurrence in a page band to get the locator.
+            var locator = FindSectionLocator(doc, anchor);
+
+            results.Add(new DetectedSection(
+                SectionNumber: number,
+                Name: name,
+                IsPresent: true,
+                IsApplicable: true,
+                Locator: locator));
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Scans all pages for the first band whose normalized text contains
+    /// <paramref name="anchor"/> and returns a <see cref="FieldLocator"/> for that band.
+    /// Falls back to <see cref="FieldLocator.PageHint(int)"/> when no page-level locator can be derived.
+    /// </summary>
+    private static FieldLocator FindSectionLocator(PdfDocument doc, string anchor)
+    {
+        for (var pageIndex = 1; pageIndex <= doc.NumberOfPages; pageIndex++)
+        {
+            try
+            {
+                var page = doc.GetPage(pageIndex);
+                var words = page.GetWords().ToList();
+
+                if (words.Count == 0)
+                    continue;
+
+                var bands = GroupIntoBandsWithTolerance(words, YBandTolerance);
+
+                // Scan bands top-to-bottom.
+                foreach (var (_, bandWords) in bands.OrderByDescending(kv => kv.Key))
+                {
+                    var sorted = bandWords.OrderBy(w => w.BoundingBox.Left).ToList();
+                    var bandText = NormalizeText(string.Join(" ", sorted.Select(w => w.Text)));
+
+                    if (bandText.Contains(anchor, StringComparison.Ordinal))
+                        return BoundingBoxOf(sorted, pageIndex);
+                }
+            }
+            catch (Exception)
+            {
+                // Silently skip unreadable pages.
+            }
+        }
+
+        // Anchor was found in the full text but not locatable per-band — give a page-1 hint.
+        return FieldLocator.PageHint(1);
+    }
+
+    /// <summary>
+    /// Builds the 28-section list with all sections absent (used when the text layer is empty).
+    /// </summary>
+    private static IReadOnlyList<DetectedSection> BuildAllAbsent()
+    {
+        var results = new List<DetectedSection>(28);
+        foreach (var (number, name, _, isConditional) in s_sectionAnchors)
+        {
+            results.Add(new DetectedSection(
+                SectionNumber: number,
+                Name: name,
+                IsPresent: false,
+                IsApplicable: !isConditional,
+                Locator: FieldLocator.NoPage()));
+        }
+
+        return results;
+    }
 }

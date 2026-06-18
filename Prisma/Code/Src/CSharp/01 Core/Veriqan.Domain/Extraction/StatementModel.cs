@@ -269,7 +269,7 @@ public sealed class StatementModel
     public FiscalBlock? FiscalBlock { get; init; }
 
     // -----------------------------------------------------------------------
-    // Per-page inspection facts (Story 5.3)
+    // Per-page inspection facts (Story 5.3, extended Story 10.1)
     // -----------------------------------------------------------------------
 
     /// <summary>
@@ -284,6 +284,8 @@ public sealed class StatementModel
     /// <summary>
     /// Per-page structural metadata collected during the full extraction pass (Story 5.3).
     /// Each entry corresponds to one page of the PDF (ordered by page number, 1-based).
+    /// <see cref="PageInspectionFacts.Width"/> and <see cref="PageInspectionFacts.Height"/>
+    /// (PDF points) are populated from Story 10.1 onward; they are zero in earlier extractions.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -294,4 +296,31 @@ public sealed class StatementModel
     /// </para>
     /// </remarks>
     public IReadOnlyList<PageInspectionFacts> Pages { get; init; } = [];
+
+    // -----------------------------------------------------------------------
+    // Mandatory CONDUSEF section map (Story 10.1)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Detection results for the 28 mandatory CONDUSEF <i>Acuerdo</i> sections (Story 10.1).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story 10.1).  An empty list indicates either:
+    /// <list type="bullet">
+    ///   <item>The extraction stage predates Story 10.1 and did not run the section-detection pass.</item>
+    ///   <item>The text layer was unreadable (no words on any page).</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// When populated, the list always contains exactly 28 entries — one per Acuerdo section
+    /// (§1–§28) — ordered by <see cref="DetectedSection.SectionNumber"/>.
+    /// Rules that consume this list must guard on <c>Sections.Count == 0</c> and return
+    /// <c>InsufficientData</c> rather than Fail.
+    /// </para>
+    /// <para>
+    /// Always non-null; empty list (not null) when the pass did not run.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<DetectedSection> Sections { get; init; } = [];
 }
