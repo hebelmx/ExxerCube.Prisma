@@ -35,6 +35,9 @@ internal sealed class Cl50FiscalQrRule : IVecValidationRule
     public string CheckId => "CL-50";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §4";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

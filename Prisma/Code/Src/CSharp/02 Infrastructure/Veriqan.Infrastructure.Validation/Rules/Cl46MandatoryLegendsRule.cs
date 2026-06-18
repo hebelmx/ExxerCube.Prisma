@@ -47,6 +47,9 @@ internal sealed class Cl46MandatoryLegendsRule : IVecValidationRule
     public string CheckId => "CL-46";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §14/§17/§24";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

@@ -41,6 +41,9 @@ internal sealed class Cl45TransactionDescriptionMatchRule : IVecValidationRule
     public string CheckId => "CL-45";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §22";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

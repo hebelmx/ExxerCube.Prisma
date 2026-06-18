@@ -69,6 +69,29 @@ public sealed record RuleFinding(
     FieldLocator? Locator = null)
 {
     // -----------------------------------------------------------------------
+    // DOF Acuerdo numeral (Story 9.2 — NFR-7 auditability)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The CONDUSEF DOF <i>Acuerdo</i> section or form-rule reference that this finding
+    /// was produced by, e.g. <c>"Acuerdo §9"</c> or <c>"Acuerdo Anexo — Tipografía"</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Stamped by <c>VecValidationEngine</c> from <c>IVecValidationRule.DofNumeral</c>
+    /// after the rule returns its finding.  Rule authors do NOT need to set this field
+    /// inside their <c>Pass</c>/<c>Fail</c>/<c>InsufficientData</c> calls; it is applied
+    /// in a single central point in the engine.
+    /// </para>
+    /// <para>
+    /// Always non-empty for findings produced by the production engine.  Defaults to
+    /// <see cref="string.Empty"/> only for findings constructed directly in tests that
+    /// do not go through the engine.
+    /// </para>
+    /// </remarks>
+    public string DofNumeral { get; init; } = string.Empty;
+
+    // -----------------------------------------------------------------------
     // Dual-verdict contract (Story 9.1)
     // -----------------------------------------------------------------------
 

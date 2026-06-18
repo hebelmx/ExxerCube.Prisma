@@ -38,6 +38,9 @@ internal sealed class Cl42MovementDatesInPeriodRule : IVecValidationRule
     public string CheckId => "CL-42";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §22";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

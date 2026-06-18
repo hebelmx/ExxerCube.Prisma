@@ -37,6 +37,9 @@ internal sealed class Cl33LogoPresenceRule : IVecValidationRule
     public string CheckId => "CL-33";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §1";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

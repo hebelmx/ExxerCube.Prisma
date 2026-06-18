@@ -44,6 +44,9 @@ internal sealed class Cl35FontComplianceRule : IVecValidationRule
     public string CheckId => "CL-35";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo Anexo — Tipografía";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

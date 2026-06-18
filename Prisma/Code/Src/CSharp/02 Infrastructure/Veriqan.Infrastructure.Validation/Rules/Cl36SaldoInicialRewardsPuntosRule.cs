@@ -54,6 +54,9 @@ internal sealed class Cl36SaldoInicialRewardsPuntosRule : IVecValidationRule
     public string CheckId => "CL-36";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §18";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

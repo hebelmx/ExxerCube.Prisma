@@ -42,6 +42,9 @@ internal sealed class Cl37TipoCambioRewardsRule : IVecValidationRule
     public string CheckId => "CL-37";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §18";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

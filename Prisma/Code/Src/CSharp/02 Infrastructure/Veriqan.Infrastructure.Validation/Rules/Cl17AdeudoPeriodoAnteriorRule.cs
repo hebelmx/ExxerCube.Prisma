@@ -50,6 +50,9 @@ internal sealed class Cl17AdeudoPeriodoAnteriorRule : IVecValidationRule
     public string CheckId => "CL-17";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §7";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

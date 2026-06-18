@@ -40,6 +40,9 @@ internal sealed class Cl22SaldoCargosRegularesRule : IVecValidationRule
     public string CheckId => "CL-22";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §13";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

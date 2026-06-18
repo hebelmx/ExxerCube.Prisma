@@ -52,6 +52,9 @@ internal sealed class Cl10CatRule : IVecValidationRule
     public string CheckId => "CL-10";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §9";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

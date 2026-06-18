@@ -50,6 +50,9 @@ internal sealed class Cl29HeaderStylingRule : IVecValidationRule
     public string CheckId => "CL-29";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo Anexo — encabezados de sección en negritas y mayúsculas";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

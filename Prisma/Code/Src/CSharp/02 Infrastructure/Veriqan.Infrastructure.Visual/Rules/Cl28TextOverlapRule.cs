@@ -63,6 +63,9 @@ internal sealed class Cl28TextOverlapRule : IVecValidationRule
     public string CheckId => "CL-28";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo Anexo — Tipografía";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

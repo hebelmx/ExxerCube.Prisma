@@ -47,6 +47,9 @@ internal sealed class Cl32ComparaTuTarjetaRule : IVecValidationRule
     public string CheckId => "CL-32";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §11";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

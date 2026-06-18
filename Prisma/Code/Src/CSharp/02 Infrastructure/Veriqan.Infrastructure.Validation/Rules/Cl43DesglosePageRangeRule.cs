@@ -31,6 +31,9 @@ internal sealed class Cl43DesglosePageRangeRule : IVecValidationRule
     public string CheckId => "CL-43";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §22";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

@@ -39,6 +39,9 @@ internal sealed class Item58TransactionAmountMatchRule : IVecValidationRule
     public string CheckId => "ITEM-58";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §22";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

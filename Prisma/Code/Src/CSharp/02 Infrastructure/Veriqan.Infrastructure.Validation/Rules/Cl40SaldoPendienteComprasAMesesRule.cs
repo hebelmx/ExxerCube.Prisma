@@ -45,6 +45,9 @@ internal sealed class Cl40SaldoPendienteComprasAMesesRule : IVecValidationRule
     public string CheckId => "CL-40";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §13";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

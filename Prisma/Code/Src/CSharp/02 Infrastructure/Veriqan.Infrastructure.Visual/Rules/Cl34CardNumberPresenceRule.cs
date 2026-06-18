@@ -39,6 +39,9 @@ internal sealed class Cl34CardNumberPresenceRule : IVecValidationRule
     public string CheckId => "CL-34";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §15";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

@@ -35,6 +35,9 @@ internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
     public string CheckId => "CL-18";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §7";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

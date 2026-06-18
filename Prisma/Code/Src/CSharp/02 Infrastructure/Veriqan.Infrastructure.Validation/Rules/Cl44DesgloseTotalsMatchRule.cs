@@ -42,6 +42,9 @@ internal sealed class Cl44DesgloseTotalsMatchRule : IVecValidationRule
     public string CheckId => "CL-44";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §22";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

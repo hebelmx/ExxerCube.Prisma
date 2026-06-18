@@ -28,6 +28,9 @@ internal sealed class Cl53ReceiverRfcRule : IVecValidationRule
     public string CheckId => "CL-53";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §4";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

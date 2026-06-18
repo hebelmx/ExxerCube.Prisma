@@ -42,6 +42,9 @@ internal sealed class Cl39SaldoTotalPuntosRule : IVecValidationRule
     public string CheckId => "CL-39";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §18";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

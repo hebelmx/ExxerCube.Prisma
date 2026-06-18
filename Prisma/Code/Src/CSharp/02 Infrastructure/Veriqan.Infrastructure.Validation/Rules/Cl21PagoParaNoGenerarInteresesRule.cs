@@ -37,6 +37,9 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
     public string CheckId => "CL-21";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §7";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

@@ -49,6 +49,35 @@ public interface IVecValidationRule
     string CheckId { get; }
 
     /// <summary>
+    /// Gets the CONDUSEF DOF <i>Acuerdo … estado de cuenta estandarizado</i> section
+    /// or form-rule reference that this rule enforces (NFR-7 — auditability).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Must be a non-empty string in one of the canonical forms:
+    /// <list type="bullet">
+    ///   <item><c>"Acuerdo §N"</c> — for a numbered section of the Acuerdo (e.g. <c>"Acuerdo §9"</c>).</item>
+    ///   <item><c>"Acuerdo §M/§N"</c> — when the check spans two sections (e.g. <c>"Acuerdo §14/§17"</c>).</item>
+    ///   <item><c>"Acuerdo Anexo — &lt;description&gt;"</c> — for global form / typography rules in the
+    ///     guía de llenado annex (e.g. <c>"Acuerdo Anexo — Tipografía"</c>).</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// <b>Enforcement:</b> the registry/architecture test in
+    /// <c>Veriqan.Infrastructure.Validation.Tests</c> asserts that every registered
+    /// <see cref="IVecValidationRule"/> exposes a non-empty <c>DofNumeral</c>.
+    /// A rule with an empty or whitespace numeral will cause that test to fail.
+    /// </para>
+    /// <para>
+    /// <b>Consumer:</b> <c>VecValidationEngine</c> stamps this value onto every
+    /// <see cref="RuleFinding"/> it produces, providing a CheckId → numeral evidence chain
+    /// without requiring each rule's <c>Pass</c>/<c>Fail</c>/<c>InsufficientData</c>
+    /// call sites to carry the numeral explicitly.
+    /// </para>
+    /// </remarks>
+    string DofNumeral { get; }
+
+    /// <summary>
     /// Gets the algorithmic technique this rule uses to evaluate the check.
     /// Used to populate <see cref="RuleFinding.Technique"/> without each rule
     /// having to repeat it inside <see cref="Evaluate"/>.

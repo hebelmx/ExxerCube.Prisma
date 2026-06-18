@@ -36,6 +36,9 @@ internal sealed class Cl24SaldoDeudorTotalRule : IVecValidationRule
     public string CheckId => "CL-24";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §13";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

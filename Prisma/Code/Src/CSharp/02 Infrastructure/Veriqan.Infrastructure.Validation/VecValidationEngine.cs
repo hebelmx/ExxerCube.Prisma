@@ -114,6 +114,10 @@ internal sealed class VecValidationEngine : IVecValidationEngine
                     reason: $"Unexpected exception: {ex.GetType().Name}");
             }
 
+            // Stamp the DOF numeral onto the finding (NFR-7 — single central point, Story 9.2).
+            // Applied here so rule authors never need to pass the numeral through their factory calls.
+            finding = finding with { DofNumeral = rule.DofNumeral };
+
             findings.Add(finding);
         }
 
@@ -123,5 +127,20 @@ internal sealed class VecValidationEngine : IVecValidationEngine
 
         IReadOnlyList<RuleFinding> result = findings.AsReadOnly();
         return Task.FromResult(Result<IReadOnlyList<RuleFinding>>.WithSuccess(result));
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<(string CheckId, string DofNumeral)> GetCoverageMap()
+    {
+        var map = new List<(string CheckId, string DofNumeral)>(_rules.Count);
+
+        foreach (var rule in _rules)
+            map.Add((rule.CheckId, rule.DofNumeral));
+
+        // Deterministic ordering matches RunAsync sort (NFR-5)
+        map.Sort(static (a, b) =>
+            string.Compare(a.CheckId, b.CheckId, StringComparison.Ordinal));
+
+        return map.AsReadOnly();
     }
 }

@@ -84,6 +84,9 @@ internal sealed class Cl49PromotionsCurrencyRule : IVecValidationRule
     public string CheckId => "CL-49";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §18";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

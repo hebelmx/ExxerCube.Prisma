@@ -34,6 +34,9 @@ internal sealed class Cl48BlankPageRule : IVecValidationRule
     public string CheckId => "CL-48";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo Anexo — sin espacio en blanco mayor a 2 cm";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

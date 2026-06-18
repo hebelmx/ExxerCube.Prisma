@@ -35,6 +35,9 @@ internal sealed class Cl19CargosAMesesCapitalSumaDesgloseRule : IVecValidationRu
     public string CheckId => "CL-19";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §7";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

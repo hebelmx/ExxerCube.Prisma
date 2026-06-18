@@ -50,4 +50,15 @@ public interface IVecValidationEngine
     Task<Result<IReadOnlyList<RuleFinding>>> RunAsync(
         VerificationContext ctx,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns the DOF Acuerdo numeral coverage map for all registered rules
+    /// (NFR-7 — auditability; consumed by Epic 13 reporting).
+    /// </summary>
+    /// <returns>
+    /// A read-only collection of <c>(CheckId, DofNumeral)</c> pairs, one per registered
+    /// <see cref="IVecValidationRule"/>, sorted by <c>CheckId</c> (ordinal).
+    /// All entries have a non-empty <c>DofNumeral</c> — the enforcement test asserts this.
+    /// </returns>
+    IReadOnlyList<(string CheckId, string DofNumeral)> GetCoverageMap();
 }

@@ -43,6 +43,9 @@ internal sealed class Cl31PaginationRule : IVecValidationRule
     public string CheckId => "CL-31";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §2";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

@@ -48,6 +48,9 @@ internal sealed class Cl20PagosYAbonosSumaDesgloseRule : IVecValidationRule
     public string CheckId => "CL-20";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §7";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

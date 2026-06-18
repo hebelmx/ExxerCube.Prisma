@@ -46,6 +46,9 @@ internal sealed class Cl41NumeroDePagoRule : IVecValidationRule
     public string CheckId => "CL-41";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §13";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

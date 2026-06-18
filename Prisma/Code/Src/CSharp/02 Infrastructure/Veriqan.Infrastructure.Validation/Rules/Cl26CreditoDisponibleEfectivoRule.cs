@@ -43,6 +43,9 @@ internal sealed class Cl26CreditoDisponibleEfectivoRule : IVecValidationRule
     public string CheckId => "CL-26";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §13";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

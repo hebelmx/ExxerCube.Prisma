@@ -28,6 +28,9 @@ internal sealed class Cl52IssuerRfcRule : IVecValidationRule
     public string CheckId => "CL-52";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §4";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

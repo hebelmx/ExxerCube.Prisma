@@ -26,6 +26,9 @@ internal sealed class Cl51FiscalCodeRule : IVecValidationRule
     public string CheckId => "CL-51";
 
     /// <inheritdoc />
+    public string DofNumeral => "Acuerdo §4";
+
+    /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;
 
     /// <inheritdoc />

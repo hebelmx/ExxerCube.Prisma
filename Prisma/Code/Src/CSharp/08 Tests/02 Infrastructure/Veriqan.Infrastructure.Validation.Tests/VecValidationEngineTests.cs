@@ -365,6 +365,7 @@ public sealed class VecValidationEngineTests
         public const string Id = "TEST-FAIL-RESULT";
 
         public string CheckId => Id;
+        public string DofNumeral => "Acuerdo §1";
         public TechniqueClass Technique => TechniqueClass.Deterministic;
 
         public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default) =>
@@ -380,6 +381,7 @@ public sealed class VecValidationEngineTests
         public const string Id = "TEST-ALWAYS-PASS";
 
         public string CheckId => Id;
+        public string DofNumeral => "Acuerdo §2";
         public TechniqueClass Technique => TechniqueClass.Deterministic;
 
         public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default) =>
