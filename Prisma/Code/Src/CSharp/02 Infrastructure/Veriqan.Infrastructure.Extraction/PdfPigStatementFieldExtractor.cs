@@ -2757,65 +2757,143 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     internal static string NormalizeText(string? text) => VecTextNormalizer.Normalize(text);
 
     // -----------------------------------------------------------------------
-    // §1–28 Mandatory CONDUSEF section detection (Story 10.1)
+    // §1–28 Mandatory CONDUSEF section detection (Story 10.1 / R1)
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Anchor table: (SectionNumber, CanonicalName, NormalizedAnchor, IsConditional).
-    /// Anchors are the normalized (upper+accent-stripped) minimum phrase that reliably
-    /// identifies each section heading in the Dummie VEC fixture PDFs.
-    /// §16, §23, §25 are conditional: they are not counted missing when absent.
-    /// </summary>
-    private static readonly (int Number, string Name, string NormalizedAnchor, bool IsConditional)[] s_sectionAnchors =
-    [
-        (1,  "Logo del Banco",                                  "LOGO",                                                  false),
-        (2,  "Paginación (Página X de Y)",                      "PAGINA",                                                false),
-        (3,  "Datos de envío",                                   "DATOS DE ENVIO",                                        false),
-        (4,  "Identificación del producto",                      "IDENTIFICACION DEL PRODUCTO",                           false),
-        (5,  "Tu pago requerido",                               "TU PAGO REQUERIDO",                                     false),
-        (6,  "Cuánto pagarías por tus compras",                 "CUANTO PAGARIAS POR TUS COMPRAS",                       false),
-        (7,  "Resumen de cargos y abonos",                      "RESUMEN DE CARGOS Y ABONOS",                            false),
-        (8,  "Indicadores del costo anual",                     "INDICADORES DEL COSTO ANUAL",                           false),
-        (9,  "CAT",                                              "CAT",                                                   false),
-        (10, "Tasa de interés anual ordinaria",                 "TASA DE INTERES ANUAL",                                 false),
-        (11, "Compara tu tarjeta",                              "COMPARA TU TARJETA",                                    false),
-        (12, "Mensajes importantes",                            "MENSAJES IMPORTANTES",                                   false),
-        (13, "Nivel de uso de tu tarjeta",                      "NIVEL DE USO DE TU TARJETA",                            false),
-        (14, "Notas al calce",                                  "NOTAS AL CALCE",                                        false),
-        (15, "Número de cuenta (página 2+)",                    "NUMERO DE CUENTA",                                      false),
-        (16, "Información de otras líneas de crédito",          "OTRAS LINEAS DE CREDITO",                               true),
-        (17, "Mensajes adicionales",                            "MENSAJES ADICIONALES",                                   false),
-        (18, "Programas de beneficios",                         "PROGRAMAS DE BENEFICIOS",                               false),
-        (19, "Saldo sobre el que se calcularon los intereses",  "SALDO SOBRE EL QUE SE CALCULARON LOS INTERESES",        false),
-        (20, "Distribución de tu último pago",                  "DISTRIBUCION DE TU ULTIMO PAGO",                        false),
-        (21, "Sección opcional libre (§21)",                    "SECCION OPCIONAL",                                      false),
-        (22, "Desglose de movimientos",                         "DESGLOSE DE MOVIMIENTOS",                               false),
-        (23, "Cargos no reconocidos",                           "CARGOS NO RECONOCIDOS",                                 true),
-        (24, "Atención de quejas",                              "ATENCION DE QUEJAS",                                    false),
-        (25, "Reestructura de tu deuda",                        "REESTRUCTURA",                                          true),
-        (26, "Notas aclaratorias",                              "NOTAS ACLARATORIAS",                                    false),
-        (27, "Glosario de términos",                            "GLOSARIO DE TERMINOS",                                  false),
-        (28, "Sección opcional libre (§28)",                    "SECCION LIBRE",                                         false),
-    ];
-
-    /// <summary>
-    /// Detects the 28 mandatory CONDUSEF <i>Acuerdo</i> sections in the document.
-    /// Uses the normalized full text for fast containment checks, then scans per-page
-    /// word bands for a precise heading locator when found.
+    /// Anchor table: (SectionNumber, CanonicalName, NormalizedAnchor, IsConditional, IsIndeterminate).
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The method reuses the open <see cref="PdfDocument"/> (no second PDF open).
-    /// Section anchors are matched against the normalized full text
-    /// (<see cref="VecTextNormalizer.Normalize"/>).
+    /// Anchors are the normalized (upper+accent-stripped) minimum phrase that reliably
+    /// identifies each section heading in a heading band of the Dummie VEC fixture PDFs.
+    /// Presence is determined ONLY by finding the anchor in a per-page word band — a bare
+    /// occurrence anywhere in the document body (e.g. in §27 Glosario de Términos) is
+    /// intentionally ignored to avoid false positives.
     /// </para>
     /// <para>
-    /// Conditional sections (§16, §23, §25) are marked <see cref="DetectedSection.IsApplicable"/>
-    /// = <see langword="false"/> when their anchor is absent — they are never counted missing.
+    /// <b>IsConditional = true</b>: section is only required when its trigger condition is
+    /// present (§16 other credit lines, §23 disputed charges, §25 debt restructuring) OR
+    /// the section is explicitly optional per the Acuerdo (§21, §28 "sección opcional libre").
+    /// When absent, <see cref="DetectedSection.IsApplicable"/> = false → never counted missing.
+    /// </para>
+    /// <para>
+    /// <b>IsIndeterminate = true</b>: section has no text anchor (§1 Logo del Banco is a visual
+    /// image, not detectable from the text layer). These sections are treated as
+    /// <see cref="SectionDetectionStatus.Indeterminate"/> and IsApplicable = false → rule abstains.
+    /// </para>
+    /// <para>
+    /// <b>Anchor design rationale for ambiguous sections (R1 fixes):</b>
+    /// <list type="bullet">
+    ///   <item>§9 "CAT": old anchor "CAT" matched the §27 Glosario line "CAT: COSTO ANUAL
+    ///     TOTAL …". New anchor "COSTO ANUAL TOTAL" is the full heading phrase; confirmed
+    ///     against the fixture comment "Y=285.8: TASA and CAT labels" which shows "COSTO ANUAL
+    ///     TOTAL" on the heading band. The glosario reference "CAT: Costo Anual Total …"
+    ///     normalizes to "CAT: COSTO ANUAL TOTAL …" (with colon prefix), distinct enough;
+    ///     however the anchor "COSTO ANUAL TOTAL" does appear there too — so the band-only
+    ///     constraint is the primary guard. The glosario entry is typically a single long line
+    ///     beginning "CAT:" whereas the §9 heading band contains only "COSTO ANUAL TOTAL" or
+    ///     "COSTO ANUAL TOTAL (CAT)". If both match, the first band hit (§9 heading appears
+    ///     before §27) wins, which is correct.</item>
+    ///   <item>§10 "Tasa de interés anual ordinaria": old anchor "TASA DE INTERES ANUAL"
+    ///     matched §27 Glosario terms "Tasa de interés moratoria/ordinaria: Tasa de interés
+    ///     anual…". New anchor "TASA DE INTERES ANUAL ORDINARIA" is the full section heading.
+    ///     The glosario line begins "TASA DE INTERES ORDINARIA:" or similar — the full phrase
+    ///     "TASA DE INTERES ANUAL ORDINARIA" is the heading, not a glosario definition.</item>
+    ///   <item>§2 "Paginación": old anchor "PAGINA" was a loose substring. New anchor
+    ///     "PAGINA" is retained because with band-only detection there is no body text that
+    ///     creates a band containing only "PAGINA"; the pagination header appears on each page
+    ///     as a distinct heading band "PAGINA X DE Y" and is reliably discriminated.</item>
+    ///   <item>§1 "Logo del Banco": purely visual — marked IsIndeterminate.</item>
+    ///   <item>§21, §28 "Sección opcional libre": explicitly optional per the Acuerdo
+    ///     ("sección opcional libre") — marked IsConditional so absence never triggers Fail.</item>
+    /// </list>
+    /// </para>
+    /// </remarks>
+    private static readonly (int Number, string Name, string NormalizedAnchor, bool IsConditional, bool IsIndeterminate)[] s_sectionAnchors =
+    [
+        // §1: Logo del Banco — VISUAL element (image), not in the text layer.
+        //     IsIndeterminate=true → DetectionStatus=Indeterminate, IsApplicable=false → rule abstains.
+        (1,  "Logo del Banco",                                  "",                                                      false, true),
+
+        // §2: Paginación "PAGINA X DE Y" — appears as a heading band on every page.
+        //     Band-only detection discriminates this from body occurrences of "página".
+        (2,  "Paginación (Página X de Y)",                      "PAGINA",                                                false, false),
+
+        (3,  "Datos de envío",                                   "DATOS DE ENVIO",                                        false, false),
+        (4,  "Identificación del producto",                      "IDENTIFICACION DEL PRODUCTO",                           false, false),
+        (5,  "Tu pago requerido",                               "TU PAGO REQUERIDO",                                     false, false),
+        (6,  "Cuánto pagarías por tus compras",                 "CUANTO PAGARIAS POR TUS COMPRAS",                       false, false),
+        (7,  "Resumen de cargos y abonos",                      "RESUMEN DE CARGOS Y ABONOS",                            false, false),
+        (8,  "Indicadores del costo anual",                     "INDICADORES DEL COSTO ANUAL",                           false, false),
+
+        // §9: CAT — old anchor "CAT" produced false positives via §27 glosario "CAT: COSTO ANUAL TOTAL".
+        //     New anchor "COSTO ANUAL TOTAL" matches the §9 section heading band.
+        //     Band-only detection ensures glosario body text is ignored.
+        (9,  "CAT",                                              "COSTO ANUAL TOTAL",                                     false, false),
+
+        // §10: Tasa de interés anual ordinaria — old "TASA DE INTERES ANUAL" matched §27 glosario.
+        //      New "TASA DE INTERES ANUAL ORDINARIA" is the full heading phrase.
+        (10, "Tasa de interés anual ordinaria",                 "TASA DE INTERES ANUAL ORDINARIA",                       false, false),
+
+        (11, "Compara tu tarjeta",                              "COMPARA TU TARJETA",                                    false, false),
+        (12, "Mensajes importantes",                            "MENSAJES IMPORTANTES",                                   false, false),
+        (13, "Nivel de uso de tu tarjeta",                      "NIVEL DE USO DE TU TARJETA",                            false, false),
+        (14, "Notas al calce",                                  "NOTAS AL CALCE",                                        false, false),
+        (15, "Número de cuenta (página 2+)",                    "NUMERO DE CUENTA",                                      false, false),
+        (16, "Información de otras líneas de crédito",          "OTRAS LINEAS DE CREDITO",                               true,  false),
+        (17, "Mensajes adicionales",                            "MENSAJES ADICIONALES",                                   false, false),
+        (18, "Programas de beneficios",                         "PROGRAMAS DE BENEFICIOS",                               false, false),
+        (19, "Saldo sobre el que se calcularon los intereses",  "SALDO SOBRE EL QUE SE CALCULARON LOS INTERESES",        false, false),
+        (20, "Distribución de tu último pago",                  "DISTRIBUCION DE TU ULTIMO PAGO",                        false, false),
+
+        // §21: "Sección opcional libre" — explicitly optional per the CONDUSEF Acuerdo.
+        //      IsConditional=true → absent never triggers a missing-section Fail.
+        (21, "Sección opcional libre (§21)",                    "SECCION OPCIONAL",                                      true,  false),
+
+        (22, "Desglose de movimientos",                         "DESGLOSE DE MOVIMIENTOS",                               false, false),
+        (23, "Cargos no reconocidos",                           "CARGOS NO RECONOCIDOS",                                 true,  false),
+        (24, "Atención de quejas",                              "ATENCION DE QUEJAS",                                    false, false),
+        (25, "Reestructura de tu deuda",                        "REESTRUCTURA",                                          true,  false),
+        (26, "Notas aclaratorias",                              "NOTAS ACLARATORIAS",                                    false, false),
+        (27, "Glosario de términos",                            "GLOSARIO DE TERMINOS",                                  false, false),
+
+        // §28: "Sección opcional libre" — explicitly optional per the CONDUSEF Acuerdo.
+        //      IsConditional=true → absent never triggers a missing-section Fail.
+        (28, "Sección opcional libre (§28)",                    "SECCION LIBRE",                                         true,  false),
+    ];
+
+    /// <summary>
+    /// Detects the 28 mandatory CONDUSEF <i>Acuerdo</i> sections by scanning per-page
+    /// word bands (heading-band-only detection — Story 10.1 R1).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Algorithm (R1 — heading-band-only):</b>
+    /// <list type="number">
+    ///   <item>Make a single pass over all pages collecting all bands (page, bandY, bandText, words)
+    ///     into a flat ordered list of <c>BandEntry</c> records (reading order: page asc, Y desc).</item>
+    ///   <item>For each section anchor, find the first band whose normalized text contains the
+    ///     anchor → that band's locator is the section heading.  A bare occurrence of the anchor
+    ///     anywhere in the full document text (e.g. §27 Glosario body) is NOT sufficient — the
+    ///     anchor must appear in a band.</item>
+    ///   <item>After all sections are located, compute <see cref="DetectedSection.SectionText"/>
+    ///     by collecting all band words from a section's heading band to the next detected section's
+    ///     heading band (within the same reading-order sequence, across pages if needed).</item>
+    ///   <item>§1 Logo del Banco is a visual image — no text anchor exists.  It is marked
+    ///     <see cref="SectionDetectionStatus.Indeterminate"/> and IsApplicable = false.</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// The method reuses the open <see cref="PdfDocument"/> (no second PDF open).
+    /// Never throws — individual page/band failures are silently swallowed.
     /// </para>
     /// </remarks>
     /// <param name="doc">Open PdfPig document (pages are read without re-opening).</param>
-    /// <param name="normalizedFullText">Already-computed normalized full text of the document.</param>
+    /// <param name="normalizedFullText">
+    /// Already-computed normalized full text (kept for API compatibility; no longer used for presence
+    /// detection — band-scan is the sole presence signal).  Used only for the no-text-layer guard.
+    /// </param>
     /// <returns>
     /// Exactly 28 <see cref="DetectedSection"/> entries ordered by section number.
     /// Never throws — individual page/band failures are silently swallowed.
@@ -2824,55 +2902,138 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         PdfDocument doc,
         string normalizedFullText)
     {
-        // Guard: if no text layer, all sections absent and conditionals are not applicable.
+        // Guard: if no text layer, all sections absent/indeterminate.
         if (string.IsNullOrWhiteSpace(normalizedFullText))
-        {
             return BuildAllAbsent();
+
+        // ---- Single-pass: collect all bands from all pages in reading order ----
+        // BandEntry: (PageNumber 1-based, BandY descending = top first, NormalizedText, Words left-to-right)
+        var allBands = CollectAllBandsInReadingOrder(doc);
+
+        if (allBands.Count == 0)
+            return BuildAllAbsent();
+
+        // ---- Locate each anchor in the first matching band ----
+        // sectionLocations[i] = index into allBands for s_sectionAnchors[i], or -1 if not found.
+        var sectionLocations = new int[s_sectionAnchors.Length];
+        for (var i = 0; i < s_sectionAnchors.Length; i++)
+        {
+            var (_, _, anchor, _, isIndeterminate) = s_sectionAnchors[i];
+            if (isIndeterminate || string.IsNullOrEmpty(anchor))
+            {
+                sectionLocations[i] = -1;
+                continue;
+            }
+
+            var found = -1;
+            for (var b = 0; b < allBands.Count; b++)
+            {
+                if (allBands[b].NormalizedText.Contains(anchor, StringComparison.Ordinal))
+                {
+                    found = b;
+                    break;
+                }
+            }
+
+            sectionLocations[i] = found;
         }
 
-        // Pre-scan: quick containment check per anchor against the full text.
-        // For anchors that are found, do a per-page scan to capture the locator.
-        // For anchors not found, build a NotPresent result immediately.
+        // ---- Compute SectionText: words from this section's heading band to the next ----
+        // Build an ordered list of (bandIndex, sectionIndex) for present sections.
+        var presentSections = new List<(int BandIndex, int SectionIndex)>();
+        for (var i = 0; i < s_sectionAnchors.Length; i++)
+        {
+            if (sectionLocations[i] >= 0)
+                presentSections.Add((sectionLocations[i], i));
+        }
+        // Sort by band position (reading order).
+        presentSections.Sort((a, b) => a.BandIndex.CompareTo(b.BandIndex));
 
+        // ---- Build the 28 DetectedSection entries ----
         var results = new List<DetectedSection>(28);
 
-        foreach (var (number, name, anchor, isConditional) in s_sectionAnchors)
+        for (var i = 0; i < s_sectionAnchors.Length; i++)
         {
-            if (!normalizedFullText.Contains(anchor, StringComparison.Ordinal))
+            var (number, name, _, isConditional, isIndeterminate) = s_sectionAnchors[i];
+
+            if (isIndeterminate)
             {
-                // Not in document at all.
-                // Conditional: IsApplicable = false (not counted missing).
-                // Unconditional: IsApplicable = true but IsPresent = false (counted missing).
+                // §1 Logo del Banco: visual element — not detectable from the text layer.
+                results.Add(new DetectedSection(
+                    SectionNumber: number,
+                    Name: name,
+                    IsPresent: false,
+                    IsApplicable: false,
+                    Locator: FieldLocator.NoPage())
+                {
+                    DetectionStatus = SectionDetectionStatus.Indeterminate,
+                    SectionText = string.Empty,
+                });
+                continue;
+            }
+
+            var bandIndex = sectionLocations[i];
+
+            if (bandIndex < 0)
+            {
+                // Anchor not found in any heading band.
                 results.Add(new DetectedSection(
                     SectionNumber: number,
                     Name: name,
                     IsPresent: false,
                     IsApplicable: !isConditional,
-                    Locator: FieldLocator.NoPage()));
+                    Locator: FieldLocator.NoPage())
+                {
+                    DetectionStatus = SectionDetectionStatus.Absent,
+                    SectionText = string.Empty,
+                });
                 continue;
             }
 
-            // Anchor is in the full text — find its first occurrence in a page band to get the locator.
-            var locator = FindSectionLocator(doc, anchor);
+            // Section is present: build locator from the heading band's words.
+            var headingBand = allBands[bandIndex];
+            var locator = headingBand.Words.Count > 0
+                ? BoundingBoxOf(headingBand.Words, headingBand.PageNumber)
+                : FieldLocator.PageHint(headingBand.PageNumber);
+
+            // Compute SectionText: collect all band words from this band's index up to (but not
+            // including) the band index of the next present section in reading order.
+            var sectionText = ComputeSectionText(allBands, bandIndex, presentSections, i);
 
             results.Add(new DetectedSection(
                 SectionNumber: number,
                 Name: name,
                 IsPresent: true,
                 IsApplicable: true,
-                Locator: locator));
+                Locator: locator)
+            {
+                DetectionStatus = SectionDetectionStatus.Present,
+                SectionText = sectionText,
+            });
         }
 
         return results;
     }
 
     /// <summary>
-    /// Scans all pages for the first band whose normalized text contains
-    /// <paramref name="anchor"/> and returns a <see cref="FieldLocator"/> for that band.
-    /// Falls back to <see cref="FieldLocator.PageHint(int)"/> when no page-level locator can be derived.
+    /// Represents one horizontal word band from a single page, in document reading order.
     /// </summary>
-    private static FieldLocator FindSectionLocator(PdfDocument doc, string anchor)
+    private sealed class BandEntry
     {
+        public int PageNumber { get; init; }
+        public double BandY { get; init; }
+        public string NormalizedText { get; init; } = string.Empty;
+        public List<Word> Words { get; init; } = [];
+    }
+
+    /// <summary>
+    /// Makes a single pass over all pages and collects all word bands in reading order
+    /// (page ascending, then Y descending = top of page first).
+    /// </summary>
+    private static List<BandEntry> CollectAllBandsInReadingOrder(PdfDocument doc)
+    {
+        var allBands = new List<BandEntry>();
+
         for (var pageIndex = 1; pageIndex <= doc.NumberOfPages; pageIndex++)
         {
             try
@@ -2885,14 +3046,19 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
                 var bands = GroupIntoBandsWithTolerance(words, YBandTolerance);
 
-                // Scan bands top-to-bottom.
-                foreach (var (_, bandWords) in bands.OrderByDescending(kv => kv.Key))
+                // Add bands in top-to-bottom order (descending Y in PDF coords).
+                foreach (var (bandY, bandWords) in bands.OrderByDescending(kv => kv.Key))
                 {
                     var sorted = bandWords.OrderBy(w => w.BoundingBox.Left).ToList();
-                    var bandText = NormalizeText(string.Join(" ", sorted.Select(w => w.Text)));
+                    var normalizedText = NormalizeText(string.Join(" ", sorted.Select(w => w.Text)));
 
-                    if (bandText.Contains(anchor, StringComparison.Ordinal))
-                        return BoundingBoxOf(sorted, pageIndex);
+                    allBands.Add(new BandEntry
+                    {
+                        PageNumber = pageIndex,
+                        BandY = bandY,
+                        NormalizedText = normalizedText,
+                        Words = sorted,
+                    });
                 }
             }
             catch (Exception)
@@ -2901,24 +3067,98 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             }
         }
 
-        // Anchor was found in the full text but not locatable per-band — give a page-1 hint.
-        return FieldLocator.PageHint(1);
+        return allBands;
     }
 
     /// <summary>
-    /// Builds the 28-section list with all sections absent (used when the text layer is empty).
+    /// Computes the <see cref="DetectedSection.SectionText"/> for a present section by
+    /// concatenating all band texts from the section's heading band (inclusive) up to the
+    /// next present section's heading band (exclusive) in reading order.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Multi-column layout note:</b> VEC statements use a 2-column layout where multiple
+    /// section headings may appear on the same Y-band (e.g. §7 and §8 side-by-side on the
+    /// same line).  In that case <paramref name="headingBandIndex"/> equals the next section's
+    /// band index, making the naive range [head, next) empty.  The method ensures at least the
+    /// heading band itself is always included by clamping the stop to
+    /// <c>max(nextBandIndex, headingBandIndex + 1)</c>.
+    /// </para>
+    /// </remarks>
+    /// <param name="allBands">All bands in reading order.</param>
+    /// <param name="headingBandIndex">Index into <paramref name="allBands"/> of this section's heading.</param>
+    /// <param name="presentSections">Present sections sorted by band index (reading order).</param>
+    /// <param name="sectionAnchorIndex">Index of the current section in <see cref="s_sectionAnchors"/>.</param>
+    private static string ComputeSectionText(
+        List<BandEntry> allBands,
+        int headingBandIndex,
+        List<(int BandIndex, int SectionIndex)> presentSections,
+        int sectionAnchorIndex)
+    {
+        // Find the end boundary: the band index of the next present section after this one
+        // in reading order (not necessarily the §N+1 in anchor order — strictly by band position).
+        var nextBandIndex = allBands.Count; // default: end of document
+
+        // Find our position in the reading-order list.
+        for (var j = 0; j < presentSections.Count - 1; j++)
+        {
+            if (presentSections[j].SectionIndex == sectionAnchorIndex)
+            {
+                nextBandIndex = presentSections[j + 1].BandIndex;
+                break;
+            }
+        }
+
+        // Ensure at least the heading band itself is included even when two section anchors
+        // share the same band (2-column layout: e.g. §7 and §8 heading on the same Y-line).
+        // Without this clamp, the range [headingBandIndex, headingBandIndex) is empty.
+        var stopIndex = Math.Max(nextBandIndex, headingBandIndex + 1);
+
+        // Collect band texts from headingBandIndex (inclusive) to stopIndex (exclusive).
+        var sb = new StringBuilder();
+        for (var b = headingBandIndex; b < stopIndex && b < allBands.Count; b++)
+        {
+            if (sb.Length > 0)
+                sb.Append(' ');
+            sb.Append(allBands[b].NormalizedText);
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Builds the 28-section list with all sections absent or indeterminate (used when the
+    /// text layer is empty or no bands were collected).
     /// </summary>
     private static IReadOnlyList<DetectedSection> BuildAllAbsent()
     {
         var results = new List<DetectedSection>(28);
-        foreach (var (number, name, _, isConditional) in s_sectionAnchors)
+        foreach (var (number, name, _, isConditional, isIndeterminate) in s_sectionAnchors)
         {
-            results.Add(new DetectedSection(
-                SectionNumber: number,
-                Name: name,
-                IsPresent: false,
-                IsApplicable: !isConditional,
-                Locator: FieldLocator.NoPage()));
+            if (isIndeterminate)
+            {
+                results.Add(new DetectedSection(
+                    SectionNumber: number,
+                    Name: name,
+                    IsPresent: false,
+                    IsApplicable: false,
+                    Locator: FieldLocator.NoPage())
+                {
+                    DetectionStatus = SectionDetectionStatus.Indeterminate,
+                });
+            }
+            else
+            {
+                results.Add(new DetectedSection(
+                    SectionNumber: number,
+                    Name: name,
+                    IsPresent: false,
+                    IsApplicable: !isConditional,
+                    Locator: FieldLocator.NoPage())
+                {
+                    DetectionStatus = SectionDetectionStatus.Absent,
+                });
+            }
         }
 
         return results;
