@@ -1,10 +1,12 @@
+using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Veriqan VEC batch worker host (Epic 1 skeleton). Pipeline DI composition (rules, adapters,
-// reference-data providers, reporting) is wired through Veriqan.Orchestration as feature epics land.
+// Veriqan VEC batch worker — full DI composition via Orchestration layer.
+builder.Services.AddVeriqan(builder.Configuration);
+
 var app = builder.Build();
 
-// Health endpoints (minimal: the Veriqan worker is a background batch host with no readiness gate yet).
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
 app.MapGet("/health/live", () => Results.Ok(new { status = "Healthy" }));
 

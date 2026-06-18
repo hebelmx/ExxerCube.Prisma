@@ -8,6 +8,17 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
+  <!--
+    This Solution-1 project lives at the '03 Orchestration' folder root, so its default SDK glob
+    (**/*.cs) would otherwise pull in the additive 'Veriqan.Orchestration' subfolder, which has its
+    own project + dependencies. Exclude it so the Veriqan source compiles only in its own assembly
+    (keeps the Veriqan -> Prisma isolation; no Veriqan types leak into Prisma.Orchestration).
+  -->
+  <ItemGroup>
+    <Compile Remove="Veriqan.Orchestration\**\*.cs" />
+    <EmbeddedResource Remove="Veriqan.Orchestration\**\*" />
+    <None Remove="Veriqan.Orchestration\**\*" />
+  </ItemGroup>
   <ItemGroup>
     <!-- Core -->
     <ProjectReference Include="..\01 Core\Application\ExxerCube.Prisma.Application.csproj" />
