@@ -68,10 +68,25 @@ installment extraction (CL-23/40/41), rewards extraction+fixture (CL-36/37/39), 
 **Legal context (authoritative):** `docs/legal/regulations/` — CONDUSEF `Acuerdo_estado_de_cuenta.pdf` +
 SIARA/DGAAC docs. Terminology + regulatory checks (esp. Epic 6) must accord with it.
 
-**Next:** Epic 5 (Visual & Print-Quality, FR-9..12) — font (CL-35), text-overlap/headers (CL-28/29),
-pagination/blank/per-page (CL-31/33/34/48) are buildable now (PdfPig geometry + PDFtoImage render); catalog
-image-presence (CL-27/30/47, pHash) needs the §6 image-catalog client answer. Full plan + carry-forwards +
-orchestration gotchas: `ORCHESTRATION-HANDOFF-2026-06-17.md`.
+**Epic 5 — Visual & Print-Quality: DONE** (commits through `424351d0`), reviewed. Font/Aptos (CL-35),
+text-overlap+headers (CL-28/29), pagination/blank/per-page logo+card (CL-31/33/34/48) via PdfPig geometry.
+**5.4 catalog image-presence (CL-27/30/47, pHash) DEFERRED** — needs the §6 image-catalog client answer.
+
+**Epic 6 — Regulatory & Fiscal: DONE** (commits through `e88249de`), reviewed. Legends + COMPARA
+(CL-32/46, shared `VecTextNormalizer`), fiscal QR/RFC (CL-50..53, ZXing+PDFtoImage; never false-FAILs a
+no-comisiones/IVA statement), promotions currency (CL-49, never false-FAILs — expired→InsufficientData
+pending image presence).
+
+**Epic 7 — Findings, Reporting & QA Console: DONE** (commits `19246bb7`→`5bed45be`), reviewed (all 4
+genuinely done). VerdictAggregator (BLOCKED>RED>GREEN; InsufficientData never alone makes RED); color-marked
+PDF (PdfSharp, PdfPig→PdfSharp Y-flip, pixel-verified); RED email alert (Polly retry, exactly-one,
+log-not-drop); human Disposition append-only audit (actor required, no auto-disposition; veriqan-schema
+migration). QA Console UI is a deferred thin surface.
+
+**Next:** Epic 8 (Batch Processing & Observability, FR-21/22; NFR-1/3/4) — bounded-concurrency batch worker
++ exception queue, resume/reprocess idempotently, per-job metrics + measured throughput. Completes the
+original 55-item MVP. (Then: the Tranche 2 regulatory tranche E9–E13 — E9 seam first.) Full plan +
+carry-forwards + orchestration gotchas: `ORCHESTRATION-HANDOFF-2026-06-17.md`.
 
 ---
 

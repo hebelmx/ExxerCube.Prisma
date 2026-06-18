@@ -29,7 +29,9 @@ namespace ExxerCube.Prisma.Veriqan.Domain.Entities;
 public sealed class Disposition
 {
     /// <summary>
-    /// Private constructor reserved for EF Core materialization.
+    /// Private constructor reserved for EF Core materialization. This path intentionally bypasses the
+    /// public-constructor actor guard; the append-only audit table's <c>Actor NOT NULL</c> column
+    /// constraint is the materialization-path guarantee that no actor-less row can be hydrated.
     /// </summary>
     private Disposition() { }
 
