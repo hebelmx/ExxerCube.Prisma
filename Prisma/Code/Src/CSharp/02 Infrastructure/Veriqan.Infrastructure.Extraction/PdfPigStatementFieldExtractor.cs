@@ -3280,7 +3280,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         PdfDocument doc,
         IReadOnlyList<DetectedSection> detectedSections)
     {
-        var tables = new List<FinancialTable>(4);
+        var tables = new List<FinancialTable>(5);
 
         // Collect all bands in reading order once (reuse pattern from §-detection).
         var allBands = CollectAllBandsInReadingOrder(doc);
@@ -3289,6 +3289,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         tables.Add(ExtractSection19Table(allBands, detectedSections));
         tables.Add(ExtractSection20Table(allBands, detectedSections));
         tables.Add(ExtractSection16Table(allBands, detectedSections));
+        tables.Add(ExtractSection6Table(allBands, detectedSections));
 
         return tables;
     }
@@ -3734,6 +3735,175 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "§16 table extraction failed; returning Indeterminate.");
+            return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // §6 — ¿CUÁNTO PAGARÍAS? PAYMENT-SIMULATION TABLE
+    // -----------------------------------------------------------------------
+
+    // ⚠️ UNCALIBRATED — no §6 PDF fixture exists in the PRP2 corpus (all three
+    // Dummie VEC PDFs omit this section).  The extractor is implemented following
+    // the §19/§20 pattern so it activates automatically when a real §6 statement
+    // is present; its cell-shape is driven entirely by Section6PaymentSimulationRule's
+    // contract.  Real-statement accuracy is CORPUS-GATED — verify with a real §6 PDF
+    // before treating any Extracted result as calibrated.
+    //
+    // Contract with Section6PaymentSimulationRule:
+    //   table6.Rows[0..2] → scenarios k=1, k=2, k=5 (pago mínimo multipliers)
+    //   row.Values[ColMonths=0]   → months-to-pay  (CellKind.Days or NotApplicable)
+    //   row.Values[ColInterest=1] → total ordinary interest (CellKind.Amount or NotApplicable)
+    //   Confidence threshold from TenantProfile is applied by the rule, not the extractor.
+
+    /// <summary>
+    /// Normalized anchor fragments for the three §6 payment scenarios.
+    /// The §6 heading anchor "CUANTO PAGARIAS POR TUS COMPRAS" is already in
+    /// <see cref="s_sectionAnchors"/>; these are the per-row scenario labels.
+    /// Matching uses NormalizeText + Contains (ordinal, already upper+stripped).
+    /// ⚠️ UNCALIBRATED: derived from the Acuerdo §6 spec, not from a real fixture scan.
+    /// </summary>
+    private static readonly string[] s_sec6ScenarioAnchors =
+    [
+        "PAGANDO EL PAGO MINIMO",       // k=1: minimum payment
+        "2 VECES EL PAGO MINIMO",       // k=2: double minimum payment
+        "5 VECES EL PAGO MINIMO",       // k=5: 5× minimum payment
+    ];
+
+    /// <summary>
+    /// Canonical display names for the three §6 scenarios (same order as
+    /// <see cref="s_sec6ScenarioAnchors"/>).
+    /// </summary>
+    private static readonly string[] s_sec6ScenarioNames =
+    [
+        "Pagando el pago mínimo (k=1)",
+        "Pagando 2 veces el pago mínimo (k=2)",
+        "Pagando 5 veces el pago mínimo (k=5)",
+    ];
+
+    // §6 column X-ranges (PDF points, bottom-left origin).
+    // ⚠️ UNCALIBRATED — values below are Acuerdo-guided estimates only.
+    // Must be recalibrated against a real §6 PDF before relying on extraction.
+    //   Row label (scenario name):  X ≈ 0–200
+    //   Months to pay:              X ≈ 200–340  (CellKind.Days)
+    //   Total ordinary interest:    X ≈ 341–540  (CellKind.Amount)
+    private const double Sec6LabelXMax    = 200.0;
+    private const double Sec6MonthsXMin   = 200.0;
+    private const double Sec6MonthsXMax   = 340.0;
+    private const double Sec6InterestXMin = 341.0;
+
+    /// <summary>
+    /// Extracts the §6 "¿Cuánto pagarías?" payment-simulation table (3 scenario rows).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>UNCALIBRATED (corpus-gated):</b> no §6 PDF fixture exists in the PRP2 corpus.
+    /// On all three current Dummie VEC fixtures §6 is absent, so this method returns
+    /// <see cref="FinancialTable.NotFound"/> (the safe abstain path).  The recursion/
+    /// comparison logic in <c>Section6PaymentSimulationRule</c> will only run
+    /// once <see cref="TableExtractionStatus.Extracted"/> is returned here.
+    /// </para>
+    /// <para>
+    /// <b>Row contract (consumed by <c>Section6PaymentSimulationRule</c>):</b>
+    /// <list type="bullet">
+    ///   <item><c>row.Values[0]</c> — months to pay (<see cref="CellKind.Days"/> or <see cref="CellKind.NotApplicable"/>)</item>
+    ///   <item><c>row.Values[1]</c> — total ordinary pre-IVA interest (<see cref="CellKind.Amount"/> or <see cref="CellKind.NotApplicable"/>)</item>
+    /// </list>
+    /// Three rows in order: k=1 (pago mínimo), k=2 (2×), k=5 (5×).
+    /// </para>
+    /// <para>
+    /// <b>Abstain safety:</b> heading not found → NotFound; heading found but rows
+    /// unresolvable → NoRowsParsed / Indeterminate.  Never guesses rows.
+    /// </para>
+    /// </remarks>
+    private FinancialTable ExtractSection6Table(
+        List<BandEntry> allBands,
+        IReadOnlyList<DetectedSection> detectedSections)
+    {
+        const int secNum = 6;
+        const string secName = "¿Cuánto pagarías? (simulación de pagos)";
+
+        // §6 absent in all current PRP2 fixtures — NotFound is the expected path.
+        var sec = detectedSections.FirstOrDefault(s => s.SectionNumber == secNum);
+        if (sec is null || !sec.IsPresent)
+            return FinancialTable.NotFound(secNum, secName);
+
+        var headingLocator = sec.Locator;
+
+        try
+        {
+            var (startBandIdx, endBandIdx) = GetSectionBandRange(allBands, detectedSections, secNum);
+            if (startBandIdx < 0)
+                return FinancialTable.Indeterminate(secNum, secName, headingLocator);
+
+            var sectionWords = GetWordsInBandRange(allBands, startBandIdx, endBandIdx);
+            var bands = GroupIntoBandsWithTolerance(sectionWords, YBandTolerance);
+            var sortedBands = bands.OrderByDescending(kv => kv.Key).ToList();
+
+            var rows = new List<TableRow>();
+
+            for (var scenarioIdx = 0; scenarioIdx < s_sec6ScenarioAnchors.Length; scenarioIdx++)
+            {
+                var anchorNorm = s_sec6ScenarioAnchors[scenarioIdx];
+                var rowName    = s_sec6ScenarioNames[scenarioIdx];
+
+                // Locate the band whose normalized text contains this scenario label.
+                var matchBand = sortedBands.FirstOrDefault(
+                    kv => NormalizeText(BandText(kv.Value)).Contains(anchorNorm, StringComparison.Ordinal));
+
+                if (matchBand.Value is null)
+                {
+                    // Scenario row absent — produce a Missing row; do not fail the whole table.
+                    rows.Add(new TableRow(
+                        TableCell.LabelCell(rowName, headingLocator),
+                        [
+                            TableCell.Missing(headingLocator),
+                            TableCell.Missing(headingLocator),
+                        ]));
+                    continue;
+                }
+
+                var bandWords = matchBand.Value;
+                var pageNum = allBands
+                    .FirstOrDefault(b => Math.Abs(b.BandY - matchBand.Key) < YBandTolerance
+                                         && b.PageNumber == headingLocator.PageNumber)?.PageNumber
+                    ?? allBands
+                    .FirstOrDefault(b => Math.Abs(b.BandY - matchBand.Key) < YBandTolerance)?.PageNumber
+                    ?? headingLocator.PageNumber;
+
+                var labelLoc = BoundingBoxOf(
+                    bandWords.Where(w => w.BoundingBox.Left <= Sec6LabelXMax).ToList(), pageNum);
+                if (!labelLoc.HasBoundingBox) labelLoc = headingLocator;
+                var labelCell = TableCell.LabelCell(rowName, labelLoc);
+
+                // Months cell (col 0): integer count of months, treated as Days kind.
+                var monthsCell = ExtractSec19Cell(
+                    bandWords, Sec6MonthsXMin, Sec6MonthsXMax, CellKind.Days, pageNum);
+
+                // Interest cell (col 1): total ordinary interest amount (pre-IVA).
+                var interestCell = ExtractSec19Cell(
+                    bandWords, Sec6InterestXMin, double.MaxValue, CellKind.Amount, pageNum);
+
+                rows.Add(new TableRow(labelCell, [monthsCell, interestCell]));
+            }
+
+            if (rows.Count == 0)
+                return FinancialTable.NoRows(secNum, secName, headingLocator);
+
+            // Require at least one scenario row with at least one non-Empty cell before
+            // declaring Extracted — guards against a spurious heading match with empty content.
+            // (ParseFailure cells have Kind=Amount with Confidence=0.7; Empty has Kind=Empty.)
+            var hasUsableRow = rows.Any(r =>
+                r.Values.Any(c => c.Kind != CellKind.Empty));
+
+            if (!hasUsableRow)
+                return FinancialTable.NoRows(secNum, secName, headingLocator);
+
+            return new FinancialTable(secNum, secName, TableExtractionStatus.Extracted, rows, headingLocator);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "§6 table extraction failed; returning Indeterminate.");
             return FinancialTable.Indeterminate(secNum, secName, headingLocator);
         }
     }

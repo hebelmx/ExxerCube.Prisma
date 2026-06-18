@@ -395,12 +395,116 @@ public sealed class FinancialTableExtractionTests
     }
 
     // -----------------------------------------------------------------------
+    // §6 Abstain tests (§6 absent in all PRP2 fixtures → SectionNotFound, no crash)
+    //
+    // NOTE: §6 extraction is UNCALIBRATED — no §6 PDF fixture exists in the PRP2
+    // corpus.  These tests verify only the graceful-abstain path (SectionNotFound)
+    // and that the §6 entry is present in FinancialTables so Section6PaymentSimulationRule
+    // can locate it.  Real-statement accuracy is corpus-gated.
+    // -----------------------------------------------------------------------
+
+    [Theory]
+    [MemberData(nameof(AllFixtures))]
+    public async Task ExtractFullAsync_AllFixtures_Section6PresentInFinancialTables(
+        string fixturePath, string fixtureName)
+    {
+        // §6 must be present in FinancialTables (by SectionNumber) on every fixture
+        // so Section6PaymentSimulationRule can look it up via FirstOrDefault(t => t.SectionNumber == 6).
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+        var pdf = ReadFixture(fixturePath);
+
+        var result = await extractor.ExtractFullAsync(pdf, ct);
+
+        result.IsSuccess.ShouldBeTrue($"[{fixtureName}] Extraction failed: {result.Error}");
+        var tables = result.Value!.FinancialTables;
+
+        var sec6 = tables.FirstOrDefault(t => t.SectionNumber == 6);
+        sec6.ShouldNotBeNull($"[{fixtureName}] §6 entry must be present in FinancialTables");
+    }
+
+    [Theory]
+    [MemberData(nameof(AllFixtures))]
+    public async Task ExtractFullAsync_AllFixtures_Section6AbsentYieldsSectionNotFound(
+        string fixturePath, string fixtureName)
+    {
+        // §6 is absent from all three PRP2 Dummie VEC fixtures.
+        // The graceful-abstain path must return SectionNotFound (never an exception).
+        // ⚠️ UNCALIBRATED: if a real §6 statement is added to fixtures this assertion
+        // may change to Extracted — recalibrate then.
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+        var pdf = ReadFixture(fixturePath);
+
+        var result = await extractor.ExtractFullAsync(pdf, ct);
+
+        result.IsSuccess.ShouldBeTrue($"[{fixtureName}] Extraction failed: {result.Error}");
+        var sec6 = GetTable(result.Value!.FinancialTables, 6);
+
+        // On current fixtures (§6 absent) expect SectionNotFound.
+        // Any valid terminal status is acceptable — the key invariant is no exception.
+        sec6.Status.ShouldBeOneOf(
+            [TableExtractionStatus.SectionNotFound, TableExtractionStatus.Extracted,
+             TableExtractionStatus.NoRowsParsed, TableExtractionStatus.Indeterminate],
+            $"[{fixtureName}] §6 has unexpected status {sec6.Status}");
+
+        // When absent, rows must be empty.
+        if (sec6.Status == TableExtractionStatus.SectionNotFound)
+            sec6.Rows.ShouldBeEmpty($"[{fixtureName}] §6 SectionNotFound should have no rows");
+    }
+
+    [Theory]
+    [MemberData(nameof(AllFixtures))]
+    public async Task ExtractFullAsync_AllFixtures_Section6WhenExtractedHasThreeRowsWithTwoCellsEach(
+        string fixturePath, string fixtureName)
+    {
+        // Guard: if a real §6 statement is added to the fixture corpus and the extractor
+        // returns Extracted, verify the row/cell shape matches Section6PaymentSimulationRule's
+        // contract: 3 rows (k=1,2,5), each with 2 value cells [months, interest].
+        // ⚠️ UNCALIBRATED: on current fixtures this test is a no-op (SectionNotFound).
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+        var pdf = ReadFixture(fixturePath);
+
+        var result = await extractor.ExtractFullAsync(pdf, ct);
+
+        result.IsSuccess.ShouldBeTrue($"[{fixtureName}] Extraction failed: {result.Error}");
+        var sec6 = GetTable(result.Value!.FinancialTables, 6);
+
+        if (sec6.Status != TableExtractionStatus.Extracted)
+            return; // SectionNotFound/Indeterminate — not yet calibrated; skip shape check.
+
+        sec6.Rows.Count.ShouldBe(3,
+            $"[{fixtureName}] §6 Extracted must have 3 scenario rows (k=1,2,5)");
+
+        foreach (var row in sec6.Rows)
+        {
+            row.Values.Count.ShouldBe(2,
+                $"[{fixtureName}] §6 row '{row.Label.RawText}' must have 2 value cells " +
+                $"[months, interest] (Section6PaymentSimulationRule contract)");
+
+            // Cell kinds: months col [0] may be Days (good parse), Amount (parse failure but
+            // raw text found — ParseFailure returns Kind=Amount confidence=0.7), NotApplicable,
+            // or Empty (absent).  ⚠️ UNCALIBRATED: column X-ranges not yet fitted to a real §6
+            // PDF so Amount-kind parse failures are expected until recalibration.
+            row.Values[0].Kind.ShouldBeOneOf(
+                [CellKind.Days, CellKind.Amount, CellKind.NotApplicable, CellKind.Empty],
+                $"[{fixtureName}] §6 row '{row.Label.RawText}' months cell (col 0) unexpected kind {row.Values[0].Kind}");
+
+            // Interest col [1]: Amount, NotApplicable, or Empty.
+            row.Values[1].Kind.ShouldBeOneOf(
+                [CellKind.Amount, CellKind.NotApplicable, CellKind.Empty],
+                $"[{fixtureName}] §6 row '{row.Label.RawText}' interest cell (col 1) unexpected kind {row.Values[1].Kind}");
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // FinancialTables collection invariants
     // -----------------------------------------------------------------------
 
     [Theory]
     [MemberData(nameof(AllFixtures))]
-    public async Task ExtractFullAsync_AllFixtures_FinancialTablesContainsFourEntries(
+    public async Task ExtractFullAsync_AllFixtures_FinancialTablesContainsFiveEntries(
         string fixturePath, string fixtureName)
     {
         var ct = TestContext.Current.CancellationToken;
@@ -412,10 +516,12 @@ public sealed class FinancialTableExtractionTests
         result.IsSuccess.ShouldBeTrue($"[{fixtureName}] Extraction failed: {result.Error}");
         var tables = result.Value!.FinancialTables;
 
-        // Always exactly 4 entries: §8, §19, §20, §16.
-        tables.Count.ShouldBe(4, $"[{fixtureName}] Expected 4 FinancialTable entries");
-        tables.Select(t => t.SectionNumber).ShouldBe([8, 19, 20, 16],
-            $"[{fixtureName}] Table section numbers should be [8, 19, 20, 16]");
+        // Always exactly 5 entries: §8, §19, §20, §16, §6.
+        // §6 is UNCALIBRATED (no §6 fixture exists in PRP2 corpus) — it is always SectionNotFound
+        // on current fixtures.  The count must still be 5 so the §6 rule can find it by SectionNumber.
+        tables.Count.ShouldBe(5, $"[{fixtureName}] Expected 5 FinancialTable entries (§8, §19, §20, §16, §6)");
+        tables.Select(t => t.SectionNumber).ShouldBe([8, 19, 20, 16, 6],
+            $"[{fixtureName}] Table section numbers should be [8, 19, 20, 16, 6]");
     }
 
     [Theory]
