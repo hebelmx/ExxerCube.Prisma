@@ -71,8 +71,14 @@ internal sealed class Section19InterestPerRowRule : IVecValidationRule
     private const int ColTasa = 2;
     private const int ColMonto = 3;
 
-    // Rate normalization: values above this threshold are percentage numbers (e.g. 27.36).
+    // Rate normalization: values above this threshold are almost certainly percentage numbers.
+    // Used as a fallback when neither RawText '%' nor CellKind provides a signal.
     private const decimal RatePercentageThreshold = 1.5m;
+
+    // Lower bound of the "ambiguous zone": values in (AmbiguousLow, RatePercentageThreshold]
+    // with no '%' in RawText are genuinely ambiguous (could be 1.2% or 1.2 = 120%).
+    // The rule returns null (InsufficientData) for this range.
+    private const decimal AmbiguousLow = 1.0m;
 
     // Epsilon for the §10 rate cross-check (fraction space, ≈ 0.05 pct-pt).
     private const decimal RateEpsilon = 0.0005m;
@@ -109,6 +115,10 @@ internal sealed class Section19InterestPerRowRule : IVecValidationRule
     {
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
+
+        // Guard: tolerance must be registered before attempting to resolve.
+        if (!_toleranceProvider.Has(CheckId))
+            return InsufficientData($"No legal tolerance registered for {CheckId} — cannot evaluate.");
 
         // Resolve tolerances
         var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
@@ -192,14 +202,15 @@ internal sealed class Section19InterestPerRowRule : IVecValidationRule
             var montoReported = montoCell.ParsedValue!.Value;
             var tasaRaw      = tasaCell.ParsedValue!.Value;
 
-            // Normalize tasa to fraction space.
-            var tasaFraction = NormalizeRateToFraction(tasaRaw);
+            // Normalize tasa to fraction space using cell metadata (RawText / Kind)
+            // to determine the scale, rather than the magnitude heuristic alone.
+            var tasaFraction = NormalizeRateToFraction(tasaCell);
             if (tasaFraction is null)
             {
-                // Negative rate value — cannot recompute; abstain for the whole rule.
+                // Negative, ambiguous, or otherwise unresolvable rate — abstain.
                 return InsufficientData(
-                    $"§19 row '{row.Label.RawText}' has an invalid tasa value {tasaRaw} " +
-                    "(negative rate is not valid).");
+                    $"§19 row '{row.Label.RawText}' has an unresolvable tasa value {tasaRaw} " +
+                    $"(raw: \"{tasaCell.RawText}\") — cannot determine percentage vs fraction scale; abstaining.");
             }
 
             var expected = saldoBase * (tasaFraction.Value / 360m) * dias;
@@ -304,8 +315,7 @@ internal sealed class Section19InterestPerRowRule : IVecValidationRule
         if (IsNaOrEmpty(tasaCell) || !HasUsableValue(tasaCell, confidenceThreshold))
             return CrossCheckOutcome.Skip();
 
-        var tasaRaw = tasaCell.ParsedValue!.Value;
-        var tasaFraction = NormalizeRateToFraction(tasaRaw);
+        var tasaFraction = NormalizeRateToFraction(tasaCell);
         if (tasaFraction is null)
             return CrossCheckOutcome.Skip(); // negative or ambiguous rate — abstain
 
@@ -326,7 +336,7 @@ internal sealed class Section19InterestPerRowRule : IVecValidationRule
             Fails = true,
             Reason =
                 $"§10 cross-check: Ordinarios tasa={tasaFraction.Value:F6} " +
-                $"(normalized from raw={tasaRaw}) vs §10 tasa={periodTasaFraction:F6}, " +
+                $"(normalized from raw=\"{tasaCell.RawText}\") vs §10 tasa={periodTasaFraction:F6}, " +
                 $"diff={rateDiff:F6} > epsilon={RateEpsilon}",
             Locator = tasaCell.Locator,
             LegalPasses = false
@@ -349,21 +359,86 @@ internal sealed class Section19InterestPerRowRule : IVecValidationRule
         cell.ParsedValue is not null && cell.Confidence >= threshold;
 
     /// <summary>
-    /// Normalizes a raw rate value to a decimal fraction (e.g. 27.36 → 0.2736).
-    /// Values &gt; <c>RatePercentageThreshold</c> (1.5) are treated as percentage numbers.
-    /// Returns <see langword="null"/> for negative rates (invalid — caller should abstain).
+    /// Normalizes the rate cell to a decimal fraction (e.g. 27.36 → 0.2736).
+    /// Scale is determined from the cell's <see cref="TableCell.Kind"/>,
+    /// <see cref="TableCell.RawText"/>, and magnitude, in priority order:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <b>CellKind.Rate, value ≤ AmbiguousLow (1.0)</b> → domain contract guarantees
+    ///     the value is already a decimal fraction; use directly.
+    ///     The <c>RawText</c> may carry a <c>%</c> sign (e.g. "27.36%") but the extractor
+    ///     has already normalised; do NOT divide again.
+    ///   </item>
+    ///   <item>
+    ///     <b>CellKind.Rate, value &gt; RatePercentageThreshold (1.5)</b> → the extractor
+    ///     tagged the cell as Rate but stored the percentage number (e.g. 27.36 instead of
+    ///     0.2736); magnitude unambiguously signals a percentage — divide by 100.
+    ///   </item>
+    ///   <item>
+    ///     <b>CellKind.Rate, value in (AmbiguousLow, RatePercentageThreshold]</b> → value
+    ///     could be 1.2 = 120% rate (unlikely but possible for some special-rate products),
+    ///     or 1.2% as a fraction from a mal-normalised extractor. Given domain contract, treat
+    ///     as a fraction and use directly.
+    ///   </item>
+    ///   <item>
+    ///     <b>Kind != CellKind.Rate AND <c>RawText</c> contains <c>'%'</c></b> →
+    ///     the extracted text is a percentage number not yet divided; divide by 100.
+    ///   </item>
+    ///   <item>
+    ///     <b>Kind != CellKind.Rate, no <c>'%'</c>, value ≤ AmbiguousLow</b> → fraction.
+    ///   </item>
+    ///   <item>
+    ///     <b>Kind != CellKind.Rate, no <c>'%'</c>, value &gt; RatePercentageThreshold</b>
+    ///     → percentage number; divide by 100.
+    ///   </item>
+    ///   <item>
+    ///     <b>Kind != CellKind.Rate, no <c>'%'</c>, ambiguous zone (1.0, 1.5]</b> →
+    ///     returns <see langword="null"/> (caller returns InsufficientData).
+    ///   </item>
+    ///   <item>
+    ///     Negative rate → returns <see langword="null"/> (invalid; caller abstains).
+    ///   </item>
+    /// </list>
     /// </summary>
-    private static decimal? NormalizeRateToFraction(decimal rawRate)
+    private static decimal? NormalizeRateToFraction(TableCell tasaCell)
     {
+        var rawRate = tasaCell.ParsedValue!.Value; // caller guarantees ParsedValue is not null
+
         if (rawRate < 0m)
             return null; // invalid — caller abstains
 
         if (rawRate == 0m)
             return 0m;
 
-        return rawRate > RatePercentageThreshold
-            ? rawRate / 100m
-            : rawRate;
+        if (tasaCell.Kind == CellKind.Rate)
+        {
+            // Domain contract: Rate cells carry the value as a decimal fraction.
+            // Exception: magnitude > 1.5 unambiguously reveals that the extractor stored
+            // the percentage number rather than dividing — normalise defensively.
+            if (rawRate > RatePercentageThreshold)
+                return rawRate / 100m;
+
+            // Value ≤ 1.5: either a confirmed fraction (≤ 1.0) or the ambiguous zone
+            // (1.0, 1.5] — for Rate cells the domain contract applies, trust it.
+            return rawRate;
+        }
+
+        // Non-Rate cell: determine scale from RawText first, then magnitude.
+
+        // Explicit percentage signal from the printed text.
+        if (tasaCell.RawText.Contains('%', StringComparison.Ordinal))
+            return rawRate / 100m;
+
+        // No '%' present — use the value range to decide.
+        if (rawRate <= AmbiguousLow)
+            return rawRate; // clearly a fraction (e.g. 0.2736)
+
+        if (rawRate > RatePercentageThreshold)
+            return rawRate / 100m; // almost certainly a percentage number (e.g. 27.36)
+
+        // Non-Rate cell, ambiguous zone (1.0, 1.5]: no '%', could be 1.2% or 1.2 = 120%.
+        // Return null so the caller abstains rather than guessing.
+        return null;
     }
 
     private Result<RuleFinding> InsufficientData(string reason) =>

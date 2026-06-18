@@ -7,8 +7,10 @@ using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shouldly;
@@ -33,7 +35,8 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Tests;
 /// <b>Fail-vs-InsufficientData decision logic:</b>
 /// <list type="bullet">
 ///   <item>
-///     <c>SectionNotFound</c> → Fail (extractor searched the whole document and confirmed §8 is absent).
+///     <c>SectionNotFound</c> → InsufficientData (heading detection is heuristic; cannot
+///     distinguish absent from undetected — abstain to prevent a false Fail).
 ///   </item>
 ///   <item>
 ///     <c>Indeterminate</c> / <c>NoRowsParsed</c> → InsufficientData (heading found but rows not reliably
@@ -257,22 +260,29 @@ public sealed class Section8IndicatorsRuleTests
         result.Value.LegalBaselineVerdict.ShouldBe(FindingVerdict.Fail);
     }
 
+    /// <summary>
+    /// TableCell.Missing() returns Kind=Empty, Confidence=0.0.
+    /// Since 0.0 &lt; 0.8 (legal confidence threshold), a Missing cell is treated as
+    /// InsufficientData — we cannot distinguish a genuinely absent indicator from an
+    /// OCR failure that produced a zero-confidence read. Abstain rather than false-Fail.
+    /// </summary>
     [Fact]
-    public void Evaluate_SecondIndicatorMissing_ReturnsFail_CitingSection8()
+    public void Evaluate_SecondIndicatorMissing_ReturnsInsufficientData()
     {
         var table = MakeSection8Table(
             TableCell.Amount(1_200.00m, "1200.00", P1()),
-            TableCell.Missing(P1()),                        // indicator [1] missing
+            TableCell.Missing(P1()),                        // indicator [1]: confidence=0.0 → InsufficientData
             TableCell.Amount(300.00m, "300.00", P1()));
         var model = ModelWith(table);
         var ctx = Ctx(model);
 
         var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
 
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
-        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
-        result.Value.Observed.ShouldNotBeNullOrEmpty("Fail must carry a reason in Observed");
-        result.Value.Observed!.ShouldContain("§8", Case.Sensitive);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Missing cell has confidence 0.0 < 0.8 threshold — cannot distinguish absent from OCR failure; must abstain");
+        result.Value.Observed.ShouldNotBeNullOrEmpty("InsufficientData must carry a reason");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Cardinal rule: never false-Fail on zero-confidence extraction");
     }
 
     [Fact]
@@ -441,11 +451,12 @@ public sealed class Section8IndicatorsRuleTests
     }
 
     // -----------------------------------------------------------------------
-    // (f) §8 SectionNotFound (confident) → Fail
+    // (f) §8 SectionNotFound → InsufficientData
+    //     (heading detection is heuristic; cannot distinguish absent from undetected)
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Evaluate_Section8SectionNotFound_ReturnsFail()
+    public void Evaluate_Section8SectionNotFound_ReturnsInsufficientData()
     {
         var missingStr = ExtractedField<string>.Missing(P1());
         var missingName = ExtractedField<ExtractedClientName>.Missing(P1());
@@ -466,10 +477,77 @@ public sealed class Section8IndicatorsRuleTests
         var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
-            "SectionNotFound means the extractor searched the whole document and §8 is genuinely absent — Fail");
-        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
-        result.Value.LegalBaselineVerdict.ShouldBe(FindingVerdict.Fail);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "SectionNotFound uses heuristic heading detection — cannot distinguish absent from undetected; must abstain");
+        result.Value.Observed.ShouldNotBeNullOrEmpty("InsufficientData must carry a reason");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Cardinal rule: never false-Fail on a billing-run gate when detection is heuristic");
+    }
+
+    // -----------------------------------------------------------------------
+    // (f2) Low-confidence Empty cell → InsufficientData (not Fail)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_LowConfidenceEmptyCell_ReturnsInsufficientData_NotFail()
+    {
+        // An Empty cell with confidence below threshold — OCR may have simply missed
+        // the value. We must not Fail on an uncertain read.
+        var lowConfEmpty = new TableCell(string.Empty, null, CellKind.Empty, 0.3, P1());
+        var table = MakeSection8Table(
+            lowConfEmpty,                                    // indicator [0]: low-conf empty
+            TableCell.Amount(450.00m, "450.00", P1()),
+            TableCell.Amount(300.00m, "300.00", P1()));
+        var model = ModelWith(table);
+        var ctx = Ctx(model);
+
+        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Empty cell with confidence 0.3 < 0.8 threshold must abstain, not Fail");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Cardinal rule: never false-Fail on uncertain extraction");
+    }
+
+    // -----------------------------------------------------------------------
+    // (f3) Unregistered tolerance → InsufficientData (not exception)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_UnregisteredTolerance_ReturnsInsufficientData_NotException()
+    {
+        // Arrange: build a rule with a tolerance provider that has no entry for CheckId.
+        var rule = new Section8AnnualCostIndicatorsRule(new EmptyToleranceProvider());
+
+        var table = MakeSection8Table(
+            TableCell.Amount(500.00m, "500.00", P1()),
+            TableCell.Amount(200.00m, "200.00", P1()),
+            TableCell.Amount(100.00m, "100.00", P1()));
+        var model = ModelWith(table);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("result must be a success-wrapped InsufficientData, not an exception");
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Unregistered tolerance must return InsufficientData, never throw");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test stub: tolerance provider with no registered tolerances
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Stub <see cref="ILegalToleranceProvider"/> that reports no tolerances registered.
+    /// Used to test the Has-guard in each rule (FIX 3).
+    /// </summary>
+    private sealed class EmptyToleranceProvider : ILegalToleranceProvider
+    {
+        public bool Has(string checkId) => false;
+
+        public Tolerance For(string checkId) =>
+            throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
     }
 
     // -----------------------------------------------------------------------

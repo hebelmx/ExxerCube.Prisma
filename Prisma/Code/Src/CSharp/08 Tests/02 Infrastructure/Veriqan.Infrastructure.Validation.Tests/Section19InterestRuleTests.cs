@@ -7,8 +7,10 @@ using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shouldly;
@@ -799,6 +801,132 @@ public sealed class Section19InterestRuleTests
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
         result.Value.ToleranceApplied.ShouldBe(Tol,
             "ADR-V3: the applied tolerance must be recorded on Pass findings");
+    }
+
+    // -----------------------------------------------------------------------
+    // (h) Scale detection from RawText '%' sign
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Tasa cell has Kind=Amount (extractor did not tag it as Rate), ParsedValue=1.2,
+    /// and RawText="1.2%" — the '%' sign explicitly indicates a percentage number.
+    /// Rule must divide by 100 (→ 0.012) before formula.
+    /// <para>
+    /// Note: <see cref="CellKind.Rate"/> cells carry the value already normalised to a
+    /// decimal fraction (domain contract), so this '%'-detection path only fires for
+    /// non-Rate cells whose extractor did not normalise the value.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Evaluate_NonRateCellWith1Point2PercentInRawText_TreatedAsPercentage_ReturnsPass()
+    {
+        const decimal saldo = 10_000m;
+        const decimal dias = 30m;
+        // Extractor left the value as the percentage number 1.2 (not yet ÷100) in an Amount cell.
+        const decimal rateAsStoredValue = 1.2m;
+        const decimal rateFractionExpected = rateAsStoredValue / 100m; // 0.012
+        var correctMonto = saldo * (rateFractionExpected / 360m) * dias;
+
+        var row = MakeRow("Ordinarios", new List<TableCell>
+        {
+            TableCell.Amount(saldo, saldo.ToString("F2"), P1()),
+            TableCell.Days(dias, dias.ToString(), P1()),
+            // Kind=Amount (not Rate) + RawText '%' → must be treated as percentage number (÷100)
+            new TableCell("1.2%", rateAsStoredValue, CellKind.Amount, 1.0, P1()),
+            TableCell.Amount(correctMonto, correctMonto.ToString("F2"), P1())
+        });
+
+        var table = MakeSection19Table([row]);
+        var model = ModelWith(table);
+        var ctx = Ctx(model);
+
+        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "Non-Rate cell with RawText '1.2%' signals a percentage — must ÷100 before formula");
+    }
+
+    /// <summary>
+    /// Tasa cell has Kind=Amount (extractor did not tag it as Rate), ParsedValue=1.2,
+    /// no '%' in RawText. Value is in ambiguous zone (1.0, 1.5] — the rule cannot
+    /// determine scale without an explicit '%' signal. Must return InsufficientData.
+    /// <para>
+    /// Note: <see cref="CellKind.Rate"/> cells are always fractions (domain contract)
+    /// and are never ambiguous. This test exercises the non-Rate fallback path.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Evaluate_NonRateCellAmbiguousScale_ReturnsInsufficientData()
+    {
+        const decimal saldo = 10_000m;
+        const decimal dias = 30m;
+        const decimal ambiguousRate = 1.2m; // in (1.0, 1.5] with no '%' → ambiguous
+
+        // Monto set to the "treat as fraction" value to avoid confounding with a Fail.
+        var montoIfFraction = saldo * (ambiguousRate / 360m) * dias;
+
+        var row = MakeRow("Ordinarios", new List<TableCell>
+        {
+            TableCell.Amount(saldo, saldo.ToString("F2"), P1()),
+            TableCell.Days(dias, dias.ToString(), P1()),
+            // Kind=Amount (not Rate) + no '%' in RawText + value 1.2 in ambiguous zone
+            new TableCell("1.2", ambiguousRate, CellKind.Amount, 1.0, P1()),
+            TableCell.Amount(montoIfFraction, montoIfFraction.ToString("F2"), P1())
+        });
+
+        var table = MakeSection19Table([row]);
+        var model = ModelWith(table);
+        var ctx = Ctx(model);
+
+        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Non-Rate cell with value 1.2 and no '%' is ambiguous — must abstain rather than guess scale");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Cardinal rule: never false-Fail on ambiguous extraction");
+    }
+
+    // -----------------------------------------------------------------------
+    // (i) Unregistered tolerance → InsufficientData (not exception)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_UnregisteredTolerance_ReturnsInsufficientData_NotException()
+    {
+        var rule = new Section19InterestPerRowRule(new EmptyToleranceProvider());
+
+        const decimal saldo = 10_000m;
+        const decimal dias = 30m;
+        const decimal tasaFraction = 0.2736m;
+        var correctMonto = saldo * (tasaFraction / 360m) * dias;
+
+        var row = MakeRow("Ordinarios", new List<TableCell>
+        {
+            TableCell.Amount(saldo, saldo.ToString("F2"), P1()),
+            TableCell.Days(dias, dias.ToString(), P1()),
+            TableCell.Rate(tasaFraction, "27.36%", P1()),
+            TableCell.Amount(correctMonto, correctMonto.ToString("F2"), P1())
+        });
+        var table = MakeSection19Table([row]);
+        var model = ModelWith(table);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("must be success-wrapped, not an exception");
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Unregistered tolerance must return InsufficientData, never throw");
+    }
+
+    // -----------------------------------------------------------------------
+    // Stub: empty tolerance provider
+    // -----------------------------------------------------------------------
+
+    private sealed class EmptyToleranceProvider : ILegalToleranceProvider
+    {
+        public bool Has(string checkId) => false;
+        public Tolerance For(string checkId) =>
+            throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
     }
 
     // -----------------------------------------------------------------------

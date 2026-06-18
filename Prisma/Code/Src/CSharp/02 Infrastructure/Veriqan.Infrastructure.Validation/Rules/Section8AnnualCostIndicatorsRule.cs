@@ -35,9 +35,9 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </para>
 /// <list type="bullet">
 ///   <item>
-///     <see cref="TableExtractionStatus.SectionNotFound"/> → <see cref="FindingVerdict.Fail"/>
-///     (the section heading was definitively not found in an otherwise well-parsed document —
-///     the law mandates §8 on every VEC statement).
+///     <see cref="TableExtractionStatus.SectionNotFound"/> → <see cref="FindingVerdict.InsufficientData"/>
+///     (heading detection is heuristic; SectionNotFound cannot be reliably distinguished from
+///     an undetected heading, so we abstain to prevent a false Fail on the billing run).
 ///   </item>
 ///   <item>
 ///     <see cref="TableExtractionStatus.Indeterminate"/> or
@@ -111,8 +111,12 @@ internal sealed class Section8AnnualCostIndicatorsRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
-        // Tolerance is registered (for best-effort coherence future use); resolve it so
-        // the provider throws early on misconfiguration rather than silently missing.
+        // Guard: tolerance must be registered before attempting to resolve.
+        // Missing tolerance = configuration gap; abstain rather than throw.
+        if (!_toleranceProvider.Has(CheckId))
+            return InsufficientData($"No legal tolerance registered for {CheckId} — cannot evaluate.");
+
+        // Tolerance registered (for best-effort coherence future use).
         var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
 
         // Guard: StatementModel must be present.
@@ -131,25 +135,18 @@ internal sealed class Section8AnnualCostIndicatorsRule : IVecValidationRule
 
         // Dispatch on extraction status.
         //
-        // SectionNotFound: the extractor searched the entire document and confirmed §8 is
-        // absent. This is a definitive compliance gap — Fail citing §8.
+        // SectionNotFound: heading detection is heuristic — a SectionNotFound result cannot
+        // reliably be distinguished from a heading that was present but undetected by the
+        // extractor. To avoid halting a billing run on a false Fail, we abstain.
         //
         // Indeterminate / NoRowsParsed: the extractor found §8's heading but could not
         // reliably reconstruct the rows. We cannot tell whether the indicators are truly
         // absent or just unreadable — abstain to prevent a false Fail.
         if (table8.Status == TableExtractionStatus.SectionNotFound)
         {
-            return Result<RuleFinding>.WithSuccess(
-                RuleFinding.Fail(
-                    checkId: CheckId,
-                    technique: Technique,
-                    severity: FindingSeverity.Critical,
-                    engineVersion: Version,
-                    expected: "§8 Indicadores del costo anual de la tarjeta present with 3 indicators",
-                    observed: "§8 section not found in document",
-                    toleranceApplied: legalTolerance,
-                    locator: locator,
-                    legalBaselineVerdict: FindingVerdict.Fail));
+            return InsufficientData(
+                "§8 not detected — heading detection is heuristic; cannot distinguish absent from " +
+                "undetected. Abstaining to prevent a false Fail on the billing run.");
         }
 
         if (table8.Status != TableExtractionStatus.Extracted)
@@ -196,9 +193,19 @@ internal sealed class Section8AnnualCostIndicatorsRule : IVecValidationRule
 
             // Cell kind Empty or Missing (CellKind.Empty covers both the EmptyCell and Missing
             // factory paths — both return Kind=Empty). ParsedValue is null in either case.
-            // This means the bank published §8 but left the indicator blank — Fail.
+            // Only Fail when the cell was read with sufficient confidence (confident empty =
+            // real omission by the bank). A low-confidence empty may just be an OCR artefact
+            // — abstain in that case to prevent a false Fail.
             if (cell.Kind == CellKind.Empty)
             {
+                if (cell.Confidence < confidenceThreshold)
+                {
+                    return InsufficientData(
+                        $"§8 indicator [{i}] ({IndicatorLabels[i]}) value cell is Empty/Missing with " +
+                        $"low confidence {cell.Confidence:F2} < {confidenceThreshold:F2} — " +
+                        "cannot distinguish genuine omission from OCR artefact; abstaining.");
+                }
+
                 return Result<RuleFinding>.WithSuccess(
                     RuleFinding.Fail(
                         checkId: CheckId,

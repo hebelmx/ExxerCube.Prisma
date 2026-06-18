@@ -140,6 +140,10 @@ internal sealed class Section6PaymentSimulationRule : IVecValidationRule
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
 
+        // Guard: tolerance must be registered before attempting to resolve.
+        if (!_toleranceProvider.Has(CheckId))
+            return InsufficientData($"No legal tolerance registered for {CheckId} — cannot evaluate.");
+
         // Resolve LEGAL tolerance: always use LegalDefault.
         var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
 

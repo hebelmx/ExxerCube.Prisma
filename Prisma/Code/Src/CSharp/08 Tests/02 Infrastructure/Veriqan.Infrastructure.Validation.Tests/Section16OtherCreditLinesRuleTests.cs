@@ -7,8 +7,10 @@ using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Shouldly;
@@ -198,18 +200,22 @@ public sealed class Section16OtherCreditLinesRuleTests
     }
 
     // -----------------------------------------------------------------------
-    // (b) §16 present with reconciling rows → Pass
+    // (b) §16 present (Status == Extracted) → InsufficientData (corpus-gated abstain)
+    //
+    // All "§16 present" paths now return InsufficientData because per-column semantics
+    // are corpus-gated — no §16 fixture exists to validate the column mapping.
+    // Running arithmetic on unverified columns risks a false Fail on the billing run.
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// §16 present with one row where IVA = Interés × 0.16 exactly.
-    /// Rule MUST return Pass.
+    /// §16 present (Extracted) with a well-formed reconciling row.
+    /// Rule MUST return InsufficientData — corpus-gated abstain, not Pass.
     /// </summary>
     [Fact]
-    public void Evaluate_Section16PresentWithReconcilingRow_ReturnsPass()
+    public void Evaluate_Section16PresentExtracted_ReturnsInsufficientData_CorpusGated()
     {
         const decimal interes = 500.00m;
-        var ivaExpected = interes * IvaRate; // 80.00
+        var ivaExpected = interes * IvaRate; // 80.00 — correct IVA
 
         var row = MakeRow("Línea de crédito personal", new List<TableCell>
         {
@@ -224,86 +230,22 @@ public sealed class Section16OtherCreditLinesRuleTests
         var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
-            "IVA exactly matches Interés × 0.16 — should be Pass");
-        result.Value.ToleranceApplied.ShouldBe(Tol,
-            "ADR-V3: tolerance must be recorded on Pass findings");
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "§16 present but corpus-gated — must abstain, not compute on unverified columns");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Cardinal rule: never false-Fail when column mapping is unverified");
+        result.Value.Observed.ShouldNotBeNullOrEmpty("InsufficientData must carry a reason");
     }
 
     /// <summary>
-    /// §16 present; IVA differs from Interés × 0.16 by 0.30 ≤ 0.50 MXN tolerance.
-    /// Rule MUST return Pass (within rounding tolerance).
+    /// §16 present with an obvious IVA mismatch.
+    /// Rule MUST still return InsufficientData — corpus-gated abstain (NOT Fail).
     /// </summary>
     [Fact]
-    public void Evaluate_Section16IvaWithinToleranceRounding_ReturnsPass()
+    public void Evaluate_Section16PresentWithMismatch_ReturnsInsufficientData_NotFail()
     {
-        const decimal interes = 500.00m;
-        var ivaExact      = interes * IvaRate;  // 80.00
-        var ivaReported   = ivaExact + 0.30m;   // 80.30 — within 0.50
-
-        var row = MakeRow("Préstamo personal", new List<TableCell>
-        {
-            TableCell.Amount(interes,    interes.ToString("F2"),    P1()),
-            TableCell.Amount(ivaReported, ivaReported.ToString("F2"), P1())
-        });
-
-        var table = MakeSection16Table([row]);
-        var model = ModelWith([table]);
-        var ctx   = Ctx(model);
-
-        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
-
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
-            "0.30 MXN difference is within the ±0.50 MXN legal tolerance");
-    }
-
-    /// <summary>
-    /// Two rows in §16: first reconciles, second reconciles too.
-    /// Rule MUST return Pass with a note that mentions "2 row(s) verified".
-    /// </summary>
-    [Fact]
-    public void Evaluate_Section16MultipleReconcilingRows_ReturnsPassWithRowCount()
-    {
-        const decimal interes1 = 300.00m;
-        const decimal interes2 = 750.00m;
-
-        var rows = new List<TableRow>
-        {
-            MakeRow("Línea 1", new List<TableCell>
-            {
-                TableCell.Amount(interes1, interes1.ToString("F2"), P1()),
-                TableCell.Amount(interes1 * IvaRate, (interes1 * IvaRate).ToString("F2"), P1())
-            }),
-            MakeRow("Línea 2", new List<TableCell>
-            {
-                TableCell.Amount(interes2, interes2.ToString("F2"), P1()),
-                TableCell.Amount(interes2 * IvaRate, (interes2 * IvaRate).ToString("F2"), P1())
-            })
-        };
-
-        var table = MakeSection16Table(rows);
-        var model = ModelWith([table]);
-        var ctx   = Ctx(model);
-
-        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
-
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
-        result.Value.Observed!.ShouldContain("2 row(s) verified");
-    }
-
-    // -----------------------------------------------------------------------
-    // (c) §16 present with IVA-vs-interest mismatch beyond tolerance → Fail
-    // -----------------------------------------------------------------------
-
-    /// <summary>
-    /// IVA reported is 200.00 but Interés × 0.16 = 80.00 (diff = 120.00 >> 0.50).
-    /// Rule MUST return Fail citing §16.
-    /// </summary>
-    [Fact]
-    public void Evaluate_Section16IvaMismatchBeyondTolerance_ReturnsFailCitingSection16()
-    {
-        const decimal interes     = 500.00m;
-        const decimal ivaWrong    = 200.00m; // should be 80.00
+        const decimal interes  = 500.00m;
+        const decimal ivaWrong = 200.00m; // would fail arithmetic if we were computing
 
         var row = MakeRow("Línea de crédito", new List<TableCell>
         {
@@ -317,60 +259,55 @@ public sealed class Section16OtherCreditLinesRuleTests
 
         var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
 
-        result.IsSuccess.ShouldBeTrue();
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
-            "IVA 200.00 vs expected 80.00 (diff=120.00) >> 0.50 tolerance → Fail");
-        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
-        result.Value.ToleranceApplied.ShouldBe(Tol);
-        result.Value.Observed.ShouldNotBeNullOrEmpty("Fail must carry a reason in Observed");
-        result.Value.Observed!.ShouldContain("§16", Case.Sensitive);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Corpus-gated abstain — §16 present always returns InsufficientData until corpus is available");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Cardinal rule: never false-Fail when column mapping is unverified");
     }
 
     /// <summary>
-    /// IVA differs by exactly 0.51 — just beyond the 0.50 MXN legal tolerance → Fail.
+    /// §16 present with multiple rows.
+    /// Rule MUST return InsufficientData — corpus-gated abstain.
     /// </summary>
     [Fact]
-    public void Evaluate_Section16IvaJustBeyondTolerance_ReturnsFail()
+    public void Evaluate_Section16PresentMultipleRows_ReturnsInsufficientData()
     {
-        const decimal interes  = 500.00m;
-        var ivaExact           = interes * IvaRate;   // 80.00
-        var ivaReported        = ivaExact + 0.51m;    // 80.51 — just outside tolerance
-
-        var row = MakeRow("Línea personal", new List<TableCell>
+        var rows = new List<TableRow>
         {
-            TableCell.Amount(interes,    interes.ToString("F2"),    P1()),
-            TableCell.Amount(ivaReported, ivaReported.ToString("F2"), P1())
-        });
+            MakeRow("Línea 1", new List<TableCell>
+            {
+                TableCell.Amount(300.00m, "300.00", P1()),
+                TableCell.Amount(48.00m,  "48.00",  P1())
+            }),
+            MakeRow("Línea 2", new List<TableCell>
+            {
+                TableCell.Amount(750.00m, "750.00", P1()),
+                TableCell.Amount(120.00m, "120.00", P1())
+            })
+        };
 
-        var table = MakeSection16Table([row]);
+        var table = MakeSection16Table(rows);
         var model = ModelWith([table]);
         var ctx   = Ctx(model);
 
         var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
 
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
-            "0.51 MXN difference exceeds the ±0.50 MXN legal tolerance");
-        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Corpus-gated abstain — §16 present always returns InsufficientData");
     }
 
-    // -----------------------------------------------------------------------
-    // (d) Low-confidence row → InsufficientData (abstain, never Fail)
-    // -----------------------------------------------------------------------
-
     /// <summary>
-    /// IVA cell has confidence 0.5 — below the 0.8 legal minimum.
-    /// Rule MUST abstain (InsufficientData), never Fail.
+    /// §16 present with a low-confidence cell.
+    /// Rule MUST return InsufficientData — same corpus-gated abstain path.
     /// </summary>
     [Fact]
-    public void Evaluate_Section16LowConfidenceIvaCell_ReturnsInsufficientData()
+    public void Evaluate_Section16PresentWithLowConfidenceCell_ReturnsInsufficientData()
     {
-        const decimal interes = 500.00m;
-        var ivaCell = new TableCell(
-            "80.00", 80.00m, CellKind.Amount, 0.5, P1()); // below 0.8 threshold
+        var ivaCell = new TableCell("80.00", 80.00m, CellKind.Amount, 0.5, P1());
 
         var row = MakeRow("Línea personal", new List<TableCell>
         {
-            TableCell.Amount(interes, interes.ToString("F2"), P1()),
+            TableCell.Amount(500.00m, "500.00", P1()),
             ivaCell
         });
 
@@ -380,28 +317,22 @@ public sealed class Section16OtherCreditLinesRuleTests
 
         var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
 
-        result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            "Low-confidence IVA cell must cause abstain, not a Fail verdict");
+            "§16 present → corpus-gated InsufficientData regardless of cell confidence");
         result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
             "Cardinal rule: never false-Fail on low-confidence extraction");
     }
 
     /// <summary>
-    /// Interés cell has confidence 0.5 — below threshold.
-    /// Rule MUST abstain (InsufficientData).
+    /// §16 present with only 1 Amount cell per row (insufficient shape for old IVA check).
+    /// Rule MUST return InsufficientData — same corpus-gated abstain path.
     /// </summary>
     [Fact]
-    public void Evaluate_Section16LowConfidenceInteresCell_ReturnsInsufficientData()
+    public void Evaluate_Section16PresentAllRowsInsufficientShape_ReturnsInsufficientData()
     {
-        var interesCell = new TableCell(
-            "500.00", 500.00m, CellKind.Amount, 0.5, P1()); // below threshold
-        var ivaCell = TableCell.Amount(80.00m, "80.00", P1());
-
-        var row = MakeRow("Línea personal", new List<TableCell>
+        var row = MakeRow("Línea incompleta", new List<TableCell>
         {
-            interesCell,
-            ivaCell
+            TableCell.Amount(500.00m, "500.00", P1())
         });
 
         var table = MakeSection16Table([row]);
@@ -411,7 +342,65 @@ public sealed class Section16OtherCreditLinesRuleTests
         var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            "Low-confidence Interés cell must cause abstain, not a Fail verdict");
+            "§16 present → corpus-gated InsufficientData even if rows are incomplete");
+    }
+
+    /// <summary>
+    /// §16 present with mixed NA and checkable rows.
+    /// Rule MUST return InsufficientData — same corpus-gated abstain path.
+    /// </summary>
+    [Fact]
+    public void Evaluate_Section16PresentMixedNaAndCheckableRows_ReturnsInsufficientData()
+    {
+        const decimal interes = 1_000.00m;
+
+        var rows = new List<TableRow>
+        {
+            MakeRow("Sub-línea inactiva", new List<TableCell>
+            {
+                TableCell.NotApplicableCell("N/A", P1()),
+                TableCell.NotApplicableCell("N/A", P1())
+            }),
+            MakeRow("Sub-línea activa", new List<TableCell>
+            {
+                TableCell.Amount(interes, interes.ToString("F2"), P1()),
+                TableCell.Amount(interes * IvaRate, (interes * IvaRate).ToString("F2"), P1())
+            })
+        };
+
+        var table = MakeSection16Table(rows);
+        var model = ModelWith([table]);
+        var ctx   = Ctx(model);
+
+        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "§16 present → corpus-gated InsufficientData regardless of row mix");
+    }
+
+    // -----------------------------------------------------------------------
+    // (c) Unregistered tolerance → InsufficientData (not exception)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_UnregisteredTolerance_ReturnsInsufficientData_NotException()
+    {
+        var rule = new Section16OtherCreditLinesRule(new EmptyToleranceProvider());
+
+        var row = MakeRow("Línea de crédito", new List<TableCell>
+        {
+            TableCell.Amount(500.00m, "500.00", P1()),
+            TableCell.Amount(80.00m,  "80.00",  P1())
+        });
+        var table = MakeSection16Table([row]);
+        var model = ModelWith([table]);
+        var ctx   = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("must be success-wrapped, not an exception");
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Unregistered tolerance must return InsufficientData, never throw");
     }
 
     // -----------------------------------------------------------------------
@@ -519,105 +508,13 @@ public sealed class Section16OtherCreditLinesRuleTests
     }
 
     // -----------------------------------------------------------------------
-    // Row-shape defensive: rows with < 2 Amount cells are skipped silently
+    // Stub: empty tolerance provider
     // -----------------------------------------------------------------------
 
-    /// <summary>
-    /// §16 table is Extracted but every row has only 1 Amount cell (or none).
-    /// No row can be IVA-checked → InsufficientData (not Fail).
-    /// </summary>
-    [Fact]
-    public void Evaluate_Section16AllRowsInsufficientShape_ReturnsInsufficientData()
+    private sealed class EmptyToleranceProvider : ILegalToleranceProvider
     {
-        // A row with only one Amount cell — cannot derive IVA check.
-        var row = MakeRow("Línea incompleta", new List<TableCell>
-        {
-            TableCell.Amount(500.00m, "500.00", P1())   // only 1 Amount cell
-        });
-
-        var table = MakeSection16Table([row]);
-        var model = ModelWith([table]);
-        var ctx   = Ctx(model);
-
-        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
-
-        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
-            "No row with ≥ 2 Amount cells → cannot verify → InsufficientData, not Fail");
-    }
-
-    // -----------------------------------------------------------------------
-    // Mixed rows: some skipped (NA), one checkable and reconciles → Pass
-    // -----------------------------------------------------------------------
-
-    [Fact]
-    public void Evaluate_Section16MixedRowsSomeNASomeCheckable_ReturnsPass()
-    {
-        const decimal interes = 1_000.00m;
-        var ivaExact = interes * IvaRate; // 160.00
-
-        var rows = new List<TableRow>
-        {
-            // Row 1: all NA (bank declared not applicable for this sub-line)
-            MakeRow("Sub-línea inactiva", new List<TableCell>
-            {
-                TableCell.NotApplicableCell("N/A", P1()),
-                TableCell.NotApplicableCell("N/A", P1())
-            }),
-            // Row 2: real data, reconciles exactly
-            MakeRow("Sub-línea activa", new List<TableCell>
-            {
-                TableCell.Amount(interes,  interes.ToString("F2"),  P1()),
-                TableCell.Amount(ivaExact, ivaExact.ToString("F2"), P1())
-            })
-        };
-
-        var table = MakeSection16Table(rows);
-        var model = ModelWith([table]);
-        var ctx   = Ctx(model);
-
-        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
-
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
-            "NA row correctly skipped; checkable row reconciles → Pass");
-        result.Value.ToleranceApplied.ShouldBe(Tol);
-    }
-
-    // -----------------------------------------------------------------------
-    // IVA cross-check: first row reconciles, second fails → Fail (first failure)
-    // -----------------------------------------------------------------------
-
-    [Fact]
-    public void Evaluate_Section16SecondRowFailsArithmetic_ReturnsFail()
-    {
-        const decimal interes1 = 400.00m;
-        var iva1 = interes1 * IvaRate; // 64.00 — correct
-
-        const decimal interes2 = 600.00m;
-        const decimal iva2Wrong = 200.00m; // should be 96.00
-
-        var rows = new List<TableRow>
-        {
-            MakeRow("Línea A", new List<TableCell>
-            {
-                TableCell.Amount(interes1, interes1.ToString("F2"), P1()),
-                TableCell.Amount(iva1,     iva1.ToString("F2"),     P1())
-            }),
-            MakeRow("Línea B", new List<TableCell>
-            {
-                TableCell.Amount(interes2, interes2.ToString("F2"), P1()),
-                TableCell.Amount(iva2Wrong, iva2Wrong.ToString("F2"), P1())
-            })
-        };
-
-        var table = MakeSection16Table(rows);
-        var model = ModelWith([table]);
-        var ctx   = Ctx(model);
-
-        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
-
-        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
-            "Second row IVA mismatch (200 vs 96) >> tolerance → Fail");
-        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
-        result.Value.Observed!.ShouldContain("§16", Case.Sensitive);
+        public bool Has(string checkId) => false;
+        public Tolerance For(string checkId) =>
+            throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
     }
 }

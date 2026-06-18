@@ -6,6 +6,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
@@ -806,6 +807,43 @@ public sealed class Section6SimulationRuleTests
         // Correct verdict is InsufficientData.
         result.Value.Verdict.ShouldBe(FindingVerdict.InsufficientData,
             "Absent §6 table → InsufficientData is the correct abstain verdict");
+    }
+
+    // -----------------------------------------------------------------------
+    // (h) Unregistered tolerance → InsufficientData (not exception)
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_UnregisteredTolerance_ReturnsInsufficientData_NotException()
+    {
+        var rule = new Section6PaymentSimulationRule(new EmptyToleranceProvider());
+
+        var rows = new List<TableRow>
+        {
+            MakeScenarioRow("k=1", 5m, 107m),
+            MakeScenarioRow("k=2", 3m, 80m),
+            MakeScenarioRow("k=5", 1m, 20m)
+        };
+        var table6 = MakeSection6Table(rows);
+        var summary = MakePeriodSummary(2000m, 200m, 0.24m);
+        var ctx = Ctx(ModelWith(table6, summary));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("must be success-wrapped, not an exception");
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Unregistered tolerance must return InsufficientData, never throw");
+    }
+
+    // -----------------------------------------------------------------------
+    // Stub: empty tolerance provider
+    // -----------------------------------------------------------------------
+
+    private sealed class EmptyToleranceProvider : ILegalToleranceProvider
+    {
+        public bool Has(string checkId) => false;
+        public Tolerance For(string checkId) =>
+            throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
     }
 
     // -----------------------------------------------------------------------

@@ -5,7 +5,6 @@ using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
-using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
@@ -40,34 +39,18 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 ///     The section was detected but could not be reliably read.
 ///   </item>
 ///   <item>
-///     §16 <see cref="TableExtractionStatus.Extracted"/> → per-row arithmetic
-///     verification (see below).
+///     §16 <see cref="TableExtractionStatus.Extracted"/> → <b>InsufficientData</b>.
+///     Per-column semantics, interest/rate/días, and totals-tie checks are corpus-gated:
+///     no §16 fixture exists to validate column mapping. Running arithmetic on unverified
+///     columns risks a false Fail that halts the billing run. The rule abstains until a
+///     validated corpus is available.
 ///   </item>
 /// </list>
 /// </para>
 /// <para>
-/// <b>Per-row arithmetic (when §16 is Extracted):</b>
-/// The §16 table structure VARIES BY PRODUCT.  The rule is defensive:
+/// <b>Aggregate verdict when §16 is Extracted:</b>
 /// <list type="bullet">
-///   <item>
-///     Rows with ≥ 2 Amount cells where the second can be interpreted as IVA
-///     on the first (Interest): verify <c>|IVA − Interés × 0.16| ≤ tolerance</c>.
-///   </item>
-///   <item>
-///     Any row whose needed cells are missing, NA, or low-confidence →
-///     skip the row (contributing InsufficientData only if no row can be checked).
-///   </item>
-///   <item>
-///     A confident mismatch beyond tolerance → <b>Fail</b> citing §16.
-///   </item>
-/// </list>
-/// </para>
-/// <para>
-/// <b>Aggregate verdict:</b>
-/// <list type="bullet">
-///   <item>Any row fails → Fail (first failure reported).</item>
-///   <item>No row could be checked → InsufficientData.</item>
-///   <item>All checkable rows reconcile → Pass.</item>
+///   <item>InsufficientData — corpus-gated abstain (current behaviour).</item>
 /// </list>
 /// </para>
 /// <para>
@@ -80,15 +63,6 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
     private const int Section16Number = 16;
-
-    /// <summary>Mexican IVA rate (16%).</summary>
-    private const decimal IvaRate = 0.16m;
-
-    /// <summary>
-    /// Minimum number of Amount-kind value cells required to attempt an IVA check.
-    /// Col[0] = Interés, Col[1] = IVA.
-    /// </summary>
-    private const int MinValueCellsForIvaCheck = 2;
 
     private readonly ILegalToleranceProvider _toleranceProvider;
 
@@ -119,6 +93,10 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
     {
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<RuleFinding>();
+
+        // Guard: tolerance must be registered before attempting any resolution.
+        if (!_toleranceProvider.Has(CheckId))
+            return InsufficientData($"No legal tolerance registered for {CheckId} — cannot evaluate.");
 
         // Guard: StatementModel must be present.
         if (ctx.StatementModel is null)
@@ -154,143 +132,20 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
                 "cannot verify per-row arithmetic.");
         }
 
-        // Extracted but no rows — cannot check anything.
-        if (table16.Rows.Count == 0)
-            return InsufficientData("§16 table has no rows after extraction.");
-
-        // Resolve tolerances.
-        var legalTolerance = _toleranceProvider.For(CheckId).Resolve(null).EffectiveValue;
-        var effectiveTolerance = ctx.TenantProfile?.GetEffectiveTolerance(CheckId, legalTolerance)
-            ?? legalTolerance;
-
-        var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
-            ?? TenantProfile.LegalMinFieldConfidenceDefault;
-
-        var locator = table16.Locator;
-
-        // ----------------------------------------------------------------
-        // Per-row arithmetic pass
-        // ----------------------------------------------------------------
-
-        var rowsChecked = 0;
-        var firstFailReason = (string?)null;
-        var firstFailLocator = (FieldLocator?)null;
-        var firstFailLegalPasses = true;
-
-        foreach (var row in table16.Rows)
-        {
-            // §16 structure varies by product — only attempt a check when
-            // we have at least 2 Amount-kind value cells (Interés + IVA).
-            var amountCells = row.Values
-                .Where(c => c.Kind == CellKind.Amount)
-                .ToList();
-
-            if (amountCells.Count < MinValueCellsForIvaCheck)
-                continue; // row shape doesn't support IVA check — skip silently
-
-            var interesCell = amountCells[0];
-            var ivaCell     = amountCells[1];
-
-            // All-NA row: the bank declared this row not applicable.  Skip.
-            if (IsNaOrEmpty(interesCell) && IsNaOrEmpty(ivaCell))
-                continue;
-
-            // One cell NA, the other not: partial-NA → abstain (don't Fail).
-            if (IsNaOrEmpty(interesCell) || IsNaOrEmpty(ivaCell))
-                continue;
-
-            // Low-confidence: abstain for this row — contribute InsufficientData
-            // only if no other row can be checked.
-            if (!HasUsableValue(interesCell, confidenceThreshold))
-            {
-                return InsufficientData(
-                    $"§16 row '{row.Label.RawText}': Interés cell has missing or " +
-                    $"low-confidence value (confidence={interesCell.Confidence:F2}, " +
-                    $"threshold={confidenceThreshold:F2}).");
-            }
-
-            if (!HasUsableValue(ivaCell, confidenceThreshold))
-            {
-                return InsufficientData(
-                    $"§16 row '{row.Label.RawText}': IVA cell has missing or " +
-                    $"low-confidence value (confidence={ivaCell.Confidence:F2}, " +
-                    $"threshold={confidenceThreshold:F2}).");
-            }
-
-            // Both cells are confident and parseable — verify IVA ≈ Interés × 0.16.
-            var interes      = interesCell.ParsedValue!.Value;
-            var ivaReported  = ivaCell.ParsedValue!.Value;
-            var ivaExpected  = Math.Abs(interes) * IvaRate; // use absolute value (interest may be signed)
-            var diff         = Math.Abs(ivaExpected - Math.Abs(ivaReported));
-
-            rowsChecked++;
-
-            var legalPasses  = diff <= legalTolerance;
-            var tenantPasses = diff <= effectiveTolerance;
-
-            if (!tenantPasses && firstFailReason is null)
-            {
-                firstFailReason =
-                    $"§16 row '{row.Label.RawText}': " +
-                    $"IVA expected={ivaExpected:F2} (Interés={interes:F2} × 0.16), " +
-                    $"reported={ivaReported:F2}, diff={diff:F4} > tolerance={effectiveTolerance:F2}";
-                firstFailLocator  = ivaCell.Locator;
-                firstFailLegalPasses = legalPasses;
-            }
-        }
-
-        // ----------------------------------------------------------------
-        // Aggregate verdict
-        // ----------------------------------------------------------------
-        if (firstFailReason is not null)
-        {
-            return Result<RuleFinding>.WithSuccess(
-                RuleFinding.Fail(
-                    checkId: CheckId,
-                    technique: Technique,
-                    severity: FindingSeverity.Critical,
-                    engineVersion: Version,
-                    expected: string.Empty,
-                    observed: firstFailReason,
-                    toleranceApplied: effectiveTolerance,
-                    locator: firstFailLocator ?? locator,
-                    legalBaselineVerdict: firstFailLegalPasses
-                        ? FindingVerdict.Pass
-                        : FindingVerdict.Fail));
-        }
-
-        if (rowsChecked == 0)
-        {
-            return InsufficientData(
-                "§16 table was extracted but no rows had sufficient data to verify " +
-                "(all rows are NA/empty, low-confidence, or have too few Amount cells).");
-        }
-
-        return Result<RuleFinding>.WithSuccess(
-            RuleFinding.Pass(
-                checkId: CheckId,
-                technique: Technique,
-                engineVersion: Version,
-                observed: $"{rowsChecked} row(s) verified: IVA-vs-Interés arithmetic reconciles within tolerance.",
-                toleranceApplied: effectiveTolerance,
-                locator: locator,
-                legalBaselineVerdict: FindingVerdict.Pass));
+        // §16 is Extracted (section is present in the document).
+        // Per-column semantics + interest/rate/días + totals-tie checks require a
+        // validated §16 corpus to map columns correctly — no such corpus exists yet.
+        // Running arithmetic on unverified column mappings risks a false Fail that
+        // halts the billing run. Abstain until corpus-gated validation is available.
+        return InsufficientData(
+            "§16 present but per-column semantics + interest/rate/días + totals-tie checks " +
+            "are corpus-gated (no §16 fixture available to validate column mapping). " +
+            "Abstaining rather than compute on unverified columns.");
     }
 
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
-
-    /// <summary>Returns true when the cell is not applicable or empty (bank declared N/A).</summary>
-    private static bool IsNaOrEmpty(TableCell cell) =>
-        cell.Kind is CellKind.NotApplicable or CellKind.Empty;
-
-    /// <summary>
-    /// Returns true when the cell has a parseable numeric value at or above the
-    /// confidence threshold.
-    /// </summary>
-    private static bool HasUsableValue(TableCell cell, double threshold) =>
-        cell.ParsedValue is not null && cell.Confidence >= threshold;
 
     private Result<RuleFinding> InsufficientData(string reason) =>
         Result<RuleFinding>.WithSuccess(
