@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
@@ -414,9 +417,117 @@ public sealed class ObservabilityTests : IDisposable
     }
 
     // -----------------------------------------------------------------------
-    // 10. VeriqanMetrics_CorrelationId — structured log property assertion
-    //     We verify via a capturing ILogger that the pipeline logs include the
-    //     VeriqanCorrelationId scope property when VerificationPipeline.ProcessAsync runs.
+    // 10. Pipeline_ProcessAsync_EmitsVeriqanCorrelationIdInLogScope
+    //     Verify via a capturing ILogger that VerificationPipeline.ProcessAsync opens
+    //     a BeginScope that carries the VeriqanCorrelationId structured property.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Minimal <see cref="ILogger{T}"/> that records every scope state dictionary passed to
+    /// <see cref="BeginScope{TState}"/> so tests can assert on structured-log scope properties.
+    /// </summary>
+    private sealed class CapturingLogger<T> : ILogger<T>
+    {
+        private readonly List<IReadOnlyDictionary<string, object>> _scopes = new();
+
+        /// <summary>All scope state dictionaries captured via <see cref="BeginScope{TState}"/>.</summary>
+        public IReadOnlyList<IReadOnlyDictionary<string, object>> Scopes => _scopes;
+
+        IDisposable? ILogger.BeginScope<TState>(TState state)
+        {
+            if (state is IReadOnlyDictionary<string, object> dict)
+                _scopes.Add(dict);
+            else if (state is IDictionary<string, object> mutable)
+                _scopes.Add(new Dictionary<string, object>(mutable));
+            return NullScope.Instance;
+        }
+
+        bool ILogger.IsEnabled(LogLevel logLevel) => true;
+
+        void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state,
+            Exception? exception, Func<TState, Exception?, string> formatter)
+        { /* not needed for scope assertion */ }
+
+        private sealed class NullScope : IDisposable
+        {
+            internal static readonly NullScope Instance = new();
+            public void Dispose() { }
+        }
+    }
+
+    [Fact]
+    public async Task Pipeline_ProcessAsync_EmitsVeriqanCorrelationIdInLogScope()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Build a VerificationPipeline with all ports faked out so the test is
+        // fast and deterministic — we only care that BeginScope is called with
+        // the VeriqanCorrelationId key, not that real rules run.
+        var ingestion = Substitute.For<IStatementIngestionService>();
+        var extractor = Substitute.For<IStatementFieldExtractor>();
+        var binder    = Substitute.For<IBundleBinder>();
+        var engine    = Substitute.For<IVecValidationEngine>();
+        var aggregator = Substitute.For<IVerdictAggregator>();
+
+        // Ingestion must return a job so the jobScope is also opened.
+        var job = new VerificationJob(
+            Guid.NewGuid(), "hash-scope-test", DateTimeOffset.UtcNow, VerificationJobStatus.Pending);
+        ingestion
+            .IngestAsync(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<VerificationJob>.WithSuccess(job));
+
+        // Cancel after ingestion so we don't need to wire up the rest of the pipeline.
+        using var cts = new CancellationTokenSource();
+
+        // Let extraction return a cancelled result to short-circuit the pipeline
+        // after ingestion — we only need the two BeginScope calls to have fired.
+        extractor
+            .ExtractFullAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
+            .Returns(_ =>
+            {
+                cts.Cancel();
+                return Task.FromResult(ResultExtensions.Cancelled<StatementModel>());
+            });
+
+        var capturingLogger = new CapturingLogger<VerificationPipeline>();
+        var pipeline = new VerificationPipeline(
+            ingestion, extractor, binder, engine, aggregator, _metrics, capturingLogger);
+
+        var submission = new StatementSubmission(
+            Pdf: [0x25, 0x50, 0x44, 0x46],
+            FileName: "scope-test.pdf",
+            ContextKey: new StatementContextKey("TestBank"));
+
+        // Act — pipeline short-circuits after extraction is cancelled.
+        await pipeline.ProcessAsync(submission, cts.Token);
+
+        // Assert — at least one scope dictionary must contain "VeriqanCorrelationId".
+        capturingLogger.Scopes.ShouldNotBeEmpty(
+            "VerificationPipeline.ProcessAsync must open at least one log scope.");
+
+        var correlationScope = capturingLogger.Scopes
+            .FirstOrDefault(s => s.ContainsKey("VeriqanCorrelationId"));
+        correlationScope.ShouldNotBeNull(
+            "A log scope carrying 'VeriqanCorrelationId' must be opened before the first " +
+            "log statement so every downstream log entry inherits the correlation id.");
+
+        var correlationValue = correlationScope["VeriqanCorrelationId"];
+        correlationValue.ShouldBeOfType<Guid>(
+            "VeriqanCorrelationId must be a Guid (not a string or other type).");
+        ((Guid)correlationValue).ShouldNotBe(
+            Guid.Empty, "VeriqanCorrelationId must be a freshly generated non-empty Guid.");
+
+        // Also verify the job-id scope is opened after ingestion succeeds.
+        var jobScope = capturingLogger.Scopes
+            .FirstOrDefault(s => s.ContainsKey("VerificationJobId"));
+        jobScope.ShouldNotBeNull(
+            "A second log scope carrying 'VerificationJobId' must be opened after ingestion.");
+        ((Guid)jobScope["VerificationJobId"]).ShouldBe(job.Id,
+            "VerificationJobId in the scope must match the ingested job's Id.");
+    }
+
+    // -----------------------------------------------------------------------
+    // 11. VeriqanMetrics meter name + instruments smoke-check
     // -----------------------------------------------------------------------
 
     [Fact]

@@ -82,8 +82,14 @@ public static class VeriqanOrchestrationExtensions
         // Pipeline + batch + resume/reprocess
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
-        services.AddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
-        services.AddSingleton<IReprocessAuditRepository, InMemoryReprocessAuditRepository>();
+
+        // Use TryAdd so that AddVeriqanInMemoryPersistence (called above when no connection
+        // string is present) wins and a second descriptor is never registered.  Without Try*
+        // semantics both the unconditional registration here and the TryAdd inside
+        // AddVeriqanInMemoryPersistence produce two descriptors for the same interface,
+        // leaving one singleton orphaned.
+        services.TryAddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
+        services.TryAddSingleton<IReprocessAuditRepository, InMemoryReprocessAuditRepository>();
         services.AddScoped<IReprocessService, ReprocessService>();
 
         return services;
