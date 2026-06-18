@@ -248,6 +248,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // (avoids a second PDF open) and per-page word bands collected above.
             var detectedSections = ExtractDetectedSections(doc, normalizedFullText);
 
+            // ---- Inter-section blank gaps — Story 10.2 ----------------------
+            // Compute same-page vertical whitespace between consecutive present sections.
+            var sectionGaps = ComputeSectionGaps(doc, detectedSections);
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -297,6 +301,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 NormalizedFullText = normalizedFullText,
                 FiscalBlock = fiscalBlock,
                 Sections = detectedSections,
+                SectionGaps = sectionGaps,
             };
 
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
@@ -2917,5 +2922,176 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         }
 
         return results;
+    }
+
+    // -----------------------------------------------------------------------
+    // §-inter-section blank gap computation (Story 10.2)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Computes the vertical blank gap between each pair of consecutive present sections
+    /// that share the same page (Story 10.2).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Algorithm:</b>
+    /// <list type="number">
+    ///   <item>Group present sections by page (from <see cref="DetectedSection.Locator"/>).</item>
+    ///   <item>On each page with ≥ 2 present sections, sort them top-to-bottom by heading
+    ///     Y-coordinate (descending Bottom in PDF points = top-of-page first).</item>
+    ///   <item>For each adjacent pair, collect all word bottom-Y values on that page that
+    ///     fall between the two heading bands, then find the largest empty vertical band
+    ///     (the widest gap between consecutive Y-values in the stripe).</item>
+    ///   <item>The "stripe" is defined as the region below the first heading's bottom edge
+    ///     and above the second heading's top edge (Bottom + Height when HasBoundingBox).
+    ///     When bounding-box data is absent, the page words collected during the existing
+    ///     pass are still used to bound the measurement conservatively.</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// Gaps across page breaks are not recorded. Page-break whitespace is always excluded.
+    /// Never throws — per-page failures produce an empty list contribution.
+    /// </para>
+    /// </remarks>
+    /// <param name="doc">Open PdfPig document (sections headings already located).</param>
+    /// <param name="detectedSections">
+    /// The 28-entry list produced by <see cref="ExtractDetectedSections"/>.
+    /// </param>
+    /// <returns>
+    /// List of <see cref="SectionGap"/> entries (may be empty).  All
+    /// <see cref="SectionGap.GapPoints"/> values are ≥ 0.
+    /// </returns>
+    private static IReadOnlyList<SectionGap> ComputeSectionGaps(
+        PdfDocument doc,
+        IReadOnlyList<DetectedSection> detectedSections)
+    {
+        if (detectedSections.Count == 0)
+            return [];
+
+        // Only consider present sections that have a real page assignment.
+        var present = detectedSections
+            .Where(s => s.IsPresent && s.Locator.PageNumber > 0)
+            .OrderBy(s => s.SectionNumber)
+            .ToList();
+
+        if (present.Count < 2)
+            return [];
+
+        var gaps = new List<SectionGap>();
+
+        // Group by page number — gaps only computed for same-page adjacencies.
+        var byPage = present
+            .GroupBy(s => s.Locator.PageNumber)
+            .Where(g => g.Count() >= 2)
+            .ToList();
+
+        foreach (var pageGroup in byPage)
+        {
+            var pageNumber = pageGroup.Key;
+
+            // Sort sections top-to-bottom (highest Y = nearest top-of-page in PDF coords).
+            var sectionsOnPage = pageGroup
+                .OrderByDescending(s => s.Locator.Bottom ?? 0.0)
+                .ToList();
+
+            // Pre-collect all words on this page for gap measurement.
+            List<Word>? pageWords = null;
+            try
+            {
+                pageWords = doc.GetPage(pageNumber).GetWords().ToList();
+            }
+            catch (Exception)
+            {
+                // Cannot read this page — skip gap computation for it.
+                continue;
+            }
+
+            if (pageWords is null || pageWords.Count == 0)
+                continue;
+
+            // Sorted unique Y-bottom values of all words on this page.
+            var wordYBottoms = pageWords
+                .Select(w => w.BoundingBox.Bottom)
+                .Distinct()
+                .OrderDescending()  // top-of-page first
+                .ToList();
+
+            // Measure gap between each consecutive pair.
+            for (var i = 0; i + 1 < sectionsOnPage.Count; i++)
+            {
+                var upper = sectionsOnPage[i];
+                var lower = sectionsOnPage[i + 1];
+
+                // Upper section's content bottom:
+                //   If the heading has a bounding box, the heading BOTTOM is the lower edge of
+                //   the heading band (PDF origin = bottom-left, so heading top = Bottom + Height).
+                //   Content of the upper section extends down from heading toward the lower section.
+                //   We use the heading's Bottom as a conservative upper bound of content start.
+                //   Words in the stripe between the two headings are the content between them.
+                //
+                // Lower section's heading top = Bottom + Height (when HasBoundingBox).
+                // Fallback: use Bottom alone.
+                double stripeTop;    // Y below which (and above stripeBottom) the gap exists
+                double stripeBottom; // Y above which (and below stripeTop) the gap exists
+
+                if (upper.Locator.HasBoundingBox)
+                    stripeTop = upper.Locator.Bottom!.Value; // heading bottom edge = stripe starts here
+                else
+                    stripeTop = upper.Locator.Bottom ?? double.MaxValue;
+
+                if (lower.Locator.HasBoundingBox)
+                    stripeBottom = lower.Locator.Bottom!.Value + (lower.Locator.Height ?? 0.0);
+                else
+                    stripeBottom = lower.Locator.Bottom ?? 0.0;
+
+                // Sanity: stripeTop must be above stripeBottom (higher Y = higher on page).
+                if (stripeTop <= stripeBottom)
+                    continue;
+
+                // Collect all word Y-bottom values in the stripe [stripeBottom, stripeTop].
+                // In PDF coords origin is bottom-left; words in the inter-section stripe have
+                // Bottom values between stripeBottom and stripeTop.
+                var stripeYValues = wordYBottoms
+                    .Where(y => y > stripeBottom && y < stripeTop)
+                    .OrderDescending()
+                    .ToList();
+
+                double gapPoints;
+
+                if (stripeYValues.Count == 0)
+                {
+                    // No words in the stripe — the entire stripe is blank.
+                    gapPoints = stripeTop - stripeBottom;
+                }
+                else
+                {
+                    // The gap is the largest empty vertical band within the stripe.
+                    // Insert the stripe boundaries and find the largest interval.
+                    var boundaries = new List<double> { stripeTop };
+                    boundaries.AddRange(stripeYValues);
+                    boundaries.Add(stripeBottom);
+
+                    // boundaries is descending (top → bottom).
+                    gapPoints = 0.0;
+                    for (var j = 0; j + 1 < boundaries.Count; j++)
+                    {
+                        var interval = boundaries[j] - boundaries[j + 1];
+                        if (interval > gapPoints)
+                            gapPoints = interval;
+                    }
+                }
+
+                if (gapPoints < 0.0)
+                    gapPoints = 0.0;
+
+                gaps.Add(new SectionGap(
+                    AfterSectionNumber: upper.SectionNumber,
+                    BeforeSectionNumber: lower.SectionNumber,
+                    PageNumber: pageNumber,
+                    GapPoints: gapPoints));
+            }
+        }
+
+        return gaps;
     }
 }

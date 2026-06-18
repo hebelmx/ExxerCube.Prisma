@@ -323,4 +323,34 @@ public sealed class StatementModel
     /// </para>
     /// </remarks>
     public IReadOnlyList<DetectedSection> Sections { get; init; } = [];
+
+    // -----------------------------------------------------------------------
+    // Inter-section blank gaps (Story 10.2)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Measured vertical blank gaps between consecutive detected sections on the same page
+    /// (Story 10.2 — <c>LAW-SEC-ORDER-GAP</c> rule input).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story 10.2).  Each entry represents the largest
+    /// contiguous empty vertical band (no PdfPig word bounding boxes) between the last content
+    /// line of one present section and the heading line of the next present section, when both
+    /// are on the same page.
+    /// </para>
+    /// <para>
+    /// Gaps across page breaks are intentionally excluded — natural end-of-page whitespace
+    /// would always exceed 2 cm and would produce false-Fail findings.
+    /// </para>
+    /// <para>
+    /// Always non-null; empty list when:
+    /// <list type="bullet">
+    ///   <item>Fewer than two present sections share any page.</item>
+    ///   <item>The extraction stage predates Story 10.2.</item>
+    /// </list>
+    /// <see cref="SectionGap.GapPoints"/> is always ≥ 0.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<SectionGap> SectionGaps { get; init; } = [];
 }
