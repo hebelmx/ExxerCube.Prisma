@@ -371,7 +371,16 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // ---- DESGLOSE DE MOVIMIENTOS DEL PERIODO — Story 4.4 ----------
             // Scan all pages for the DESGLOSE section header, then reconstruct
             // transaction rows using Y-band grouping + X-column assignment.
-            var (movements, movementsStatus, totalCargos, totalAbonos) = ExtractMovements(doc);
+            //
+            // Determinism anchor (NFR-5 / gap #36): pass the statement's own period year
+            // so that truncated movement-date year repair is anchored to the statement's
+            // declared period, not the processing clock.  The same PDF will therefore
+            // always repair truncated dates to the same year regardless of when it is
+            // reprocessed (December vs. January, 2025 vs. 2026).
+            var periodYearAnchor = periodSummary.PeriodCutDate.Status == ExtractionStatus.Extracted
+                ? (int?)periodSummary.PeriodCutDate.Value.Year
+                : null;
+            var (movements, movementsStatus, totalCargos, totalAbonos) = ExtractMovements(doc, periodYearAnchor);
 
             // ---- Font runs — Story 5.1 (CL-35) ----------------------------
             // Collect distinct (normalized-family, page) font runs from ALL pages.
@@ -1275,6 +1284,12 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// summary rows at the bottom of the last table page.
     /// </summary>
     /// <param name="doc">The open <see cref="PdfDocument"/>.</param>
+    /// <param name="periodYear">
+    /// Statement period year anchored from <c>PeriodCutDate</c> (NFR-5 / gap #36).
+    /// Passed through to <see cref="TryParseMovementRow"/> as the primary reference
+    /// for truncated-date year-repair.  <see langword="null"/> when the period date
+    /// was not extracted; the fallback hierarchy in <c>TryParseMovementRow</c> applies.
+    /// </param>
     /// <returns>
     /// A tuple of the parsed movement list, the extraction status, and the two printed
     /// DESGLOSE totals (TotalCargos / TotalAbonos).
@@ -1285,7 +1300,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
              MovementsExtractionStatus status,
              ExtractedField<decimal> totalCargos,
              ExtractedField<decimal> totalAbonos)
-        ExtractMovements(PdfDocument doc)
+        ExtractMovements(PdfDocument doc, int? periodYear)
     {
         var movements = new List<StatementMovement>();
         var sectionFound = false;
@@ -1319,7 +1334,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
             foreach (var (bandY, bandWords) in sortedBands)
             {
-                var row = TryParseMovementRow(bandWords, pageIndex);
+                var row = TryParseMovementRow(bandWords, pageIndex, periodYear);
 
                 if (row is not null)
                 {
@@ -1465,7 +1480,15 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// Attempts to parse a Y-band as a DESGLOSE data row.
     /// Returns <see langword="null"/> for non-data bands (headers, footers, totals, FX rows).
     /// </summary>
-    private StatementMovement? TryParseMovementRow(List<Word> bandWords, int pageNumber)
+    /// <param name="bandWords">Words on the candidate band.</param>
+    /// <param name="pageNumber">Page number for the locator.</param>
+    /// <param name="periodYear">
+    /// The statement's own period year (from <c>PeriodCutDate</c> or <c>PeriodStart</c>),
+    /// used as the primary anchor for truncated-date year-repair (NFR-5 / gap #36).
+    /// When <see langword="null"/> the fallback hierarchy applies: operation-date year →
+    /// <c>_timeProvider.GetUtcNow().Year</c>.
+    /// </param>
+    private StatementMovement? TryParseMovementRow(List<Word> bandWords, int pageNumber, int? periodYear)
     {
         // A data row must have:
         //   1. At least one date-like token in the operation-date column (X ≤ 95)
@@ -1509,10 +1532,26 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             }
             else
             {
-                // Attempt year-repair: "07-jul-202" → try appending "5" from context.
-                // The operation date year is the safest context; fall back to clock year
-                // (injected TimeProvider — deterministic in tests via FakeTimeProvider).
-                var repairedYear = operationDate?.Year ?? _timeProvider.GetUtcNow().Year;
+                // Attempt year-repair: "07-jul-202" → try appending the missing last digit.
+                //
+                // Anchor precedence (NFR-5 / gap #36 — determinism across reprocessing):
+                //   1. Statement period year (periodYear parameter, from PeriodCutDate).
+                //      The same PDF has the same period regardless of when it is processed,
+                //      so this anchor makes year-repair fully deterministic: the same
+                //      statement reprocessed in December 2025 and January 2026 produces
+                //      the same repaired year.
+                //   2. Operation-date year (same row — already parsed from this band).
+                //      Keeps intra-row consistency when the period anchor is unavailable.
+                //   3. TimeProvider.GetUtcNow().Year — last resort / wall-clock fallback.
+                //      Used only when neither (1) nor (2) is available (e.g. synthetic
+                //      PDFs in tests that provide no period header, or statements with
+                //      corrupt period fields).
+                //
+                // NOTE: periodYear is NOT used to repair the period cut-date itself —
+                // that field is extracted independently from the header (ExtractFechaDeCorte)
+                // before ExtractMovements is called. Repairing movement dates with the
+                // period year is therefore not circular.
+                var repairedYear = periodYear ?? operationDate?.Year ?? _timeProvider.GetUtcNow().Year;
                 var repaired = RepairTruncatedDate(cdToken, repairedYear);
                 if (repaired is not null && TryParseSpanishDate(repaired, out var repairedDate))
                     chargeDate = repairedDate;
