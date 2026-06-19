@@ -1,5 +1,6 @@
 using Serilog;
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Infrastructure.Database.Startup;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
@@ -150,6 +151,20 @@ app.MapGet("/health/ready", async (IHealthCheckService healthCheck, Cancellation
         ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
         : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
 });
+
+// ── K8s init-container migration path ─────────────────────────────────────
+// Run `--migrate-only` to apply EF Core migrations and exit without starting
+// the normal host run loop. Intended for use as a K8s init-container:
+//   command: ["./ExxerCube.Prisma.Reconciliator.Worker", "--migrate-only"]
+if (args.Contains("--migrate-only"))
+{
+    using var cts = new CancellationTokenSource();
+    Console.CancelKeyPress += (_, e) => { e.Cancel = true; cts.Cancel(); };
+    var exitCode = await PrismaDbMigrationRunner.RunMigrationsAsync(app, cts.Token);
+    Environment.ExitCode = exitCode;
+    return;
+}
+// ──────────────────────────────────────────────────────────────────────────
 
 await app.RunAsync();
 
