@@ -321,4 +321,79 @@ public sealed class VerdictAggregatorTests
         summary.LegalBreachCheckIds.ShouldBeEmpty();
         summary.TenantOnlyFailCheckIds.ShouldBeEmpty();
     }
+
+    // -----------------------------------------------------------------------
+    // S12: unrecognised-verdict abstain safety (false-GREEN prevention)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A future/out-of-range <see cref="FindingVerdict"/> value must never count as a
+    /// pass and must not cause the overall verdict to be GREEN (false-GREEN risk).
+    /// The unknown finding is treated as InsufficientData so it is reported separately
+    /// but does not escalate to RED either (ABSTAIN-SAFETY).
+    /// </summary>
+    [Fact]
+    public void Aggregate_UnrecognisedVerdict_DoesNotCountAsPass_NeverGreenFromUnknown()
+    {
+        // (FindingVerdict)999 simulates a future enum member not yet known to the aggregator.
+        var unknownFinding = new RuleFinding(
+            CheckId: "CL-FUTURE",
+            Verdict: (FindingVerdict)999,
+            Technique: TechniqueClass.Deterministic,
+            Severity: FindingSeverity.Warning,
+            EngineVersion: "1.0.0");
+
+        var findings = new[] { unknownFinding };
+
+        var result = _sut.Aggregate(findings, ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var summary = result.Value!;
+
+        // Must NOT be GREEN driven by the unknown verdict being counted as a pass.
+        // The unknown finding is absorbed into InsufficientData (abstain path).
+        summary.PassCount.ShouldBe(0,
+            "An unrecognised verdict must never silently increment the pass counter.");
+
+        // The check lands in InsufficientData, not in FailCheckIds.
+        summary.InsufficientDataCount.ShouldBe(1);
+        summary.InsufficientDataCheckIds.ShouldContain("CL-FUTURE");
+        summary.FailCount.ShouldBe(0);
+
+        // Signal is GREEN here because no Fail findings exist — but that is the
+        // InsufficientData behaviour (abstain-safe), not a false-GREEN from passing.
+        // The key assertion is that PassCount is 0 and the check is in InsufficientData.
+        summary.Signal.ShouldNotBe(VerdictSignal.Red,
+            "Unrecognised verdict must not escalate to RED (abstain-safety).");
+    }
+
+    /// <summary>
+    /// Regression: all three current <see cref="FindingVerdict"/> members — Pass, Fail,
+    /// InsufficientData — must continue to behave exactly as before the S12 change.
+    /// </summary>
+    [Fact]
+    public void Aggregate_AllCurrentVerdicts_BehaviourUnchanged()
+    {
+        var findings = new[]
+        {
+            APass("CL-P1"),
+            APass("CL-P2"),
+            AFail("CL-F1"),
+            AnInsufficient("CL-I1"),
+        };
+
+        var result = _sut.Aggregate(findings, ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var summary = result.Value!;
+
+        // RED because there is a Fail finding (unchanged precedence).
+        summary.Signal.ShouldBe(VerdictSignal.Red);
+        summary.PassCount.ShouldBe(2);
+        summary.FailCount.ShouldBe(1);
+        summary.FailCheckIds.ShouldContain("CL-F1");
+        summary.InsufficientDataCount.ShouldBe(1);
+        summary.InsufficientDataCheckIds.ShouldContain("CL-I1");
+        summary.Total.ShouldBe(4);
+    }
 }

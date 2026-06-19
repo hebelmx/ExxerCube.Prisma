@@ -7,6 +7,8 @@ using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 using IndQuestResults.Operations;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ExxerCube.Prisma.Veriqan.Application.Verdict;
 
@@ -42,9 +44,32 @@ namespace ExxerCube.Prisma.Veriqan.Application.Verdict;
 /// </list>
 /// The pipeline gate ALWAYS remains on <see cref="RuleFinding.Verdict"/>; do not change that.
 /// </para>
+/// <para>
+/// <b>Unrecognised-verdict safety (S12):</b>
+/// If a future enum addition produces a <see cref="FindingVerdict"/> value not handled by
+/// the switch, the finding is treated as <see cref="FindingVerdict.InsufficientData"/>
+/// (abstain) rather than silently counting as a pass. This prevents a latent false-GREEN
+/// risk when new enum values are added without a corresponding aggregator update.
+/// A <see cref="LogLevel.Warning"/> is emitted so the gap is observable at runtime.
+/// </para>
 /// </remarks>
 public sealed class VerdictAggregator : IVerdictAggregator
 {
+    private readonly ILogger<VerdictAggregator> _logger;
+
+    /// <summary>
+    /// Initialises a new <see cref="VerdictAggregator"/>.
+    /// </summary>
+    /// <param name="logger">
+    /// Optional structured logger. When <see langword="null"/> (e.g. in unit tests that use
+    /// <c>new VerdictAggregator()</c> directly), a <see cref="NullLogger{T}"/> is substituted
+    /// so the parameterless construction path remains valid.
+    /// </param>
+    public VerdictAggregator(ILogger<VerdictAggregator>? logger = null)
+    {
+        _logger = logger ?? NullLogger<VerdictAggregator>.Instance;
+    }
+
     /// <inheritdoc />
     public Result<VerdictSummary> Aggregate(
         IReadOnlyList<RuleFinding> findings,
@@ -94,8 +119,18 @@ public sealed class VerdictAggregator : IVerdictAggregator
                     break;
 
                 case FindingVerdict.Pass:
-                default:
                     passCount++;
+                    break;
+
+                default:
+                    // Unrecognised verdict — abstain rather than silently count as pass
+                    // (false-GREEN prevention, S12). Treat identically to InsufficientData
+                    // so the finding never escalates to RED either.
+                    _logger.LogWarning(
+                        "VerdictAggregator encountered unrecognised {FindingVerdict} on check {CheckId}; treating as InsufficientData to prevent false-GREEN.",
+                        (int)finding.Verdict,
+                        finding.CheckId);
+                    insufficientIds.Add(finding.CheckId);
                     break;
             }
         }
