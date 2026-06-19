@@ -87,27 +87,40 @@ internal sealed class EfVerificationJobRepository : IVerificationJobRepository
         }
         catch (DbUpdateException dbEx)
         {
-            // A unique-constraint violation on ContentHash means a concurrent caller already
-            // committed the same job.  Re-query to surface the winning row so the caller
-            // receives idempotent success rather than a failure that forces a retry storm.
+            // SaveChangesAsync threw — the failed entity is still tracked as Added in the
+            // ChangeTracker.  Clear it first so the identity map cannot shadow the committed
+            // winner row when we re-query.
+            _context.ChangeTracker.Clear();
+
             _logger.LogWarning(
                 dbEx,
-                "Duplicate ContentHash insert detected for job {JobId} — re-querying existing row.",
+                "DbUpdateException on insert for job {JobId} — re-querying by ContentHash to distinguish duplicate from other failure.",
                 job.Id);
 
             try
             {
+                // AsNoTracking ensures we read the committed row from the store, not a
+                // cache entry from the (now-cleared) identity map.
                 var existing = await _context.VerificationJobs
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(j => j.ContentHash == job.ContentHash, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (existing is not null)
+                {
+                    // A concurrent caller already committed this ContentHash — idempotent success.
                     return Result<VerificationJob>.WithSuccess(existing);
+                }
 
-                // Should not happen: constraint violation but row gone — surface original error.
-                _logger.LogError(dbEx, "Constraint violation but existing row not found for hash {ContentHash}.", job.ContentHash);
+                // No matching row: this was NOT a duplicate-key conflict (e.g. FK violation,
+                // deadlock, column-length overflow).  Surface the real failure honestly.
+                _logger.LogError(
+                    dbEx,
+                    "Persist failed for job {JobId} — not a duplicate-key conflict (no row found for hash {ContentHash}).",
+                    job.Id,
+                    job.ContentHash);
                 return Result<VerificationJob>.WithFailure(
-                    $"Database constraint violation but no existing row found: {dbEx.Message}");
+                    $"Persist failed: {dbEx.GetBaseException().Message}");
             }
             catch (OperationCanceledException)
             {
@@ -115,7 +128,7 @@ internal sealed class EfVerificationJobRepository : IVerificationJobRepository
             }
             catch (Exception retryEx)
             {
-                _logger.LogError(retryEx, "Failed to re-query existing job after constraint violation for hash {ContentHash}.", job.ContentHash);
+                _logger.LogError(retryEx, "Failed to re-query after DbUpdateException for hash {ContentHash}.", job.ContentHash);
                 return Result<VerificationJob>.WithFailure(
                     $"Database error during conflict re-query: {retryEx.Message}");
             }

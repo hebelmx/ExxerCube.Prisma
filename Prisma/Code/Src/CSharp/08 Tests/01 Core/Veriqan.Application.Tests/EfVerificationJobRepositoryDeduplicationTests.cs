@@ -23,6 +23,35 @@ namespace ExxerCube.Prisma.Veriqan.Application.Tests;
 public sealed class EfVerificationJobRepositoryDeduplicationTests
 {
     // ---------------------------------------------------------------------------
+    // Fault-injecting interceptor — always throws DbUpdateException (used for
+    // non-constraint failure scenarios where no pre-seeded row exists).
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// An EF Core <see cref="ISaveChangesInterceptor"/> that always throws a
+    /// <see cref="DbUpdateException"/>, simulating a non-duplicate failure such as
+    /// an FK violation or deadlock (no committed row will match the ContentHash).
+    /// </summary>
+    private sealed class AlwaysThrowDbUpdateInterceptor : ISaveChangesInterceptor
+    {
+        public ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData,
+            InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            throw new DbUpdateException(
+                "Simulated non-constraint DB failure (e.g. FK violation).",
+                new InvalidOperationException("Foreign key constraint violated."));
+        }
+
+        public int SavedChanges(SaveChangesCompletedEventData eventData, int result) => result;
+        public void SaveChangesFailed(DbContextErrorEventData eventData) { }
+        public InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result) => result;
+        public Task SaveChangesFailedAsync(DbContextErrorEventData eventData, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default) => Task.FromResult(result);
+    }
+
+    // ---------------------------------------------------------------------------
     // Fault-injecting interceptor — throws DbUpdateException on the FIRST
     // SaveChangesAsync call, then passes through on subsequent calls.
     // ---------------------------------------------------------------------------
@@ -155,6 +184,53 @@ public sealed class EfVerificationJobRepositoryDeduplicationTests
                 "The returned job must be the already-committed row, not the failed-to-insert duplicate.");
 
             result.Value!.ContentHash.ShouldBe(sharedHash);
+        }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Test: DbUpdateException with NO matching row → honest failure, no false dup claim
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// When <see cref="EfVerificationJobRepository.AddAsync"/> receives a
+    /// <see cref="DbUpdateException"/> but no row exists for the ContentHash (simulating
+    /// a non-duplicate failure such as an FK violation or deadlock), the repository must
+    /// return a failure result — not a spurious <see cref="Result{T}.WithSuccess"/> — and
+    /// the failure message must not falsely claim a duplicate/constraint violation.
+    /// </summary>
+    [Fact]
+    public async Task AddAsync_DbUpdateExceptionWithNoExistingRow_ReturnsHonestFailure()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Unique DB name: no rows are pre-seeded, so the re-query finds nothing.
+        var dbName = Guid.NewGuid().ToString("N");
+
+        const string hash = "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890";
+
+        // Use the always-throw interceptor: no committed row will match the ContentHash.
+        var interceptor = new AlwaysThrowDbUpdateInterceptor();
+        var (repo, context) = BuildSutWithInterceptor(dbName, interceptor);
+        await using (context)
+        {
+            var job = MakeJob(hash);
+
+            var result = await repo.AddAsync(job, ct);
+
+            // Must be a failure — not a wrong success with null or a phantom row.
+            result.IsSuccess.ShouldBeFalse(
+                "AddAsync must return failure when DbUpdateException fires but no existing row matches.");
+
+            // The error message must not falsely blame a duplicate/constraint violation.
+            result.Error.ShouldNotBeNullOrEmpty();
+            result.Error.ShouldNotContain(
+                "constraint violation",
+                Case.Insensitive,
+                "The failure message must not falsely claim a constraint/duplicate violation when no row was found.");
+            result.Error.ShouldNotContain(
+                "duplicate",
+                Case.Insensitive,
+                "The failure message must not falsely claim a duplicate when no row was found.");
         }
     }
 }
