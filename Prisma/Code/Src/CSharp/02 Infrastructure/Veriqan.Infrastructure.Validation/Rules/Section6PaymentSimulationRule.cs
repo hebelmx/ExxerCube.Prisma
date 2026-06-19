@@ -29,18 +29,20 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// will be <see langword="null"/> in all real statements today. The rule returns
 /// <see cref="FindingVerdict.InsufficientData"/> in that case (cannot verify what it cannot
 /// read). The recursion engine and comparison logic are implemented now and are fully proved
-/// by synthetic tests; they will activate automatically once a §6-table extractor is built.
+/// by synthetic tests; they will activate automatically once the §6-table extractor is built
+/// (<c>ExtractSection6Table</c> — extractor is built but uncalibrated — pending real §6
+/// specimen (VERIQAN-E5-S5)).
 /// </para>
 /// <para>
 /// <b>Recursion (Banxico Circular 13/2011 pago-mínimo method):</b>
 /// Starting balance B₀ = <c>PagoParaNoGenerarIntereses</c> (the full balance to amortise),
 /// monthly ordinary rate <c>r = Tasa / 12</c> (Tasa is stored as a fraction, e.g. 0.2736 for
-/// 27.36%), Mexican IVA constant = 0.16 on interest. For a fixed monthly payment
-/// <c>P = k × PagoMinimo</c>:
+/// 27.36%), Mexican IVA rate from <see cref="ILegalToleranceProvider.IvaRate"/> (default 0.16).
+/// For a fixed monthly payment <c>P = k × PagoMinimo</c>:
 /// <code>
 ///   each month:
 ///     interes   = B × r
-///     iva       = interes × 0.16
+///     iva       = interes × ivaRate   (from ILegalToleranceProvider.IvaRate, default 0.16)
 ///     B_next    = B + interes + iva − P
 ///     accum    += interes          ← ordinary (pre-IVA) interest only
 ///     month++
@@ -72,10 +74,11 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// NA/trivial representation rather than forcing a numeric comparison.
 /// </para>
 /// <para>
-/// <b>IVA assumption:</b> Mexican IVA is 16% (0.16) as of Banxico Circular 13/2011 and
-/// subsequent confirmations. There is no separate IVA-rate field in the extracted model;
-/// the constant 0.16 is hard-coded and documented here. If the applicable IVA rate changes
-/// in a future period, update <see cref="IvaRate"/> and re-verify the corpus.
+/// <b>IVA rate:</b> Mexican IVA is 16% (0.16) as of Banxico Circular 13/2011 and
+/// subsequent confirmations. The rate is read from
+/// <see cref="ILegalToleranceProvider.IvaRate"/> (default 0.16) so it can be overridden
+/// per deployment without recompiling. If the applicable IVA rate changes in a future
+/// period, update <c>DefaultLegalToleranceProvider</c> (or the SQL-backed provider) and re-verify the corpus.
 /// </para>
 /// <para>
 /// <b>Preventive gate semantics:</b> a false Fail would halt a bank's billing run.
@@ -87,11 +90,6 @@ internal sealed class Section6PaymentSimulationRule : IVecValidationRule
 {
     private const string Version = "1.0.0";
     private const int Section6Number = 6;
-
-    // Mexican IVA constant as of Banxico Circular 13/2011 and current law.
-    // Hard-coded because no IVA-rate field exists in the extracted model.
-    // ⚠️ Update + reverify corpus if IVA changes from 16%.
-    internal const decimal IvaRate = 0.16m;
 
     // §6 scenarios: multipliers k ∈ {1, 2, 5} applied to PagoMinimo.
     private static readonly int[] ScenarioMultipliers = [1, 2, 5];
@@ -268,7 +266,7 @@ internal sealed class Section6PaymentSimulationRule : IVecValidationRule
             }
 
             // Run the recursion.
-            var simulation = PaymentSimulation.Run(b0, tasa, payment);
+            var simulation = PaymentSimulation.Run(b0, tasa, payment, _toleranceProvider.IvaRate);
 
             if (!simulation.IsAmortising)
                 return InsufficientData(
@@ -366,7 +364,7 @@ internal sealed class Section6PaymentSimulationRule : IVecValidationRule
 /// <b>Recursion formula per month:</b>
 /// <code>
 ///   interes   = B × r                (r = Tasa / 12, monthly ordinary rate)
-///   iva       = interes × 0.16       (Mexican IVA constant — see Section6PaymentSimulationRule.IvaRate)
+///   iva       = interes × ivaRate    (Mexican IVA rate — from ILegalToleranceProvider.IvaRate)
 ///   B_next    = B + interes + iva − P
 ///   accum    += interes              (pre-IVA ordinary interest only)
 ///   month++
@@ -391,17 +389,21 @@ internal static class PaymentSimulation
     /// <param name="b0">Starting balance (PagoParaNoGenerarIntereses), must be &gt; 0.</param>
     /// <param name="annualRate">Annual ordinary rate as a decimal fraction (e.g. 0.2736).</param>
     /// <param name="monthlyPayment">Fixed monthly payment amount (k × PagoMinimo).</param>
+    /// <param name="ivaRate">
+    /// Mexican IVA rate as a decimal fraction (e.g. <c>0.16</c> for 16%).
+    /// Read from <see cref="ILegalToleranceProvider.IvaRate"/>; default is 0.16.
+    /// </param>
     /// <returns>
     /// A <see cref="SimulationResult"/> with <see cref="SimulationResult.IsAmortising"/> = false
     /// when the payment does not cover the first month's charges (non-amortising infinite case).
     /// </returns>
-    internal static SimulationResult Run(decimal b0, decimal annualRate, decimal monthlyPayment)
+    internal static SimulationResult Run(decimal b0, decimal annualRate, decimal monthlyPayment, decimal ivaRate)
     {
         var r = annualRate / 12m;
 
         // First-month charges to detect non-amortising case.
         var firstInteres = b0 * r;
-        var firstIva = firstInteres * Section6PaymentSimulationRule.IvaRate;
+        var firstIva = firstInteres * ivaRate;
         if (monthlyPayment <= firstInteres + firstIva)
         {
             return new SimulationResult(IsAmortising: false, Months: 0, TotalOrdinaryInterest: 0m);
@@ -414,7 +416,7 @@ internal static class PaymentSimulation
         while (b > 0m && months < MaxIterations)
         {
             var interes = b * r;
-            var iva = interes * Section6PaymentSimulationRule.IvaRate;
+            var iva = interes * ivaRate;
             var bNext = b + interes + iva - monthlyPayment;
 
             totalOrdinaryInterest += interes;

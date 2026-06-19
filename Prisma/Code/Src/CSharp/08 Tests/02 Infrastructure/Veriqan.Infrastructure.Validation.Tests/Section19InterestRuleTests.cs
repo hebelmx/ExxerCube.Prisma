@@ -927,6 +927,7 @@ public sealed class Section19InterestRuleTests
         public bool Has(string checkId) => false;
         public Tolerance For(string checkId) =>
             throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
+        public decimal IvaRate => 0.16m;
     }
 
     // -----------------------------------------------------------------------

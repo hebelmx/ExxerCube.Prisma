@@ -236,6 +236,20 @@ public sealed class ToleranceTests
         provider.For("Cl-10").LegalDefault.ShouldBe(0.50m);
     }
 
+    /// <summary>
+    /// DefaultLegalToleranceProvider.IvaRate must return 0.16 (16%) as the Mexican IVA
+    /// constant mandated by Banxico Circular 13/2011. This is the S13 configurable-rate
+    /// default — changing it here would break §6/§16 recomputation for all statements.
+    /// </summary>
+    [Fact]
+    public void DefaultLegalToleranceProvider_IvaRate_Returns16Percent()
+    {
+        var provider = BuildProvider();
+
+        provider.IvaRate.ShouldBe(0.16m,
+            "Mexican IVA rate per Banxico Circular 13/2011 must default to 0.16 (16%)");
+    }
+
     // -----------------------------------------------------------------------
     // Rule-level regression tests (story 9.4)
     // -----------------------------------------------------------------------

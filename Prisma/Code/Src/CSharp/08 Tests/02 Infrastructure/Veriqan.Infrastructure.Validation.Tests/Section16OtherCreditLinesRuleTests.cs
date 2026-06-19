@@ -932,6 +932,51 @@ public sealed class Section16OtherCreditLinesRuleTests
     }
 
     // -----------------------------------------------------------------------
+    // S13 — Configurable IvaRate: rule reads from ILegalToleranceProvider.IvaRate
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Proves the §16 rule reads the IVA rate from <see cref="ILegalToleranceProvider.IvaRate"/>
+    /// rather than a hard-coded 0.16 constant. When the provider is configured with 0.08 (8%),
+    /// a table built with 8%-consistent IVA values must Pass, while the same table would Fail
+    /// if the rule used 16% instead (confirming it reads from config).
+    /// </summary>
+    [Fact]
+    public void Evaluate_NonDefaultIvaRate_Check2_UsesConfiguredRateNotHardCodedConstant()
+    {
+        const decimal configuredIvaRate = 0.08m;  // 8% — deliberately different from 16% default
+        const decimal interes = 500.00m;
+        // IVA consistent with 8%: 500 × 0.08 = 40.00
+        var ivaAt8Pct = interes * configuredIvaRate;
+
+        // Confirm the 8% IVA differs from 16% IVA, so the test is non-vacuous.
+        var ivaAt16Pct = interes * 0.16m;
+        ivaAt8Pct.ShouldNotBe(ivaAt16Pct,
+            "8% and 16% IVA must differ on this input — otherwise the test cannot distinguish the two");
+
+        // Build a §16 row whose IVA cell matches 8% (not 16%).
+        var row = MakeRow("Línea 8pct", saldoPendiente: 10_000m,
+            intereses: interes, iva: ivaAt8Pct, tasa: 0.20m);
+        var table = MakeSection16Table([row]);
+        var model = ModelWith([table]);
+        var ctx = Ctx(model);
+
+        // Inject a StubToleranceProvider that returns 8% IVA.
+        var stubProvider = new StubToleranceProvider(ivaRate: configuredIvaRate);
+        var rule = new Section16OtherCreditLinesRule(stubProvider);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        // The rule must Pass: printed IVA matches 8% × Intereses, and the rule is
+        // configured for 8%. If the rule hard-coded 0.16, it would compute 80.00 MXN
+        // expected but see 40.00 MXN printed — a 40 MXN diff, far beyond the 0.50 MXN
+        // tolerance — and would return Fail instead of Pass.
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "IVA at 8% matches the 8%-configured rule — must Pass (proves rule reads from provider)");
+    }
+
+    // -----------------------------------------------------------------------
     // Stub: empty tolerance provider
     // -----------------------------------------------------------------------
 
@@ -940,5 +985,25 @@ public sealed class Section16OtherCreditLinesRuleTests
         public bool Has(string checkId) => false;
         public Tolerance For(string checkId) =>
             throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
+        public decimal IvaRate => 0.16m;
+    }
+
+    /// <summary>
+    /// Stub provider that exposes the real §16 tolerance and a configurable IVA rate
+    /// so tests can prove the rule reads the rate from config, not a hard-coded constant.
+    /// </summary>
+    private sealed class StubToleranceProvider : ILegalToleranceProvider
+    {
+        private readonly decimal _ivaRate;
+        private static readonly Tolerance CurrencyMxn = new(legalDefault: 0.50m, min: 0.00m, max: 1.00m);
+
+        public StubToleranceProvider(decimal ivaRate) => _ivaRate = ivaRate;
+
+        public bool Has(string checkId) => checkId == "LAW-§16-OTRASLINEAS";
+        public Tolerance For(string checkId) =>
+            checkId == "LAW-§16-OTRASLINEAS"
+                ? CurrencyMxn
+                : throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
+        public decimal IvaRate => _ivaRate;
     }
 }

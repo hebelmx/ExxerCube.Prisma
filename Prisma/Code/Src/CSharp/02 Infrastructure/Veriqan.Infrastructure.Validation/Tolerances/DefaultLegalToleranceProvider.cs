@@ -146,4 +146,11 @@ internal sealed class DefaultLegalToleranceProvider : ILegalToleranceProvider
     /// <inheritdoc />
     public bool Has(string checkId) =>
         !string.IsNullOrWhiteSpace(checkId) && Registry.ContainsKey(checkId);
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Mexican IVA rate as of Banxico Circular 13/2011 and current law.
+    /// ⚠️ Update + re-verify corpus if IVA changes from 16%.
+    /// </remarks>
+    public decimal IvaRate => 0.16m;
 }

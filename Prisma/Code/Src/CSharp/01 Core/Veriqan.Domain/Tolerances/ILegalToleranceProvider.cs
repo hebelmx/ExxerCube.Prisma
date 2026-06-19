@@ -39,4 +39,19 @@ public interface ILegalToleranceProvider
     /// </summary>
     /// <param name="checkId">The rule check identifier to probe.</param>
     bool Has(string checkId);
+
+    /// <summary>
+    /// The Mexican IVA (VAT) rate applied to ordinary interest in §6 and §16 calculations,
+    /// as mandated by Banxico Circular 13/2011 and current law.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Default is <c>0.16</c> (16%). If the applicable IVA rate changes in a future
+    /// legislative period, update the implementation and re-verify the corpus.
+    /// </para>
+    /// <para>
+    /// Expressed as a decimal fraction (e.g. <c>0.16</c>), not a percentage (not <c>16</c>).
+    /// </para>
+    /// </remarks>
+    decimal IvaRate { get; }
 }

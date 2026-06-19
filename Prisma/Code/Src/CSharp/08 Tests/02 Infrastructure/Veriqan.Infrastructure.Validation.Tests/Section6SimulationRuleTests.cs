@@ -218,7 +218,7 @@ public sealed class Section6SimulationRuleTests
         const decimal annualRate = 0.24m;   // 24% annual → 2% monthly
         const decimal payment = 500m;
 
-        var result = PaymentSimulation.Run(b0, annualRate, payment);
+        var result = PaymentSimulation.Run(b0, annualRate, payment, 0.16m);
 
         result.IsAmortising.ShouldBeTrue();
         result.Months.ShouldBe(5);
@@ -241,7 +241,7 @@ public sealed class Section6SimulationRuleTests
         // total first-month charges = 23.2; payment must be ≤ 23.2 to trigger non-amortising
         const decimal payment = 10m;
 
-        var result = PaymentSimulation.Run(b0, annualRate, payment);
+        var result = PaymentSimulation.Run(b0, annualRate, payment, 0.16m);
 
         result.IsAmortising.ShouldBeFalse();
     }
@@ -259,7 +259,7 @@ public sealed class Section6SimulationRuleTests
         // 20 ≤ 23.2 → non-amortising
         const decimal payment = 20m;
 
-        var result = PaymentSimulation.Run(b0, annualRate, payment);
+        var result = PaymentSimulation.Run(b0, annualRate, payment, 0.16m);
 
         result.IsAmortising.ShouldBeFalse();
     }
@@ -275,7 +275,7 @@ public sealed class Section6SimulationRuleTests
         const decimal annualRate = 0.24m;   // first charges = 23.2
         const decimal payment = 25m;       // > 23.2
 
-        var result = PaymentSimulation.Run(b0, annualRate, payment);
+        var result = PaymentSimulation.Run(b0, annualRate, payment, 0.16m);
 
         result.IsAmortising.ShouldBeTrue();
         result.Months.ShouldBeGreaterThan(0);
@@ -295,7 +295,7 @@ public sealed class Section6SimulationRuleTests
         // first charges = 10 × 0.01 + (10×0.01×0.16) = 0.10 + 0.016 = 0.116
         const decimal payment = 50m;       // >> 0.116 → balance gone month 1
 
-        var result = PaymentSimulation.Run(b0, annualRate, payment);
+        var result = PaymentSimulation.Run(b0, annualRate, payment, 0.16m);
 
         result.IsAmortising.ShouldBeTrue();
         result.Months.ShouldBe(1);
@@ -320,9 +320,9 @@ public sealed class Section6SimulationRuleTests
         const decimal tasa = 0.24m;
 
         // Pre-compute via the same engine (white-box but deterministic — we own the formula)
-        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo);
-        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo);
-        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo);
+        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo, 0.16m);
+        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo, 0.16m);
+        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo, 0.16m);
 
         sim1.IsAmortising.ShouldBeTrue("k=1 must amortise for this test to be meaningful");
         sim2.IsAmortising.ShouldBeTrue("k=2 must amortise");
@@ -358,9 +358,9 @@ public sealed class Section6SimulationRuleTests
         const decimal pagoMinimo = 200m;
         const decimal tasa = 0.24m;
 
-        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo);
-        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo);
-        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo);
+        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo, 0.16m);
+        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo, 0.16m);
+        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo, 0.16m);
 
         // Nudge interest by 0.30 MXN (within 0.50 tolerance) on scenario k=1
         var rows = new List<TableRow>
@@ -391,9 +391,9 @@ public sealed class Section6SimulationRuleTests
         const decimal pagoMinimo = 200m;
         const decimal tasa = 0.24m;
 
-        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo);
-        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo);
-        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo);
+        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo, 0.16m);
+        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo, 0.16m);
+        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo, 0.16m);
 
         // Scenario k=1: inflate interest by 50 MXN — way beyond 0.50 tolerance
         var rows = new List<TableRow>
@@ -423,9 +423,9 @@ public sealed class Section6SimulationRuleTests
         const decimal pagoMinimo = 200m;
         const decimal tasa = 0.24m;
 
-        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo);
-        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo);
-        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo);
+        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo, 0.16m);
+        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo, 0.16m);
+        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo, 0.16m);
 
         // Scenario k=2: print months = computed + 3 (beyond ±1 tolerance)
         var rows = new List<TableRow>
@@ -455,9 +455,9 @@ public sealed class Section6SimulationRuleTests
         const decimal pagoMinimo = 200m;
         const decimal tasa = 0.24m;
 
-        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo);
-        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo);
-        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo);
+        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo, 0.16m);
+        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo, 0.16m);
+        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo, 0.16m);
 
         // k=1 months printed as computed+1 (±1 is within tolerance)
         var rows = new List<TableRow>
@@ -844,6 +844,93 @@ public sealed class Section6SimulationRuleTests
         public bool Has(string checkId) => false;
         public Tolerance For(string checkId) =>
             throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
+        public decimal IvaRate => 0.16m;
+    }
+
+    /// <summary>
+    /// Stub provider that returns a real tolerance for LAW-§6-SIMULACION but exposes
+    /// a configurable IVA rate so tests can prove the rule reads from config.
+    /// </summary>
+    private sealed class StubToleranceProvider : ILegalToleranceProvider
+    {
+        private readonly decimal _ivaRate;
+        private static readonly Tolerance CurrencyMxn = new(legalDefault: 0.50m, min: 0.00m, max: 1.00m);
+
+        public StubToleranceProvider(decimal ivaRate) => _ivaRate = ivaRate;
+
+        public bool Has(string checkId) => checkId == "LAW-§6-SIMULACION";
+        public Tolerance For(string checkId) =>
+            checkId == "LAW-§6-SIMULACION"
+                ? CurrencyMxn
+                : throw new InvalidOperationException($"No tolerance registered for '{checkId}'.");
+        public decimal IvaRate => _ivaRate;
+    }
+
+    // -----------------------------------------------------------------------
+    // S13 — Configurable IvaRate: rule reads from ILegalToleranceProvider.IvaRate
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Proves the §6 rule reads IVA rate from <see cref="ILegalToleranceProvider.IvaRate"/>
+    /// rather than a hard-coded constant.
+    /// <para>
+    /// Strategy: use a very high annual rate (120%) and a payment that barely amortises at 16%
+    /// but amortises faster at 8%. The two rates produce different total-ordinary-interest sums.
+    /// A §6 table built with 8%-computed interest Passes when the rule is configured for 8% IVA,
+    /// but would Fail when the rule uses 16% (because the printed interest matches 8%, not 16%).
+    /// This bidirectional check confirms the rule reads from config, not a hard-coded literal.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public void Evaluate_NonDefaultIvaRate_RuleUsesConfiguredRate_NotHardCodedConstant()
+    {
+        // High rate to magnify the IVA impact and ensure interest sums differ visibly.
+        const decimal b0 = 5000m;
+        const decimal pagoMinimo = 700m;   // k=1 payment must cover first-month charges at 16%
+        const decimal tasa = 0.60m;        // 60% annual → 5% monthly
+        const decimal configuredIvaRate = 0.08m;  // 8% — deliberately different from the 16% default
+
+        // Verify the test is non-vacuous: 8% and 16% must produce different interest totals.
+        var sim1At8  = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo, 0.08m);
+        var sim1At16 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo, 0.16m);
+        var sim2At8  = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo, 0.08m);
+        var sim5At8  = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo, 0.08m);
+
+        sim1At8.IsAmortising.ShouldBeTrue("k=1 at 8% IVA must amortise");
+        sim1At16.IsAmortising.ShouldBeTrue("k=1 at 16% IVA must amortise");
+        sim1At8.TotalOrdinaryInterest.ShouldNotBe(sim1At16.TotalOrdinaryInterest,
+            "8% and 16% IVA must yield different cumulative interest — confirming the test is non-vacuous");
+
+        // Build the §6 table using values computed with 8% IVA.
+        var rows = new List<TableRow>
+        {
+            MakeScenarioRow("k=1", sim1At8.Months, sim1At8.TotalOrdinaryInterest),
+            MakeScenarioRow("k=2", sim2At8.Months, sim2At8.TotalOrdinaryInterest),
+            MakeScenarioRow("k=5", sim5At8.Months, sim5At8.TotalOrdinaryInterest)
+        };
+
+        var table6 = MakeSection6Table(rows);
+        var summary = MakePeriodSummary(b0, pagoMinimo, tasa);
+        var model = ModelWith(table6, summary);
+        var ctx = Ctx(model);
+
+        // Part A — rule configured for 8% IVA → must Pass (printed values match 8% computation).
+        var stubAt8 = new StubToleranceProvider(ivaRate: configuredIvaRate);
+        var ruleAt8 = new Section6PaymentSimulationRule(stubAt8);
+        var resultAt8 = ruleAt8.Evaluate(ctx, TestContext.Current.CancellationToken);
+        resultAt8.IsSuccess.ShouldBeTrue();
+        resultAt8.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "Values built at 8% IVA must Pass when the rule is also configured for 8% IVA");
+
+        // Part B — rule configured for 16% IVA (default) → must Fail because the printed
+        // interest was computed at 8%, but the rule recomputes at 16% and finds a mismatch
+        // well beyond the 0.50 MXN tolerance.
+        var stubAt16 = new StubToleranceProvider(ivaRate: 0.16m);
+        var ruleAt16 = new Section6PaymentSimulationRule(stubAt16);
+        var resultAt16 = ruleAt16.Evaluate(ctx, TestContext.Current.CancellationToken);
+        resultAt16.IsSuccess.ShouldBeTrue();
+        resultAt16.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "Values built at 8% IVA must Fail when the rule recomputes with 16% IVA — proves rate is not hard-coded");
     }
 
     // -----------------------------------------------------------------------
@@ -873,9 +960,9 @@ public sealed class Section6SimulationRuleTests
         const decimal pagoMinimo = 200m;
         const decimal tasa = 0.24m;
 
-        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo);
-        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo);
-        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo);
+        var sim1 = PaymentSimulation.Run(b0, tasa, 1 * pagoMinimo, 0.16m);
+        var sim2 = PaymentSimulation.Run(b0, tasa, 2 * pagoMinimo, 0.16m);
+        var sim5 = PaymentSimulation.Run(b0, tasa, 5 * pagoMinimo, 0.16m);
 
         var rows = new List<TableRow>
         {

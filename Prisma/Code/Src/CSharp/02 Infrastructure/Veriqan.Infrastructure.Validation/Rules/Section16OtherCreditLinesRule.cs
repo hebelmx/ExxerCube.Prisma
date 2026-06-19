@@ -27,7 +27,7 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 ///   <item>Check 1 — Interest vs rate/días: Intereses(v) ≈ SaldoPendiente(iv) × (Tasa(ix)/360) × días,
 ///         within CurrencyMxn tolerance. Days come from PeriodSummary.DayCount; if not available
 ///         this sub-check is skipped (not failed).</item>
-///   <item>Check 2 — IVA vs interest: IVA(vi) ≈ Intereses(v) × 0.16, within tolerance.</item>
+///   <item>Check 2 — IVA vs interest: IVA(vi) ≈ Intereses(v) × IvaRate (from <see cref="ILegalToleranceProvider.IvaRate"/>, default 0.16), within tolerance.</item>
 ///   <item>Check 3 — Totals-tie cross-check against §19 "otras líneas" row (best-effort):
 ///         sum of §16 Intereses rows ≈ §19 row labeled "otras líneas de crédito" Monto, within tolerance.
 ///         Skipped (abstain) when either side is absent or low-confidence.</item>
@@ -105,7 +105,6 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
     private const int ColTasa = 8;             // (ix) CORPUS-VERIFY
     private const int RequiredValueCellCount = 9; // CORPUS-VERIFY
 
-    private const decimal IvaRate = 0.16m;
     private const decimal DaysPerYear = 360m;
 
     // Rate normalization thresholds — reuse §19's approach
@@ -310,9 +309,10 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
                 }
             }
 
-            // ---- Check 2: IVA ≈ Intereses × 0.16 ----
+            // ---- Check 2: IVA ≈ Intereses × ivaRate (from ILegalToleranceProvider.IvaRate) ----
             {
-                var expectedIva = Math.Abs(interesReported) * IvaRate;
+                var ivaRate = _toleranceProvider.IvaRate;
+                var expectedIva = Math.Abs(interesReported) * ivaRate;
                 var diff2 = Math.Abs(expectedIva - Math.Abs(ivaReported));
                 rowsChecked++;
 
@@ -325,7 +325,7 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
                         $"§16 row '{row.Label.RawText}' Check 2 (IVA vs Intereses): " +
                         $"IVA expected={expectedIva:F2}, reported={ivaReported:F2}, " +
                         $"diff={diff2:F4} > tolerance={effectiveTolerance:F2} " +
-                        $"(formula: |Intereses|={Math.Abs(interesReported):F2} × {IvaRate})";
+                        $"(formula: |Intereses|={Math.Abs(interesReported):F2} × {ivaRate})";
                     firstFailLocator     = ivaCell.Locator;
                     firstFailLegalPasses = legalPasses2;
                 }

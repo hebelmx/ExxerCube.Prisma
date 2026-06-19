@@ -109,6 +109,15 @@ public sealed class SqlLegalToleranceProvider : ILegalToleranceProvider
         && _cache is not null
         && _cache.ContainsKey(checkId);
 
+    /// <inheritdoc />
+    /// <remarks>
+    /// Returns the legally-mandated Mexican IVA rate (Banxico Circular 13/2011).
+    /// Currently pinned to 0.16 (16%). A future story (9.3) may load this from the SQL
+    /// legal-baseline table when the IVA rate itself requires per-tenant or per-period
+    /// overrides.
+    /// </remarks>
+    public decimal IvaRate => 0.16m;
+
     private void EnsureInitialised()
     {
         if (_cache is null)
