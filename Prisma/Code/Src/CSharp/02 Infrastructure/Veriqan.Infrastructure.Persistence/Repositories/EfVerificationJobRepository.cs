@@ -85,6 +85,41 @@ internal sealed class EfVerificationJobRepository : IVerificationJobRepository
         {
             return ResultExtensions.Cancelled<VerificationJob>();
         }
+        catch (DbUpdateException dbEx)
+        {
+            // A unique-constraint violation on ContentHash means a concurrent caller already
+            // committed the same job.  Re-query to surface the winning row so the caller
+            // receives idempotent success rather than a failure that forces a retry storm.
+            _logger.LogWarning(
+                dbEx,
+                "Duplicate ContentHash insert detected for job {JobId} — re-querying existing row.",
+                job.Id);
+
+            try
+            {
+                var existing = await _context.VerificationJobs
+                    .FirstOrDefaultAsync(j => j.ContentHash == job.ContentHash, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (existing is not null)
+                    return Result<VerificationJob>.WithSuccess(existing);
+
+                // Should not happen: constraint violation but row gone — surface original error.
+                _logger.LogError(dbEx, "Constraint violation but existing row not found for hash {ContentHash}.", job.ContentHash);
+                return Result<VerificationJob>.WithFailure(
+                    $"Database constraint violation but no existing row found: {dbEx.Message}");
+            }
+            catch (OperationCanceledException)
+            {
+                return ResultExtensions.Cancelled<VerificationJob>();
+            }
+            catch (Exception retryEx)
+            {
+                _logger.LogError(retryEx, "Failed to re-query existing job after constraint violation for hash {ContentHash}.", job.ContentHash);
+                return Result<VerificationJob>.WithFailure(
+                    $"Database error during conflict re-query: {retryEx.Message}");
+            }
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to persist VerificationJob {JobId}.", job.Id);

@@ -41,7 +41,11 @@ internal sealed class InMemoryVerificationJobRepository : IVerificationJobReposi
         if (cancellationToken.IsCancellationRequested)
             return Task.FromResult(ResultExtensions.Cancelled<VerificationJob>());
 
-        _byHash[job.ContentHash] = job;
-        return Task.FromResult(Result<VerificationJob>.WithSuccess(job));
+        // GetOrAdd is atomic on ConcurrentDictionary: two concurrent calls with the same
+        // ContentHash will both receive the single stored instance (whichever thread won
+        // the internal slot lock), satisfying the idempotency contract without a
+        // check-then-add race (TOCTOU).
+        var stored = _byHash.GetOrAdd(job.ContentHash, job);
+        return Task.FromResult(Result<VerificationJob>.WithSuccess(stored));
     }
 }
