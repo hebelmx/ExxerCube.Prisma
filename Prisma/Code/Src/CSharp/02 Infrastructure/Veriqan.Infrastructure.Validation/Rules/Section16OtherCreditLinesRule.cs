@@ -95,11 +95,15 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
     // (i) Fecha, (ii) Descripción, (iii) Monto original, (iv) Saldo pendiente,
     // (v) Intereses del periodo, (vi) IVA de intereses, (vii) Pago requerido,
     // (viii) Núm. de pago, (ix) Tasa de interés aplicable
-    private const int ColSaldoPendiente = 3;   // (iv)
-    private const int ColIntereses = 4;        // (v)
-    private const int ColIva = 5;              // (vi)
-    private const int ColTasa = 8;             // (ix)
-    private const int RequiredValueCellCount = 9;
+    //
+    // CORPUS-VERIFY: All indices below are derived from the CONDUSEF §16 spec and
+    // synthetic fixtures only — no real §16 statement corpus exists to calibrate
+    // column positions. Verify against a real §16 statement before relying on these.
+    private const int ColSaldoPendiente = 3;   // (iv) CORPUS-VERIFY
+    private const int ColIntereses = 4;        // (v)  CORPUS-VERIFY
+    private const int ColIva = 5;              // (vi) CORPUS-VERIFY
+    private const int ColTasa = 8;             // (ix) CORPUS-VERIFY
+    private const int RequiredValueCellCount = 9; // CORPUS-VERIFY
 
     private const decimal IvaRate = 0.16m;
     private const decimal DaysPerYear = 360m;
@@ -189,6 +193,21 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
             return InsufficientData("§16 table has no rows.");
         }
 
+        // ----------------------------------------------------------------
+        // Guard 1 — Table-level column-count check (CORPUS-VERIFY)
+        // The §16 column-index map is calibrated for exactly 9 value cells per row.
+        // If the parsed table has a different column count the index map is unverified
+        // against this layout and we must abstain rather than risk reading adjacent
+        // columns as if they were the intended ones.
+        // ----------------------------------------------------------------
+        var observedColumnCount = table16.Rows.Max(r => r.Values.Count);
+        if (observedColumnCount != RequiredValueCellCount)
+        {
+            return InsufficientData(
+                $"§16 column count {observedColumnCount} does not match expected " +
+                $"{RequiredValueCellCount}-column map — abstaining pending corpus calibration.");
+        }
+
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
@@ -211,13 +230,18 @@ internal sealed class Section16OtherCreditLinesRule : IVecValidationRule
 
         foreach (var row in table16.Rows)
         {
-            if (row.Values.Count < RequiredValueCellCount)
+            // Guard 2 — Per-row index bounds check (CORPUS-VERIFY)
+            // Guard 1 catches the common case (uniform wrong column count across all rows).
+            // Guard 2 is the safety net for individual rows that are shorter than the table
+            // maximum, so we skip the row rather than reading from an adjacent unintended column.
+            if (row.Values.Count < RequiredValueCellCount
+                || ColSaldoPendiente >= row.Values.Count
+                || ColIntereses      >= row.Values.Count
+                || ColIva            >= row.Values.Count
+                || ColTasa           >= row.Values.Count)
             {
-                // Too few columns — abstain on this row (do not Fail)
-                return InsufficientData(
-                    $"§16 row '{row.Label.RawText}' has only {row.Values.Count} value cells; " +
-                    $"expected at least {RequiredValueCellCount}. " +
-                    "Cannot map columns reliably — abstaining rather than risk a false Fail.");
+                // Abstain on this row only — do not Fail and do not abort the rule.
+                continue;
             }
 
             var saldoCell    = row.Values[ColSaldoPendiente];

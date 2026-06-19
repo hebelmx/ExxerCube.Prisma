@@ -855,6 +855,83 @@ public sealed class Section16OtherCreditLinesRuleTests
     }
 
     // -----------------------------------------------------------------------
+    // (i) Guard 1 — table-level column-count abstain guard (VERIQAN-E2-S3)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// §16 table has rows with only 7 value cells (not the expected 9).
+    /// Guard 1 must fire and return InsufficientData before any arithmetic is attempted.
+    /// Cardinal rule: layout mismatch → abstain (InsufficientData), NEVER Fail.
+    /// </summary>
+    [Fact]
+    public void Evaluate_Section16TableWith7Columns_ReturnsInsufficientData_NotFail()
+    {
+        // Build a row with 7 value cells (not the 9 required by the §16 column map)
+        var sevenCells = new TableCell[]
+        {
+            TableCell.Amount(0m,       "0.00",   P1()), // [0] Fecha placeholder
+            TableCell.Amount(0m,       "0.00",   P1()), // [1] Descripción placeholder
+            TableCell.Amount(10_000m,  "10000.00", P1()), // [2] Monto original placeholder
+            TableCell.Amount(10_000m,  "10000.00", P1()), // [3] Saldo
+            TableCell.Amount(500m,     "500.00",  P1()), // [4] Intereses
+            TableCell.Amount(80m,      "80.00",   P1()), // [5] IVA
+            TableCell.Amount(200m,     "200.00",  P1()), // [6] Pago requerido
+            // [7] and [8] (Núm. de pago, Tasa) intentionally absent — simulates 7-column table
+        };
+        var row = new TableRow(TableCell.LabelCell("Línea 7col", P1()), sevenCells);
+
+        var table = new FinancialTable(
+            sectionNumber: 16,
+            sectionName: "Información de otras líneas de crédito",
+            status: TableExtractionStatus.Extracted,
+            rows: [row],
+            locator: P1());
+
+        var model = ModelWith([table]);
+        var ctx = Ctx(model);
+
+        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("result must be success-wrapped");
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "7-column table does not match expected 9-column map → Guard 1 abstains (InsufficientData)");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.Fail,
+            "Cardinal rule: layout mismatch must never produce a false Fail");
+        // Message must cite both the observed and the expected column counts
+        result.Value.Observed.ShouldNotBeNullOrEmpty();
+        result.Value.Observed!.ShouldContain("7");   // observed column count
+        result.Value.Observed.ShouldContain("9");     // expected column count
+    }
+
+    /// <summary>
+    /// §16 table has exactly 9 columns (the expected layout) and IVA reconciles.
+    /// Guard 1 must NOT fire — the rule must proceed with normal arithmetic and return Pass.
+    /// This verifies that a valid 9-column table is not accidentally abstained.
+    /// </summary>
+    [Fact]
+    public void Evaluate_Section16TableWith9Columns_ProceedsNormally_ReturnsPass()
+    {
+        const decimal interes = 500.00m;
+        var ivaExact = interes * IvaRate; // 80.00
+
+        // MakeRow builds exactly 9 cells — confirms Guard 1 does NOT trigger for the correct layout
+        var row = MakeRow("Línea normal 9col",
+            saldoPendiente: 10_000m, intereses: interes, iva: ivaExact, tasa: 0.20m);
+
+        var table = MakeSection16Table([row]);
+        var model = ModelWith([table]);
+        var ctx = Ctx(model);
+
+        var result = GetRule().Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "Valid 9-column table with correct IVA → Guard 1 does not fire → rule proceeds → Pass");
+        result.Value.Verdict.ShouldNotBe(FindingVerdict.InsufficientData,
+            "A correctly-shaped 9-column table must not be falsely abstained");
+    }
+
+    // -----------------------------------------------------------------------
     // Stub: empty tolerance provider
     // -----------------------------------------------------------------------
 
