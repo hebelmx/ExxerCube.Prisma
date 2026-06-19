@@ -13,8 +13,10 @@ public enum VerdictSignal
     Red = 1,
 
     /// <summary>
-    /// One or more checks returned <see cref="FindingVerdict.InsufficientData"/> and no check
-    /// explicitly failed; manual review is required before a definitive ruling can be made.
+    /// Emitted by a whole-verdict <c>BlockedOutcome</c> (e.g. insufficient text layer or
+    /// extraction-coverage floor) — processing was halted before a ruling could be made and
+    /// manual review is required. Note: an aggregation of <see cref="FindingVerdict.InsufficientData"/>
+    /// alone (with no explicit fail) correctly yields <see cref="Green"/>, not Blocked.
     /// </summary>
     Blocked = 2,
 }
