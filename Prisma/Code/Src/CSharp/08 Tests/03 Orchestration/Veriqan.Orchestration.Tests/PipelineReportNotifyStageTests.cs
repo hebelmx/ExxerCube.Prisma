@@ -157,7 +157,16 @@ public sealed class PipelineReportNotifyStageTests
                 Result<IReadOnlyList<RuleFinding>>.WithSuccess(engineFindings)));
         services.Replace(ServiceDescriptor.Singleton<IVecValidationEngine>(_ => engine));
 
-        services.AddSingleton(TenantProfile.LegalBaseline());
+        // TenantProfile: legal baseline with extraction-coverage floor DISABLED (= 0) so the
+        // floor guard does not fire on the all-missing mock StatementModel.  These tests exercise
+        // the report and notify stages, not the coverage floor; the floor behaviour is verified
+        // in ExtractionCoverageFloorTests.
+        services.AddSingleton(new TenantProfile(
+            tenantId: "LEGAL-BASELINE",
+            tenantName: "Legal Baseline (CONDUSEF)",
+            toleranceOverrides: null,
+            minFieldConfidence: TenantProfile.LegalMinFieldConfidenceDefault,
+            minExtractionCoverageCount: 0));
         services.AddSingleton(TimeProvider.System);
 
         // In-memory persistence stubs.
@@ -254,7 +263,14 @@ public sealed class PipelineReportNotifyStageTests
         var engine = Substitute.For<IVecValidationEngine>();
         services.Replace(ServiceDescriptor.Singleton<IVecValidationEngine>(_ => engine));
 
-        services.AddSingleton(TenantProfile.LegalBaseline());
+        // TenantProfile: coverage floor disabled (= 0) — the mock model has 0 extracted fields;
+        // BLOCKED-from-binder path tests exercise binder/report/notify, not the coverage floor.
+        services.AddSingleton(new TenantProfile(
+            tenantId: "LEGAL-BASELINE",
+            tenantName: "Legal Baseline (CONDUSEF)",
+            toleranceOverrides: null,
+            minFieldConfidence: TenantProfile.LegalMinFieldConfidenceDefault,
+            minExtractionCoverageCount: 0));
         services.AddSingleton(TimeProvider.System);
         services.AddVeriqanInMemoryPersistence();
 

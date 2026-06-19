@@ -97,6 +97,47 @@ public sealed record TenantProfile
     /// </remarks>
     public const double MinFieldConfidenceLegalFloor = 0.8;
 
+    // -----------------------------------------------------------------------
+    // Extraction-coverage floor (Story E1-S10 — U2 guard)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets the minimum number of fields that must be successfully extracted
+    /// (<see cref="Domain.Extraction.ExtractionStatus.Extracted"/> or
+    /// <see cref="Domain.Extraction.ExtractionStatus.ExtractedInvalidFormat"/>)
+    /// from the statement PDF before the pipeline may proceed to bind and validate.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Default: 10.</b>  A normal VEC statement contains well over 10 readable fields;
+    /// the default catches PDFs that are encrypted, blank, or so heavily layout-drifted
+    /// that the extractor yields near-zero output.
+    /// </para>
+    /// <para>
+    /// When the extracted count falls below this floor the pipeline emits a
+    /// <c>VerdictSignal.Blocked</c> outcome with reason
+    /// <c>BlockReason.InsufficientExtractionCoverage</c> BEFORE binding or running any
+    /// section rules.  This prevents the universal-abstain (U2) false-GREEN: a near-zero
+    /// extraction causes every rule to abstain (<c>InsufficientData</c>), and the verdict
+    /// aggregator then counts only abstains and emits GREEN — which is a spurious PASS on a
+    /// genuinely defective statement.
+    /// </para>
+    /// <para>
+    /// The field count includes header fields (<see cref="Domain.Extraction.ExtractionStatus.Extracted"/>
+    /// and <see cref="Domain.Extraction.ExtractionStatus.ExtractedInvalidFormat"/> — both count)
+    /// plus any successfully extracted period-summary / paragraph fields exposed via
+    /// <see cref="Domain.Extraction.StatementModel.PeriodSummary"/> and similar collections.
+    /// </para>
+    /// </remarks>
+    public int MinExtractionCoverageCount { get; }
+
+    /// <summary>
+    /// The default value for <see cref="MinExtractionCoverageCount"/>.
+    /// A healthy VEC PDF yields tens of extracted fields; 10 is a conservative floor that
+    /// flags encrypted/blank documents without risking false-blocks on intentionally minimal PDFs.
+    /// </summary>
+    public const int DefaultMinExtractionCoverageCount = 10;
+
     /// <summary>
     /// Initializes a <see cref="TenantProfile"/> with the specified identifiers, override map,
     /// and optional confidence threshold.
@@ -112,17 +153,24 @@ public sealed record TenantProfile
     /// <see cref="LegalMinFieldConfidenceDefault"/> (0.8) when omitted.
     /// A tenant may tighten (raise) this value; it is validated and clamped by the resolver.
     /// </param>
+    /// <param name="minExtractionCoverageCount">
+    /// Minimum number of extracted (or invalid-format) fields required before the pipeline
+    /// proceeds to bind and validate. Defaults to <see cref="DefaultMinExtractionCoverageCount"/> (10).
+    /// Must be ≥ 0.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="tenantId"/> or <paramref name="tenantName"/> is null or white-space.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="minFieldConfidence"/> is outside [0.0, 1.0].
+    /// Thrown when <paramref name="minFieldConfidence"/> is outside [0.0, 1.0], or when
+    /// <paramref name="minExtractionCoverageCount"/> is negative.
     /// </exception>
     public TenantProfile(
         string tenantId,
         string tenantName,
         IReadOnlyDictionary<string, decimal>? toleranceOverrides = null,
-        double minFieldConfidence = LegalMinFieldConfidenceDefault)
+        double minFieldConfidence = LegalMinFieldConfidenceDefault,
+        int minExtractionCoverageCount = DefaultMinExtractionCoverageCount)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantName);
@@ -131,12 +179,18 @@ public sealed record TenantProfile
                 nameof(minFieldConfidence),
                 minFieldConfidence,
                 $"MinFieldConfidence must be in [{MinFieldConfidenceLowerBound}, {MinFieldConfidenceUpperBound}].");
+        if (minExtractionCoverageCount < 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(minExtractionCoverageCount),
+                minExtractionCoverageCount,
+                "MinExtractionCoverageCount must be >= 0.");
 
         TenantId = tenantId;
         TenantName = tenantName;
         ToleranceOverrides = toleranceOverrides
             ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         MinFieldConfidence = minFieldConfidence;
+        MinExtractionCoverageCount = minExtractionCoverageCount;
     }
 
     /// <summary>
@@ -154,5 +208,6 @@ public sealed record TenantProfile
             tenantId: "LEGAL-BASELINE",
             tenantName: "Legal Baseline (CONDUSEF)",
             toleranceOverrides: new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
-            minFieldConfidence: LegalMinFieldConfidenceDefault);
+            minFieldConfidence: LegalMinFieldConfidenceDefault,
+            minExtractionCoverageCount: DefaultMinExtractionCoverageCount);
 }

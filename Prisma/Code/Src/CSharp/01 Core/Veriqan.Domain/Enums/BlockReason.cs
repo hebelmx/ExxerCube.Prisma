@@ -21,4 +21,13 @@ public enum BlockReason
     /// was invalid, unavailable, or could not be decoded (schema error, I/O failure, etc.).
     /// </summary>
     InvalidBundle = 2,
+
+    /// <summary>
+    /// Fewer fields were successfully extracted from the statement PDF than the configured
+    /// <c>TenantProfile.MinExtractionCoverageCount</c> floor.  This indicates the PDF is
+    /// encrypted, blank, or so layout-drifted that the extractor could not read it.
+    /// The pipeline is blocked before section validation to prevent a spurious GREEN verdict
+    /// caused by universal abstain (U2) when near-zero fields are available.
+    /// </summary>
+    InsufficientExtractionCoverage = 3,
 }

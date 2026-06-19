@@ -207,6 +207,146 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             "Extraction succeeded for {FileName}",
             submission.FileName);
 
+        // Stage 2b — Extraction-coverage floor guard (U2 defence, Story E1-S10).
+        // If fewer than MinExtractionCoverageCount fields were extracted (Extracted or
+        // ExtractedInvalidFormat) the PDF is likely encrypted, blank, or so layout-drifted that
+        // the extractor yielded near-zero output.  Without this guard every section rule abstains
+        // (InsufficientData) and VerdictAggregator counts only abstains → spurious GREEN (U2).
+        // Fire BEFORE bind/validate; produce BLOCKED (never RED — honour the abstain-safety rule).
+        var extractedFieldCount = CountExtractedFields(statementModel);
+        var coverageFloor = _activeTenantProfile.MinExtractionCoverageCount;
+
+        _logger.LogInformation(
+            "Extraction coverage: {ExtractedFieldCount} field(s) extracted, floor={CoverageFloor} for {FileName}",
+            extractedFieldCount,
+            coverageFloor,
+            submission.FileName);
+
+        if (extractedFieldCount < coverageFloor)
+        {
+            _logger.LogWarning(
+                "Extraction coverage below floor for {FileName}: {ExtractedFieldCount} < {CoverageFloor} — emitting BLOCKED/{Reason}",
+                submission.FileName,
+                extractedFieldCount,
+                coverageFloor,
+                BlockReason.InsufficientExtractionCoverage);
+
+            var coverageBlocked = new BlockedOutcome(
+                BlockReason.InsufficientExtractionCoverage,
+                $"Only {extractedFieldCount} field(s) extracted; minimum required is {coverageFloor}.");
+
+            var coverageBlockedVerdictResult = _aggregator.Aggregate(
+                findings: Array.Empty<RuleFinding>(),
+                blocked: coverageBlocked,
+                ct: ct);
+
+            if (coverageBlockedVerdictResult.IsCancelled())
+                return ResultExtensions.Cancelled<VerificationOutcome>();
+
+            if (coverageBlockedVerdictResult.IsFailure)
+                return Result<VerificationOutcome>.WithFailure(
+                    coverageBlockedVerdictResult.Error ?? "Verdict aggregation failed (coverage floor)");
+
+            sw.Stop();
+            var coverageBlockedDuration = sw.Elapsed;
+            _metrics.RecordStatement(coverageBlockedDuration.TotalMilliseconds, VerdictSignal.Blocked);
+
+            _logger.LogInformation(
+                "Pipeline blocked (InsufficientExtractionCoverage) for {FileName} in {DurationMs:F1} ms JobId={JobId}",
+                submission.FileName,
+                coverageBlockedDuration.TotalMilliseconds,
+                job.Id);
+
+            // Persist — fatal / non-optional on all paths.
+            Result<JobVerdict> coveragePersistResult;
+            using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
+                coveragePersistResult = await _verdictPersistence.PersistAsync(
+                    jobId: job.Id,
+                    signal: VerdictSignal.Blocked,
+                    findings: Array.Empty<RuleFinding>(),
+                    engineVersion: EngineVersion,
+                    cancellationToken: ct).ConfigureAwait(false);
+
+            if (coveragePersistResult.IsCancelled())
+            {
+                _logger.LogWarning(
+                    "Pipeline cancelled during persist (InsufficientExtractionCoverage) for {FileName} JobId={JobId}",
+                    submission.FileName,
+                    job.Id);
+                return ResultExtensions.Cancelled<VerificationOutcome>();
+            }
+
+            if (coveragePersistResult.IsFailure)
+            {
+                _logger.LogError(
+                    "Verdict persist failed (InsufficientExtractionCoverage) for {FileName} JobId={JobId}: {Error}",
+                    submission.FileName,
+                    job.Id,
+                    coveragePersistResult.Error);
+                return Result<VerificationOutcome>.WithFailure(
+                    coveragePersistResult.Error ?? "Verdict persistence failed");
+            }
+
+            _logger.LogInformation(
+                "Verdict persisted (InsufficientExtractionCoverage) for {FileName} JobId={JobId}",
+                submission.FileName,
+                job.Id);
+
+            // Report — best-effort.
+            var coverageFindings = new List<RuleFinding>();
+            try
+            {
+                var coverageReportResult = _reportGenerator.Generate(
+                    submission.Pdf,
+                    coverageFindings,
+                    ct);
+
+                if (coverageReportResult.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Marked-PDF generation failed (InsufficientExtractionCoverage) for {FileName} JobId={JobId}: {Error} — continuing (best-effort)",
+                        submission.FileName,
+                        job.Id,
+                        coverageReportResult.Error);
+
+                    coverageFindings.Add(new RuleFinding(
+                        CheckId: "ReportGenerationFailure",
+                        Verdict: FindingVerdict.InsufficientData,
+                        Technique: TechniqueClass.Deterministic,
+                        Severity: FindingSeverity.Warning,
+                        EngineVersion: EngineVersion,
+                        Observed: coverageReportResult.Error));
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Marked-PDF generated (InsufficientExtractionCoverage) for {FileName} JobId={JobId} ({Bytes} bytes)",
+                        submission.FileName,
+                        job.Id,
+                        coverageReportResult.Value?.Length ?? 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Marked-PDF generation threw an exception (InsufficientExtractionCoverage) for {FileName} JobId={JobId} — continuing (best-effort)",
+                    submission.FileName,
+                    job.Id);
+
+                coverageFindings.Add(new RuleFinding(
+                    CheckId: "ReportGenerationFailure",
+                    Verdict: FindingVerdict.InsufficientData,
+                    Technique: TechniqueClass.Deterministic,
+                    Severity: FindingSeverity.Warning,
+                    EngineVersion: EngineVersion,
+                    Observed: ex.Message));
+            }
+
+            return Result<VerificationOutcome>.WithSuccess(
+                new VerificationOutcome(job, coverageBlockedVerdictResult.Value!, coverageFindings, coverageBlockedDuration));
+        }
+
         // Stage 3 — Resolve product token from extracted model, with fallback to context key
         var productToken = statementModel.PeriodSummary?.Product.Value
                            ?? submission.ContextKey.ProductId
@@ -647,4 +787,81 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         return Result<VerificationOutcome>.WithSuccess(
             new VerificationOutcome(job, summary, reportFindings, elapsed));
     }
+
+    // -----------------------------------------------------------------------
+    // Extraction-coverage floor helper (Story E1-S10)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Counts the number of fields in <paramref name="model"/> whose extraction status is
+    /// <see cref="ExtractionStatus.Extracted"/> or <see cref="ExtractionStatus.ExtractedInvalidFormat"/>.
+    /// Both statuses indicate that the extractor found the field in the PDF — even an
+    /// invalid-format field means the text layer was readable; only
+    /// <see cref="ExtractionStatus.NotExtracted"/> fields are excluded from the count.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The count covers the 7 mandatory header fields plus all non-null
+    /// <see cref="PeriodSummary"/> fields (up to 22 additional fields when the full extraction
+    /// pass ran successfully).  Collections such as <see cref="StatementModel.Movements"/>,
+    /// <see cref="StatementModel.FontRuns"/>, and <see cref="StatementModel.TypographySamples"/>
+    /// are intentionally excluded: they are bulk record sets, not named scalar fields, and
+    /// their count would swamp the floor semantics.
+    /// </para>
+    /// <para>
+    /// This is a <c>static</c> method so it can be tested independently of the pipeline
+    /// instance without constructing all 15 ctor dependencies.
+    /// </para>
+    /// </remarks>
+    internal static int CountExtractedFields(StatementModel model)
+    {
+        var count = 0;
+
+        // ── Header fields (7 always-present ExtractedField<T> properties) ────
+        if (IsExtracted(model.ClientName.Status)) count++;
+        if (IsExtracted(model.Address.Status)) count++;
+        if (IsExtracted(model.BranchNumber.Status)) count++;
+        if (IsExtracted(model.CardNumber.Status)) count++;
+        if (IsExtracted(model.Clabe.Status)) count++;
+        if (IsExtracted(model.ClientNumber.Status)) count++;
+        if (IsExtracted(model.Rfc.Status)) count++;
+
+        // ── PeriodSummary fields (present after a full extraction pass) ──────
+        if (model.PeriodSummary is { } ps)
+        {
+            if (IsExtracted(ps.Product.Status)) count++;
+            if (IsExtracted(ps.PeriodStart.Status)) count++;
+            if (IsExtracted(ps.PeriodCutDate.Status)) count++;
+            if (IsExtracted(ps.PaymentDueDate.Status)) count++;
+            if (IsExtracted(ps.DayCountPrinted.Status)) count++;
+            if (IsExtracted(ps.PagoParaNoGenerarIntereses.Status)) count++;
+            if (IsExtracted(ps.PagoMinimo.Status)) count++;
+            if (IsExtracted(ps.PagoMinimoMasMeses.Status)) count++;
+            if (IsExtracted(ps.Tasa.Status)) count++;
+            if (IsExtracted(ps.Cat.Status)) count++;
+            if (IsExtracted(ps.SaldoDeudorTotal.Status)) count++;
+            if (IsExtracted(ps.CreditoDisponible.Status)) count++;
+            if (IsExtracted(ps.AdeudoPeriodoAnterior.Status)) count++;
+            if (IsExtracted(ps.CargosRegularesNoMeses.Status)) count++;
+            if (IsExtracted(ps.CargosComprasAMesesCapital.Status)) count++;
+            if (IsExtracted(ps.MontoIntereses.Status)) count++;
+            if (IsExtracted(ps.MontoComisiones.Status)) count++;
+            if (IsExtracted(ps.IvaInteresesYComisiones.Status)) count++;
+            if (IsExtracted(ps.PagosYAbonos.Status)) count++;
+            if (IsExtracted(ps.SaldoCargosRegulares.Status)) count++;
+            if (IsExtracted(ps.SaldoCargosAMeses.Status)) count++;
+            if (IsExtracted(ps.TotalCargos.Status)) count++;
+            if (IsExtracted(ps.TotalAbonos.Status)) count++;
+        }
+
+        return count;
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when the status indicates the field was found in the PDF,
+    /// whether the value was well-formed (<see cref="ExtractionStatus.Extracted"/>) or
+    /// had a format defect (<see cref="ExtractionStatus.ExtractedInvalidFormat"/>).
+    /// </summary>
+    private static bool IsExtracted(ExtractionStatus status) =>
+        status is ExtractionStatus.Extracted or ExtractionStatus.ExtractedInvalidFormat;
 }
