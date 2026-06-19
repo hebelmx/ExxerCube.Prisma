@@ -481,8 +481,8 @@ public sealed class MarkedPdfGeneratorTests
     }
 
     /// <summary>
-    /// 90° CW viewer rotation: visual Y becomes raw X and the axes swap.
-    /// The highlight must land in the expected raw quadrant.
+    /// 90° CW viewer rotation: the viewer rotates the raw page 90° CW, so we invert (90° CCW)
+    /// to recover raw coords.  rawX = cx1 + cropWidth − vy − vh; axes swap (drawW=vh, drawH=vw).
     /// </summary>
     [Fact]
     public void ComputeHighlightRect_Rotate90NoCropBox_AxesSwappedCorrectQuadrant()
@@ -495,11 +495,11 @@ public sealed class MarkedPdfGeneratorTests
             vx: 100, vy: 200,
             vw: 50,  vh: 30);
 
-        // rawX = 0 + vy = 0 + 200 = 200
-        rect.X.ShouldBe(200.0, "90°: rawX = cx1 + vy");
+        // rawX = 0 + 595 − 200 − 30 = 365
+        rect.X.ShouldBe(365.0, "90°: rawX = cx1 + cropWidth − vy − vh");
 
-        // pdfSharpTop = 842 − 0 − 595 + 100 = 347
-        rect.Y.ShouldBe(347.0, "90°: pdfSharpTop = mh − cy1 − cropWidth + vx");
+        // pdfSharpTop = 842 − 0 − 100 − 50 = 692
+        rect.Y.ShouldBe(692.0, "90°: pdfSharpTop = mh − cy1 − vx − vw");
 
         // Axes swap: visual height (30) becomes raw width, visual width (50) becomes raw height.
         rect.Width.ShouldBe(30.0,  "90°: drawW = vh (axes swap)");
@@ -544,8 +544,8 @@ public sealed class MarkedPdfGeneratorTests
     }
 
     /// <summary>
-    /// 270° CW (= 90° CCW) viewer rotation: visual Y becomes raw X from the right edge
-    /// and visual X becomes raw Y from the bottom; axes swap.
+    /// 270° CW (= 90° CCW) viewer rotation: the viewer rotates 270° CW, so we invert (90° CW)
+    /// to recover raw coords.  rawX = cx1 + vy; pdfSharpTop = mh − cy1 − cropHeight + vx; axes swap.
     /// </summary>
     [Fact]
     public void ComputeHighlightRect_Rotate270NoCropBox_AxesSwappedCorrectQuadrant()
@@ -558,19 +558,19 @@ public sealed class MarkedPdfGeneratorTests
             vx: 100, vy: 200,
             vw: 50,  vh: 30);
 
-        // rawX = 0 + 842 − 200 − 30 = 612
-        rect.X.ShouldBe(612.0, "270°: rawX = cx1 + cropHeight − vy − vh");
+        // rawX = 0 + 200 = 200
+        rect.X.ShouldBe(200.0, "270°: rawX = cx1 + vy");
 
-        // pdfSharpTop = 842 − 0 − 100 − 50 = 692
-        rect.Y.ShouldBe(692.0, "270°: pdfSharpTop = mh − cy1 − vx − vw");
+        // pdfSharpTop = 842 − 0 − 842 + 100 = 100
+        rect.Y.ShouldBe(100.0, "270°: pdfSharpTop = mh − cy1 − cropHeight + vx");
 
         // Axes swap: visual height (30) → raw width, visual width (50) → raw height.
         rect.Width.ShouldBe(30.0,  "270°: drawW = vh (axes swap)");
         rect.Height.ShouldBe(50.0, "270°: drawH = vw (axes swap)");
 
-        // Sanity bounds check.
+        // Sanity bounds: raw MediaBox is 595 (width) × 842 (height).
         rect.X.ShouldBeGreaterThanOrEqualTo(0);
-        (rect.X + rect.Width).ShouldBeLessThanOrEqualTo(842);
+        (rect.X + rect.Width).ShouldBeLessThanOrEqualTo(595, "270°: raw X + drawW must not exceed MediaBox width (595)");
         rect.Y.ShouldBeGreaterThanOrEqualTo(0);
         (rect.Y + rect.Height).ShouldBeLessThanOrEqualTo(842);
     }
@@ -602,7 +602,91 @@ public sealed class MarkedPdfGeneratorTests
     }
 
     // -----------------------------------------------------------------------
-    // Tests 19–22: end-to-end Generate with rotated PDF pages (PdfSharp-built)
+    // Tests 19–22: ComputeHighlightRect bounds-invariant property test
+    //
+    // For every rotation value and several visual boxes (edges, corners, centre) the
+    // computed XRect must lie fully inside the raw MediaBox.  This is the test that
+    // would have caught the 270° cropHeight-vs-cropWidth dimensional defect.
+    //
+    // A4 portrait: raw MediaBox = 595 (W) × 842 (H).
+    // /Rotate∈{0,180} → visual dims = 595 × 842; /Rotate∈{90,270} → visual dims = 842 × 595.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Provides (rotate, vx, vy, vw, vh) tuples: for each rotation the visual box is
+    /// placed near each corner and the centre of the rotation-appropriate visual space.
+    /// </summary>
+    public static TheoryData<int, double, double, double, double> BoundsInvariantCases()
+    {
+        // A4 portrait MediaBox: raw width=595, raw height=842.
+        // /Rotate∈{0,180}: visual width=595, visual height=842.
+        // /Rotate∈{90,270}: visual width=842, visual height=595.
+        var data = new TheoryData<int, double, double, double, double>();
+
+        // box dimensions used in each test
+        const double bw = 50;
+        const double bh = 30;
+
+        foreach (var rotate in new[] { 0, 90, 180, 270 })
+        {
+            // Visual page dimensions for this rotation.
+            double vW = rotate is 90 or 270 ? 842.0 : 595.0; // visual width
+            double vH = rotate is 90 or 270 ? 595.0 : 842.0; // visual height
+
+            // Near each of the four corners and the centre.
+            double[] xs = [1.0, vW - bw - 1.0, (vW - bw) / 2.0];
+            double[] ys = [1.0, vH - bh - 1.0, (vH - bh) / 2.0];
+
+            foreach (var vx in xs)
+            {
+                foreach (var vy in ys)
+                {
+                    data.Add(rotate, vx, vy, bw, bh);
+                }
+            }
+        }
+
+        return data;
+    }
+
+    /// <summary>
+    /// Property: for every rotation and every valid visual box, the computed XRect must lie
+    /// fully inside the raw MediaBox (0 ≤ X, X+Width ≤ 595, 0 ≤ Y, Y+Height ≤ 842).
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(BoundsInvariantCases))]
+    public void ComputeHighlightRect_AllRotations_RectLiesWithinRawMediaBox(
+        int rotate, double vx, double vy, double vw, double vh)
+    {
+        // A4 portrait MediaBox, no CropBox.
+        const double mediaBoxHeight = 842;
+        const double cropWidth  = 595;
+        const double cropHeight = 842;
+
+        var rect = MarkedPdfGenerator.ComputeHighlightRect(
+            rotateDegrees: rotate,
+            mediaBoxHeight: mediaBoxHeight,
+            cx1: 0, cy1: 0,
+            cropWidth: cropWidth, cropHeight: cropHeight,
+            vx: vx, vy: vy,
+            vw: vw, vh: vh);
+
+        rect.X.ShouldBeGreaterThanOrEqualTo(
+            0,
+            $"rotate={rotate} vx={vx} vy={vy}: X must be ≥ 0");
+        (rect.X + rect.Width).ShouldBeLessThanOrEqualTo(
+            cropWidth,
+            $"rotate={rotate} vx={vx} vy={vy}: X+Width must be ≤ {cropWidth} (raw MediaBox width)");
+        rect.Y.ShouldBeGreaterThanOrEqualTo(
+            0,
+            $"rotate={rotate} vx={vx} vy={vy}: Y must be ≥ 0");
+        (rect.Y + rect.Height).ShouldBeLessThanOrEqualTo(
+            mediaBoxHeight,
+            $"rotate={rotate} vx={vx} vy={vy}: Y+Height must be ≤ {mediaBoxHeight} (raw MediaBox height)");
+    }
+
+    // -----------------------------------------------------------------------
+    // Tests 23–26: end-to-end Generate with rotated PDF pages (PdfSharp-built)
     //
     // Uses PdfSharp to create PDFs with /Rotate set; verifies Generate succeeds
     // and output is a valid modified PDF (bytes differ from input).

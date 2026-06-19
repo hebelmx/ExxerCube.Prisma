@@ -335,13 +335,17 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
     /// </returns>
     /// <remarks>
     /// <para>
-    /// The coordinate transform for each rotation is (derivation in class remarks):
+    /// The coordinate transform for each rotation is derived by inverting the PDF viewer's
+    /// rotation (applied CW) to recover raw MediaBox coordinates, then converting
+    /// bottom-left → top-left for PdfSharp.  Let cw=cropWidth, ch=cropHeight, mh=mediaBoxHeight.
     /// <code>
-    ///   0°:   rawX = cx1+vx,        rawY(top) = mh−cy1−vy−vh,  drawW=vw, drawH=vh
-    ///  90°:   rawX = cx1+vy,        rawY(top) = mh−cy1−cw+vx,  drawW=vh, drawH=vw
-    /// 180°:   rawX = cx1+cw−vx−vw,  rawY(top) = mh−cy1−ch+vy,  drawW=vw, drawH=vh
-    /// 270°:   rawX = cx1+ch−vy−vh,  rawY(top) = mh−cy1−vx−vw,  drawW=vh, drawH=vw
+    ///   0°:   rawX = cx1+vx,          rawY(top) = mh−cy1−vy−vh,   drawW=vw, drawH=vh
+    ///  90°:   rawX = cx1+cw−vy−vh,    rawY(top) = mh−cy1−vx−vw,   drawW=vh, drawH=vw
+    /// 180°:   rawX = cx1+cw−vx−vw,    rawY(top) = mh−cy1−ch+vy,   drawW=vw, drawH=vh
+    /// 270°:   rawX = cx1+vy,          rawY(top) = mh−cy1−ch+vx,   drawW=vh, drawH=vw
     /// </code>
+    /// Invariant: the returned <see cref="XRect"/> must lie fully within the raw MediaBox
+    /// (0 ≤ X, X+Width ≤ cx1+cropWidth, 0 ≤ Y, Y+Height ≤ mediaBoxHeight).
     /// </para>
     /// </remarks>
     internal static XRect ComputeHighlightRect(
@@ -361,10 +365,11 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
         switch (rotateDegrees)
         {
             case 90:
-                // 90° CW viewer rotation: visual X aligns with raw Y axis;
-                // visual Y aligns with the inverted raw X axis.
-                rawX        = cx1 + vy;
-                pdfSharpTop = mediaBoxHeight - cy1 - cropWidth + vx;
+                // 90° CW viewer rotation: the viewer takes the raw page and rotates it 90° CW.
+                // Inverting (90° CCW): rx = cropWidth − vy − vh (bottom), ry = vx.
+                // Visual width = cropHeight, visual height = cropWidth; axes swap: drawW=vh, drawH=vw.
+                rawX        = cx1 + cropWidth - vy - vh;
+                pdfSharpTop = mediaBoxHeight - cy1 - vx - vw;
                 drawW       = vh;
                 drawH       = vw;
                 break;
@@ -378,10 +383,11 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
                 break;
 
             case 270:
-                // 270° CW (= 90° CCW) viewer rotation: visual Y aligns with raw X axis;
-                // visual X aligns with the inverted raw Y axis.
-                rawX        = cx1 + cropHeight - vy - vh;
-                pdfSharpTop = mediaBoxHeight - cy1 - vx - vw;
+                // 270° CW (= 90° CCW) viewer rotation: the viewer rotates 270° CW.
+                // Inverting (90° CW): rx = vy, ry = cropHeight − vx − vw (bottom).
+                // Visual width = cropHeight, visual height = cropWidth; axes swap: drawW=vh, drawH=vw.
+                rawX        = cx1 + vy;
+                pdfSharpTop = mediaBoxHeight - cy1 - cropHeight + vx;
                 drawW       = vh;
                 drawH       = vw;
                 break;
