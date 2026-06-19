@@ -3,13 +3,50 @@ using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Stores;
 using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Adapters;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
+using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Worker;
 using ExxerCube.Prisma.Veriqan.Worker.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Serilog ──────────────────────────────────────────────────────────────────
+// Console sink is ALWAYS active. Seq sink is added ONLY when a non-empty
+// Veriqan:Seq:ServerUrl is configured — an empty/absent URL does NOT crash boot.
+var seqUrl = builder.Configuration["Veriqan:Seq:ServerUrl"];
+var loggerConfig = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .Enrich.WithProperty("Application", "ExxerCube.Prisma.Veriqan.Worker");
+
+if (!string.IsNullOrWhiteSpace(seqUrl))
+    loggerConfig = loggerConfig.WriteTo.Seq(seqUrl);
+
+Log.Logger = loggerConfig.CreateLogger();
+builder.Host.UseSerilog();
+
+// ── OpenTelemetry ─────────────────────────────────────────────────────────────
+var otlpEndpoint = builder.Configuration["Veriqan:OtlpEndpoint"] ?? "http://localhost:4317";
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource
+        .AddService("ExxerCube.Prisma.Veriqan.Worker"))
+    .WithMetrics(metrics => metrics
+        .AddMeter(VeriqanMetrics.MeterName)
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter(otlp => otlp.Endpoint = new Uri(otlpEndpoint)))
+    .WithTracing(tracing => tracing
+        .AddSource(VeriqanMetrics.MeterName)
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter(otlp => otlp.Endpoint = new Uri(otlpEndpoint)));
 
 // Veriqan VEC batch worker — full DI composition via Orchestration layer.
 builder.Services.AddVeriqan(builder.Configuration);

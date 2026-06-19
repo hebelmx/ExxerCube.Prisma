@@ -9,7 +9,9 @@ using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Application.Tenant;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
+using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
@@ -53,6 +55,14 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     /// row for auditability (NFR-7).
     /// </summary>
     private const string EngineVersion = "1.0.0";
+
+    /// <summary>
+    /// ActivitySource for distributed-tracing spans emitted by each pipeline stage.
+    /// The source name matches <see cref="VeriqanMetrics.MeterName"/> so a single
+    /// <c>AddSource</c> / <c>AddMeter</c> registration in the host covers both signals.
+    /// </summary>
+    internal static readonly ActivitySource PipelineActivitySource =
+        new(VeriqanMetrics.MeterName, EngineVersion);
 
     private readonly IStatementIngestionService _ingestion;
     private readonly IStatementFieldExtractor _extractor;
@@ -132,9 +142,16 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             submission.FileName,
             correlationId);
 
+        // Top-level span for the entire pipeline run.
+        using var pipelineActivity = PipelineActivitySource.StartActivity("pipeline.process");
+        pipelineActivity?.SetTag("veriqan.correlation_id", correlationId.ToString());
+        pipelineActivity?.SetTag("veriqan.file_name", submission.FileName);
+
         // Stage 1 — Ingestion
-        var ingestResult = await _ingestion.IngestAsync(submission.Pdf, submission.FileName, ct)
-            .ConfigureAwait(false);
+        Result<VerificationJob> ingestResult;
+        using (PipelineActivitySource.StartActivity("pipeline.stage.ingest"))
+            ingestResult = await _ingestion.IngestAsync(submission.Pdf, submission.FileName, ct)
+                .ConfigureAwait(false);
 
         if (ingestResult.IsCancelled())
         {
@@ -165,8 +182,10 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             job.Id);
 
         // Stage 2 — Field Extraction
-        var extractResult = await _extractor.ExtractFullAsync(submission.Pdf, ct)
-            .ConfigureAwait(false);
+        Result<StatementModel> extractResult;
+        using (PipelineActivitySource.StartActivity("pipeline.stage.extract"))
+            extractResult = await _extractor.ExtractFullAsync(submission.Pdf, ct)
+                .ConfigureAwait(false);
 
         if (extractResult.IsCancelled())
         {
@@ -199,8 +218,10 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             submission.FileName);
 
         // Stage 4 — Context Binding
-        var bindResult = await _binder.BindAsync(job, submission.ContextKey, productToken, ct)
-            .ConfigureAwait(false);
+        Result<VerificationContext> bindResult;
+        using (PipelineActivitySource.StartActivity("pipeline.stage.bind"))
+            bindResult = await _binder.BindAsync(job, submission.ContextKey, productToken, ct)
+                .ConfigureAwait(false);
 
         if (bindResult.IsCancelled())
         {
@@ -244,12 +265,14 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 // A BLOCKED verdict is a computed business outcome and must be durable.
                 // Never silently discard it — a persist failure returns Result.WithFailure
                 // so the caller knows the verdict was NOT written.
-                var blockedPersistResult = await _verdictPersistence.PersistAsync(
-                    jobId: job.Id,
-                    signal: VerdictSignal.Blocked,
-                    findings: Array.Empty<RuleFinding>(),
-                    engineVersion: EngineVersion,
-                    cancellationToken: ct).ConfigureAwait(false);
+                Result<JobVerdict> blockedPersistResult;
+                using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
+                    blockedPersistResult = await _verdictPersistence.PersistAsync(
+                        jobId: job.Id,
+                        signal: VerdictSignal.Blocked,
+                        findings: Array.Empty<RuleFinding>(),
+                        engineVersion: EngineVersion,
+                        cancellationToken: ct).ConfigureAwait(false);
 
                 if (blockedPersistResult.IsCancelled())
                 {
@@ -387,7 +410,9 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             tenantProfile: resolvedProfile);
 
         // Stage 6 — Validation Engine
-        var engineResult = await _engine.RunAsync(finalCtx, ct).ConfigureAwait(false);
+        Result<IReadOnlyList<RuleFinding>> engineResult;
+        using (PipelineActivitySource.StartActivity("pipeline.stage.validate"))
+            engineResult = await _engine.RunAsync(finalCtx, ct).ConfigureAwait(false);
 
         if (engineResult.IsCancelled())
         {
@@ -413,11 +438,13 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         // Stage 7 — Verdict Aggregation
         // Thread resolved.Deviations into the aggregator so compliance reviewers can see
         // which tenant overrides were reverted to the legal baseline.
-        var verdictResult = _aggregator.Aggregate(
-            findings,
-            blocked: null,
-            ct: ct,
-            tenantDeviations: resolvedProfile.Deviations);
+        Result<VerdictSummary> verdictResult;
+        using (PipelineActivitySource.StartActivity("pipeline.stage.verdict"))
+            verdictResult = _aggregator.Aggregate(
+                findings,
+                blocked: null,
+                ct: ct,
+                tenantDeviations: resolvedProfile.Deviations);
 
         if (verdictResult.IsCancelled())
         {
@@ -451,12 +478,14 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         // Stage 8 — Persist (verdict + findings durable before report/notify)
         // Non-optional: a persist failure returns Result.WithFailure so the caller knows the
         // verdict was NOT written.  Never silently discard a computed verdict.
-        var persistResult = await _verdictPersistence.PersistAsync(
-            jobId: job.Id,
-            signal: summary.Signal,
-            findings: findings,
-            engineVersion: EngineVersion,
-            cancellationToken: ct).ConfigureAwait(false);
+        Result<JobVerdict> persistResult;
+        using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
+            persistResult = await _verdictPersistence.PersistAsync(
+                jobId: job.Id,
+                signal: summary.Signal,
+                findings: findings,
+                engineVersion: EngineVersion,
+                cancellationToken: ct).ConfigureAwait(false);
 
         if (persistResult.IsCancelled())
         {
@@ -494,6 +523,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
 
         if (summary.Signal is VerdictSignal.Red or VerdictSignal.Blocked)
         {
+            using var reportActivity = PipelineActivitySource.StartActivity("pipeline.stage.report");
             try
             {
                 var reportResult = _reportGenerator.Generate(
@@ -549,6 +579,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         // TODO(E2-S12): duplicate-alert guard (idempotency key per job) is a separate story.
         if (summary.Signal == VerdictSignal.Red)
         {
+            using var notifyActivity = PipelineActivitySource.StartActivity("pipeline.stage.notify");
             try
             {
                 var alertContext = new AlertContext(
