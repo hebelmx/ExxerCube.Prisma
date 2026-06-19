@@ -1,0 +1,288 @@
+# =============================================================================
+# ExxerCube.Prisma — Local-dev full-stack compose
+# =============================================================================
+# Usage:
+#   1. cp .env.example .env   # and fill in SA_PASSWORD (and any other blanks)
+#   2. docker compose -f docker-compose.dev.yml up --build
+#
+# Services (6 total):
+#   sqlserver         — SQL Server 2022  (infrastructure dependency)
+#   seq               — Seq structured-log UI + ingestion  (port 5341 on host)
+#   siara-simulator   — SIARA portal simulator  (port 8084 on host)
+#   orion             — Orion Worker (ingestion)  (port 8081 on host)
+#   athena            — Athena Worker (processing)  (port 8082 on host)
+#   reconciliator     — Reconciliator Worker  (port 8083 on host)
+#   web-ui            — Blazor Web UI  (port 8085 on host)
+#
+# All build contexts are the REPO ROOT so the Dockerfiles can COPY
+# Prisma/Code/Src/CSharp/ and the root nuget.config.
+#
+# DO NOT hardcode passwords or secrets here — all sensitive values come from
+# the .env file (env_file: .env) or ${VAR} interpolation.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Shared network anchor — referenced by all services so they can reach each
+# other by service name (e.g. http://sqlserver:1433, http://seq:5341).
+# ---------------------------------------------------------------------------
+networks:
+  prisma-dev:
+    driver: bridge
+
+# ---------------------------------------------------------------------------
+# Shared named volume — Orion writes documents here; Athena and Reconciliator
+# read from the same path. Mount point /data/documents in every app service.
+# ---------------------------------------------------------------------------
+volumes:
+  prisma-documents:
+    driver: local
+  seq-data:
+    driver: local
+  sqlserver-data:
+    driver: local
+
+# =============================================================================
+services:
+
+  # ---------------------------------------------------------------------------
+  # SQL Server 2022
+  # SA_PASSWORD and MSSQL_SA_PASSWORD must be set in .env.
+  # Workers/UI depend on this becoming healthy before they start.
+  # ---------------------------------------------------------------------------
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: prisma-sqlserver
+    networks:
+      - prisma-dev
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+      MSSQL_PID: Developer
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      # sqlcmd is bundled in the SQL Server image.
+      # Retry generously — SQL Server takes ~20 s to start on first boot.
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q 'SELECT 1' > /dev/null 2>&1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Seq — structured log aggregation (UI + ingestion on port 80 inside the
+  # container; mapped to host port 5341 for convenience).
+  # Workers send logs to http://seq:5341 from inside the network — that is the
+  # container-internal port (Seq listens on 80 but the SEQ_URL env var is
+  # overridden per-service to use http://seq:80 inside the network).
+  # ---------------------------------------------------------------------------
+  seq:
+    image: datalust/seq:latest
+    container_name: prisma-seq
+    networks:
+      - prisma-dev
+    ports:
+      - "5341:80"     # Host:5341 → Seq HTTP (UI + ingestion) inside container
+      - "5342:5341"   # Host:5342 → Seq ingestion port (alternate; datalust/seq
+                      # also listens on 5341 internally for OTLP in newer builds)
+    environment:
+      ACCEPT_EULA: "Y"
+    volumes:
+      - seq-data:/data
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # SIARA Simulator
+  # Pre-built binary wrapped in aspnet:10.0 runtime.
+  # Build context: repo root (Dockerfile copies from Prisma/Deployments/Siara.Simulator/app/).
+  # ---------------------------------------------------------------------------
+  siara-simulator:
+    build:
+      context: .
+      dockerfile: Prisma/Deployments/Siara.Simulator/Dockerfile
+    container_name: prisma-siara-simulator
+    image: prisma-siara-simulator:dev
+    networks:
+      - prisma-dev
+    ports:
+      - "8084:8080"
+    env_file: .env
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      # Override Seq sink URL to the in-network Seq service (port 80 inside Docker).
+      Serilog__WriteTo__2__Args__serverUrl: "http://seq:80"
+    restart: unless-stopped
+    depends_on:
+      - seq
+
+  # ---------------------------------------------------------------------------
+  # Orion Worker (document ingestion)
+  # Writes documents to the shared named volume at /data/documents.
+  # ---------------------------------------------------------------------------
+  orion:
+    build:
+      context: .
+      dockerfile: "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Dockerfile"
+    container_name: prisma-orion
+    image: prisma-orion:dev
+    networks:
+      - prisma-dev
+    ports:
+      - "8081:8080"
+    env_file: .env
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      # SQL Server connection — use SA login; service name resolves inside the network.
+      ConnectionStrings__DefaultConnection: >-
+        Server=sqlserver,1433;Database=PrismaID;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      ConnectionStrings__ApplicationConnection: >-
+        Server=sqlserver,1433;Database=Prisma;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      # SIARA Simulator URL — resolved by service name inside the network.
+      NavigationTargets__SiaraUrl: "http://siara-simulator:8080"
+      Siara__BaseUrl: "http://siara-simulator:8080"
+      # Document storage path (shared volume).
+      Storage__BasePath: "/data/documents"
+      # Seq structured logging — override to in-network Seq service (port 80 in datalust/seq).
+      SEQ_URL: "http://seq:80"
+      # OpenTelemetry OTLP endpoint.
+      OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://seq:4317}
+    volumes:
+      - prisma-documents:/data/documents
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      seq:
+        condition: service_started
+      siara-simulator:
+        condition: service_started
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Athena Worker (document processing pipeline)
+  # Reads documents from the shared named volume at /data/documents.
+  # ---------------------------------------------------------------------------
+  athena:
+    build:
+      context: .
+      dockerfile: "Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Dockerfile"
+    container_name: prisma-athena
+    image: prisma-athena:dev
+    networks:
+      - prisma-dev
+    ports:
+      - "8082:8080"
+    env_file: .env
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: >-
+        Server=sqlserver,1433;Database=PrismaID;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      ConnectionStrings__ApplicationConnection: >-
+        Server=sqlserver,1433;Database=Prisma;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      Storage__BasePath: "/data/documents"
+      SEQ_URL: "http://seq:80"
+      OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://seq:4317}
+    volumes:
+      - prisma-documents:/data/documents
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      seq:
+        condition: service_started
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Reconciliator Worker (three-actor split: third process)
+  # Reads documents from the shared named volume at /data/documents.
+  # Connects to the Athena reconciliation hub via Ember/SignalR.
+  # ---------------------------------------------------------------------------
+  reconciliator:
+    build:
+      context: .
+      dockerfile: "Prisma/Code/Src/CSharp/04 Services/Reconciliator/Prisma.Reconciliator.Worker/Dockerfile"
+    container_name: prisma-reconciliator
+    image: prisma-reconciliator:dev
+    networks:
+      - prisma-dev
+    ports:
+      - "8083:8080"
+    env_file: .env
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: >-
+        Server=sqlserver,1433;Database=PrismaID;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      ConnectionStrings__ApplicationConnection: >-
+        Server=sqlserver,1433;Database=Prisma;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      Storage__BasePath: "/data/documents"
+      # Athena hub URL for Ember/SignalR reconciliation coordination.
+      ReconciliationClient__HubUrl: "http://athena:8080/hubs/reconciliation"
+      SEQ_URL: "http://seq:80"
+      OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://seq:4317}
+    volumes:
+      - prisma-documents:/data/documents
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      seq:
+        condition: service_started
+      athena:
+        condition: service_started
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Web UI (Blazor Server)
+  # GET /health and GET / must be reachable on host port 8085.
+  # ---------------------------------------------------------------------------
+  web-ui:
+    build:
+      context: .
+      dockerfile: "Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Dockerfile"
+    container_name: prisma-webui
+    image: prisma-webui:dev
+    networks:
+      - prisma-dev
+    ports:
+      - "8085:8080"
+    env_file: .env
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: >-
+        Server=sqlserver,1433;Database=PrismaID;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      ConnectionStrings__ApplicationConnection: >-
+        Server=sqlserver,1433;Database=Prisma;User Id=sa;Password=${SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+      # SIARA Simulator URL — resolved by service name inside the network.
+      NavigationTargets__SiaraUrl: "http://siara-simulator:8080"
+      Siara__BaseUrl: "http://siara-simulator:8080"
+      Storage__BasePath: "/data/documents"
+      SEQ_URL: "http://seq:80"
+      OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://seq:4317}
+      Seq__ServerUrl: "http://seq:80"
+    volumes:
+      - prisma-documents:/data/documents
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      seq:
+        condition: service_started
+      siara-simulator:
+        condition: service_started
+    restart: unless-stopped
