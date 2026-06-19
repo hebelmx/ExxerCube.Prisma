@@ -1,3 +1,4 @@
+using Serilog;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
@@ -17,6 +18,13 @@ using Prisma.Reconciliator.HealthChecks;
 using Prisma.Reconciliator.Worker;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog from appsettings (mirrors Web.UI pattern)
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+builder.Host.UseSerilog();
 
 // Audit persistence (MVP-PATH 1.6 A6): wire AddDatabaseServices when a real connection string is
 // provided. Skip gracefully when blank so the worker boots in dev/test without a DB.
