@@ -59,6 +59,7 @@ public static class VeriqanOrchestrationExtensions
         services.AddVeriqanIngestion();
         services.AddVeriqanBinding();
         services.AddVeriqanVerdict();
+        services.AddVeriqanDisposition();
 
         // Infrastructure adapters
         services.AddVeriqanReferenceData();
@@ -124,6 +125,7 @@ public static class VeriqanOrchestrationExtensions
 
         services.TryAddScoped<IVerificationJobRepository, InMemoryVerificationJobRepository>();
         services.TryAddScoped<IDispositionRepository, InMemoryDispositionRepository>();
+        services.TryAddScoped<IVerdictPersistenceService, InMemoryVerdictPersistenceService>();
         services.TryAddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
         services.TryAddSingleton<IReprocessAuditRepository, InMemoryReprocessAuditRepository>();
 

@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Crypto;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Repositories;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Services;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Stores;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -66,6 +67,7 @@ public static class VeriqanPersistenceExtensions
 
         services.AddScoped<IVerificationJobRepository, EfVerificationJobRepository>();
         services.AddScoped<IDispositionRepository, EfDispositionRepository>();
+        services.AddScoped<IVerdictPersistenceService, EfVerdictPersistenceService>();
 
         // Crypto key provider — reads from configuration key "Veriqan:LegalBaseline:EncryptionKey"
         services.AddSingleton<ILegalBaselineCryptoKeyProvider>(sp =>

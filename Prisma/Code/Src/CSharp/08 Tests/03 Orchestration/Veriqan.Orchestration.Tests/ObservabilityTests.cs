@@ -32,6 +32,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// Verifies that the pipeline and batch processor emit the expected metrics and that
 /// <see cref="BatchReport"/> carries throughput, P95, and per-outcome durations.
 /// </summary>
+[Collection(MetricsIsolationCollection.Name)]
 public sealed class ObservabilityTests : IDisposable
 {
     // -----------------------------------------------------------------------
@@ -506,11 +507,19 @@ public sealed class ObservabilityTests : IDisposable
         var toleranceProvider = Substitute.For<ILegalToleranceProvider>();
 
         var capturingLogger = new CapturingLogger<VerificationPipeline>();
+        var verdictPersistence = Substitute.For<IVerdictPersistenceService>();
+        verdictPersistence
+            .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(
+                Result<JobVerdict>.WithSuccess(
+                    new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Red))));
         var pipeline = new VerificationPipeline(
             ingestion, extractor, binder, engine, aggregator,
             tenantResolver, defaultProfile,
             Array.Empty<IVecValidationRule>(), toleranceProvider,
-            _metrics, capturingLogger);
+            verdictPersistence, _metrics, capturingLogger);
 
         var submission = new StatementSubmission(
             Pdf: [0x25, 0x50, 0x44, 0x46],

@@ -29,6 +29,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// This ensures binding succeeds, the validation engine runs real rules, and the test
 /// can assert a concrete finding count and verdict signal rather than a tautology.
 /// </remarks>
+[Collection(MetricsIsolationCollection.Name)]
 public sealed class VerificationPipelineEndToEndTests
 {
     /// <summary>

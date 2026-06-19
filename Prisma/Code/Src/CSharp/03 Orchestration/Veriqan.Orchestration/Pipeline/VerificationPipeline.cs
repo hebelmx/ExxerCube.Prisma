@@ -45,6 +45,12 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 /// </remarks>
 internal sealed class VerificationPipeline : IVerificationPipeline
 {
+    /// <summary>
+    /// Semantic version of the VEC engine stored on every <see cref="Domain.Entities.Finding"/>
+    /// row for auditability (NFR-7).
+    /// </summary>
+    private const string EngineVersion = "1.0.0";
+
     private readonly IStatementIngestionService _ingestion;
     private readonly IStatementFieldExtractor _extractor;
     private readonly IBundleBinder _binder;
@@ -54,6 +60,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     private readonly TenantProfile _activeTenantProfile;
     private readonly IReadOnlyList<IVecValidationRule> _rules;
     private readonly ILegalToleranceProvider _toleranceProvider;
+    private readonly IVerdictPersistenceService _verdictPersistence;
     private readonly VeriqanMetrics _metrics;
     private readonly ILogger<VerificationPipeline> _logger;
 
@@ -70,6 +77,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         TenantProfile activeTenantProfile,
         IEnumerable<IVecValidationRule> rules,
         ILegalToleranceProvider toleranceProvider,
+        IVerdictPersistenceService verdictPersistence,
         VeriqanMetrics metrics,
         ILogger<VerificationPipeline> logger)
     {
@@ -82,6 +90,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         _activeTenantProfile = activeTenantProfile ?? throw new ArgumentNullException(nameof(activeTenantProfile));
         _rules = (rules ?? throw new ArgumentNullException(nameof(rules))).ToList();
         _toleranceProvider = toleranceProvider ?? throw new ArgumentNullException(nameof(toleranceProvider));
+        _verdictPersistence = verdictPersistence ?? throw new ArgumentNullException(nameof(verdictPersistence));
         _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -331,12 +340,52 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         _metrics.RecordStatement(elapsed.TotalMilliseconds, summary.Signal);
 
         _logger.LogInformation(
+            "Pipeline verdict for {FileName}. Signal={VerdictSignal} Fails={FailCount} DurationMs={DurationMs:F1} JobId={JobId}",
+            submission.FileName,
+            summary.Signal,
+            summary.FailCount,
+            elapsed.TotalMilliseconds,
+            job.Id);
+
+        // Stage 8 — Persist (verdict + findings durable before report/notify)
+        // Non-optional: a persist failure returns Result.WithFailure so the caller knows the
+        // verdict was NOT written.  Never silently discard a computed verdict.
+        var persistResult = await _verdictPersistence.PersistAsync(
+            jobId: job.Id,
+            signal: summary.Signal,
+            findings: findings,
+            engineVersion: EngineVersion,
+            cancellationToken: ct).ConfigureAwait(false);
+
+        if (persistResult.IsCancelled())
+        {
+            _logger.LogWarning(
+                "Pipeline cancelled during persist for {FileName} JobId={JobId}",
+                submission.FileName,
+                job.Id);
+            return ResultExtensions.Cancelled<VerificationOutcome>();
+        }
+
+        if (persistResult.IsFailure)
+        {
+            _logger.LogError(
+                "Verdict persist failed for {FileName} JobId={JobId}: {Error}",
+                submission.FileName,
+                job.Id,
+                persistResult.Error);
+            return Result<VerificationOutcome>.WithFailure(
+                persistResult.Error ?? "Verdict persistence failed");
+        }
+
+        _logger.LogInformation(
             "Pipeline complete for {FileName}. Signal={VerdictSignal} Fails={FailCount} DurationMs={DurationMs:F1} JobId={JobId}",
             submission.FileName,
             summary.Signal,
             summary.FailCount,
             elapsed.TotalMilliseconds,
             job.Id);
+
+        // TODO(E1-S4): report+notify stages go here
 
         return Result<VerificationOutcome>.WithSuccess(
             new VerificationOutcome(job, summary, findings, elapsed));

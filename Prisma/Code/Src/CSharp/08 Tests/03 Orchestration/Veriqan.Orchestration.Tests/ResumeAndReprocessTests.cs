@@ -27,6 +27,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 ///   <item>Cancellation propagates correctly.</item>
 /// </list>
 /// </summary>
+[Collection(MetricsIsolationCollection.Name)]
 public sealed class ResumeAndReprocessTests
 {
     // -----------------------------------------------------------------------

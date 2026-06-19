@@ -21,6 +21,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// Unit tests for <see cref="BatchProcessor"/> covering concurrency bounds, exception isolation,
 /// progress reporting, and cancellation.
 /// </summary>
+[Collection(MetricsIsolationCollection.Name)]
 public sealed class BatchProcessorTests
 {
     // -----------------------------------------------------------------------
