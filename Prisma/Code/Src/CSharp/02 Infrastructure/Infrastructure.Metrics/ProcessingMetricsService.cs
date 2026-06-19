@@ -10,6 +10,7 @@ namespace ExxerCube.Prisma.Infrastructure.Metrics;
 public class ProcessingMetricsService : IDisposable, IProcessingMetricsService
 {
     private readonly ILogger<ProcessingMetricsService> _logger;
+    // MVP: in-memory only — metrics reset on restart. Accepted limitation, see ADR-013.
     private readonly ConcurrentDictionary<string, ProcessingMetrics> _documentMetrics;
     private readonly ConcurrentQueue<ProcessingEvent> _processingEvents;
     private readonly Timer _metricsAggregationTimer;
