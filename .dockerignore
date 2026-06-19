@@ -1,0 +1,47 @@
+# Build context: repo root (ExxerCube.Prisma/).
+# These exclusions keep the Docker build context small and prevent secrets/build
+# artifacts from leaking into images.
+
+# MSBuild output directories (host artifacts live outside the repo on E:\, but
+# any local bin/obj dirs inside the tree are excluded for safety).
+**/bin/
+**/obj/
+
+# Test assets and fixtures that are not needed in production images.
+**/TestAssets/
+**/Fixtures/
+
+# Git history
+.git/
+.gitignore
+.gitattributes
+
+# CI / IDE metadata
+.github/
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local secrets and overrides (never bake into images).
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/secrets.json
+
+# Python source trees (not needed by .NET images; reduces context size significantly).
+Prisma/Code/Src/Python/
+
+# Node / npm (Playwright, coverage tooling)
+node_modules/
+**/node_modules/
+
+# Coverage and test reports
+coverage/
+TestResults/
+*.trx
+*.coverage
+
+# Documentation and planning (not needed in image)
+docs/
+scripts/
+tools/
