@@ -1,0 +1,127 @@
+{
+  "corpusDir": ".",
+  "specimens": [
+    {
+      "fileName": "01+Dummie+VEC+jul_ago+20252.pdf",
+      "label": "KnownSynthetic",
+      "description": "Synthetic Dummie VEC statement — Jul–Ago 2025 period",
+      "notes": "First synthetic fixture. NOT a compliant statement — fails typography, section structure, and legend rules. Used only to exercise pipeline mechanics, never as compliance evidence.",
+      "bundle": {
+        "institution": "Demo Bank (Iqubica)",
+        "periodLabel": "Jul-Ago 2025",
+        "periodStart": "2025-07-05",
+        "periodEnd": "2025-08-04",
+        "productId": "TC-BSSB",
+        "productName": "Tarjeta de Crédito BSSB",
+        "productToken": "Tarjeta de Crédito BSSB",
+        "aliases": ["BSSB", "Tarjeta de Crédito BSSB"],
+        "annualOrdinaryRate": 0.2851,
+        "creditLine": 100000.00,
+        "annualCommissionMxn": 1500.00,
+        "requiredFontFamily": "Aptos",
+        "bankingYearDays": 360
+      },
+      "intendedDefects": [],
+      "allowedFails": [
+        { "checkId": "CL-42", "reason": "Omitted reference-data: movement dates vs. period — synthetic fixture may have transactions outside the bundle period range; not a PDF defect." }
+      ],
+      "knownFixtureDefects": [
+        { "checkId": "CL-31",                 "reason": "Fixture PDF pagination labels do not match document page count — inherent synthetic generator limitation." },
+        { "checkId": "CL-34",                 "reason": "Fixture PDF card number absent from some pages — inherent synthetic generator limitation." },
+        { "checkId": "CL-35",                 "reason": "Fixture PDF uses non-Aptos embedded fonts — synthetic generator does not embed Aptos; this is a genuine typography non-compliance." },
+        { "checkId": "LAW-TYPO-MINSIZE",      "reason": "Fixture PDF body text measured at 5.04 pt (word '11', page 1) — genuinely below the 8 pt floor. Synthetic generator emits small-size page-header numbers. Not a false rule." },
+        { "checkId": "LAW-SEC-ORDER-GAP",     "reason": "Fixture PDF section gap geometry is non-standard — mandatory sections appear out of order or with non-standard spacing in the synthetic layout." },
+        { "checkId": "LAW-SEC-PRESENCE",      "reason": "Fixture PDF is missing mandatory CONDUSEF sections (e.g. §2–§5, §9, §10, §14, §15) — genuine structural non-compliance of the synthetic generator." },
+        { "checkId": "LAW-§13-TRANSFERENCIA", "reason": "Fixture PDF §13 Transferencia content is absent — genuine missing section content in the synthetic generator output." },
+        { "checkId": "LAW-§17-LEGENDS",       "reason": "Fixture PDF §17 mandatory verbatim legends are absent — genuine missing legends; not the same as catalog text mismatch." },
+        { "checkId": "LAW-§18-COMPLETE",      "reason": "Fixture PDF §18 benefit program completeness check fails — section content incomplete in the synthetic generator output." },
+        { "checkId": "LAW-§20-WATERFALL",     "reason": "Fixture PDF §20 payment distribution waterfall is absent — genuine missing content in synthetic generator output." },
+        { "checkId": "LAW-§26-NOTAS",         "reason": "Fixture PDF §26 Notas Aclaratorias content is absent — genuine missing section content in the synthetic generator output." },
+        { "checkId": "LAW-§27-GLOSARIO",      "reason": "Fixture PDF §27 Glosario content is absent — genuine missing section content in the synthetic generator output." }
+      ]
+    },
+    {
+      "fileName": "02+Dummie+VEC+ago_sep+2025.pdf",
+      "label": "KnownSynthetic",
+      "description": "Synthetic Dummie VEC statement — Ago–Sep 2025 period",
+      "notes": "Second synthetic fixture. NOT a compliant statement — same structural/typography limitations as specimen 01, plus text-overlap and RFC-check failures. Never use as compliance evidence.",
+      "bundle": {
+        "institution": "Demo Bank (Iqubica)",
+        "periodLabel": "Ago-Sep 2025",
+        "periodStart": "2025-08-05",
+        "periodEnd": "2025-09-04",
+        "productId": "TC-BSSB",
+        "productName": "Tarjeta de Crédito BSSB",
+        "productToken": "Tarjeta de Crédito BSSB",
+        "aliases": ["BSSB", "Tarjeta de Crédito BSSB"],
+        "annualOrdinaryRate": 0.2851,
+        "creditLine": 100000.00,
+        "annualCommissionMxn": 1500.00,
+        "requiredFontFamily": "Aptos",
+        "bankingYearDays": 360
+      },
+      "intendedDefects": [],
+      "allowedFails": [
+        { "checkId": "CL-18", "reason": "Omitted reference-data: regular charges sum vs. desglose — synthetic Ago-Sep bundle has a period/rate mismatch with the faked reference data; not a PDF defect." },
+        { "checkId": "CL-42", "reason": "Omitted reference-data: movement dates vs. period — synthetic fixture may have transactions outside the bundle period range; not a PDF defect." },
+        { "checkId": "CL-52", "reason": "Omitted reference-data: issuer RFC not in the synthetic bundle — RFC check cannot pass without a matching RFC entry in the reference bundle." },
+        { "checkId": "CL-53", "reason": "Omitted reference-data: receiver RFC not in the synthetic bundle — RFC check cannot pass without a matching RFC entry in the reference bundle." }
+      ],
+      "knownFixtureDefects": [
+        { "checkId": "CL-28",                 "reason": "Fixture PDF has overlapping text detected in the Ago-Sep layout — genuine visual/structural defect in the synthetic generator output." },
+        { "checkId": "CL-31",                 "reason": "Fixture PDF pagination labels do not match document page count — inherent synthetic generator limitation." },
+        { "checkId": "CL-34",                 "reason": "Fixture PDF card number absent from some pages — inherent synthetic generator limitation." },
+        { "checkId": "CL-35",                 "reason": "Fixture PDF uses non-Aptos embedded fonts — synthetic generator does not embed Aptos; genuine typography non-compliance." },
+        { "checkId": "LAW-TYPO-MINSIZE",      "reason": "Fixture PDF body text below 8 pt floor — same root cause as specimen 01 (small-size page-header numbers from synthetic generator)." },
+        { "checkId": "LAW-SEC-ORDER-GAP",     "reason": "Fixture PDF section gap geometry is non-standard — same as specimen 01." },
+        { "checkId": "LAW-SEC-PRESENCE",      "reason": "Fixture PDF missing mandatory CONDUSEF sections — same structural non-compliance as specimen 01." },
+        { "checkId": "LAW-§13-TRANSFERENCIA", "reason": "Fixture PDF §13 Transferencia content is absent — same as specimen 01." },
+        { "checkId": "LAW-§17-LEGENDS",       "reason": "Fixture PDF §17 mandatory verbatim legends are absent — same as specimen 01." },
+        { "checkId": "LAW-§18-COMPLETE",      "reason": "Fixture PDF §18 benefit program completeness fails — same as specimen 01." },
+        { "checkId": "LAW-§20-WATERFALL",     "reason": "Fixture PDF §20 payment distribution waterfall is absent — same as specimen 01." },
+        { "checkId": "LAW-§23-STATUS",        "reason": "Fixture PDF §23 account status content is absent — genuine missing section content in the synthetic generator for the Ago-Sep period." },
+        { "checkId": "LAW-§26-NOTAS",         "reason": "Fixture PDF §26 Notas Aclaratorias content is absent — same as specimen 01." },
+        { "checkId": "LAW-§27-GLOSARIO",      "reason": "Fixture PDF §27 Glosario content is absent — same as specimen 01." }
+      ]
+    },
+    {
+      "fileName": "03+Dummie+VEC+sep_oct+2025.pdf",
+      "label": "KnownSynthetic",
+      "description": "Synthetic Dummie VEC statement — Sep–Oct 2025 period",
+      "notes": "Third synthetic fixture. NOT a compliant statement — same structural/typography limitations as specimen 01. Never use as compliance evidence.",
+      "bundle": {
+        "institution": "Demo Bank (Iqubica)",
+        "periodLabel": "Sep-Oct 2025",
+        "periodStart": "2025-09-05",
+        "periodEnd": "2025-10-04",
+        "productId": "TC-BSSB",
+        "productName": "Tarjeta de Crédito BSSB",
+        "productToken": "Tarjeta de Crédito BSSB",
+        "aliases": ["BSSB", "Tarjeta de Crédito BSSB"],
+        "annualOrdinaryRate": 0.2851,
+        "creditLine": 100000.00,
+        "annualCommissionMxn": 1500.00,
+        "requiredFontFamily": "Aptos",
+        "bankingYearDays": 360
+      },
+      "intendedDefects": [],
+      "allowedFails": [
+        { "checkId": "CL-42", "reason": "Omitted reference-data: movement dates vs. period — synthetic fixture may have transactions outside the bundle period range; not a PDF defect." }
+      ],
+      "knownFixtureDefects": [
+        { "checkId": "CL-31",                 "reason": "Fixture PDF pagination labels do not match document page count — inherent synthetic generator limitation." },
+        { "checkId": "CL-34",                 "reason": "Fixture PDF card number absent from some pages — inherent synthetic generator limitation." },
+        { "checkId": "CL-35",                 "reason": "Fixture PDF uses non-Aptos embedded fonts — synthetic generator does not embed Aptos; genuine typography non-compliance." },
+        { "checkId": "LAW-TYPO-MINSIZE",      "reason": "Fixture PDF body text below 8 pt floor — same root cause as specimen 01 (small-size page-header numbers from synthetic generator)." },
+        { "checkId": "LAW-SEC-ORDER-GAP",     "reason": "Fixture PDF section gap geometry is non-standard — same as specimen 01." },
+        { "checkId": "LAW-SEC-PRESENCE",      "reason": "Fixture PDF missing mandatory CONDUSEF sections — same structural non-compliance as specimen 01." },
+        { "checkId": "LAW-§13-TRANSFERENCIA", "reason": "Fixture PDF §13 Transferencia content is absent — same as specimen 01." },
+        { "checkId": "LAW-§17-LEGENDS",       "reason": "Fixture PDF §17 mandatory verbatim legends are absent — same as specimen 01." },
+        { "checkId": "LAW-§18-COMPLETE",      "reason": "Fixture PDF §18 benefit program completeness fails — same as specimen 01." },
+        { "checkId": "LAW-§20-WATERFALL",     "reason": "Fixture PDF §20 payment distribution waterfall is absent — same as specimen 01." },
+        { "checkId": "LAW-§26-NOTAS",         "reason": "Fixture PDF §26 Notas Aclaratorias content is absent — same as specimen 01." },
+        { "checkId": "LAW-§27-GLOSARIO",      "reason": "Fixture PDF §27 Glosario content is absent — same as specimen 01." }
+      ]
+    }
+  ]
+}
