@@ -2,6 +2,8 @@ using System;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Reporting.DependencyInjection;
 
@@ -54,8 +56,17 @@ public static class ServiceCollectionExtensions
         // Email transport (Story 7.3)
         services.AddTransient<IEmailSender, SmtpEmailSender>();
 
-        // RED-verdict alert service (Story 7.3)
-        services.AddTransient<IVecAlertService, VecAlertService>();
+        // RED-verdict alert service (Story 7.3 + E2-S15 duplicate-alert guard).
+        // VecAlertService accepts an optional IJobVerdictAlertRepository; resolve it from DI
+        // when registered (full stack with Persistence), or pass null (unit-test / no-DB path).
+        services.AddTransient<IVecAlertService>(sp =>
+        {
+            var emailSender = sp.GetRequiredService<IEmailSender>();
+            var opts = sp.GetRequiredService<IOptions<AlertOptions>>();
+            var logger = sp.GetRequiredService<ILogger<VecAlertService>>();
+            var repo = sp.GetService<Application.Ports.IJobVerdictAlertRepository>();
+            return new VecAlertService(emailSender, opts, logger, repo);
+        });
 
         return services;
     }

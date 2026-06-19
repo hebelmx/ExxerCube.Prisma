@@ -30,15 +30,28 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 /// A <see cref="Result.Success"/> is returned immediately; the caller can inspect
 /// the outcome by checking <see cref="Result.IsSuccess"/>.
 /// </para>
+/// <para>
+/// <b>Duplicate-alert guard (Story E2-S15, FR-17 idempotency):</b>
+/// When <see cref="AlertContext.JobVerdictId"/> is supplied, the service loads the
+/// <see cref="Domain.Entities.JobVerdict"/> via <see cref="IJobVerdictAlertRepository"/> and
+/// checks <see cref="Domain.Entities.JobVerdict.AlertSentAt"/>.  If already set the send is
+/// skipped.  If null the send proceeds; on success
+/// <see cref="Domain.Entities.JobVerdict.RecordAlertSent"/> is called and persisted.  The
+/// <c>AlertSentAt</c> column is configured as a concurrency token so two concurrent retries
+/// racing to set it produce a concurrency exception — only one wins and the other is treated as
+/// a duplicate (success, no re-send).
+/// </para>
 /// </remarks>
 public sealed class VecAlertService : IVecAlertService
 {
     private readonly IEmailSender _emailSender;
+    private readonly IJobVerdictAlertRepository? _verdictAlertRepository;
     private readonly AlertOptions _options;
     private readonly ILogger<VecAlertService> _logger;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="VecAlertService"/>.
+    /// Initializes a new instance of <see cref="VecAlertService"/> without dedup persistence
+    /// (backwards-compatible; used by the DI smoke test and callers that have no verdict store).
     /// </summary>
     /// <param name="emailSender">Transport used to dispatch the alert email.</param>
     /// <param name="options">Alert configuration (retry counts, recipients).</param>
@@ -47,11 +60,33 @@ public sealed class VecAlertService : IVecAlertService
         IEmailSender emailSender,
         IOptions<AlertOptions> options,
         ILogger<VecAlertService> logger)
+        : this(emailSender, options, logger, verdictAlertRepository: null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="VecAlertService"/> with dedup persistence
+    /// (Story E2-S15: duplicate-alert guard via <see cref="IJobVerdictAlertRepository"/>).
+    /// </summary>
+    /// <param name="emailSender">Transport used to dispatch the alert email.</param>
+    /// <param name="options">Alert configuration (retry counts, recipients).</param>
+    /// <param name="logger">Structured logger for diagnostic and error output.</param>
+    /// <param name="verdictAlertRepository">
+    /// Repository used to load a <see cref="Domain.Entities.JobVerdict"/> and persist the
+    /// <see cref="Domain.Entities.JobVerdict.AlertSentAt"/> flag.  When <see langword="null"/>
+    /// the dedup check is skipped (backwards-compatible path).
+    /// </param>
+    public VecAlertService(
+        IEmailSender emailSender,
+        IOptions<AlertOptions> options,
+        ILogger<VecAlertService> logger,
+        IJobVerdictAlertRepository? verdictAlertRepository)
     {
         _emailSender = emailSender ?? throw new ArgumentNullException(nameof(emailSender));
         ArgumentNullException.ThrowIfNull(options);
         _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _verdictAlertRepository = verdictAlertRepository; // nullable — opt-in dedup
     }
 
     /// <inheritdoc />
@@ -77,6 +112,39 @@ public sealed class VecAlertService : IVecAlertService
 
             // Success: no alert is the correct outcome for non-RED verdicts.
             return Result.Success();
+        }
+
+        // -----------------------------------------------------------------------
+        // RED: duplicate-alert guard — check AlertSentAt before sending (Story E2-S15).
+        // -----------------------------------------------------------------------
+        if (_verdictAlertRepository is not null && context.JobVerdictId.HasValue)
+        {
+            var loadResult = await _verdictAlertRepository
+                .FindByIdAsync(context.JobVerdictId.Value, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (loadResult.IsCancelled())
+                return ResultExtensions.Cancelled();
+
+            if (loadResult.IsFailure)
+            {
+                _logger.LogWarning(
+                    "VecAlertService: could not load JobVerdict {VerdictId} for dedup check on statement {StatementId}: {Error} — proceeding without dedup guard.",
+                    context.JobVerdictId.Value,
+                    context.StatementId,
+                    loadResult.Error);
+                // Degrade gracefully: proceed without dedup rather than silently dropping the alert.
+            }
+            else if (loadResult.Value is { AlertSentAt: not null })
+            {
+                _logger.LogInformation(
+                    "VecAlertService: RED alert for statement {StatementId} (verdict {VerdictId}) was already sent at {AlertSentAt:O} — skipping duplicate send.",
+                    context.StatementId,
+                    context.JobVerdictId.Value,
+                    loadResult.Value.AlertSentAt);
+
+                return Result.Success();
+            }
         }
 
         // -----------------------------------------------------------------------
@@ -122,6 +190,43 @@ public sealed class VecAlertService : IVecAlertService
 
             return Result.WithFailure(
                 $"RED alert for statement '{context.StatementId}' could not be delivered after {_options.MaxRetryAttempts} attempt(s): {sendResult.Error}");
+        }
+
+        // -----------------------------------------------------------------------
+        // On success: persist AlertSentAt flag so retries are skipped (Story E2-S15).
+        // -----------------------------------------------------------------------
+        if (_verdictAlertRepository is not null && context.JobVerdictId.HasValue)
+        {
+            var reloadResult = await _verdictAlertRepository
+                .FindByIdAsync(context.JobVerdictId.Value, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!reloadResult.IsCancelled() && reloadResult.IsSuccessMayBeNull && reloadResult.Value is not null)
+            {
+                var verdictToMark = reloadResult.Value!;
+                try
+                {
+                    verdictToMark.RecordAlertSent(DateTimeOffset.UtcNow);
+                    var saveResult = await _verdictAlertRepository
+                        .SaveAlertSentAsync(verdictToMark, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (saveResult.IsFailure)
+                    {
+                        _logger.LogWarning(
+                            "VecAlertService: alert was sent for statement {StatementId} but AlertSentAt flag could not be persisted: {Error} — alert may be re-sent on retry.",
+                            context.StatementId,
+                            saveResult.Error);
+                    }
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "VecAlertService: alert was sent for statement {StatementId} but AlertSentAt flag persistence threw — alert may be re-sent on retry.",
+                        context.StatementId);
+                }
+            }
         }
 
         _logger.LogInformation(

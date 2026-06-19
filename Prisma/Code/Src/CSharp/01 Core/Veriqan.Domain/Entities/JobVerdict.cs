@@ -32,4 +32,34 @@ public sealed class JobVerdict
 
     /// <summary>Gets the traffic-light signal summarising all check findings.</summary>
     public VerdictSignal Signal { get; private set; }
+
+    /// <summary>
+    /// Gets the UTC timestamp at which a RED-alert email was sent for this verdict,
+    /// or <see langword="null"/> when no alert has been dispatched yet.
+    /// </summary>
+    /// <remarks>
+    /// Used as an idempotency flag: <c>VecAlertService</c> checks this value before
+    /// dispatching an email.  When already set it skips the send entirely, preventing duplicate
+    /// alerts on reprocess or retry.  The column is configured as an EF Core concurrency token
+    /// so two concurrent retries racing to set it produce an optimistic-concurrency exception
+    /// and only one wins.
+    /// </remarks>
+    public DateTimeOffset? AlertSentAt { get; private set; }
+
+    /// <summary>
+    /// Records that a RED-alert email has been dispatched at <paramref name="sentAt"/>.
+    /// </summary>
+    /// <param name="sentAt">The UTC timestamp at which the alert was sent.</param>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when <see cref="AlertSentAt"/> is already set — callers must check
+    /// <see cref="AlertSentAt"/> before calling this method.
+    /// </exception>
+    public void RecordAlertSent(DateTimeOffset sentAt)
+    {
+        if (AlertSentAt.HasValue)
+            throw new InvalidOperationException(
+                $"Alert already recorded at {AlertSentAt.Value:O} for verdict {Id}.");
+
+        AlertSentAt = sentAt;
+    }
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
+using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
@@ -13,6 +14,7 @@ using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NSubstitute;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Reporting.Tests;
 
@@ -88,8 +90,10 @@ public sealed class VecAlertServiceTests
     private static readonly IReadOnlyList<string> DefaultRecipients = ["compliance@example.com", "ops@example.com"];
 
     /// <summary>Builds a default <see cref="AlertContext"/> with the given statement ID.</summary>
-    private static AlertContext MakeContext(string statementId = "STMT-2026-001") =>
-        new(statementId, DefaultRecipients);
+    private static AlertContext MakeContext(
+        string statementId = "STMT-2026-001",
+        Guid? jobVerdictId = null) =>
+        new(statementId, DefaultRecipients, jobVerdictId);
 
     /// <summary>Builds <see cref="AlertOptions"/> with fast retries suitable for unit tests.</summary>
     private static IOptions<AlertOptions> FastAlertOptions(int maxAttempts = 3, int baseDelayMs = 0) =>
@@ -101,14 +105,15 @@ public sealed class VecAlertServiceTests
         });
 
     /// <summary>
-    /// Builds the system under test wired with the supplied fake sender.
+    /// Builds the system under test wired with the supplied fake sender and optional repository.
     /// </summary>
     private VecAlertService BuildSut(
         FakeEmailSender fake,
-        IOptions<AlertOptions>? alertOptions = null)
+        IOptions<AlertOptions>? alertOptions = null,
+        IJobVerdictAlertRepository? verdictRepo = null)
     {
         var logger = XUnitLogger.CreateLogger<VecAlertService>(TestContext.Current.TestOutputHelper);
-        return new VecAlertService(fake, alertOptions ?? FastAlertOptions(), logger);
+        return new VecAlertService(fake, alertOptions ?? FastAlertOptions(), logger, verdictRepo);
     }
 
     // -----------------------------------------------------------------------
@@ -309,7 +314,95 @@ public sealed class VecAlertServiceTests
     }
 
     // -----------------------------------------------------------------------
-    // Test 7: DI wiring — AddVeriqanReporting registers IVecAlertService and IEmailSender
+    // Test 7: Dedup guard — AlertSentAt already set → email NOT sent (Story E2-S15)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When the <see cref="JobVerdict.AlertSentAt"/> flag is already set, the service must
+    /// skip the email send entirely and return success (duplicate suppressed).
+    /// </summary>
+    [Fact]
+    public async Task SendRedAlertAsync_AlertSentAtAlreadySet_SkipsEmailSend()
+    {
+        var verdictId = Guid.NewGuid();
+        var verdict = BuildRedVerdict(["CL-01"], passCount: 2);
+        var context = MakeContext("STMT-DEDUP-SKIP", jobVerdictId: verdictId);
+
+        // Build a JobVerdict that already has AlertSentAt stamped.
+        var existingVerdict = new JobVerdict(verdictId, Guid.NewGuid(), VerdictSignal.Red);
+        existingVerdict.RecordAlertSent(DateTimeOffset.UtcNow.AddMinutes(-5));
+
+        var repo = Substitute.For<IJobVerdictAlertRepository>();
+        repo.FindByIdAsync(verdictId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<JobVerdict?>.WithSuccess(existingVerdict)));
+
+        var fake = new FakeEmailSender(Result.Success());
+        var sut = BuildSut(fake, verdictRepo: repo);
+
+        var result = await sut.SendRedAlertAsync(verdict, context, TestContext.Current.CancellationToken);
+
+        // Result is success (dedup = expected outcome, not an error).
+        result.IsSuccess.ShouldBeTrue("Dedup suppression must return success, not failure.");
+
+        // Email sink must NOT have been invoked.
+        fake.CallCount.ShouldBe(0, "No email must be sent when AlertSentAt is already set.");
+        fake.SentMessages.Count.ShouldBe(0, "No email messages must be recorded for a duplicate.");
+
+        // Repository SaveAlertSentAsync must NOT be called (nothing changed).
+        await repo.DidNotReceive().SaveAlertSentAsync(Arg.Any<JobVerdict>(), Arg.Any<CancellationToken>());
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 8: Dedup guard — AlertSentAt null → email IS sent, flag persisted (Story E2-S15)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When the <see cref="JobVerdict.AlertSentAt"/> flag is null the service must send the
+    /// email, call <see cref="JobVerdict.RecordAlertSent"/>, and persist via the repository.
+    /// </summary>
+    [Fact]
+    public async Task SendRedAlertAsync_AlertSentAtNull_SendsEmailAndPersistsFlag()
+    {
+        var verdictId = Guid.NewGuid();
+        var verdict = BuildRedVerdict(["CL-02"], passCount: 1);
+        var context = MakeContext("STMT-DEDUP-FIRST", jobVerdictId: verdictId);
+
+        // Verdict has no AlertSentAt yet.
+        var freshVerdict = new JobVerdict(verdictId, Guid.NewGuid(), VerdictSignal.Red);
+        freshVerdict.AlertSentAt.ShouldBeNull("Pre-condition: AlertSentAt must be null before test.");
+
+        var repo = Substitute.For<IJobVerdictAlertRepository>();
+        repo.FindByIdAsync(verdictId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<JobVerdict?>.WithSuccess(freshVerdict)));
+        repo.SaveAlertSentAsync(Arg.Any<JobVerdict>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        var fake = new FakeEmailSender(Result.Success());
+        var sut = BuildSut(fake, verdictRepo: repo);
+
+        var result = await sut.SendRedAlertAsync(verdict, context, TestContext.Current.CancellationToken);
+
+        // Result is success.
+        result.IsSuccess.ShouldBeTrue("First send must succeed.");
+
+        // Email was dispatched exactly once.
+        fake.CallCount.ShouldBe(1, "Email sender must be called exactly once for first send.");
+        fake.SentMessages.Count.ShouldBe(1, "Exactly one email must be recorded.");
+        fake.SentMessages[0].Subject.Contains("STMT-DEDUP-FIRST").ShouldBeTrue(
+            "Email subject must reference the statement ID.");
+
+        // AlertSentAt was stamped on the verdict entity.
+        freshVerdict.AlertSentAt.ShouldNotBeNull(
+            "RecordAlertSent must have been called after successful send.");
+
+        // Repository must have been asked to persist the flag.
+        await repo.Received(1).SaveAlertSentAsync(
+            Arg.Is<JobVerdict>(v => v.Id == verdictId),
+            Arg.Any<CancellationToken>());
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 9: DI wiring — AddVeriqanReporting registers IVecAlertService and IEmailSender
     // -----------------------------------------------------------------------
 
     [Fact]

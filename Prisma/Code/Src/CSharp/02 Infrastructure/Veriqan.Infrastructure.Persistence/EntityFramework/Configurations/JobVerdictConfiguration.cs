@@ -31,5 +31,13 @@ internal sealed class JobVerdictConfiguration : IEntityTypeConfiguration<JobVerd
         builder.Property(v => v.Signal)
             .IsRequired()
             .HasConversion<int>();
+
+        // AlertSentAt: nullable dedup flag — null = not yet sent; set = already dispatched.
+        // Configured as a concurrency token so two concurrent retries racing to set it raise
+        // a DbUpdateConcurrencyException and only one commit wins (Story E2-S15).
+        builder.Property(v => v.AlertSentAt)
+            .IsRequired(false)
+            .HasColumnType("datetimeoffset")
+            .IsConcurrencyToken();
     }
 }

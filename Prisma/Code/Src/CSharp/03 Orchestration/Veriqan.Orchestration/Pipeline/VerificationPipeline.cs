@@ -855,7 +855,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
 
         // Stage 10 — Notify (RED alert email): best-effort, non-fatal.
         // Only RED verdicts trigger an email; BLOCKED and GREEN are silent.
-        // TODO(E2-S12): duplicate-alert guard (idempotency key per job) is a separate story.
+        // Duplicate-alert guard implemented in VecAlertService via AlertSentAt flag (Story E2-S15).
         if (summary.Signal == VerdictSignal.Red)
         {
             using var notifyActivity = PipelineActivitySource.StartActivity("pipeline.stage.notify");
@@ -863,7 +863,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             {
                 var alertContext = new AlertContext(
                     StatementId: submission.FileName,
-                    Recipients: _alertOptions.Recipients);
+                    Recipients: _alertOptions.Recipients,
+                    JobVerdictId: persistResult.Value?.Id);
 
                 var alertResult = await _alertService.SendRedAlertAsync(summary, alertContext, ct)
                     .ConfigureAwait(false);

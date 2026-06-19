@@ -68,6 +68,7 @@ public static class VeriqanPersistenceExtensions
         services.AddScoped<IVerificationJobRepository, EfVerificationJobRepository>();
         services.AddScoped<IDispositionRepository, EfDispositionRepository>();
         services.AddScoped<IVerdictPersistenceService, EfVerdictPersistenceService>();
+        services.AddScoped<IJobVerdictAlertRepository, EfJobVerdictAlertRepository>();
 
         // Crypto key provider — reads from configuration key "Veriqan:LegalBaseline:EncryptionKey"
         services.AddSingleton<ILegalBaselineCryptoKeyProvider>(sp =>
