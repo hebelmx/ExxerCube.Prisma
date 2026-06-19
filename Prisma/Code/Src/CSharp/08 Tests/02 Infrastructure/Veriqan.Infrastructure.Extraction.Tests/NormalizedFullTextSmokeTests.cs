@@ -33,7 +33,7 @@ public sealed class NormalizedFullTextSmokeTests
         Path.Combine(FixturesDir, fileName);
 
     private static PdfPigStatementFieldExtractor CreateExtractor() =>
-        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>());
+        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>(), Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
 
     // -----------------------------------------------------------------------
     // Candidate strings to search — normalized to match stored form.

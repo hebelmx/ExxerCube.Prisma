@@ -12,6 +12,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 using PDFtoImage;
@@ -132,11 +133,18 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private readonly ILogger<PdfPigStatementFieldExtractor> _logger;
+    private readonly PdfExtractionOptions _options;
+    private readonly IPasswordProvider _passwordProvider;
 
     /// <summary>Initializes a new <see cref="PdfPigStatementFieldExtractor"/>.</summary>
-    public PdfPigStatementFieldExtractor(ILogger<PdfPigStatementFieldExtractor> logger)
+    public PdfPigStatementFieldExtractor(
+        ILogger<PdfPigStatementFieldExtractor> logger,
+        IOptions<PdfExtractionOptions> options,
+        IPasswordProvider passwordProvider)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _options = (options ?? throw new ArgumentNullException(nameof(options))).Value;
+        _passwordProvider = passwordProvider ?? throw new ArgumentNullException(nameof(passwordProvider));
     }
 
     // -----------------------------------------------------------------------
@@ -173,21 +181,156 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // -----------------------------------------------------------------------
 
     /// <inheritdoc />
-    public Task<Result<StatementModel>> ExtractFullAsync(
+    public async Task<Result<StatementModel>> ExtractFullAsync(
         byte[] pdf,
         CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
-            return Task.FromResult(ResultExtensions.Cancelled<StatementModel>());
+            return ResultExtensions.Cancelled<StatementModel>();
 
         ArgumentNullException.ThrowIfNull(pdf);
         if (pdf.Length == 0)
-            return Task.FromResult(Result<StatementModel>.WithFailure("PDF bytes are empty."));
+            return Result<StatementModel>.WithFailure("PDF bytes are empty.");
+
+        // ---- Guard 1: file-size limit (issue #59 / poison-PDF DoS) ------
+        if (pdf.Length > _options.MaxSizeBytes)
+        {
+            _logger.LogWarning(
+                "PDF rejected — size {SizeBytes} bytes exceeds limit {LimitBytes} bytes (FileSizeLimitExceeded).",
+                pdf.Length,
+                _options.MaxSizeBytes);
+            return Result<StatementModel>.WithFailure(
+                $"FileSizeLimitExceeded: PDF size {pdf.Length} bytes exceeds the configured limit of {_options.MaxSizeBytes} bytes.");
+        }
+
+        // ---- Guard 2 + 3: parse timeout + password protection -----------
+        // PdfPig is fully synchronous so the parse runs on a thread-pool thread.
+        // A linked CTS combines the caller's token and a local timeout deadline.
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(_options.ParseTimeoutSeconds));
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+        var linkedToken = linkedCts.Token;
 
         try
         {
-            using var doc = PdfDocument.Open(pdf);
+            return await Task.Run(() => ExtractFullSync(pdf), linkedToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // Distinguish: was it the CALLER's token or the TIMEOUT that fired?
+            if (cancellationToken.IsCancellationRequested)
+                return ResultExtensions.Cancelled<StatementModel>();
 
+            // Only the timeout CTS fired.
+            _logger.LogWarning(
+                "PDF parse timed out after {TimeoutSeconds} s ({ByteCount} bytes).",
+                _options.ParseTimeoutSeconds,
+                pdf.Length);
+            return Result<StatementModel>.WithFailure(
+                $"Timeout: PDF parse exceeded the configured limit of {_options.ParseTimeoutSeconds} s.");
+        }
+    }
+
+    /// <summary>
+    /// Synchronous full-extraction body — runs on a thread-pool thread so the caller's
+    /// async timeout wrapper can cancel it when the deadline fires.
+    /// Handles the password-exception path inline: if <c>PdfDocument.Open</c> throws a
+    /// password-related exception the method returns a <c>PasswordProtected</c> failure result.
+    /// </summary>
+    private Result<StatementModel> ExtractFullSync(byte[] pdf)
+    {
+        try
+        {
+            using var doc = TryOpenDocument(pdf, out var passwordFailure);
+            if (doc is null)
+            {
+                // Password exception was caught inside TryOpenDocument — propagate as failure.
+                return passwordFailure
+                    ?? Result<StatementModel>.WithFailure("PasswordProtected — add institution password to config.");
+            }
+
+            return ExtractFromOpenDocument(doc, pdf);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to extract full fields from PDF ({ByteCount} bytes).", pdf.Length);
+            return Result<StatementModel>.WithFailure($"PDF full extraction failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Attempts to open a <see cref="PdfDocument"/>, handling password-protection transparently.
+    /// Returns <see langword="null"/> when the document is password-protected and no password
+    /// is available; in that case <paramref name="failure"/> is set to the failure result.
+    /// </summary>
+    private PdfDocument? TryOpenDocument(byte[] pdf, out Result<StatementModel>? failure)
+    {
+        failure = null;
+
+        try
+        {
+            return PdfDocument.Open(pdf);
+        }
+        catch (Exception ex) when (IsPasswordException(ex))
+        {
+            // Try a configured password (per-institution, synchronous via .GetAwaiter().GetResult()
+            // because we are already on a thread-pool thread — no deadlock risk).
+            // StatementContextKey is not available here; we use an empty institution key so the
+            // NullPasswordProvider returns a failure immediately without a lookup round-trip.
+            var passwordResult = _passwordProvider.GetPasswordAsync(
+                institutionKey: string.Empty,
+                cancellationToken: CancellationToken.None).GetAwaiter().GetResult();
+
+            if (passwordResult.IsSuccess && passwordResult.Value is { } password)
+            {
+                try
+                {
+                    return PdfDocument.Open(pdf, new ParsingOptions { Password = password });
+                }
+                catch (Exception retryEx) when (IsPasswordException(retryEx))
+                {
+                    // Configured password also failed — fall through to PasswordProtected.
+                }
+                catch (Exception retryEx)
+                {
+                    _logger.LogError(retryEx,
+                        "PDF open with configured password failed ({ByteCount} bytes).", pdf.Length);
+                    failure = Result<StatementModel>.WithFailure(
+                        $"PDF full extraction failed: {retryEx.Message}");
+                    return null;
+                }
+            }
+
+            _logger.LogWarning(
+                "PDF is password-protected and no institution password is configured ({ByteCount} bytes).",
+                pdf.Length);
+            failure = Result<StatementModel>.WithFailure(
+                "PasswordProtected — add institution password to config.");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="ex"/> indicates a PDF password
+    /// (encryption) requirement.  PdfPig surfaces this as an exception whose message contains
+    /// "password" or "encrypt" (case-insensitive); the concrete type is internal to PdfPig.
+    /// </summary>
+    private static bool IsPasswordException(Exception ex)
+    {
+        var msg = ex.Message;
+        return msg.Contains("password", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("encrypt", StringComparison.OrdinalIgnoreCase)
+            || ex.GetType().Name.Contains("Encrypt", StringComparison.OrdinalIgnoreCase)
+            || ex.GetType().Name.Contains("Password", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Core extraction logic operating on an already-opened <see cref="PdfDocument"/>.
+    /// Extracted from <see cref="ExtractFullAsync"/> to allow reuse after a password-retry open.
+    /// </summary>
+    private Result<StatementModel> ExtractFromOpenDocument(PdfDocument doc, byte[] pdf)
+    {
+        try
+        {
             // ---- Page 1 words -------------------------------------------
             var page1 = doc.GetPage(1);
             var allPage1Words = page1.GetWords().ToList();
@@ -316,13 +459,12 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 TypographyExtractionStatus = typographyExtractionStatus,
             };
 
-            return Task.FromResult(Result<StatementModel>.WithSuccess(model));
+            return Result<StatementModel>.WithSuccess(model);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to extract full fields from PDF ({ByteCount} bytes).", pdf.Length);
-            return Task.FromResult(
-                Result<StatementModel>.WithFailure($"PDF full extraction failed: {ex.Message}"));
+            return Result<StatementModel>.WithFailure($"PDF full extraction failed: {ex.Message}");
         }
     }
 

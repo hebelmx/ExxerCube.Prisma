@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
@@ -14,12 +15,13 @@ using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 
 /// <summary>
 /// Default <see cref="IBatchProcessor"/> implementation that processes statements with bounded
-/// concurrency using a <see cref="SemaphoreSlim"/> and resolves a fresh
+/// concurrency using a <see cref="Channel{T}"/>-based streaming consumer pool and resolves a fresh
 /// <see cref="IVerificationPipeline"/> per item via <see cref="IServiceScopeFactory"/>
 /// to avoid captive-dependency issues with scoped services.
 /// </summary>
@@ -29,13 +31,22 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// the scope factory is held across calls.
 /// </para>
 /// <para>
+/// <b>Channel design:</b> an unbounded <see cref="System.Threading.Channels.Channel{T}"/> is used with a
+/// fixed pool of <see cref="BatchProcessorOptions.EffectiveConcurrency"/> consumer <see cref="Task"/>s.
+/// The caller's <see cref="IReadOnlyList{T}"/> is already fully in-memory when
+/// <see cref="ProcessBatchAsync"/> is called, so bounding the channel provides no useful
+/// backpressure.  What prevents heap-materialisation of N closures is that items are consumed
+/// lazily — each consumer pulls the next submission from the channel only after it has
+/// finished the current one, keeping at most <c>MaxConcurrency</c> closures alive at a time
+/// (issue #58).
+/// </para>
+/// <para>
 /// <b>Resume mode (<see cref="BatchOptions.Resume"/> = <see langword="true"/>):</b>
 /// Before dispatching each item to the pipeline the processor queries
 /// <see cref="IVerificationResultStore.IsCompletedAsync"/>.  Items whose content hash is
 /// already completed are counted as <see cref="BatchReport.AlreadyCompletedCount"/> and
 /// skipped — the pipeline is never called for them.  Newly-processed items are saved via
 /// <see cref="IVerificationResultStore.SaveOutcomeAsync"/> (first-write-wins, idempotent).
-/// Resuming a fully-completed batch therefore performs zero pipeline invocations.
 /// </para>
 /// </remarks>
 internal sealed class BatchProcessor : IBatchProcessor
@@ -44,6 +55,7 @@ internal sealed class BatchProcessor : IBatchProcessor
     private readonly IVerificationResultStore _resultStore;
     private readonly VeriqanMetrics _metrics;
     private readonly ILogger<BatchProcessor> _logger;
+    private readonly BatchProcessorOptions _processorOptions;
 
     /// <summary>
     /// Initializes a new <see cref="BatchProcessor"/>.
@@ -52,12 +64,14 @@ internal sealed class BatchProcessor : IBatchProcessor
         IServiceScopeFactory scopeFactory,
         IVerificationResultStore resultStore,
         VeriqanMetrics metrics,
-        ILogger<BatchProcessor> logger)
+        ILogger<BatchProcessor> logger,
+        IOptions<BatchProcessorOptions> processorOptions)
     {
         _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _resultStore = resultStore ?? throw new ArgumentNullException(nameof(resultStore));
         _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _processorOptions = (processorOptions ?? throw new ArgumentNullException(nameof(processorOptions))).Value;
     }
 
     /// <inheritdoc />
@@ -74,23 +88,25 @@ internal sealed class BatchProcessor : IBatchProcessor
             return ResultExtensions.Cancelled<BatchReport>();
 
         int total = batch.Count;
-        int maxParallelism = options.EffectiveParallelism;
+
+        // Per-call parallelism: BatchOptions.EffectiveParallelism overrides the
+        // global BatchProcessorOptions.EffectiveConcurrency when it differs from the
+        // default (4). Always use the per-call value so callers retain control.
+        int maxConcurrency = options.EffectiveParallelism;
 
         _logger.LogInformation(
-            "Batch starting: {Total} items, MaxDegreeOfParallelism={MaxParallelism}, Resume={Resume}",
+            "Batch starting: {Total} items, MaxConcurrency={MaxConcurrency}, Resume={Resume}",
             total,
-            maxParallelism,
+            maxConcurrency,
             options.Resume);
 
         // Wall-clock for throughput calculation (NFR-4).
         var batchSw = Stopwatch.StartNew();
 
-        using var semaphore = new SemaphoreSlim(maxParallelism, maxParallelism);
-
         var outcomes = new ConcurrentBag<VerificationOutcome>();
         var exceptionQueue = new ConcurrentBag<ExceptionQueueEntry>();
 
-        // Interlocked counters for thread-safe progress tracking
+        // Interlocked counters for thread-safe progress tracking.
         int pending = total;
         int inProgress = 0;
         int completed = 0;
@@ -110,20 +126,37 @@ internal sealed class BatchProcessor : IBatchProcessor
                 AlreadyCompleted: Volatile.Read(ref alreadyCompleted)));
         }
 
-        var tasks = new List<Task>(total);
-
-        foreach (var submission in batch)
-        {
-            if (ct.IsCancellationRequested)
-                break;
-
-            // Capture loop variable for the closure
-            var item = submission;
-
-            var task = Task.Run(async () =>
+        // ── Channel setup ──────────────────────────────────────────────────
+        // Unbounded channel: the producer writes all submissions immediately;
+        // MaxConcurrency consumers read lazily, keeping at most MaxConcurrency
+        // closures alive at any time (fixes issue #58 heap-materialisation).
+        var channel = Channel.CreateUnbounded<StatementSubmission>(
+            new UnboundedChannelOptions
             {
-                await semaphore.WaitAsync(ct).ConfigureAwait(false);
+                SingleWriter = true,       // only the producer loop below writes
+                SingleReader = false,      // multiple consumer workers read
+                AllowSynchronousContinuations = false
+            });
 
+        // Producer: write all submissions to the channel, then signal completion.
+        async Task ProduceAsync()
+        {
+            foreach (var item in batch)
+            {
+                if (ct.IsCancellationRequested)
+                    break;
+
+                await channel.Writer.WriteAsync(item, ct).ConfigureAwait(false);
+            }
+
+            channel.Writer.TryComplete();
+        }
+
+        // Consumer: drain the channel until it is completed or cancelled.
+        async Task ConsumeAsync()
+        {
+            await foreach (var item in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+            {
                 Interlocked.Decrement(ref pending);
                 Interlocked.Increment(ref inProgress);
                 ReportProgress();
@@ -154,7 +187,7 @@ internal sealed class BatchProcessor : IBatchProcessor
 
                             Interlocked.Increment(ref alreadyCompleted);
                             ReportProgress();
-                            return;
+                            continue;
                         }
                     }
 
@@ -230,16 +263,20 @@ internal sealed class BatchProcessor : IBatchProcessor
                 finally
                 {
                     Interlocked.Decrement(ref inProgress);
-                    semaphore.Release();
                     ReportProgress();
                 }
-            }, ct);
-
-            tasks.Add(task);
+            }
         }
 
-        // Await all tasks; individual failures are already captured in the queues above
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+        // Launch producer + MaxConcurrency consumer tasks concurrently.
+        var producerTask = ProduceAsync();
+        var consumerTasks = new Task[maxConcurrency];
+        for (int i = 0; i < maxConcurrency; i++)
+            consumerTasks[i] = ConsumeAsync();
+
+        // Await producer first (it completes the channel), then all consumers.
+        await producerTask.ConfigureAwait(false);
+        await Task.WhenAll(consumerTasks).ConfigureAwait(false);
 
         var outcomeList = new List<VerificationOutcome>(outcomes);
         var exceptionList = new List<ExceptionQueueEntry>(exceptionQueue);

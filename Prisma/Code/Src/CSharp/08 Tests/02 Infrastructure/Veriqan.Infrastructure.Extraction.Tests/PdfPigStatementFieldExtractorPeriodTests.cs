@@ -47,7 +47,7 @@ public sealed class PdfPigStatementFieldExtractorPeriodTests
     private static PdfPigStatementFieldExtractor CreateExtractor()
     {
         var logger = XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>();
-        return new PdfPigStatementFieldExtractor(logger);
+        return new PdfPigStatementFieldExtractor(logger, Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
     }
 
     private static byte[] ReadFixture(string path)

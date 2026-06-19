@@ -34,7 +34,7 @@ public sealed class SectionDetectionSmokeTests
         Path.Combine(FixturesDir, fileName);
 
     private static PdfPigStatementFieldExtractor CreateExtractor() =>
-        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>());
+        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>(), Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
 
     // -----------------------------------------------------------------------
     // Known-present anchor phrases (normalized) confirmed against the fixtures

@@ -16,6 +16,8 @@
     <PackageReference Include="IndQuestResults" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <!-- PdfPig: text-layer extraction with word bounding boxes (pinned in Directory.Packages.props) -->
     <PackageReference Include="PdfPig" />
     <!-- ZXing.Net: QR-code decode for fiscal-block QR (Story 6.2) -->

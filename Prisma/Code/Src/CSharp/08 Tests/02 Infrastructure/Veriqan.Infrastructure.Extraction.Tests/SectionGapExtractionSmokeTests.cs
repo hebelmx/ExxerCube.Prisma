@@ -31,7 +31,7 @@ public sealed class SectionGapExtractionSmokeTests
         Path.Combine(FixturesDir, fileName);
 
     private static PdfPigStatementFieldExtractor CreateExtractor() =>
-        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>());
+        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>(), Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
 
     // -----------------------------------------------------------------------
     // Test: SectionGaps is never null (even on minimal PDFs)

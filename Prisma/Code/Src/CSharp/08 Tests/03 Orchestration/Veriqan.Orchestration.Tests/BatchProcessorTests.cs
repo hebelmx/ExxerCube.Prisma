@@ -45,6 +45,8 @@ public sealed class BatchProcessorTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddOptions();
+        services.Configure<BatchProcessorOptions>(_ => { });
         services.AddScoped<IVerificationPipeline>(_ => pipeline);
         // IVerificationResultStore is required by BatchProcessor (used when Resume=true)
         services.AddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
@@ -185,6 +187,8 @@ public sealed class BatchProcessorTests
 
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddOptions();
+        services.Configure<BatchProcessorOptions>(_ => { });
         services.AddScoped<IVerificationPipeline>(_ =>
             new DelayedPipeline(tracker, delayMs: 30, greenOutcome));
         // IVerificationResultStore required by BatchProcessor constructor
@@ -260,6 +264,63 @@ public sealed class BatchProcessorTests
 
         // Assert
         result.IsCancelled().ShouldBeTrue();
+    }
+
+    // -----------------------------------------------------------------------
+    // VERIQAN-E1-S11 — Channel-based streaming consumer tests
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Verifies the Channel-based streaming path still processes a multi-item batch correctly
+    /// without regressing the core correctness guarantee (issue #58).
+    /// The ExceptionQueue entry for a poison-PDF-style failure (pipeline returning failure) must
+    /// carry <c>FileSizeLimitExceeded</c> in the error message when the extractor guard fires.
+    /// Here we simulate this by having the pipeline return a failure with that reason.
+    /// </summary>
+    [Fact]
+    public async Task ChannelConsumer_OversizePdfFailure_ExceptionQueueContainsFileSizeLimitExceeded()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var greenOutcome = MakeGreenOutcome();
+
+        int callCount = 0;
+        var fakePipeline = Substitute.For<IVerificationPipeline>();
+        fakePipeline
+            .ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                var n = Interlocked.Increment(ref callCount);
+                if (n == 2)
+                    // Simulate the extractor returning FileSizeLimitExceeded via the pipeline.
+                    return Task.FromResult(
+                        Result<VerificationOutcome>.WithFailure(
+                            "FileSizeLimitExceeded: PDF size 52428801 bytes exceeds the configured limit of 52428800 bytes."));
+                return Task.FromResult(Result<VerificationOutcome>.WithSuccess(greenOutcome));
+            });
+
+        var batch = new List<StatementSubmission>
+        {
+            MakeSubmission("ok1.pdf"),
+            MakeSubmission("oversize.pdf"),
+            MakeSubmission("ok2.pdf"),
+        };
+
+        var processor = BuildBatchProcessor(fakePipeline);
+
+        // Act — MaxDegreeOfParallelism=1 gives deterministic ordering through the channel.
+        var result = await processor.ProcessBatchAsync(
+            batch, new BatchOptions(MaxDegreeOfParallelism: 1), progress: null, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        var report = result.Value!;
+        report.TotalSubmitted.ShouldBe(3);
+        report.CompletedCount.ShouldBe(2);
+        report.FailedCount.ShouldBe(1);
+        report.ExceptionQueue.Count.ShouldBe(1);
+        report.ExceptionQueue[0].ErrorMessage.ShouldContain("FileSizeLimitExceeded");
+        report.ExceptionQueue[0].IsException.ShouldBeFalse("A guard failure is a Result failure, not an exception.");
     }
 
     // -----------------------------------------------------------------------

@@ -28,7 +28,7 @@ public sealed class PageInspectionFactsSmokeTests
         Path.Combine(FixturesDir, fileName);
 
     private static PdfPigStatementFieldExtractor CreateExtractor() =>
-        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>());
+        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>(), Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
 
     /// <summary>
     /// Verifies that <see cref="StatementModel.Pages"/> and <see cref="StatementModel.PageCount"/>

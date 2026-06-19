@@ -44,7 +44,7 @@ public sealed class FontExtractionSmokeTests
     // -----------------------------------------------------------------------
 
     private static PdfPigStatementFieldExtractor CreateExtractor() =>
-        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>());
+        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>(), Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
 
     // -----------------------------------------------------------------------
     // Tests

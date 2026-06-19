@@ -48,7 +48,7 @@ public sealed class FinancialTableExtractionTests
     // -----------------------------------------------------------------------
 
     private static PdfPigStatementFieldExtractor CreateExtractor() =>
-        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>());
+        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>(), Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
 
     private static byte[] ReadFixture(string path)
     {

@@ -25,7 +25,7 @@ public sealed class PdfPigStatementFieldExtractorFiscalTests
         FixturePath("01+Dummie+VEC+jul_ago+20252.pdf");
 
     private static PdfPigStatementFieldExtractor CreateExtractor() =>
-        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>());
+        new(XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>(), Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
 
     // -----------------------------------------------------------------------
     // Test 1: QR round-trip (encode → decode via ZXing)

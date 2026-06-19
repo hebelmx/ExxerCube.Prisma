@@ -63,7 +63,7 @@ public static class VeriqanOrchestrationExtensions
 
         // Infrastructure adapters
         services.AddVeriqanReferenceData();
-        services.AddVeriqanExtraction();
+        services.AddVeriqanExtraction(config);
         services.AddVeriqanValidation();
         services.AddVeriqanVisual();
         services.AddVeriqanReporting(config);
@@ -92,6 +92,11 @@ public static class VeriqanOrchestrationExtensions
 
         // Metrics — singleton so the same Meter lives for the process lifetime.
         services.AddSingleton<VeriqanMetrics>();
+
+        // BatchProcessor configuration — read from Veriqan:BatchProcessor section;
+        // defaults to Environment.ProcessorCount workers when the section is absent.
+        services.Configure<BatchProcessorOptions>(
+            config.GetSection(BatchProcessorOptions.Section));
 
         // Pipeline + batch + resume/reprocess
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();

@@ -65,7 +65,7 @@ public sealed class PdfPigStatementFieldExtractorMovementsTests
     private static PdfPigStatementFieldExtractor CreateExtractor()
     {
         var logger = XUnitLogger.CreateLogger<PdfPigStatementFieldExtractor>();
-        return new PdfPigStatementFieldExtractor(logger);
+        return new PdfPigStatementFieldExtractor(logger, Microsoft.Extensions.Options.Options.Create(new PdfExtractionOptions()), new NullPasswordProvider());
     }
 
     // Diagnostic logger for test output — uses the xUnit v3 ambient context.
