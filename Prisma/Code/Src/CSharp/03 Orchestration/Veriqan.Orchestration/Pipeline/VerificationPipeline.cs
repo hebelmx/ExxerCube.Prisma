@@ -240,6 +240,42 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                     blockedDuration.TotalMilliseconds,
                     job.Id);
 
+                // Stage 8 — Persist (BLOCKED path): fatal, same as the main path.
+                // A BLOCKED verdict is a computed business outcome and must be durable.
+                // Never silently discard it — a persist failure returns Result.WithFailure
+                // so the caller knows the verdict was NOT written.
+                var blockedPersistResult = await _verdictPersistence.PersistAsync(
+                    jobId: job.Id,
+                    signal: VerdictSignal.Blocked,
+                    findings: Array.Empty<RuleFinding>(),
+                    engineVersion: EngineVersion,
+                    cancellationToken: ct).ConfigureAwait(false);
+
+                if (blockedPersistResult.IsCancelled())
+                {
+                    _logger.LogWarning(
+                        "Pipeline cancelled during persist (BLOCKED) for {FileName} JobId={JobId}",
+                        submission.FileName,
+                        job.Id);
+                    return ResultExtensions.Cancelled<VerificationOutcome>();
+                }
+
+                if (blockedPersistResult.IsFailure)
+                {
+                    _logger.LogError(
+                        "Verdict persist failed (BLOCKED) for {FileName} JobId={JobId}: {Error}",
+                        submission.FileName,
+                        job.Id,
+                        blockedPersistResult.Error);
+                    return Result<VerificationOutcome>.WithFailure(
+                        blockedPersistResult.Error ?? "Verdict persistence failed");
+                }
+
+                _logger.LogInformation(
+                    "Verdict persisted (BLOCKED) for {FileName} JobId={JobId}",
+                    submission.FileName,
+                    job.Id);
+
                 // Stage 9 (Report) — best-effort for BLOCKED outcomes.
                 // Notify (stage 10) is RED-only; BLOCKED does not trigger an alert.
                 var blockedFindings = new List<RuleFinding>();

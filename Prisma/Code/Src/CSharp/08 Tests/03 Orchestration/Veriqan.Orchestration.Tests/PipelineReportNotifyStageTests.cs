@@ -258,8 +258,15 @@ public sealed class PipelineReportNotifyStageTests
         services.AddSingleton(TimeProvider.System);
         services.AddVeriqanInMemoryPersistence();
 
-        // Persist stub (not reached on BLOCKED path, but required by DI).
+        // Persist stub: success no-op — reached on BLOCKED path (stage 8 is fatal/non-optional
+        // on all paths, including BLOCKED). Must return success so report stage can proceed.
         var persist = Substitute.For<IVerdictPersistenceService>();
+        persist
+            .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(
+                Result<JobVerdict>.WithSuccess(new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked))));
         services.Replace(ServiceDescriptor.Scoped<IVerdictPersistenceService>(_ => persist));
 
         services.AddSingleton(reportGenerator);

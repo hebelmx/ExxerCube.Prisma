@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using Shouldly;
 
 namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 
@@ -206,6 +207,95 @@ public sealed class PipelinePersistStageTests
         return services;
     }
 
+    /// <summary>
+    /// Builds a <see cref="ServiceCollection"/> where the binder returns a BLOCKED outcome,
+    /// wired with a caller-supplied <see cref="IVerdictPersistenceService"/> so persist
+    /// behaviour can be asserted or injected with a failure.
+    /// </summary>
+    private static ServiceCollection BuildBlockedServices(IVerdictPersistenceService verdictPersistence)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+
+        // ── Mock: ingestion ──────────────────────────────────────────────────
+        var job = new VerificationJob(
+            id: Guid.NewGuid(),
+            contentHash: "test-hash-blocked-persist",
+            receivedAtUtc: DateTimeOffset.UtcNow,
+            status: VerificationJobStatus.Pending);
+
+        var ingestion = Substitute.For<IStatementIngestionService>();
+        ingestion
+            .IngestAsync(Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result<VerificationJob>.WithSuccess(job)));
+        services.AddSingleton(ingestion);
+
+        // ── Mock: field extractor ────────────────────────────────────────────
+        var locator = FieldLocator.PageHint(1);
+        var missingStr = ExtractedField<string>.Missing(locator);
+        var missingName = ExtractedField<ExtractedClientName>.Missing(locator);
+        var missingAddr = ExtractedField<ExtractedAddress>.Missing(locator);
+        var statementModel = new StatementModel(
+            clientName: missingName,
+            address: missingAddr,
+            branchNumber: missingStr,
+            cardNumber: missingStr,
+            clabe: missingStr,
+            clientNumber: missingStr,
+            rfc: missingStr);
+
+        var extractor = Substitute.For<IStatementFieldExtractor>();
+        extractor
+            .ExtractFullAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result<StatementModel>.WithSuccess(statementModel)));
+        services.AddSingleton(extractor);
+
+        // ── Mock: binder — returns a BLOCKED failure ─────────────────────────
+        var blockedError = new BlockedOutcome(BlockReason.InvalidBundle, "No matching bundle found").ToErrorString();
+        var binder = Substitute.For<IBundleBinder>();
+        binder
+            .BindAsync(Arg.Any<VerificationJob>(), Arg.Any<StatementContextKey>(),
+                Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result<VerificationContext>.WithFailure(blockedError)));
+        services.AddSingleton(binder);
+
+        // Real verdict aggregator (used by the BLOCKED path to aggregate the BLOCKED verdict).
+        services.AddVeriqanVerdict();
+        services.AddVeriqanValidation();
+
+        // Engine — not called on BLOCKED path, but required by ctor.
+        var engine = Substitute.For<IVecValidationEngine>();
+        services.Replace(ServiceDescriptor.Singleton<IVecValidationEngine>(_ => engine));
+
+        services.AddSingleton(TenantProfile.LegalBaseline());
+        services.AddSingleton(TimeProvider.System);
+        services.AddVeriqanInMemoryPersistence();
+
+        // Override IVerdictPersistenceService with the caller's mock.
+        services.Replace(ServiceDescriptor.Scoped<IVerdictPersistenceService>(
+            _ => verdictPersistence));
+
+        // ── Stub: report generator (best-effort, success no-op) ──────────────
+        var reportGenerator = Substitute.For<IMarkedPdfGenerator>();
+        reportGenerator
+            .Generate(Arg.Any<byte[]>(), Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<byte[]>.WithSuccess(Array.Empty<byte>()));
+        services.AddSingleton(reportGenerator);
+
+        // ── Stub: alert service (not called on BLOCKED path) ─────────────────
+        var alertService = Substitute.For<IVecAlertService>();
+        services.AddSingleton(alertService);
+
+        services.AddSingleton<IOptions<AlertOptions>>(
+            Options.Create(new AlertOptions()));
+
+        // Metrics + pipeline.
+        services.AddSingleton<VeriqanMetrics>();
+        services.AddScoped<IVerificationPipeline, VerificationPipeline>();
+
+        return services;
+    }
+
     // -----------------------------------------------------------------------
     // Tests
     // -----------------------------------------------------------------------
@@ -289,6 +379,98 @@ public sealed class PipelinePersistStageTests
         // Assert — pipeline propagates the persist failure
         result.IsFailure.ShouldBeTrue(
             "Pipeline must return failure when IVerdictPersistenceService returns failure.");
+        result.Error.ShouldNotBeNull();
+        (result.Error!.Contains(persistError)).ShouldBeTrue(
+            $"Pipeline failure message '{result.Error}' must include the persist-service error '{persistError}'.");
+    }
+
+    // -----------------------------------------------------------------------
+    // BLOCKED-path persist tests (fix for adversarial defect: persist was not
+    // called on the binder-BLOCKED early-exit path — VERIQAN-E1-S5 invariant).
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// BLOCKED-from-binder path: <see cref="IVerdictPersistenceService.PersistAsync"/> must be
+    /// called exactly once even when the pipeline exits early via the binder BLOCKED outcome.
+    /// This verifies the VERIQAN-E1-S5 invariant ("persist is non-optional") on the BLOCKED path.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_BlockedFromBinder_CallsPersistExactlyOnce()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+
+        var fakeVerdict = new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked);
+        var verdictPersistence = Substitute.For<IVerdictPersistenceService>();
+        verdictPersistence
+            .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result<JobVerdict>.WithSuccess(fakeVerdict)));
+
+        var services = BuildBlockedServices(verdictPersistence);
+        await using var sp = services.BuildServiceProvider();
+        await using var scope = sp.CreateAsyncScope();
+
+        var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+        var submission = new StatementSubmission(
+            Pdf: System.Text.Encoding.ASCII.GetBytes("%PDF-1.4 unit-test"),
+            FileName: "blocked-persist-once-test.pdf",
+            ContextKey: new StatementContextKey("Test Bank", "Jan 2025"));
+
+        // Act
+        var result = await pipeline.ProcessAsync(submission, ct);
+
+        // Assert — pipeline returns success with BLOCKED signal
+        result.IsSuccess.ShouldBeTrue("Pipeline should return success on BLOCKED verdict.");
+        result.Value.ShouldNotBeNull();
+        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.Blocked,
+            "The outcome signal must be BLOCKED.");
+
+        // Assert — persist was called exactly once on the BLOCKED path
+        await verdictPersistence.Received(1).PersistAsync(
+            Arg.Any<Guid>(),
+            VerdictSignal.Blocked,
+            Arg.Any<IReadOnlyList<RuleFinding>>(),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// BLOCKED-from-binder persist-failure guard: when
+    /// <see cref="IVerdictPersistenceService.PersistAsync"/> returns a failure on the BLOCKED
+    /// path, the pipeline must propagate that failure — persist is fatal on ALL paths.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_BlockedFromBinder_PersistFails_PipelineReturnsFailure()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        const string persistError = "DB connection lost during blocked persist";
+
+        var verdictPersistence = Substitute.For<IVerdictPersistenceService>();
+        verdictPersistence
+            .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result<JobVerdict>.WithFailure(persistError)));
+
+        var services = BuildBlockedServices(verdictPersistence);
+        await using var sp = services.BuildServiceProvider();
+        await using var scope = sp.CreateAsyncScope();
+
+        var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+        var submission = new StatementSubmission(
+            Pdf: System.Text.Encoding.ASCII.GetBytes("%PDF-1.4 unit-test"),
+            FileName: "blocked-persist-fail-test.pdf",
+            ContextKey: new StatementContextKey("Test Bank", "Jan 2025"));
+
+        // Act
+        var result = await pipeline.ProcessAsync(submission, ct);
+
+        // Assert — pipeline propagates the persist failure on the BLOCKED path
+        result.IsFailure.ShouldBeTrue(
+            "Pipeline must return failure when IVerdictPersistenceService returns failure on BLOCKED path.");
         result.Error.ShouldNotBeNull();
         (result.Error!.Contains(persistError)).ShouldBeTrue(
             $"Pipeline failure message '{result.Error}' must include the persist-service error '{persistError}'.");
