@@ -26,154 +26,122 @@ using Shouldly;
 namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 
 /// <summary>
-/// Unit tests for the minimum-extraction-coverage floor guard introduced by Story E1-S10.
+/// Unit and integration tests for the text-layer density abstain guard introduced by Story E2-S1.
 /// <para>
 /// Two categories:
 /// <list type="number">
-///   <item><b>Unit tests on <see cref="VerificationPipeline.CountExtractedFields"/>.</b>
+///   <item><b>Unit tests on <see cref="VerificationPipeline.CountTextLayerWords"/>.</b>
 ///     These test the counting logic directly without constructing the full pipeline — fast,
 ///     isolated, no DI required.</item>
 ///   <item><b>Integration tests on the full pipeline.</b>
 ///     These wire the real pipeline via DI with a mocked extractor that returns either a
-///     near-zero-field or a sufficient-field model, and assert the resulting
+///     zero-word or a sufficient-word model, and assert the resulting
 ///     <see cref="VerdictSignal"/>.</item>
 /// </list>
 /// </para>
 /// </summary>
 [Collection(MetricsIsolationCollection.Name)]
-public sealed class ExtractionCoverageFloorTests
+public sealed class TextLayerDensityGuardTests
 {
     // =========================================================================
-    // Part 1 — CountExtractedFields unit tests
+    // Part 1 — CountTextLayerWords unit tests
     // =========================================================================
 
     /// <summary>
-    /// A <see cref="StatementModel"/> in which all 7 header fields are
-    /// <see cref="ExtractionStatus.NotExtracted"/> yields a count of zero.
+    /// A <see cref="StatementModel"/> with an empty <see cref="StatementModel.NormalizedFullText"/>
+    /// (scanned / image-only PDF) yields a word count of zero.
     /// </summary>
     [Fact]
-    public void CountExtractedFields_AllHeaderFieldsMissing_ReturnsZero()
+    public void CountTextLayerWords_EmptyNormalizedFullText_ReturnsZero()
     {
-        // Arrange — all header fields missing, no PeriodSummary
-        var model = BuildAllMissingModel();
+        // Arrange — NormalizedFullText defaults to string.Empty
+        var model = BuildModelWithText(string.Empty);
 
         // Act
-        var count = VerificationPipeline.CountExtractedFields(model);
+        var count = VerificationPipeline.CountTextLayerWords(model);
 
         // Assert
         count.ShouldBe(0);
     }
 
     /// <summary>
-    /// A model with one header field set to <see cref="ExtractionStatus.Extracted"/>
-    /// yields a count of 1.
+    /// A model whose <see cref="StatementModel.NormalizedFullText"/> is all whitespace yields zero.
     /// </summary>
     [Fact]
-    public void CountExtractedFields_OneExtractedHeaderField_ReturnsOne()
-    {
-        // Arrange — only ClientNumber is Extracted; rest are Missing
-        var locator = FieldLocator.PageHint(1);
-        var missing = ExtractedField<string>.Missing(locator);
-        var missingName = ExtractedField<ExtractedClientName>.Missing(locator);
-        var missingAddr = ExtractedField<ExtractedAddress>.Missing(locator);
-        var model = new StatementModel(
-            clientName: missingName,
-            address: missingAddr,
-            branchNumber: missing,
-            cardNumber: missing,
-            clabe: missing,
-            clientNumber: ExtractedField<string>.Found("12345678", locator),
-            rfc: missing);
-
-        // Act
-        var count = VerificationPipeline.CountExtractedFields(model);
-
-        // Assert
-        count.ShouldBe(1);
-    }
-
-    /// <summary>
-    /// A field with status <see cref="ExtractionStatus.ExtractedInvalidFormat"/> is
-    /// counted (the text layer was readable even though the value is mal-formed).
-    /// </summary>
-    [Fact]
-    public void CountExtractedFields_InvalidFormatField_IsCounted()
-    {
-        // Arrange — CardNumber is InvalidFormat (16-digit check failed), rest missing
-        var locator = FieldLocator.PageHint(1);
-        var missing = ExtractedField<string>.Missing(locator);
-        var missingName = ExtractedField<ExtractedClientName>.Missing(locator);
-        var missingAddr = ExtractedField<ExtractedAddress>.Missing(locator);
-        var model = new StatementModel(
-            clientName: missingName,
-            address: missingAddr,
-            branchNumber: missing,
-            cardNumber: ExtractedField<string>.InvalidFormat("1234-bad", locator),
-            clabe: missing,
-            clientNumber: missing,
-            rfc: missing);
-
-        // Act
-        var count = VerificationPipeline.CountExtractedFields(model);
-
-        // Assert — InvalidFormat counts as extracted
-        count.ShouldBe(1);
-    }
-
-    /// <summary>
-    /// All 7 header fields extracted yields a count of exactly 7.
-    /// </summary>
-    [Fact]
-    public void CountExtractedFields_AllSevenHeaderFieldsExtracted_ReturnsSeven()
+    public void CountTextLayerWords_WhitespaceOnlyNormalizedFullText_ReturnsZero()
     {
         // Arrange
-        var locator = FieldLocator.PageHint(1);
-        var fullName = new ExtractedClientName("PÉREZ GARCÍA JUAN", "Juan", "Pérez García");
-        var fullAddr = new ExtractedAddress("Av. Insurgentes 100, CDMX", null, null, null, null);
-        var model = new StatementModel(
-            clientName: ExtractedField<ExtractedClientName>.Found(fullName, locator),
-            address: ExtractedField<ExtractedAddress>.Found(fullAddr, locator),
-            branchNumber: ExtractedField<string>.Found("910", locator),
-            cardNumber: ExtractedField<string>.Found("4111111111111111", locator),
-            clabe: ExtractedField<string>.Found("032180000118359719", locator),
-            clientNumber: ExtractedField<string>.Found("12345678", locator),
-            rfc: ExtractedField<string>.Found("PEGJ800101ABC", locator));
+        var model = BuildModelWithText("   ");
 
         // Act
-        var count = VerificationPipeline.CountExtractedFields(model);
+        var count = VerificationPipeline.CountTextLayerWords(model);
 
         // Assert
-        count.ShouldBe(7);
+        count.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// A model with exactly 5 space-separated words yields a count of 5.
+    /// </summary>
+    [Fact]
+    public void CountTextLayerWords_FiveWords_ReturnsFive()
+    {
+        // Arrange — normalized form: upper-cased, single spaces
+        var model = BuildModelWithText("COMPARA TU TARJETA DE CREDITO");
+
+        // Act
+        var count = VerificationPipeline.CountTextLayerWords(model);
+
+        // Assert
+        count.ShouldBe(5);
+    }
+
+    /// <summary>
+    /// A model with exactly 20 words (the default floor) yields exactly 20.
+    /// This verifies the floor boundary is inclusive.
+    /// </summary>
+    [Fact]
+    public void CountTextLayerWords_TwentyWords_ReturnsTwenty()
+    {
+        // Arrange — 20 single-word tokens
+        var text = string.Join(' ', System.Linq.Enumerable.Repeat("WORD", 20));
+        var model = BuildModelWithText(text);
+
+        // Act
+        var count = VerificationPipeline.CountTextLayerWords(model);
+
+        // Assert
+        count.ShouldBe(20);
     }
 
     // =========================================================================
-    // Part 2 — Pipeline integration tests (floor fires / does not fire)
+    // Part 2 — Pipeline integration tests (guard fires / does not fire)
     // =========================================================================
 
     /// <summary>
-    /// When the extractor returns a model with fewer extracted fields than the tenant's
-    /// configured floor, the pipeline must return a successful
+    /// When the extractor returns a model with zero words in <c>NormalizedFullText</c>
+    /// (scanned / image-only PDF), the pipeline must return a successful
     /// <see cref="Result{T}"/> whose <see cref="VerdictSignal"/> is
-    /// <see cref="VerdictSignal.Blocked"/> with reason
-    /// <see cref="BlockReason.InsufficientExtractionCoverage"/>.
+    /// <see cref="VerdictSignal.Blocked"/> (not Red, not Green).
     /// The binder must NOT have been called (guard fires before bind).
     /// </summary>
     [Fact]
-    public async Task ProcessAsync_BelowExtractionCoverageFloor_EmitsBlockedVerdictAndDoesNotReachBinder()
+    public async Task ProcessAsync_ZeroWordTextLayer_EmitsBlockedVerdictAndDoesNotReachBinder()
     {
         // Arrange
         var ct = TestContext.Current.CancellationToken;
 
-        // TenantProfile with floor = 5 (above zero-extraction count of 0)
+        // TenantProfile with text-layer floor = 20 (default); zero words falls below it
         var tenantProfile = new TenantProfile(
-            tenantId: "TEST-FLOOR",
-            tenantName: "Test Tenant Floor",
+            tenantId: "TEST-TEXT-LAYER",
+            tenantName: "Test Tenant Text Layer",
             toleranceOverrides: null,
             minFieldConfidence: TenantProfile.LegalMinFieldConfidenceDefault,
-            minExtractionCoverageCount: 5);
+            minExtractionCoverageCount: 0,  // disable coverage floor so only text-layer guard fires
+            minTextLayerWordCount: 20);
 
-        // Extractor returns a model where ALL header fields are Missing → 0 extracted fields
-        var zeroFieldModel = BuildAllMissingModel();
+        // Model with zero words in text layer
+        var zeroWordModel = BuildModelWithText(string.Empty);
 
         var binder = Substitute.For<IBundleBinder>();
         var persistResult = new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked);
@@ -184,9 +152,9 @@ public sealed class ExtractionCoverageFloorTests
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(Result<JobVerdict>.WithSuccess(persistResult)));
 
-        var services = BuildCoverageTestServices(
+        var services = BuildTextLayerTestServices(
             tenantProfile,
-            zeroFieldModel,
+            zeroWordModel,
             binder,
             verdictPersistence);
 
@@ -196,23 +164,23 @@ public sealed class ExtractionCoverageFloorTests
 
         var submission = new StatementSubmission(
             Pdf: System.Text.Encoding.ASCII.GetBytes("%PDF-1.4 unit-test"),
-            FileName: "zero-fields-test.pdf",
+            FileName: "scanned-image-only.pdf",
             ContextKey: new StatementContextKey("Test Bank", "Jan 2025"));
 
         // Act
         var result = await pipeline.ProcessAsync(submission, ct);
 
-        // Assert — pipeline returns success (BLOCKED is a valid business outcome)
+        // Assert — pipeline returns success (BLOCKED is a valid business outcome, not an error)
         result.IsSuccess.ShouldBeTrue(
             $"Pipeline must return success on BLOCKED verdict. Error: {result.Error ?? "<none>"}");
 
-        // Assert — signal is BLOCKED
+        // Assert — signal is BLOCKED (not Red, not Green)
         var outcome = result.Value!;
         outcome.Summary.Signal.ShouldBe(
             VerdictSignal.Blocked,
-            "A near-zero-field extraction must produce VerdictSignal.Blocked, not Green or Red.");
+            "A zero-word text layer must produce VerdictSignal.Blocked, not Green or Red.");
 
-        // Assert — binder was NOT called (guard fired before bind stage)
+        // Assert — binder was NOT called (text-layer guard fired before bind stage)
         await binder.DidNotReceive().BindAsync(
             Arg.Any<VerificationJob>(),
             Arg.Any<StatementContextKey>(),
@@ -229,39 +197,28 @@ public sealed class ExtractionCoverageFloorTests
     }
 
     /// <summary>
-    /// When the extractor returns a model with AT LEAST as many extracted fields as the
-    /// configured floor, the pipeline must proceed past the floor guard and reach
-    /// the binder (floor does NOT fire).
+    /// When the extractor returns a model with at least <c>MinTextLayerWordCount</c> words,
+    /// the pipeline must proceed past the text-layer guard and reach the binder
+    /// (guard does NOT fire).
     /// </summary>
     [Fact]
-    public async Task ProcessAsync_AtOrAboveExtractionCoverageFloor_ProceedsToBinder()
+    public async Task ProcessAsync_SufficientWordCountTextLayer_ProceedsToBinder()
     {
         // Arrange
         var ct = TestContext.Current.CancellationToken;
 
-        // TenantProfile with extraction floor = 3 (below the 7 header fields that are all Extracted)
-        // and text-layer floor disabled (= 0) so the text-layer density guard does not fire on the
-        // model's empty NormalizedFullText — this test exercises the extraction-coverage floor only.
+        // TenantProfile with text-layer floor = 5; model will have 20 words (above floor)
         var tenantProfile = new TenantProfile(
-            tenantId: "TEST-FLOOR-PASS",
-            tenantName: "Test Tenant Floor Pass",
+            tenantId: "TEST-TEXT-LAYER-PASS",
+            tenantName: "Test Tenant Text Layer Pass",
             toleranceOverrides: null,
             minFieldConfidence: TenantProfile.LegalMinFieldConfidenceDefault,
-            minExtractionCoverageCount: 3,
-            minTextLayerWordCount: 0);
+            minExtractionCoverageCount: 0,   // disable coverage floor
+            minTextLayerWordCount: 5);
 
-        // Extractor returns a model with ALL 7 header fields Extracted → count 7 ≥ floor 3
-        var locator = FieldLocator.PageHint(1);
-        var fullName = new ExtractedClientName("PÉREZ GARCÍA JUAN", "Juan", "Pérez García");
-        var fullAddr = new ExtractedAddress("Av. Insurgentes 100, CDMX", null, null, null, null);
-        var sufficientModel = new StatementModel(
-            clientName: ExtractedField<ExtractedClientName>.Found(fullName, locator),
-            address: ExtractedField<ExtractedAddress>.Found(fullAddr, locator),
-            branchNumber: ExtractedField<string>.Found("910", locator),
-            cardNumber: ExtractedField<string>.Found("4111111111111111", locator),
-            clabe: ExtractedField<string>.Found("032180000118359719", locator),
-            clientNumber: ExtractedField<string>.Found("12345678", locator),
-            rfc: ExtractedField<string>.Found("PEGJ800101ABC", locator));
+        // Model with 20 words — well above the floor of 5
+        var text = string.Join(' ', System.Linq.Enumerable.Repeat("PALABRA", 20));
+        var sufficientWordModel = BuildModelWithText(text);
 
         // Binder — returns a BLOCKED failure (UnknownProduct) so the test doesn't need
         // a full bundle; we only need to confirm the binder was REACHED (called once).
@@ -281,9 +238,9 @@ public sealed class ExtractionCoverageFloorTests
                 Result<JobVerdict>.WithSuccess(
                     new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked))));
 
-        var services = BuildCoverageTestServices(
+        var services = BuildTextLayerTestServices(
             tenantProfile,
-            sufficientModel,
+            sufficientWordModel,
             binder,
             verdictPersistence);
 
@@ -293,13 +250,13 @@ public sealed class ExtractionCoverageFloorTests
 
         var submission = new StatementSubmission(
             Pdf: System.Text.Encoding.ASCII.GetBytes("%PDF-1.4 unit-test"),
-            FileName: "sufficient-fields-test.pdf",
+            FileName: "sufficient-words-test.pdf",
             ContextKey: new StatementContextKey("Test Bank", "Jan 2025"));
 
         // Act
         var result = await pipeline.ProcessAsync(submission, ct);
 
-        // Assert — pipeline reached and called the binder (floor guard did NOT fire)
+        // Assert — binder was reached (text-layer guard did NOT fire)
         await binder.Received(1).BindAsync(
             Arg.Any<VerificationJob>(),
             Arg.Any<StatementContextKey>(),
@@ -307,7 +264,7 @@ public sealed class ExtractionCoverageFloorTests
             Arg.Any<CancellationToken>());
 
         // The binder returned UnknownProduct BLOCKED → pipeline outcome is still BLOCKED
-        // but for a different reason (UnknownProduct, not InsufficientExtractionCoverage).
+        // but for a different reason (UnknownProduct, not InsufficientTextLayer).
         // We only need to confirm the binder was reached; the specific signal is a bonus assert.
         result.IsSuccess.ShouldBeTrue("Pipeline should succeed even when binder returns BLOCKED.");
         result.Value!.Summary.Signal.ShouldBe(VerdictSignal.Blocked,
@@ -319,11 +276,12 @@ public sealed class ExtractionCoverageFloorTests
     // =========================================================================
 
     /// <summary>
-    /// Builds a <see cref="StatementModel"/> in which every header field has status
-    /// <see cref="ExtractionStatus.NotExtracted"/> and there is no
-    /// <see cref="PeriodSummary"/>. Simulates an encrypted or blank PDF.
+    /// Builds a minimal <see cref="StatementModel"/> whose header fields are all
+    /// <see cref="ExtractionStatus.NotExtracted"/> and whose
+    /// <see cref="StatementModel.NormalizedFullText"/> is set to <paramref name="normalizedText"/>.
+    /// This isolates the text-layer word count as the only variable under test.
     /// </summary>
-    private static StatementModel BuildAllMissingModel()
+    private static StatementModel BuildModelWithText(string normalizedText)
     {
         var locator = FieldLocator.PageHint(1);
         return new StatementModel(
@@ -333,15 +291,19 @@ public sealed class ExtractionCoverageFloorTests
             cardNumber: ExtractedField<string>.Missing(locator),
             clabe: ExtractedField<string>.Missing(locator),
             clientNumber: ExtractedField<string>.Missing(locator),
-            rfc: ExtractedField<string>.Missing(locator));
+            rfc: ExtractedField<string>.Missing(locator))
+        {
+            NormalizedFullText = normalizedText,
+        };
     }
 
     /// <summary>
-    /// Builds a <see cref="ServiceCollection"/> wired for the coverage-floor integration tests:
+    /// Builds a <see cref="ServiceCollection"/> wired for the text-layer density integration tests:
     /// mocked ingestion, a caller-supplied extractor model, a caller-supplied binder mock, and
     /// a caller-supplied persist mock.  Uses the real <c>VerdictAggregator</c>.
+    /// Mirrors <c>ExtractionCoverageFloorTests.BuildCoverageTestServices</c> exactly.
     /// </summary>
-    private static ServiceCollection BuildCoverageTestServices(
+    private static ServiceCollection BuildTextLayerTestServices(
         TenantProfile tenantProfile,
         StatementModel extractedModel,
         IBundleBinder binder,
@@ -353,7 +315,7 @@ public sealed class ExtractionCoverageFloorTests
         // ── Mock: ingestion ──────────────────────────────────────────────────
         var job = new VerificationJob(
             id: Guid.NewGuid(),
-            contentHash: "test-hash-coverage-floor",
+            contentHash: "test-hash-text-layer",
             receivedAtUtc: DateTimeOffset.UtcNow,
             status: VerificationJobStatus.Pending);
 
@@ -377,7 +339,7 @@ public sealed class ExtractionCoverageFloorTests
         services.AddVeriqanVerdict();
         services.AddVeriqanValidation();
 
-        // Engine — not reached when the floor fires, but required by ctor.
+        // Engine — not reached when the guard fires, but required by ctor.
         var engine = Substitute.For<IVecValidationEngine>();
         engine
             .RunAsync(Arg.Any<VerificationContext>(), Arg.Any<CancellationToken>())
@@ -385,7 +347,7 @@ public sealed class ExtractionCoverageFloorTests
                 Result<IReadOnlyList<RuleFinding>>.WithSuccess(Array.Empty<RuleFinding>())));
         services.Replace(ServiceDescriptor.Singleton<IVecValidationEngine>(_ => engine));
 
-        // ── Caller-supplied TenantProfile (carries the coverage floor) ───────
+        // ── Caller-supplied TenantProfile (carries the text-layer floor) ─────
         services.AddSingleton(tenantProfile);
         services.AddSingleton(TimeProvider.System);
 

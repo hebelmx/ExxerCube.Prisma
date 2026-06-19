@@ -172,7 +172,16 @@ public sealed class PipelinePersistStageTests
         services.Replace(ServiceDescriptor.Singleton<IVecValidationEngine>(_ => engine));
 
         // Active TenantProfile: legal baseline (no overrides → no deviations).
-        services.AddSingleton(TenantProfile.LegalBaseline());
+        // Both floor guards are disabled (= 0) so the all-missing / empty-text-layer mock
+        // StatementModel does not trigger them.  These tests exercise the persist stage, not
+        // the guard behaviours (those are in ExtractionCoverageFloorTests / TextLayerDensityGuardTests).
+        services.AddSingleton(new TenantProfile(
+            tenantId: "LEGAL-BASELINE",
+            tenantName: "Legal Baseline (CONDUSEF)",
+            toleranceOverrides: null,
+            minFieldConfidence: TenantProfile.LegalMinFieldConfidenceDefault,
+            minExtractionCoverageCount: 0,
+            minTextLayerWordCount: 0));
         services.AddSingleton(TimeProvider.System);
 
         // In-memory persistence stubs for IVerificationJobRepository, IDispositionRepository.
@@ -267,7 +276,14 @@ public sealed class PipelinePersistStageTests
         var engine = Substitute.For<IVecValidationEngine>();
         services.Replace(ServiceDescriptor.Singleton<IVecValidationEngine>(_ => engine));
 
-        services.AddSingleton(TenantProfile.LegalBaseline());
+        // Both floor guards disabled so the empty-text-layer mock model does not trigger them.
+        services.AddSingleton(new TenantProfile(
+            tenantId: "LEGAL-BASELINE",
+            tenantName: "Legal Baseline (CONDUSEF)",
+            toleranceOverrides: null,
+            minFieldConfidence: TenantProfile.LegalMinFieldConfidenceDefault,
+            minExtractionCoverageCount: 0,
+            minTextLayerWordCount: 0));
         services.AddSingleton(TimeProvider.System);
         services.AddVeriqanInMemoryPersistence();
 

@@ -157,16 +157,18 @@ public sealed class PipelineReportNotifyStageTests
                 Result<IReadOnlyList<RuleFinding>>.WithSuccess(engineFindings)));
         services.Replace(ServiceDescriptor.Singleton<IVecValidationEngine>(_ => engine));
 
-        // TenantProfile: legal baseline with extraction-coverage floor DISABLED (= 0) so the
-        // floor guard does not fire on the all-missing mock StatementModel.  These tests exercise
-        // the report and notify stages, not the coverage floor; the floor behaviour is verified
-        // in ExtractionCoverageFloorTests.
+        // TenantProfile: legal baseline with both floor guards DISABLED (= 0) so neither
+        // the extraction-coverage guard nor the text-layer density guard fires on the
+        // all-missing / empty-text-layer mock StatementModel.  These tests exercise the
+        // report and notify stages, not the guard behaviours; guard behaviour is verified
+        // in ExtractionCoverageFloorTests and TextLayerDensityGuardTests respectively.
         services.AddSingleton(new TenantProfile(
             tenantId: "LEGAL-BASELINE",
             tenantName: "Legal Baseline (CONDUSEF)",
             toleranceOverrides: null,
             minFieldConfidence: TenantProfile.LegalMinFieldConfidenceDefault,
-            minExtractionCoverageCount: 0));
+            minExtractionCoverageCount: 0,
+            minTextLayerWordCount: 0));
         services.AddSingleton(TimeProvider.System);
 
         // In-memory persistence stubs.
@@ -263,14 +265,16 @@ public sealed class PipelineReportNotifyStageTests
         var engine = Substitute.For<IVecValidationEngine>();
         services.Replace(ServiceDescriptor.Singleton<IVecValidationEngine>(_ => engine));
 
-        // TenantProfile: coverage floor disabled (= 0) — the mock model has 0 extracted fields;
-        // BLOCKED-from-binder path tests exercise binder/report/notify, not the coverage floor.
+        // TenantProfile: both floor guards disabled (= 0) — the mock model has 0 extracted
+        // fields and empty text layer; BLOCKED-from-binder path tests exercise
+        // binder/report/notify, not the guard behaviours.
         services.AddSingleton(new TenantProfile(
             tenantId: "LEGAL-BASELINE",
             tenantName: "Legal Baseline (CONDUSEF)",
             toleranceOverrides: null,
             minFieldConfidence: TenantProfile.LegalMinFieldConfidenceDefault,
-            minExtractionCoverageCount: 0));
+            minExtractionCoverageCount: 0,
+            minTextLayerWordCount: 0));
         services.AddSingleton(TimeProvider.System);
         services.AddVeriqanInMemoryPersistence();
 

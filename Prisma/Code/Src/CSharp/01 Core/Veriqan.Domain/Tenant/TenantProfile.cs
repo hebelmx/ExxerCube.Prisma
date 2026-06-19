@@ -138,6 +138,46 @@ public sealed record TenantProfile
     /// </summary>
     public const int DefaultMinExtractionCoverageCount = 10;
 
+    // -----------------------------------------------------------------------
+    // Text-layer density floor (Story E2-S1 — abstain-safety for scanned PDFs)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets the minimum total word count across all PDF pages that must be present before
+    /// the pipeline may proceed to bind and validate.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Default: 20.</b>  A scanned / image-only PDF has a near-zero text layer (0–3 words
+    /// from the PDF metadata shell); the default catches these before any section rule runs.
+    /// </para>
+    /// <para>
+    /// Without this guard a scanned-but-compliant statement causes all 28 mandatory-section
+    /// rules to fail (because the detected-section list is empty and the rule falls through to
+    /// Fail rather than InsufficientData) → false RED verdict on a genuinely OK document.
+    /// </para>
+    /// <para>
+    /// When the word count falls below this floor the pipeline emits a
+    /// <c>VerdictSignal.Blocked</c> outcome with reason
+    /// <c>BlockReason.InsufficientTextLayer</c> BEFORE binding or running any rules,
+    /// honouring the abstain-safety invariant (scanned PDFs must never receive RED).
+    /// </para>
+    /// <para>
+    /// The word count is derived from <see cref="Domain.Extraction.StatementModel.NormalizedFullText"/>
+    /// by splitting on spaces (the normalized form collapses all whitespace to a single space),
+    /// so an empty string and a string of only spaces both yield a count of zero.
+    /// </para>
+    /// </remarks>
+    public int MinTextLayerWordCount { get; }
+
+    /// <summary>
+    /// The default value for <see cref="MinTextLayerWordCount"/>.
+    /// A minimal but text-layer-bearing VEC PDF contains many more than 20 words; this floor
+    /// is deliberately conservative to avoid false-blocks on intentionally sparse documents
+    /// while still catching scanned / image-only PDFs (which have 0–3 text-layer words).
+    /// </summary>
+    public const int DefaultMinTextLayerWordCount = 20;
+
     /// <summary>
     /// Initializes a <see cref="TenantProfile"/> with the specified identifiers, override map,
     /// and optional confidence threshold.
@@ -158,19 +198,26 @@ public sealed record TenantProfile
     /// proceeds to bind and validate. Defaults to <see cref="DefaultMinExtractionCoverageCount"/> (10).
     /// Must be ≥ 0.
     /// </param>
+    /// <param name="minTextLayerWordCount">
+    /// Minimum total word count across all PDF pages required before the pipeline proceeds to
+    /// bind and validate. Defaults to <see cref="DefaultMinTextLayerWordCount"/> (20).
+    /// Must be ≥ 0.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="tenantId"/> or <paramref name="tenantName"/> is null or white-space.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="minFieldConfidence"/> is outside [0.0, 1.0], or when
-    /// <paramref name="minExtractionCoverageCount"/> is negative.
+    /// <paramref name="minExtractionCoverageCount"/> or <paramref name="minTextLayerWordCount"/>
+    /// is negative.
     /// </exception>
     public TenantProfile(
         string tenantId,
         string tenantName,
         IReadOnlyDictionary<string, decimal>? toleranceOverrides = null,
         double minFieldConfidence = LegalMinFieldConfidenceDefault,
-        int minExtractionCoverageCount = DefaultMinExtractionCoverageCount)
+        int minExtractionCoverageCount = DefaultMinExtractionCoverageCount,
+        int minTextLayerWordCount = DefaultMinTextLayerWordCount)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantName);
@@ -184,6 +231,11 @@ public sealed record TenantProfile
                 nameof(minExtractionCoverageCount),
                 minExtractionCoverageCount,
                 "MinExtractionCoverageCount must be >= 0.");
+        if (minTextLayerWordCount < 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(minTextLayerWordCount),
+                minTextLayerWordCount,
+                "MinTextLayerWordCount must be >= 0.");
 
         TenantId = tenantId;
         TenantName = tenantName;
@@ -191,6 +243,7 @@ public sealed record TenantProfile
             ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         MinFieldConfidence = minFieldConfidence;
         MinExtractionCoverageCount = minExtractionCoverageCount;
+        MinTextLayerWordCount = minTextLayerWordCount;
     }
 
     /// <summary>
@@ -209,5 +262,6 @@ public sealed record TenantProfile
             tenantName: "Legal Baseline (CONDUSEF)",
             toleranceOverrides: new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
             minFieldConfidence: LegalMinFieldConfidenceDefault,
-            minExtractionCoverageCount: DefaultMinExtractionCoverageCount);
+            minExtractionCoverageCount: DefaultMinExtractionCoverageCount,
+            minTextLayerWordCount: DefaultMinTextLayerWordCount);
 }

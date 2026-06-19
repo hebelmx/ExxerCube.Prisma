@@ -30,4 +30,14 @@ public enum BlockReason
     /// caused by universal abstain (U2) when near-zero fields are available.
     /// </summary>
     InsufficientExtractionCoverage = 3,
+
+    /// <summary>
+    /// The total word count across all PDF pages is below the configured
+    /// <c>TenantProfile.MinTextLayerWordCount</c> floor.  This indicates a scanned /
+    /// image-only PDF whose text layer is absent or near-zero, so mandatory-section
+    /// rules would all fail (false RED) rather than abstain.
+    /// The pipeline is blocked before bind/validate to honour the abstain-safety rule:
+    /// a scanned-but-compliant statement must never receive a RED verdict.
+    /// </summary>
+    InsufficientTextLayer = 4,
 }

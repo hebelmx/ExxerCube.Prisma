@@ -347,6 +347,145 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 new VerificationOutcome(job, coverageBlockedVerdictResult.Value!, coverageFindings, coverageBlockedDuration));
         }
 
+        // Stage 2c — Text-layer density guard (U3 defence, Story E2-S1).
+        // A scanned / image-only PDF produces a near-zero text layer.  Without this guard
+        // all 28 mandatory-section rules fail (the detected-section list is empty so the rule
+        // falls through to Fail) → false RED on a scanned-but-compliant statement.
+        // Fire BEFORE bind/validate; produce BLOCKED (never RED — honour the abstain-safety rule).
+        var textLayerWordCount = CountTextLayerWords(statementModel);
+        var textLayerFloor = _activeTenantProfile.MinTextLayerWordCount;
+
+        _logger.LogInformation(
+            "Text-layer density: {WordCount} word(s), floor={TextLayerFloor} for {FileName}",
+            textLayerWordCount,
+            textLayerFloor,
+            submission.FileName);
+
+        if (textLayerWordCount < textLayerFloor)
+        {
+            _logger.LogWarning(
+                "Text-layer density below floor for {FileName}: {WordCount} < {TextLayerFloor} — emitting BLOCKED/{Reason}",
+                submission.FileName,
+                textLayerWordCount,
+                textLayerFloor,
+                BlockReason.InsufficientTextLayer);
+
+            var textLayerBlocked = new BlockedOutcome(
+                BlockReason.InsufficientTextLayer,
+                $"Only {textLayerWordCount} word(s) found in PDF text layer; minimum required is {textLayerFloor}. Likely a scanned / image-only PDF.");
+
+            var textLayerBlockedVerdictResult = _aggregator.Aggregate(
+                findings: Array.Empty<RuleFinding>(),
+                blocked: textLayerBlocked,
+                ct: ct);
+
+            if (textLayerBlockedVerdictResult.IsCancelled())
+                return ResultExtensions.Cancelled<VerificationOutcome>();
+
+            if (textLayerBlockedVerdictResult.IsFailure)
+                return Result<VerificationOutcome>.WithFailure(
+                    textLayerBlockedVerdictResult.Error ?? "Verdict aggregation failed (text-layer floor)");
+
+            sw.Stop();
+            var textLayerBlockedDuration = sw.Elapsed;
+            _metrics.RecordStatement(textLayerBlockedDuration.TotalMilliseconds, VerdictSignal.Blocked);
+
+            _logger.LogInformation(
+                "Pipeline blocked (InsufficientTextLayer) for {FileName} in {DurationMs:F1} ms JobId={JobId}",
+                submission.FileName,
+                textLayerBlockedDuration.TotalMilliseconds,
+                job.Id);
+
+            // Persist — fatal / non-optional on all paths.
+            Result<JobVerdict> textLayerPersistResult;
+            using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
+                textLayerPersistResult = await _verdictPersistence.PersistAsync(
+                    jobId: job.Id,
+                    signal: VerdictSignal.Blocked,
+                    findings: Array.Empty<RuleFinding>(),
+                    engineVersion: EngineVersion,
+                    cancellationToken: ct).ConfigureAwait(false);
+
+            if (textLayerPersistResult.IsCancelled())
+            {
+                _logger.LogWarning(
+                    "Pipeline cancelled during persist (InsufficientTextLayer) for {FileName} JobId={JobId}",
+                    submission.FileName,
+                    job.Id);
+                return ResultExtensions.Cancelled<VerificationOutcome>();
+            }
+
+            if (textLayerPersistResult.IsFailure)
+            {
+                _logger.LogError(
+                    "Verdict persist failed (InsufficientTextLayer) for {FileName} JobId={JobId}: {Error}",
+                    submission.FileName,
+                    job.Id,
+                    textLayerPersistResult.Error);
+                return Result<VerificationOutcome>.WithFailure(
+                    textLayerPersistResult.Error ?? "Verdict persistence failed");
+            }
+
+            _logger.LogInformation(
+                "Verdict persisted (InsufficientTextLayer) for {FileName} JobId={JobId}",
+                submission.FileName,
+                job.Id);
+
+            // Report — best-effort.
+            var textLayerFindings = new List<RuleFinding>();
+            try
+            {
+                var textLayerReportResult = _reportGenerator.Generate(
+                    submission.Pdf,
+                    textLayerFindings,
+                    ct);
+
+                if (textLayerReportResult.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Marked-PDF generation failed (InsufficientTextLayer) for {FileName} JobId={JobId}: {Error} — continuing (best-effort)",
+                        submission.FileName,
+                        job.Id,
+                        textLayerReportResult.Error);
+
+                    textLayerFindings.Add(new RuleFinding(
+                        CheckId: "ReportGenerationFailure",
+                        Verdict: FindingVerdict.InsufficientData,
+                        Technique: TechniqueClass.Deterministic,
+                        Severity: FindingSeverity.Warning,
+                        EngineVersion: EngineVersion,
+                        Observed: textLayerReportResult.Error));
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Marked-PDF generated (InsufficientTextLayer) for {FileName} JobId={JobId} ({Bytes} bytes)",
+                        submission.FileName,
+                        job.Id,
+                        textLayerReportResult.Value?.Length ?? 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Marked-PDF generation threw an exception (InsufficientTextLayer) for {FileName} JobId={JobId} — continuing (best-effort)",
+                    submission.FileName,
+                    job.Id);
+
+                textLayerFindings.Add(new RuleFinding(
+                    CheckId: "ReportGenerationFailure",
+                    Verdict: FindingVerdict.InsufficientData,
+                    Technique: TechniqueClass.Deterministic,
+                    Severity: FindingSeverity.Warning,
+                    EngineVersion: EngineVersion,
+                    Observed: ex.Message));
+            }
+
+            return Result<VerificationOutcome>.WithSuccess(
+                new VerificationOutcome(job, textLayerBlockedVerdictResult.Value!, textLayerFindings, textLayerBlockedDuration));
+        }
+
         // Stage 3 — Resolve product token from extracted model, with fallback to context key
         var productToken = statementModel.PeriodSummary?.Product.Value
                            ?? submission.ContextKey.ProductId
@@ -864,4 +1003,39 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     /// </summary>
     private static bool IsExtracted(ExtractionStatus status) =>
         status is ExtractionStatus.Extracted or ExtractionStatus.ExtractedInvalidFormat;
+
+    // -----------------------------------------------------------------------
+    // Text-layer density helper (Story E2-S1)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Counts the total number of words across all pages by splitting
+    /// <see cref="StatementModel.NormalizedFullText"/> on ASCII spaces.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="StatementModel.NormalizedFullText"/> is produced by the extraction stage
+    /// (Story 6.1): all page text is upper-cased, accent-stripped, and whitespace-collapsed
+    /// to a single ASCII space.  Splitting on that space (with
+    /// <see cref="StringSplitOptions.RemoveEmptyEntries"/>) therefore gives an accurate
+    /// word count without re-running any extraction logic.
+    /// </para>
+    /// <para>
+    /// An empty or whitespace-only <c>NormalizedFullText</c> (e.g. from a scanned / image-only
+    /// PDF that has no text layer) yields a count of zero.
+    /// </para>
+    /// <para>
+    /// This is a <c>static</c> method so it can be tested independently of the pipeline
+    /// instance without constructing all ctor dependencies.
+    /// </para>
+    /// </remarks>
+    internal static int CountTextLayerWords(StatementModel model)
+    {
+        if (string.IsNullOrWhiteSpace(model.NormalizedFullText))
+            return 0;
+
+        return model.NormalizedFullText
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Length;
+    }
 }
