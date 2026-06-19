@@ -82,10 +82,11 @@ public sealed class LegalBaselineEncryptedStoreTests
             var store = new SqlLegalBaselineStore(ctx);
             var tolerances = await store.LoadTolerancesAsync(ct);
 
-            // Must have all 14 tolerance-bearing rules
-            tolerances.Count.ShouldBe(14,
-                $"Expected 14 seed records " +
-                $"(CL-10/17/18/19/20/21/22/24/25/44/ITEM-58/CL-39/CL-37/CL-36). " +
+            // Must have all 19 tolerance-bearing rules (Epic 11 added the 5 LAW-§ recompute rules)
+            tolerances.Count.ShouldBe(19,
+                $"Expected 19 seed records " +
+                $"(CL-10/17/18/19/20/21/22/24/25/44/ITEM-58/CL-39/CL-37/CL-36 + " +
+                $"LAW-§20-WATERFALL/§19-INTERES/§6-SIMULACION/§8-INDICADORES/§16-OTRASLINEAS). " +
                 $"Found {tolerances.Count}.");
 
             // Spot-check CL-10 (CurrencyMxn)
@@ -116,7 +117,7 @@ public sealed class LegalBaselineEncryptedStoreTests
             cl36.Min.ShouldBe(0.00m);
             cl36.Max.ShouldBe(2.00m);
 
-            _logger.LogInformation("Round-trip assertions passed for all 14 records.");
+            _logger.LogInformation("Round-trip assertions passed for all 19 records.");
         }
 
         // ── Assert 2: Raw column values are ciphertext (not plaintext decimal) ──────────
@@ -208,11 +209,11 @@ public sealed class LegalBaselineEncryptedStoreTests
             await LegalBaselineSeeder.SeedAsync(ctx, ct); // should be a no-op
         }
 
-        // Verify count is still 14 (no duplicates)
+        // Verify count is still 19 (no duplicates)
         await using (var ctx = new VeriqanDbContext(veriqanOptions, converter))
         {
             var count = await ctx.LegalBaselineTolerances.CountAsync(ct);
-            count.ShouldBe(14, $"Expected exactly 14 rows after two seed calls. Found {count}.");
+            count.ShouldBe(19, $"Expected exactly 19 rows after two seed calls. Found {count}.");
         }
 
         _logger.LogInformation("Idempotency assertion passed.");
