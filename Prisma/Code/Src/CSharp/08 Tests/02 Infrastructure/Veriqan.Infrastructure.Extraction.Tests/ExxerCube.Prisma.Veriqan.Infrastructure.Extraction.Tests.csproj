@@ -27,6 +27,8 @@
     <PackageReference Include="NSubstitute.Analyzers.CSharp" />
     <!-- ZXing.Net: QR encode/decode used in fiscal round-trip test (Story 6.2) -->
     <PackageReference Include="ZXing.Net" />
+    <!-- FakeTimeProvider: deterministic clock injection tests (VERIQAN-E2-S8) -->
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
   <ItemGroup Label="Logging">
     <PackageReference Include="Microsoft.Extensions.Logging" />

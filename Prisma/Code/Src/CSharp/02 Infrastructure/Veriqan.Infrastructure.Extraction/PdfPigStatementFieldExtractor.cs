@@ -135,16 +135,28 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     private readonly ILogger<PdfPigStatementFieldExtractor> _logger;
     private readonly PdfExtractionOptions _options;
     private readonly IPasswordProvider _passwordProvider;
+    private readonly TimeProvider _timeProvider;
 
     /// <summary>Initializes a new <see cref="PdfPigStatementFieldExtractor"/>.</summary>
+    /// <param name="logger">Logger.</param>
+    /// <param name="options">PDF extraction options.</param>
+    /// <param name="passwordProvider">Password provider for encrypted PDFs.</param>
+    /// <param name="timeProvider">
+    /// Clock abstraction used when repairing truncated dates whose year cannot be inferred
+    /// from document context.  Defaults to <see cref="TimeProvider.System"/> when
+    /// <see langword="null"/> or omitted so existing construction sites and DI registrations
+    /// require no changes.
+    /// </param>
     public PdfPigStatementFieldExtractor(
         ILogger<PdfPigStatementFieldExtractor> logger,
         IOptions<PdfExtractionOptions> options,
-        IPasswordProvider passwordProvider)
+        IPasswordProvider passwordProvider,
+        TimeProvider? timeProvider = null)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _options = (options ?? throw new ArgumentNullException(nameof(options))).Value;
         _passwordProvider = passwordProvider ?? throw new ArgumentNullException(nameof(passwordProvider));
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     // -----------------------------------------------------------------------
@@ -1453,7 +1465,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// Attempts to parse a Y-band as a DESGLOSE data row.
     /// Returns <see langword="null"/> for non-data bands (headers, footers, totals, FX rows).
     /// </summary>
-    private static StatementMovement? TryParseMovementRow(List<Word> bandWords, int pageNumber)
+    private StatementMovement? TryParseMovementRow(List<Word> bandWords, int pageNumber)
     {
         // A data row must have:
         //   1. At least one date-like token in the operation-date column (X ≤ 95)
@@ -1498,8 +1510,9 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             else
             {
                 // Attempt year-repair: "07-jul-202" → try appending "5" from context.
-                // The operation date year is the safest context; fall back to current year.
-                var repairedYear = operationDate?.Year ?? DateTimeOffset.UtcNow.Year;
+                // The operation date year is the safest context; fall back to clock year
+                // (injected TimeProvider — deterministic in tests via FakeTimeProvider).
+                var repairedYear = operationDate?.Year ?? _timeProvider.GetUtcNow().Year;
                 var repaired = RepairTruncatedDate(cdToken, repairedYear);
                 if (repaired is not null && TryParseSpanishDate(repaired, out var repairedDate))
                     chargeDate = repairedDate;
