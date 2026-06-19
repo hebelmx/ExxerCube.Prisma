@@ -9,13 +9,16 @@ using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Application.Tenant;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 
@@ -61,6 +64,9 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     private readonly IReadOnlyList<IVecValidationRule> _rules;
     private readonly ILegalToleranceProvider _toleranceProvider;
     private readonly IVerdictPersistenceService _verdictPersistence;
+    private readonly IMarkedPdfGenerator _reportGenerator;
+    private readonly IVecAlertService _alertService;
+    private readonly AlertOptions _alertOptions;
     private readonly VeriqanMetrics _metrics;
     private readonly ILogger<VerificationPipeline> _logger;
 
@@ -78,6 +84,9 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         IEnumerable<IVecValidationRule> rules,
         ILegalToleranceProvider toleranceProvider,
         IVerdictPersistenceService verdictPersistence,
+        IMarkedPdfGenerator reportGenerator,
+        IVecAlertService alertService,
+        IOptions<AlertOptions> alertOptions,
         VeriqanMetrics metrics,
         ILogger<VerificationPipeline> logger)
     {
@@ -91,6 +100,10 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         _rules = (rules ?? throw new ArgumentNullException(nameof(rules))).ToList();
         _toleranceProvider = toleranceProvider ?? throw new ArgumentNullException(nameof(toleranceProvider));
         _verdictPersistence = verdictPersistence ?? throw new ArgumentNullException(nameof(verdictPersistence));
+        _reportGenerator = reportGenerator ?? throw new ArgumentNullException(nameof(reportGenerator));
+        _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
+        ArgumentNullException.ThrowIfNull(alertOptions);
+        _alertOptions = alertOptions.Value ?? throw new ArgumentNullException(nameof(alertOptions));
         _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -220,15 +233,67 @@ internal sealed class VerificationPipeline : IVerificationPipeline
 
                 sw.Stop();
                 var blockedDuration = sw.Elapsed;
-                _metrics.RecordStatement(blockedDuration.TotalMilliseconds, Domain.Enums.VerdictSignal.Blocked);
+                _metrics.RecordStatement(blockedDuration.TotalMilliseconds, VerdictSignal.Blocked);
                 _logger.LogInformation(
                     "Pipeline blocked for {FileName} in {DurationMs:F1} ms JobId={JobId}",
                     submission.FileName,
                     blockedDuration.TotalMilliseconds,
                     job.Id);
 
+                // Stage 9 (Report) — best-effort for BLOCKED outcomes.
+                // Notify (stage 10) is RED-only; BLOCKED does not trigger an alert.
+                var blockedFindings = new List<RuleFinding>();
+                try
+                {
+                    var blockedReportResult = _reportGenerator.Generate(
+                        submission.Pdf,
+                        blockedFindings,
+                        ct);
+
+                    if (blockedReportResult.IsFailure)
+                    {
+                        _logger.LogWarning(
+                            "Marked-PDF generation failed (BLOCKED) for {FileName} JobId={JobId}: {Error} — continuing (best-effort)",
+                            submission.FileName,
+                            job.Id,
+                            blockedReportResult.Error);
+
+                        blockedFindings.Add(new RuleFinding(
+                            CheckId: "ReportGenerationFailure",
+                            Verdict: FindingVerdict.InsufficientData,
+                            Technique: TechniqueClass.Deterministic,
+                            Severity: FindingSeverity.Warning,
+                            EngineVersion: EngineVersion,
+                            Observed: blockedReportResult.Error));
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "Marked-PDF generated (BLOCKED) for {FileName} JobId={JobId} ({Bytes} bytes)",
+                            submission.FileName,
+                            job.Id,
+                            blockedReportResult.Value?.Length ?? 0);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Marked-PDF generation threw an exception (BLOCKED) for {FileName} JobId={JobId} — continuing (best-effort)",
+                        submission.FileName,
+                        job.Id);
+
+                    blockedFindings.Add(new RuleFinding(
+                        CheckId: "ReportGenerationFailure",
+                        Verdict: FindingVerdict.InsufficientData,
+                        Technique: TechniqueClass.Deterministic,
+                        Severity: FindingSeverity.Warning,
+                        EngineVersion: EngineVersion,
+                        Observed: ex.Message));
+                }
+
                 return Result<VerificationOutcome>.WithSuccess(
-                    new VerificationOutcome(job, blockedVerdictResult.Value!, Array.Empty<RuleFinding>(), blockedDuration));
+                    new VerificationOutcome(job, blockedVerdictResult.Value!, blockedFindings, blockedDuration));
             }
 
             // Unexpected non-BLOCKED bind failure
@@ -385,9 +450,134 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             elapsed.TotalMilliseconds,
             job.Id);
 
-        // TODO(E1-S4): report+notify stages go here
+        // Stage 9 — Report (marked PDF): best-effort, non-fatal.
+        // Run on RED or BLOCKED so reviewers always get an annotated copy when the
+        // verdict is non-green.  A generator failure appends a diagnostic finding but
+        // does NOT change the already-determined verdict or make the pipeline fail.
+        var reportFindings = new List<RuleFinding>(findings);
+
+        if (summary.Signal is VerdictSignal.Red or VerdictSignal.Blocked)
+        {
+            try
+            {
+                var reportResult = _reportGenerator.Generate(
+                    submission.Pdf,
+                    findings,
+                    ct);
+
+                if (reportResult.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Marked-PDF generation failed for {FileName} JobId={JobId}: {Error} — continuing (best-effort)",
+                        submission.FileName,
+                        job.Id,
+                        reportResult.Error);
+
+                    reportFindings.Add(new RuleFinding(
+                        CheckId: "ReportGenerationFailure",
+                        Verdict: FindingVerdict.InsufficientData,
+                        Technique: TechniqueClass.Deterministic,
+                        Severity: FindingSeverity.Warning,
+                        EngineVersion: EngineVersion,
+                        Observed: reportResult.Error));
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Marked-PDF generated for {FileName} JobId={JobId} ({Bytes} bytes)",
+                        submission.FileName,
+                        job.Id,
+                        reportResult.Value?.Length ?? 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Marked-PDF generation threw an exception for {FileName} JobId={JobId} — continuing (best-effort)",
+                    submission.FileName,
+                    job.Id);
+
+                reportFindings.Add(new RuleFinding(
+                    CheckId: "ReportGenerationFailure",
+                    Verdict: FindingVerdict.InsufficientData,
+                    Technique: TechniqueClass.Deterministic,
+                    Severity: FindingSeverity.Warning,
+                    EngineVersion: EngineVersion,
+                    Observed: ex.Message));
+            }
+        }
+
+        // Stage 10 — Notify (RED alert email): best-effort, non-fatal.
+        // Only RED verdicts trigger an email; BLOCKED and GREEN are silent.
+        // TODO(E2-S12): duplicate-alert guard (idempotency key per job) is a separate story.
+        if (summary.Signal == VerdictSignal.Red)
+        {
+            try
+            {
+                var alertContext = new AlertContext(
+                    StatementId: submission.FileName,
+                    Recipients: _alertOptions.Recipients);
+
+                var alertResult = await _alertService.SendRedAlertAsync(summary, alertContext, ct)
+                    .ConfigureAwait(false);
+
+                if (alertResult.IsCancelled())
+                {
+                    _logger.LogWarning(
+                        "Pipeline cancelled during RED alert for {FileName} JobId={JobId}",
+                        submission.FileName,
+                        job.Id);
+
+                    // Cancelled during notify: still return success with the outcome — the
+                    // verdict is already persisted; the notify failure is non-fatal.
+                    return Result<VerificationOutcome>.WithSuccess(
+                        new VerificationOutcome(job, summary, reportFindings, elapsed));
+                }
+
+                if (alertResult.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "RED alert send failed for {FileName} JobId={JobId}: {Error} — continuing (best-effort)",
+                        submission.FileName,
+                        job.Id,
+                        alertResult.Error);
+
+                    reportFindings.Add(new RuleFinding(
+                        CheckId: "NotificationFailure",
+                        Verdict: FindingVerdict.InsufficientData,
+                        Technique: TechniqueClass.Deterministic,
+                        Severity: FindingSeverity.Warning,
+                        EngineVersion: EngineVersion,
+                        Observed: alertResult.Error));
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "RED alert dispatched for {FileName} JobId={JobId}",
+                        submission.FileName,
+                        job.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "RED alert threw an exception for {FileName} JobId={JobId} — continuing (best-effort)",
+                    submission.FileName,
+                    job.Id);
+
+                reportFindings.Add(new RuleFinding(
+                    CheckId: "NotificationFailure",
+                    Verdict: FindingVerdict.InsufficientData,
+                    Technique: TechniqueClass.Deterministic,
+                    Severity: FindingSeverity.Warning,
+                    EngineVersion: EngineVersion,
+                    Observed: ex.Message));
+            }
+        }
 
         return Result<VerificationOutcome>.WithSuccess(
-            new VerificationOutcome(job, summary, findings, elapsed));
+            new VerificationOutcome(job, summary, reportFindings, elapsed));
     }
 }

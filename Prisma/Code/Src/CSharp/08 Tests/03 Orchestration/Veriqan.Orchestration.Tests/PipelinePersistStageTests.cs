@@ -10,6 +10,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
@@ -18,6 +19,7 @@ using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
@@ -178,6 +180,24 @@ public sealed class PipelinePersistStageTests
         // Override IVerdictPersistenceService with the caller's mock.
         services.Replace(ServiceDescriptor.Scoped<IVerdictPersistenceService>(
             _ => verdictPersistence));
+
+        // ── Stub: report generator (best-effort stage — returns success, no-op) ──────
+        var reportGenerator = Substitute.For<IMarkedPdfGenerator>();
+        reportGenerator
+            .Generate(Arg.Any<byte[]>(), Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<byte[]>.WithSuccess(Array.Empty<byte>()));
+        services.AddSingleton(reportGenerator);
+
+        // ── Stub: alert service (best-effort stage — returns success, no-op) ─────────
+        var alertService = Substitute.For<IVecAlertService>();
+        alertService
+            .SendRedAlertAsync(Arg.Any<Application.Verdict.VerdictSummary>(), Arg.Any<AlertContext>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result.Success()));
+        services.AddSingleton(alertService);
+
+        // ── AlertOptions: empty recipients (no SMTP needed in unit tests) ────────────
+        services.AddSingleton<IOptions<AlertOptions>>(
+            Options.Create(new AlertOptions()));
 
         // Metrics + pipeline.
         services.AddSingleton<VeriqanMetrics>();

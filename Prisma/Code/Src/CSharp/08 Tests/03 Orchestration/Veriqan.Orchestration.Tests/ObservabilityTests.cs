@@ -14,6 +14,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Tolerances;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
 using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
@@ -23,6 +24,7 @@ using IndQuestResults;
 using IndQuestResults.Operations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
@@ -515,11 +517,21 @@ public sealed class ObservabilityTests : IDisposable
             .Returns(ci => Task.FromResult(
                 Result<JobVerdict>.WithSuccess(
                     new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Red))));
+        var reportGenerator = Substitute.For<IMarkedPdfGenerator>();
+        reportGenerator
+            .Generate(Arg.Any<byte[]>(), Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<byte[]>.WithSuccess(Array.Empty<byte>()));
+        var alertService = Substitute.For<IVecAlertService>();
+        alertService
+            .SendRedAlertAsync(Arg.Any<VerdictSummary>(), Arg.Any<AlertContext>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result.Success()));
+
         var pipeline = new VerificationPipeline(
             ingestion, extractor, binder, engine, aggregator,
             tenantResolver, defaultProfile,
             Array.Empty<IVecValidationRule>(), toleranceProvider,
-            verdictPersistence, _metrics, capturingLogger);
+            verdictPersistence, reportGenerator, alertService,
+            Options.Create(new AlertOptions()), _metrics, capturingLogger);
 
         var submission = new StatementSubmission(
             Pdf: [0x25, 0x50, 0x44, 0x46],
