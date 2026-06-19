@@ -117,6 +117,15 @@ public sealed class VecAlertService : IVecAlertService
         // -----------------------------------------------------------------------
         // RED: duplicate-alert guard — check AlertSentAt before sending (Story E2-S15).
         // -----------------------------------------------------------------------
+        // DESIGN (deliberate at-least-once): this is a check-then-send-then-stamp
+        // sequence, not an atomic claim-before-send. The common reprocess/retry path is
+        // sequential and IS deduplicated. Under truly-simultaneous concurrent submissions
+        // of the SAME job, both callers can read AlertSentAt==null and both send (a benign
+        // DUPLICATE email); the AlertSentAt concurrency token then keeps the DB consistent
+        // (one writer wins, the loser is treated as already-sent). We intentionally prefer
+        // at-least-once over at-most-once: a duplicate RED alert is harmless, whereas a
+        // "claim before send" scheme could DROP a RED alert if the send fails after the
+        // claim — unacceptable for a compliance alert.
         if (_verdictAlertRepository is not null && context.JobVerdictId.HasValue)
         {
             var loadResult = await _verdictAlertRepository
