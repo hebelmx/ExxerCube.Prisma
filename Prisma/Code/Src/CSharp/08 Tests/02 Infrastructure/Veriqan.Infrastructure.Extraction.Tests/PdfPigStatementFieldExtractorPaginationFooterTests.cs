@@ -158,4 +158,57 @@ public sealed class PdfPigStatementFieldExtractorPaginationFooterTests
         page.PaginationTotal.ShouldBe(4,
             "PaginationTotal must be 4 from the footer label '2 de 4'");
     }
+
+    // -----------------------------------------------------------------------
+    // Test 3 — pagination just ABOVE the footer band must not be silently lost
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Regression guard for the S7 fallback path: when the "N de M" label sits at
+    /// Y ≈ 12% of page height (just above the 10% footer-band threshold), the
+    /// footer-band word set is empty and the primary scan yields no match.
+    /// The extractor must fall back to a full-page scan and still return the label
+    /// — never silently return null (which would cause CL-31 to abstain → false-PASS).
+    /// </summary>
+    /// <remarks>
+    /// A4 page: 595 × 842 pt.  Footer threshold = 842 × 0.10 = 84.2 pt.
+    /// Label placed at Y = 842 × 0.12 ≈ 101 pt — above the 10% band, so the
+    /// footer filter finds nothing.  The fallback page-wide scan must recover it.
+    /// </remarks>
+    [Fact]
+    public async Task ExtractFullAsync_PaginationJustAboveFooterBand_StillExtractedViaFallback()
+    {
+        // Arrange — A4 page (595 × 842 pt); label at Y ≈ 101 pt (12% of 842 ≈ 101).
+        // Footer threshold is 842 × 0.10 = 84.2 pt, so 101 pt is OUTSIDE the footer band.
+        var builder = new PdfDocumentBuilder();
+        var page = builder.AddPage(595, 842);
+        var font = builder.AddStandard14Font(Standard14Font.Helvetica);
+        const float fontSize = 8f;
+        const float labelY = 101f; // 12% of 842 — just above the 10% band
+
+        page.AddText("3", fontSize, new PdfPoint(280, labelY), font);
+        page.AddText("de", fontSize, new PdfPoint(290, labelY), font);
+        page.AddText("5", fontSize, new PdfPoint(303, labelY), font);
+
+        var pdfBytes = builder.Build();
+        var ct = TestContext.Current.CancellationToken;
+        var extractor = CreateExtractor();
+
+        // Act
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        model.Pages.ShouldNotBeNull();
+        model.Pages.Count.ShouldBe(1, "synthetic PDF has exactly one page");
+
+        var pageResult = model.Pages[0];
+
+        // Fallback must have recovered "3 de 5" even though it is above the footer band.
+        pageResult.PaginationCurrent.ShouldBe(3,
+            "PaginationCurrent must be 3 via page-wide fallback — label is above footer band but must not be silently lost");
+        pageResult.PaginationTotal.ShouldBe(5,
+            "PaginationTotal must be 5 via page-wide fallback — label is above footer band but must not be silently lost");
+    }
 }

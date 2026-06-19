@@ -2745,13 +2745,19 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                         cardDigitsLower, StringComparison.OrdinalIgnoreCase);
                 }
 
-                // PaginationCurrent / PaginationTotal: parse "N de M" anchored to the
+                // PaginationCurrent / PaginationTotal: parse "N de M" preferring the
                 // footer band (bottom 10% of page height) to avoid false matches from
                 // body phrases such as "5 de 10 pagos".
                 // PdfPig uses a bottom-left coordinate origin, so "bottom 10%" means
                 // word.BoundingBox.Bottom < page.Height * 0.10.
                 // Within the footer band, prefer the LAST match (rightmost/lowest) as
                 // an additional safeguard against incidental text in the band.
+                //
+                // FALLBACK: if the footer band contains no valid "N de M" match (e.g.
+                // the printer placed the page number at Y ≈ 11–13% of page height,
+                // just above the 10% threshold), we fall back to a full-page scan so
+                // that recall is at least as good as the pre-S7 page-wide approach.
+                // This means the footer band is a PREFERENCE, not a hard filter.
                 var footerYThreshold = page.Height * 0.10;
                 var footerWords = words
                     .Where(w => w.BoundingBox.Bottom < footerYThreshold)
@@ -2759,10 +2765,24 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 var footerText = string.Join(" ", footerWords.Select(w => w.Text));
                 int? paginationCurrent = null;
                 int? paginationTotal = null;
+
+                // Step 1 — try footer band first.
                 var footerMatches = PaginationPattern.Matches(footerText);
                 var paginationMatch = footerMatches.Count > 0
                     ? footerMatches[footerMatches.Count - 1]
                     : null;
+
+                // Step 2 — fall back to page-wide scan if footer band had no hit.
+                // Build a space-joined full-page string (same format as footerText) so the
+                // regex can match "N de M" even when the label sits just above the 10% band.
+                if (paginationMatch is null)
+                {
+                    var fullPageText = string.Join(" ", words.Select(w => w.Text));
+                    var pageWideMatches = PaginationPattern.Matches(fullPageText);
+                    if (pageWideMatches.Count > 0)
+                        paginationMatch = pageWideMatches[pageWideMatches.Count - 1];
+                }
+
                 if (paginationMatch is not null
                     && int.TryParse(paginationMatch.Groups[1].Value,
                         System.Globalization.NumberStyles.Integer,
@@ -2881,8 +2901,21 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                     continue;
                 }
 
-                var bgraBytes = skBitmap.Bytes;
-                var expectedLength = skBitmap.Width * skBitmap.Height * 4;
+                // Guarantee Bgra8888 color layout before reading bytes.
+                // PDFium (via PDFtoImage) returns Bgra8888 on Windows but RGBA8888 on
+                // some Linux builds.  If the channels are not normalized here, the R/B
+                // bytes swap and every perceptual hash differs from a catalog hash
+                // computed on a different platform → every catalog image would appear
+                // absent (false-RED) once the feature is enabled with a real bundle.
+                // We use a nullable 'using' for the converted copy: when the color type
+                // is already Bgra8888 no copy is made and 'bitmapCopy' is null/not-disposed.
+                using var bitmapCopy = skBitmap.ColorType == SkiaSharp.SKColorType.Bgra8888
+                    ? null
+                    : skBitmap.Copy(SkiaSharp.SKColorType.Bgra8888);
+                var normalizedBitmap = bitmapCopy ?? skBitmap;
+
+                var bgraBytes = normalizedBitmap.Bytes;
+                var expectedLength = normalizedBitmap.Width * normalizedBitmap.Height * 4;
 
                 if (bgraBytes is null || bgraBytes.Length != expectedLength)
                 {
@@ -2893,7 +2926,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 }
 
                 // Reinterpret BGRA32 bytes as an ImageSharp Image<Bgra32> (zero-copy pixel read).
-                using var bgra32Image = Image.LoadPixelData<Bgra32>(bgraBytes, skBitmap.Width, skBitmap.Height);
+                using var bgra32Image = Image.LoadPixelData<Bgra32>(bgraBytes, normalizedBitmap.Width, normalizedBitmap.Height);
 
                 // CoenM PerceptualHash.Hash requires Image<Rgba32>.
                 using var rgba32Image = bgra32Image.CloneAs<Rgba32>();
