@@ -24,6 +24,10 @@
     <PackageReference Include="ZXing.Net" />
     <!-- PDFtoImage: render fiscal-block page to bitmap for QR scanning (Story 6.2) -->
     <PackageReference Include="PDFtoImage" />
+    <!-- CoenM.ImageSharp.ImageHash: perceptual hashing of rendered pages (VERIQAN-E2-S4) -->
+    <PackageReference Include="CoenM.ImageSharp.ImageHash" />
+    <!-- SixLabors.ImageSharp: pixel-format bridge from SkiaSharp BGRA bytes to Image<Rgba32> (VERIQAN-E2-S4) -->
+    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
 
   <ItemGroup>

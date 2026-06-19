@@ -405,4 +405,30 @@ public sealed class StatementModel
     /// </para>
     /// </remarks>
     public IReadOnlyList<FinancialTable> FinancialTables { get; init; } = [];
+
+    // -----------------------------------------------------------------------
+    // Per-page perceptual hashes (VERIQAN-E2-S4 — CL-27/CL-30/CL-47)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Perceptual hash (CoenM PerceptualHash / pHash) of each rendered PDF page,
+    /// one entry per page ordered by 1-based page number.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> in the extraction infrastructure
+    /// (VERIQAN-E2-S4) when PDFtoImage rendering is available.  Always non-null;
+    /// an empty list indicates the hashing pass did not run or the document has
+    /// no pages (e.g. unit-test minimal PDFs).
+    /// </para>
+    /// <para>
+    /// Each <see cref="ulong"/> is the raw CoenM <c>PerceptualHash.Hash(image)</c>
+    /// output.  The <c>CatalogImagePresenceRule</c> compares these against the
+    /// <c>ImageRef.PerceptualHash</c> strings in the reference bundle using
+    /// Hamming distance:
+    /// <c>System.Numerics.BitOperations.PopCount(pageHash ^ referenceHash)</c>.
+    /// The reference string format is hexadecimal (e.g. <c>"A3B4C5D6E7F80123"</c>).
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<ulong> PagePerceptualHashes { get; init; } = [];
 }

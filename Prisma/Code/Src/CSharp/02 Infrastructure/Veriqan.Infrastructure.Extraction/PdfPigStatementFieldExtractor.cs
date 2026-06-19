@@ -15,7 +15,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using CoenM.ImageHash.HashAlgorithms;
 using PDFtoImage;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using ZXing;
 
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Extraction;
@@ -136,6 +139,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     private readonly PdfExtractionOptions _options;
     private readonly IPasswordProvider _passwordProvider;
     private readonly TimeProvider _timeProvider;
+    private readonly bool _enableCatalogImageHashing;
 
     /// <summary>Initializes a new <see cref="PdfPigStatementFieldExtractor"/>.</summary>
     /// <param name="logger">Logger.</param>
@@ -147,16 +151,28 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// <see langword="null"/> or omitted so existing construction sites and DI registrations
     /// require no changes.
     /// </param>
+    /// <param name="enableCatalogImageHashing">
+    /// When <see langword="true"/>, <see cref="ExtractFullAsync"/> renders every PDF page via
+    /// PDFtoImage and computes a CoenM <c>PerceptualHash</c> (64-bit ulong) per page, stored
+    /// in <see cref="StatementModel.PagePerceptualHashes"/>.
+    /// <para>
+    /// Default is <see langword="false"/> (opt-in) because rendering every page is costly.
+    /// Enable once a real catalog-image reference bundle and a corpus-calibrated Hamming
+    /// threshold are available (VERIQAN-E5 / CPA-2 corpus gate).
+    /// </para>
+    /// </param>
     public PdfPigStatementFieldExtractor(
         ILogger<PdfPigStatementFieldExtractor> logger,
         IOptions<PdfExtractionOptions> options,
         IPasswordProvider passwordProvider,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        bool enableCatalogImageHashing = false)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _options = (options ?? throw new ArgumentNullException(nameof(options))).Value;
         _passwordProvider = passwordProvider ?? throw new ArgumentNullException(nameof(passwordProvider));
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _enableCatalogImageHashing = enableCatalogImageHashing;
     }
 
     // -----------------------------------------------------------------------
@@ -425,6 +441,13 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Collect rendered point-size and font-name per word across all pages.
             var (typographySamples, typographyExtractionStatus) = ExtractTypographySamples(doc);
 
+            // ---- Per-page perceptual hashes — VERIQAN-E2-S4 (CL-27/CL-30/CL-47) ----
+            // Only when the opt-in flag is enabled — rendering every page is expensive.
+            // Leave the list empty (rule abstains) when the flag is off.
+            var pagePerceptualHashes = _enableCatalogImageHashing
+                ? ComputePagePerceptualHashes(pdf, doc)
+                : (IReadOnlyList<ulong>)[];
+
             // Rebuild PeriodSummary with DESGLOSE totals (extracted from DESGLOSE pages,
             // not page 1, so they are injected here rather than inside ExtractPeriodSummary).
             var periodSummaryWithTotals = new PeriodSummary(
@@ -478,6 +501,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 FinancialTables = financialTables,
                 TypographySamples = typographySamples,
                 TypographyExtractionStatus = typographyExtractionStatus,
+                PagePerceptualHashes = pagePerceptualHashes,
             };
 
             return Result<StatementModel>.WithSuccess(model);
@@ -2792,6 +2816,106 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // -----------------------------------------------------------------------
     // Normalized full text (Story 6.1 — CL-32/46)
     // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // Per-page perceptual hashing (VERIQAN-E2-S4 — CL-27/CL-30/CL-47)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// DPI at which pages are rendered for perceptual hashing (VERIQAN-E2-S4).
+    /// 72 DPI gives a ~595×842 raster for a typical A4 PDF page — more than enough
+    /// for a 64×64 pHash DCT pass.  Keep lower than <see cref="FiscalPageRenderDpi"/>
+    /// to limit memory pressure when hashing all pages.
+    /// </summary>
+    private const int PerceptualHashRenderDpi = 72;
+
+    /// <summary>
+    /// Renders every page of <paramref name="doc"/> via PDFtoImage (SkiaSharp path) and
+    /// computes a CoenM <c>PerceptualHash</c> (64-bit ulong) for each, returning one hash
+    /// per page ordered by 1-based page number.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Rendering strategy: the same <c>Conversion.ToImage</c> SkiaSharp overload used by
+    /// <see cref="ExtractFiscalBlock"/> is reused here to keep the native-library dependency
+    /// surface consistent (no second renderer required).  The resulting <c>SKBitmap.Bytes</c>
+    /// (BGRA32 row-major) is reinterpreted as <c>Image&lt;Bgra32&gt;</c> via
+    /// <c>Image.LoadPixelData&lt;Bgra32&gt;</c> and then cloned to <c>Image&lt;Rgba32&gt;</c>
+    /// before being fed to <c>PerceptualHash.Hash</c>.
+    /// </para>
+    /// <para>
+    /// Per-page failures are silently skipped (best-effort): a render or hash error on one page
+    /// does NOT fail extraction — a zero placeholder is NOT inserted; the page is simply omitted.
+    /// The <c>CatalogImagePresenceRule</c> already handles a partial list gracefully.
+    /// </para>
+    /// </remarks>
+    /// <param name="pdfBytes">Raw PDF bytes — passed to PDFtoImage (requires a stream).</param>
+    /// <param name="doc">Open PdfPig document — used only to read <c>NumberOfPages</c>.</param>
+    /// <returns>
+    /// A list of ulong perceptual hashes, one per successfully rendered page,
+    /// ordered by 1-based page index.  Returns an empty list on complete failure.
+    /// </returns>
+    private IReadOnlyList<ulong> ComputePagePerceptualHashes(byte[] pdfBytes, UglyToad.PdfPig.PdfDocument doc)
+    {
+        var hashes = new List<ulong>(doc.NumberOfPages);
+        var hasher = new PerceptualHash();
+
+        for (var pageIndex0 = 0; pageIndex0 < doc.NumberOfPages; pageIndex0++)
+        {
+            try
+            {
+                using var pdfStream = new MemoryStream(pdfBytes);
+#pragma warning disable CA1416 // PDFtoImage is cross-platform
+                using var skBitmap = Conversion.ToImage(
+                    pdfStream,
+                    leaveOpen: false,
+                    page: pageIndex0,
+                    options: new RenderOptions(Dpi: PerceptualHashRenderDpi));
+#pragma warning restore CA1416
+
+                if (skBitmap is null || skBitmap.Width <= 0 || skBitmap.Height <= 0)
+                {
+                    _logger.LogDebug(
+                        "PerceptualHash: page {Page} rendered to null/empty bitmap — skipping.",
+                        pageIndex0 + 1);
+                    continue;
+                }
+
+                var bgraBytes = skBitmap.Bytes;
+                var expectedLength = skBitmap.Width * skBitmap.Height * 4;
+
+                if (bgraBytes is null || bgraBytes.Length != expectedLength)
+                {
+                    _logger.LogDebug(
+                        "PerceptualHash: page {Page} bitmap byte count mismatch (got {Got}, expected {Expected}) — skipping.",
+                        pageIndex0 + 1, bgraBytes?.Length ?? 0, expectedLength);
+                    continue;
+                }
+
+                // Reinterpret BGRA32 bytes as an ImageSharp Image<Bgra32> (zero-copy pixel read).
+                using var bgra32Image = Image.LoadPixelData<Bgra32>(bgraBytes, skBitmap.Width, skBitmap.Height);
+
+                // CoenM PerceptualHash.Hash requires Image<Rgba32>.
+                using var rgba32Image = bgra32Image.CloneAs<Rgba32>();
+
+                var hash = hasher.Hash(rgba32Image);
+                hashes.Add(hash);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(
+                    ex,
+                    "PerceptualHash: failed to render or hash page {Page} — skipping.",
+                    pageIndex0 + 1);
+            }
+        }
+
+        _logger.LogDebug(
+            "PerceptualHash: computed {HashCount}/{PageCount} page hashes.",
+            hashes.Count, doc.NumberOfPages);
+
+        return hashes;
+    }
 
     // -----------------------------------------------------------------------
     // Fiscal block extraction constants (Story 6.2 — CL-50..53)
