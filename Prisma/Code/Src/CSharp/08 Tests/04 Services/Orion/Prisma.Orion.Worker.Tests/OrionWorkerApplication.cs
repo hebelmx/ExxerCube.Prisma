@@ -20,6 +20,22 @@ internal class OrionWorkerApplication : WebApplicationFactory<global::Prisma.Ori
     /// </summary>
     internal const string TestJwtSecret = "ORION-WORKER-TESTS-JWT-SECRET-FOR-TESTS-ONLY-32+";
 
+    /// <summary>
+    /// Ensure SEQ_URL is set to a valid URL before the host starts.
+    /// Serilog.Settings.Configuration v10 calls Environment.ExpandEnvironmentVariables on the
+    /// serverUrl string from appsettings.json (%SEQ_URL%) at logger-creation time, which happens
+    /// synchronously at the top of Program.cs — before ConfigureAppConfiguration can inject
+    /// in-memory overrides. When SEQ_URL is absent the literal "%SEQ_URL%" is passed to
+    /// SeqIngestionApiClient which rejects it with UriFormatException. Setting the env var here
+    /// (once, idempotently) gives Serilog a valid URL so the host boots; no actual Seq server
+    /// is needed — the sink will silently fail to connect and that is acceptable in tests.
+    /// </summary>
+    public OrionWorkerApplication()
+    {
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SEQ_URL")))
+            Environment.SetEnvironmentVariable("SEQ_URL", "http://localhost:5341");
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Inject the ProcessIdentity config values so the JWT bearer auth setup in Program.cs can read

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using ExxerCube.Prisma.Domain.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
@@ -122,5 +123,32 @@ public sealed class DashboardEndpointTests
         // Assert
         stats.ShouldNotBeNull();
         stats.QueueDepth.ShouldBeGreaterThanOrEqualTo(0);
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task Dashboard_ReflectsRecordedDocuments_AfterThreeRecords()
+    {
+        // Arrange — shared application so the singleton IDashboardService is the same
+        // instance that backs the /dashboard endpoint.
+        await using var application = new AthenaWorkerApplication();
+        var dashboardService = application.Services.GetRequiredService<IDashboardService>();
+
+        // Act — record 3 documents via the service, then query the HTTP endpoint.
+        dashboardService.RecordDocumentProcessed();
+        dashboardService.RecordDocumentProcessed();
+        dashboardService.RecordDocumentProcessed();
+
+        using var client = application.CreateClient();
+        var response = await client.GetAsync("/dashboard");
+        var content = await response.Content.ReadAsStringAsync();
+        var stats = JsonSerializer.Deserialize<DashboardStats>(content, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        // Assert — proves the HTTP endpoint reflects the recorded count (not always zero).
+        stats.ShouldNotBeNull();
+        stats.DocumentsProcessed.ShouldBe(3);
     }
 }

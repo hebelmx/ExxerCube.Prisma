@@ -276,6 +276,7 @@ services:
       SEQ_URL: "http://seq:80"
       OTLP_ENDPOINT: ${OTLP_ENDPOINT:-http://seq:4317}
       Seq__ServerUrl: "http://seq:80"
+      OpenTelemetry__Seq__Endpoint: ${OTLP_ENDPOINT:-http://seq:4317}
     volumes:
       - prisma-documents:/data/documents
     depends_on:

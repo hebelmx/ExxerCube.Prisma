@@ -30,6 +30,13 @@ using Prisma.Athena.Worker.Reconciliation;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Default the Seq sink URL so %SEQ_URL% in appsettings always expands to a valid URI.
+// Compose/k8s override via the SEQ_URL env var; this guard prevents a boot-time
+// UriFormatException when the variable is unset (e.g. local `dotnet run`).
+Environment.SetEnvironmentVariable(
+    "SEQ_URL",
+    Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341");
+
 // Configure Serilog from appsettings (mirrors Web.UI pattern)
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
