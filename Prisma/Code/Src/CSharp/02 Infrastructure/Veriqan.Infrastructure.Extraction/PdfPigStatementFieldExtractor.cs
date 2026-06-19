@@ -2721,12 +2721,25 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                         cardDigitsLower, StringComparison.OrdinalIgnoreCase);
                 }
 
-                // PaginationCurrent / PaginationTotal: parse "N de M" from page text.
-                var pageText = string.Join(" ", words.Select(w => w.Text));
+                // PaginationCurrent / PaginationTotal: parse "N de M" anchored to the
+                // footer band (bottom 10% of page height) to avoid false matches from
+                // body phrases such as "5 de 10 pagos".
+                // PdfPig uses a bottom-left coordinate origin, so "bottom 10%" means
+                // word.BoundingBox.Bottom < page.Height * 0.10.
+                // Within the footer band, prefer the LAST match (rightmost/lowest) as
+                // an additional safeguard against incidental text in the band.
+                var footerYThreshold = page.Height * 0.10;
+                var footerWords = words
+                    .Where(w => w.BoundingBox.Bottom < footerYThreshold)
+                    .ToList();
+                var footerText = string.Join(" ", footerWords.Select(w => w.Text));
                 int? paginationCurrent = null;
                 int? paginationTotal = null;
-                var paginationMatch = PaginationPattern.Match(pageText);
-                if (paginationMatch.Success
+                var footerMatches = PaginationPattern.Matches(footerText);
+                var paginationMatch = footerMatches.Count > 0
+                    ? footerMatches[footerMatches.Count - 1]
+                    : null;
+                if (paginationMatch is not null
                     && int.TryParse(paginationMatch.Groups[1].Value,
                         System.Globalization.NumberStyles.Integer,
                         System.Globalization.CultureInfo.InvariantCulture,
