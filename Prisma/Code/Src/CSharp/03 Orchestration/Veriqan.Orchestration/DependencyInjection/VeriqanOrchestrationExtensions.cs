@@ -67,6 +67,11 @@ public static class VeriqanOrchestrationExtensions
         services.AddVeriqanVisual();
         services.AddVeriqanReporting(config);
 
+        // Startup config validator — runs before persistence so the DB-absent warning is
+        // emitted before any persistence-path decision.  Registered unconditionally (both
+        // SQL and in-memory paths).  Does NOT crash the process; emits structured WARNINGs.
+        services.AddHostedService<VeriqanConfigurationValidator>();
+
         // Persistence — real EF Core when connection string is present, otherwise in-memory.
         // When SQL persistence is selected the startup hosted service wires the encrypted
         // legal-baseline store (migrate → seed → InitialiseAsync) before traffic is served.

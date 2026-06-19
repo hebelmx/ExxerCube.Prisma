@@ -1,0 +1,58 @@
+{
+  // PRODUCTION CONFIGURATION TEMPLATE — Veriqan VEC Worker
+  // =======================================================
+  // 1. Copy this file to appsettings.Production.json (or the environment-specific variant).
+  // 2. Replace every <REPLACE_ME> placeholder with the real value for your environment.
+  // 3. NEVER commit a file containing real secrets to source control.
+  // 4. Prefer environment variables (CONNECTIONSTRINGS__VERIQANDB, etc.) or a secrets
+  //    manager (Azure Key Vault, AWS Secrets Manager) over file-based secrets in prod.
+  //
+  // Key reference:
+  //   ConnectionStrings:VeriqanDb              — SQL Server connection string (required for SQL persistence)
+  //   Veriqan:CsvReferenceData:RootDirectory   — Host path to institution CSV files (required)
+  //   Veriqan:Smtp:Host                        — SMTP relay hostname (required for alert emails)
+  //   Veriqan:Smtp:Port                        — SMTP port (typically 25, 465, or 587)
+  //   Veriqan:Smtp:EnableSsl                   — true for TLS/STARTTLS, false for plain
+  //   Veriqan:Smtp:From                        — "From" address in alert emails
+  //   Veriqan:Smtp:UserName                    — SMTP auth user (null = unauthenticated relay)
+  //   Veriqan:Smtp:Password                    — SMTP auth password (null = unauthenticated relay)
+  //   Veriqan:Alerts:Recipients                — JSON array of alert recipient email addresses
+  //   Veriqan:LegalBaseline:EncryptionKey      — Base64-encoded 32-byte AES-256 key for at-rest encryption
+  //                                               Generate: openssl rand -base64 32
+  //                                               Required when SQL persistence is enabled.
+
+  "ConnectionStrings": {
+    "VeriqanDb": "<REPLACE_ME: SQL Server connection string, e.g. Server=myserver;Database=VeriqanDb;User Id=svc_veriqan;Password=...;>"
+  },
+  "Veriqan": {
+    "CsvReferenceData": {
+      "RootDirectory": "<REPLACE_ME: absolute path to CSV reference data root, e.g. /opt/veriqan/reference-data/csv/>"
+    },
+    "Smtp": {
+      "Host": "<REPLACE_ME: SMTP relay hostname or IP>",
+      "Port": 587,
+      "EnableSsl": true,
+      "From": "<REPLACE_ME: noreply@yourdomain.com>",
+      "UserName": "<REPLACE_ME: SMTP auth user or null>",
+      "Password": "<REPLACE_ME: SMTP auth password or null>"
+    },
+    "Alerts": {
+      "Recipients": [
+        "<REPLACE_ME: compliance-team@yourdomain.com>"
+      ],
+      "MaxRetryAttempts": 3,
+      "BaseRetryDelayMs": 500
+    },
+    "LegalBaseline": {
+      "EncryptionKey": "<REPLACE_ME: Base64-encoded 32-byte AES-256 key — use Key Vault in production>"
+    }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
