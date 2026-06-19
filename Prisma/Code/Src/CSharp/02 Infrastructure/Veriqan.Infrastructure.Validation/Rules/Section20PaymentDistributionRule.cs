@@ -141,14 +141,45 @@ internal sealed class Section20PaymentDistributionRule : IVecValidationRule
         // col[5] = IVA
         // col[6] = Saldo a favor (subtracted — credit-balance rebate)
         var pagosYAbonos = Math.Abs(row.Values[0].ParsedValue!.Value);
+
+        // CORPUS-VERIFY — Sign-convention guard for col[6] (Saldo a favor).
+        // Most banks print saldo-a-favor as a POSITIVE amount (credit rebate).
+        // Some banks print it already negated. If we blindly subtract a negative,
+        // we ADD the credit back instead of removing it, producing a false-Fail.
+        // Normalise: always treat saldo-a-favor as its absolute value (a reduction).
+        // TODO(corpus): Confirm saldo-a-favor sign convention against a real §20 specimen (VERIQAN-E5-S2).
+        var rawSaldoAFavor = row.Values[6].ParsedValue!.Value;
+        var balanceCredit = Math.Abs(rawSaldoAFavor);  // normalise: positive means "rebate to subtract"
+
         var components = row.Values[1].ParsedValue!.Value   // Regulares
                        + row.Values[2].ParsedValue!.Value   // AMesesSinIntereses
                        + row.Values[3].ParsedValue!.Value   // AMesesConIntereses
                        + row.Values[4].ParsedValue!.Value   // InteresesYComisiones
                        + row.Values[5].ParsedValue!.Value   // IVA
-                       - row.Values[6].ParsedValue!.Value;  // SaldoAFavor (subtracted)
+                       - balanceCredit;                     // SaldoAFavor (subtracted as absolute value)
 
         var diff = Math.Abs(pagosYAbonos - components);
+
+        // Ambiguous-zone guard: if the identity still fails under the normalised value,
+        // also check the raw (un-normalised) interpretation. If EITHER interpretation
+        // satisfies the tolerance, we cannot reliably distinguish a real discrepancy from
+        // a sign-convention artefact — abstain rather than false-Fail.
+        // CORPUS-VERIFY — remove this guard once the corpus confirms a single convention.
+        // TODO(corpus): Confirm saldo-a-favor sign convention against a real §20 specimen (VERIQAN-E5-S2).
+        if (diff > effectiveTolerance && rawSaldoAFavor < 0m)
+        {
+            // rawSaldoAFavor was negative; the alternative (pre-fix) interpretation subtracts
+            // the raw negative value, which is equivalent to adding its absolute value:
+            //   components_alt = components_base + 2 * balanceCredit
+            var componentAlt = components + 2m * balanceCredit;
+            var diffAlt = Math.Abs(pagosYAbonos - componentAlt);
+            if (diffAlt <= effectiveTolerance)
+                return InsufficientData(
+                    $"§20 col[6] saldo-a-favor sign is ambiguous (raw={rawSaldoAFavor:F2}): " +
+                    "both normalised and raw interpretations are within tolerance under different " +
+                    "sign conventions. Abstaining to avoid false-Fail. " +
+                    "VERIQAN-E5-S2 corpus verification required.");
+        }
         var locator = table20.Locator;
 
         var legalPasses = diff <= legalTolerance;

@@ -585,4 +585,142 @@ public sealed class Section20WaterfallRuleTests
         result.Value.ToleranceApplied.ShouldBe(Tol,
             "ADR-V3: the applied tolerance must be recorded on Pass findings");
     }
+
+    // -----------------------------------------------------------------------
+    // Sign-convention guard (VERIQAN-E2-S2): col[6] saldo-a-favor may be
+    // printed as a NEGATIVE amount by some banks.  The rule must normalise to
+    // abs(value) before subtracting so a negative print does not inflate the
+    // components sum and produce a false-Fail.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When col[6] (saldo a favor) is printed as a negative amount AND the
+    /// identity holds once normalised, the rule must return Pass — not Fail.
+    /// This is the false-Fail regression guard for VERIQAN-E2-S2.
+    /// </summary>
+    [Fact]
+    public void Evaluate_SaldoAFavorNegativeSigned_IdentityHoldsAfterNormalisation_ReturnsPass()
+    {
+        var rule = GetRule();
+        //
+        // col[0] pagos y abonos (signed negative, abs = 10,000)  -10,000
+        // col[1] regulares                                          6,000
+        // col[2] a meses SIN intereses                             2,000
+        // col[3] a meses CON intereses                             1,000
+        // col[4] intereses y comisiones                              500
+        // col[5] IVA                                                 750
+        // col[6] saldo a favor — bank prints as NEGATIVE:           -250
+        //
+        // Without the fix: components = 6000+2000+1000+500+750 - (-250) = 10,250 → Δ=250 → false-Fail
+        // With the fix:    balanceCredit = abs(-250) = 250
+        //                  components = 6000+2000+1000+500+750 - 250 = 10,000 → Δ=0 → Pass
+        var cells = new List<TableCell>
+        {
+            AmountCell(-10_000.00m),
+            AmountCell(6_000.00m),
+            AmountCell(2_000.00m),
+            AmountCell(1_000.00m),
+            AmountCell(500.00m),
+            AmountCell(750.00m),
+            AmountCell(-250.00m)   // negative: bank prints saldo-a-favor negated
+        };
+        var table20 = MakeSection20Table(cells);
+        var model = ModelWith([table20]);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "Negative saldo-a-favor must be normalised to abs(value) before subtraction; " +
+            "identity holds → must Pass, not false-Fail.");
+    }
+
+    /// <summary>
+    /// When col[6] saldo-a-favor is negative AND the normalised interpretation does NOT
+    /// satisfy the tolerance, but the raw (un-normalised) interpretation would, the rule
+    /// is in an ambiguous zone and must abstain (InsufficientData) rather than emit Fail.
+    /// </summary>
+    [Fact]
+    public void Evaluate_SaldoAFavorNegativeSigned_AmbiguousZone_ReturnsInsufficientData()
+    {
+        var rule = GetRule();
+        //
+        // Design: choose values where NEITHER normalised NOR raw gives a clean Δ=0,
+        // but the RAW interpretation (subtracting a negative = adding) happens to land
+        // within tolerance while normalised does not — classic ambiguous zone.
+        //
+        // pagos = 10,000.00
+        // col[1..5] sum = 9,800.00
+        // col[6] raw = -150  (negative print)
+        //
+        // Normalised:  components = 9,800 - 150 = 9,650  → Δ = |10,000 - 9,650| = 350  > 0.50 (fails normalised)
+        // Raw (pre-fix): components = 9,800 - (-150) = 9,950  → Δ = |10,000 - 9,950| = 50   > 0.50 (also fails raw)
+        //
+        // Actually we want a case where raw PASSES (≤ tol) but normalised FAILS to trigger abstain.
+        // pagos = 10,000.00
+        // col[1..5] sum = 9,750.30  (Regulares = 9,750.30, rest = 0)
+        // col[6] raw = -249.70  (negative)
+        //
+        // Normalised:  components = 9,750.30 - 249.70 = 9,500.60  → Δ = |10,000 - 9,500.60| = 499.40 > 0.50  FAIL
+        // Raw (pre-fix): components = 9,750.30 - (-249.70) = 10,000.00 → Δ = 0.00 ≤ 0.50  PASS
+        //
+        // Rule should detect the ambiguity and return InsufficientData.
+        var cells = new List<TableCell>
+        {
+            AmountCell(-10_000.00m),
+            AmountCell(9_750.30m),  // regulares (all other components are 0)
+            AmountCell(0m),
+            AmountCell(0m),
+            AmountCell(0m),
+            AmountCell(0m),
+            AmountCell(-249.70m)   // saldo-a-favor printed negative
+        };
+        var table20 = MakeSection20Table(cells);
+        var model = ModelWith([table20]);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Ambiguous sign zone: normalised interpretation fails but raw interpretation passes — " +
+            "rule must abstain (InsufficientData) rather than emit a false-Fail.");
+    }
+
+    /// <summary>
+    /// When col[6] saldo-a-favor is negative and BOTH the normalised and raw interpretations
+    /// fail tolerance, the rule should return Fail — there is a genuine discrepancy regardless
+    /// of sign convention.
+    /// </summary>
+    [Fact]
+    public void Evaluate_SaldoAFavorNegativeSigned_BothInterpretationsFail_ReturnsFail()
+    {
+        var rule = GetRule();
+        //
+        // pagos = 67,796.35; components (normalised) = 61,033.35 - 500 = 60,533.35 → Δ = 7,263 >> 0.50
+        // components (raw)  = 61,033.35 - (-500) = 61,533.35 → Δ = 6,263 >> 0.50
+        // Both fail → genuine mismatch → Fail
+        var cells = new List<TableCell>
+        {
+            AmountCell(-67_796.35m),
+            AmountCell(61_033.35m),
+            AmountCell(0m),
+            AmountCell(0m),
+            AmountCell(0m),
+            AmountCell(0m),
+            AmountCell(-500.00m)   // saldo-a-favor negative — both interpretations still fail
+        };
+        var table20 = MakeSection20Table(cells);
+        var model = ModelWith([table20]);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail,
+            "When both sign interpretations produce a discrepancy beyond tolerance, " +
+            "the rule must return Fail — there is a genuine §20 violation.");
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+    }
 }
