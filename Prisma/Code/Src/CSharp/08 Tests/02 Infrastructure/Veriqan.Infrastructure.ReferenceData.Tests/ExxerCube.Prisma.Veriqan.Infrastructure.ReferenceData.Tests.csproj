@@ -57,6 +57,12 @@
   </ItemGroup>
   <ItemGroup Label="Test Assets">
     <Content Include="TestAssets\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Reference bundle lives in the deployable data directory; copy it into the
+         test output under TestAssets\csv so CsvReferenceDataAdapterTests can find it
+         at AppContext.BaseDirectory + "TestAssets/csv/Demo_Bank_(Iqubica)". -->
+    <Content Include="..\..\..\..\..\..\Data\Veriqan\reference-bundles\Demo_Bank_(Iqubica)\**\*"
+             Link="TestAssets\csv\Demo_Bank_(Iqubica)\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />
