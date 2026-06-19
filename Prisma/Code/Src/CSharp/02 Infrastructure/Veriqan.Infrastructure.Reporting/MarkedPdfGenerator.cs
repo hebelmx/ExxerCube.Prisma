@@ -233,25 +233,56 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
     /// Draws a semi-transparent highlight rectangle over the field that failed.
     /// </summary>
     /// <remarks>
-    /// <b>Y-axis flip:</b> PdfPig gives <c>(left, bottom, width, height)</c> in a
-    /// bottom-left coordinate system.  PdfSharp uses top-left.  For a page of height
-    /// <c>H</c> the PdfSharp top-left Y is:
-    /// <c>pdfSharpY = H - pdfPigBottom - height</c>.
+    /// <para>
+    /// <b>Coordinate translation (PdfPig → PdfSharp):</b>
+    /// PdfPig gives <c>(left, bottom, width, height)</c> in the <em>visual</em> page space:
+    /// bottom-left origin, Y↑, coordinates reflect the page as displayed after any viewer rotation.
+    /// PdfSharp <see cref="XGraphics"/> (Append mode) draws in the raw <em>MediaBox</em> space:
+    /// top-left origin, Y↓, no implicit rotation applied.
+    /// </para>
+    /// <para>
+    /// The transform therefore has two components:
+    /// <list type="number">
+    ///   <item>
+    ///     <b>CropBox offset:</b> the visual origin (0,0) maps to <c>(CropBox.X1, CropBox.Y1)</c>
+    ///     in raw MediaBox coordinates, so that offset is added to every raw coordinate.
+    ///   </item>
+    ///   <item>
+    ///     <b>Page /Rotate:</b> the PDF viewer rotates the raw MediaBox by the /Rotate value
+    ///     (degrees clockwise) before display.  We must apply the inverse mapping so that a
+    ///     visual point lands on the correct raw PDF coordinate.
+    ///   </item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// Let <c>mh</c> = MediaBox.Height, <c>cx1</c>/<c>cy1</c> = CropBox origin,
+    /// <c>cw</c>/<c>ch</c> = CropBox dims, <c>vx</c>/<c>vy</c> = PdfPig visual coords:
+    /// <code>
+    ///   0°:   rawX = cx1+vx,              rawY(top) = mh−cy1−vy−vh,         drawW=vw, drawH=vh
+    ///  90°:   rawX = cx1+vy,              rawY(top) = mh−cy1−cw+vx,          drawW=vh, drawH=vw
+    /// 180°:   rawX = cx1+cw−vx−vw,       rawY(top) = mh−cy1−ch+vy,          drawW=vw, drawH=vh
+    /// 270°:   rawX = cx1+ch−vy−vh,       rawY(top) = mh−cy1−vx−vw,          drawW=vh, drawH=vw
+    /// </code>
+    /// </para>
     /// </remarks>
     private void DrawBoundingBoxHighlight(PdfPage page, RuleFinding finding, FieldLocator locator)
     {
         // All four components are non-null when HasBoundingBox is true.
-        var left = locator.Left!.Value;
-        var pdfPigBottom = locator.Bottom!.Value;
-        var width = locator.Width!.Value;
-        var height = locator.Height!.Value;
+        var vx = locator.Left!.Value;      // visual left (PdfPig)
+        var vy = locator.Bottom!.Value;    // visual bottom (PdfPig)
+        var vw = locator.Width!.Value;     // visual width
+        var vh = locator.Height!.Value;    // visual height
 
-        var pageHeight = page.Height.Point;
+        // Raw MediaBox height (never rotation-adjusted in PdfSharp 6.x).
+        var mh = page.MediaBox.Height;
 
-        // Y-axis flip: convert PdfPig bottom-left origin to PdfSharp top-left origin.
-        var pdfSharpTop = pageHeight - pdfPigBottom - height;
+        // CropBox offset: visual (0,0) maps to raw (cx1, cy1).
+        var cx1 = page.HasCropBox ? page.CropBox.X1 : 0.0;
+        var cy1 = page.HasCropBox ? page.CropBox.Y1 : 0.0;
+        var cw  = page.HasCropBox ? page.CropBox.Width  : page.MediaBox.Width;
+        var ch  = page.HasCropBox ? page.CropBox.Height : page.MediaBox.Height;
 
-        var rect = new XRect(left, pdfSharpTop, width, height);
+        var rect = ComputeHighlightRect(page.Rotate, mh, cx1, cy1, cw, ch, vx, vy, vw, vh);
 
         using var gfx = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
 
@@ -268,18 +299,102 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
         var labelFont = LazyLabelFont.Value;
         if (labelFont is not null)
         {
-            var labelY = pdfSharpTop >= 10.0 ? pdfSharpTop - 8.0 : pdfSharpTop + 1.0;
+            var labelY = rect.Top >= 10.0 ? rect.Top - 8.0 : rect.Top + 1.0;
             gfx.DrawString(
                 finding.CheckId,
                 labelFont,
                 XBrushes.DarkRed,
-                new XRect(left, labelY, width, 10.0),
+                new XRect(rect.X, labelY, rect.Width, 10.0),
                 XStringFormats.TopLeft);
         }
 
         _logger.LogDebug(
-            "Drew bounding-box highlight for {CheckId} on page {Page}: PdfPig(left={L}, bottom={B}, w={W}, h={H}) → PdfSharp(x={X}, y={Y}).",
-            finding.CheckId, locator.PageNumber, left, pdfPigBottom, width, height, left, pdfSharpTop);
+            "Drew bounding-box highlight for {CheckId} on page {Page} (rotate={Rotate}): " +
+            "PdfPig(left={L}, bottom={B}, w={W}, h={H}) → PdfSharp(x={X}, y={Y}, w={DW}, h={DH}).",
+            finding.CheckId, locator.PageNumber, page.Rotate,
+            vx, vy, vw, vh, rect.X, rect.Y, rect.Width, rect.Height);
+    }
+
+    /// <summary>
+    /// Computes the PdfSharp drawing rectangle (top-left origin, raw MediaBox space) from
+    /// a PdfPig visual bounding box (bottom-left origin, post-rotation display space).
+    /// </summary>
+    /// <param name="rotateDegrees">Page <c>/Rotate</c> value: 0, 90, 180, or 270 (degrees CW for the viewer).</param>
+    /// <param name="mediaBoxHeight">Raw MediaBox height in PDF points.</param>
+    /// <param name="cx1">CropBox left edge in raw MediaBox coords (0 if no CropBox).</param>
+    /// <param name="cy1">CropBox bottom edge in raw MediaBox coords (0 if no CropBox).</param>
+    /// <param name="cropWidth">CropBox (or MediaBox) width in PDF points.</param>
+    /// <param name="cropHeight">CropBox (or MediaBox) height in PDF points.</param>
+    /// <param name="vx">PdfPig visual left coordinate of the bounding box.</param>
+    /// <param name="vy">PdfPig visual bottom coordinate of the bounding box.</param>
+    /// <param name="vw">Visual box width.</param>
+    /// <param name="vh">Visual box height.</param>
+    /// <returns>
+    /// An <see cref="XRect"/> in PdfSharp's coordinate system (top-left origin, Y↓) that
+    /// corresponds to the given visual bounding box.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// The coordinate transform for each rotation is (derivation in class remarks):
+    /// <code>
+    ///   0°:   rawX = cx1+vx,        rawY(top) = mh−cy1−vy−vh,  drawW=vw, drawH=vh
+    ///  90°:   rawX = cx1+vy,        rawY(top) = mh−cy1−cw+vx,  drawW=vh, drawH=vw
+    /// 180°:   rawX = cx1+cw−vx−vw,  rawY(top) = mh−cy1−ch+vy,  drawW=vw, drawH=vh
+    /// 270°:   rawX = cx1+ch−vy−vh,  rawY(top) = mh−cy1−vx−vw,  drawW=vh, drawH=vw
+    /// </code>
+    /// </para>
+    /// </remarks>
+    internal static XRect ComputeHighlightRect(
+        int rotateDegrees,
+        double mediaBoxHeight,
+        double cx1,
+        double cy1,
+        double cropWidth,
+        double cropHeight,
+        double vx,
+        double vy,
+        double vw,
+        double vh)
+    {
+        double rawX, pdfSharpTop, drawW, drawH;
+
+        switch (rotateDegrees)
+        {
+            case 90:
+                // 90° CW viewer rotation: visual X aligns with raw Y axis;
+                // visual Y aligns with the inverted raw X axis.
+                rawX        = cx1 + vy;
+                pdfSharpTop = mediaBoxHeight - cy1 - cropWidth + vx;
+                drawW       = vh;
+                drawH       = vw;
+                break;
+
+            case 180:
+                // 180° rotation: both axes are inverted.
+                rawX        = cx1 + cropWidth  - vx - vw;
+                pdfSharpTop = mediaBoxHeight - cy1 - cropHeight + vy;
+                drawW       = vw;
+                drawH       = vh;
+                break;
+
+            case 270:
+                // 270° CW (= 90° CCW) viewer rotation: visual Y aligns with raw X axis;
+                // visual X aligns with the inverted raw Y axis.
+                rawX        = cx1 + cropHeight - vy - vh;
+                pdfSharpTop = mediaBoxHeight - cy1 - vx - vw;
+                drawW       = vh;
+                drawH       = vw;
+                break;
+
+            default: // 0° — standard Y-flip only, no axis swap
+                rawX        = cx1 + vx;
+                pdfSharpTop = mediaBoxHeight - cy1 - vy - vh;
+                drawW       = vw;
+                drawH       = vh;
+                break;
+        }
+
+        return new XRect(rawX, pdfSharpTop, drawW, drawH);
     }
 
     /// <summary>

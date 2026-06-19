@@ -443,4 +443,243 @@ public sealed class MarkedPdfGeneratorTests
         generator.ShouldNotBeNull("AddVeriqanReporting must register IMarkedPdfGenerator.");
         generator.ShouldBeOfType<MarkedPdfGenerator>();
     }
+
+    // -----------------------------------------------------------------------
+    // Tests 14–18: ComputeHighlightRect — coordinate transform per rotation
+    //
+    // Fixture geometry: A4 portrait MediaBox (595 × 842 pt), no CropBox.
+    // Visual bounding box: left=100, bottom=200, width=50, height=30.
+    //
+    // Derivation is documented in MarkedPdfGenerator.ComputeHighlightRect XML doc.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Baseline: 0° rotation (no CropBox) produces the standard Y-flip and preserves
+    /// visual width/height unchanged.
+    /// </summary>
+    [Fact]
+    public void ComputeHighlightRect_Rotate0NoCropBox_StandardYFlip()
+    {
+        // A4 portrait, no CropBox (cx1=cy1=0, cw=595, ch=842).
+        var rect = MarkedPdfGenerator.ComputeHighlightRect(
+            rotateDegrees: 0,
+            mediaBoxHeight: 842,
+            cx1: 0, cy1: 0,
+            cropWidth: 595, cropHeight: 842,
+            vx: 100, vy: 200,
+            vw: 50,  vh: 30);
+
+        // rawX = 0 + 100 = 100
+        rect.X.ShouldBe(100.0, "0°: rawX = cx1 + vx");
+
+        // pdfSharpTop = 842 − 0 − 200 − 30 = 612
+        rect.Y.ShouldBe(612.0, "0°: pdfSharpTop = mh − cy1 − vy − vh");
+
+        // Dimensions unchanged at 0°.
+        rect.Width.ShouldBe(50.0,  "0°: drawW = vw (no axis swap)");
+        rect.Height.ShouldBe(30.0, "0°: drawH = vh (no axis swap)");
+    }
+
+    /// <summary>
+    /// 90° CW viewer rotation: visual Y becomes raw X and the axes swap.
+    /// The highlight must land in the expected raw quadrant.
+    /// </summary>
+    [Fact]
+    public void ComputeHighlightRect_Rotate90NoCropBox_AxesSwappedCorrectQuadrant()
+    {
+        var rect = MarkedPdfGenerator.ComputeHighlightRect(
+            rotateDegrees: 90,
+            mediaBoxHeight: 842,
+            cx1: 0, cy1: 0,
+            cropWidth: 595, cropHeight: 842,
+            vx: 100, vy: 200,
+            vw: 50,  vh: 30);
+
+        // rawX = 0 + vy = 0 + 200 = 200
+        rect.X.ShouldBe(200.0, "90°: rawX = cx1 + vy");
+
+        // pdfSharpTop = 842 − 0 − 595 + 100 = 347
+        rect.Y.ShouldBe(347.0, "90°: pdfSharpTop = mh − cy1 − cropWidth + vx");
+
+        // Axes swap: visual height (30) becomes raw width, visual width (50) becomes raw height.
+        rect.Width.ShouldBe(30.0,  "90°: drawW = vh (axes swap)");
+        rect.Height.ShouldBe(50.0, "90°: drawH = vw (axes swap)");
+
+        // Sanity: the raw rect must lie inside the raw MediaBox (0..595 w, 0..842 h).
+        rect.X.ShouldBeGreaterThanOrEqualTo(0);
+        (rect.X + rect.Width).ShouldBeLessThanOrEqualTo(595);
+        rect.Y.ShouldBeGreaterThanOrEqualTo(0);
+        (rect.Y + rect.Height).ShouldBeLessThanOrEqualTo(842);
+    }
+
+    /// <summary>
+    /// 180° viewer rotation: both axes invert, dimensions stay the same.
+    /// </summary>
+    [Fact]
+    public void ComputeHighlightRect_Rotate180NoCropBox_BothAxesInvertedSameDimensions()
+    {
+        var rect = MarkedPdfGenerator.ComputeHighlightRect(
+            rotateDegrees: 180,
+            mediaBoxHeight: 842,
+            cx1: 0, cy1: 0,
+            cropWidth: 595, cropHeight: 842,
+            vx: 100, vy: 200,
+            vw: 50,  vh: 30);
+
+        // rawX = 0 + 595 − 100 − 50 = 445
+        rect.X.ShouldBe(445.0, "180°: rawX = cx1 + cropWidth − vx − vw");
+
+        // pdfSharpTop = 842 − 0 − 842 + 200 = 200
+        rect.Y.ShouldBe(200.0, "180°: pdfSharpTop = mh − cy1 − cropHeight + vy");
+
+        // 180° does not swap axes — dimensions are unchanged.
+        rect.Width.ShouldBe(50.0,  "180°: drawW = vw (no axis swap)");
+        rect.Height.ShouldBe(30.0, "180°: drawH = vh (no axis swap)");
+
+        // Sanity bounds check.
+        rect.X.ShouldBeGreaterThanOrEqualTo(0);
+        (rect.X + rect.Width).ShouldBeLessThanOrEqualTo(595);
+        rect.Y.ShouldBeGreaterThanOrEqualTo(0);
+        (rect.Y + rect.Height).ShouldBeLessThanOrEqualTo(842);
+    }
+
+    /// <summary>
+    /// 270° CW (= 90° CCW) viewer rotation: visual Y becomes raw X from the right edge
+    /// and visual X becomes raw Y from the bottom; axes swap.
+    /// </summary>
+    [Fact]
+    public void ComputeHighlightRect_Rotate270NoCropBox_AxesSwappedCorrectQuadrant()
+    {
+        var rect = MarkedPdfGenerator.ComputeHighlightRect(
+            rotateDegrees: 270,
+            mediaBoxHeight: 842,
+            cx1: 0, cy1: 0,
+            cropWidth: 595, cropHeight: 842,
+            vx: 100, vy: 200,
+            vw: 50,  vh: 30);
+
+        // rawX = 0 + 842 − 200 − 30 = 612
+        rect.X.ShouldBe(612.0, "270°: rawX = cx1 + cropHeight − vy − vh");
+
+        // pdfSharpTop = 842 − 0 − 100 − 50 = 692
+        rect.Y.ShouldBe(692.0, "270°: pdfSharpTop = mh − cy1 − vx − vw");
+
+        // Axes swap: visual height (30) → raw width, visual width (50) → raw height.
+        rect.Width.ShouldBe(30.0,  "270°: drawW = vh (axes swap)");
+        rect.Height.ShouldBe(50.0, "270°: drawH = vw (axes swap)");
+
+        // Sanity bounds check.
+        rect.X.ShouldBeGreaterThanOrEqualTo(0);
+        (rect.X + rect.Width).ShouldBeLessThanOrEqualTo(842);
+        rect.Y.ShouldBeGreaterThanOrEqualTo(0);
+        (rect.Y + rect.Height).ShouldBeLessThanOrEqualTo(842);
+    }
+
+    /// <summary>
+    /// CropBox offset (0° rotation): a non-origin CropBox shifts the raw origin, so the
+    /// computed X and Y must be offset by (cx1, cy1) relative to the no-CropBox result.
+    /// </summary>
+    [Fact]
+    public void ComputeHighlightRect_Rotate0WithCropBoxOffset_RawCoordsShiftedByCropOrigin()
+    {
+        // CropBox: X1=10, Y1=20, width=500, height=800 inside an 842-pt-tall MediaBox.
+        var rect = MarkedPdfGenerator.ComputeHighlightRect(
+            rotateDegrees: 0,
+            mediaBoxHeight: 842,
+            cx1: 10, cy1: 20,
+            cropWidth: 500, cropHeight: 800,
+            vx: 100, vy: 200,
+            vw: 50,  vh: 30);
+
+        // rawX = 10 + 100 = 110
+        rect.X.ShouldBe(110.0, "0° + CropBox: rawX = cx1 + vx");
+
+        // pdfSharpTop = 842 − 20 − 200 − 30 = 592
+        rect.Y.ShouldBe(592.0, "0° + CropBox: pdfSharpTop = mh − cy1 − vy − vh");
+
+        rect.Width.ShouldBe(50.0,  "0° + CropBox: drawW unchanged");
+        rect.Height.ShouldBe(30.0, "0° + CropBox: drawH unchanged");
+    }
+
+    // -----------------------------------------------------------------------
+    // Tests 19–22: end-to-end Generate with rotated PDF pages (PdfSharp-built)
+    //
+    // Uses PdfSharp to create PDFs with /Rotate set; verifies Generate succeeds
+    // and output is a valid modified PDF (bytes differ from input).
+    // -----------------------------------------------------------------------
+
+    /// <summary>Builds a minimal 1-page PDF with PdfSharp and a specific /Rotate value.</summary>
+    private static byte[] BuildRotatedPdfSharpPdf(int rotate)
+    {
+        using var doc = new PdfDocument();
+        var page = doc.AddPage();
+        // A4 portrait MediaBox (595 × 842 pt).
+        page.Width  = PdfSharp.Drawing.XUnit.FromPoint(595);
+        page.Height = PdfSharp.Drawing.XUnit.FromPoint(842);
+        page.Rotate = rotate;
+
+        using var ms = new MemoryStream();
+        doc.Save(ms);
+        return ms.ToArray();
+    }
+
+    [Fact]
+    public void Generate_RotatedPage90_SucceedsValidPdfBytesModified()
+    {
+        var inputPdf = BuildRotatedPdfSharpPdf(90);
+        // Visual box for a 90° page (visual dims = 842w × 595h):
+        // place near the visual centre so coords are safely inside bounds.
+        var finding = FailFindingWithBox(pageNumber: 1, left: 200, bottom: 100, width: 50, height: 30);
+
+        var result = _generator.Generate(inputPdf, new[] { finding }, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("Generate must succeed for a /Rotate=90 page.");
+        result.Value.ShouldNotBeNull();
+        result.Value!.Length.ShouldBeGreaterThan(0);
+        result.Value.SequenceEqual(inputPdf).ShouldBeFalse(
+            "Output must differ from input because a highlight was drawn.");
+
+        using var outputStream = new MemoryStream(result.Value);
+        using var outputDoc = PdfReader.Open(outputStream, PdfDocumentOpenMode.Import);
+        outputDoc.PageCount.ShouldBe(1, "Page count must be preserved.");
+    }
+
+    [Fact]
+    public void Generate_RotatedPage180_SucceedsValidPdfBytesModified()
+    {
+        var inputPdf = BuildRotatedPdfSharpPdf(180);
+        var finding = FailFindingWithBox(pageNumber: 1, left: 100, bottom: 200, width: 50, height: 30);
+
+        var result = _generator.Generate(inputPdf, new[] { finding }, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("Generate must succeed for a /Rotate=180 page.");
+        result.Value.ShouldNotBeNull();
+        result.Value!.Length.ShouldBeGreaterThan(0);
+        result.Value.SequenceEqual(inputPdf).ShouldBeFalse(
+            "Output must differ from input because a highlight was drawn.");
+
+        using var outputStream = new MemoryStream(result.Value);
+        using var outputDoc = PdfReader.Open(outputStream, PdfDocumentOpenMode.Import);
+        outputDoc.PageCount.ShouldBe(1, "Page count must be preserved.");
+    }
+
+    [Fact]
+    public void Generate_RotatedPage270_SucceedsValidPdfBytesModified()
+    {
+        var inputPdf = BuildRotatedPdfSharpPdf(270);
+        // Visual box for a 270° page (visual dims = 842w × 595h):
+        var finding = FailFindingWithBox(pageNumber: 1, left: 200, bottom: 100, width: 50, height: 30);
+
+        var result = _generator.Generate(inputPdf, new[] { finding }, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("Generate must succeed for a /Rotate=270 page.");
+        result.Value.ShouldNotBeNull();
+        result.Value!.Length.ShouldBeGreaterThan(0);
+        result.Value.SequenceEqual(inputPdf).ShouldBeFalse(
+            "Output must differ from input because a highlight was drawn.");
+
+        using var outputStream = new MemoryStream(result.Value);
+        using var outputDoc = PdfReader.Open(outputStream, PdfDocumentOpenMode.Import);
+        outputDoc.PageCount.ShouldBe(1, "Page count must be preserved.");
+    }
 }
