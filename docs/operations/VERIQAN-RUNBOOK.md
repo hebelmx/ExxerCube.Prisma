@@ -245,10 +245,11 @@ and counted in `failedCount`.
 
 If a statement previously completed but produced an incorrect verdict (e.g. due to a bundle
 error now corrected), use `POST /verify` to re-run the pipeline for that statement
-individually. The `IReprocessService` (`ReprocessService`) is wired in DI but does not have
-a dedicated HTTP endpoint yet — it is invoked internally by the pipeline on explicit reprocess
-calls. The `POST /batch` with `options.resume = false` will re-run all items unconditionally,
-which also serves as a bulk reprocess.
+individually. The `IReprocessService` (`ReprocessService`) is registered in DI for future
+consumers but is **not** wired into `VerificationPipeline.ProcessAsync` and has no HTTP
+endpoint yet — there is no transparent in-pipeline reprocess today `[TODO after E3-S3]`. The
+current reprocess path is re-submission: `POST /batch` with `options.resume = false` re-runs
+all items unconditionally (bulk reprocess), or `POST /verify` re-runs a single statement.
 
 ---
 

@@ -89,10 +89,12 @@ internal sealed class BatchProcessor : IBatchProcessor
 
         int total = batch.Count;
 
-        // Per-call parallelism: BatchOptions.EffectiveParallelism overrides the
-        // global BatchProcessorOptions.EffectiveConcurrency when it differs from the
-        // default (4). Always use the per-call value so callers retain control.
-        int maxConcurrency = options.EffectiveParallelism;
+        // Consumer count: an explicit per-call BatchOptions.MaxDegreeOfParallelism (a value
+        // other than the default) takes precedence; otherwise the configured global
+        // Veriqan:BatchProcessor:MaxConcurrency (default Environment.ProcessorCount) drives it.
+        int maxConcurrency = options.MaxDegreeOfParallelism != BatchOptions.DefaultMaxDegreeOfParallelism
+            ? options.EffectiveParallelism
+            : _processorOptions.EffectiveConcurrency;
 
         _logger.LogInformation(
             "Batch starting: {Total} items, MaxConcurrency={MaxConcurrency}, Resume={Resume}",
