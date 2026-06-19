@@ -18,4 +18,10 @@ public interface IDashboardService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Dashboard statistics.</returns>
     Task<DashboardStats> GetStatsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records a completed document, incrementing the processed count and refreshing the last-event timestamp.
+    /// Called by the pipeline at the moment a document successfully completes its work unit (extraction or ingestion).
+    /// </summary>
+    void RecordDocumentProcessed();
 }

@@ -185,7 +185,8 @@ builder.Services.AddScoped<IngestionOrchestrator>(sp =>
         actorIdentityProvider: actorIdentityProvider,
         processClearance: clearance,
         timeProvider: timeProvider,
-        postWriteFlushDelay: postWriteFlushDelay);
+        postWriteFlushDelay: postWriteFlushDelay,
+        dashboardService: sp.GetRequiredService<IDashboardService>());
 });
 
 // The SIARA watch loop (MVP-PATH 1.2): a singleton poll/watcher that owns the DI scopes (one warm
@@ -214,10 +215,12 @@ builder.Services.AddHostedService<OrionWorkerService>();
 // is the truthful readiness signal. Resolve the same singleton instance behind IReadinessProbe.
 builder.Services.AddSingleton<IReadinessProbe>(sp => sp.GetRequiredService<SiaraWatchLoop>());
 
-// Health + dashboard depend (transitively) on the scoped orchestrator, so they are scoped too; the
-// minimal-API endpoints resolve them from the per-request scope.
+// Health check depends (transitively) on the scoped orchestrator, so it is scoped too; the
+// minimal-API endpoints resolve it from the per-request scope.
+// Dashboard service is a singleton: its in-memory counter must persist across all request scopes so
+// /dashboard always returns the cumulative throughput rather than a per-request zero.
 builder.Services.AddScoped<IHealthCheckService, OrionHealthCheckService>();
-builder.Services.AddScoped<IDashboardService, OrionDashboardService>();
+builder.Services.AddSingleton<IDashboardService, OrionDashboardService>();
 
 var app = builder.Build();
 

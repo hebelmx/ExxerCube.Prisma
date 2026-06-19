@@ -223,7 +223,8 @@ builder.Services.AddSingleton<ExtractionPipelineService>(sp =>
         sp.GetRequiredService<ILogger<ExtractionPipelineService>>(),
         scopeFactory: scopeFactory,
         actorIdentityProvider: actorIdentityProvider,
-        processClearance: clearance);
+        processClearance: clearance,
+        dashboardService: sp.GetRequiredService<IDashboardService>());
 });
 builder.Services.AddHostedService<AthenaWorkerService>();
 

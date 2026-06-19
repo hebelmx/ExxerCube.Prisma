@@ -38,6 +38,7 @@ public sealed class ExtractionPipelineService : IReadinessProbe
     private readonly IServiceScopeFactory? _scopeFactory;
     private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
     private readonly ProcessClearance _processClearance;
+    private readonly IDashboardService? _dashboardService;
     private IDisposable? _subscription;
 
     /// <summary>
@@ -69,6 +70,11 @@ public sealed class ExtractionPipelineService : IReadinessProbe
     /// The clearance level of this process, stamped on every audit record's <c>ActionDetails</c> JSON.
     /// Defaults to <see cref="ProcessClearance.Extract"/> (Athena Extractor). MVP-PATH 1.6 A6.
     /// </param>
+    /// <param name="dashboardService">
+    /// Optional dashboard service. When provided, <see cref="IDashboardService.RecordDocumentProcessed"/>
+    /// is called after each document is successfully extracted and handed off to the Reconciliator,
+    /// so the Athena worker's <c>/dashboard</c> endpoint reflects real throughput instead of zero.
+    /// </param>
     public ExtractionPipelineService(
         IEventPublisher eventPublisher,
         ExtractionOrchestrator extractionOrchestrator,
@@ -77,7 +83,8 @@ public sealed class ExtractionPipelineService : IReadinessProbe
         ILogger<ExtractionPipelineService> logger,
         IServiceScopeFactory? scopeFactory = null,
         ISiaraActorIdentityProvider? actorIdentityProvider = null,
-        ProcessClearance processClearance = ProcessClearance.Extract)
+        ProcessClearance processClearance = ProcessClearance.Extract,
+        IDashboardService? dashboardService = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _extractionOrchestrator = extractionOrchestrator ?? throw new ArgumentNullException(nameof(extractionOrchestrator));
@@ -87,6 +94,7 @@ public sealed class ExtractionPipelineService : IReadinessProbe
         _scopeFactory = scopeFactory;
         _actorIdentityProvider = actorIdentityProvider;
         _processClearance = processClearance;
+        _dashboardService = dashboardService;
     }
 
     /// <summary>Subscribes to the local <see cref="DocumentDownloadedEvent"/> stream and runs extraction per document.</summary>
@@ -258,6 +266,9 @@ public sealed class ExtractionPipelineService : IReadinessProbe
             success: true,
             actionKey: "ExtractionCompleted",
             cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // Record throughput: update the worker's /dashboard count with a real completed document.
+        _dashboardService?.RecordDocumentProcessed();
 
         return Result.Success();
     }

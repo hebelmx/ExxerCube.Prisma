@@ -31,6 +31,7 @@ public class IngestionOrchestrator
     private readonly ProcessClearance _processClearance;
     private readonly TimeProvider _timeProvider;
     private readonly TimeSpan _postWriteFlushDelay;
+    private readonly IDashboardService? _dashboardService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IngestionOrchestrator"/> class.
@@ -65,6 +66,11 @@ public class IngestionOrchestrator
     /// <see langword="null"/>; pass <see cref="TimeSpan.Zero"/> to disable (e.g. in tests).
     /// MVP-PATH 2.1 (owner-approved).
     /// </param>
+    /// <param name="dashboardService">
+    /// Optional dashboard service. When provided, <see cref="IDashboardService.RecordDocumentProcessed"/>
+    /// is called after each new (non-duplicate) case is successfully stored and broadcast, so the Orion
+    /// worker's <c>/dashboard</c> endpoint reflects real throughput instead of zero.
+    /// </param>
     public IngestionOrchestrator(
         IIngestionJournal journal,
         IDocumentDownloader downloader,
@@ -75,7 +81,8 @@ public class IngestionOrchestrator
         ISiaraActorIdentityProvider? actorIdentityProvider = null,
         ProcessClearance processClearance = ProcessClearance.Download,
         TimeProvider? timeProvider = null,
-        TimeSpan? postWriteFlushDelay = null)
+        TimeSpan? postWriteFlushDelay = null,
+        IDashboardService? dashboardService = null)
     {
         _journal = journal ?? throw new ArgumentNullException(nameof(journal));
         _downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
@@ -87,6 +94,7 @@ public class IngestionOrchestrator
         _processClearance = processClearance;
         _timeProvider = timeProvider ?? TimeProvider.System;
         _postWriteFlushDelay = postWriteFlushDelay ?? TimeSpan.FromMilliseconds(250);
+        _dashboardService = dashboardService;
     }
 
     // -------------------------------------------------------------------------
@@ -395,6 +403,9 @@ public class IngestionOrchestrator
             success: true,
             actionKey: "DocumentStored",
             cancellationToken: cancellationToken).ConfigureAwait(false);
+
+        // Record throughput: update the worker's /dashboard count with a real completed ingestion.
+        _dashboardService?.RecordDocumentProcessed();
 
         return Result<IngestionResult>.Success(new IngestionResult(
             FileId: caseFileId,

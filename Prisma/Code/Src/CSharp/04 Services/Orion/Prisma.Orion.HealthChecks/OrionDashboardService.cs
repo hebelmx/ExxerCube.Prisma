@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Prisma.Orion.Ingestion;
 
 namespace Prisma.Orion.HealthChecks;
 
@@ -8,14 +7,13 @@ namespace Prisma.Orion.HealthChecks;
 /// </summary>
 /// <remarks>
 /// Provides real-time metrics and statistics for monitoring:
-/// - Documents processed count
+/// - Documents processed count (incremented by the pipeline via <see cref="IDashboardService.RecordDocumentProcessed"/>)
 /// - Last event timestamp
 /// - Queue depth
 /// - Heartbeat timestamp
 /// </remarks>
 public sealed class OrionDashboardService : IDashboardService
 {
-    private readonly IngestionOrchestrator _orchestrator;
     private readonly ILogger<OrionDashboardService> _logger;
     private DateTime _lastHeartbeat;
     private int _documentsProcessed;
@@ -24,13 +22,9 @@ public sealed class OrionDashboardService : IDashboardService
     /// <summary>
     /// Initializes a new instance of the <see cref="OrionDashboardService"/> class.
     /// </summary>
-    /// <param name="orchestrator">Ingestion orchestrator.</param>
     /// <param name="logger">Logger.</param>
-    public OrionDashboardService(
-        IngestionOrchestrator orchestrator,
-        ILogger<OrionDashboardService> logger)
+    public OrionDashboardService(ILogger<OrionDashboardService> logger)
     {
-        _orchestrator = orchestrator;
         _logger = logger;
         _lastHeartbeat = DateTime.UtcNow;
     }
@@ -43,15 +37,10 @@ public sealed class OrionDashboardService : IDashboardService
         // Update heartbeat
         _lastHeartbeat = DateTime.UtcNow;
 
-        // TODO: Get actual metrics from orchestrator when available:
-        // - _documentsProcessed = _orchestrator.DocumentsProcessedCount;
-        // - _lastEventTime = _orchestrator.LastEventTime;
-        // - queueDepth = _orchestrator.QueueDepth;
-
         var stats = new DashboardStats(
             WorkerName: "Orion Ingestion Worker",
             Status: "Running",
-            DocumentsProcessed: _documentsProcessed,
+            DocumentsProcessed: Volatile.Read(ref _documentsProcessed),
             LastEventTime: _lastEventTime,
             LastHeartbeat: _lastHeartbeat,
             QueueDepth: 0);
@@ -59,20 +48,21 @@ public sealed class OrionDashboardService : IDashboardService
         return Task.FromResult(stats);
     }
 
-    /// <summary>
-    /// Records a document processed event.
-    /// </summary>
-    /// <remarks>
-    /// TODO: This should be called by orchestrator via event subscription or direct call.
-    /// </remarks>
+    /// <inheritdoc/>
     public void RecordDocumentProcessed()
     {
-        _documentsProcessed++;
+        // Registered as a singleton and called from concurrent pipeline threads —
+        // increment atomically to avoid lost updates.
+        var total = Interlocked.Increment(ref _documentsProcessed);
         _lastEventTime = DateTime.UtcNow;
+
+        _logger.LogDebug(
+            "Orion dashboard: document recorded. Total processed: {DocumentsProcessed}",
+            total);
     }
 
     // ========================================================================
-    // NEW: Railway-Oriented Programming Methods (Stage 4.5)
+    // Railway-Oriented Programming Methods (Stage 4.5)
     // ========================================================================
 
     /// <summary>

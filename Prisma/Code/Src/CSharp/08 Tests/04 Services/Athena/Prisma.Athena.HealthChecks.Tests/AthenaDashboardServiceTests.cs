@@ -1,15 +1,16 @@
 namespace ExxerCube.Prisma.Athena.HealthChecks.Tests;
 
 /// <summary>
-/// TDD tests for AthenaDashboardService.
+/// Unit tests for AthenaDashboardService.
 /// </summary>
 /// <remarks>
-/// Stage 4 Requirements:
-/// - Dashboard returns worker name
-/// - Dashboard returns documents processed count
-/// - Dashboard returns last event timestamp
-/// - Dashboard returns last heartbeat timestamp
-/// - Dashboard returns queue depth
+/// Verifies:
+/// - Dashboard returns worker name / status
+/// - Documents processed count starts at zero and increments via RecordDocumentProcessed
+/// - Last event timestamp is null until the first RecordDocumentProcessed call
+/// - Last heartbeat is updated on each GetStatsAsync call
+/// - Queue depth is non-negative
+/// - After N calls to RecordDocumentProcessed, DocumentsProcessed == N (core story assertion)
 /// </remarks>
 public sealed class AthenaDashboardServiceTests
 {
@@ -18,10 +19,7 @@ public sealed class AthenaDashboardServiceTests
     public async Task GetStatsAsync_ReturnsWorkerName()
     {
         // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaDashboardService(orchestrator, NullLogger<AthenaDashboardService>.Instance);
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
 
         // Act
         var stats = await service.GetStatsAsync(TestContext.Current.CancellationToken);
@@ -33,13 +31,10 @@ public sealed class AthenaDashboardServiceTests
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task GetStatsAsync_ReturnsDocumentsProcessed()
+    public async Task GetStatsAsync_ReturnsDocumentsProcessed_ZeroInitially()
     {
         // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaDashboardService(orchestrator, NullLogger<AthenaDashboardService>.Instance);
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
 
         // Act
         var stats = await service.GetStatsAsync(TestContext.Current.CancellationToken);
@@ -53,10 +48,7 @@ public sealed class AthenaDashboardServiceTests
     public async Task GetStatsAsync_ReturnsLastHeartbeat()
     {
         // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaDashboardService(orchestrator, NullLogger<AthenaDashboardService>.Instance);
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
         var beforeCall = DateTime.UtcNow;
 
         // Act
@@ -73,10 +65,7 @@ public sealed class AthenaDashboardServiceTests
     public async Task GetStatsAsync_LastEventTimeNull_WhenNoEventsProcessed()
     {
         // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaDashboardService(orchestrator, NullLogger<AthenaDashboardService>.Instance);
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
 
         // Act
         var stats = await service.GetStatsAsync(TestContext.Current.CancellationToken);
@@ -90,10 +79,7 @@ public sealed class AthenaDashboardServiceTests
     public async Task RecordDocumentProcessed_IncrementsCount()
     {
         // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaDashboardService(orchestrator, NullLogger<AthenaDashboardService>.Instance);
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
 
         // Act
         service.RecordDocumentProcessed();
@@ -110,10 +96,7 @@ public sealed class AthenaDashboardServiceTests
     public async Task RecordDocumentProcessed_UpdatesLastEventTime()
     {
         // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaDashboardService(orchestrator, NullLogger<AthenaDashboardService>.Instance);
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
         var beforeEvent = DateTime.UtcNow;
 
         // Act
@@ -131,10 +114,7 @@ public sealed class AthenaDashboardServiceTests
     public async Task GetStatsAsync_ReturnsQueueDepth()
     {
         // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaDashboardService(orchestrator, NullLogger<AthenaDashboardService>.Instance);
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
 
         // Act
         var stats = await service.GetStatsAsync(TestContext.Current.CancellationToken);
@@ -148,15 +128,52 @@ public sealed class AthenaDashboardServiceTests
     public async Task GetStatsAsync_ReturnsStatus()
     {
         // Arrange
-        var orchestrator = new ProcessingOrchestrator(
-            Substitute.For<IEventPublisher>(),
-            NullLogger<ProcessingOrchestrator>.Instance);
-        var service = new AthenaDashboardService(orchestrator, NullLogger<AthenaDashboardService>.Instance);
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
 
         // Act
         var stats = await service.GetStatsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         stats.Status.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    // ========================================================================
+    // PRISMA-E1-S7: Dashboard returns real throughput, not hardcoded zero
+    // ========================================================================
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Story", "PRISMA-E1-S7")]
+    public async Task RecordDocumentProcessed_CalledNTimes_DocumentsProcessedEqualsN()
+    {
+        // Arrange — simulates pipeline calling RecordDocumentProcessed after each extraction
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
+        const int n = 5;
+
+        // Act
+        for (var i = 0; i < n; i++)
+        {
+            service.RecordDocumentProcessed();
+        }
+
+        var stats = await service.GetStatsAsync(TestContext.Current.CancellationToken);
+
+        // Assert — dashboard no longer returns hardcoded zero; it reflects actual pipeline throughput
+        stats.DocumentsProcessed.ShouldBe(n);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    [Trait("Story", "PRISMA-E1-S7")]
+    public async Task WithNoRecordCalls_DocumentsProcessedIsZero()
+    {
+        // Arrange — fresh service, no documents processed
+        var service = new AthenaDashboardService(NullLogger<AthenaDashboardService>.Instance);
+
+        // Act
+        var stats = await service.GetStatsAsync(TestContext.Current.CancellationToken);
+
+        // Assert — zero is expected when nothing has been processed, not a stub lie
+        stats.DocumentsProcessed.ShouldBe(0);
     }
 }
