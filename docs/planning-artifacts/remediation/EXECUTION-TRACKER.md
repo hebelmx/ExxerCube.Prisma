@@ -5,7 +5,14 @@
 **Branch:** `Liv` · **Mode:** EXECUTION (orchestrator + isolated subagents; verify every result from ground truth).
 
 ## Handoff (top — update on each context clear)
-**WAVE-0 CRITICAL-FEW COMPLETE + ADVERSARIALLY REVIEWED 2026-06-19 — 7/7 stories + 1 review fix, all committed, pushed, ground-truth-verified.** HEAD=697b4fc8 on `Liv`.
+**WAVE-0 TAIL — PRISMA TRACK COMPLETE + ADVERSARIALLY REVIEWED + REMEDIATED 2026-06-19.** Prisma W0 tail = PRISMA-E1 S6/S2/S7/S5 all done on `Liv`. HEAD=a250d72d.
+Prisma-tail commits: 27b78e0c (S6 Serilog sinks — needed worker UseSerilog wire-up, brief's "config-only" premise was wrong), 56621a6e (S2 --migrate-only runner; workers only own PrismaDbContext, not 3 contexts), 03ae2a87 (S7 dashboard counts; Interlocked thread-safety fix), 9a36444e (S5 docker-compose.dev.yml 6-svc), a250d72d (S6/S7 REVIEW FIXES).
+**Adversarial review (plan-completion-reviewer) caught 2 Majors → FIXED in a250d72d:** (1) `${SEQ_URL}`/`${OTLP_ENDPOINT}` are NOT interpolated by ASP.NET Core config — Serilog Seq sink crashed all 4 hosts at boot on unset var; fix = `%SEQ_URL%` (Serilog env-expansion) + OTLP Endpoint=null+env-override + per-host SEQ_URL default guard. (2) S7 endpoint test only asserted >=0; added `==3`-after-record endpoint test to Athena+Orion Worker.Tests. Verified: Athena.Worker.Tests 25/25, Reconciliator.Worker.Tests 8/8, Orion.Worker.Tests 24/25 (1 pre-existing env-gated SignalR `IngestionHubWireTests` timing fail — host boots fine), Web.UI 0/0.
+**NEXT = VERIQAN W0 tail track** (V-S7 health → V-S8 OTel/Serilog → V-S10 extraction floor → V-S6 bundle move → V-S11 batch safeguards → V-S3 Dockerfile/compose → V-S9 runbook), then Prisma-track adversarial review already done. Docker-gated parts deferred (no Docker on box).
+**Lesson:** config-only stories that touch logging sinks MUST be verified by RUNNING a host (build ≠ boot) — `${}` vs `%%` and boot-crash were invisible to `dotnet build`.
+
+---
+### (prior) WAVE-0 CRITICAL-FEW COMPLETE + ADVERSARIALLY REVIEWED 2026-06-19 — 7/7 stories + 1 review fix, all committed, pushed, ground-truth-verified. HEAD=697b4fc8 on `Liv`.
 Commits: 523737f1 (P-S3), 7160806a (V-S2), ebc7d644 (P-S4), 3957b3c6 (V-S1), ded95284 (P-S1), 61dd6371 (V-S5), 4ded1760 (V-S4), 697b4fc8 (review-fix #1).
 **Adversarial review (plan-completion-reviewer):** confirmed ctor blast-radius safe (no prod path fails to resolve VerificationPipeline), re-verified 54/54 + 8/8. Found 1 Major → FIXED (697b4fc8: BLOCKED-from-binder verdicts now persisted; tests 56/56). Minors: #2/#3 no-action (out-of-scope simulator URLs / Docker-gated), #4 logged as follow-up (task: WAF test for Web.UI /health/ready 503 — wiring confirmed by code review, low priority).
 **Deferred (no Docker on box):** P-S1 `docker build`, V-S5 Testcontainers `VerdictPersistenceIntegrationTests` — run on a Docker/CI box to fully close.
