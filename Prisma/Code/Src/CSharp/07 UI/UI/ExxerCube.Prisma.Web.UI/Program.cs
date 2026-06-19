@@ -110,8 +110,20 @@ Inner Stack Trace:
             // Map API controllers
             app.MapControllers();
 
-            // Map health checks endpoint
+            // Map health checks endpoints.
+            // /health       — all registered checks (real DB probe); returns 200/503 based on aggregate status.
+            // /health/ready — subset tagged "ready" (DB probe); drives load-balancer/K8s readiness gate (E1-S4).
             app.MapHealthChecks("/health");
+            app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                Predicate = check => check.Tags.Contains("ready"),
+                ResultStatusCodes =
+                {
+                    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy] = StatusCodes.Status200OK,
+                    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded] = StatusCodes.Status200OK,
+                    [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                }
+            });
 
             // Map SignalR hub
             app.MapHub<ProcessingHub>("/processingHub");
@@ -192,8 +204,14 @@ Inner Stack Trace:
         // Add metrics services (needed for Dashboard and HealthCheckService)
         services.AddMetricsServices(pythonConfig.MaxConcurrency);
 
-        // Add health checks (required by app.MapHealthChecks)
-        services.AddHealthChecks();
+        // Add health checks (required by app.MapHealthChecks): register real DB-connectivity probe (E1-S4).
+        // PrismaDbHealthCheck calls CanConnectAsync via IDbContextFactory<ApplicationDbContext>; returns
+        // Unhealthy (HTTP 503) when the database is unreachable.
+        services.AddHealthChecks()
+            .AddCheck<ExxerCube.Prisma.Web.UI.HealthChecks.PrismaDbHealthCheck>(
+                "prisma-db",
+                failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
+                tags: ["db", "ready"]);
 
         // Add health check service (needed by Dashboard.razor)
         services.AddScoped<HealthCheckService>();

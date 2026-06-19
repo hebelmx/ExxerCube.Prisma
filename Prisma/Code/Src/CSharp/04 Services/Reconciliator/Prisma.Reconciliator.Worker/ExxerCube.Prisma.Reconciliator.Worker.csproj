@@ -23,5 +23,6 @@
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export\ExxerCube.Prisma.Infrastructure.Export.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export.Adaptive\ExxerCube.Prisma.Infrastructure.Export.Adaptive.csproj" />
     <ProjectReference Include="..\..\Athena\Prisma.Athena.Processing\ExxerCube.Prisma.Athena.Processing.csproj" />
+    <ProjectReference Include="..\Prisma.Reconciliator.HealthChecks\ExxerCube.Prisma.Reconciliator.HealthChecks.csproj" />
   </ItemGroup>
 </Project>

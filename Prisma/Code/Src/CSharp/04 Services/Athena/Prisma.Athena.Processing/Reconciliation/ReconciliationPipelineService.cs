@@ -24,7 +24,7 @@ namespace Prisma.Athena.Processing.Reconciliation;
 /// throw — a missing or corrupt artifact must not crash the Reconciliator. The raw document never crosses this
 /// edge; only the derived, fused expediente is loaded (data minimization, MVP A5).
 /// </remarks>
-public sealed class ReconciliationPipelineService
+public sealed class ReconciliationPipelineService : IReadinessProbe
 {
     private readonly IEventPublisher _eventPublisher;
     private readonly ReconciliationOrchestrator _reconciliationOrchestrator;
@@ -34,6 +34,15 @@ public sealed class ReconciliationPipelineService
     private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
     private readonly ProcessClearance _processClearance;
     private IDisposable? _subscription;
+
+    /// <summary>
+    /// Gets a value indicating whether the Reconciliation pipeline has started and subscribed to the
+    /// extraction-completed event stream. Drives the Reconciliator worker's readiness probe (MVP-PATH 4.2 / E1-S4).
+    /// </summary>
+    public bool IsStarted { get; private set; }
+
+    /// <inheritdoc />
+    bool IReadinessProbe.IsReady => IsStarted;
 
     /// <summary>Initializes a new instance of the <see cref="ReconciliationPipelineService"/> class.</summary>
     /// <param name="eventPublisher">The local event stream the reconciliation forwarder republishes onto.</param>
@@ -96,6 +105,9 @@ public sealed class ReconciliationPipelineService
                     }
                 },
                 onError: ex => _logger.LogError(ex, "Error in ExtractionCompletedEvent stream"));
+
+        IsStarted = true;
+        _logger.LogInformation("Reconciliation pipeline started: subscribed to ExtractionCompletedEvent stream");
 
         return Task.CompletedTask;
     }

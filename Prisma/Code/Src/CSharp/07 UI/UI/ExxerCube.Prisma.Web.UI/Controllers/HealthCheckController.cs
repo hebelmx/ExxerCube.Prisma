@@ -1,104 +1,81 @@
-using ExxerCube.Prisma.Domain.Models;
-using ExxerCube.Prisma.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
+using MsHealthChecks = Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace ExxerCube.Prisma.Web.UI.Controllers;
 
 /// <summary>
-/// Health check controller for system monitoring.
+/// REST controller that exposes health status for backward-compatible API consumers.
 /// </summary>
+/// <remarks>
+/// The authoritative health probes are the ASP.NET Core middleware endpoints:
+/// <c>GET /health</c> and <c>GET /health/ready</c> (wired via <c>MapHealthChecks</c>).
+/// This controller delegates to the framework's <see cref="MsHealthChecks.HealthCheckService"/> so the
+/// response reflects the real registered checks (DB connectivity via <c>PrismaDbHealthCheck</c>),
+/// never a hardcoded string. MVP-PATH E1-S4.
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 public class HealthCheckController : ControllerBase
 {
     private readonly ILogger<HealthCheckController> _logger;
-    private readonly IOcrProcessingService _ocrService;
+    private readonly MsHealthChecks.HealthCheckService _healthCheckService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HealthCheckController"/> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
-    /// <param name="ocrService">The OCR processing service.</param>
-    public HealthCheckController(ILogger<HealthCheckController> logger, IOcrProcessingService ocrService)
+    /// <param name="healthCheckService">The ASP.NET Core health check service.</param>
+    public HealthCheckController(
+        ILogger<HealthCheckController> logger,
+        MsHealthChecks.HealthCheckService healthCheckService)
     {
-        _logger = logger;
-        _ocrService = ocrService;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _healthCheckService = healthCheckService ?? throw new ArgumentNullException(nameof(healthCheckService));
     }
 
     /// <summary>
-    /// Gets the system health status.
+    /// Gets the system health status by running all registered health checks.
     /// </summary>
-    /// <returns>The health status.</returns>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The aggregated health status.</returns>
     [HttpGet]
-    public IActionResult GetHealth()
+    public async Task<IActionResult> GetHealth(CancellationToken cancellationToken)
     {
         try
         {
-            var healthStatus = new
+            var report = await _healthCheckService
+                .CheckHealthAsync(cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            var statusCode = report.Status == MsHealthChecks.HealthStatus.Unhealthy
+                ? StatusCodes.Status503ServiceUnavailable
+                : StatusCodes.Status200OK;
+
+            var response = new
             {
-                Status = "Healthy",
+                Status = report.Status.ToString(),
                 Timestamp = DateTime.UtcNow,
-                Services = new
-                {
-                    OCR = "Available",
-                    Python = "Available",
-                    Database = "Available"
-                }
+                Checks = report.Entries.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new
+                    {
+                        Status = kvp.Value.Status.ToString(),
+                        Description = kvp.Value.Description
+                    })
             };
 
-            return Ok(healthStatus);
+            _logger.LogTrace(
+                "Health check requested via API controller. Aggregate status: {Status}",
+                report.Status);
+
+            return StatusCode(statusCode, response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Health check failed");
-            return StatusCode(500, new { Status = "Unhealthy", Error = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// Tests the Python integration with a simple OCR test.
-    /// </summary>
-    /// <returns>The test result.</returns>
-    [HttpGet("test-python")]
-    public async Task<IActionResult> TestPythonIntegration()
-    {
-        try
-        {
-            // Create a simple test image data
-            var testImageData = new ImageData
+            _logger.LogError(ex, "Health check API failed unexpectedly");
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
             {
-                SourcePath = "test.png",
-                Data = new byte[] { 255, 255, 255 }, // Simple white image
-                PageNumber = 1,
-                TotalPages = 1
-            };
-
-            var config = new ProcessingConfig
-            {
-                OCRConfig = new OCRConfig
-                {
-                    Language = "spa",
-                    ConfidenceThreshold = 80.0f
-                }
-            };
-
-            // Test the OCR service
-            var result = await _ocrService.ProcessDocumentAsync(testImageData, config);
-
-            return Ok(new
-            {
-                Status = "Python Integration Test",
-                Success = result.IsSuccess,
-                Message = result.IsSuccess ? "Python integration working" : result.Error,
-                Timestamp = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Python integration test failed");
-            return StatusCode(500, new
-            {
-                Status = "Python Integration Test Failed",
+                Status = MsHealthChecks.HealthStatus.Unhealthy.ToString(),
                 Error = ex.Message,
                 Timestamp = DateTime.UtcNow
             });

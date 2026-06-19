@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Prisma.Athena.Processing;
 using Prisma.Athena.Processing.Reconciliation;
+using Prisma.Reconciliator.HealthChecks;
 using Prisma.Reconciliator.Worker;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -107,11 +108,40 @@ builder.Services.AddSingleton<ReconciliationPipelineService>(sp =>
 });
 builder.Services.AddHostedService<ReconciliatorWorkerService>();
 
+// Readiness (MVP-PATH 4.2 / E1-S4): the Reconciliation pipeline is the component this worker actually starts,
+// so it is the truthful readiness signal. Resolve the same singleton instance behind IReadinessProbe.
+builder.Services.AddSingleton<IReadinessProbe>(sp => sp.GetRequiredService<ReconciliationPipelineService>());
+
+// Register health check service backed by the real IReadinessProbe.
+builder.Services.AddSingleton<IHealthCheckService, ReconciliatorHealthCheckService>();
+
 var app = builder.Build();
 
-// Health endpoints (minimal: the Reconciliator is a background subscriber with no orchestrator readiness gate yet).
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
-app.MapGet("/health/live", () => Results.Ok(new { status = "Healthy" }));
+// Health endpoints — mirror the Athena/Orion idiom (Orion Program.cs:225-244).
+// /health     → overall (Healthy 200 / Degraded 503)
+// /health/live → liveness only (always 200 while process is alive)
+// /health/ready → readiness (Healthy 200 / Unhealthy 503); this is the probe that gates traffic.
+app.MapGet("/health", async (IHealthCheckService healthCheck, CancellationToken ct) =>
+{
+    var result = await healthCheck.GetHealthAsync(ct);
+    return result.Status == OrchestratorHealthState.Healthy
+        ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
+        : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
+});
+
+app.MapGet("/health/live", async (IHealthCheckService healthCheck, CancellationToken ct) =>
+{
+    var result = await healthCheck.GetLivenessAsync(ct);
+    return Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data });
+});
+
+app.MapGet("/health/ready", async (IHealthCheckService healthCheck, CancellationToken ct) =>
+{
+    var result = await healthCheck.GetReadinessAsync(ct);
+    return result.Status == OrchestratorHealthState.Healthy
+        ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
+        : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
+});
 
 await app.RunAsync();
 

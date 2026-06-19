@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Core Properties">
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup Label="xUnit v3">
+    <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="Microsoft.Testing.Platform" />
+  </ItemGroup>
+  <ItemGroup Label="Testing Infrastructure">
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Reconciliator\Prisma.Reconciliator.HealthChecks\ExxerCube.Prisma.Reconciliator.HealthChecks.csproj" />
+    <ProjectReference Include="..\..\..\..\04 Services\Reconciliator\Prisma.Reconciliator.Worker\ExxerCube.Prisma.Reconciliator.Worker.csproj" />
+  </ItemGroup>
+</Project>

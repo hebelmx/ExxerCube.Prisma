@@ -60,6 +60,8 @@
   <ItemGroup Label="Project-Specific Packages">
     <PackageReference Include="Microsoft.Playwright" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\07 UI\UI\ExxerCube.Prisma.Web.UI\ExxerCube.Prisma.Web.UI.csproj" />
