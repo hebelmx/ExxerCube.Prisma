@@ -25,8 +25,13 @@
 | RC.2 | Adversarial refutation — Veriqan (2 skeptics) | ✅ DONE |
 | RC.3 | Negative-space lenses — Veriqan (3 lenses) | ✅ DONE |
 | RC.4 | Synthesis: Veriqan readiness matrix + path-to-production | ✅ DONE → `RC4-VERIQAN-READINESS-MATRIX.md` |
-| RC.5 | Repeat 0–4 for whole Prisma MVP (Track B) | pending |
-| RC.6 | Merge: one cross-cutting path-to-production + unknown-unknowns | pending |
+| RC.5 | Repeat 0–4 for whole Prisma MVP (Track B) | ✅ DONE → `RC5-PRISMA-READINESS-MATRIX.md` (RC5a–d evidence) |
+| RC.6 | Merge: one cross-cutting path-to-production + unknown-unknowns | ✅ DONE → `RC6-CROSS-CUTTING-PATH-TO-PRODUCTION.md` |
+
+## Track B verified crux (ground truth, not agent prose)
+- **Prisma MVP is FAR more mature than CLAUDE.md/06-11 say.** Orion wires the REAL `SiaraDocumentDownloader` (`Orion.Worker/Program.cs:64`; stub registered nowhere). The 3-process split (Orion→Athena→Reconciliator) is genuinely wired across 3 Ember-coordinated hosts with JWT clearance + per-process audit. A real full-pipeline E2E passes: `MaxFidelityGateFullPipelineE2ETests` (real Playwright SIARA-sim → real Tesseract OCR → EmguCV quality → multi-source fusion → classification → SIRO XML export → real SQL audit; "nothing stubbed in the pipeline"). Builds 0/0; Orion.Ingestion 55/55, Athena.Processing 105/105.
+- **Residual tail (real, bounded):** simulator-only ingestion (live `siara.cnbv.gob.mx` is LEGAL-gated — P1 counsel pending, `Siara:AllowProductionHost=false`); 3-process-over-real-TCP unproven in the max-fidelity run (proven separately by HubWireTests); NO deploy artifacts for the 4 hosts; hardcoded config (`Server=DESKTOP-FB2ES22\SQL2022`, `(localdb)`, `localhost:5002`, `C:\SiaraData\logs\`); Reconciliator/Sentinel/Web.UI probe stubs; worker /dashboard zeros; security flags (shared HMAC JWT, no field-level encryption-at-rest for legal PII, audit not immutable). Quality coefficients REAL (GA R²>0.89) but uncalibrated provenance.
+- **Severity tally:** Veriqan 64 gaps (28 Blocks); Prisma 44 gaps (16 Blocks). Two non-eng critical-path unlocks: E13 buyer-gate (#17, Veriqan) + live-SIARA legal P1 (Prisma); shared corpus/data need.
 
 ## Orchestrator-verified crux findings (ground truth, not agent prose)
 1. **Pipeline stops at verdict — nothing downstream runs or persists.** `VerificationPipeline.ProcessAsync` (Orchestration/Pipeline/VerificationPipeline.cs) runs ingest→extract→bind→tenant-resolve→validate→verdict(Stage 7)→**returns**. NO marked-PDF, NO email/alert, NO disposition, and persists ONLY the `VerificationJob` (Stage 1) — findings + verdict are returned in-memory and discarded. Confirmed by full read.
