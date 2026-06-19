@@ -1,0 +1,144 @@
+# =============================================================================
+# ExxerCube.Prisma — Veriqan VEC Worker local-dev compose
+# =============================================================================
+# Usage:
+#   1. cp .env.veriqan.example .env.veriqan   # fill in required secrets
+#   2. docker compose -f docker-compose.veriqan.yml up --build
+#
+# Services (2 total):
+#   sqlserver       — SQL Server 2022 (persistence dependency)
+#   veriqan-worker  — Veriqan VEC Worker  (port 8080 on host)
+#
+# Volumes (2 total):
+#   veriqan-sqldata — SQL Server data files (named, persisted across restarts)
+#   veriqan-data    — Reference-bundle CSV files (bind-mounted from repo tree)
+#
+# Build context for veriqan-worker is the REPO ROOT so the Dockerfile can
+#   COPY Prisma/Code/Src/CSharp/ and the root nuget.config.
+#
+# Required env vars (set in .env.veriqan — never hardcode here):
+#   VERIQAN_SA_PASSWORD          — SQL Server SA password (≥8 chars, mixed)
+#   VERIQAN_ENCRYPTION_KEY       — Base64-encoded 32-byte AES-256 key
+#                                   Generate: openssl rand -base64 32
+#   VERIQAN_SMTP_HOST            — SMTP relay host (required for alert emails)
+#   VERIQAN_SMTP_USER            — SMTP auth user  (leave blank for open relay)
+#   VERIQAN_SMTP_PASSWORD        — SMTP auth password (leave blank for open relay)
+#   VERIQAN_ALERT_RECIPIENTS     — JSON array of alert emails
+#                                   Example: ["ops@example.com","sec@example.com"]
+# Optional / observability:
+#   ASPNETCORE_ENVIRONMENT       — Default: Development
+#   OTLP_ENDPOINT                — Default: http://localhost:4317
+#   SEQ_URL                      — Default: (empty = Seq sink disabled)
+# =============================================================================
+
+networks:
+  veriqan-dev:
+    driver: bridge
+
+volumes:
+  # SQL Server data directory — persists database files across container restarts.
+  veriqan-sqldata:
+    driver: local
+
+  # Reference-bundle CSV files — bind-mounted from the repo so edits to the
+  # checked-in bundle are immediately visible inside the container without rebuild.
+  veriqan-data:
+    driver: local
+
+# =============================================================================
+services:
+
+  # ---------------------------------------------------------------------------
+  # SQL Server 2022
+  # VERIQAN_SA_PASSWORD must be set in .env.veriqan.
+  # veriqan-worker depends on this becoming healthy before it starts.
+  # ---------------------------------------------------------------------------
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: veriqan-sqlserver
+    networks:
+      - veriqan-dev
+    ports:
+      - "1434:1433"   # 1434 on host avoids collision with any existing 1433 binding.
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${VERIQAN_SA_PASSWORD}
+      MSSQL_PID: Developer
+    volumes:
+      - veriqan-sqldata:/var/opt/mssql
+    healthcheck:
+      # sqlcmd is bundled in the SQL Server image.
+      # Retry generously — SQL Server takes ~20 s on first boot.
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q 'SELECT 1' > /dev/null 2>&1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Veriqan VEC Worker
+  # Builds from repo root so the multi-stage Dockerfile can reach nuget.config
+  # and the full CSharp source tree.
+  # ---------------------------------------------------------------------------
+  veriqan-worker:
+    build:
+      context: .
+      dockerfile: "Prisma/Code/Src/CSharp/04 Services/Veriqan.Worker/Dockerfile"
+    container_name: veriqan-worker
+    image: veriqan-worker:dev
+    networks:
+      - veriqan-dev
+    ports:
+      - "8080:8080"
+    env_file: .env.veriqan
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+
+      # SQL persistence — service name 'sqlserver' resolves inside the network.
+      ConnectionStrings__VeriqanDb: >-
+        Server=sqlserver,1433;Database=VeriqanDb;User Id=sa;Password=${VERIQAN_SA_PASSWORD};
+        Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
+
+      # Reference-bundle CSV root — must match the volume mount point below.
+      Veriqan__CsvReferenceData__RootDirectory: "/data/veriqan/reference-bundles"
+
+      # AES-256 encryption key for at-rest tolerance values (required with SQL persistence).
+      Veriqan__LegalBaseline__EncryptionKey: ${VERIQAN_ENCRYPTION_KEY}
+
+      # OpenTelemetry OTLP endpoint.
+      Veriqan__OtlpEndpoint: ${OTLP_ENDPOINT:-http://localhost:4317}
+
+      # Seq structured-log sink (empty string = disabled).
+      Veriqan__Seq__ServerUrl: ${SEQ_URL:-}
+
+      # SMTP — required for RED-verdict alert email dispatch.
+      Veriqan__Smtp__Host: ${VERIQAN_SMTP_HOST:-localhost}
+      Veriqan__Smtp__Port: "587"
+      Veriqan__Smtp__EnableSsl: "true"
+      Veriqan__Smtp__From: "noreply@veriqan.local"
+      Veriqan__Smtp__UserName: ${VERIQAN_SMTP_USER:-}
+      Veriqan__Smtp__Password: ${VERIQAN_SMTP_PASSWORD:-}
+
+      # Alert recipients — JSON array string.
+      # Example in .env.veriqan: VERIQAN_ALERT_RECIPIENTS=["ops@example.com"]
+      Veriqan__Alerts__Recipients: ${VERIQAN_ALERT_RECIPIENTS:-[]}
+
+    volumes:
+      # Bind-mount the repo reference-bundle directory into the container.
+      # Source path is relative to the compose file (repo root).
+      # Target MUST match Veriqan__CsvReferenceData__RootDirectory above.
+      - type: bind
+        source: ./Prisma/Data/Veriqan/reference-bundles
+        target: /data/veriqan/reference-bundles
+        read_only: true
+
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
