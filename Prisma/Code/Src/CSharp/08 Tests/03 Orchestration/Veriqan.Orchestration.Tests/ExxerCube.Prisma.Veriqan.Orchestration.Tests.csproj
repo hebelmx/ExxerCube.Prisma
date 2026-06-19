@@ -25,6 +25,7 @@
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
   <ItemGroup Label="Logging">
     <PackageReference Include="Microsoft.Extensions.Logging" />
@@ -72,6 +73,7 @@
     <ProjectReference Include="..\..\..\02 Infrastructure\Veriqan.Infrastructure.Validation\ExxerCube.Prisma.Veriqan.Infrastructure.Validation.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Veriqan.Infrastructure.Visual\ExxerCube.Prisma.Veriqan.Infrastructure.Visual.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Veriqan.Infrastructure.Reporting\ExxerCube.Prisma.Veriqan.Infrastructure.Reporting.csproj" />
+    <ProjectReference Include="..\..\..\04 Services\Veriqan.Worker\ExxerCube.Prisma.Veriqan.Worker.csproj" />
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />
