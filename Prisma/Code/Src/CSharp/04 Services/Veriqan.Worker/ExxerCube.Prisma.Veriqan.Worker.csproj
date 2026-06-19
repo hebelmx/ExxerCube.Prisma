@@ -12,5 +12,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\03 Orchestration\Veriqan.Orchestration\ExxerCube.Prisma.Veriqan.Orchestration.csproj" />
+    <ProjectReference Include="..\Veriqan.Worker.HealthChecks\ExxerCube.Prisma.Veriqan.Worker.HealthChecks.csproj" />
   </ItemGroup>
 </Project>

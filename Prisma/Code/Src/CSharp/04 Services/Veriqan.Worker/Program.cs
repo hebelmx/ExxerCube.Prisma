@@ -1,18 +1,59 @@
+using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Stores;
+using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Adapters;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Worker;
+using ExxerCube.Prisma.Veriqan.Worker.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Veriqan VEC batch worker — full DI composition via Orchestration layer.
 builder.Services.AddVeriqan(builder.Configuration);
 
+// Health-check service — the SqlLegalToleranceProvider is optional (only present when SQL
+// persistence is configured via ConnectionStrings:VeriqanDb). We resolve it as the concrete
+// type directly so the check can read IsWarm; the interface does not expose that property.
+builder.Services.AddSingleton<IHealthCheckService>(sp =>
+{
+    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+    // Null when running with in-memory persistence (no connection string).
+    var toleranceProvider = sp.GetService<SqlLegalToleranceProvider>();
+    var csvOptions = sp.GetRequiredService<IOptions<CsvReferenceDataOptions>>();
+    var logger = sp.GetRequiredService<ILogger<VeriqanWorkerHealthCheckService>>();
+    return new VeriqanWorkerHealthCheckService(scopeFactory, toleranceProvider, csvOptions, logger);
+});
+
 var app = builder.Build();
 
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
-app.MapGet("/health/live", () => Results.Ok(new { status = "Healthy" }));
+// Health endpoints — backed by VeriqanWorkerHealthCheckService (three readiness checks).
+// /health/live → liveness only: process-up, no external deps.
+// /health/ready → all three readiness checks; 503 when any check fails.
+// /health       → combined (same readiness set); kept for backward compatibility.
+app.MapGet("/health/live", async (IHealthCheckService healthCheck, CancellationToken ct) =>
+{
+    var result = await healthCheck.GetLivenessAsync(ct);
+    return Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data });
+});
+
+app.MapGet("/health/ready", async (IHealthCheckService healthCheck, CancellationToken ct) =>
+{
+    var result = await healthCheck.GetReadinessAsync(ct);
+    return result.Status == OrchestratorHealthState.Healthy
+        ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
+        : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
+});
+
+app.MapGet("/health", async (IHealthCheckService healthCheck, CancellationToken ct) =>
+{
+    var result = await healthCheck.GetHealthAsync(ct);
+    return result.Status == OrchestratorHealthState.Healthy
+        ? Results.Ok(new { status = result.Status.ToString(), description = result.Description, data = result.Data })
+        : Results.Json(new { status = result.Status.ToString(), description = result.Description, data = result.Data }, statusCode: 503);
+});
 
 // POST /verify — single-statement verification.
 // TODO(E4): add authentication/authorisation before production deployment.

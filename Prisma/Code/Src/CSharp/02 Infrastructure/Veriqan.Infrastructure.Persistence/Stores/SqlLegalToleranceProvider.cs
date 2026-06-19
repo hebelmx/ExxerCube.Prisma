@@ -51,6 +51,13 @@ public sealed class SqlLegalToleranceProvider : ILegalToleranceProvider
     }
 
     /// <summary>
+    /// Gets a value indicating whether the in-memory tolerance cache has been initialised.
+    /// Returns <c>false</c> until <see cref="InitialiseAsync"/> completes successfully.
+    /// Exposed so health-check probes can report warm/cold state without relying on <see cref="Has"/>.
+    /// </summary>
+    public bool IsWarm => _cache is not null;
+
+    /// <summary>
     /// Loads tolerances from the SQL store into the in-memory cache.
     /// Call exactly once at startup (from <c>VeriqanLegalBaselineStartupService</c>)
     /// before any synchronous <see cref="For"/> query.
