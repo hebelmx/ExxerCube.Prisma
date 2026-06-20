@@ -7,11 +7,40 @@ namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract;
 /// Tesseract OCR implementation of IOcrExecutor.
 /// Provides traditional OCR processing using Tesseract engine for fast, reliable text extraction.
 /// </summary>
-public class TesseractOcrExecutor : IOcrExecutor
+/// <remarks>
+/// <para>
+/// <strong>Engine-lifecycle design (deadlock fix, 2026-06-20):</strong>
+/// <c>TesseractEngine</c> must be created AT MOST ONCE per process: the native Tesseract library holds
+/// global state and deadlocks if a second engine is initialized before the first is fully disposed.
+/// Additionally <c>TesseractEngine</c> is NOT thread-safe, so concurrent OCR calls on a shared engine
+/// would corrupt results.
+/// </para>
+/// <para>
+/// Fix: the engine is created LAZILY on first use and then reused for the lifetime of this executor
+/// instance. Concurrent calls are serialized via <see cref="_engineLock"/> (a <see cref="SemaphoreSlim"/>
+/// with max-count = 1). Register this class as a SINGLETON in DI (<c>AddSingleton</c>) so only one engine
+/// is ever created in the process. This executor implements <see cref="IDisposable"/> so the DI container
+/// properly disposes the engine on host shutdown.
+/// </para>
+/// <para>
+/// Do NOT register this class as Transient or Scoped — each new instance would create a second engine
+/// in the same process and trigger the deadlock.
+/// </para>
+/// </remarks>
+public sealed class TesseractOcrExecutor : IOcrExecutor, IDisposable
 {
     private readonly ILogger<TesseractOcrExecutor> _logger;
+
+    // Cross-instance path cache: finding tessdata is expensive; cache the resolved path once across
+    // all executor instances (safe as static because the path is write-once and never changes).
     private static readonly SemaphoreSlim _tessdataLock = new(1, 1);
     private static string? _cachedTessdataPath;
+
+    // Per-instance engine + lock. The engine is created once on first use; all OCR calls are
+    // serialized through _engineLock because TesseractEngine is NOT thread-safe.
+    private TesseractEngine? _engine;
+    private readonly SemaphoreSlim _engineLock = new(1, 1);
+    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TesseractOcrExecutor"/> class.
@@ -30,6 +59,11 @@ public class TesseractOcrExecutor : IOcrExecutor
     /// <returns>A result containing the OCR result or an error.</returns>
     public async Task<Result<OCRResult>> ExecuteOcrAsync(ImageData imageData, OCRConfig config)
     {
+        if (_disposed)
+        {
+            return Result<OCRResult>.Failure("TesseractOcrExecutor has been disposed.");
+        }
+
         try
         {
             // Validate input first (before any logging that accesses imageData properties)
@@ -54,7 +88,7 @@ public class TesseractOcrExecutor : IOcrExecutor
             // Map language code to Tesseract format
             var tesseractLanguage = MapToTesseractLanguage(config.Language);
 
-            // Get tessdata path
+            // Get tessdata path (cross-instance cached, one-time I/O scan)
             var tessdataPath = await GetTessdataPathAsync();
 
             _logger.LogDebug(
@@ -64,12 +98,33 @@ public class TesseractOcrExecutor : IOcrExecutor
                 config.PSM,
                 tessdataPath);
 
-            // Process image using Tesseract (run on background thread to avoid blocking)
-            var result = await Task.Run(() => ProcessWithTesseract(
-                imageData.Data,
-                tessdataPath,
-                tesseractLanguage,
-                config));
+            // Acquire the per-instance engine lock to ensure:
+            //   1) Only one TesseractEngine is ever created in this process (deadlock prevention).
+            //   2) Concurrent OCR calls are serialized (TesseractEngine is NOT thread-safe).
+            // Run the CPU-bound work on a thread-pool thread to avoid blocking the calling async context.
+            var result = await Task.Run(() =>
+            {
+                _engineLock.Wait();
+                try
+                {
+                    // Lazy-init: create the engine once and reuse for the lifetime of this singleton.
+                    if (_engine == null)
+                    {
+                        _logger.LogInformation(
+                            "Initializing TesseractEngine (once per process) — tessdata={TessdataPath}, lang={Language}, OEM={OEM}",
+                            tessdataPath, tesseractLanguage, config.OEM);
+                        _engine = new TesseractEngine(tessdataPath, tesseractLanguage, (EngineMode)config.OEM);
+                        _engine.SetVariable("tessedit_char_whitelist",
+                            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:!?¿¡()[]{}\"'-/$%&ñÑáéíóúÁÉÍÓÚüÜ ");
+                    }
+
+                    return ProcessWithEngine(_engine, imageData.Data, config);
+                }
+                finally
+                {
+                    _engineLock.Release();
+                }
+            });
 
             return result;
         }
@@ -80,14 +135,34 @@ public class TesseractOcrExecutor : IOcrExecutor
         }
     }
 
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _engineLock.Wait();
+        try
+        {
+            _engine?.Dispose();
+            _engine = null;
+        }
+        finally
+        {
+            _engineLock.Release();
+            _engineLock.Dispose();
+        }
+    }
+
     /// <summary>
-    /// Processes image bytes with Tesseract OCR engine.
+    /// Processes image bytes using an already-initialized, caller-locked <see cref="TesseractEngine"/>.
+    /// The caller is responsible for holding <see cref="_engineLock"/> for the duration of this call
+    /// because <see cref="TesseractEngine"/> is not thread-safe.
     /// </summary>
-    private Result<OCRResult> ProcessWithTesseract(
-        byte[] imageBytes,
-        string tessdataPath,
-        string language,
-        OCRConfig config)
+    private Result<OCRResult> ProcessWithEngine(TesseractEngine engine, byte[] imageBytes, OCRConfig config)
     {
         try
         {
@@ -105,18 +180,10 @@ public class TesseractOcrExecutor : IOcrExecutor
             }
             catch
             {
-                // If direct image load fails, try as PDF using PyMuPDF approach
-                // For now, we'll use a simpler approach with PdfPig
+                // If direct image load fails, try as PDF
                 _logger.LogDebug("Direct image loading failed, attempting PDF conversion");
                 processedImageBytes = ConvertPdfToImage(imageBytes);
             }
-
-            // Initialize Tesseract engine
-            using var engine = new TesseractEngine(tessdataPath, language, (EngineMode)config.OEM);
-
-            // Configure engine parameters
-            engine.SetVariable("tessedit_char_whitelist",
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:!?¿¡()[]{}\"'-/$%&ñÑáéíóúÁÉÍÓÚüÜ ");
 
             // Load image into Tesseract
             using var pix = Pix.LoadFromMemory(processedImageBytes);

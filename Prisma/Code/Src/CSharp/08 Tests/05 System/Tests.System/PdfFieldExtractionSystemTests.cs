@@ -28,9 +28,11 @@ public class PdfFieldExtractionSystemTests : IDisposable
             builder.SetMinimumLevel(LogLevel.Debug);
         });
 
-        // Register OCR pipeline services
+        // Register OCR pipeline services.
+        // Singleton lifetime is MANDATORY for TesseractOcrExecutor: native TesseractEngine deadlocks
+        // if initialized more than once in the same process. See TesseractOcrExecutor XML doc.
         services.AddSingleton<IImagePreprocessor, NoOpImagePreprocessor>();
-        services.AddScoped<IOcrExecutor, TesseractOcrExecutor>();
+        services.AddSingleton<IOcrExecutor, TesseractOcrExecutor>();
         services.AddScoped<IPdfToImageConverter, PdfToImageConverter>();
 
         // Register field extractors

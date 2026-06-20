@@ -42,16 +42,27 @@ public static class ServiceCollectionExtensions
         // Register XML field extractor for CNBV/PRP1 structured XML documents
         services.AddScoped<IFieldExtractor<XmlSource>, XmlFieldExtractor>();
 
-        // Register OCR executors with keyed services for runtime selection
-        // Tesseract: Fast, traditional OCR (3-6s, 80-93% confidence)
-        services.AddKeyedScoped<IOcrExecutor, Teseract.TesseractOcrExecutor>("Tesseract");
+        // Register OCR executors with keyed services for runtime selection.
+        // SINGLETON lifetime is MANDATORY for TesseractOcrExecutor — see its XML doc for details.
+        // Short version: TesseractEngine may only be instantiated ONCE per process (native global state
+        // deadlocks on a second init). Scoped/Transient lifetimes would create a new instance (and a new
+        // engine) per scope/call, triggering the deadlock on any second OCR use in the same process.
+        //
+        // CRITICAL: register ONE concrete TesseractOcrExecutor singleton and FORWARD both the unkeyed
+        // IOcrExecutor and the keyed "Tesseract" IOcrExecutor to that SAME instance. Registering the
+        // concrete type twice (once keyed, once unkeyed) would build TWO executors → TWO engines → the
+        // exact second-init deadlock this guards against, if both are ever resolved in one process.
+        services.AddSingleton<Teseract.TesseractOcrExecutor>();
+        services.AddKeyedSingleton<IOcrExecutor>(
+            "Tesseract",
+            (sp, _) => sp.GetRequiredService<Teseract.TesseractOcrExecutor>());
 
         // GOT-OCR2: Transformer-based, slower but more accurate (140s, 88%+ confidence)
         // DISABLED: Requires IPythonEnvironment which is not configured
         // services.AddKeyedScoped<IOcrExecutor, GotOcr2.GotOcr2OcrExecutor>("GotOcr2");
 
         // Default: Use Tesseract as primary (fast), fallback to GOT-OCR2 for low confidence
-        services.AddScoped<IOcrExecutor, Teseract.TesseractOcrExecutor>();
+        services.AddSingleton<IOcrExecutor>(sp => sp.GetRequiredService<Teseract.TesseractOcrExecutor>());
 
         // Register comparison service
         services.AddScoped<IDocumentComparisonService, DocumentComparisonService>();

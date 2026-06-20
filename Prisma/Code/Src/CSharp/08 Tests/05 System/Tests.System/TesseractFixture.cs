@@ -16,9 +16,9 @@ public class TesseractFixture : IAsyncLifetime
     {
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
 
-        // Register Tesseract executor
-        // TODO: Implement TesseractOcrExecutor in Infrastructure.Extraction
-        builder.Services.AddScoped<IOcrExecutor, TesseractOcrExecutor>();
+        // Singleton lifetime is MANDATORY: TesseractEngine (native) deadlocks if initialized twice
+        // in the same process. AddSingleton ensures exactly one engine for the test host's lifetime.
+        builder.Services.AddSingleton<IOcrExecutor, TesseractOcrExecutor>();
 
         // Register imaging infrastructure (quality analyzer, filters)
         builder.Services.AddImagingInfrastructure(FilterSelectionStrategyType.Analytical);

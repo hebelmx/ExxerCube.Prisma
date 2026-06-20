@@ -30,11 +30,12 @@ namespace ExxerCube.Prisma.Tests.AllRealWireE2E;
 /// </para>
 /// <para>
 /// Scope: this gate asserts the best-effort <strong>ingestion + cross-process handoff</strong> contract
-/// (skip → flag → forward → persist), which fully completes before Stage-1/2. It deliberately does NOT
-/// await the downstream OCR→fusion→export — that machinery is proven by the complete-case gate
-/// (<see cref="MaxFidelityGateFullPipelineE2ETests.RealSiaraCase_FlowsAcrossAllThreeProcesses_WithRealPipeline_AndPersistsAudit"/>),
-/// and re-running native Tesseract a second time in the same test process is a known transient flake we
-/// keep this scenario independent of.
+/// (skip → flag → forward → persist), which fully completes before Stage-1/2. The full
+/// OCR→fusion→export pipeline now runs — it is no longer skipped after the PRISMA-E2-S4 fix
+/// (2026-06-20) which eliminated the second-init deadlock by lazy-initializing
+/// <c>TesseractEngine</c> once and reusing it as a singleton. That machinery is also proven by
+/// the complete-case gate
+/// (<see cref="MaxFidelityGateFullPipelineE2ETests.RealSiaraCase_FlowsAcrossAllThreeProcesses_WithRealPipeline_AndPersistsAudit"/>).
 /// </para>
 /// <para>
 /// Isolated from <see cref="MaxFidelityGateFullPipelineE2ETests"/> via the <c>MaxFidelityGate</c>
@@ -65,9 +66,12 @@ public sealed class MaxFidelityGatePartialCaseE2ETests : MaxFidelityGateE2EBase
         var storageState = await LoginAndCaptureStorageStateAsync(ct);
         storageState.ShouldNotBeNullOrEmpty("the simulator login must yield an authenticated storage-state");
 
-        // Keep the real ingestion forwarder but skip the OCR extraction pipeline (see method remarks): this
-        // asserts the best-effort ingestion/handoff contract and stays independent of native-Tesseract flakiness.
-        BuildThreeHostsWithDb(storageState, runAthenaPipeline: false);
+        // Run the full extraction pipeline including Tesseract OCR.
+        // Prior to PRISMA-E2-S4 (2026-06-20) this was runAthenaPipeline: false because TesseractEngine was
+        // re-created per OCR call and deadlocked when called a second time in the same test process (after
+        // the full-pipeline gate had already used it). The fix lazy-initializes and REUSES the engine for the
+        // lifetime of the singleton TesseractOcrExecutor, so both gate scenarios can now run OCR safely.
+        BuildThreeHostsWithDb(storageState, runAthenaPipeline: true);
 
         // Capture the forwarded ingestion event on Athena's real event stream — the best-effort flag lives on
         // it, and the forward happens before any OCR so this resolves regardless of downstream pipeline timing.
