@@ -6,6 +6,7 @@ using System.IO;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.QaHarness.Evidence;
+using ExxerCube.Prisma.QaHarness.Workflows.Abstractions;
 using ExxerCube.Prisma.QaHarness.Workflows.Attributes;
 
 namespace ExxerCube.Prisma.QaHarness.Workflows.Catalog;
@@ -167,16 +168,5 @@ public sealed class ExportWorkflow : IWorkflow
             Outputs: new Dictionary<string, object?>());
 }
 
-/// <summary>
-/// Abstraction over the mechanism that starts an export run.
-/// Implemented and registered in Chunk 5; optional — when absent the
-/// <see cref="ExportWorkflow"/> still awaits the event stream.
-/// </summary>
-public interface IExportTrigger
-{
-    /// <summary>
-    /// Initiates an export operation in the pipeline.
-    /// </summary>
-    /// <param name="cancellationToken">Token used to cancel the trigger call.</param>
-    Task TriggerExportAsync(CancellationToken cancellationToken = default);
-}
+// IExportTrigger is defined in ExxerCube.Prisma.QaHarness.Workflows.Abstractions.IExportTrigger
+// (moved in Chunk 5).

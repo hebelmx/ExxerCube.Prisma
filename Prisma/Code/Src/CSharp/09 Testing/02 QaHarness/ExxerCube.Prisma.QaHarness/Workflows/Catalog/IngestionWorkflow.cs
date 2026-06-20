@@ -5,6 +5,7 @@
 using System.IO;
 using ExxerCube.Prisma.QaHarness.Evidence;
 using ExxerCube.Prisma.QaHarness.Provisioning;
+using ExxerCube.Prisma.QaHarness.Workflows.Abstractions;
 using ExxerCube.Prisma.QaHarness.Workflows.Attributes;
 
 namespace ExxerCube.Prisma.QaHarness.Workflows.Catalog;
@@ -138,39 +139,5 @@ public sealed class IngestionWorkflow : IWorkflow
             Outputs: new Dictionary<string, object?>());
 }
 
-/// <summary>
-/// Thin abstraction over <c>IngestionOrchestrator.IngestCaseAsync</c> so the
-/// workflow can be tested without referencing the worker assembly directly.
-/// The concrete adapter is registered in Chunk 5.
-/// </summary>
-public interface IIngestionDriver
-{
-    /// <summary>
-    /// Discovers and ingests the next available SIARA case.
-    /// </summary>
-    /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A lightweight summary of the ingestion attempt.</returns>
-    Task<IngestionAttemptSummary> IngestNextCaseAsync(CancellationToken cancellationToken = default);
-}
-
-/// <summary>
-/// Lightweight summary of a single ingestion attempt returned by <see cref="IIngestionDriver"/>.
-/// </summary>
-/// <param name="Status">Whether the ingestion completed, was skipped (no case found), or failed.</param>
-/// <param name="CaseId">The identifier of the ingested case, or <see langword="null"/> when no case was found.</param>
-public sealed record IngestionAttemptSummary(IngestionAttemptStatus Status, string? CaseId);
-
-/// <summary>
-/// Terminal states for a single ingestion attempt.
-/// </summary>
-public enum IngestionAttemptStatus
-{
-    /// <summary>A case was found and successfully ingested.</summary>
-    Completed,
-
-    /// <summary>No cases were available in the simulator.</summary>
-    NoCaseAvailable,
-
-    /// <summary>The attempt failed due to a downstream error.</summary>
-    Failed,
-}
+// IIngestionDriver, IngestionAttemptSummary, and IngestionAttemptStatus are defined in
+// ExxerCube.Prisma.QaHarness.Workflows.Abstractions.IIngestionDriver (moved in Chunk 5).
