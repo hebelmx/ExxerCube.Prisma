@@ -3,18 +3,35 @@
   <PropertyGroup Label="Core Properties">
     <!-- Target framework centrally managed — do not add another here -->
     <IsPackable>false</IsPackable>
+    <!-- CS1591: Missing XML comment for publicly visible type or member -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn)</NoWarn>
   </PropertyGroup>
 
+  <!-- Required to use WebApplicationFactory<T> from a non-Web SDK project -->
+  <ItemGroup Label="ASP.NET Core Framework Reference">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup Label="Core Packages">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <!-- Microsoft.Extensions.DependencyInjection.Abstractions and Microsoft.Extensions.Logging.Abstractions
+         are brought in by the Microsoft.AspNetCore.App FrameworkReference — do not list them separately
+         (NU1510 Warning-As-Error). -->
     <PackageReference Include="IndQuestResults" />
     <PackageReference Include="Microsoft.Playwright" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <!-- WAF for hosting Web UI and worker apps in-process -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
   </ItemGroup>
 
   <ItemGroup Label="Project References">
     <!-- SqlServerContainerFixture + ContainerFixtureBase reused by PrismaEnvironmentProvisioner (Chunk 2A) -->
     <ProjectReference Include="..\..\01 Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
+
+    <!-- Chunk 2B: application hosting — Web UI + three worker processes -->
+    <ProjectReference Include="..\..\..\07 UI\UI\ExxerCube.Prisma.Web.UI\ExxerCube.Prisma.Web.UI.csproj" />
+    <ProjectReference Include="..\..\..\04 Services\Orion\Prisma.Orion.Worker\ExxerCube.Prisma.Orion.Worker.csproj" />
+    <ProjectReference Include="..\..\..\04 Services\Athena\Prisma.Athena.Worker\ExxerCube.Prisma.Athena.Worker.csproj" />
+    <ProjectReference Include="..\..\..\04 Services\Reconciliator\Prisma.Reconciliator.Worker\ExxerCube.Prisma.Reconciliator.Worker.csproj" />
   </ItemGroup>
 
 </Project>
