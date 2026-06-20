@@ -400,11 +400,18 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
     {
         var value = fieldName.ToLowerInvariant() switch
         {
-            "expediente" => ExtractExpediente(text),
+            "expediente" or "numeroexpediente" or "numero_expediente" => ExtractExpediente(text),
             "causa" => ExtractCausa(text),
             "accionsolicitada" or "accion_solicitada" => ExtractAccionSolicitada(text),
             "numerooficio" or "numero_oficio" => ExtractNumeroOficio(text),
-            "requerimiento" => ExtractRequerimiento(text),
+            "requerimiento" or "solicitudsiara" or "solicitud_siara" => ExtractRequerimiento(text),
+
+            // SAT requerimiento DOCX fields (D2 hardening)
+            "rfc" or "rfccontribuyente" or "rfc_contribuyente" => ExtractRfc(text),
+            "folio" or "numerofolio" or "numero_folio" => ExtractFolio(text),
+            "fecharequerimiento" or "fecha_requerimiento" or "fechaoficio" or "fecha_oficio" => ExtractFechaOficio(text),
+            "autoridadnombre" or "autoridad_nombre" => ExtractAutoridadNombre(text),
+
             _ => null
         };
 
@@ -421,6 +428,8 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
         switch (fieldName.ToLowerInvariant())
         {
             case "expediente":
+            case "numeroexpediente":
+            case "numero_expediente":
                 fields.Expediente = value;
                 break;
             case "causa":
@@ -437,6 +446,14 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     fields.AdditionalFields["NumeroOficio"] = value;
+                }
+                break;
+            default:
+                // SAT requerimiento fields and any other named fields go into AdditionalFields,
+                // mirroring the AdaptiveTxtFieldExtractor pattern so fusion sees consistent keys.
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    fields.AdditionalFields[fieldName] = value;
                 }
                 break;
         }
@@ -521,5 +538,142 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
         var accionPattern = @"(?:ACCI[ÓO]N\s+SOLICITADA|Accion\s+Solicitada)\s*:?\s*([^\n\r]+)";
         var match = System.Text.RegularExpressions.Regex.Match(text, accionPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         return match.Success && match.Groups.Count > 1 ? match.Groups[1].Value.Trim() : null;
+    }
+
+    // -------------------------------------------------------------------------
+    // SAT requerimiento DOCX field extractors — D2 hardening (PRISMA-E5-S5)
+    // Labels are tolerant of accent variations and optional trailing colon.
+    // All patterns use named capture groups and RegexOptions.CultureInvariant
+    // to avoid locale-sensitive behaviour. No catastrophic backtracking: anchored,
+    // explicit character classes, no nested quantifiers.
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// SAT field: RFC del contribuyente.
+    /// Matches label variants:
+    ///   "RFC del contribuyente:"  (full SAT label)
+    ///   "RFC:"                    (bare label, also used by CNBV officios)
+    /// RFC format: 4 letters + 6-digit date + 3-character homoclave  = 13 chars total (física),
+    /// or 3 letters + 6-digit date + 3-char homoclave = 12 chars (moral).
+    /// Pattern accepts both and allows the value to be separated by optional whitespace.
+    /// </summary>
+    private static string? ExtractRfc(string text)
+    {
+        // SAT field: "RFC del contribuyente:" — full label (with or without accent on "u")
+        // Also matches bare "RFC:" (single label) used in abbreviated headers.
+        var labeled = System.Text.RegularExpressions.Regex.Match(
+            text,
+            @"RFC(?:\s+del\s+contribuyente)?\s*:?\s*(?<rfc>[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3})",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        if (labeled.Success)
+        {
+            return labeled.Groups["rfc"].Value.Trim().ToUpperInvariant();
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// SAT field: Número de folio / Folio.
+    /// Matches label variants:
+    ///   "Número de folio:"   (full label with accent)
+    ///   "Numero de folio:"   (without accent — OCR tolerance)
+    ///   "Folio:"             (bare label)
+    /// Folio values follow the CNBV expediente format: A/AS1-2505-088637-PHM.
+    /// Falls back to the existing <see cref="ExtractExpediente"/> logic so both
+    /// label forms resolve the same canonical value (consistent with fusion).
+    /// </summary>
+    private static string? ExtractFolio(string text)
+    {
+        // SAT field: "Número de folio:" — prefer label-anchored extraction.
+        var labeled = System.Text.RegularExpressions.Regex.Match(
+            text,
+            @"(?:N[uú]mero\s+de\s+folio|Folio)\s*:?\s*(?<folio>[A-Z]/[A-Z]{1,4}\d*[-–]\s*\d+[-–]\s*\d+[-–]\s*[A-Z]+)",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        if (labeled.Success)
+        {
+            return NormalizeExpediente(labeled.Groups["folio"].Value);
+        }
+
+        // Fallback: delegate to the bare expediente extractor (same token shape).
+        return ExtractExpediente(text);
+    }
+
+    /// <summary>
+    /// SAT field: Fecha del oficio / Fecha del requerimiento.
+    /// Matches label variants:
+    ///   "Fecha:"             (bare label)
+    ///   "Fecha del oficio:"  (SAT requerimiento header)
+    ///   "Fecha de emisión:"  (alternative SAT wording)
+    /// Value format is free-text Spanish date (e.g. "09 de Abril de 2025" or "2025-04-09").
+    /// The extractor returns the raw date string for downstream normalisation.
+    /// </summary>
+    private static string? ExtractFechaOficio(string text)
+    {
+        // SAT field: "Fecha del oficio:" / "Fecha de emisión:" / "Fecha:"
+        // Capture everything up to the next separator character.
+        var labeled = System.Text.RegularExpressions.Regex.Match(
+            text,
+            @"Fecha(?:\s+de(?:l)?\s+(?:oficio|emisi[oó]n|requerimiento))?\s*:?\s*(?<fecha>[^\n\r,;]{5,40})",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        if (labeled.Success)
+        {
+            var raw = labeled.Groups["fecha"].Value.Trim();
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
+                return raw;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// SAT field: Autoridad / Nombre de la autoridad.
+    /// Mirrors the authority-detection logic of AdaptiveTxtFieldExtractor so that
+    /// DOCX and TXT extractions agree under fusion. Priority:
+    ///   1. SAT explicitly named (full name or acronym with word boundary).
+    ///   2. CNBV full name.
+    ///   3. AGAFF full name.
+    ///   4. Bare acronyms (AGAFF, CNBV, SAT) with word-boundary guards.
+    /// </summary>
+    private static string? ExtractAutoridadNombre(string text)
+    {
+        // SAT field: "SAT - Servicio de Administración Tributaria" — explicit SAT self-identification.
+        if (System.Text.RegularExpressions.Regex.IsMatch(
+                text,
+                @"SAT\s*[-–]\s*Servicio\s+de\s+Administraci[oó]n\s+Tributaria",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+        {
+            return "SAT";
+        }
+
+        // SAT field: CNBV full name — governing regulator for SIARA documents.
+        if (text.Contains("Comisión Nacional Bancaria y de Valores", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Comisión Nacional Bancaria y de Valores";
+        }
+
+        // SAT field: AGAFF full name.
+        if (text.Contains("Administración General de Auditoría Fiscal Federal", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Administración General de Auditoría Fiscal Federal";
+        }
+
+        // SAT field: bare acronyms — word-boundary guards prevent false matches on email domains.
+        var acronyms = new[] { "AGAFF", "CNBV", "SAT" };
+        foreach (var acronym in acronyms)
+        {
+            var pattern = @"(?<![@.])\b" + System.Text.RegularExpressions.Regex.Escape(acronym) + @"\b(?!\.gob\.mx)";
+            if (System.Text.RegularExpressions.Regex.IsMatch(text, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                return acronym;
+            }
+        }
+
+        return null;
     }
 }
