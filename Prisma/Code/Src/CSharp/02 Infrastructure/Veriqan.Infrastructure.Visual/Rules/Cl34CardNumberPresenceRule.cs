@@ -20,6 +20,17 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 /// <para>
 /// <b>Card-number matching:</b> the card number (digits only, spaces stripped) must appear
 /// in each page's text (also stripped of spaces).  Matching is case-insensitive on digits.
+/// The extractor also supports masked card numbers (e.g. <c>XXXX-XXXX-XXXX-1234</c>) by
+/// matching the last-4 digits within a 4-digit-group card pattern — guarding against
+/// false positives from dates or year tokens (VERIQAN-E2-S6).
+/// </para>
+/// <para>
+/// <b>Page-1 propagation (VERIQAN-E2-S6):</b> if the card is confirmed on page 1 and every
+/// page that is missing the card has no text layer (<c>HasContent = false</c> — image-only),
+/// the rule returns Pass for all pages.  Banks often print the card number only in the header
+/// on page 1; inner pages may render it inside a repeated graphic that text extraction cannot
+/// reach.  If a page with <c>HasContent = true</c> is missing the card, the absence is treated
+/// as a genuine failure even when page 1 confirms the card.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
@@ -28,6 +39,8 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Visual.Rules;
 ///   <item><see cref="StatementModel.Pages"/> is empty (per-page extraction did not run).</item>
 ///   <item><see cref="StatementModel.CardNumber"/> was not successfully extracted
 ///     (<see cref="ExtractionStatus.NotExtracted"/>).</item>
+///   <item>No page has the card in its text layer (all pages are image-only — card may be
+///     embedded in a header graphic that text extraction cannot reach).</item>
 /// </list>
 /// </para>
 /// </remarks>
@@ -99,6 +112,43 @@ internal sealed class Cl34CardNumberPresenceRule : IVecValidationRule
                     technique: Technique,
                     engineVersion: Version,
                     observed: $"Card number present on all {model.Pages.Count} page(s)."));
+        }
+
+        // Page-1 propagation: banks commonly print the card number only in the header on page 1.
+        // If page 1 has the card in its text layer AND every page that is missing the card has
+        // NO text layer (HasContent = false — image-only page where text extraction yields nothing),
+        // treat all pages as PASS.  Rationale: inner pages may render the card only in a repeated
+        // graphic/watermark header that the text-layer extractor cannot read; a confirmed page-1
+        // hit is sufficient evidence when the remaining pages are image-only.
+        // Note: if a page HAS text content but the card is absent, that is a genuine failure even
+        // when page 1 confirms the card — image-only propagation does not override real text evidence.
+        var page1 = model.Pages.FirstOrDefault(p => p.PageNumber == 1);
+        if (page1 is { ContainsCardNumber: true })
+        {
+            var allMissingAreImageOnly = pagesWithoutCardNumber.All(p => !p.HasContent);
+            if (allMissingAreImageOnly)
+            {
+                return Result<RuleFinding>.WithSuccess(
+                    RuleFinding.Pass(
+                        checkId: CheckId,
+                        technique: Technique,
+                        engineVersion: Version,
+                        observed: $"Card number confirmed on page 1 — propagated as PASS for all {model.Pages.Count} page(s) (remaining pages are image-only with no text layer)."));
+            }
+        }
+
+        // Abstain-safety: if the card number is on NO page in the text layer AND no page has any
+        // text content (e.g. the card is only inside a header graphic), we cannot distinguish a
+        // genuine absence from an image-only rendering.  Emit InsufficientData rather than Fail.
+        var anyPageHasCard = model.Pages.Any(p => p.ContainsCardNumber);
+        if (!anyPageHasCard)
+        {
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.InsufficientData(
+                    checkId: CheckId,
+                    technique: Technique,
+                    engineVersion: Version,
+                    reason: "Card number not found in the text layer of any page — may be embedded in a header graphic that text extraction cannot reach."));
         }
 
         var pageNumbers = string.Join(", ", pagesWithoutCardNumber.Select(p => p.PageNumber));

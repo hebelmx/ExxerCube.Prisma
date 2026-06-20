@@ -72,6 +72,19 @@ public sealed class Cl34CardNumberPresenceRuleTests
             PaginationTotal: null,
             Locator: FieldLocator.PageHint(pageNumber));
 
+    /// <summary>
+    /// Creates a <see cref="PageInspectionFacts"/> with explicit <paramref name="hasContent"/> control.
+    /// Used for image-only pages (HasContent=false) in page-1 propagation and abstain-safety tests.
+    /// </summary>
+    private static PageInspectionFacts PageFactEx(int pageNumber, bool containsCardNumber, bool hasContent) =>
+        new(PageNumber: pageNumber,
+            HasContent: hasContent,
+            ImageCount: hasContent ? 0 : 1,
+            ContainsCardNumber: containsCardNumber,
+            PaginationCurrent: null,
+            PaginationTotal: null,
+            Locator: FieldLocator.PageHint(pageNumber));
+
     private static VerificationContext Ctx(StatementModel? model) =>
         new(bundle: Bundle(), resolvedProduct: Product(),
             availability: ReferenceDataAvailability.FromBundle(Bundle()),
@@ -146,5 +159,79 @@ public sealed class Cl34CardNumberPresenceRuleTests
         cts.Cancel();
         var result = rule.Evaluate(Ctx(model: null), cts.Token);
         result.IsCancelled().ShouldBeTrue();
+    }
+
+    // -----------------------------------------------------------------------
+    // Story VERIQAN-E2-S6: page-1 propagation + abstain-safety + masked last-4
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// AC-S6-1: Card found in text on page 1, later pages are image-only (no text layer).
+    /// Page-1 propagation must return PASS for all pages rather than failing on
+    /// the image-only pages where the text extractor cannot see the card.
+    /// </summary>
+    [Fact]
+    public void Evaluate_CardOnPage1TextLayerLaterPagesImageOnly_ReturnsPass()
+    {
+        // page 1: card in text layer (ContainsCardNumber=true, HasContent=true)
+        // page 2: image-only — no text extracted at all (HasContent=false → ContainsCardNumber=false)
+        var model = ModelWithPages([
+            PageFactEx(1, containsCardNumber: true,  hasContent: true),
+            PageFactEx(2, containsCardNumber: false, hasContent: false),
+            PageFactEx(3, containsCardNumber: false, hasContent: false),
+        ]);
+        var rule = GetCl34Rule();
+        var result = rule.Evaluate(Ctx(model), TestContext.Current.CancellationToken);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.CheckId.ShouldBe("CL-34");
+        result.Value.Observed!.ShouldContain("page 1");
+    }
+
+    /// <summary>
+    /// AC-S6-2: Card is only inside a header graphic on all pages — no text layer carries it.
+    /// All pages are either image-only or yield no card match from the text layer.
+    /// The rule must emit InsufficientData (NOT Fail) because we cannot distinguish a
+    /// genuine absence from a card printed exclusively in an embedded image.
+    /// </summary>
+    [Fact]
+    public void Evaluate_CardOnlyInImageNoTextLayerOnAnyPage_ReturnsInsufficientData()
+    {
+        // No page has any text content at all — fully image-based statement.
+        var model = ModelWithPages([
+            PageFactEx(1, containsCardNumber: false, hasContent: false),
+            PageFactEx(2, containsCardNumber: false, hasContent: false),
+        ]);
+        var rule = GetCl34Rule();
+        var result = rule.Evaluate(Ctx(model), TestContext.Current.CancellationToken);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        result.Value.CheckId.ShouldBe("CL-34");
+    }
+
+    /// <summary>
+    /// AC-S6-3: Masked card number in the header (e.g. XXXX-XXXX-XXXX-1234).
+    /// The extractor stores the raw masked value as ExtractedInvalidFormat (16-digit check fails).
+    /// ContainsCardNumber on the page is true because the extractor matched the last-4
+    /// via the card-group pattern guard.  The rule must return PASS rather than
+    /// treating ExtractedInvalidFormat as InsufficientData.
+    /// </summary>
+    [Fact]
+    public void Evaluate_MaskedCardNumberHeaderLastFourMatchesPageText_ReturnsPass()
+    {
+        // Simulate the extractor having stored a masked card value (ExtractedInvalidFormat)
+        // and the per-page ContainsCardNumber=true computed via the last-4 pattern guard.
+        var maskedCard = ExtractedField<string>.InvalidFormat("XXXX-XXXX-XXXX-1234", P());
+        var model = ModelWithPages(
+            [
+                PageFact(1, containsCardNumber: true),
+                PageFact(2, containsCardNumber: true),
+            ],
+            cardNumber: maskedCard);
+        var rule = GetCl34Rule();
+        var result = rule.Evaluate(Ctx(model), TestContext.Current.CancellationToken);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.CheckId.ShouldBe("CL-34");
     }
 }

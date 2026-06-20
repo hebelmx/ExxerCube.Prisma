@@ -81,6 +81,16 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// <summary>5-digit Mexican postal code.</summary>
     private static readonly Regex PostalCodePattern = new(@"^\d{5}$", RegexOptions.Compiled);
 
+    /// <summary>
+    /// Matches a 16-digit card number displayed in four space- or hyphen-separated groups
+    /// (e.g. "1234 5678 9012 3456" or "1234-5678-9012-3456").
+    /// Used to detect masked card numbers (e.g. "XXXX XXXX XXXX 1234") where
+    /// only the last four digits are visible in page text.
+    /// </summary>
+    private static readonly Regex CardGroupPattern = new(
+        @"[\dX]{4}[\s\-–][\dX]{4}[\s\-–][\dX]{4}[\s\-–](\d{4})",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
     // Header layout constants (PDF points, origin bottom-left).
     private const double HeaderYMin = 530.0;
     private const double HeaderYMax = 700.0;
@@ -2732,7 +2742,13 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                     .Replace(" ", string.Empty, StringComparison.Ordinal)
                     .ToLowerInvariant();
 
-                // ContainsCardNumber: card digits appear in page text.
+                // Raw page text (spaces preserved) for masked card-group pattern matching.
+                var pageTextRaw = string.Join(" ", words.Select(w => w.Text));
+
+                // ContainsCardNumber: full 16-digit match, OR masked last-4 via 4-digit-group pattern.
+                // The pattern guard prevents a stray 4-digit sequence (e.g. a year "2024" or date
+                // fragment "12/34") from satisfying the last-4 check — the last-4 must appear as
+                // the final group of a "XXXX XXXX XXXX DDDD" formatted card presentation.
                 bool containsCardNumber;
                 if (string.IsNullOrEmpty(cardDigits))
                 {
@@ -2741,8 +2757,26 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 else
                 {
                     var cardDigitsLower = cardDigits.ToLowerInvariant();
-                    containsCardNumber = pageTextStripped.Contains(
+
+                    // Primary check: all 16 digits present in page text (normal, unmasked card).
+                    var fullMatch = pageTextStripped.Contains(
                         cardDigitsLower, StringComparison.OrdinalIgnoreCase);
+
+                    // Fallback check: last-4 digits appear as the final group of a card-formatted
+                    // pattern (e.g. "XXXX XXXX XXXX 1234" or "XXXX-XXXX-XXXX-1234").
+                    // Only runs when the full match fails (masked pages, graphic-only header).
+                    var last4 = cardDigits.Length >= 4
+                        ? cardDigits[^4..]
+                        : cardDigits;
+                    var maskedMatch = false;
+                    if (!fullMatch && last4.Length == 4)
+                    {
+                        var m = CardGroupPattern.Match(pageTextRaw);
+                        maskedMatch = m.Success &&
+                            m.Groups[1].Value.Equals(last4, StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    containsCardNumber = fullMatch || maskedMatch;
                 }
 
                 // PaginationCurrent / PaginationTotal: parse "N de M" preferring the
