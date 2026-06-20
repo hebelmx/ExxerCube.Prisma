@@ -29,6 +29,7 @@
         { "checkId": "CL-31",                 "reason": "Fixture PDF pagination labels do not match document page count — inherent synthetic generator limitation." },
         { "checkId": "CL-34",                 "reason": "Fixture PDF card number absent from some pages — inherent synthetic generator limitation." },
         { "checkId": "CL-35",                 "reason": "Fixture PDF uses non-Aptos embedded fonts — synthetic generator does not embed Aptos; this is a genuine typography non-compliance." },
+        { "checkId": "CL-48",                 "reason": "Fixture PDF has intra-page vertical gaps > 2 cm — a genuine consequence of the synthetic generator's missing mandatory sections (see LAW-SEC-PRESENCE) and non-standard section spacing (see LAW-SEC-ORDER-GAP), which leave large blank vertical bands. Detected by the CL-48 2 cm-gap check (VERIQAN-E2-S11); a true positive on this known-malformed synthetic, not a false fail." },
         { "checkId": "LAW-TYPO-MINSIZE",      "reason": "Fixture PDF body text measured at 5.04 pt (word '11', page 1) — genuinely below the 8 pt floor. Synthetic generator emits small-size page-header numbers. Not a false rule." },
         { "checkId": "LAW-SEC-ORDER-GAP",     "reason": "Fixture PDF section gap geometry is non-standard — mandatory sections appear out of order or with non-standard spacing in the synthetic layout." },
         { "checkId": "LAW-SEC-PRESENCE",      "reason": "Fixture PDF is missing mandatory CONDUSEF sections (e.g. §2–§5, §9, §10, §14, §15) — genuine structural non-compliance of the synthetic generator." },
@@ -80,6 +81,7 @@
         { "checkId": "LAW-§18-COMPLETE",      "reason": "Fixture PDF §18 benefit program completeness fails — same as specimen 01." },
         { "checkId": "LAW-§20-WATERFALL",     "reason": "Fixture PDF §20 payment distribution waterfall is absent — same as specimen 01." },
         { "checkId": "LAW-§23-STATUS",        "reason": "Fixture PDF §23 account status content is absent — genuine missing section content in the synthetic generator for the Ago-Sep period." },
+        { "checkId": "CL-48",                 "reason": "Fixture PDF has intra-page vertical gaps > 2 cm — a genuine consequence of the synthetic generator's missing mandatory sections (see LAW-SEC-PRESENCE) and non-standard section spacing (see LAW-SEC-ORDER-GAP), which leave large blank vertical bands. Detected by the CL-48 2 cm-gap check (VERIQAN-E2-S11); a true positive on this known-malformed synthetic, not a false fail." },
         { "checkId": "LAW-§26-NOTAS",         "reason": "Fixture PDF §26 Notas Aclaratorias content is absent — same as specimen 01." },
         { "checkId": "LAW-§27-GLOSARIO",      "reason": "Fixture PDF §27 Glosario content is absent — same as specimen 01." }
       ]
@@ -120,7 +122,8 @@
         { "checkId": "LAW-§18-COMPLETE",      "reason": "Fixture PDF §18 benefit program completeness fails — same as specimen 01." },
         { "checkId": "LAW-§20-WATERFALL",     "reason": "Fixture PDF §20 payment distribution waterfall is absent — same as specimen 01." },
         { "checkId": "LAW-§26-NOTAS",         "reason": "Fixture PDF §26 Notas Aclaratorias content is absent — same as specimen 01." },
-        { "checkId": "LAW-§27-GLOSARIO",      "reason": "Fixture PDF §27 Glosario content is absent — same as specimen 01." }
+        { "checkId": "LAW-§27-GLOSARIO",      "reason": "Fixture PDF §27 Glosario content is absent — same as specimen 01." },
+        { "checkId": "CL-48",                 "reason": "Fixture PDF has intra-page vertical gaps > 2 cm — a genuine consequence of the synthetic generator's missing mandatory sections (see LAW-SEC-PRESENCE) and non-standard section spacing (see LAW-SEC-ORDER-GAP), which leave large blank vertical bands. Detected by the CL-48 2 cm-gap check (VERIQAN-E2-S11); a true positive on this known-malformed synthetic, not a false fail." }
       ]
     }
   ]

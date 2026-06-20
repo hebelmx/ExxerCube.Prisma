@@ -2929,8 +2929,34 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 var page = doc.GetPage(pageIndex);
                 var words = page.GetWords().ToList();
 
-                // HasContent: any words on the page.
-                var hasContent = words.Count > 0;
+                // S11 (CL-48): filter out whitespace-only / empty tokens before HasContent decision.
+                // PdfPig occasionally emits Word objects whose Text is entirely whitespace or empty
+                // (invisible glyphs, zero-width spaces, pure-space runs).  These must not make a
+                // visually blank page report HasContent = true.
+                var visibleWords = words
+                    .Where(static w => !string.IsNullOrWhiteSpace(w.Text))
+                    .ToList();
+
+                // HasContent: at least one visible (non-whitespace) word on the page.
+                var hasContent = visibleWords.Count > 0;
+
+                // S11 (CL-48): compute the maximum intra-page vertical gap between consecutive
+                // content lines.  Steps:
+                //   1. Group visibleWords into Y-bands using the extractor's YBandTolerance (5 pt).
+                //   2. For each band, take the representative Y as the maximum Bottom (top of the
+                //      band in PdfPig's bottom-left coordinate system) and the minimum Bottom as
+                //      the low edge — so band span = max(Bottom) − min(Bottom) of words in band.
+                //      We use a single representative Y per band (the average Bottom of words in
+                //      that band); gap = distance between the top of one band and the bottom of
+                //      the next band above it.
+                //   3. Sort bands descending by Y (top-to-bottom reading order).
+                //   4. A gap between band[i] and band[i+1] = bandTop[i+1] − bandBottom[i]
+                //      where bandTop = max(BoundingBox.Top) and bandBottom = min(BoundingBox.Bottom)
+                //      within that band.  We measure from the TOP of the lower band to the BOTTOM
+                //      of the upper band (the white space between them).
+                //   5. Margins are NOT counted: only inter-line gaps between content lines matter;
+                //      the space above the first line or below the last line is ignored.
+                var maxVerticalGapPoints = ComputeMaxVerticalGap(visibleWords);
 
                 // ImageCount: number of embedded images (proxy for logo).
                 var imageCount = page.GetImages().Count();
@@ -3031,7 +3057,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
                 var locator = FieldLocator.PageHint(pageIndex);
 
-                // Story 10.1: capture page geometry (PDF points) for Story 10.2 gap computation.
+                // Story 10.1: capture page geometry (PDF points).
                 var pageWidth = page.Width;
                 var pageHeight = page.Height;
 
@@ -3044,7 +3070,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                     PaginationTotal: paginationTotal,
                     Locator: locator,
                     Width: pageWidth,
-                    Height: pageHeight));
+                    Height: pageHeight,
+                    MaxVerticalGapPoints: maxVerticalGapPoints));
             }
             catch (Exception)
             {
@@ -3063,6 +3090,92 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         }
 
         return (pages, pageCount);
+    }
+
+    // -----------------------------------------------------------------------
+    // Vertical-gap computation (Story S11 — CL-48 "sin espacio > 2 cm")
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Computes the maximum vertical gap (in PDF points) between consecutive content
+    /// lines on a page, for the CL-48 "sin espacio en blanco mayor a 2 cm" check.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Algorithm:
+    /// <list type="number">
+    ///   <item>Group the supplied visible words into Y-bands using <see cref="YBandTolerance"/>
+    ///         (5 pt), same grouping logic used throughout the extractor.</item>
+    ///   <item>For each band, record the band's <c>top</c> (maximum <c>BoundingBox.Top</c>)
+    ///         and <c>bottom</c> (minimum <c>BoundingBox.Bottom</c>) from its words.</item>
+    ///   <item>Sort bands descending by their representative Y (top-down reading order).</item>
+    ///   <item>For each consecutive pair of bands, the gap is:
+    ///         <c>upperBand.bottom − lowerBand.top</c>.  In PdfPig's bottom-left coordinate
+    ///         system this is the white space between the two ink rows.</item>
+    ///   <item>Return the maximum positive gap.  Negative gaps (overlapping bands) are
+    ///         clamped to zero.  Margins (above first line, below last line) are NOT counted.</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// Returns <c>0.0</c> when <paramref name="visibleWords"/> has fewer than two distinct
+    /// Y-bands (i.e. a single-line page or a blank page).
+    /// </para>
+    /// </remarks>
+    /// <param name="visibleWords">
+    /// Words already filtered to exclude whitespace-only tokens (see caller).
+    /// </param>
+    /// <returns>Maximum inter-line vertical gap in PDF points, or 0.0.</returns>
+    private static double ComputeMaxVerticalGap(List<UglyToad.PdfPig.Content.Word> visibleWords)
+    {
+        if (visibleWords.Count < 2)
+            return 0.0;
+
+        // Build band map: representative Y → list of words in that band.
+        // Reuse the same greedy first-match grouping as GroupIntoBandsWithTolerance.
+        var bandMap = new Dictionary<double, (double BandTop, double BandBottom)>();
+
+        foreach (var word in visibleWords)
+        {
+            var wordBottom = word.BoundingBox.Bottom;
+            var wordTop = word.BoundingBox.Top;
+
+            var matched = false;
+            foreach (var key in bandMap.Keys)
+            {
+                if (Math.Abs(key - wordBottom) <= YBandTolerance)
+                {
+                    var existing = bandMap[key];
+                    bandMap[key] = (
+                        BandTop: Math.Max(existing.BandTop, wordTop),
+                        BandBottom: Math.Min(existing.BandBottom, wordBottom));
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched)
+                bandMap[wordBottom] = (BandTop: wordTop, BandBottom: wordBottom);
+        }
+
+        if (bandMap.Count < 2)
+            return 0.0;
+
+        // Sort bands top-to-bottom: descending by representative Y key (= word Bottom baseline).
+        var sortedBands = bandMap
+            .OrderByDescending(static kv => kv.Key)
+            .Select(static kv => kv.Value)
+            .ToList();
+
+        // Measure the white space between consecutive bands: gap = upperBand.bottom - lowerBand.top.
+        var maxGap = 0.0;
+        for (var i = 0; i < sortedBands.Count - 1; i++)
+        {
+            var gap = sortedBands[i].BandBottom - sortedBands[i + 1].BandTop;
+            if (gap > maxGap)
+                maxGap = gap;
+        }
+
+        return maxGap;
     }
 
     // -----------------------------------------------------------------------

@@ -83,4 +83,80 @@ public sealed class PageInspectionFactsSmokeTests
             page.Locator.ShouldNotBeNull("Locator must be non-null.");
         }
     }
+
+    // -----------------------------------------------------------------------
+    // S11 — Whitespace-glyph filter and MaxVerticalGapPoints extraction
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Verifies that <see cref="PageInspectionFacts.MaxVerticalGapPoints"/> is populated
+    /// for every page (Story S11 — CL-48 vertical-gap check).
+    /// The jul_ago fixture is a real multi-section statement; its pages must each report a
+    /// non-negative gap value.  Pages with fewer than two content lines (e.g. a mostly-image
+    /// cover page) report 0.0 — that is valid and expected.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_JulAgoFixture_MaxVerticalGapPointsIsNonNegativePerPage()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var fixturePath = FixturePath("01+Dummie+VEC+jul_ago+20252.pdf");
+
+        File.Exists(fixturePath).ShouldBeTrue($"Fixture not found at: {fixturePath}");
+        var pdfBytes = await File.ReadAllBytesAsync(fixturePath, ct);
+        var extractor = CreateExtractor();
+
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+        var output = TestContext.Current.TestOutputHelper;
+
+        model.Pages.ShouldNotBeEmpty("Pages must be non-empty.");
+
+        foreach (var page in model.Pages)
+        {
+            page.MaxVerticalGapPoints.ShouldBeGreaterThanOrEqualTo(
+                0.0,
+                $"Page {page.PageNumber}: MaxVerticalGapPoints must be >= 0.");
+
+            output?.WriteLine(
+                $"  Page {page.PageNumber}: HasContent={page.HasContent}, " +
+                $"MaxVerticalGapPoints={page.MaxVerticalGapPoints:F2} pt");
+        }
+    }
+
+    /// <summary>
+    /// Verifies the whitespace-glyph filter: every page that reports <c>HasContent=true</c>
+    /// must have at least one non-whitespace word; pages with <c>HasContent=false</c> must
+    /// have either no words at all or only whitespace-only tokens (the filter ran correctly).
+    ///
+    /// Because this test uses a real PDF it cannot force a whitespace-only token, so it
+    /// verifies the structural invariant of the filter: all content pages genuinely have
+    /// visible text (a consistency check that the filter didn't over-aggressively strip real
+    /// words from content pages).
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_JulAgoFixture_HasContentIsConsistentWithVisibleWords()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var fixturePath = FixturePath("01+Dummie+VEC+jul_ago+20252.pdf");
+
+        File.Exists(fixturePath).ShouldBeTrue($"Fixture not found at: {fixturePath}");
+        var pdfBytes = await File.ReadAllBytesAsync(fixturePath, ct);
+        var extractor = CreateExtractor();
+
+        var result = await extractor.ExtractFullAsync(pdfBytes, ct);
+
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync failed: {result.Error}");
+        var model = result.Value!;
+
+        // The fixture is a known-good statement; all pages must report HasContent=true
+        // (no pages should be falsely stripped by the whitespace filter).
+        foreach (var page in model.Pages)
+        {
+            page.HasContent.ShouldBeTrue(
+                $"Page {page.PageNumber}: expected HasContent=true in the jul_ago fixture " +
+                $"(whitespace filter must not over-strip real content).");
+        }
+    }
 }
