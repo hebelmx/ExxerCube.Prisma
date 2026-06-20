@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Web.UI.Services;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using System.Net;
@@ -51,6 +52,22 @@ public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prism
 
             // Add a mock OCR executor for UI tests
             services.AddScoped<IOcrExecutor, MockOcrExecutor>();
+
+            // Remove SignalREventBroadcaster from the hosted-service list so the 21 shared
+            // Tests.UI tests keep their prior behaviour: no live Rx subscription open during
+            // teardown, no risk of SQL-connection races on CI boxes without a running DB.
+            // Mirrors the same removal in TestWebApplicationFactory (Tests.EndToEnd).
+            // Note: the /processingHub negotiate endpoint (MapHub) is independent of this
+            // hosted service — it works regardless of whether the broadcaster is registered.
+            var broadcasterDescriptors = services
+                .Where(d =>
+                    d.ServiceType == typeof(IHostedService) &&
+                    d.ImplementationType == typeof(SignalREventBroadcaster))
+                .ToList();
+            foreach (var descriptor in broadcasterDescriptors)
+            {
+                services.Remove(descriptor);
+            }
         });
 
         builder.UseEnvironment("Development");

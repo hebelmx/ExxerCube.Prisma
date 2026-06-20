@@ -49,7 +49,7 @@ public class SignalREventBroadcaster : BackgroundService
         _subscription = _eventPublisher
             .GetAllEventsStream()
             .Subscribe(
-                onNext: async domainEvent => await BroadcastEventAsync(domainEvent, stoppingToken),
+                onNext: domainEvent => _ = SafeBroadcastAsync(domainEvent, stoppingToken),
                 onError: ex =>
                 {
                     _logger.LogError(ex, "Error in event stream subscription");
@@ -61,6 +61,33 @@ public class SignalREventBroadcaster : BackgroundService
     }
 
     /// <summary>
+    /// Fire-and-forget wrapper around <see cref="BroadcastEventAsync"/> that fully contains
+    /// any exception so it can never propagate back into the Rx pipeline.
+    /// A synchronous throw in the async machinery before its first await would otherwise
+    /// surface as an Rx onNext exception, terminate the Subject, and silently drop all
+    /// subsequent domain events for the process lifetime.
+    /// </summary>
+    /// <param name="domainEvent">The domain event to broadcast.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    private async Task SafeBroadcastAsync(DomainEvent domainEvent, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await BroadcastEventAsync(domainEvent, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // Defensive Intelligence: Never let a background broadcast failure kill the Rx Subject.
+            // Log loudly so the failure is visible but keep the stream alive.
+            _logger.LogError(
+                ex,
+                "Unhandled exception broadcasting event {EventType} with ID {EventId} - stream continues",
+                domainEvent?.EventType,
+                domainEvent?.EventId);
+        }
+    }
+
+    /// <summary>
     /// Broadcasts a domain event to all clients using Ember's transport-agnostic abstraction.
     /// Uses Railway-Oriented Programming pattern for error handling.
     /// </summary>
@@ -69,6 +96,12 @@ public class SignalREventBroadcaster : BackgroundService
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task BroadcastEventAsync(DomainEvent domainEvent, CancellationToken cancellationToken)
     {
+        if (domainEvent is null)
+        {
+            _logger.LogWarning("Domain event is null - cannot broadcast");
+            return;
+        }
+
         // Resolve hub in a scope to avoid singleton depending on scoped services.
         // GetService (not GetRequiredService) so the null guard below is reachable
         // and a missing hub registration silently no-ops instead of crashing.
@@ -82,12 +115,6 @@ public class SignalREventBroadcaster : BackgroundService
                 domainEvent.EventType,
                 domainEvent.EventId);
             return; // Defensive Intelligence: Don't throw - log and continue
-        }
-
-        if (domainEvent is null)
-        {
-            _logger.LogWarning("Domain event is null - cannot broadcast");
-            return;
         }
 
         var result = await hub.SendToAllAsync(domainEvent, cancellationToken);
