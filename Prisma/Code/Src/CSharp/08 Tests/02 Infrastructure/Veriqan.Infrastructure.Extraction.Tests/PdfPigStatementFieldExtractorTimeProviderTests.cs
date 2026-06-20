@@ -187,20 +187,24 @@ public sealed class PdfPigStatementFieldExtractorTimeProviderTests
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// When the fake clock is set to 2026-01-01 and no period header is present in the PDF,
-    /// the extractor uses the TimeProvider as the last-resort fallback and repairs the
+    /// When the fake clock is set to 2026-01-01T12:00Z (= 06:00 America/Mexico_City, year 2026)
+    /// and no period header is present in the PDF, the extractor uses the TimeProvider as the
+    /// last-resort fallback, converts the instant to Mexico City local time, and repairs the
     /// truncated charge-date year to 2026.
     /// This proves the TimeProvider fallback path is still exercised when the period anchor
-    /// is unavailable.
+    /// is unavailable, and that the timezone conversion does not corrupt the year when the
+    /// local date is unambiguously in the new calendar year.
     /// </summary>
     [Fact]
     public async Task ExtractFullAsync_TruncatedChargeDate_NoPeriodHeader_YearTracksFakeClockYear2026()
     {
         var ct = TestContext.Current.CancellationToken;
 
-        // Arrange: fake clock fixed at 2026-01-01 00:00:00 UTC.
+        // Arrange: fake clock fixed at 2026-01-01 12:00:00 UTC.
+        // 12:00 UTC = 06:00 America/Mexico_City (UTC-6 standard, January) → local year 2026.
+        // We use noon UTC so the local date is unambiguously Jan 1 2026 even with DST edge cases.
         var fakeTime = new FakeTimeProvider();
-        fakeTime.SetUtcNow(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        fakeTime.SetUtcNow(new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero));
 
         var extractor = CreateExtractor(fakeTime);
         var pdf = BuildSyntheticDesgloseWithTruncatedDatesNoPeriodHeader();
@@ -350,5 +354,62 @@ public sealed class PdfPigStatementFieldExtractorTimeProviderTests
         // Secondary check: both repaired dates are exactly equal.
         chargeDate2025.Value.ShouldBe(chargeDate2026.Value,
             "Both runs on the same PDF must yield bit-for-bit identical charge dates (full determinism).");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 4 — VERIQAN-E2-S9: timezone boundary (America/Mexico_City)
+    // A UTC instant that is Jan 1 but is Dec 31 in Mexico City must resolve
+    // the year-repair fallback to the LOCAL year (2025), not the UTC year (2026).
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// TIMEZONE BOUNDARY (VERIQAN-E2-S9 / America/Mexico_City):
+    /// A reference instant of <c>2026-01-01T05:30:00Z</c> is UTC-year 2026, but
+    /// in Mexico City (UTC-6) it is <c>2025-12-31T23:30</c> — still year 2025.
+    /// When the year-repair last-resort fallback fires (no period header, no
+    /// operation date in this synthetic PDF), it must use the <em>local</em> year
+    /// (2025) rather than the UTC year (2026).
+    /// </summary>
+    [Fact]
+    public async Task ExtractFullAsync_TruncatedChargeDate_NoPeriodHeader_UtcJan1LocalDec31_RepairsToLocalYear2025()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        // Arrange: instant is 2026-01-01T05:30:00Z.
+        // In America/Mexico_City (UTC-6, no DST in January) that is
+        // 2025-12-31T23:30:00 — local year 2025, NOT 2026.
+        var fakeTime = new FakeTimeProvider();
+        fakeTime.SetUtcNow(new DateTimeOffset(2026, 1, 1, 5, 30, 0, TimeSpan.Zero));
+
+        var extractor = CreateExtractor(fakeTime);
+        // Use the no-period-header PDF so the period anchor is absent and the
+        // fallback must bottom out at the TimeProvider → timezone conversion.
+        var pdf = BuildSyntheticDesgloseWithTruncatedDatesNoPeriodHeader();
+
+        // Act
+        var result = await extractor.ExtractFullAsync(pdf, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue($"ExtractFullAsync must succeed. Error: {result.Error}");
+
+        var movements = result.Value!.Movements;
+        movements.ShouldNotBeNull("Movements must be populated by ExtractFullAsync");
+        movements.Count.ShouldBeGreaterThan(0,
+            "At least one movement row must be parsed from the synthetic DESGLOSE section");
+
+        var movement = movements[0];
+        movement.ChargeDate.ShouldNotBeNull(
+            "ChargeDate must be populated after year repair");
+
+        // THE KEY ASSERTION (S9): the fallback uses the Mexico City local year (2025),
+        // NOT the UTC year (2026), even though the UTC instant has already rolled over
+        // to January 1 2026.
+        movement.ChargeDate!.Value.Year.ShouldBe(2025,
+            "UTC 2026-01-01T05:30Z = Mexico City 2025-12-31T23:30 — year-repair fallback " +
+            "must use the local year (2025), not the UTC year (2026).");
+        movement.ChargeDate.Value.Month.ShouldBe(12,
+            "Month must be December (dic = 12) after repair");
+        movement.ChargeDate.Value.Day.ShouldBe(7,
+            "Day must be 7 ('07-dic-2025')");
     }
 }

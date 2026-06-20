@@ -1576,16 +1576,22 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 //      the same repaired year.
                 //   2. Operation-date year (same row — already parsed from this band).
                 //      Keeps intra-row consistency when the period anchor is unavailable.
-                //   3. TimeProvider.GetUtcNow().Year — last resort / wall-clock fallback.
-                //      Used only when neither (1) nor (2) is available (e.g. synthetic
-                //      PDFs in tests that provide no period header, or statements with
-                //      corrupt period fields).
+                //   3. TimeProvider local-date year (America/Mexico_City) — last resort /
+                //      wall-clock fallback.  Used only when neither (1) nor (2) is available
+                //      (e.g. synthetic PDFs in tests that provide no period header, or
+                //      statements with corrupt period fields).
+                //      The instant is converted to Mexico City local time before taking the
+                //      year so that a Dec 31 cut-date at 23:30 local (= Jan 1 UTC) repairs
+                //      to the correct local year rather than the UTC year (off-by-one risk).
                 //
                 // NOTE: periodYear is NOT used to repair the period cut-date itself —
                 // that field is extracted independently from the header (ExtractFechaDeCorte)
                 // before ExtractMovements is called. Repairing movement dates with the
                 // period year is therefore not circular.
-                var repairedYear = periodYear ?? operationDate?.Year ?? _timeProvider.GetUtcNow().Year;
+                var clockLocalDate = TimeZoneInfo.ConvertTime(
+                    _timeProvider.GetUtcNow(),
+                    ExxerCube.Prisma.Veriqan.Domain.VeriqanConstants.MexicoCityTimezone);
+                var repairedYear = periodYear ?? operationDate?.Year ?? clockLocalDate.Year;
                 var repaired = RepairTruncatedDate(cdToken, repairedYear);
                 if (repaired is not null && TryParseSpanishDate(repaired, out var repairedDate))
                     chargeDate = repairedDate;
