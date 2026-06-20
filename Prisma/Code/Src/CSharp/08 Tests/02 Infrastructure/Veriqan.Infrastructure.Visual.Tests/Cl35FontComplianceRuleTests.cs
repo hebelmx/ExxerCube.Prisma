@@ -383,4 +383,48 @@ public sealed class Cl35FontComplianceRuleTests
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
         result.Value.CheckId.ShouldBe("CL-35");
     }
+
+    // -----------------------------------------------------------------------
+    // Test 13 (review-fix MAJOR-1): a non-Aptos offender FOLLOWED by a Type0/CID
+    // empty-family run must still FAIL — the empty-family run must NOT discard the
+    // already-found offender (that would be a false-PASS on a cardinal rule).
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_NonAptosRunThenType0EmptyFamily_ReturnsFail()
+    {
+        // Run 1: "Arial" (non-Aptos → offender). Run 2: "ABCDEF+-Bold" (Type0/CID,
+        // collapses to empty family). The empty-family run appears AFTER the offender;
+        // the rule must report the Arial Fail, not abstain.
+        var model = ModelWithFonts([Run("Arial"), Run("ABCDEF+-Bold")]);
+        var rule = GetCl35Rule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.CheckId.ShouldBe("CL-35");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 14 (review-fix MINOR-5): a family that merely SHARES the leading letters
+    // of the required family ("AptosCustom") must NOT be accepted as compliant.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void Evaluate_FamilyStartingWithRequiredButNotVariant_ReturnsFail()
+    {
+        // "AptosCustom" starts with "Aptos" but the next char is a letter (not a
+        // separator/digit), so it is an unrelated family — must Fail, not Pass.
+        var model = ModelWithFonts([Run("AptosCustom")]);
+        var rule = GetCl35Rule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.CheckId.ShouldBe("CL-35");
+    }
 }

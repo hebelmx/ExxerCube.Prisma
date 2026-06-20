@@ -79,6 +79,7 @@ internal sealed class Cl35FontComplianceRule : IVecValidationRule
         // Scan runs for the first non-compliant entry, counting all violations.
         FontUsage? offender = null;
         var offenderCount = 0;
+        var evaluableRuns = 0;
 
         foreach (var run in model.FontRuns)
         {
@@ -86,21 +87,20 @@ internal sealed class Cl35FontComplianceRule : IVecValidationRule
 
             // Type0/CID composite fonts: the normalized name is empty (e.g. the CID
             // resource token has no human-readable family name after prefix stripping).
-            // We cannot meaningfully compare these — abstain rather than false-Fail.
+            // We cannot evaluate THIS run — skip it. We must NOT abstain on the whole
+            // rule here: an empty-family run appearing AFTER a confirmed non-Aptos
+            // offender would otherwise discard the genuine Fail and produce a false-PASS.
+            // Abstain (below) only when EVERY run is unevaluable.
             if (string.IsNullOrEmpty(family))
-            {
-                return Result<RuleFinding>.WithSuccess(
-                    RuleFinding.InsufficientData(
-                        checkId: CheckId,
-                        technique: Technique,
-                        engineVersion: Version,
-                        reason: $"Font '{run.FontName}' is a Type0/CID composite font with no resolvable family name; compliance cannot be determined."));
-            }
+                continue;
 
-            // Use prefix matching so that extended weight/optical-size variants of the
-            // required family (e.g. "Aptos-Black", "Aptos Display", "Aptos-Heavy") are
-            // accepted without maintaining an ever-growing closed allowlist of suffixes.
-            if (!family.StartsWith(requiredFamily, StringComparison.OrdinalIgnoreCase))
+            evaluableRuns++;
+
+            // Prefix match with a word-boundary guard so weight/optical-size variants of
+            // the required family ("Aptos-Black", "Aptos Display", "Aptos-Heavy") are
+            // accepted, while an unrelated family that merely shares the leading letters
+            // ("AptosCustom", "Aptosish") is NOT silently accepted as compliant.
+            if (!IsCompliantFamily(family, requiredFamily))
             {
                 offender ??= run;
                 offenderCount++;
@@ -125,12 +125,45 @@ internal sealed class Cl35FontComplianceRule : IVecValidationRule
                     locator: offender.Locator));
         }
 
+        // No offender. If at least one run was evaluable, every evaluable run was compliant → Pass.
+        // If NO run was evaluable (every run was a Type0/CID empty-family token) we cannot
+        // determine compliance → InsufficientData (abstain rather than false-Pass).
+        if (evaluableRuns == 0)
+        {
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.InsufficientData(
+                    checkId: CheckId,
+                    technique: Technique,
+                    engineVersion: Version,
+                    reason: "All font runs are Type0/CID composite fonts with no resolvable family name; compliance cannot be determined."));
+        }
+
         return Result<RuleFinding>.WithSuccess(
             RuleFinding.Pass(
                 checkId: CheckId,
                 technique: Technique,
                 engineVersion: Version,
-                observed: $"All {model.FontRuns.Count} font run(s) use '{requiredFamily}'."));
+                observed: $"All {evaluableRuns} evaluable font run(s) use '{requiredFamily}'."));
+    }
+
+    /// <summary>
+    /// True when <paramref name="family"/> is the required family or one of its
+    /// weight/optical-size variants. Prefix match plus a boundary guard: the character
+    /// immediately after the required-family prefix must be a separator
+    /// (<c>-</c>, space, <c>_</c>) or a digit, OR the prefix must be the whole string.
+    /// This accepts "Aptos", "Aptos-Black", "Aptos Display", "Aptos-Heavy" but rejects
+    /// an unrelated family such as "AptosCustom" that merely shares the leading letters.
+    /// </summary>
+    private static bool IsCompliantFamily(string family, string requiredFamily)
+    {
+        if (!family.StartsWith(requiredFamily, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (family.Length == requiredFamily.Length)
+            return true;
+
+        var next = family[requiredFamily.Length];
+        return next is '-' or ' ' or '_' || char.IsDigit(next);
     }
 
     // -----------------------------------------------------------------------
