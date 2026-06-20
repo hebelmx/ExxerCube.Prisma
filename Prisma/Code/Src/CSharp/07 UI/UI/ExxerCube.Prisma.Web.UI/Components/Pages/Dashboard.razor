@@ -32,7 +32,7 @@
                             <MudIcon Icon="@Icons.Material.Filled.Description" Class="mr-2" />
                             Total Documents
                         </MudText>
-                        <MudText Typo="Typo.h4">@metrics.TotalDocumentsProcessed</MudText>
+                        <MudText Typo="Typo.h4" Class="total-docs">@metrics.TotalDocumentsProcessed</MudText>
                         <MudText Typo="Typo.caption">Processed documents</MudText>
                     </MudStack>
                 </MudPaper>
@@ -222,6 +222,18 @@
                 .Build();
 
             hubConnection.On<DashboardMetrics>("MetricsUpdated", OnMetricsUpdated);
+
+            // FU1 (PRISMA-E5-S2): bridge the SignalREventBroadcaster path to a live DOM refresh.
+            // The broadcaster pushes DomainEvents via Ember's transport-agnostic SendToAllAsync, which
+            // emits on the fixed wire method "ReceiveMessage" — NOT the typed "MetricsUpdated" (that only
+            // fires from explicit ProcessingHub.UpdateMetrics calls). On any domain event we simply re-pull
+            // the current metrics from the service. Payload is bound as object (a JsonElement) and ignored:
+            // DomainEvent is abstract, so binding to it would fail client-side and the handler would never run.
+            hubConnection.On<object>("ReceiveMessage", _ => InvokeAsync(async () =>
+            {
+                await LoadRealData();
+                StateHasChanged(); // LoadRealData only sets fields; a hub callback must request its own render.
+            }));
 
             await hubConnection.StartAsync();
         }

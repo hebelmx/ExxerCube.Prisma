@@ -15,6 +15,14 @@ public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prism
     public Uri? HostedBaseAddress { get; private set; }
 
     /// <summary>
+    /// Services of the REAL Kestrel host (the one Playwright connects to). This is distinct from
+    /// <see cref="WebApplicationFactory{TEntryPoint}.Services"/>, which belongs to the in-memory TestServer
+    /// host. Code that must interact with the same singleton instances the browser-facing circuit uses
+    /// (e.g. publishing a domain event the hosted broadcaster will pick up) MUST resolve from here.
+    /// </summary>
+    public IServiceProvider? HostedServices => _host?.Services;
+
+    /// <summary>
     /// Starts the Kestrel host if it is not already running.
     /// </summary>
     public void EnsureStarted()
@@ -24,8 +32,12 @@ public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prism
             return;
         }
 
-        var hostBuilder = CreateHostBuilder()!;
-        _ = CreateHost(hostBuilder);
+        // Trigger WebApplicationFactory's host bootstrap (StartServer → our CreateHost override), which
+        // builds the in-memory TestServer host AND starts a real Kestrel host on a dynamic port so an
+        // out-of-process Playwright browser can reach it. CreateDefaultClient is the correct trigger for
+        // minimal-hosting apps (WebApplication.CreateBuilder); the previous manual
+        // `CreateHostBuilder()!`/CreateHost call NRE'd (CreateHostBuilder returns null for those).
+        using var _ = CreateDefaultClient();
     }
 
     /// <summary>
@@ -78,11 +90,19 @@ public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prism
     /// </summary>
     protected override IHost CreateHost(IHostBuilder builder)
     {
+        // Build the in-memory TestServer host FIRST. WebApplicationFactory requires the returned host to
+        // expose a TestServer (its Server/CreateClient contract), so this is the host we return below.
+        var testHost = builder.Build();
+
+        // Reconfigure the SAME (deferred) builder to use Kestrel and build a SECOND host that listens on a
+        // real dynamic loopback port — this is the one an out-of-process Playwright browser connects to.
+        // Building the deferred minimal-hosting builder twice is the documented pattern for getting both a
+        // TestServer (for WAF) and a real Kestrel endpoint (for Playwright) from one factory.
         builder.ConfigureWebHost(webHost =>
         {
             webHost.UseKestrel(options =>
             {
-                // Bind to dynamic ports to avoid collisions with a locally running instance
+                // Bind to a dynamic port to avoid collisions with a locally running instance.
                 options.Listen(System.Net.IPAddress.Loopback, 0);
             });
         });
@@ -90,7 +110,7 @@ public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prism
         _host = builder.Build();
         _host.Start();
 
-        // Capture the bound address so Playwright can navigate to the actual port
+        // Capture the bound address so Playwright can navigate to the actual port.
         var addresses = _host.Services.GetRequiredService<IServer>()
             .Features.Get<IServerAddressesFeature>()?.Addresses;
         var firstAddress = addresses?.FirstOrDefault();
@@ -99,7 +119,9 @@ public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prism
             HostedBaseAddress = new Uri(firstAddress);
         }
 
-        return _host;
+        // Return the TestServer host (WAF casts Server to TestServer); the Kestrel host runs alongside it.
+        testHost.Start();
+        return testHost;
     }
 
     protected override void Dispose(bool disposing)

@@ -185,7 +185,12 @@ Inner Stack Trace:
         services.AddSignalRAbstractions();
         services.AddSignalR();
         services.AddScoped<ProcessingHub>();
-        services.AddScoped<IExxerHub<DomainEvent>, ProcessingHub>();
+        // FU1 (PRISMA-E5-S2): IExxerHub<DomainEvent> for server-initiated broadcast MUST be an
+        // IHubContext-backed adapter — NOT the ProcessingHub class itself. A Hub resolved from DI has a null
+        // Clients (only the SignalR runtime populates it during an inbound invocation), so the old
+        // `AddScoped<IExxerHub<DomainEvent>, ProcessingHub>()` made SignalREventBroadcaster.SendToAllAsync a
+        // silent no-op and no live UI update ever reached the browser. See HubContextDomainEventBroadcaster.
+        services.AddScoped<IExxerHub<DomainEvent>, Services.HubContextDomainEventBroadcaster>();
 
         // Add OCR processing services
         var pythonModulesPath = Path.Combine(environment.ContentRootPath, "..", "..", "Python", "ocr_modules");

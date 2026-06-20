@@ -1,5 +1,10 @@
 using System.Net.Http;
+using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Tests.UI.Infrastructure;
+using ExxerCube.Prisma.Web.UI.Services;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace ExxerCube.Prisma.Tests.UI.SignalR;
 
@@ -81,11 +86,22 @@ public sealed class SignalRHubEndpointTests
 }
 
 /// <summary>
-/// Playwright-based tests for the Dashboard SignalR live-update path.
-/// These tests require Playwright browsers to be installed (see install-playwright-browsers.ps1).
-/// All tests in this class are currently skipped pending the broadcaster-to-Razor method-name
-/// bridge (FU1 — owner-gated decision).
+/// Playwright-based test for the Dashboard SignalR live-update path (FU1 — PRISMA-E5-S2 follow-up).
+/// Requires Playwright browsers installed (see install-playwright-browsers.ps1).
 /// </summary>
+/// <remarks>
+/// Proves the FU1 bridge end-to-end: publishing a <see cref="DomainEvent"/> through the real
+/// <see cref="ExxerCube.Prisma.Web.UI.Services.SignalREventBroadcaster"/> drives a live DOM update on
+/// <c>Dashboard.razor</c> without a page reload. The broadcaster emits via Ember's transport-agnostic
+/// <c>SendToAllAsync</c> on the fixed wire method <c>"ReceiveMessage"</c>; the FU1 fix added
+/// <c>hubConnection.On&lt;object&gt;("ReceiveMessage", _ =&gt; InvokeAsync(LoadRealData))</c> to the page,
+/// which re-pulls metrics from <see cref="IProcessingMetricsService"/> on any domain event.
+///
+/// The test uses a dedicated factory that (1) KEEPS the broadcaster (the shared
+/// <see cref="PrismaWebApplicationFactory"/> strips it to avoid Rx teardown races) and (2) replaces
+/// <see cref="IProcessingMetricsService"/> with a controllable substitute so the live update is a
+/// deterministic 0 → 1 DOM change rather than depending on real pipeline activity.
+/// </remarks>
 public sealed class SignalRBroadcasterPlaywrightTests : IAsyncLifetime
 {
     private IPlaywright? _playwright;
@@ -111,35 +127,19 @@ public sealed class SignalRBroadcasterPlaywrightTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Verifies Dashboard.razor renders the metrics surface at /dashboard.
-    /// This is a static render check — the SignalR live-update path (DOM mutation on DomainEvent)
-    /// is skipped because the broadcaster-to-Razor method-name gap is not yet closed.
-    ///
-    /// SKIPPED: Client-side ProcessingHub consumer EXISTS (Dashboard.razor line 220,
-    /// <c>hubConnection.On&lt;DashboardMetrics&gt;("MetricsUpdated", OnMetricsUpdated)</c>)
-    /// but the broadcaster pushes DomainEvent via Ember <c>SendToAllAsync</c> under a different
-    /// method name than "MetricsUpdated". Live DOM update from broadcaster-emitted events is NOT
-    /// end-to-end proven. See PRISMA-E5-S2 follow-up (FU1) for the method-name bridge task.
-    /// Playwright browsers are also not installed on the dev box.
+    /// End-to-end FU1 proof: a domain event published via <see cref="IEventPublisher"/> flows through the
+    /// real broadcaster → <c>IExxerHub&lt;DomainEvent&gt;.SendToAllAsync</c> → <c>"ReceiveMessage"</c> →
+    /// the Dashboard's <c>On("ReceiveMessage")</c> handler → <c>LoadRealData</c> re-pull → the
+    /// "Total Documents" card updates in the DOM with no page reload.
     /// </summary>
-    [Fact(Skip = "Client-side ProcessingHub consumer exists (Dashboard.razor) but broadcaster-to-Razor method-name gap not yet closed — see PRISMA-E5-S2 follow-up FU1 (owner-gated); server-side broadcaster re-enabled. Playwright browsers not installed on dev box.")]
+    [Fact]
     [Trait("Category", "UI")]
     [Trait("Category", "SignalR")]
     [Trait("Category", "LiveUpdate")]
     public async Task Dashboard_ReceivesLiveMetricsUpdate_WhenBroadcasterEmitsDomainEvent()
     {
-        // WHEN this test is unblocked (method-name gap closed + Playwright installed):
-        //   1. Factory starts Kestrel on a free port via PrismaWebApplicationFactory.EnsureStarted().
-        //   2. Playwright navigates to /dashboard and waits for NetworkIdle.
-        //   3. Resolve IEventPublisher from factory.Services and publish a DocumentProcessedEvent.
-        //   4. Wait for the "Total Documents" metric counter to increment in the DOM.
-        //   5. Assert the metric card text changed WITHOUT a full page reload.
-        //
-        // Prerequisite: one of
-        //   (a) Dashboard.razor adds hubConnection.On("<ember-method-name>", handler), or
-        //   (b) broadcaster calls hub.UpdateMetrics(metrics) instead of SendToAllAsync(DomainEvent).
-
-        await using var factory = new PrismaWebApplicationFactory();
+        await using var factory = new LiveUpdateWebApplicationFactory();
+        factory.TotalDocuments = 5; // initial metric value rendered on first load (non-zero: proves LoadRealData reads the fake, not the 0 fallback)
         factory.EnsureStarted();
 
         var baseUrl = factory.HostedBaseAddress?.ToString().TrimEnd('/')
@@ -158,20 +158,127 @@ public sealed class SignalRBroadcasterPlaywrightTests : IAsyncLifetime
                 $"{baseUrl}/dashboard",
                 new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
 
-            // Static render check: the metrics card exists even before a live event arrives.
-            var totalDocumentsCard = page.Locator("text=Total Documents");
-            await Assertions.Expect(totalDocumentsCard).ToBeVisibleAsync();
+            // The Dashboard renders the Total Documents counter from the (faked) metrics service.
+            // Asserting "0" first guarantees the InteractiveServer circuit has initialised AND
+            // InitializeSignalR() (which awaits hubConnection.StartAsync before LoadRealData) has run —
+            // so the "ReceiveMessage" handler is registered and the hub client is connected.
+            var totalDocs = page.Locator(".total-docs");
+            await Assertions.Expect(totalDocs).ToHaveTextAsync("5", new() { Timeout = 30_000 });
 
-            // TODO (follow-up, unblock once method-name gap is fixed):
-            // var publisher = factory.Services.GetRequiredService<IEventPublisher>();
-            // publisher.Publish(new DocumentProcessedEvent(...));
-            // await page.WaitForFunctionAsync("() => parseInt(document.querySelector('.total-docs').textContent) > 0");
-            // var counter = await page.TextContentAsync(".total-docs");
-            // counter.ShouldNotBe("0", "Live metrics counter should increment after domain event");
+            // Flip the faked metric. The DOM still shows "5" — no reload has fired yet.
+            factory.TotalDocuments = 6;
+
+            // Publish a domain event. The real SignalREventBroadcaster (hosted service) is subscribed to
+            // the singleton IEventPublisher and will broadcast it via SendToAllAsync("ReceiveMessage"),
+            // which the Dashboard now handles by re-pulling metrics.
+            // NOTE: resolve from HostedServices (the Kestrel host the browser connects to), NOT
+            // factory.Services (the separate in-memory TestServer host) — the broadcaster + hub the circuit
+            // uses live on the Kestrel host and subscribe to ITS singleton publisher.
+            var publisher = factory.HostedServices!.GetRequiredService<IEventPublisher>();
+            publisher.Publish(new DocumentProcessingCompletedEvent
+            {
+                FileId = Guid.NewGuid(),
+                AutoProcessed = true,
+            });
+
+            // The counter must update to "6" WITHOUT a page reload — this is the FU1 bridge working.
+            await Assertions.Expect(totalDocs).ToHaveTextAsync("6", new() { Timeout = 15_000 });
         }
         finally
         {
             await context.CloseAsync();
+        }
+    }
+
+    /// <summary>
+    /// Server-side diagnostic (no browser): proves the broadcaster → IExxerHub adapter → ProcessingHub leg.
+    /// A raw SignalR client connected to /processingHub must receive "ReceiveMessage" after a domain event is
+    /// published. Isolates the transport chain from the Blazor circuit / DOM concerns.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "UI")]
+    [Trait("Category", "SignalR")]
+    public async Task Broadcaster_DeliversReceiveMessage_ToConnectedSignalRClient()
+    {
+        await using var factory = new LiveUpdateWebApplicationFactory();
+        factory.EnsureStarted();
+
+        var baseUrl = factory.HostedBaseAddress?.ToString().TrimEnd('/')
+            ?? throw new InvalidOperationException("Factory did not bind a port");
+
+        var received = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var connection = new Microsoft.AspNetCore.SignalR.Client.HubConnectionBuilder()
+            .WithUrl($"{baseUrl}/processingHub")
+            .Build();
+        connection.On<object>("ReceiveMessage", _ => received.TrySetResult(true));
+
+        try
+        {
+            await connection.StartAsync(TestContext.Current.CancellationToken);
+
+            var publisher = factory.HostedServices!.GetRequiredService<IEventPublisher>();
+            publisher.Publish(new DocumentProcessingCompletedEvent { FileId = Guid.NewGuid(), AutoProcessed = true });
+
+            var winner = await Task.WhenAny(received.Task, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
+            winner.ShouldBe(received.Task,
+                "a SignalR client on /processingHub must receive \"ReceiveMessage\" after a domain event is published " +
+                "(broadcaster → IExxerHub<DomainEvent> IHubContext adapter → ProcessingHub clients)");
+        }
+        finally
+        {
+            await connection.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Test host that keeps the <see cref="SignalREventBroadcaster"/> (the base factory strips it) and
+    /// substitutes a controllable <see cref="IProcessingMetricsService"/> whose reported
+    /// <c>TotalDocumentsProcessed</c> the test flips between the initial load and the published event.
+    /// </summary>
+    private sealed class LiveUpdateWebApplicationFactory : PrismaWebApplicationFactory
+    {
+        private volatile int _total;
+
+        /// <summary>Gets or sets the Total Documents value the faked metrics service reports on each reload.</summary>
+        public int TotalDocuments
+        {
+            get => _total;
+            set => _total = value;
+        }
+
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            // Base strips the broadcaster + Python/OCR and adds a mock OCR executor.
+            base.ConfigureWebHost(builder);
+
+            builder.ConfigureServices(services =>
+            {
+                // Re-add the broadcaster — it is the component under test here.
+                services.AddHostedService<SignalREventBroadcaster>();
+
+                // Replace the real metrics service with a controllable substitute.
+                foreach (var descriptor in services
+                             .Where(d => d.ServiceType == typeof(IProcessingMetricsService))
+                             .ToList())
+                {
+                    services.Remove(descriptor);
+                }
+
+                var metrics = Substitute.For<IProcessingMetricsService>();
+                metrics.GetCurrentStatisticsAsync()
+                    .Returns(_ => Task.FromResult(new ProcessingStatistics
+                    {
+                        TotalDocumentsProcessed = _total,
+                    }));
+                // Return a non-empty recent-events list: Dashboard.UpdateChartDataWithRealTrends falls back
+                // to all-zero metrics when the list is empty, which would mask the TotalDocumentsProcessed value.
+                metrics.GetRecentEvents(Arg.Any<int>()).Returns(new List<ProcessingEvent>
+                {
+                    new() { DocumentId = "doc-1", IsSuccess = true, ProcessingTimeSeconds = 1.0, Confidence = 0.95f },
+                });
+                services.AddSingleton(metrics);
+            });
         }
     }
 }

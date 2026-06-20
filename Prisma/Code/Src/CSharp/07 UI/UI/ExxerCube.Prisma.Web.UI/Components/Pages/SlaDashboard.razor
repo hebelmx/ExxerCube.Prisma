@@ -370,6 +370,17 @@
             hubConnection.On<string>("SLAStatusUpdated", OnSLAStatusUpdated);
             hubConnection.On<string, string>("SLAEscalated", OnSLAEscalated);
 
+            // FU1 (PRISMA-E5-S2): bridge the SignalREventBroadcaster path to a live DOM refresh.
+            // The broadcaster pushes DomainEvents via Ember's SendToAllAsync on the fixed wire method
+            // "ReceiveMessage" — NOT the typed "SLAStatusUpdated"/"SLAEscalated" (those only fire from
+            // explicit ProcessingHub calls). On any domain event we re-pull the current SLA data. Payload
+            // is bound as object (a JsonElement) and ignored: the abstract DomainEvent cannot be bound client-side.
+            hubConnection.On<object>("ReceiveMessage", _ => InvokeAsync(async () =>
+            {
+                await LoadDataAsync();
+                StateHasChanged(); // ensure the hub-triggered reload re-renders the SLA surface.
+            }));
+
             await hubConnection.StartAsync();
         }
         catch (Exception ex)
