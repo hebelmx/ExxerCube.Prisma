@@ -8,6 +8,7 @@
 // Story: VERIQAN-E1-S5 — Persist stage (Stage 8: JobVerdict + Findings persistence).
 
 using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
+using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
@@ -128,6 +129,20 @@ public sealed class VerdictPersistenceIntegrationTests
 
             var jobId = Guid.NewGuid();
             const string engineVersion = "1.0.0";
+
+            // Seed the parent VerificationJob first. JobVerdict and Finding are children of the
+            // VerificationJob aggregate (FK_JobVerdicts/Findings_VerificationJobs_VerificationJobId,
+            // configured in VerificationJobConfiguration with cascade delete), so real SQL rejects an
+            // orphan verdict/finding insert. In production the job row always exists before the Stage-8
+            // verdict is persisted; the test must reproduce that precondition. (InMemory does not enforce
+            // FKs, which is why this gap only surfaces against a real SQL container.)
+            var parentJob = new VerificationJob(
+                id: jobId,
+                contentHash: jobId.ToString("N"),
+                receivedAtUtc: DateTimeOffset.UtcNow,
+                status: VerificationJobStatus.Completed);
+            await ctx.VerificationJobs.AddAsync(parentJob, ct);
+            await ctx.SaveChangesAsync(ct);
 
             // Two findings: one Pass (green) and one Fail (red).
             IReadOnlyList<RuleFinding> ruleFindings =
