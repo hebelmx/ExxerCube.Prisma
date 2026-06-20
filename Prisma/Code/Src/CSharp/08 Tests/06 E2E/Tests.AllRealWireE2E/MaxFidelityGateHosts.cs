@@ -152,10 +152,11 @@ internal sealed class GateAthenaApp : WebApplicationFactory<global::Prisma.Athen
                 o.HttpMessageHandlerFactory = () => _orionApp.Server.CreateHandler());
 
             // Optionally disable the OCR extraction pipeline (AthenaWorkerService drives
-            // ExtractionPipelineService.StartAsync). The best-effort partial-case gate keeps the real ingestion
-            // forwarder (SiaraIngestionHubClient) but skips OCR — it asserts the ingestion/handoff contract,
-            // and running native Tesseract a second time in the same test process is a known transient flake
-            // that must not bleed into the complete-case gate.
+            // ExtractionPipelineService.StartAsync) by setting runExtractionPipeline: false. This flag is now
+            // reserved for tests that want to isolate the ingestion/handoff contract without OCR; the original
+            // rationale (running native Tesseract a second time in the same test process deadlocked) no longer
+            // applies — PRISMA-E2-S4 (2026-06-20) fixed the second-init deadlock by lazy-initializing and
+            // reusing a single TesseractEngine for the singleton executor's lifetime.
             if (!_runExtractionPipeline)
             {
                 var pipelineHosted = services

@@ -40,7 +40,9 @@ public sealed class TesseractOcrExecutor : IOcrExecutor, IDisposable
     // serialized through _engineLock because TesseractEngine is NOT thread-safe.
     private TesseractEngine? _engine;
     private readonly SemaphoreSlim _engineLock = new(1, 1);
-    private bool _disposed;
+    // volatile: read at ExecuteOcrAsync entry AND inside the locked region on a thread-pool thread,
+    // written by Dispose() on a different thread — ensure cross-thread visibility.
+    private volatile bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TesseractOcrExecutor"/> class.
@@ -107,6 +109,15 @@ public sealed class TesseractOcrExecutor : IOcrExecutor, IDisposable
                 _engineLock.Wait();
                 try
                 {
+                    // Re-check after acquiring the lock: a concurrent Dispose() may have torn down the
+                    // engine between the entry guard and here. Never lazy-create an engine on a disposed
+                    // executor — that would be a second-init on a shutting-down host (the very deadlock
+                    // this class prevents).
+                    if (_disposed)
+                    {
+                        return Result<OCRResult>.Failure("TesseractOcrExecutor has been disposed.");
+                    }
+
                     // Lazy-init: create the engine once and reuse for the lifetime of this singleton.
                     if (_engine == null)
                     {

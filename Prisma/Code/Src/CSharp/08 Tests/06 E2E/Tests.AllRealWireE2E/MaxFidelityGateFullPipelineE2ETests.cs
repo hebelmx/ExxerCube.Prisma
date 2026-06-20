@@ -48,9 +48,10 @@ namespace ExxerCube.Prisma.Tests.AllRealWireE2E;
 ///   partial/degraded case carrying <see cref="DocumentDownloadedEvent.IsComplete"/> = <see langword="false"/>
 ///   persists a flagged <c>ReviewReason.IncompleteCase</c> <c>ReviewCase</c> row via the Reconciliator's
 ///   Stage-4 scope. This gate does NOT itself <em>assert</em> that row: the full gate's complete case is
-///   <c>IsComplete</c> = <see langword="true"/> (nothing to flag), and the partial-case gate deliberately
-///   runs with the extraction pipeline disabled (<c>runExtractionPipeline: false</c>) to avoid the
-///   Tesseract second-init deadlock, so it never reaches the Stage-4 persistence point. Review-case
+///   <c>IsComplete</c> = <see langword="true"/> (nothing to flag), and the partial-case gate asserts the
+///   best-effort ingestion/handoff contract before the Stage-4 persistence point. (As of PRISMA-E2-S4,
+///   2026-06-20, the partial-case gate now runs the full extraction pipeline — the Tesseract second-init
+///   deadlock that previously forced <c>runExtractionPipeline: false</c> was fixed.) Review-case
 ///   persistence is covered directly by GH #6's own Testcontainers integration tests (incomplete-case
 ///   persistence, idempotency/heal) — see commit <c>e3fd56a</c>.</item>
 /// </list>
