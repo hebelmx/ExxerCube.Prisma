@@ -204,7 +204,7 @@ ExxerCube.Prisma.QaHarness/
 - `EvidencePackage` — collection of `EvidenceItem` records (Kind, Path, Label, Timestamp, SizeBytes).
 - `EvidenceKind` — `Screenshot | LogSnapshot | GeneratedFile | NetworkHar | Diagnostic | Video`.
 - `PlaywrightEvidenceCollector` — delegates to `IPage.ScreenshotAsync()` and Playwright tracing API.
-- `LogEvidenceCollector` — attaches a custom Serilog `ISink` during the run, dumps to file on flush.
+- `LogEvidenceCollector` — captures log output via an in-memory `ILogger` buffer (`InMemoryLogBuffer`) during the run, dumps to file on flush. *(As-built note: the original sketch said "Serilog ISink"; Serilog is not centrally pinned for this library project, so an ILogger buffer is used — same captured data. See LIMITATIONS §14.)*
 
 **Corpus of evidence items accumulates in `EvidencePackage` and is embedded in `WorkflowResult`.**
 
@@ -261,7 +261,12 @@ public sealed record ProvisioningOptions(
     bool StartOllamaContainer = false,
     bool SeedCorpus = true,
     string? CorpusOutputPath = null,
-    int CorpusDocumentCount = 10);
+    int CorpusDocumentCount = 10,
+    string? RepoRoot = null);          // as-built: explicit repo root (else PRISMA_REPO_ROOT, else walk-up)
+
+// As-built note: video/HAR capture is opt-in at the evidence-collector level, not via
+// ProvisioningOptions fields (the §13 "EnableVideoCapture/EnableNetworkTracing" mention is
+// a design-time idea; the as-built collectors expose these as off-by-default behaviours).
 
 public sealed record EnvironmentProvisioningResult(
     string? SqlConnectionString,
