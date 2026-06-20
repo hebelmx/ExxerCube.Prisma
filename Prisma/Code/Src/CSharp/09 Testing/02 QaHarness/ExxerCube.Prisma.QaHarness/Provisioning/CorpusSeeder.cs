@@ -202,11 +202,18 @@ public sealed class CorpusSeeder
     {
         try
         {
+            // generate_corpus.py argparse definition (verified against script source):
+            //   --num   INT   number of records to generate (default: 5)
+            //   --output STR  output JSON file path (default: "test_corpus.json")
+            // The script writes a single JSON file; the output argument is a FILE path,
+            // not a directory. We place the JSON inside the caller-supplied outputDir.
+            var outputJsonPath = Path.Combine(outputDir, "corpus.json");
+
             using var process = new Process();
             process.StartInfo = new ProcessStartInfo
             {
                 FileName = pythonExe,
-                Arguments = $"\"{scriptPath}\" --output \"{outputDir}\" --count {count}",
+                Arguments = $"\"{scriptPath}\" --output \"{outputJsonPath}\" --num {count}",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,

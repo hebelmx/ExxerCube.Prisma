@@ -78,7 +78,8 @@ public sealed class ManualReviewWorkflow : IWorkflow
                 Timeout = 15_000,
             }).ConfigureAwait(false);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             // ── Capture screenshot ───────────────────────────────────────────
             _ = await context.Evidence.CaptureScreenshotAsync(
@@ -91,7 +92,8 @@ public sealed class ManualReviewWorkflow : IWorkflow
             outputs["ReviewQueueUrl"] = reviewUrl;
             outputs["PendingItemCount"] = itemCount;
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             // ── Log snapshot ─────────────────────────────────────────────────
             _ = await context.Evidence.CaptureLogSnapshotAsync(

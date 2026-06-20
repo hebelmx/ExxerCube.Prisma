@@ -83,7 +83,8 @@ public sealed class ConfigWorkflow : IWorkflow
             outputs["HealthReadyStatus"] = (int)response.StatusCode;
             outputs["ApplicationReachable"] = response.IsSuccessStatusCode;
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             // ── Extract observable config values from IConfiguration (optional) ──
             var configuration = context.Services.GetService<IConfiguration>();

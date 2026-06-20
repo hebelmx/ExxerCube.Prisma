@@ -78,7 +78,8 @@ public sealed class HealthCheckWorkflow : IWorkflow
             outputs["LiveBody"] = liveResult.Body;
             outputs["LiveResponseMs"] = liveResult.ElapsedMs;
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             // ── /health/ready ────────────────────────────────────────────────
             var readyResult = await ProbeEndpointAsync(

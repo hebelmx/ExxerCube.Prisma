@@ -129,15 +129,31 @@ public sealed class ThreeProcessHostController : IApplicationHostController
 
             sw.Stop();
 
-            _logger.LogInformation(
-                "ThreeProcessHostController: all three hosts started in {ElapsedMs} ms.",
-                sw.ElapsedMilliseconds);
+            // ── Verify that all three hosts actually started ────────────────
+            // Accessing .Services triggers WAF lazy-boot; null means the host never
+            // materialised (BuildThreeHosts would normally throw, but guard defensively).
+            var failureReason = VerifyHostsStarted();
+            var isHealthy = failureReason is null;
+
+            if (!isHealthy)
+            {
+                _logger.LogWarning(
+                    "ThreeProcessHostController: startup completed but health verification failed after {ElapsedMs} ms: {Reason}",
+                    sw.ElapsedMilliseconds,
+                    failureReason);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "ThreeProcessHostController: all three hosts started and verified in {ElapsedMs} ms.",
+                    sw.ElapsedMilliseconds);
+            }
 
             var result = new ApplicationStartupResult(
-                IsHealthy: true,
+                IsHealthy: isHealthy,
                 BaseAddress: null,   // workers do not expose a browser-reachable address
                 StartupDurationMs: sw.ElapsedMilliseconds,
-                FailureReason: null);
+                FailureReason: failureReason);
 
             return Result<ApplicationStartupResult>.WithSuccess(result);
         }
@@ -195,6 +211,34 @@ public sealed class ThreeProcessHostController : IApplicationHostController
 
         _disposed = true;
         await StopAsync(CancellationToken.None).ConfigureAwait(false);
+    }
+
+    // ── Post-boot health verification ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Verifies that all three hosts started successfully by asserting their service providers
+    /// are non-null (a null provider means WAF never completed host boot).
+    /// </summary>
+    /// <returns>
+    /// <see langword="null"/> when all three hosts have a valid service provider; otherwise a
+    /// human-readable failure reason that describes which host(s) failed to start.
+    /// </returns>
+    private string? VerifyHostsStarted()
+    {
+        var missing = new List<string>(3);
+
+        if (_orionApp?.Services is null)
+            missing.Add("Orion");
+
+        if (_athenaApp?.Services is null)
+            missing.Add("Athena");
+
+        if (_reconciliatorApp?.Services is null)
+            missing.Add("Reconciliator");
+
+        return missing.Count > 0
+            ? $"Host service provider(s) are null after boot — failed worker(s): {string.Join(", ", missing)}."
+            : null;
     }
 
     // ── Three-host boot (mirrors BuildThreeHostsWithDb) ──────────────────────────

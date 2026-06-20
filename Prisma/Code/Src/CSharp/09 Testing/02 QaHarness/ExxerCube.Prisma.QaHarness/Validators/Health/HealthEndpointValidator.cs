@@ -8,16 +8,22 @@ namespace ExxerCube.Prisma.QaHarness.Validators.Health;
 
 /// <summary>
 /// The subject supplied to <see cref="HealthEndpointValidator"/>.
-/// Carries the raw JSON body returned by the <c>/health</c> endpoint, plus the HTTP status code.
+/// Carries the raw response body returned by the <c>/health</c> endpoint, plus the HTTP status
+/// code. The body may be plain text (<c>Healthy</c> / <c>Degraded</c> / <c>Unhealthy</c>)
+/// as emitted by the default ASP.NET Core health-check middleware, or the Microsoft JSON format
+/// emitted when a custom <c>ResponseWriter</c> is configured.
 /// </summary>
 /// <param name="StatusCode">The HTTP status code of the health response (200, 503, etc.).</param>
 /// <param name="ResponseBody">
-/// The raw JSON response body from the health endpoint (Microsoft.Extensions.Diagnostics.HealthChecks
-/// format). May be <see langword="null"/> or empty when the endpoint returned no body.
+/// The raw response body from the health endpoint. May be <see langword="null"/> or empty when
+/// the endpoint returned no body. The validator handles both plain-text bodies
+/// (<c>"Healthy"</c> / <c>"Degraded"</c> / <c>"Unhealthy"</c>) and JSON bodies that contain a
+/// top-level <c>"status"</c> field (Microsoft.Extensions.Diagnostics.HealthChecks format).
 /// </param>
 /// <param name="RequiredEntryNames">
 /// Optional list of health check entry names that must be present in the <c>entries</c> section of
-/// the response.  When empty the validator only checks overall <c>status == "Healthy"</c>.
+/// a JSON-format response.  When empty the validator only checks overall status == "Healthy".
+/// Entry-name checks are silently skipped when the response is plain-text.
 /// </param>
 public sealed record HealthEndpointSubject(
     int StatusCode,
@@ -26,14 +32,30 @@ public sealed record HealthEndpointSubject(
 
 /// <summary>
 /// Validates a health-endpoint response for Prisma services.  Accepts a
-/// <see cref="HealthEndpointSubject"/> containing the HTTP status code, the raw JSON body, and an
-/// optional list of required health-check entry names.
+/// <see cref="HealthEndpointSubject"/> containing the HTTP status code, the raw response body,
+/// and an optional list of required health-check entry names.
 /// </summary>
 /// <remarks>
-/// Conformance means: HTTP 200, top-level <c>status</c> field equals <c>"Healthy"</c>, and every
-/// entry listed in <see cref="HealthEndpointSubject.RequiredEntryNames"/> is present in the
-/// <c>entries</c> object.  A <c>"Degraded"</c> status produces a Minor finding (service is
-/// responsive but not fully healthy).  An HTTP 503 or <c>"Unhealthy"</c> produces a Major finding.
+/// <para>
+/// The validator handles two body formats:
+/// <list type="bullet">
+///   <item><description>
+///     <b>Plain text</b> — the default ASP.NET Core health-check response
+///     (<c>app.MapHealthChecks</c> with no <c>ResponseWriter</c> override). The body is one of
+///     <c>Healthy</c>, <c>Degraded</c>, or <c>Unhealthy</c>.
+///   </description></item>
+///   <item><description>
+///     <b>JSON</b> — the Microsoft <c>HealthCheckOptions.ResponseWriter</c> JSON format, which
+///     includes a top-level <c>"status"</c> field and an optional <c>"entries"</c> object.
+///   </description></item>
+/// </list>
+/// </para>
+/// <para>
+/// Conformance means: HTTP 200 AND status text (from either format) equals <c>"Healthy"</c>.
+/// A <c>"Degraded"</c> status produces a Minor finding.  An HTTP 503 or <c>"Unhealthy"</c>
+/// produces a Major finding.  Required entry-name checks are only applied for JSON-format
+/// responses.
+/// </para>
 /// </remarks>
 public sealed class HealthEndpointValidator : IDomainValidator<HealthEndpointSubject>
 {
@@ -42,9 +64,10 @@ public sealed class HealthEndpointValidator : IDomainValidator<HealthEndpointSub
 
     /// <inheritdoc/>
     public string Description =>
-        "Observes the HTTP status code and JSON body returned by the /health endpoint. " +
+        "Observes the HTTP status code and response body returned by the /health endpoint. " +
+        "Handles both plain-text bodies (Healthy/Degraded/Unhealthy) and Microsoft JSON format. " +
         "Checks that the overall status is 'Healthy', that the HTTP code is 200, and that " +
-        "each required health-check entry name is present.";
+        "each required health-check entry name is present (JSON format only).";
 
     /// <inheritdoc/>
     public Task<ValidationResult> ValidateAsync(
@@ -90,79 +113,105 @@ public sealed class HealthEndpointValidator : IDomainValidator<HealthEndpointSub
             findings.Add(new ValidationFinding(
                 "HEALTH-03", FindingSeverity.Major,
                 "Health endpoint response body is absent or empty.",
-                Observed: "(empty)", Expected: "Non-empty JSON body"));
+                Observed: "(empty)", Expected: "Non-empty body (plain text or JSON)"));
             return new ValidationResult(ValidatorId, IsConformant: false, findings);
         }
 
-        // ── 3. Parse JSON ─────────────────────────────────────────────────
-        JsonDocument doc;
-        try
-        {
-            doc = JsonDocument.Parse(subject.ResponseBody);
-        }
-        catch (JsonException ex)
-        {
-            findings.Add(new ValidationFinding(
-                "HEALTH-04", FindingSeverity.Critical,
-                $"Health endpoint response body is not valid JSON: {ex.Message}",
-                Observed: subject.ResponseBody[..Math.Min(200, subject.ResponseBody.Length)],
-                Expected: "Valid JSON object"));
-            return new ValidationResult(ValidatorId, IsConformant: false, findings);
-        }
+        // ── 3. Detect body format and extract status ───────────────────────
+        // The default ASP.NET Core health-check middleware (MapHealthChecks with no
+        // ResponseWriter override) emits plain text: "Healthy", "Degraded", or "Unhealthy".
+        // Custom ResponseWriter configurations emit JSON with a "status" field.
+        var trimmedBody = subject.ResponseBody.Trim();
+        string statusValue;
+        bool isPlainText;
 
-        using (doc)
+        if (IsKnownPlainTextStatus(trimmedBody))
         {
-            // ── 4. Top-level status field ──────────────────────────────────
-            if (!doc.RootElement.TryGetProperty("status", out var statusProp))
+            // Plain-text path — body IS the status word.
+            statusValue = trimmedBody;
+            isPlainText = true;
+        }
+        else
+        {
+            // Attempt JSON parse.
+            isPlainText = false;
+            JsonDocument doc;
+            try
+            {
+                doc = JsonDocument.Parse(subject.ResponseBody);
+            }
+            catch (JsonException ex)
             {
                 findings.Add(new ValidationFinding(
-                    "HEALTH-05", FindingSeverity.Major,
-                    "Health response JSON does not contain a 'status' field.",
-                    Observed: "(absent)", Expected: "\"status\": \"Healthy\""));
-            }
-            else
-            {
-                var statusValue = statusProp.GetString() ?? string.Empty;
-                if (!string.Equals(statusValue, "Healthy", StringComparison.OrdinalIgnoreCase))
-                {
-                    var severity = string.Equals(statusValue, "Degraded", StringComparison.OrdinalIgnoreCase)
-                        ? FindingSeverity.Minor
-                        : FindingSeverity.Major;
-
-                    findings.Add(new ValidationFinding(
-                        "HEALTH-05", severity,
-                        $"Health endpoint status is not 'Healthy'.",
-                        Observed: statusValue,
-                        Expected: "Healthy"));
-                }
+                    "HEALTH-04", FindingSeverity.Critical,
+                    $"Health endpoint response body is neither a known plain-text status nor valid JSON: {ex.Message}",
+                    Observed: subject.ResponseBody[..Math.Min(200, subject.ResponseBody.Length)],
+                    Expected: "Plain-text 'Healthy'/'Degraded'/'Unhealthy' or valid JSON object with 'status' field"));
+                return new ValidationResult(ValidatorId, IsConformant: false, findings);
             }
 
-            // ── 5. Required entry names ────────────────────────────────────
-            var requiredEntries = subject.RequiredEntryNames ?? Array.Empty<string>();
-            if (requiredEntries.Count > 0)
+            using (doc)
             {
-                if (!doc.RootElement.TryGetProperty("entries", out var entriesProp) ||
-                    entriesProp.ValueKind != JsonValueKind.Object)
+                // ── 3a. Top-level status field ─────────────────────────────
+                if (!doc.RootElement.TryGetProperty("status", out var statusProp))
                 {
                     findings.Add(new ValidationFinding(
-                        "HEALTH-06", FindingSeverity.Major,
-                        "Health response JSON does not contain an 'entries' object but entry checks were requested.",
-                        Observed: "(absent)", Expected: "'entries' object with named health checks"));
+                        "HEALTH-05", FindingSeverity.Major,
+                        "Health response JSON does not contain a 'status' field.",
+                        Observed: "(absent)", Expected: "\"status\": \"Healthy\""));
+
+                    // Without a status we cannot check entries either; return early.
+                    return new ValidationResult(
+                        ValidatorId,
+                        IsConformant: !findings.Any(f =>
+                            f.Severity == FindingSeverity.Critical || f.Severity == FindingSeverity.Major),
+                        findings);
                 }
-                else
+
+                statusValue = statusProp.GetString() ?? string.Empty;
+
+                // ── 3b. Required entry names (JSON only) ───────────────────
+                var requiredEntries = subject.RequiredEntryNames ?? Array.Empty<string>();
+                if (requiredEntries.Count > 0)
                 {
-                    foreach (var entryName in requiredEntries)
+                    if (!doc.RootElement.TryGetProperty("entries", out var entriesProp) ||
+                        entriesProp.ValueKind != JsonValueKind.Object)
                     {
-                        if (!entriesProp.TryGetProperty(entryName, out _))
+                        findings.Add(new ValidationFinding(
+                            "HEALTH-06", FindingSeverity.Major,
+                            "Health response JSON does not contain an 'entries' object but entry checks were requested.",
+                            Observed: "(absent)", Expected: "'entries' object with named health checks"));
+                    }
+                    else
+                    {
+                        foreach (var entryName in requiredEntries)
                         {
-                            findings.Add(new ValidationFinding(
-                                $"HEALTH-07-{entryName}", FindingSeverity.Major,
-                                $"Required health check entry '{entryName}' is missing from the response.",
-                                Observed: "(absent)", Expected: $"Entry '{entryName}' present"));
+                            if (!entriesProp.TryGetProperty(entryName, out _))
+                            {
+                                findings.Add(new ValidationFinding(
+                                    $"HEALTH-07-{entryName}", FindingSeverity.Major,
+                                    $"Required health check entry '{entryName}' is missing from the response.",
+                                    Observed: "(absent)", Expected: $"Entry '{entryName}' present"));
+                            }
                         }
                     }
                 }
             }
+        }
+
+        // ── 4. Evaluate status value ───────────────────────────────────────
+        if (!string.Equals(statusValue, "Healthy", StringComparison.OrdinalIgnoreCase))
+        {
+            var severity = string.Equals(statusValue, "Degraded", StringComparison.OrdinalIgnoreCase)
+                ? FindingSeverity.Minor
+                : FindingSeverity.Major;
+
+            var format = isPlainText ? "plain-text" : "JSON";
+            findings.Add(new ValidationFinding(
+                "HEALTH-05", severity,
+                $"Health endpoint status is not 'Healthy' ({format} body).",
+                Observed: statusValue,
+                Expected: "Healthy"));
         }
 
         var isConformant = !findings.Any(f =>
@@ -172,6 +221,11 @@ public sealed class HealthEndpointValidator : IDomainValidator<HealthEndpointSub
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static bool IsKnownPlainTextStatus(string trimmed) =>
+        string.Equals(trimmed, "Healthy",   StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(trimmed, "Degraded",  StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(trimmed, "Unhealthy", StringComparison.OrdinalIgnoreCase);
 
     private ValidationResult NonConformant(
         string ruleId, FindingSeverity severity, string description,

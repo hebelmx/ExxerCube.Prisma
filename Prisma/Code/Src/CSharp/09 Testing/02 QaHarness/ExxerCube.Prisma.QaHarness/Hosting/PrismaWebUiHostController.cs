@@ -277,11 +277,13 @@ public sealed class PrismaWebUiHostController : IApplicationHostController
             builder.ConfigureServices(services =>
             {
                 // Remove Python environment registration (not required for harness runs; avoids CSnakes init).
-                // Use type-name comparison to avoid a compile-time dependency on CSnakes.Runtime — the type
-                // lives in ExxerCube.Prisma.Infrastructure which references CSnakes transitively, but that
-                // transitive reference does not flow to this library's compilation unit.
+                // String-based type matching is used deliberately to avoid a compile-time dependency on
+                // CSnakes.Runtime — that assembly is referenced only transitively (via Infrastructure) and
+                // does not flow to this library's compilation unit.  EndsWith is tighter than Contains to
+                // avoid accidentally matching unrelated types whose name happens to include the substring.
                 var pythonEnvDescriptors = services
-                    .Where(d => d.ServiceType.FullName?.Contains("IPythonEnvironment") == true)
+                    .Where(d => d.ServiceType.FullName?.EndsWith(".IPythonEnvironment",
+                        StringComparison.Ordinal) == true)
                     .ToList();
                 foreach (var d in pythonEnvDescriptors)
                 {

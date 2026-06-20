@@ -12,8 +12,10 @@ namespace ExxerCube.Prisma.QaHarness.Validators.Pipeline;
 /// <param name="AuditId">Unique identifier for the audit entry.</param>
 /// <param name="FileId">The document/file identifier this row is associated with, or <see langword="null"/>.</param>
 /// <param name="ProcessId">
-/// The process/actor identity that produced this record.  Must be non-null and non-empty for
-/// the audit trail to be considered complete (PRISMA-E2-S5 requirement).
+/// The process/actor identity that produced this record.  Nullable by design — rows written
+/// before migration <c>20260613122859_AddAuditProcessId</c> do not carry a ProcessId.
+/// The three pipeline workers (Orion, Athena, Reconciliator) populate this field per
+/// PRISMA-E2-S5.  A null value is reported as a Minor observation, not a conformance failure.
 /// </param>
 /// <param name="Stage">A descriptive label for the processing stage (e.g. "Ingestion", "Extraction").</param>
 public sealed record AuditRow(
@@ -24,13 +26,22 @@ public sealed record AuditRow(
 
 /// <summary>
 /// Validates an in-memory collection of <see cref="AuditRow"/> records against the audit-trail
-/// completeness rules: at least one row must be present, and every row must carry a non-null,
-/// non-empty <see cref="AuditRow.ProcessId"/> (PRISMA-E2-S5).
+/// completeness rules: at least one row must be present.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The subject is kept data-source-agnostic (<see cref="IReadOnlyList{T}"/> of <see cref="AuditRow"/>)
 /// so a fast test can pass an in-memory list and an integration test can pass SQL-projected rows,
 /// without the validator knowing about EF Core or SQL Server.
+/// </para>
+/// <para>
+/// <b>ProcessId nullability:</b> <see cref="AuditRow.ProcessId"/> is nullable because the
+/// underlying domain column was added by migration <c>20260613122859_AddAuditProcessId</c> and
+/// pre-migration rows have a null value.  The validator reports a <see cref="FindingSeverity.Minor"/>
+/// observation when rows are missing a ProcessId; it does NOT drive <c>IsConformant</c> to
+/// <see langword="false"/> solely on that basis.  Only structural problems (zero rows when rows
+/// were expected) produce a Critical/Major finding that marks the result non-conformant.
+/// </para>
 /// </remarks>
 public sealed class AuditTrailValidator : IDomainValidator<IReadOnlyList<AuditRow>>
 {
@@ -39,8 +50,9 @@ public sealed class AuditTrailValidator : IDomainValidator<IReadOnlyList<AuditRo
 
     /// <inheritdoc/>
     public string Description =>
-        "Observes whether a collection of audit rows is non-empty and whether every row " +
-        "carries a non-null, non-empty ProcessId (PRISMA-E2-S5 traceability requirement).";
+        "Observes whether a collection of audit rows is non-empty. Rows missing a ProcessId " +
+        "are reported as a Minor observation (ProcessId is nullable for legacy/pre-migration rows; " +
+        "the 3 workers populate it per PRISMA-E2-S5) and do not affect conformance.";
 
     /// <inheritdoc/>
     /// <param name="subject">
@@ -81,7 +93,10 @@ public sealed class AuditTrailValidator : IDomainValidator<IReadOnlyList<AuditRo
             return new ValidationResult(ValidatorId, IsConformant: false, findings);
         }
 
-        // ── 2. Every row must have a non-null, non-empty ProcessId ─────────
+        // ── 2. Observe rows missing ProcessId (Minor — nullable by design) ─
+        // ProcessId was added by migration 20260613122859_AddAuditProcessId.  Pre-migration rows
+        // legitimately have a null value.  This is reported as a Minor observation so the QA agent
+        // is aware, but it does NOT drive IsConformant to false.
         var missingProcessId = rows
             .Where(r => string.IsNullOrWhiteSpace(r.ProcessId))
             .ToList();
@@ -90,11 +105,12 @@ public sealed class AuditTrailValidator : IDomainValidator<IReadOnlyList<AuditRo
         {
             var ids = string.Join(", ", missingProcessId.Select(r => r.AuditId));
             findings.Add(new ValidationFinding(
-                "AUDIT-03", FindingSeverity.Major,
-                $"{missingProcessId.Count} audit row(s) are missing a ProcessId. " +
-                "Every audit entry must carry the originating process identity (PRISMA-E2-S5).",
+                "AUDIT-03", FindingSeverity.Minor,
+                $"{missingProcessId.Count} audit row(s) have a null or empty ProcessId. " +
+                "ProcessId is nullable for legacy/pre-migration rows; the 3 pipeline workers " +
+                "populate it per PRISMA-E2-S5. This is an observation, not a conformance failure.",
                 Observed: $"Rows without ProcessId: [{ids}]",
-                Expected: "All rows have a non-empty ProcessId"));
+                Expected: "ProcessId populated by Orion/Athena/Reconciliator workers (new rows)"));
         }
 
         // ── 3. Informational: row count and distinct stages ────────────────

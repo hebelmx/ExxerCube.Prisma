@@ -49,9 +49,56 @@ public sealed class HealthEndpointValidatorTests
         }
         """;
 
-    // ── Conformant: Healthy + 200 ─────────────────────────────────────────────
+    // ── Conformant: plain-text "Healthy" (real ASP.NET Core default) ────────────
+    // The default app.MapHealthChecks("/health") with no ResponseWriter override emits
+    // plain text "Healthy" / "Degraded" / "Unhealthy", NOT JSON.
 
-    /// <summary>HTTP 200 + status=Healthy with no required entries → conformant, no Major/Critical findings.</summary>
+    /// <summary>HTTP 200 + plain-text body "Healthy" → conformant (real production path).</summary>
+    [Fact]
+    [Trait("category", "fast")]
+    public async Task Validate_PlainTextHealthy_IsConformant()
+    {
+        var subject = new HealthEndpointSubject(StatusCode: 200, ResponseBody: "Healthy");
+
+        var result = await Sut.ValidateAsync(subject, TestContext.Current.CancellationToken);
+
+        result.ValidatorId.ShouldBe("HEALTH-ENDPOINT");
+        result.IsConformant.ShouldBeTrue();
+        result.Findings.ShouldNotContain(f =>
+            f.Severity == FindingSeverity.Critical || f.Severity == FindingSeverity.Major);
+    }
+
+    /// <summary>HTTP 200 + plain-text body "Degraded" → Minor finding, IsConformant stays true.</summary>
+    [Fact]
+    [Trait("category", "fast")]
+    public async Task Validate_PlainTextDegraded_IsConformant_WithMinorFinding()
+    {
+        var subject = new HealthEndpointSubject(StatusCode: 200, ResponseBody: "Degraded");
+
+        var result = await Sut.ValidateAsync(subject, TestContext.Current.CancellationToken);
+
+        result.IsConformant.ShouldBeTrue();
+        result.Findings.ShouldContain(f => f.Severity == FindingSeverity.Minor);
+        result.Findings.ShouldNotContain(f =>
+            f.Severity == FindingSeverity.Critical || f.Severity == FindingSeverity.Major);
+    }
+
+    /// <summary>HTTP 200 + plain-text body "Unhealthy" → Major finding, IsConformant=false.</summary>
+    [Fact]
+    [Trait("category", "fast")]
+    public async Task Validate_PlainTextUnhealthy_IsNotConformant_WithMajorFinding()
+    {
+        var subject = new HealthEndpointSubject(StatusCode: 200, ResponseBody: "Unhealthy");
+
+        var result = await Sut.ValidateAsync(subject, TestContext.Current.CancellationToken);
+
+        result.IsConformant.ShouldBeFalse();
+        result.Findings.ShouldContain(f => f.Severity == FindingSeverity.Major);
+    }
+
+    // ── Conformant: Healthy + 200 (JSON format) ───────────────────────────────
+
+    /// <summary>HTTP 200 + status=Healthy JSON body with no required entries → conformant, no Major/Critical findings.</summary>
     [Fact]
     [Trait("category", "fast")]
     public async Task Validate_HealthyStatus_IsConformant()

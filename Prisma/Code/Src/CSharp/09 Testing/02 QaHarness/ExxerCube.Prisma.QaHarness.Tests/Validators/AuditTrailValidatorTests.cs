@@ -51,33 +51,40 @@ public sealed class AuditTrailValidatorTests
             f.Severity == FindingSeverity.Critical && f.RuleId == "AUDIT-02");
     }
 
-    // ── Non-conformant: one row missing ProcessId ────────────────────────────
+    // ── Observational (Minor): rows missing ProcessId ────────────────────────
+    // ProcessId is nullable by design for legacy/pre-migration rows.  The validator
+    // reports a Minor observation — it does NOT set IsConformant=false.
 
-    /// <summary>A single row with null ProcessId produces a Major finding; the AuditId appears in Observed.</summary>
+    /// <summary>
+    /// A row with null ProcessId is a Minor observation; IsConformant remains true because
+    /// ProcessId is nullable-by-design for pre-migration rows (AuditTrailValidator MAJOR 2 fix).
+    /// The AuditId still appears in the finding Observed field.
+    /// </summary>
     [Fact]
     [Trait("category", "fast")]
-    public async Task Validate_OneRowMissingProcessId_IsNotConformant_WithMajorFinding()
+    public async Task Validate_OneRowMissingProcessId_IsConformant_WithMinorObservation()
     {
         var rows = new List<AuditRow>
         {
             new("AUDIT-001", "FILE-123", "orion-downloader", "Ingestion"),
-            new("AUDIT-002", "FILE-123", null,               "Extraction"),  // missing ProcessId
+            new("AUDIT-002", "FILE-123", null,               "Extraction"),  // nullable by design
         };
 
         var result = await Sut.ValidateAsync(rows, TestContext.Current.CancellationToken);
 
-        result.IsConformant.ShouldBeFalse();
+        // IsConformant must be true — null ProcessId is an observation, not a hard failure.
+        result.IsConformant.ShouldBeTrue();
         var finding = result.Findings.FirstOrDefault(f =>
-            f.Severity == FindingSeverity.Major && f.RuleId == "AUDIT-03");
+            f.Severity == FindingSeverity.Minor && f.RuleId == "AUDIT-03");
         finding.ShouldNotBeNull();
         finding!.Observed!.ShouldContain("AUDIT-002");
         finding.Expected.ShouldNotBeNullOrWhiteSpace();
     }
 
-    /// <summary>Empty-string ProcessId is also treated as missing.</summary>
+    /// <summary>Whitespace-only ProcessId is also treated as missing — Minor observation only.</summary>
     [Fact]
     [Trait("category", "fast")]
-    public async Task Validate_EmptyStringProcessId_IsNotConformant_WithMajorFinding()
+    public async Task Validate_EmptyStringProcessId_IsConformant_WithMinorObservation()
     {
         var rows = new List<AuditRow>
         {
@@ -86,16 +93,20 @@ public sealed class AuditTrailValidatorTests
 
         var result = await Sut.ValidateAsync(rows, TestContext.Current.CancellationToken);
 
-        result.IsConformant.ShouldBeFalse();
-        result.Findings.ShouldContain(f => f.Severity == FindingSeverity.Major);
+        result.IsConformant.ShouldBeTrue();
+        result.Findings.ShouldContain(f => f.Severity == FindingSeverity.Minor && f.RuleId == "AUDIT-03");
+        result.Findings.ShouldNotContain(f => f.Severity == FindingSeverity.Major);
     }
 
-    // ── Non-conformant: all rows missing ProcessId ───────────────────────────
+    // ── Observational: all rows missing ProcessId ─────────────────────────────
 
-    /// <summary>When all rows lack ProcessId, a single Major finding lists all AuditIds.</summary>
+    /// <summary>
+    /// When all rows lack ProcessId (all pre-migration), a single Minor observation lists all
+    /// AuditIds. The result is still conformant — no Major/Critical findings.
+    /// </summary>
     [Fact]
     [Trait("category", "fast")]
-    public async Task Validate_AllRowsMissingProcessId_IsNotConformant_MajorFindingListsAll()
+    public async Task Validate_AllRowsMissingProcessId_IsConformant_MinorObservationListsAll()
     {
         var rows = new List<AuditRow>
         {
@@ -106,9 +117,9 @@ public sealed class AuditTrailValidatorTests
 
         var result = await Sut.ValidateAsync(rows, TestContext.Current.CancellationToken);
 
-        result.IsConformant.ShouldBeFalse();
+        result.IsConformant.ShouldBeTrue();
         var finding = result.Findings.FirstOrDefault(f =>
-            f.Severity == FindingSeverity.Major && f.RuleId == "AUDIT-03");
+            f.Severity == FindingSeverity.Minor && f.RuleId == "AUDIT-03");
         finding.ShouldNotBeNull();
         // Observed should mention all three AuditIds
         finding!.Observed!.ShouldContain("AUDIT-A");

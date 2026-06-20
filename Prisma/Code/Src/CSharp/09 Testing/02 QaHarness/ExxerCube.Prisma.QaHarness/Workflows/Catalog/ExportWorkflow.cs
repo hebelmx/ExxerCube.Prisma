@@ -116,7 +116,8 @@ public sealed class ExportWorkflow : IWorkflow
                     $"ExportWorkflow timed out after {DefaultTimeout.TotalSeconds}s waiting for ExportCompletedEvent.");
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             // ── Harvest export artefacts from shared storage ─────────────────
             if (!string.IsNullOrWhiteSpace(context.SharedStoragePath) &&

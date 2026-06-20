@@ -88,7 +88,8 @@ public sealed class LoginWorkflow : IWorkflow
                 Timeout = 15_000,
             }).ConfigureAwait(false);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             // ── Capture pre-login screenshot ─────────────────────────────────
             _ = await context.Evidence.CaptureScreenshotAsync(
@@ -105,7 +106,8 @@ public sealed class LoginWorkflow : IWorkflow
             await page.FillAsync(EmailInputSelector, email).ConfigureAwait(false);
             await page.FillAsync(PasswordInputSelector, password).ConfigureAwait(false);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             await page.ClickAsync(LoginButtonSelector).ConfigureAwait(false);
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle, new PageWaitForLoadStateOptions
@@ -113,7 +115,8 @@ public sealed class LoginWorkflow : IWorkflow
                 Timeout = 15_000,
             }).ConfigureAwait(false);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             // ── Capture post-login screenshot ────────────────────────────────
             _ = await context.Evidence.CaptureScreenshotAsync(

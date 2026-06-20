@@ -373,15 +373,15 @@ public sealed class MarkdownReportWriter : IReportWriter
 
         if (!summary.ProvisioningResult.DockerAvailable)
         {
-            sb.AppendLine("- **HIGH** — Docker unavailable: container-dependent workflows skipped. SQL + Ollama capabilities absent.");
+            sb.AppendLine("- Docker unavailable: container-dependent workflows were skipped. SQL and Ollama capabilities were absent for this run.");
         }
 
         if (summary.ProvisioningResult.CorpusStatus is CorpusStatus.AbsentNoGenerator or CorpusStatus.AbsentGeneratorFailed)
         {
-            sb.AppendLine($"- **HIGH** — Corpus absent (`{summary.ProvisioningResult.CorpusStatus}`): ingestion and max-fidelity workflows could not execute.");
+            sb.AppendLine($"- Corpus absent (CorpusStatus={summary.ProvisioningResult.CorpusStatus}): ingestion workflows could not execute.");
         }
 
-        sb.AppendLine("- **INFO** — Harness produces observations only; PASS/FAIL verdicts must come from an independent QA agent.");
+        sb.AppendLine("- Harness produces observations only; PASS/FAIL verdicts must come from an independent QA agent.");
         sb.AppendLine();
 
         // -----------------------------------------------------------------------

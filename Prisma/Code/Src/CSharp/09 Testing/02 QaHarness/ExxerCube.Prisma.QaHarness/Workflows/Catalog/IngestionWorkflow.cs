@@ -84,7 +84,8 @@ public sealed class IngestionWorkflow : IWorkflow
             var ingestResult = await driver.IngestNextCaseAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Aborted(startedAt, "Cancelled mid-execution.");
 
             outputs["IngestResult"] = ingestResult.Status;
             outputs["CaseId"] = ingestResult.CaseId;
