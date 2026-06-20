@@ -480,6 +480,12 @@ public sealed class ProcessingOrchestrator
         }
 
         var (pdfExpediente, pdfMetadata) = await _extractionOrchestrator.BuildPdfExpedienteFromOcrAsync(ctx.OcrResult, cancellationToken);
+
+        // KNOWN LIMITATION (single-source OCR fusion): XML and DOCX sources are intentionally
+        // passed as null here. This orchestrator receives a single scanned PDF/image; XML and
+        // DOCX case-file companions are not available at this stage of the Athena Extractor
+        // process. Multi-source fusion (XML + DOCX alongside OCR text) is the Reconciliator's
+        // responsibility in the 3-process split (ADR-011 / ADR-012). See CLAUDE.md §Fusion.
         var fusionResultObj = await _fusionService.FuseAsync(
             null, pdfExpediente, null,
             new ExtractionMetadata(), pdfMetadata, new ExtractionMetadata(),

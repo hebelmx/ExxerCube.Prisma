@@ -4,8 +4,21 @@ namespace Prisma.Auth.Infrastructure;
 /// Adapter wrapping EF Core Identity (UserManager/SignInManager) to implement clean auth interfaces.
 /// </summary>
 /// <remarks>
+/// <para>
 /// This adapter separates the UI layer from concrete EF Identity implementation,
 /// enabling swappable auth providers (in-memory, EF, Azure AD, etc.) with proper SRP.
+/// </para>
+/// <para>
+/// <strong>Intentionally unregistered in all DI composition roots.</strong><br/>
+/// Web.UI uses ASP.NET Core Identity cookie authentication directly (no adapter needed).
+/// Background workers (Athena Extractor, Reconciliator) use a config-bound service-identity
+/// path — <c>ISiaraActorIdentityProvider</c> + <c>JwtProcessClearanceTokenService</c> — that
+/// does NOT require <c>UserManager</c> or the Identity database (per ADR-012
+/// <em>ADR-012-Per-Process-Security-Spine.md</em> §Context and §Decision 2: "literal
+/// <c>EfCoreIdentityAdapter</c> reuse is infeasible in workers").<br/>
+/// Retained here as the future seam for per-user JWT issuance if the worker security model
+/// is later extended to user principals (see ADR-012 §Accepted limitations).
+/// </para>
 /// </remarks>
 /// <typeparam name="TUser">The Identity user type (e.g., ApplicationUser).</typeparam>
 public sealed class EfCoreIdentityAdapter<TUser> : IIdentityProvider, ITokenService, IUserContextAccessor
