@@ -145,7 +145,7 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 |---------|------|----------|
 | **Orion** | Document ingestion & download | `04 Services/Orion/` |
 | **Athena** | Document processing pipeline | `04 Services/Athena/` |
-| **Sentinel** | System monitoring & health | `04 Services/Sentinel/` |
+| **Sentinel** | System monitoring & health | `04 Services/Sentinel/` — **library only; not hosted; OUT-OF-MVP** — see `docs/operations/SENTINEL-STATUS-2026-06.md` |
 
 ## Release Status
 
@@ -221,7 +221,7 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
   (`IndFusion.Ember` "Three Actors", ADR-009). Highest-leverage remaining integration work. Details: GAP-MATRIX §9.6.
 - Worker `/dashboard` metrics — `Orion/AthenaDashboardService` return zeros (UI Dashboard uses the working `IProcessingMetricsService`).
 - PersonIdentityResolver DB persistence; PDF text extraction (returns empty pending iText/PdfSharp); CSnakes Python ML runtime interop. *(2026-06-07: the "3 skipped TXT extractor edge cases" were fixed, and `XmlFieldExtractor` was confirmed real + hardened — both removed from this list.)*
-- Sentinel monitoring service — **not yet traced; status unknown.**
+- Sentinel monitoring service — **(b) partial scaffold; traced 2026-06-20.** Real domain logic exists (`SentinelService`, `HeartbeatMonitor`, 16 tests green), but: no `Program.cs`/host, not registered in any DI composition root, `IProcessRestarter` has no concrete implementation, and no worker emits heartbeats. Classified OUT-OF-MVP pending Workstream-1 (3-process split) stabilisation. Full evidence: `docs/operations/SENTINEL-STATUS-2026-06.md`.
 
 > Roadmap toward production: `docs/planning/path-to-production-2026-06.md`.
 
