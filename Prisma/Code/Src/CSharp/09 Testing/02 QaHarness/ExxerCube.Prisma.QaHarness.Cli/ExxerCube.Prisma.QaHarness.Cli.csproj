@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Core Properties">
+    <!-- Target framework centrally managed — do not add another here -->
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\ExxerCube.Prisma.QaHarness\ExxerCube.Prisma.QaHarness.csproj" />
+  </ItemGroup>
+
+</Project>
