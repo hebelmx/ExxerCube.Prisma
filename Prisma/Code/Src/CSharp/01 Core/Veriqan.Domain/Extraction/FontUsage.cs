@@ -16,4 +16,13 @@ namespace ExxerCube.Prisma.Veriqan.Domain.Extraction;
 /// <param name="Locator">
 /// Bounding-box of the first letter glyph that used this font on this page.
 /// </param>
-public sealed record FontUsage(string FontName, int PageNumber, FieldLocator Locator);
+/// <param name="IsEmbedded">
+/// <see langword="true"/> when the font program is embedded in the PDF stream;
+/// <see langword="false"/> when it is referenced by name only (not embedded) or when
+/// the embedding status could not be determined from the extraction layer.
+/// </param>
+public sealed record FontUsage(
+    string FontName,
+    int PageNumber,
+    FieldLocator Locator,
+    bool IsEmbedded = false);

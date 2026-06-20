@@ -83,7 +83,24 @@ internal sealed class Cl35FontComplianceRule : IVecValidationRule
         foreach (var run in model.FontRuns)
         {
             var family = NormalizeFamily(run.FontName);
-            if (!family.Equals(requiredFamily, StringComparison.OrdinalIgnoreCase))
+
+            // Type0/CID composite fonts: the normalized name is empty (e.g. the CID
+            // resource token has no human-readable family name after prefix stripping).
+            // We cannot meaningfully compare these — abstain rather than false-Fail.
+            if (string.IsNullOrEmpty(family))
+            {
+                return Result<RuleFinding>.WithSuccess(
+                    RuleFinding.InsufficientData(
+                        checkId: CheckId,
+                        technique: Technique,
+                        engineVersion: Version,
+                        reason: $"Font '{run.FontName}' is a Type0/CID composite font with no resolvable family name; compliance cannot be determined."));
+            }
+
+            // Use prefix matching so that extended weight/optical-size variants of the
+            // required family (e.g. "Aptos-Black", "Aptos Display", "Aptos-Heavy") are
+            // accepted without maintaining an ever-growing closed allowlist of suffixes.
+            if (!family.StartsWith(requiredFamily, StringComparison.OrdinalIgnoreCase))
             {
                 offender ??= run;
                 offenderCount++;

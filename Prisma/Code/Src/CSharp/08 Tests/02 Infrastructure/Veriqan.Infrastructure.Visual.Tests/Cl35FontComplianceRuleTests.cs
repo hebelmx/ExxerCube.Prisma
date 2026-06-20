@@ -306,4 +306,81 @@ public sealed class Cl35FontComplianceRuleTests
         registeredIds.Count.ShouldBeGreaterThanOrEqualTo(expectedIds.Length,
             "Fewer visual rules registered than expected.");
     }
+
+    // -----------------------------------------------------------------------
+    // Test 10: "Aptos-Black" (extended weight variant) → Pass  (S5 regression)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Verifies that extended Aptos weight variants whose style token is not in the
+    /// closed suffix strip-list (e.g. "-Black", "-Heavy") still match the required
+    /// family via prefix comparison (VERIQAN-E2-S5 fix).
+    /// </summary>
+    [Fact]
+    public void Evaluate_AptosBlackVariant_ReturnsPass()
+    {
+        // "Aptos-Black" normalizes to "Aptos-Black" (no suffix stripped — "-Black" is
+        // not a standard PDF style token).  The S5 fix requires StartsWith("Aptos")
+        // rather than Equals("Aptos") so this should now Pass.
+        var model = ModelWithFonts([Run("Aptos-Black")]);
+        var rule = GetCl35Rule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.CheckId.ShouldBe("CL-35");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 11: "Arial" → Fail  (regression guard — unchanged behaviour)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Regression guard: a non-Aptos font ("Arial") must still produce a Fail finding
+    /// after the S5 prefix-match change.
+    /// </summary>
+    [Fact]
+    public void Evaluate_ArialFont_ReturnsFail()
+    {
+        var model = ModelWithFonts([Run("Arial")]);
+        var rule = GetCl35Rule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.CheckId.ShouldBe("CL-35");
+        result.Value.Observed.ShouldNotBeNullOrEmpty();
+        result.Value.Observed!.ShouldContain("Arial");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 12: Type0/CID composite font with empty family → InsufficientData
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Verifies that a Type0/CID composite font whose raw name collapses to an empty
+    /// family after prefix + suffix stripping causes the rule to abstain with
+    /// InsufficientData rather than falsely Fail.
+    /// </summary>
+    [Fact]
+    public void Evaluate_Type0EmptyFamilyFont_ReturnsInsufficientData()
+    {
+        // "ABCDEF+-Bold" simulates a CID composite font internal resource name:
+        //   1. Strip 6-uppercase + '+' subset prefix → "-Bold"
+        //   2. Strip "-Bold" style suffix             → ""  (empty family)
+        // With an empty family the rule cannot compare against "Aptos" — it must abstain.
+        var model = ModelWithFonts([Run("ABCDEF+-Bold")]);
+        var rule = GetCl35Rule();
+        var ctx = CtxWithModel(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+        result.Value.CheckId.ShouldBe("CL-35");
+    }
 }
