@@ -77,8 +77,11 @@
       <_Parameter1>ExxerCube.Prisma.Tests.UI</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-  <!-- Copy Fixtures folder to output directory for golden test demo -->
-  <ItemGroup>
+  <!-- Copy Fixtures folder to output directory for golden test demo.
+       Conditioned on the file existing: the Prisma/Fixtures tree is OUTSIDE the Docker build context
+       (the Dockerfile only COPYs Prisma/Code/Src/CSharp/), so without this guard `docker build` of the
+       Web.UI image fails with MSB3030. The demo still works on a normal local build where the file exists. -->
+  <ItemGroup Condition="Exists('..\..\..\..\..\..\Fixtures\PRP1\222AAA-44444444442025_page-1.png')">
     <Content Include="..\..\..\..\..\..\Fixtures\PRP1\222AAA-44444444442025_page-1.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\PRP1\222AAA-44444444442025_page-1.png</Link>
