@@ -21,6 +21,8 @@
     <PackageReference Include="Microsoft.Playwright" />
     <!-- WAF for hosting Web UI and worker apps in-process -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <!-- Chunk 3B: ExcelExportValidator — 24-column Datos-Carga-Oficio header check -->
+    <PackageReference Include="ClosedXML" />
   </ItemGroup>
 
   <ItemGroup Label="Project References">
