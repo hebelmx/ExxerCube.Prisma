@@ -396,4 +396,197 @@ public class DocxFieldExtractorSatPatternTests
         result.IsSuccess.ShouldBeTrue(result.Error);
         result.Value!.Value.ShouldBe("AGAFADAFSON2/2025/000084");
     }
+
+    // ============================================================
+    // 8. RFC — adversarial multi-label flat-join (PRISMA review-fix R1)
+    // ============================================================
+
+    /// <summary>
+    /// Regression: flat-joined DOCX body contains BOTH "RFC del representante legal" and
+    /// "RFC del contribuyente" on the same logical line.  The old optional-qualifier pattern
+    /// returned the FIRST match (representante), not the contribuyente RFC.
+    ///
+    /// Input to the regex (flat join): "RFC del representante legal: REPR870320AB3 RFC del contribuyente: GAGO821002HE0"
+    /// Expected: "GAGO821002HE0" (contribuyente wins regardless of document order).
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_RfcContribuyenteAfterRepresentante_ReturnsContribuyenteRfc()
+    {
+        // Arrange — REPR... appears BEFORE GAGO... in the DOCX paragraphs.
+        // After string.Join(" ", Text runs) these become a single flat line.
+        var source = Source(
+            "RFC del representante legal: REPR870320AB3",
+            "RFC del contribuyente: GAGO821002HE0");
+
+        // Act
+        var result = await _extractor.ExtractFieldAsync(source, "rfc");
+
+        // Assert — must return the CONTRIBUYENTE RFC, not the representante RFC.
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Value.ShouldBe("GAGO821002HE0",
+            "contribuyente RFC must win over representante RFC regardless of flat-join order");
+    }
+
+    /// <summary>
+    /// Bare "RFC:" label (no qualifier) with no representante or autorizado RFC nearby.
+    /// The bare fallback must still extract the value (regression guard — old code succeeded;
+    /// new code must not break this path).
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_RfcBareNoQualifier_ExtractsRfc()
+    {
+        // Arrange — minimal bare-label document; no "del contribuyente" / "del representante".
+        var source = Source("RFC: XAXX010101000");
+
+        // Act
+        var result = await _extractor.ExtractFieldAsync(source, "rfc");
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Value.ShouldBe("XAXX010101000");
+    }
+
+    /// <summary>
+    /// Bare "RFC del representante legal:" only — no contribuyente RFC present.
+    /// The bare fallback must NOT match because (?!\s+del\s) guards the "del" qualifier.
+    /// Returns failure (no contribuyente RFC to report).
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_RfcRepresentanteLegalOnly_ReturnsFailure()
+    {
+        // Arrange — only a third-party RFC (representante), not the contribuyente.
+        var source = Source("RFC del representante legal: REPR870320AB3");
+
+        // Act
+        var result = await _extractor.ExtractFieldAsync(source, "rfc");
+
+        // Assert — no contribuyente RFC found; must return failure, not the representante RFC.
+        result.IsFailure.ShouldBeTrue(
+            "a representante-only RFC must not be returned as the contribuyente RFC");
+    }
+
+    // ============================================================
+    // 9. Fecha — flat-join contamination guard (PRISMA review-fix R1)
+    // ============================================================
+
+    /// <summary>
+    /// Regression: flat-joined DOCX body has "Fecha: 09 de Abril de 2025 RFC del contribuyente: GAGO821002HE0".
+    /// The old [^\n\r,;]{5,40} pattern captured "09 de Abril de 2025 RFC del" (38 chars).
+    ///
+    /// Expected: exactly "09 de Abril de 2025" (Spanish long-form shape; no trailing label text).
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_FechaFlatJoinContamination_ReturnsDateOnly()
+    {
+        // Arrange — two paragraphs joined flat so there is no newline between date and next label.
+        var source = Source(
+            "Fecha: 09 de Abril de 2025",
+            "RFC del contribuyente: GAGO821002HE0");
+
+        // Act
+        var result = await _extractor.ExtractFieldAsync(source, "fecharequerimiento");
+
+        // Assert — value must be exactly the date token; "RFC del" must NOT appear.
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Value.ShouldNotBeNull();
+        result.Value.Value!.Trim().ShouldBe("09 de Abril de 2025",
+            "date capture must stop at the date token boundary, not bleed into the next field label");
+    }
+
+    /// <summary>
+    /// ISO date variant "2025-04-09" must be extracted correctly from a flat DOCX.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_FechaIsoVariant_ExtractsIsoDate()
+    {
+        var source = Source(
+            "Fecha del oficio: 2025-04-09",
+            "RFC del contribuyente: GAGO821002HE0");
+
+        var result = await _extractor.ExtractFieldAsync(source, "fechaoficio");
+
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Value.ShouldBe("2025-04-09");
+    }
+
+    /// <summary>
+    /// Numeric date variant "09/04/2025" must be extracted correctly from a flat DOCX.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_FechaNumericVariant_ExtractsNumericDate()
+    {
+        var source = Source(
+            "Fecha de emisión: 09/04/2025",
+            "Folio: A/AS1-2505-088637-PHM");
+
+        var result = await _extractor.ExtractFieldAsync(source, "fecharequerimiento");
+
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Value.ShouldBe("09/04/2025");
+    }
+
+    /// <summary>
+    /// True-negative: prose sentence "La Fecha de inicio del proceso fue importante" — no date token.
+    /// The label pattern requires a colon (or an immediately following date-shaped token) so
+    /// bare "Fecha" in prose with no colon and no date shape must NOT produce a bogus capture.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_FechaProseNoDateToken_ReturnsFailure()
+    {
+        // Arrange — "Fecha" appears in prose; no colon, no date-shaped value follows.
+        var source = Source("La Fecha de inicio del proceso fue importante para el expediente.");
+
+        // Act
+        var result = await _extractor.ExtractFieldAsync(source, "fecharequerimiento");
+
+        // Assert — no date-shaped token → failure (not a bogus capture).
+        result.IsFailure.ShouldBeTrue(
+            "prose 'Fecha' without a date-shaped token must not produce a bogus date capture");
+    }
+
+    // ============================================================
+    // 10. Autoridad — bare-acronym priority (PRISMA review-fix R1, Defect 3)
+    // ============================================================
+
+    /// <summary>
+    /// Priority test: document contains BOTH bare "CNBV" and bare "SAT" but neither full name.
+    /// The bare-acronym pass iterates AGAFF → CNBV → SAT, so CNBV must win.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_AutoridadBothCnbvAndSatBare_ReturnsCnbv()
+    {
+        // Arrange — "SAT" appears before "CNBV" in the paragraph to maximise the adversarial
+        // pressure: if the loop were SAT-first, this would incorrectly return "SAT".
+        var source = Source("El SAT y la CNBV coordinaron la revisión.");
+
+        // Act
+        var result = await _extractor.ExtractFieldAsync(source, "autoridadnombre");
+
+        // Assert — CNBV must win because it precedes SAT in the bare-acronym iteration order.
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Value.ShouldBe("CNBV",
+            "bare-acronym pass must return CNBV before SAT when both acronyms are present");
+    }
+
+    /// <summary>
+    /// Priority test: document contains the full CNBV name ("Comisión Nacional Bancaria y de Valores")
+    /// AND an incidental mention of "SAT" in passing.  The full-name check runs before bare-acronym
+    /// scanning, so the full CNBV name must be returned.
+    /// </summary>
+    [Fact]
+    public async Task ExtractFieldAsync_AutoridadCnbvFullNameWithIncidentalSat_ReturnsCnbvFullName()
+    {
+        // Arrange — CNBV full name present; SAT mentioned only in a cross-reference clause.
+        var source = Source(
+            "La Comisión Nacional Bancaria y de Valores, en coordinación con el SAT,",
+            "emite el presente requerimiento de información.");
+
+        // Act
+        var result = await _extractor.ExtractFieldAsync(source, "autoridad_nombre");
+
+        // Assert — full CNBV name wins; incidental "SAT" must not override the full-name result.
+        result.IsSuccess.ShouldBeTrue(result.Error);
+        result.Value!.Value.ShouldBe("Comisión Nacional Bancaria y de Valores",
+            "full CNBV name must take priority over bare SAT mention");
+    }
 }

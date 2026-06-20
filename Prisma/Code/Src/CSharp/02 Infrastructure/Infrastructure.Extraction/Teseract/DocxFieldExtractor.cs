@@ -559,16 +559,35 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
     /// </summary>
     private static string? ExtractRfc(string text)
     {
-        // SAT field: "RFC del contribuyente:" — full label (with or without accent on "u")
-        // Also matches bare "RFC:" (single label) used in abbreviated headers.
-        var labeled = System.Text.RegularExpressions.Regex.Match(
+        // SAT field — two-step extraction to avoid first-match bias on flat-joined text.
+        //
+        // When the DOCX body is joined as a single-line string (string.Join(" ", Text runs)),
+        // a flat line like:
+        //   "RFC del representante legal: REPR870320AB3 RFC del contribuyente: GAGO821002HE0"
+        // would be grabbed at the first "RFC" token if the qualifier is optional.
+        //
+        // Step 1: prefer the fully-qualified "RFC del contribuyente:" form.
+        var contribuyente = System.Text.RegularExpressions.Regex.Match(
             text,
-            @"RFC(?:\s+del\s+contribuyente)?\s*:?\s*(?<rfc>[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3})",
+            @"RFC\s+del\s+contribuyente\s*:?\s*(?<rfc>[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3})",
             System.Text.RegularExpressions.RegexOptions.IgnoreCase
             | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-        if (labeled.Success)
+        if (contribuyente.Success)
         {
-            return labeled.Groups["rfc"].Value.Trim().ToUpperInvariant();
+            return contribuyente.Groups["rfc"].Value.Trim().ToUpperInvariant();
+        }
+
+        // Step 2: bare "RFC:" fallback — used when no "del contribuyente" qualifier exists.
+        // Negative lookahead (?!\s+del\s) prevents matching "RFC del representante legal",
+        // "RFC del autorizado", or any other "RFC del <third-party>" variant.
+        var bare = System.Text.RegularExpressions.Regex.Match(
+            text,
+            @"RFC(?!\s+del\s)\s*:?\s*(?<rfc>[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{3})",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+        if (bare.Success)
+        {
+            return bare.Groups["rfc"].Value.Trim().ToUpperInvariant();
         }
 
         return null;
@@ -613,10 +632,38 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
     private static string? ExtractFechaOficio(string text)
     {
         // SAT field: "Fecha del oficio:" / "Fecha de emisión:" / "Fecha:"
-        // Capture everything up to the next separator character.
+        //
+        // IMPORTANT — flat-join contamination guard:
+        // ExtractTextFromDocx joins all OpenXml <Text> runs with a single space, producing a
+        // flat single-line string with no newlines.  The old pattern "[^\n\r,;]{5,40}" ran past
+        // the date value into the next field label (e.g. captured "09 de Abril de 2025 RFC del").
+        //
+        // Fix: capture only a DATE-SHAPED token.  Three accepted shapes:
+        //   (a) Spanish long-form  : "09 de Abril de 2025"
+        //   (b) ISO               : "2025-04-09"
+        //   (c) Numeric           : "9/4/2025" or "09/04/2025"
+        //
+        // No nested quantifiers; each alternative is independently bounded.  Require a colon
+        // between the label and the date (or require the date-shaped token immediately after
+        // optional whitespace) so bare "Fecha" in prose without a following date does not match.
+
+        // Date-shape alternation (no backtracking risk — each branch is unambiguous).
+        const string DatePattern =
+            @"(?<fecha>" +
+            @"\d{1,2}\s+de\s+[A-Za-zÀ-ɏ]{3,}\s+de\s+\d{4}" + // (a) Spanish long-form
+            @"|" +
+            @"\d{4}-\d{2}-\d{2}" +                                        // (b) ISO
+            @"|" +
+            @"\d{1,2}/\d{1,2}/\d{4}" +                                    // (c) numeric
+            @")";
+
+        // Label prefix: "Fecha" optionally followed by "del oficio", "de emisión", etc.
+        const string LabelPattern =
+            @"Fecha(?:\s+de(?:l)?\s+(?:oficio|emisi[oó]n|requerimiento))?\s*:?\s*";
+
         var labeled = System.Text.RegularExpressions.Regex.Match(
             text,
-            @"Fecha(?:\s+de(?:l)?\s+(?:oficio|emisi[oó]n|requerimiento))?\s*:?\s*(?<fecha>[^\n\r,;]{5,40})",
+            LabelPattern + DatePattern,
             System.Text.RegularExpressions.RegexOptions.IgnoreCase
             | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
         if (labeled.Success)
@@ -664,6 +711,13 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
         }
 
         // SAT field: bare acronyms — word-boundary guards prevent false matches on email domains.
+        //
+        // Priority order within bare-acronym pass: AGAFF → CNBV → SAT (iteration order below).
+        // A CNBV document that mentions bare "SAT" in passing (but no full CNBV name, otherwise
+        // the earlier check would have caught it) returns "CNBV" because CNBV is iterated first.
+        // A residual "SAT-bare / no CNBV signal at all" case is defensible — there is genuinely no
+        // CNBV authority in that document.
+        // The word-boundary guard (?<![@.])\b…\b(?!\.gob\.mx) prevents "@sat.gob.mx" false-matches.
         var acronyms = new[] { "AGAFF", "CNBV", "SAT" };
         foreach (var acronym in acronyms)
         {
