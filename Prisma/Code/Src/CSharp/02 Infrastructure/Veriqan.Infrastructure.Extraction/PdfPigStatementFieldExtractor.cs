@@ -185,6 +185,165 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         _enableCatalogImageHashing = enableCatalogImageHashing;
     }
 
+    /// <summary>
+    /// Carries the detected number-format convention for a single statement parse session.
+    /// Not thread-safe by design — one instance per <see cref="ExtractFromOpenDocument"/> call.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Mexican VEC statements always use US/MX format (<c>1,234.56</c>) so the first
+    /// unambiguous amount token will set the format for the rest of the parse.
+    /// </para>
+    /// <para>
+    /// Detection is lazy: the first unambiguous token sets the format; subsequent tokens
+    /// use it.  "Unambiguous" means a token that contains <em>both</em> a thousands separator
+    /// and a decimal separator so the role of each character is unequivocal:
+    /// <list type="bullet">
+    ///   <item><c>1,234.56</c> — comma is thousands, period is decimal → US/MX format.</item>
+    ///   <item><c>1.234,56</c> — period is thousands, comma is decimal → European format.</item>
+    /// </list>
+    /// An isolated number such as <c>1.234</c> is ambiguous (could be 1234 European or
+    /// 1.234 US) and will NOT be used to set the format.
+    /// </para>
+    /// </remarks>
+    internal sealed class AmountNumberFormatSession
+    {
+        private static readonly System.Globalization.NumberFormatInfo s_usMxFormat;
+        private static readonly System.Globalization.NumberFormatInfo s_euroFormat;
+
+        static AmountNumberFormatSession()
+        {
+            var usMx = new System.Globalization.NumberFormatInfo
+            {
+                NumberDecimalSeparator = ".",
+                NumberGroupSeparator = ",",
+            };
+            s_usMxFormat = usMx;
+
+            var euro = new System.Globalization.NumberFormatInfo
+            {
+                NumberDecimalSeparator = ",",
+                NumberGroupSeparator = ".",
+            };
+            s_euroFormat = euro;
+        }
+
+        /// <summary>Detected format; <see langword="null"/> = not yet determined.</summary>
+        private System.Globalization.NumberFormatInfo? _detected;
+
+        /// <summary>
+        /// Attempts to detect the number format from <paramref name="rawToken"/> and, if
+        /// unambiguous, stores the result so subsequent calls to <see cref="TryParse"/> use it.
+        /// </summary>
+        private void DetectFromToken(string rawToken)
+        {
+            if (_detected is not null)
+                return;
+
+            var span = rawToken.AsSpan().TrimStart("+−$- ".AsSpan());
+
+            int commaIdx = span.IndexOf(',');
+            int dotIdx   = span.IndexOf('.');
+
+            if (commaIdx < 0 && dotIdx < 0)
+                return;
+
+            if (commaIdx >= 0 && dotIdx >= 0)
+            {
+                if (dotIdx > commaIdx)
+                    _detected = s_usMxFormat;
+                else
+                    _detected = s_euroFormat;
+                return;
+            }
+
+            // Only one separator — ambiguous. Do NOT set format.
+        }
+
+        /// <summary>
+        /// Tries to parse <paramref name="stripped"/> into a <see cref="decimal"/>.
+        /// </summary>
+        /// <remarks>
+        /// This is the <em>format-detecting</em> entry point.  It will abstain (return
+        /// <see langword="false"/>) when no format has yet been detected AND the token is
+        /// genuinely ambiguous (contains only one separator so its role is unclear).
+        /// Use this path only for raw unfiltered tokens where European format is possible
+        /// (e.g. the §20 <c>ParseSignedAmountCell</c> path).
+        /// For tokens that have already been validated by <c>AmountPattern</c> /
+        /// <c>DesgloseAmountPattern</c> (US/MX shape guaranteed), use
+        /// <see cref="TryParseUsMx"/> instead, which never abstains.
+        /// </remarks>
+        public bool TryParse(string stripped, out decimal value)
+        {
+            value = 0m;
+
+            if (string.IsNullOrWhiteSpace(stripped))
+                return false;
+
+            DetectFromToken(stripped);
+
+            if (_detected is not null)
+            {
+                var normalised = stripped.Replace(
+                    _detected.NumberGroupSeparator,
+                    string.Empty,
+                    StringComparison.Ordinal);
+                return decimal.TryParse(
+                    normalised,
+                    System.Globalization.NumberStyles.Number,
+                    _detected,
+                    out value);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Parses <paramref name="stripped"/> unconditionally as US/MX format
+        /// (comma = thousands separator, period = decimal separator) — the same
+        /// legacy behaviour as <c>decimal.Parse(InvariantCulture)</c>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Use this method at call sites where the token has <em>already</em> been
+        /// validated by a US/MX-shaped regex (<c>AmountPattern</c> /
+        /// <c>DesgloseAmountPattern</c>: <c>^\$?([\d,]+(?:\.\d+)?)$</c>).  Those
+        /// regexes only match tokens whose comma (if any) precedes the dot, which is
+        /// unambiguous US/MX.  Routing such tokens through <see cref="TryParse"/> would
+        /// abstain when no both-separator token had been seen yet — causing false-negatives
+        /// on statements whose amounts are all &lt; $1,000 (no thousands commas).
+        /// </para>
+        /// <para>
+        /// This method also seeds <c>_detected</c> to US/MX on first success, so subsequent
+        /// calls to <see cref="TryParse"/> (§20 path) benefit from the established context.
+        /// </para>
+        /// <para>
+        /// Returns <see langword="false"/> only when <paramref name="stripped"/> is not a
+        /// valid number after removing commas — never abstains on format grounds.
+        /// </para>
+        /// </remarks>
+        public bool TryParseUsMx(string stripped, out decimal value)
+        {
+            value = 0m;
+
+            if (string.IsNullOrWhiteSpace(stripped))
+                return false;
+
+            // Remove thousands commas, then parse with US/MX decimal rules.
+            var normalised = stripped.Replace(",", string.Empty, StringComparison.Ordinal);
+            if (!decimal.TryParse(
+                    normalised,
+                    System.Globalization.NumberStyles.Number,
+                    s_usMxFormat,
+                    out value))
+                return false;
+
+            // Seed the session format so the §20 detecting path can leverage the context.
+            _detected ??= s_usMxFormat;
+            return true;
+        }
+    }
+
     // -----------------------------------------------------------------------
     // IStatementFieldExtractor — ExtractHeaderAsync (Story 3.1)
     // -----------------------------------------------------------------------
@@ -392,7 +551,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // are on page 1 of the VEC statement.  Including page-2 words would
             // introduce Y-coordinate values that collide with page-1 bands and
             // corrupt band grouping (PdfPig resets Y per page).
-            var periodSummary = ExtractPeriodSummary(allPage1Words);
+            var amtFmt = new AmountNumberFormatSession();
+            var periodSummary = ExtractPeriodSummary(allPage1Words, amtFmt);
 
             // ---- DESGLOSE DE MOVIMIENTOS DEL PERIODO — Story 4.4 ----------
             // Scan all pages for the DESGLOSE section header, then reconstruct
@@ -406,7 +566,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var periodYearAnchor = periodSummary.PeriodCutDate.Status == ExtractionStatus.Extracted
                 ? (int?)periodSummary.PeriodCutDate.Value.Year
                 : null;
-            var (movements, movementsStatus, totalCargos, totalAbonos) = ExtractMovements(doc, periodYearAnchor);
+            var (movements, movementsStatus, totalCargos, totalAbonos) = ExtractMovements(doc, periodYearAnchor, amtFmt);
 
             // ---- Font runs — Story 5.1 (CL-35) ----------------------------
             // Collect distinct (normalized-family, page) font runs from ALL pages.
@@ -445,7 +605,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // ---- Financial regulatory tables — Story 11.1 -------------------
             // Extract §8, §19, §20, §16 grids into typed rows/cells.
             // Single-pass: reuses the open doc (no second PDF open).
-            var financialTables = ExtractFinancialTables(doc, detectedSections);
+            var financialTables = ExtractFinancialTables(doc, detectedSections, amtFmt);
 
             // ---- Word-level typography samples — Epic 12 --------------------
             // Collect rendered point-size and font-name per word across all pages.
@@ -557,7 +717,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// since the period/summary data spans both the header-adjacent zone (Y 523–610)
     /// and the lower section of the page (Y 139–292).
     /// </summary>
-    private PeriodSummary ExtractPeriodSummary(List<Word> allWords)
+    private PeriodSummary ExtractPeriodSummary(List<Word> allWords, AmountNumberFormatSession amtFmt)
     {
         // Sort top-to-bottom, left-to-right for sequential scanning.
         var sorted = allWords
@@ -586,9 +746,9 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         var paymentDueDate = ExtractFechaLimiteDePago(sorted, bands);
 
         // ---- Summary amounts (left column, Y≈555, 544, 523) ----
-        var pagoNoInt = ExtractPagoParaNoGenerarIntereses(sorted, bands);
-        var pagoMinMeses = ExtractPagoMinimoMasMeses(sorted, bands);
-        var pagoMin = ExtractPagoMinimo(sorted, bands);
+        var pagoNoInt = ExtractPagoParaNoGenerarIntereses(sorted, bands, amtFmt);
+        var pagoMinMeses = ExtractPagoMinimoMasMeses(sorted, bands, amtFmt);
+        var pagoMin = ExtractPagoMinimo(sorted, bands, amtFmt);
 
         // ---- TASA and CAT (lower section, Y≈264) ------------------------
         // The percentage values appear on a band below the heading labels.
@@ -597,34 +757,34 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         var (tasa, cat) = ExtractTasaAndCat(sorted, bands);
 
         // ---- Saldo Deudor Total at Y≈161 --------------------------------
-        var saldoDeudor = ExtractSaldoDeudorTotal(sorted, bands);
+        var saldoDeudor = ExtractSaldoDeudorTotal(sorted, bands, amtFmt);
 
         // ---- Crédito Disponible at Y≈139 --------------------------------
-        var creditoDisponible = ExtractCreditoDisponible(sorted, bands);
+        var creditoDisponible = ExtractCreditoDisponible(sorted, bands, amtFmt);
 
         // ---- RESUMEN DE CARGOS Y ABONOS DEL PERIODO (Story 4.2) ---------
         // Right-side block at Y ≈ 292–357.
         var adeudoPeriodoAnterior = ExtractResumenField(sorted, bands,
-            ["Adeudo", "del", "periodo", "anterior"]);
+            ["Adeudo", "del", "periodo", "anterior"], amtFmt);
         var cargosRegularesNoMeses = ExtractResumenField(sorted, bands,
-            ["Cargos", "regulares", "(no"]);
+            ["Cargos", "regulares", "(no"], amtFmt);
         var cargosComprasAMesesCapital = ExtractResumenField(sorted, bands,
-            ["Cargos", "compras", "a", "meses", "(capital)"]);
+            ["Cargos", "compras", "a", "meses", "(capital)"], amtFmt);
         var montoIntereses = ExtractResumenField(sorted, bands,
-            ["Monto", "de", "Intereses"]);
+            ["Monto", "de", "Intereses"], amtFmt);
         var montoComisiones = ExtractResumenField(sorted, bands,
-            ["Monto", "de", "comisiones"]);
+            ["Monto", "de", "comisiones"], amtFmt);
         var ivaInteresesYComisiones = ExtractResumenField(sorted, bands,
-            ["IVA", "de", "Intereses"]);
+            ["IVA", "de", "Intereses"], amtFmt);
         var pagosYAbonos = ExtractResumenField(sorted, bands,
-            ["Pagos", "y", "abonos"]);
+            ["Pagos", "y", "abonos"], amtFmt);
 
         // ---- NIVEL DE USO DE TU TARJETA (Story 4.2) ---------------------
         // Right-side block at Y ≈ 171–183.
         var saldoCargosRegulares = ExtractNivelDeUsoField(sorted, bands,
-            ["Saldo", "cargos", "regulares:"]);
+            ["Saldo", "cargos", "regulares:"], amtFmt);
         var saldoCargosAMeses = ExtractNivelDeUsoField(sorted, bands,
-            ["Saldo", "cargos", "a", "meses:"]);
+            ["Saldo", "cargos", "a", "meses:"], amtFmt);
 
         // ---- Day-count verification -------------------------------------
         var dayCount = DayCountVerification.Compute(periodStart, periodCutDate, dayCountPrinted);
@@ -872,7 +1032,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
     private static ExtractedField<decimal> ExtractPagoParaNoGenerarIntereses(
         List<Word> sorted,
-        Dictionary<double, List<Word>> bands)
+        Dictionary<double, List<Word>> bands,
+        AmountNumberFormatSession amtFmt)
     {
         // "Pago para no generar intereses 2 $32,446.69"
         // The "2" is a footnote marker — skip it; find the amount token.
@@ -902,7 +1063,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
             // maxX=300 keeps us in the left column — avoids picking up right-column
             // values (e.g. CLABE "9876543210123") that merged into this band.
-            return FindAmountInBand(band, locator, maxX: 300);
+            return FindAmountInBand(band, locator, amtFmt, maxX: 300);
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -914,7 +1075,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
     private static ExtractedField<decimal> ExtractPagoMinimoMasMeses(
         List<Word> sorted,
-        Dictionary<double, List<Word>> bands)
+        Dictionary<double, List<Word>> bands,
+        AmountNumberFormatSession amtFmt)
     {
         // "Pago mínimo + compras y cargos" at Y≈544.9 followed by
         // "diferidos a meses: 3 $3,145.39" at Y≈534.1 (word-wrap continuation).
@@ -934,7 +1096,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var band = GetBand(bands, bandY);
             var locator = BoundingBoxOf(band, 1);
 
-            return FindAmountInBand(band, locator, maxX: 300);
+            return FindAmountInBand(band, locator, amtFmt, maxX: 300);
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -946,7 +1108,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
     private static ExtractedField<decimal> ExtractPagoMinimo(
         List<Word> sorted,
-        Dictionary<double, List<Word>> bands)
+        Dictionary<double, List<Word>> bands,
+        AmountNumberFormatSession amtFmt)
     {
         // "Pago mínimo: 4 $2,160.00" at Y≈523.3
         // "mínimo:" ends with a colon — use that to distinguish from "Pago mínimo +" line.
@@ -972,7 +1135,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 continue;
 
             var locator = BoundingBoxOf(band, 1);
-            return FindAmountInBand(band, locator, maxX: 300);
+            return FindAmountInBand(band, locator, amtFmt, maxX: 300);
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -1076,7 +1239,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
     private static ExtractedField<decimal> ExtractSaldoDeudorTotal(
         List<Word> sorted,
-        Dictionary<double, List<Word>> bands)
+        Dictionary<double, List<Word>> bands,
+        AmountNumberFormatSession amtFmt)
     {
         // "Saldo deudor total: 11 $ 52,387.85" at Y≈161
         // The "$" and amount may be separate tokens: "$" then "52,387.85"
@@ -1091,7 +1255,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var band = GetBand(bands, bandY);
             var locator = BoundingBoxOf(band, 1);
 
-            return FindAmountInBandSplitDollar(band, locator);
+            return FindAmountInBandSplitDollar(band, locator, amtFmt);
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -1103,7 +1267,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
     private static ExtractedField<decimal> ExtractCreditoDisponible(
         List<Word> sorted,
-        Dictionary<double, List<Word>> bands)
+        Dictionary<double, List<Word>> bands,
+        AmountNumberFormatSession amtFmt)
     {
         // "Crédito disponible: $ 47,612.15" at Y≈139
         // Note: there are multiple "Crédito disponible" lines (efectivo, transferencia).
@@ -1120,7 +1285,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var band = GetBand(bands, bandY);
             var locator = BoundingBoxOf(band, 1);
 
-            var result = FindAmountInBandSplitDollar(band, locator);
+            var result = FindAmountInBandSplitDollar(band, locator, amtFmt);
             if (result.Status == ExtractionStatus.Extracted)
                 return result;
             // If not found on this band, try next occurrence.
@@ -1145,6 +1310,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// Leading token sequence that identifies the RESUMEN row
     /// (e.g. <c>["Adeudo", "del", "periodo", "anterior"]</c>).
     /// </param>
+    /// <param name="amtFmt">Session-scoped number-format detector.</param>
     /// <returns>
     /// An <see cref="ExtractedField{T}"/> containing the parsed amount, or
     /// <see cref="ExtractedField{T}.Missing"/> if the label is not found or the amount
@@ -1153,7 +1319,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     private static ExtractedField<decimal> ExtractResumenField(
         List<Word> sorted,
         Dictionary<double, List<Word>> bands,
-        string[] labelTokens)
+        string[] labelTokens,
+        AmountNumberFormatSession amtFmt)
     {
         // The RESUMEN block is in the right column (X ≥ ~283).
         // We iterate sorted words looking for the first token of the label in the right column.
@@ -1198,7 +1365,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
             // The amount in the RESUMEN block appears as a split "$ 32,446.69" pair
             // at the far right (X ≈ 435-480).  Footnote markers and sign tokens precede it.
-            return FindAmountInBandSplitDollar(band, locator);
+            return FindAmountInBandSplitDollar(band, locator, amtFmt);
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -1214,10 +1381,12 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// <param name="labelTokens">
     /// Leading token sequence (e.g. <c>["Saldo", "cargos", "regulares:"]</c>).
     /// </param>
+    /// <param name="amtFmt">Session-scoped number-format detector.</param>
     private static ExtractedField<decimal> ExtractNivelDeUsoField(
         List<Word> sorted,
         Dictionary<double, List<Word>> bands,
-        string[] labelTokens)
+        string[] labelTokens,
+        AmountNumberFormatSession amtFmt)
     {
         // NIVEL-DE-USO rows are in the right column (X ≥ ~283) at Y ≈ 171–183.
         for (var i = 0; i + labelTokens.Length - 1 < sorted.Count; i++)
@@ -1255,7 +1424,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 continue;
 
             var locator = BoundingBoxOf(band, 1);
-            return FindAmountInBandSplitDollar(band, locator);
+            return FindAmountInBandSplitDollar(band, locator, amtFmt);
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -1324,6 +1493,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// for truncated-date year-repair.  <see langword="null"/> when the period date
     /// was not extracted; the fallback hierarchy in <c>TryParseMovementRow</c> applies.
     /// </param>
+    /// <param name="amtFmt">Session-scoped number-format detector shared across all extraction calls.</param>
     /// <returns>
     /// A tuple of the parsed movement list, the extraction status, and the two printed
     /// DESGLOSE totals (TotalCargos / TotalAbonos).
@@ -1334,7 +1504,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
              MovementsExtractionStatus status,
              ExtractedField<decimal> totalCargos,
              ExtractedField<decimal> totalAbonos)
-        ExtractMovements(PdfDocument doc, int? periodYear)
+        ExtractMovements(PdfDocument doc, int? periodYear, AmountNumberFormatSession amtFmt)
     {
         var movements = new List<StatementMovement>();
         var sectionFound = false;
@@ -1368,7 +1538,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
             foreach (var (bandY, bandWords) in sortedBands)
             {
-                var row = TryParseMovementRow(bandWords, pageIndex, periodYear);
+                var row = TryParseMovementRow(bandWords, pageIndex, periodYear, amtFmt);
 
                 if (row is not null)
                 {
@@ -1403,7 +1573,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
                 // Check for "Total cargos" / "Total abonos" summary rows.
                 // These have description text starting at X≈346 and NO sign token.
-                var totalResult = TryParseTotalRow(bandWords, pageIndex);
+                var totalResult = TryParseTotalRow(bandWords, pageIndex, amtFmt);
                 if (totalResult.HasValue)
                 {
                     if (totalResult.Value.isCharge)
@@ -1436,12 +1606,13 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </summary>
     /// <param name="bandWords">Words on the candidate band.</param>
     /// <param name="pageNumber">Page number for the locator.</param>
+    /// <param name="amtFmt">Session-scoped number-format detector.</param>
     /// <returns>
     /// A tuple of (isCharge, <see cref="ExtractedField{T}"/> amount) when the band matches
     /// a total row; <see langword="null"/> otherwise.
     /// </returns>
     private static (bool isCharge, ExtractedField<decimal> amount)?
-        TryParseTotalRow(List<Word> bandWords, int pageNumber)
+        TryParseTotalRow(List<Word> bandWords, int pageNumber, AmountNumberFormatSession amtFmt)
     {
         // A "Total" row has:
         //  - A "Total" token in the description column (X 158–422)
@@ -1499,12 +1670,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var m = DesgloseAmountPattern.Match(aw.Text);
             if (!m.Success)
                 continue;
-            var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
-            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
-                    System.Globalization.CultureInfo.InvariantCulture, out var parsed))
-            {
+            if (TryParseAmount(m.Groups[1].Value, amtFmt, out var parsed))
                 return (isCharge.Value, ExtractedField<decimal>.Found(parsed, locator));
-            }
         }
 
         return null;
@@ -1522,7 +1689,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// When <see langword="null"/> the fallback hierarchy applies: operation-date year →
     /// <c>_timeProvider.GetUtcNow().Year</c>.
     /// </param>
-    private StatementMovement? TryParseMovementRow(List<Word> bandWords, int pageNumber, int? periodYear)
+    /// <param name="amtFmt">Session-scoped number-format detector.</param>
+    private StatementMovement? TryParseMovementRow(List<Word> bandWords, int pageNumber, int? periodYear, AmountNumberFormatSession amtFmt)
     {
         // A data row must have:
         //   1. At least one date-like token in the operation-date column (X ≤ 95)
@@ -1617,9 +1785,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var m = DesgloseAmountPattern.Match(aw.Text);
             if (!m.Success)
                 continue;
-            var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
-            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
-                    System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            if (TryParseAmount(m.Groups[1].Value, amtFmt, out var parsed))
             {
                 amount = parsed;
                 break;
@@ -1785,12 +1951,39 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // -----------------------------------------------------------------------
 
     /// <summary>
+    /// Parses a raw amount token (may include leading "$") whose shape has already been
+    /// validated by <c>AmountPattern</c> / <c>DesgloseAmountPattern</c>, which guarantees
+    /// US/MX format (comma = thousands, period = decimal).  Delegates to
+    /// <see cref="AmountNumberFormatSession.TryParseUsMx"/> so it never abstains on format
+    /// grounds — including statements whose amounts are all &lt; $1,000 (no thousands comma).
+    /// </summary>
+    /// <remarks>
+    /// Do <em>not</em> call this for raw, unfiltered text from the §20 path
+    /// (<c>ParseSignedAmountCell</c> / <c>BuildSection20ValueCells</c>); those sites may
+    /// encounter European-format amounts and must use
+    /// <see cref="AmountNumberFormatSession.TryParse"/> directly.
+    /// </remarks>
+    private static bool TryParseAmount(
+        string rawToken,
+        AmountNumberFormatSession session,
+        out decimal value)
+    {
+        value = 0m;
+        if (string.IsNullOrWhiteSpace(rawToken))
+            return false;
+
+        var stripped = rawToken.TrimStart('+', '-', '−', '$');
+        return session.TryParseUsMx(stripped, out value);
+    }
+
+    /// <summary>
     /// Finds and parses the rightmost amount token on a band.
     /// Amount tokens match <see cref="AmountPattern"/> (e.g. "$32,446.69", "2,160.00").
     /// Footnote markers (single digits not matching amount pattern) are skipped.
     /// </summary>
     /// <param name="band">Words on the target band, sorted left-to-right.</param>
     /// <param name="locator">Fallback locator for Missing results.</param>
+    /// <param name="amtFmt">Session-scoped number-format detector.</param>
     /// <param name="maxX">
     /// Optional upper bound on <c>BoundingBox.Left</c> for candidate amount tokens.
     /// Pass a value (e.g. 300) to restrict to the left column and avoid picking up
@@ -1800,6 +1993,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     private static ExtractedField<decimal> FindAmountInBand(
         List<Word> band,
         FieldLocator locator,
+        AmountNumberFormatSession amtFmt,
         double maxX = double.MaxValue)
     {
         // Find rightmost token matching AmountPattern within the X constraint.
@@ -1811,7 +2005,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         if (amountWord is null)
             return ExtractedField<decimal>.Missing(locator);
 
-        return ParseAmountToken(amountWord.Text, BoundingBoxOf([amountWord], 1));
+        return ParseAmountToken(amountWord.Text, BoundingBoxOf([amountWord], 1), amtFmt);
     }
 
     /// <summary>
@@ -1820,10 +2014,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </summary>
     private static ExtractedField<decimal> FindAmountInBandSplitDollar(
         List<Word> band,
-        FieldLocator locator)
+        FieldLocator locator,
+        AmountNumberFormatSession amtFmt)
     {
         // Try combined amount tokens first.
-        var combined = FindAmountInBand(band, locator);
+        var combined = FindAmountInBand(band, locator, amtFmt);
         if (combined.Status == ExtractionStatus.Extracted)
             return combined;
 
@@ -1835,8 +2030,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Skip single-digit footnote markers.
             if (!IsSingleDigit(numToken.Text))
             {
-                var numericText = numToken.Text.Replace(",", string.Empty, StringComparison.Ordinal);
-                if (decimal.TryParse(numericText, NumberStyles.Number, CultureInfo.InvariantCulture, out var val))
+                if (TryParseAmount(numToken.Text, amtFmt, out var val))
                     return ExtractedField<decimal>.Found(val, BoundingBoxOf([band[dollarIdx], numToken], 1));
             }
 
@@ -1844,8 +2038,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             if (dollarIdx + 2 < band.Count && IsSingleDigit(band[dollarIdx + 1].Text))
             {
                 var numToken2 = band[dollarIdx + 2];
-                var numericText = numToken2.Text.Replace(",", string.Empty, StringComparison.Ordinal);
-                if (decimal.TryParse(numericText, NumberStyles.Number, CultureInfo.InvariantCulture, out var val2))
+                if (TryParseAmount(numToken2.Text, amtFmt, out var val2))
                     return ExtractedField<decimal>.Found(val2, BoundingBoxOf([band[dollarIdx], numToken2], 1));
             }
         }
@@ -1853,14 +2046,13 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         return ExtractedField<decimal>.Missing(locator);
     }
 
-    private static ExtractedField<decimal> ParseAmountToken(string token, FieldLocator locator)
+    private static ExtractedField<decimal> ParseAmountToken(string token, FieldLocator locator, AmountNumberFormatSession amtFmt)
     {
         var m = AmountPattern.Match(token);
         if (!m.Success)
             return ExtractedField<decimal>.Missing(locator);
 
-        var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
-        if (decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var val))
+        if (TryParseAmount(m.Groups[1].Value, amtFmt, out var val))
             return ExtractedField<decimal>.Found(val, locator);
 
         return ExtractedField<decimal>.Missing(locator);
@@ -3767,18 +3959,19 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </remarks>
     private IReadOnlyList<FinancialTable> ExtractFinancialTables(
         PdfDocument doc,
-        IReadOnlyList<DetectedSection> detectedSections)
+        IReadOnlyList<DetectedSection> detectedSections,
+        AmountNumberFormatSession amtFmt)
     {
         var tables = new List<FinancialTable>(5);
 
         // Collect all bands in reading order once (reuse pattern from §-detection).
         var allBands = CollectAllBandsInReadingOrder(doc);
 
-        tables.Add(ExtractSection8Table(allBands, detectedSections));
-        tables.Add(ExtractSection19Table(allBands, detectedSections));
-        tables.Add(ExtractSection20Table(allBands, detectedSections));
-        tables.Add(ExtractSection16Table(allBands, detectedSections));
-        tables.Add(ExtractSection6Table(allBands, detectedSections));
+        tables.Add(ExtractSection8Table(allBands, detectedSections, amtFmt));
+        tables.Add(ExtractSection19Table(allBands, detectedSections, amtFmt));
+        tables.Add(ExtractSection20Table(allBands, detectedSections, amtFmt));
+        tables.Add(ExtractSection16Table(allBands, detectedSections, amtFmt));
+        tables.Add(ExtractSection6Table(allBands, detectedSections, amtFmt));
 
         return tables;
     }
@@ -3796,7 +3989,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </remarks>
     private FinancialTable ExtractSection8Table(
         List<BandEntry> allBands,
-        IReadOnlyList<DetectedSection> detectedSections)
+        IReadOnlyList<DetectedSection> detectedSections,
+        AmountNumberFormatSession amtFmt)
     {
         const int secNum = 8;
         const string secName = "Indicadores del costo anual de la tarjeta";
@@ -3851,7 +4045,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 // Amount is in the left column (X ≤ Sec8ValueXMax).
                 // It appears as a split-dollar "$ 1,234.56" or combined "$1,234.56".
                 var leftColWords = bandWords.Where(w => w.BoundingBox.Left <= Sec8ValueXMax).ToList();
-                var amountCell = ParseAmountCellFromWords(leftColWords, bandLocator);
+                var amountCell = ParseAmountCellFromWords(leftColWords, bandLocator, amtFmt);
 
                 // If not found on this band, check 1-2 bands below (multi-line row).
                 if (amountCell.Kind == CellKind.Empty && amountCell.Confidence == 0.0)
@@ -3864,7 +4058,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                             .ToList();
                         var nextLoc = BoundingBoxOf(nextBandWords.Count > 0 ? nextBandWords : sortedBands[nextIdx].Value,
                             allBands.FirstOrDefault(b => b.Words == sortedBands[nextIdx].Value)?.PageNumber ?? headingLocator.PageNumber);
-                        var candidate = ParseAmountCellFromWords(nextBandWords, nextLoc);
+                        var candidate = ParseAmountCellFromWords(nextBandWords, nextLoc, amtFmt);
                         if (candidate.Kind == CellKind.Amount || candidate.Kind == CellKind.NotApplicable)
                         {
                             amountCell = candidate;
@@ -3901,7 +4095,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </remarks>
     private FinancialTable ExtractSection19Table(
         List<BandEntry> allBands,
-        IReadOnlyList<DetectedSection> detectedSections)
+        IReadOnlyList<DetectedSection> detectedSections,
+        AmountNumberFormatSession amtFmt)
     {
         const int secNum = 19;
         const string secName = "Saldo sobre el que se calcularon los intereses del periodo";
@@ -3973,10 +4168,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 var labelCell = TableCell.LabelCell(rowName, labelLoc);
 
                 // Value cells — extract by X-column range.
-                var saldoCell = ExtractSec19Cell(bandWords, Sec19SaldoXMin, Sec19SaldoXMax, CellKind.Amount, pageNum);
-                var diasCell = ExtractSec19Cell(bandWords, Sec19DiasXMin, Sec19DiasXMax, CellKind.Days, pageNum);
-                var tasaCell = ExtractSec19Cell(bandWords, Sec19TasaXMin, Sec19TasaXMax, CellKind.Rate, pageNum);
-                var montoCell = ExtractSec19Cell(bandWords, Sec19MontoXMin, double.MaxValue, CellKind.Amount, pageNum);
+                var saldoCell = ExtractSec19Cell(bandWords, Sec19SaldoXMin, Sec19SaldoXMax, CellKind.Amount, pageNum, amtFmt);
+                var diasCell = ExtractSec19Cell(bandWords, Sec19DiasXMin, Sec19DiasXMax, CellKind.Days, pageNum, amtFmt);
+                var tasaCell = ExtractSec19Cell(bandWords, Sec19TasaXMin, Sec19TasaXMax, CellKind.Rate, pageNum, amtFmt);
+                var montoCell = ExtractSec19Cell(bandWords, Sec19MontoXMin, double.MaxValue, CellKind.Amount, pageNum, amtFmt);
 
                 rows.Add(new TableRow(labelCell, [saldoCell, diasCell, tasaCell, montoCell]));
             }
@@ -4001,7 +4196,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         double xMin,
         double xMax,
         CellKind expectedKind,
-        int pageNum)
+        int pageNum,
+        AmountNumberFormatSession amtFmt)
     {
         var colWords = bandWords
             .Where(w => w.BoundingBox.Left >= xMin && w.BoundingBox.Left <= xMax)
@@ -4047,10 +4243,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             return TableCell.ParseFailure(rawText, locator);
         }
 
-        // Amount: strip $ and commas.
-        var amtStr = rawText.TrimStart('$').Replace(",", string.Empty, StringComparison.Ordinal);
-        if (decimal.TryParse(amtStr, System.Globalization.NumberStyles.Number,
-                System.Globalization.CultureInfo.InvariantCulture, out var amt))
+        // Amount: use format-aware parsing.
+        if (TryParseAmount(rawText.TrimStart('$'), amtFmt, out var amt))
             return TableCell.Amount(amt, rawText, locator);
 
         // Split-dollar: check for bare "$" token followed by number.
@@ -4059,9 +4253,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var dollarIdx = colWords.FindIndex(w => w.Text == "$");
             if (dollarIdx >= 0 && dollarIdx + 1 < colWords.Count)
             {
-                var numStr = colWords[dollarIdx + 1].Text.Replace(",", string.Empty, StringComparison.Ordinal);
-                if (decimal.TryParse(numStr, System.Globalization.NumberStyles.Number,
-                        System.Globalization.CultureInfo.InvariantCulture, out var splitAmt))
+                if (TryParseAmount(colWords[dollarIdx + 1].Text, amtFmt, out var splitAmt))
                     return TableCell.Amount(splitAmt, rawText, locator);
             }
         }
@@ -4083,7 +4275,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </remarks>
     private FinancialTable ExtractSection20Table(
         List<BandEntry> allBands,
-        IReadOnlyList<DetectedSection> detectedSections)
+        IReadOnlyList<DetectedSection> detectedSections,
+        AmountNumberFormatSession amtFmt)
     {
         const int secNum = 20;
         const string secName = "Distribución de tu último pago";
@@ -4140,7 +4333,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // then try to assign them to the 7 columns in order.
             // §20 values may be split-dollar ("$ 67,796.35") or combined ("-$67,796.35").
             // We group consecutive tokens that form one amount (sign + $ + digits) together.
-            var valueCells = BuildSection20ValueCells(valueBandWords, valueBandPage);
+            var valueCells = BuildSection20ValueCells(valueBandWords, valueBandPage, amtFmt);
 
             var rowLabel = TableCell.LabelCell("Distribución", headingLocator);
             var row = new TableRow(rowLabel, valueCells);
@@ -4165,7 +4358,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </summary>
     private FinancialTable ExtractSection16Table(
         List<BandEntry> allBands,
-        IReadOnlyList<DetectedSection> detectedSections)
+        IReadOnlyList<DetectedSection> detectedSections,
+        AmountNumberFormatSession amtFmt)
     {
         const int secNum = 16;
         const string secName = "Información de otras líneas de crédito";
@@ -4211,7 +4405,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 var amtWords = bandWords.Where(w => w.BoundingBox.Left >= 200.0).ToList();
                 var amtLoc = amtWords.Count > 0 ? BoundingBoxOf(amtWords, pageNum) : FieldLocator.PageHint(pageNum);
                 var rawAmt = string.Join(" ", amtWords.Select(w => w.Text)).Trim();
-                var amtCell = ParseAmountCellFromWords(amtWords, amtLoc);
+                var amtCell = ParseAmountCellFromWords(amtWords, amtLoc, amtFmt);
 
                 rows.Add(new TableRow(labelCell, [amtCell]));
             }
@@ -4307,7 +4501,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </remarks>
     private FinancialTable ExtractSection6Table(
         List<BandEntry> allBands,
-        IReadOnlyList<DetectedSection> detectedSections)
+        IReadOnlyList<DetectedSection> detectedSections,
+        AmountNumberFormatSession amtFmt)
     {
         const int secNum = 6;
         const string secName = "¿Cuánto pagarías? (simulación de pagos)";
@@ -4367,11 +4562,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
                 // Months cell (col 0): integer count of months, treated as Days kind.
                 var monthsCell = ExtractSec19Cell(
-                    bandWords, Sec6MonthsXMin, Sec6MonthsXMax, CellKind.Days, pageNum);
+                    bandWords, Sec6MonthsXMin, Sec6MonthsXMax, CellKind.Days, pageNum, amtFmt);
 
                 // Interest cell (col 1): total ordinary interest amount (pre-IVA).
                 var interestCell = ExtractSec19Cell(
-                    bandWords, Sec6InterestXMin, double.MaxValue, CellKind.Amount, pageNum);
+                    bandWords, Sec6InterestXMin, double.MaxValue, CellKind.Amount, pageNum, amtFmt);
 
                 rows.Add(new TableRow(labelCell, [monthsCell, interestCell]));
             }
@@ -4416,7 +4611,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// consume sign/dollar/digit tokens into groups, then parse each group.
     /// Exactly 7 cells are returned (padded with Missing or trimmed to 7).
     /// </remarks>
-    private static IReadOnlyList<TableCell> BuildSection20ValueCells(List<Word> bandWords, int pageNum)
+    private static IReadOnlyList<TableCell> BuildSection20ValueCells(List<Word> bandWords, int pageNum, AmountNumberFormatSession amtFmt)
     {
         // Sort left-to-right.
         var sorted = bandWords.OrderBy(w => w.BoundingBox.Left).ToList();
@@ -4479,7 +4674,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var groupWords = group.OrderBy(w => w.BoundingBox.Left).ToList();
             var rawText = string.Join(" ", groupWords.Select(w => w.Text)).Trim();
             var loc = BoundingBoxOf(groupWords, pageNum);
-            var cell = ParseSignedAmountCell(rawText, loc);
+            var cell = ParseSignedAmountCell(rawText, loc, amtFmt);
             cells.Add(cell);
         }
 
@@ -4602,7 +4797,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// Parses an amount cell from a list of words using the split-dollar pattern.
     /// Returns Missing(0.0) when no amount is found.
     /// </summary>
-    private static TableCell ParseAmountCellFromWords(List<Word> words, FieldLocator locator)
+    private static TableCell ParseAmountCellFromWords(List<Word> words, FieldLocator locator, AmountNumberFormatSession amtFmt)
     {
         if (words.Count == 0)
             return TableCell.Missing(locator);
@@ -4618,9 +4813,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         if (amtWord is not null)
         {
             var m = AmountPattern.Match(amtWord.Text);
-            var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
-            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
-                    System.Globalization.CultureInfo.InvariantCulture, out var amt))
+            if (TryParseAmount(m.Groups[1].Value, amtFmt, out var amt))
                 return TableCell.Amount(amt, rawText, locator);
         }
 
@@ -4631,17 +4824,13 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var numToken = words[dollarIdx + 1];
             if (!IsSingleDigit(numToken.Text))
             {
-                var numStr = numToken.Text.Replace(",", string.Empty, StringComparison.Ordinal);
-                if (decimal.TryParse(numStr, System.Globalization.NumberStyles.Number,
-                        System.Globalization.CultureInfo.InvariantCulture, out var val))
+                if (TryParseAmount(numToken.Text, amtFmt, out var val))
                     return TableCell.Amount(val, rawText, locator);
             }
 
             if (dollarIdx + 2 < words.Count && IsSingleDigit(words[dollarIdx + 1].Text))
             {
-                var numStr = words[dollarIdx + 2].Text.Replace(",", string.Empty, StringComparison.Ordinal);
-                if (decimal.TryParse(numStr, System.Globalization.NumberStyles.Number,
-                        System.Globalization.CultureInfo.InvariantCulture, out var val))
+                if (TryParseAmount(words[dollarIdx + 2].Text, amtFmt, out var val))
                     return TableCell.Amount(val, rawText, locator);
             }
         }
@@ -4655,7 +4844,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// <summary>
     /// Parses a signed amount cell from raw text (e.g. "-$67,796.35", "+$60,041.34", "$0.00").
     /// </summary>
-    private static TableCell ParseSignedAmountCell(string rawText, FieldLocator locator)
+    private static TableCell ParseSignedAmountCell(string rawText, FieldLocator locator, AmountNumberFormatSession amtFmt)
     {
         if (string.IsNullOrWhiteSpace(rawText))
             return TableCell.Missing(locator);
@@ -4663,12 +4852,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         if (string.Equals(rawText, "NA", StringComparison.OrdinalIgnoreCase))
             return TableCell.NotApplicableCell(rawText, locator);
 
-        // Strip sign, $, commas.
+        // Strip sign and $; pass to session (which handles group separator removal).
         var negative = rawText.StartsWith('-') || rawText.StartsWith('−');
-        var stripped = rawText.TrimStart('+', '-', '−', '$').Replace(",", string.Empty, StringComparison.Ordinal);
+        var stripped = rawText.TrimStart('+', '-', '−', '$');
 
-        if (decimal.TryParse(stripped, System.Globalization.NumberStyles.Number,
-                System.Globalization.CultureInfo.InvariantCulture, out var val))
+        if (amtFmt.TryParse(stripped, out var val))
         {
             var signed = negative ? -val : val;
             return TableCell.Amount(signed, rawText, locator);
@@ -4678,9 +4866,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         var m = SignedAmountPattern.Match(rawText);
         if (m.Success)
         {
-            var normalized = m.Groups[1].Value.Replace(",", string.Empty, StringComparison.Ordinal);
-            if (decimal.TryParse(normalized, System.Globalization.NumberStyles.Number,
-                    System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            if (TryParseAmount(m.Groups[1].Value, amtFmt, out var parsed))
             {
                 var signed = negative ? -parsed : parsed;
                 return TableCell.Amount(signed, rawText, locator);
