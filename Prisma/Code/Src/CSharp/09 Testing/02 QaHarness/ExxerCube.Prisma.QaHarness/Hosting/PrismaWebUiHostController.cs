@@ -129,6 +129,12 @@ public sealed class PrismaWebUiHostController : IApplicationHostController
         {
             sw.Stop();
             _logger.LogError(ex, "PrismaWebUiHostController: startup failed after {ElapsedMs} ms.", sw.ElapsedMilliseconds);
+
+            // Clear the factory so that the Services property does not attempt a second StartServer()
+            // call (which would throw again, bypassing the Result wrapper).
+            _factory?.Dispose();
+            _factory = null;
+
             return Result<ApplicationStartupResult>.WithFailure(
                 $"Web UI startup threw {ex.GetType().Name}: {ex.Message}");
         }
@@ -192,7 +198,9 @@ public sealed class PrismaWebUiHostController : IApplicationHostController
         }
 
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-        var healthUrl = new Uri(baseAddress, "/health/live");
+        // The Web UI maps /health (all checks) and /health/ready but not /health/live.
+        // The authoritative liveness probe is /health (MapHealthChecks root).
+        var healthUrl = new Uri(baseAddress, "/health");
 
         try
         {
@@ -260,7 +268,11 @@ public sealed class PrismaWebUiHostController : IApplicationHostController
 
             if (_options.SqlConnectionString is not null)
             {
+                // The Web UI's Program.cs reads both DefaultConnection (Identity) and
+                // ApplicationConnection (ApplicationDbContext). When a harness-supplied connection
+                // string is present, propagate it to both keys so the DB health check passes.
                 overrides["ConnectionStrings:DefaultConnection"] = _options.SqlConnectionString;
+                overrides["ConnectionStrings:ApplicationConnection"] = _options.SqlConnectionString;
             }
 
             if (_options.SharedStoragePath is not null)

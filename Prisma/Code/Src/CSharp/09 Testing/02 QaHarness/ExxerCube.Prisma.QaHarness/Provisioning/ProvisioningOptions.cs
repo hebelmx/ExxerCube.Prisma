@@ -28,9 +28,15 @@ namespace ExxerCube.Prisma.QaHarness.Provisioning;
 /// Target number of documents for the Python generator to produce. Defaults to <c>10</c>.
 /// Ignored when the generator is unavailable and the seeder falls back to static Fixtures.
 /// </param>
+/// <param name="RepoRoot">
+/// Explicit absolute path to the repository root directory.  When non-<see langword="null"/>
+/// this value takes highest precedence over the <c>PRISMA_REPO_ROOT</c> environment variable
+/// and the automatic walk-up locator used by the provisioner.
+/// </param>
 public sealed record ProvisioningOptions(
     bool StartSqlContainer = true,
     bool StartOllamaContainer = false,
     bool SeedCorpus = true,
     string? CorpusOutputPath = null,
-    int CorpusDocumentCount = 10);
+    int CorpusDocumentCount = 10,
+    string? RepoRoot = null);

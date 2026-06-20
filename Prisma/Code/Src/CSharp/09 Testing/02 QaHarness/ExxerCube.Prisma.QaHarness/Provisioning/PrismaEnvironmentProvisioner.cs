@@ -55,7 +55,7 @@ public sealed class PrismaEnvironmentProvisioner : IEnvironmentProvisioner
         if (cancellationToken.IsCancellationRequested)
             return Result<EnvironmentProvisioningResult>.WithFailure("ProvisionAsync was cancelled before it started.");
 
-        _repoRoot = LocateRepoRoot();
+        _repoRoot = ResolveRepoRoot(options.RepoRoot);
 
         var capabilities = new List<CapabilityStatus>();
         string? sqlConnectionString = null;
@@ -219,12 +219,29 @@ public sealed class PrismaEnvironmentProvisioner : IEnvironmentProvisioner
     }
 
     /// <summary>
-    /// Walks up from <c>AppContext.BaseDirectory</c> until finding the directory
-    /// containing <c>Prisma\Fixtures</c> — the same repo-root marker used by
-    /// <c>CalibrationReportRenderer</c>.
+    /// Resolves the repository root using a three-priority chain:
+    /// <list type="number">
+    ///   <item><description>(1) Explicit value from <paramref name="explicitRepoRoot"/> (e.g. <c>--repo-root</c> CLI flag or <see cref="ProvisioningOptions.RepoRoot"/>).</description></item>
+    ///   <item><description>(2) <c>PRISMA_REPO_ROOT</c> environment variable.</description></item>
+    ///   <item><description>(3) Walk-up locator from <c>AppContext.BaseDirectory</c> — looks for the <c>Prisma\Fixtures</c> directory marker.</description></item>
+    /// </list>
+    /// Returns <see langword="null"/> when none of the three sources can locate the root.
+    /// Never throws.
     /// </summary>
-    private static string? LocateRepoRoot()
+    /// <param name="explicitRepoRoot">Optional caller-supplied absolute path; takes highest precedence.</param>
+    private static string? ResolveRepoRoot(string? explicitRepoRoot)
     {
+        // (1) Explicit value — caller knows better than any heuristic.
+        if (!string.IsNullOrWhiteSpace(explicitRepoRoot) && Directory.Exists(explicitRepoRoot))
+            return explicitRepoRoot;
+
+        // (2) Environment variable override — useful for CI pipelines and Docker environments
+        //     where the build artifacts live outside the repo tree.
+        var envRoot = Environment.GetEnvironmentVariable("PRISMA_REPO_ROOT");
+        if (!string.IsNullOrWhiteSpace(envRoot) && Directory.Exists(envRoot))
+            return envRoot;
+
+        // (3) Walk-up locator — same repo-root marker used by CalibrationReportRenderer.
         try
         {
             var dir = AppContext.BaseDirectory;

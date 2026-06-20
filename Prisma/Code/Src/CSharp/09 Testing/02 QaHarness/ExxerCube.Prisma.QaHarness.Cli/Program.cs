@@ -86,7 +86,8 @@ var provisioner = sp.GetRequiredService<IEnvironmentProvisioner>();
 var provisionOpts = new ProvisioningOptions(
     StartSqlContainer: !opts.SkipDocker,
     StartOllamaContainer: false,
-    SeedCorpus: true);
+    SeedCorpus: !opts.NoSeedCorpus,
+    RepoRoot: opts.RepoRoot);
 
 var provisionResult = await provisioner.ProvisionAsync(provisionOpts, ct);
 if (!provisionResult.IsSuccess)
@@ -301,7 +302,10 @@ static void PrintHelp()
     sb.AppendLine("                               Repeat or comma-separate for multiple.");
     sb.AppendLine("  --output-dir <path>          Directory for reports.");
     sb.AppendLine("                               Default: docs/qa/harness/runs/<runId>/");
+    sb.AppendLine("  --repo-root <path>           Explicit repo root path (overrides PRISMA_REPO_ROOT env var");
+    sb.AppendLine("                               and the automatic walk-up locator).");
     sb.AppendLine("  --skip-docker                Skip Docker provisioning.");
+    sb.AppendLine("  --no-seed-corpus             Skip corpus seeding (uses static Fixtures as fallback when --repo-root is set).");
     sb.AppendLine();
     sb.AppendLine("EXIT CODES:");
     sb.AppendLine("  0  Successful run (read the report for QA verdicts — harness makes none).");
@@ -367,8 +371,10 @@ internal sealed record CliOptions(
     bool AllWorkflows,
     bool ProvisionOnly,
     bool SkipDocker,
+    bool NoSeedCorpus,
     List<string> ReportFormats,
-    string? OutputDir)
+    string? OutputDir,
+    string? RepoRoot)
 {
     internal static CliOptions Parse(string[] args)
     {
@@ -377,8 +383,10 @@ internal sealed record CliOptions(
         bool allWorkflows = false;
         bool provisionOnly = false;
         bool skipDocker = false;
+        bool noSeedCorpus = false;
         var reportFormats = new List<string>();
         string? outputDir = null;
+        string? repoRoot = null;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -407,6 +415,10 @@ internal sealed record CliOptions(
                     skipDocker = true;
                     break;
 
+                case "--no-seed-corpus":
+                    noSeedCorpus = true;
+                    break;
+
                 case "--report-format":
                     if (i + 1 >= args.Length)
                         throw new CliArgumentException("--report-format requires md, html, or json.");
@@ -433,6 +445,12 @@ internal sealed record CliOptions(
                     outputDir = args[++i];
                     break;
 
+                case "--repo-root":
+                    if (i + 1 >= args.Length)
+                        throw new CliArgumentException("--repo-root requires a path.");
+                    repoRoot = args[++i];
+                    break;
+
                 default:
                     throw new CliArgumentException(
                         $"Unrecognised flag '{args[i]}'. Run with --help for usage.");
@@ -440,7 +458,7 @@ internal sealed record CliOptions(
         }
 
         return new CliOptions(showHelp, workflowName, allWorkflows, provisionOnly,
-            skipDocker, reportFormats, outputDir);
+            skipDocker, noSeedCorpus, reportFormats, outputDir, repoRoot);
     }
 }
 
