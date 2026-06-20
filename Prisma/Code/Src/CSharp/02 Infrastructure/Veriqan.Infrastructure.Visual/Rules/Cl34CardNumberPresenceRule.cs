@@ -114,16 +114,17 @@ internal sealed class Cl34CardNumberPresenceRule : IVecValidationRule
                     observed: $"Card number present on all {model.Pages.Count} page(s)."));
         }
 
-        // Page-1 propagation: banks commonly print the card number only in the header on page 1.
-        // If page 1 has the card in its text layer AND every page that is missing the card has
-        // NO text layer (HasContent = false — image-only page where text extraction yields nothing),
-        // treat all pages as PASS.  Rationale: inner pages may render the card only in a repeated
-        // graphic/watermark header that the text-layer extractor cannot read; a confirmed page-1
-        // hit is sufficient evidence when the remaining pages are image-only.
+        // First-page propagation: banks commonly print the card number only in the header on the
+        // first page.  If the first page (by minimum PageNumber — sliced statements may not start
+        // at absolute page 1) has the card in its text layer AND every page that is missing the
+        // card has NO text layer (HasContent = false — image-only page where text extraction yields
+        // nothing), treat all pages as PASS.  Rationale: inner pages may render the card only in a
+        // repeated graphic/watermark header that the text-layer extractor cannot read; a confirmed
+        // first-page hit is sufficient evidence when the remaining pages are image-only.
         // Note: if a page HAS text content but the card is absent, that is a genuine failure even
-        // when page 1 confirms the card — image-only propagation does not override real text evidence.
-        var page1 = model.Pages.FirstOrDefault(p => p.PageNumber == 1);
-        if (page1 is { ContainsCardNumber: true })
+        // when the first page confirms the card — image-only propagation does not override real text evidence.
+        var firstPage = model.Pages.MinBy(p => p.PageNumber);
+        if (firstPage is { ContainsCardNumber: true })
         {
             var allMissingAreImageOnly = pagesWithoutCardNumber.All(p => !p.HasContent);
             if (allMissingAreImageOnly)
@@ -133,7 +134,7 @@ internal sealed class Cl34CardNumberPresenceRule : IVecValidationRule
                         checkId: CheckId,
                         technique: Technique,
                         engineVersion: Version,
-                        observed: $"Card number confirmed on page 1 — propagated as PASS for all {model.Pages.Count} page(s) (remaining pages are image-only with no text layer)."));
+                        observed: $"Card number confirmed on page {firstPage.PageNumber} (first page) — propagated as PASS for all {model.Pages.Count} page(s) (remaining pages are image-only with no text layer)."));
             }
         }
 

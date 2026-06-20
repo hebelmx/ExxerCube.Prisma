@@ -234,4 +234,54 @@ public sealed class Cl34CardNumberPresenceRuleTests
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
         result.Value.CheckId.ShouldBe("CL-34");
     }
+
+    // -----------------------------------------------------------------------
+    // MAJOR-3 fix (adversarial review): MinBy(PageNumber) first-page propagation
+    // Sliced statements may not contain an absolute page 1 — propagation must use
+    // the page with the minimum PageNumber rather than page numbered exactly 1.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// MAJOR-3 regression guard: a statement slice whose pages start at PageNumber 2
+    /// (no page numbered 1 exists) must still trigger first-page propagation when
+    /// the lowest-numbered page carries the card and all other missing-card pages
+    /// are image-only.
+    /// </summary>
+    [Fact]
+    public void Evaluate_SliceStartingAtPage2CardOnFirstPage_PropagatesPass()
+    {
+        // Pages start at 2 — there is no absolute page 1.
+        // page 2: card in text layer (first page by PageNumber).
+        // page 3: image-only — no text extracted (HasContent=false).
+        var model = ModelWithPages([
+            PageFactEx(2, containsCardNumber: true,  hasContent: true),
+            PageFactEx(3, containsCardNumber: false, hasContent: false),
+        ]);
+        var rule = GetCl34Rule();
+        var result = rule.Evaluate(Ctx(model), TestContext.Current.CancellationToken);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
+        result.Value.CheckId.ShouldBe("CL-34");
+    }
+
+    /// <summary>
+    /// Companion to the MAJOR-3 guard: a text page (HasContent=true) that genuinely
+    /// lacks the card number must still produce Fail even in a slice starting at page 2.
+    /// Confirms that propagation does NOT override genuine text-layer evidence.
+    /// </summary>
+    [Fact]
+    public void Evaluate_SliceStartingAtPage2TextPageMissingCard_ReturnsFail()
+    {
+        // page 2: card present (first page by PageNumber).
+        // page 3: HAS text content (HasContent=true) but card absent — genuine failure.
+        var model = ModelWithPages([
+            PageFactEx(2, containsCardNumber: true,  hasContent: true),
+            PageFactEx(3, containsCardNumber: false, hasContent: true),
+        ]);
+        var rule = GetCl34Rule();
+        var result = rule.Evaluate(Ctx(model), TestContext.Current.CancellationToken);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Fail);
+        result.Value.Observed!.ShouldContain("3");
+    }
 }

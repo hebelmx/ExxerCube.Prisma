@@ -82,14 +82,19 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     private static readonly Regex PostalCodePattern = new(@"^\d{5}$", RegexOptions.Compiled);
 
     /// <summary>
-    /// Matches a 16-digit card number displayed in four space- or hyphen-separated groups
-    /// (e.g. "1234 5678 9012 3456" or "1234-5678-9012-3456").
-    /// Used to detect masked card numbers (e.g. "XXXX XXXX XXXX 1234") where
-    /// only the last four digits are visible in page text.
+    /// Matches a masked card number displayed in four space- or hyphen-separated groups
+    /// where the first three groups are mask glyphs (X, x, *, •, ·, ●) and the last group
+    /// is the four visible digits (e.g. "XXXX XXXX XXXX 1234", "**** **** **** 1234").
     /// </summary>
+    /// <remarks>
+    /// The first three groups intentionally require mask characters — NOT digits — to prevent
+    /// an all-digit transaction reference printed in 4-4-4-4 format (e.g. "1234 5678 9012 1234")
+    /// from satisfying the fallback and producing a false-PASS on CL-34.
+    /// A genuine unmasked full card number is matched by the primary 16-digit path instead.
+    /// </remarks>
     private static readonly Regex CardGroupPattern = new(
-        @"[\dX]{4}[\s\-–][\dX]{4}[\s\-–][\dX]{4}[\s\-–](\d{4})",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        @"[Xx\*•·●]{4}[\s\-–][Xx\*•·●]{4}[\s\-–][Xx\*•·●]{4}[\s\-–](\d{4})",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     // Header layout constants (PDF points, origin bottom-left).
     private const double HeaderYMin = 530.0;
@@ -2986,19 +2991,15 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                     var fullMatch = pageTextStripped.Contains(
                         cardDigitsLower, StringComparison.OrdinalIgnoreCase);
 
-                    // Fallback check: last-4 digits appear as the final group of a card-formatted
-                    // pattern (e.g. "XXXX XXXX XXXX 1234" or "XXXX-XXXX-XXXX-1234").
+                    // Fallback check: last-4 digits appear as the final group of a masked-card
+                    // pattern (e.g. "XXXX XXXX XXXX 1234" or "**** **** **** 1234").
                     // Only runs when the full match fails (masked pages, graphic-only header).
+                    // Routed through TryMatchMaskedCard so the logic is unit-testable without a PDF.
                     var last4 = cardDigits.Length >= 4
                         ? cardDigits[^4..]
                         : cardDigits;
-                    var maskedMatch = false;
-                    if (!fullMatch && last4.Length == 4)
-                    {
-                        var m = CardGroupPattern.Match(pageTextRaw);
-                        maskedMatch = m.Success &&
-                            m.Groups[1].Value.Equals(last4, StringComparison.OrdinalIgnoreCase);
-                    }
+                    var maskedMatch = !fullMatch && last4.Length == 4
+                        && TryMatchMaskedCard(pageTextRaw, last4);
 
                     containsCardNumber = fullMatch || maskedMatch;
                 }
@@ -5186,5 +5187,27 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         }
 
         return gaps;
+    }
+
+    // -----------------------------------------------------------------------
+    // Internal helpers (unit-testable without a PDF)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="pageText"/> contains a masked
+    /// card presentation whose last-four visible digits match <paramref name="cardLast4"/>.
+    /// </summary>
+    /// <remarks>
+    /// A masked presentation requires the first three groups to consist exclusively of mask
+    /// glyphs (X, x, *, •, ·, ●).  All-digit references (e.g. transaction codes printed in
+    /// 4-4-4-4 format) do NOT satisfy this check, which prevents false-PASS on CL-34.
+    /// </remarks>
+    /// <param name="pageText">Raw page text with spaces preserved.</param>
+    /// <param name="cardLast4">Exactly four digit characters taken from the end of the card number.</param>
+    internal static bool TryMatchMaskedCard(string pageText, string cardLast4)
+    {
+        var m = CardGroupPattern.Match(pageText);
+        return m.Success &&
+               m.Groups[1].Value.Equals(cardLast4, StringComparison.OrdinalIgnoreCase);
     }
 }
