@@ -69,11 +69,11 @@ public class SignalREventBroadcaster : BackgroundService
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task BroadcastEventAsync(DomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        // Resolve hub in a scope to avoid singleton depending on scoped services
+        // Resolve hub in a scope to avoid singleton depending on scoped services.
+        // GetService (not GetRequiredService) so the null guard below is reachable
+        // and a missing hub registration silently no-ops instead of crashing.
         using var scope = _scopeFactory.CreateScope();
-        var hub = scope.ServiceProvider.GetRequiredService<IExxerHub<DomainEvent>>();
-
-        // Defensive Intelligence: Check if hub resolution failed
+        var hub = scope.ServiceProvider.GetService<IExxerHub<DomainEvent>>();
 
         if (hub is null)
         {

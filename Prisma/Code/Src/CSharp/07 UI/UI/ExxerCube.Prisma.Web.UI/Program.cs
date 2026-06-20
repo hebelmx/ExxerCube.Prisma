@@ -352,10 +352,9 @@ Inner Stack Trace:
         //        "sla_background_job",
         //        tags: new[] { "sla", "background", "ready" });
 
-        // Add SignalR event broadcaster for real-time event streaming to UI
-        // NOTE: Disabled for demo/isolation mode - SignalR hubs cannot be resolved outside of connection context
-        // Uncomment when running with active SignalR clients
-        // services.AddHostedService<Services.SignalREventBroadcaster>();
+        // Re-enabled: real-time UI event stream via Ember (ADR-009). Owner-approved in-scope for MVP.
+        // TestWebApplicationFactory removes this during integration tests to avoid SQL connections.
+        services.AddHostedService<Services.SignalREventBroadcaster>();
     }
 
     /// <summary>
