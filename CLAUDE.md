@@ -9,7 +9,7 @@ ExxerCube.Prisma is an enterprise OCR document processing system for Spanish leg
 ## Build & Test Commands
 
 ```bash
-# Solution is at Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln (200+ projects)
+# Solution is at Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln (~70 projects: 33 production + 37 test)
 dotnet restore "Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln"
 dotnet build "Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln"
 dotnet test "Prisma/Code/Src/CSharp/ExxerCube.Prisma.sln"
@@ -163,6 +163,7 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 > native-PDF-text IN, persisted identity OUT. **Quick wins landed 2026-06-11:** native PDF
 > text (PdfPig, B2) + config/template cleanup (E2). The 2026-06-07 matrix below remains the
 > prior baseline; the 06-11 docs supersede it for *current* state.
+> **Readiness Challenge supersedes (2026-06-18):** `docs/planning-artifacts/readiness-challenge/RC5-PRISMA-READINESS-MATRIX.md` is the canonical current-state source for Prisma MVP — it refutes several 2026-06-11 classifications (notably A1–A6 ingestion/3-process: DONE + E2E-proven) and supersedes the gap matrices above for *what is true today*.
 
 > Re-audited **2026-06-07** by tracing the DI composition roots (Web.UI / Athena
 > Worker / Orion Worker) and every pipeline stage. This is **static-wiring reality**;
@@ -210,15 +211,15 @@ The system uses **Rx.NET Observables** (not traditional IEventHandler registrati
 - **Readiness probes** — present but stubbed (`// TODO: orchestrator.IsStarted`).
 
 **Planned (stub / placeholder / missing):**
-- **Orion headless ingestion chain** — *not* "download doesn't work." Document download against the
-  SIARA simulator **works and was demoed** via the browser-automation/scraping path
-  (`SiaraNavigationTarget` + `DocumentIngestionService`, wired in the UI; the simulator
-  `tools/Siara.Simulator` models SIARA's links-on-a-page shape; no SIARA API exists, so web-scraping is
-  the deliberate approach). The gap is **headless integration**: the Orion worker still wires
-  `StubDocumentDownloader` + `StubExxerHub`, the working scraper isn't yet adapted into the
-  `IDocumentDownloader` port, and `IngestionOrchestrator.StartAsync()` (the poll/watcher) is a placeholder.
-  **Agreed direction:** split into **3 Ember-coordinated processes — Downloader / Extractor / Reconciliator**
-  (`IndFusion.Ember` "Three Actors", ADR-009). Highest-leverage remaining integration work. Details: GAP-MATRIX §9.6.
+- **Orion headless ingestion chain** — the 3-process split (Downloader / Extractor / Reconciliator,
+  `IndFusion.Ember` "Three Actors", ADR-009) **is implemented and E2E-proven on the SIARA simulator.**
+  `StubDocumentDownloader` and `StubExxerHub` are dead code registered nowhere; the real
+  `SiaraDocumentDownloader` is wired. `IngestionOrchestrator.StartAsync()` placeholder is removed;
+  `SiaraWatchLoop.RunAsync` is the real poll loop. The full pipeline runs end-to-end in
+  `MaxFidelityGateFullPipelineE2ETests`. **Canonical current-state:** RC5
+  (`docs/planning-artifacts/readiness-challenge/RC5-PRISMA-READINESS-MATRIX.md`) §1 Executive Summary.
+  Remaining gaps are deploy/ops/security hardening (no Dockerfiles, config externalization, real-TCP
+  proof, SIARA legal gate) — not functional wiring. Details: RC5 §2.1 P1–P8.
 - Worker `/dashboard` metrics — `Orion/AthenaDashboardService` return zeros (UI Dashboard uses the working `IProcessingMetricsService`).
 - PersonIdentityResolver DB persistence; PDF text extraction (returns empty pending iText/PdfSharp); CSnakes Python ML runtime interop. *(2026-06-07: the "3 skipped TXT extractor edge cases" were fixed, and `XmlFieldExtractor` was confirmed real + hardened — both removed from this list.)*
 - Sentinel monitoring service — **(b) partial scaffold; traced 2026-06-20.** Real domain logic exists (`SentinelService`, `HeartbeatMonitor`, 16 tests green), but: no `Program.cs`/host, not registered in any DI composition root, `IProcessRestarter` has no concrete implementation, and no worker emits heartbeats. Classified OUT-OF-MVP pending Workstream-1 (3-process split) stabilisation. Full evidence: `docs/operations/SENTINEL-STATUS-2026-06.md`.
@@ -257,9 +258,8 @@ static tracing). Evidence + per-suite numbers: GAP-MATRIX §9
   25/25 — variance); `Extraction.GotOcr2` 16 tests **skipped** (VLM dormant by design);
   `Extraction.Python` 0 (dormant). These are not defects.
 - **Web.UI launched for real:** `GET /` → HTTP 200 (MudBlazor renders), `/health` → "Healthy"; boots
-  gracefully even when DB seed fails (caught). **Demo caveats:** `appsettings.json` hardcodes
-  `Server=DESKTOP-FB2ES22\SQL2022` (won't start off-box without reconfig); `Counter.razor` /
-  `Weather.razor` template leftovers should be removed before presenting.
+  gracefully even when DB seed fails (caught). **Demo caveat:** `appsettings.json` hardcodes
+  `Server=DESKTOP-FB2ES22\SQL2022` (won't start off-box without reconfig).
 - **HMI** (`Prisma.HMI.Tests` 13/13) is a notification-queue **prototype whose types live inside the
   test project** — not a wired service; track as experimental, not in the services table.
 
