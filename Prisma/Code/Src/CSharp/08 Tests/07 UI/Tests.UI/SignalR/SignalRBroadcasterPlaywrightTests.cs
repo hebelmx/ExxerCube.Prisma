@@ -168,6 +168,12 @@ public sealed class SignalRBroadcasterPlaywrightTests : IAsyncLifetime
             // Flip the faked metric. The DOM still shows "5" — no reload has fired yet.
             factory.TotalDocuments = 6;
 
+            // Negative control (isolates causation): the Dashboard has no background poll timer, so with the
+            // new value set but NO event published, the DOM must REMAIN "5". This proves the subsequent flip
+            // to "6" is caused by the published domain event (the FU1 bridge), not an incidental re-render.
+            await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+            await Assertions.Expect(totalDocs).ToHaveTextAsync("5", new() { Timeout = 2_000 });
+
             // Publish a domain event. The real SignalREventBroadcaster (hosted service) is subscribed to
             // the singleton IEventPublisher and will broadcast it via SendToAllAsync("ReceiveMessage"),
             // which the Dashboard now handles by re-pulling metrics.

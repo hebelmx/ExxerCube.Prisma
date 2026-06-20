@@ -107,21 +107,31 @@ public class PrismaWebApplicationFactory : WebApplicationFactory<ExxerCube.Prism
             });
         });
 
-        _host = builder.Build();
-        _host.Start();
-
-        // Capture the bound address so Playwright can navigate to the actual port.
-        var addresses = _host.Services.GetRequiredService<IServer>()
-            .Features.Get<IServerAddressesFeature>()?.Addresses;
-        var firstAddress = addresses?.FirstOrDefault();
-        if (firstAddress is not null)
+        try
         {
-            HostedBaseAddress = new Uri(firstAddress);
-        }
+            _host = builder.Build();
+            _host.Start();
 
-        // Return the TestServer host (WAF casts Server to TestServer); the Kestrel host runs alongside it.
-        testHost.Start();
-        return testHost;
+            // Capture the bound address so Playwright can navigate to the actual port.
+            var addresses = _host.Services.GetRequiredService<IServer>()
+                .Features.Get<IServerAddressesFeature>()?.Addresses;
+            var firstAddress = addresses?.FirstOrDefault();
+            if (firstAddress is not null)
+            {
+                HostedBaseAddress = new Uri(firstAddress);
+            }
+
+            // Return the TestServer host (WAF casts Server to TestServer); the Kestrel host runs alongside it.
+            testHost.Start();
+            return testHost;
+        }
+        catch
+        {
+            // If the Kestrel host fails to build/start (e.g. a port collision), dispose the already-built
+            // TestServer host so its IHostedServices don't leak — WAF only owns the host we return.
+            testHost.Dispose();
+            throw;
+        }
     }
 
     protected override void Dispose(bool disposing)

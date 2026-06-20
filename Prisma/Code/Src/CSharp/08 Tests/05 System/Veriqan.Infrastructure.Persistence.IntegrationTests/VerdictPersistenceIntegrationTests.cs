@@ -140,7 +140,7 @@ public sealed class VerdictPersistenceIntegrationTests
                 id: jobId,
                 contentHash: jobId.ToString("N"),
                 receivedAtUtc: DateTimeOffset.UtcNow,
-                status: VerificationJobStatus.Completed);
+                status: VerificationJobStatus.Pending); // matches the real ingestion precondition (job created Pending before Stage-8 verdict)
             await ctx.VerificationJobs.AddAsync(parentJob, ct);
             await ctx.SaveChangesAsync(ct);
 
