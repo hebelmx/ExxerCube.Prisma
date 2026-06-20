@@ -8,6 +8,7 @@
   <ItemGroup Label="Core Packages">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="IndQuestResults" />
+    <PackageReference Include="Microsoft.Playwright" />
   </ItemGroup>
 
 </Project>
