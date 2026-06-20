@@ -690,3 +690,6 @@ stryker-output.log
 git-lfs-tmp/
 # BMAD installs into the repo root, not into a literal "pwd" folder
 pwd/
+
+# Claude Code agent worktrees (transient — never commit)
+.claude/worktrees/
