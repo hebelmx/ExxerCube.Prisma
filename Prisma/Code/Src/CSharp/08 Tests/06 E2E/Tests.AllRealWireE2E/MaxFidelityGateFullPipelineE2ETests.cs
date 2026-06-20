@@ -249,5 +249,16 @@ public sealed class MaxFidelityGateFullPipelineE2ETests : MaxFidelityGateE2EBase
             .Count();
         distinctProcesses.ShouldBeGreaterThanOrEqualTo(2,
             "audit for this case must be written by at least two distinct worker processes (real 3-process persistence)");
+
+        // ProcessId adoption (PRISMA-E2-S5): every audit row persisted for this run must carry a
+        // non-null, non-empty ProcessId so the audit trail is fully traceable across all three processes.
+        // This assertion will fail if any LogAuditAsync call site omits or nulls the processId argument.
+        var rowsMissingProcessId = auditRows
+            .Where(a => string.IsNullOrWhiteSpace(a.ProcessId))
+            .ToList();
+        rowsMissingProcessId.ShouldBeEmpty(
+            $"every audit row for FileId {fileId} must have a non-null, non-empty ProcessId " +
+            $"(found {rowsMissingProcessId.Count} row(s) with null/empty ProcessId — " +
+            $"check all LogAuditAsync call sites pass processId: from ISiaraActorIdentityProvider)");
     }
 }
