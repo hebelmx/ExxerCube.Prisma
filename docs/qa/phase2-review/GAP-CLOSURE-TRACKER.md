@@ -22,7 +22,8 @@
 - **DoD:** new unit test proving a directive that forbids notification ⇒ no client broadcast emitted (NSubstitute on the hub/notifier) AND an audit row records the suppression; build 0/0; `--report-trx` captured. Evidence path: `docs/qa/phase2-review/closure-evidence/G-C1.trx`.
 - **Depends on:** **HRQ-12** (owner 2026-06-20 leans "no external-notification path exists ⇒ FR31 satisfied by absence"). **If HRQ-12 = (A):** scope shrinks to a *regression guard* — a test that FAILS if any external-notification sink is added without a legal gate (no full gate needed now). **If HRQ-12 = (B):** implement the full gate as described. Verify first: grep notification sinks + confirm SignalR audiences are operators-only.
 
-### G-C2 ☐ — Gate Stage-5 export on review/confidence (FR14 / FR20 / INV-6)
+### G-C2 ☑ — Gate Stage-5 export on review/confidence (FR14 / FR20 / INV-6)
+> **CLOSED 2026-06-20** (commit 8db5e781). `ExportGatePolicy` (configurable, all gates default ON) + `ExportHeldForReviewEvent`; `ReconciliationOrchestrator.EvaluateExportGate` blocks Stage 5 when confidence<70 OR fusion=ManualReviewRequired OR unresolved conflicts. Athena.Processing 0/0; tests 111/111 (6 new TC-GC2-1..6); TRX in closure-evidence/G-C2.trx. **Follow-ons:** G-C2b (review-approval re-trigger — release path), G-C2c (3-process handoff drops fusion decision — pre-existing) — both tied to the capstone re-run gate.
 - **Finding:** Low-confidence classification publishes `DocumentFlaggedForReviewEvent` then `return result;` and **proceeds to export**. Fusion `Revisión manual requerida` also does not block. Unreviewed/low-confidence records produce regulatory output. (Report CRIT-2 + EX-06/EX-07; live `e2e-rerun.log`.)
 - **Where:** `04 Services/Athena/Prisma.Athena.Processing/ReconciliationOrchestrator.cs:243-279` (low-confidence branch) and `ExecuteStage5ExportAsync` (line ~286). Threshold const `ClassificationConfidenceThreshold = 70`.
 - **Do:** When `RequiresManualReview` is true (confidence < threshold) OR fusion `NextAction == "Revisión manual requerida"`/has unresolved conflicts, **do NOT run Stage 5**; route the case to the manual-review queue and emit a "held for review" state instead of `ExportCompletedEvent`. Only export after a review decision marks it approved. Make the policy explicit + configurable.
@@ -81,7 +82,8 @@
 - **Do:** Register `/health/live` (liveness, no DB dependency) + keep `/health/ready` (readiness incl. DB). Liveness should be 200 when the process is up.
 - **DoD:** anon `/health/live` ⇒ 200; `/health/ready` ⇒ 503 when DB down. Evidence: `closure-evidence/G-M1-probe.txt`.
 
-### G-M2 ☐ — PDF page-index off-by-one (FR6)
+### G-M2 ☑ — PDF page-index off-by-one (FR6)
+> **CLOSED 2026-06-20** (commit 266e1e50). Replaced exception-as-sentinel `while(true)` in `PdfToImageConverter.ConvertToImagesAsync` with `GetPageCount` + bounded `for` (0..pageCount-1). Infrastructure.Extraction.Ocr 0/0; test project 164/164 (5 new). TRX in closure-evidence/G-M2.trx.
 - **Finding:** `Stopping PDF conversion at page 3: ArgumentOutOfRangeException — page must be between 0 and 2` on a 3-page PDF; loop iterates one past the last page. (Report; `e2e-rerun.log:288`; R1/R5.)
 - **Where:** the PDF→image rasterisation loop in the imaging/OCR-preprocess path (grep `page number must be between` / the PDF conversion loop).
 - **Do:** Fix loop bound (`< pageCount`, not `<= pageCount`). Verify no truncation on >3-page PDFs.
@@ -174,12 +176,14 @@
 - **Owner ruling:** dev EF migrations fine now; for prod add a **DDL trigger** blocking DROP/ALTER on critical tables (audit, review, …), or adopt a migration-squash/recreate policy.
 - **DoD:** a DDL trigger blocks a DROP on a protected table in a test DB (or a documented migration policy).
 
-### G-H4 ☐ (updated) — Research + ADR per absent PRP interface  [HRQ-8]
+### G-H4 ☑ (updated) — Research + ADR per absent PRP interface  [HRQ-8]
 - **Owner ruling:** per interface, gather additional evidence and **draft an ADR** recording: fulfilled elsewhere (e.g. fusion) → de-scope, or genuinely needed → implement. Start with `IFieldMatcher<T>`.
 - **DoD:** one ADR per interface (7) under `docs/architecture/adr/`, each with a decision.
+- **CLOSED 2026-06-20** (commit 8ea15725). ADR-015..021 — **all 7 ruled DE-SCOPE**, each capability fulfilled by an existing differently-named component (IFieldMatcher/IFieldAgreement→fusion services; IRuleScorer→FileClassifierService; IScanDetector/IScanCleaner→PdfMetadataExtractor+IImagePreprocessor; IReportGenerator→AuditReportingService; IUIBundle→Blazor). No IMPLEMENT-large items. **Follow-up (minor):** amend PRP.md feature→interface mapping; optionally extract `IAuditReportingService`.
 
 ---
 
 ## Progress log
 - 2026-06-20 — tracker created from PHASE2-FINAL-REPORT.md. All tasks pending; owner-decision items blocked pending rulings.
+- 2026-06-20 (orchestration wave 1) — **closed G-C2** (export gate, commit 8db5e781), **G-M2** (PDF off-by-one, 266e1e50), **G-H4** (7 de-scope ADRs, 8ea15725); landed **ADR-014** Identity-as-infra design. Pushed to Liv (HEAD 266e1e50). New follow-on items: G-C2b (review-approval re-trigger), G-C2c (3-process fusion-state propagation). Next: G-I1 Identity implementation (keystone) per ADR-014.
 - 2026-06-20 (later) — owner answered **all 13** HR items (see report §1a + §6). Resolved/accepted: CRIT-1 (non-notification satisfied by absence — grep evidence in closure-evidence/), CR8 (vendor-agnostic), INV-4 (SQL ledger, G-S2), NFR14 (PASS + G-S3), NFR15/INV-11 (PASS), NFR16 (de-scoped), NFR17 (deferred), CR4 (dev-OK + G-S4). New owner work items: **G-I1 Identity (keystone), G-S1 storage encryption, G-S2 audit ledger, G-S3 outbox worker, G-S4 DDL trigger, G-H4 ADR-per-interface.** **G-C2 unblocked (owner: export must block).** Remaining staging blockers: G-C2, G-H1, G-H2/G-H3 (via G-I1).
