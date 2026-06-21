@@ -414,6 +414,88 @@ public sealed class DatosCargaOficioLayoutGeneratorTests
     }
 
     // -------------------------------------------------------------------------
+    // TC-15: G-H1 regression guard — SaveAs must NOT dispatch to Task.Run
+    //
+    // Root cause of the live-run hang (GH bug G-H1 / FR18):
+    //   workbook.SaveAs(outputStream) was wrapped in
+    //     await Task.Run(() => workbook.SaveAs(outputStream), cancellationToken)
+    //   During the capstone E2E the thread pool was saturated by concurrent
+    //   OCR + SQL + SignalR + Playwright work.  Task.Run had to wait for a free
+    //   thread; by the time it was scheduled the 60-second AwaitOrFailAsync
+    //   window in the E2E had already closed, causing the test to report
+    //   "never completes" even though the generator would eventually succeed.
+    //
+    // Guard: inject a stream that records the ManagedThreadId of the thread
+    // that calls Write().  Before the fix, Write() was called from a DIFFERENT
+    // thread (the Task.Run thread pool thread).  After the fix, Write() is
+    // called on the SAME thread that is executing the async continuation of
+    // GenerateAsync — i.e., no extra Task.Run dispatch occurs.
+    //
+    // Specifically: we drive GenerateAsync from a known Task.Run thread so we
+    // know its ManagedThreadId, and assert the stream Write() arrives on the
+    // SAME thread (no second dispatch).  Before the fix two dispatches were
+    // required; after the fix only one.
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task GenerateAsync_SaveAs_RunsOnCallerThread_NeverDispatchesToNewTaskRun_G_H1Regression()
+    {
+        var sut = CreateSut();
+        var record = BuildRecord();
+        var ct = Ct;
+
+        // Capture which thread(s) call Write() on the output stream.
+        // Before fix: Write() is called from a Task.Run thread (different from continuation thread).
+        // After  fix: Write() is called synchronously from the async continuation thread.
+        int? continuationThreadId = null;
+        var writeThreadIds = new System.Collections.Concurrent.ConcurrentBag<int>();
+
+        // Run GenerateAsync from a Task.Run continuation so we have a known pool thread ID.
+        await Task.Run(async () =>
+        {
+            continuationThreadId = Thread.CurrentThread.ManagedThreadId;
+
+            using var capturingStream = new ThreadCapturingStream(writeThreadIds);
+            var result = await sut.GenerateAsync(record, capturingStream, ct);
+            result.IsSuccess.ShouldBeTrue(result.Error ?? "GenerateAsync must succeed");
+        }, ct);
+
+        // Every Write() call must have come from the same thread that ran the
+        // async continuation — not from a newly-dispatched Task.Run thread.
+        // If Task.Run was used, ClosedXML would Write() from a DIFFERENT pool
+        // thread, so writeThreadIds would contain a thread id != continuationThreadId.
+        writeThreadIds.ShouldNotBeEmpty("Stream must have been written to");
+        writeThreadIds.ShouldAllBe(id => id == continuationThreadId!.Value,
+            $"G-H1: All stream writes must occur on the async continuation thread ({continuationThreadId}), " +
+            "not on a separately dispatched Task.Run thread. " +
+            "If this fails, workbook.SaveAs is still wrapped in Task.Run in DatosCargaOficioLayoutGenerator.");
+    }
+
+    /// <summary>
+    /// Stream that records the <see cref="Thread.ManagedThreadId"/> of every
+    /// thread that calls <see cref="Write(byte[], int, int)"/> on it.
+    /// </summary>
+    private sealed class ThreadCapturingStream : MemoryStream
+    {
+        private readonly System.Collections.Concurrent.ConcurrentBag<int> _threadIds;
+
+        public ThreadCapturingStream(System.Collections.Concurrent.ConcurrentBag<int> threadIds)
+            => _threadIds = threadIds;
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            _threadIds.Add(Thread.CurrentThread.ManagedThreadId);
+            base.Write(buffer, offset, count);
+        }
+
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            _threadIds.Add(Thread.CurrentThread.ManagedThreadId);
+            base.Write(buffer);
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

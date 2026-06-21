@@ -152,9 +152,16 @@ public sealed class DatosCargaOficioLayoutGenerator : IDatosCargaOficioLayoutGen
             // Auto-fit columns
             worksheet.Columns().AdjustToContents();
 
-            // Persist to stream
-            await Task.Run(() => workbook.SaveAs(outputStream), cancellationToken)
-                .ConfigureAwait(false);
+            // Persist to stream synchronously.
+            // NOTE (G-H1 / FR18): ClosedXML's SaveAs is a synchronous, CPU-bound call.
+            // Wrapping it in Task.Run() causes thread-pool re-dispatch — under a
+            // thread-pool-saturated E2E run (OCR + SQL + SignalR + Playwright all
+            // competing for threads) Task.Run cannot schedule immediately, so the
+            // 60-second capstone E2E window expires before SaveAs even starts.
+            // The calling thread in a Worker-service or async continuation is already
+            // a thread-pool thread — there is no UI/SynchronizationContext to avoid
+            // blocking — so running SaveAs inline is correct and safe.
+            workbook.SaveAs(outputStream);
 
             _logger.LogInformation(
                 "Successfully generated DatosCargaOficio layout for expediente: {Expediente}",
