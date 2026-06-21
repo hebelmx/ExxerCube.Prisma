@@ -63,6 +63,14 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
     /// </summary>
     public DbSet<PersistedUnifiedMetadata> UnifiedMetadataRecords { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets the outbox events entity set.
+    /// Stores domain events for reliable at-least-once delivery (NFR14).
+    /// The <see cref="Services.OutboxRetryWorker"/> periodically scans this table and
+    /// re-publishes unprocessed events via the event publisher.
+    /// </summary>
+    public DbSet<OutboxEvent> OutboxEvents { get; set; } = null!;
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,5 +84,6 @@ public class PrismaDbContext : DbContext, IPrismaDbContext
         modelBuilder.ApplyConfiguration(new AuditRecordConfiguration());
         modelBuilder.ApplyConfiguration(new RequirementTypeDictionaryConfiguration());
         modelBuilder.ApplyConfiguration(new PersistedUnifiedMetadataConfiguration());
+        modelBuilder.ApplyConfiguration(new OutboxEventConfiguration());
     }
 }

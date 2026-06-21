@@ -10,6 +10,7 @@ using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -79,7 +80,8 @@ public class EventPersistenceWorker : BackgroundService
     }
 
     /// <summary>
-    /// Persists a domain event to the database as an AuditRecord.
+    /// Persists a domain event to the database as an AuditRecord and records it in the
+    /// OutboxEvents table for reliable at-least-once delivery (NFR14).
     /// </summary>
     /// <param name="domainEvent">The domain event to persist.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -91,13 +93,47 @@ public class EventPersistenceWorker : BackgroundService
             using var scope = _serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<IPrismaDbContext>();
 
-            var auditRecord = MapEventToAuditRecord(domainEvent);
+            // --- Outbox write (NFR14): persist the event payload first so the OutboxRetryWorker
+            //     can detect and re-publish it if the audit-record write below fails.
+            var outboxEntry = new OutboxEvent
+            {
+                OutboxEventId = domainEvent.EventId,
+                EventType = domainEvent.EventType,
+                Payload = JsonSerializer.Serialize(domainEvent, JsonOptions),
+                OccurredAt = domainEvent.Timestamp,
+            };
 
+            // Guard against duplicate entries (idempotent replay from the retry worker).
+            var alreadyExists = await dbContext.OutboxEvents
+                .AnyAsync(e => e.OutboxEventId == domainEvent.EventId, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!alreadyExists)
+            {
+                dbContext.OutboxEvents.Add(outboxEntry);
+            }
+
+            // --- Audit record write (existing behaviour).
+            var auditRecord = MapEventToAuditRecord(domainEvent);
             dbContext.AuditRecords.Add(auditRecord);
-            await dbContext.SaveChangesAsync(cancellationToken);
+
+            // Commit both in one round-trip.
+            await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+            // Mark the outbox entry as processed now that the audit record is safely stored.
+            // Fetch the tracked entity and update it.
+            var tracked = await dbContext.OutboxEvents
+                .FindAsync(new object[] { domainEvent.EventId }, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (tracked is not null)
+            {
+                tracked.ProcessedAt = DateTime.UtcNow;
+                await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
 
             _logger.LogDebug(
-                "Persisted event {EventType} with ID {EventId} to database",
+                "Persisted event {EventType} with ID {EventId} to database (outbox + audit)",
                 domainEvent.EventType,
                 domainEvent.EventId);
         }
@@ -105,10 +141,13 @@ public class EventPersistenceWorker : BackgroundService
         {
             _logger.LogError(
                 ex,
-                "Failed to persist event {EventType} with ID {EventId} - Defensive Intelligence: continuing",
+                "Failed to persist event {EventType} with ID {EventId} - Defensive Intelligence: continuing. " +
+                "OutboxRetryWorker will re-publish this event on the next scan tick.",
                 domainEvent.EventType,
                 domainEvent.EventId);
-            // Defensive Intelligence: Don't throw - event persistence failure should not break the system
+            // Defensive Intelligence: Don't throw - event persistence failure should not break the system.
+            // The outbox entry written above (if committed) remains unprocessed and will be re-published
+            // by OutboxRetryWorker on the next scan tick.
         }
     }
 

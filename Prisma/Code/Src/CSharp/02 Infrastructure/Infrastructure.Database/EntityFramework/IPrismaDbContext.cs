@@ -53,6 +53,14 @@ public interface IPrismaDbContext
     DbSet<AuditRecord> AuditRecords { get; set; }
 
     /// <summary>
+    /// Gets or sets the OutboxEvents entity set.
+    /// Stores domain events that have been persisted for reliable at-least-once delivery (NFR14).
+    /// The <see cref="ExxerCube.Prisma.Infrastructure.Database.Services.OutboxRetryWorker"/> scans
+    /// this table periodically and re-publishes unprocessed events via the event publisher.
+    /// </summary>
+    DbSet<OutboxEvent> OutboxEvents { get; set; }
+
+    /// <summary>
     /// Gets the Database facade for accessing database-specific operations.
     /// Provides access to database-level functionality such as transactions and raw SQL execution.
     /// </summary>

@@ -270,6 +270,12 @@ public static class ServiceCollectionExtensions
         if (registerEventPersistence)
         {
             services.AddHostedService<Services.EventPersistenceWorker>();
+
+            // Outbox retry worker (NFR14): periodically scans OutboxEvents for unprocessed rows and
+            // re-publishes them via the EventPublisher. Requires the same IEventPublisher registration
+            // as EventPersistenceWorker, so guarded by the same flag.
+            services.Configure<OutboxRetryOptions>(_ => { }); // Accept defaults; hosts override via appsettings.
+            services.AddHostedService<Services.OutboxRetryWorker>();
         }
 
         return services;
