@@ -1,0 +1,26 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  ExxerCube.Prisma.CrossConcerns -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.CrossConcerns\net10.0\ExxerCube.Prisma.CrossConcerns.dll
+  ExxerCube.Prisma.Domain -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Domain\net10.0\ExxerCube.Prisma.Domain.dll
+  ExxerCube.Prisma.Infrastructure.Calendar -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Calendar\net10.0\ExxerCube.Prisma.Infrastructure.Calendar.dll
+  ExxerCube.Prisma.Infrastructure.Export.Adaptive -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Export.Adaptive\net10.0\ExxerCube.Prisma.Infrastructure.Export.Adaptive.dll
+  ExxerCube.Prisma.Infrastructure.Extraction.Txt -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Extraction.Txt\net10.0\ExxerCube.Prisma.Infrastructure.Extraction.Txt.dll
+  ExxerCube.Prisma.Application -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Application\net10.0\ExxerCube.Prisma.Application.dll
+  ExxerCube.Prisma.Infrastructure.Python.GotOcr2 -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Python.GotOcr2\net10.0\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.dll
+  ExxerCube.Prisma.Infrastructure.Database -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Database\net10.0\ExxerCube.Prisma.Infrastructure.Database.dll
+  ExxerCube.Prisma.Infrastructure.Extraction.Adaptive -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Extraction.Adaptive\net10.0\ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.dll
+  ExxerCube.Prisma.Infrastructure.Metrics -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Metrics\net10.0\ExxerCube.Prisma.Infrastructure.Metrics.dll
+  ExxerCube.Prisma.Infrastructure.FileStorage -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.FileStorage\net10.0\ExxerCube.Prisma.Infrastructure.FileStorage.dll
+  ExxerCube.Prisma.Infrastructure.Imaging -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Imaging\net10.0\ExxerCube.Prisma.Infrastructure.Imaging.dll
+  ExxerCube.Prisma.Infrastructure.BrowserAutomation -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.BrowserAutomation\net10.0\ExxerCube.Prisma.Infrastructure.BrowserAutomation.dll
+  ExxerCube.Prisma.Infrastructure.Classification -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Classification\net10.0\ExxerCube.Prisma.Infrastructure.Classification.dll
+  ExxerCube.Prisma.Infrastructure.Export -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Export\net10.0\ExxerCube.Prisma.Infrastructure.Export.dll
+  ExxerCube.Prisma.Infrastructure -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure\net10.0\ExxerCube.Prisma.Infrastructure.dll
+  ExxerCube.Prisma.Infrastructure.Extraction.Ocr -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Infrastructure.Extraction.Ocr\net10.0\ExxerCube.Prisma.Infrastructure.Extraction.Ocr.dll
+  ExxerCube.Prisma.Web.UI -> E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Web.UI\net10.0\ExxerCube.Prisma.Web.UI.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:01:36.67

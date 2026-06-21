@@ -1,0 +1,14 @@
+Web UI HTTP Probes
+==================
+URL: http://localhost:5172
+Timestamp: 2026-06-20 (phase2-evidence run)
+
+GET /          → HTTP 200
+GET /health    → HTTP 503  (body: "Unhealthy")
+
+Notes:
+- App boot log shows: "Failed to seed adaptive export templates - application will continue but exports may fail"
+  Cause: appsettings.json hardcodes Server=DESKTOP-FB2ES22\SQL2022 which is not available in this environment.
+  This is the known behaviour documented in CLAUDE.md ("boots gracefully even when DB seed fails").
+- /health returns 503 because the SQL readiness check cannot connect to the database.
+- GET / returns 200: the Blazor UI (MudBlazor) serves the home page successfully despite DB unavailability.

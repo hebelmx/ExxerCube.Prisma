@@ -1,0 +1,263 @@
+{
+  "RunId": "20260620-200430",
+  "ProductVersion": "1.0.0",
+  "StartedAt": "2026-06-20T20:04:30.5529568+00:00",
+  "FinishedAt": "2026-06-20T20:04:52.2167373+00:00",
+  "ProvisioningResult": {
+    "SqlConnectionString": null,
+    "OllamaEndpoint": null,
+    "CorpusPath": "E:/Dynamic/IndFusion/ExxerCube.Prisma/ExxerCube.Prisma\\Prisma\\Deployments\\Siara.Simulator\\bulk_generated_documents_all_formats",
+    "CorpusStatus": "Seeded",
+    "DockerAvailable": false,
+    "CapabilityStatuses": [
+      {
+        "Capability": "Docker",
+        "Available": false,
+        "Detail": "Docker probe timed out or was cancelled."
+      },
+      {
+        "Capability": "SqlServer",
+        "Available": false,
+        "Detail": "Docker unavailable; SQL container not started."
+      },
+      {
+        "Capability": "Corpus",
+        "Available": true,
+        "Detail": null
+      }
+    ]
+  },
+  "WorkflowResults": [
+    {
+      "WorkflowName": "LoginWorkflow",
+      "StartedAt": "2026-06-20T20:04:51.1565286+00:00",
+      "FinishedAt": "2026-06-20T20:04:51.1570361+00:00",
+      "Status": "Aborted",
+      "AbortReason": "PlaywrightPage not available in WorkflowContext.",
+      "Evidence": {
+        "RunId": "LoginWorkflow",
+        "Items": []
+      },
+      "Outputs": {}
+    },
+    {
+      "WorkflowName": "IngestionWorkflow",
+      "StartedAt": "2026-06-20T20:04:51.4422192+00:00",
+      "FinishedAt": "2026-06-20T20:04:51.904597+00:00",
+      "Status": "Completed",
+      "AbortReason": null,
+      "Evidence": {
+        "RunId": "run-20260620-200450",
+        "Items": []
+      },
+      "Outputs": {
+        "IngestResult": "Failed",
+        "CaseId": null
+      }
+    },
+    {
+      "WorkflowName": "ExportWorkflow",
+      "StartedAt": "2026-06-20T20:04:52.1745888+00:00",
+      "FinishedAt": "2026-06-20T20:04:52.1749834+00:00",
+      "Status": "Aborted",
+      "AbortReason": "IEventPublisher not registered in DI container.",
+      "Evidence": {
+        "RunId": "ExportWorkflow",
+        "Items": []
+      },
+      "Outputs": {}
+    },
+    {
+      "WorkflowName": "ManualReviewWorkflow",
+      "StartedAt": "2026-06-20T20:04:52.1792475+00:00",
+      "FinishedAt": "2026-06-20T20:04:52.1796061+00:00",
+      "Status": "Aborted",
+      "AbortReason": "PlaywrightPage not available in WorkflowContext.",
+      "Evidence": {
+        "RunId": "ManualReviewWorkflow",
+        "Items": []
+      },
+      "Outputs": {}
+    },
+    {
+      "WorkflowName": "HealthCheckWorkflow",
+      "StartedAt": "2026-06-20T20:04:52.183972+00:00",
+      "FinishedAt": "2026-06-20T20:04:52.1842485+00:00",
+      "Status": "Aborted",
+      "AbortReason": "HttpClient not registered in DI container.",
+      "Evidence": {
+        "RunId": "HealthCheckWorkflow",
+        "Items": []
+      },
+      "Outputs": {}
+    },
+    {
+      "WorkflowName": "ConfigWorkflow",
+      "StartedAt": "2026-06-20T20:04:52.2137146+00:00",
+      "FinishedAt": "2026-06-20T20:04:52.2152175+00:00",
+      "Status": "Aborted",
+      "AbortReason": "HttpClient not registered in DI container.",
+      "Evidence": {
+        "RunId": "ConfigWorkflow",
+        "Items": []
+      },
+      "Outputs": {}
+    }
+  ],
+  "ValidationResults": [],
+  "Evidence": {
+    "RunId": "run-20260620-200450",
+    "Items": []
+  },
+  "TraceabilityEntries": [
+    {
+      "SourceId": "ConfigWorkflow",
+      "SourceKind": "Workflow",
+      "Requirements": [
+        {
+          "Id": "NFR11",
+          "Title": "NFR11",
+          "Section": null
+        }
+      ],
+      "Features": [
+        {
+          "Id": "F-CONFIG",
+          "Name": "F-CONFIG"
+        }
+      ],
+      "Invariants": [],
+      "RecordedAt": "2026-06-20T20:04:52.2152175+00:00"
+    },
+    {
+      "SourceId": "HealthCheckWorkflow",
+      "SourceKind": "Workflow",
+      "Requirements": [
+        {
+          "Id": "NFR7",
+          "Title": "NFR7",
+          "Section": null
+        }
+      ],
+      "Features": [
+        {
+          "Id": "F-HEALTH",
+          "Name": "F-HEALTH"
+        }
+      ],
+      "Invariants": [
+        {
+          "Id": "INV-HEALTH-LIVE-01",
+          "Description": "INV-HEALTH-LIVE-01"
+        }
+      ],
+      "RecordedAt": "2026-06-20T20:04:52.1842485+00:00"
+    },
+    {
+      "SourceId": "ManualReviewWorkflow",
+      "SourceKind": "Workflow",
+      "Requirements": [
+        {
+          "Id": "FR14",
+          "Title": "FR14",
+          "Section": null
+        }
+      ],
+      "Features": [
+        {
+          "Id": "F-MANUAL-REVIEW",
+          "Name": "F-MANUAL-REVIEW"
+        }
+      ],
+      "Invariants": [],
+      "RecordedAt": "2026-06-20T20:04:52.1796061+00:00"
+    },
+    {
+      "SourceId": "ExportWorkflow",
+      "SourceKind": "Workflow",
+      "Requirements": [
+        {
+          "Id": "FR15",
+          "Title": "FR15",
+          "Section": null
+        },
+        {
+          "Id": "FR18",
+          "Title": "FR18",
+          "Section": null
+        },
+        {
+          "Id": "FR17",
+          "Title": "FR17",
+          "Section": null
+        }
+      ],
+      "Features": [
+        {
+          "Id": "F-EXPORT",
+          "Name": "F-EXPORT"
+        }
+      ],
+      "Invariants": [
+        {
+          "Id": "INV-AUDIT-01",
+          "Description": "INV-AUDIT-01"
+        }
+      ],
+      "RecordedAt": "2026-06-20T20:04:52.1749834+00:00"
+    },
+    {
+      "SourceId": "IngestionWorkflow",
+      "SourceKind": "Workflow",
+      "Requirements": [
+        {
+          "Id": "FR1",
+          "Title": "FR1",
+          "Section": null
+        },
+        {
+          "Id": "FR2",
+          "Title": "FR2",
+          "Section": null
+        },
+        {
+          "Id": "FR17",
+          "Title": "FR17",
+          "Section": null
+        }
+      ],
+      "Features": [
+        {
+          "Id": "F-INGESTION",
+          "Name": "F-INGESTION"
+        }
+      ],
+      "Invariants": [
+        {
+          "Id": "INV-AUDIT-01",
+          "Description": "INV-AUDIT-01"
+        }
+      ],
+      "RecordedAt": "2026-06-20T20:04:51.904597+00:00"
+    },
+    {
+      "SourceId": "LoginWorkflow",
+      "SourceKind": "Workflow",
+      "Requirements": [
+        {
+          "Id": "FR14",
+          "Title": "FR14",
+          "Section": null
+        }
+      ],
+      "Features": [
+        {
+          "Id": "F-AUTH",
+          "Name": "F-AUTH"
+        }
+      ],
+      "Invariants": [],
+      "RecordedAt": "2026-06-20T20:04:51.1570361+00:00"
+    }
+  ]
+}
