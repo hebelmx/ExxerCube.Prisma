@@ -1,0 +1,83 @@
+G-M4 — Structured JSON body for /health
+=========================================
+Date: 2026-06-20
+Status: STATIC-PROVEN (live SQL unreachable on dev machine).
+
+New file:
+  Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/HealthChecks/HealthCheckResponseWriter.cs
+
+Implementation (key method):
+
+    public static async Task WriteJsonResponseAsync(HttpContext context, HealthReport report)
+    {
+        context.Response.ContentType = "application/json; charset=utf-8";
+
+        var response = new
+        {
+            status = report.Status.ToString(),
+            totalDuration = report.TotalDuration.ToString(),
+            entries = report.Entries.ToDictionary(
+                e => e.Key,
+                e => new
+                {
+                    status = e.Value.Status.ToString(),
+                    description = e.Value.Description,
+                    duration = e.Value.Duration.ToString(),
+                    exception = e.Value.Exception?.Message
+                })
+        };
+
+        await context.Response.WriteAsync(
+            JsonSerializer.Serialize(response, s_options),
+            cancellationToken: context.RequestAborted)
+            .ConfigureAwait(false);
+    }
+
+Wired in Program.cs line 133-136:
+
+    app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        ResponseWriter = HealthCheckResponseWriter.WriteJsonResponseAsync
+    });
+
+Expected response body when DB is healthy:
+
+    {
+      "status": "Healthy",
+      "totalDuration": "00:00:00.0123456",
+      "entries": {
+        "prisma-db": {
+          "status": "Healthy",
+          "description": "Database is reachable",
+          "duration": "00:00:00.0120000",
+          "exception": null
+        }
+      }
+    }
+
+Expected response body when DB is unreachable (HTTP 503):
+
+    {
+      "status": "Unhealthy",
+      "totalDuration": "00:00:00.0050000",
+      "entries": {
+        "prisma-db": {
+          "status": "Unhealthy",
+          "description": "Database is unreachable",
+          "duration": "00:00:00.0048000",
+          "exception": null
+        }
+      }
+    }
+
+No new NuGet packages added — uses System.Text.Json (in-box with .NET 10).
+
+DoD verification:
+  [x] /health returns JSON with per-check entries (name, status, duration)
+  [x] Content-Type: application/json; charset=utf-8
+  [x] No new package dependencies
+  [x] Build 0/0 errors 0/0 warnings
+
+Build result:
+  dotnet build ExxerCube.Prisma.Web.UI.csproj --no-incremental
+  Build succeeded. 0 Warning(s) 0 Error(s)

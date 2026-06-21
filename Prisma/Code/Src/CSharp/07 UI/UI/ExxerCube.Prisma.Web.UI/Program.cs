@@ -18,6 +18,7 @@ using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Txt.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
 using ExxerCube.Prisma.Web.UI.Middleware;
+using ExxerCube.Prisma.Web.UI.HealthChecks;
 
 namespace ExxerCube.Prisma.Web.UI;
 
@@ -126,8 +127,13 @@ Inner Stack Trace:
 
             // Map health checks endpoints.
             // /health       — all registered checks (real DB probe); returns 200/503 based on aggregate status.
+            //                 Response body is structured JSON with per-check name/status/duration entries.
             // /health/ready — subset tagged "ready" (DB probe); drives load-balancer/K8s readiness gate (E1-S4).
-            app.MapHealthChecks("/health");
+            // /health/live  — liveness probe; NO dependency checks (DB excluded); always 200 when the process is up.
+            app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                ResponseWriter = HealthCheckResponseWriter.WriteJsonResponseAsync
+            });
             app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
             {
                 Predicate = check => check.Tags.Contains("ready"),
@@ -138,6 +144,13 @@ Inner Stack Trace:
                     [Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
                 }
             });
+            // G-M1: Liveness endpoint — no dependency checks; returns 200 whenever the process is alive.
+            // Predicate = _ => false means no registered checks are executed, so the aggregate result
+            // is always Healthy regardless of DB state.  Safe to call from load-balancer without a DB.
+            app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                Predicate = _ => false
+            }).AllowAnonymous();
 
             // Map SignalR hub
             app.MapHub<ProcessingHub>("/processingHub");

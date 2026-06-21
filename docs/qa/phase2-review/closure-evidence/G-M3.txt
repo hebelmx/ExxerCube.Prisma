@@ -1,0 +1,59 @@
+G-M3 — Login page scaffolding text removed
+==========================================
+Date: 2026-06-20
+Status: STATIC-PROVEN via grep.
+
+Changes made:
+
+1. Login.razor — removed entire right-column external-login section
+   File: Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Components/Account/Pages/Login.razor
+   Removed lines:
+       <MudItem md="6">
+           <MudText GutterBottom="true" Typo="Typo.body1">Use another service to log in.</MudText>
+           <ExternalLoginPicker />
+       </MudItem>
+   The login form now occupies a single left column (md="6").
+
+2. ExternalLoginPicker.razor — removed the no-providers scaffolding block
+   File: Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Components/Account/Shared/ExternalLoginPicker.razor
+   Before:
+       @if (externalLogins.Length == 0)
+       {
+           <MudAlert ...>There are no external authentication services configured.</MudAlert>
+           <MudText ...>See <MudLink ...>this article</MudLink> about setting up...</MudText>
+       }
+       else
+       {
+           <form ...>...</form>
+       }
+   After:
+       @if (externalLogins.Length > 0)
+       {
+           <form ...>...</form>
+       }
+   Effect: when no external providers are configured the component renders nothing (no scaffolding
+   alert, no link to microsoft.com article). This also covers Register.razor which reuses
+   ExternalLoginPicker.
+
+Grep evidence — scaffolding sentence NOT found anywhere in Account razor files:
+  Pattern searched: "external authentication|ExternalLoginPicker|Use another service|there are no external"
+  Result: only Register.razor retains "Use another service to register." + ExternalLoginPicker
+          (both now silently render nothing when no providers are configured).
+
+  The following strings are ABSENT from Login.razor:
+    - "Use another service to log in."
+    - "ExternalLoginPicker"
+  The following strings are ABSENT from ExternalLoginPicker.razor:
+    - "There are no external authentication services configured."
+    - "this article"
+    - "go.microsoft.com/fwlink/?LinkID=532715"
+
+DoD verification:
+  [x] Login page no longer contains the scaffolding sentence
+  [x] ExternalLoginPicker renders nothing when no providers exist (no MudAlert, no link)
+  [x] Real external providers still work (form rendered when externalLogins.Length > 0)
+  [x] Build 0/0 errors 0/0 warnings
+
+Build result:
+  dotnet build ExxerCube.Prisma.Web.UI.csproj --no-incremental
+  Build succeeded. 0 Warning(s) 0 Error(s)
