@@ -15,7 +15,8 @@
 
 ## Section A — CRITICAL (block staging)
 
-### G-C1 ☐ — Enforce non-notification (FR31 / INV-5)
+### G-C1 ☑ — Enforce non-notification (FR31 / INV-5)
+> **CLOSED 2026-06-20** (commit fb95b1fb). HRQ-12 = (A): regression guard only. `FR31NonNotificationRegressionGuardTests` scans 21 production assemblies; FAILS if any external-notification SDK is referenced outside an explicit allow-list. Re-grep confirmed zero real sinks. Guard 1/1; build 0/0. TRX: closure-evidence/G-C1.trx.
 - **Finding:** No code gates client notification on legal-directive permission; `ProcessingHub`/SLA escalation broadcast unconditionally. (Report CRIT-1; R2; R4 INV-5.)
 - **Where:** SignalR/notification emit paths — `04 Services/.../ProcessingHub*`, SLA escalation publisher, any `Notify*`/`Broadcast*`. (Grep `Notify`, `Broadcast`, `Publish.*Escalation`.)
 - **Do:** Introduce a non-notification guard: before any *client-facing* notification, check the case's legal-directive `AllowsClientNotification` (add to the directive/compliance-action model if absent; default DENY). Block + audit-log when not allowed.
@@ -34,19 +35,22 @@
 
 ## Section B — HIGH
 
-### G-H1 ☐ — Excel/DatosCargaOficio export never completes (FR18)
+### G-H1 ☑ — Excel/DatosCargaOficio export never completes (FR18)
+> **CLOSED 2026-06-20** (commit d0211f46). Root cause: `DatosCargaOficioLayoutGenerator` wrapped synchronous `ClosedXML.SaveAs` in `Task.Run`, which starved under E2E thread-pool saturation (SIRO's async-I/O leg didn't). Fix: inline `SaveAs`. Tests 210/210 (TC-15 thread-capture red→green) + Athena 111/111. TRX: closure-evidence/G-H1.trx.
 - **Finding:** Stage 5 logs `Starting DatosCargaOficio layout generation` then no completion + no `ExportCompletedEvent(DatosCargaOficioXlsx)` within 60 s; SIRO XML leg on the same run succeeded. (Report HIGH-1; 3 reviewers; `e2e-rerun.log:426`.)
 - **Where:** `DatosCargaOficioLayoutGenerator` + `AdaptiveExporter` + the Stage-5 export wiring in the Reconciliator (`AddDatosCargaOficioExportServices`).
 - **Do:** Reproduce in isolation (unit/integration test invoking the layout generator on the live-run expediente `EXP-9626-2021` shape). Find why it hangs / never emits (likely: ClosedXML exception swallowed, await never completing, or event not published). Fix so it completes and emits the event, or fails loudly with an audited error.
 - **DoD:** the capstone E2E `MaxFidelityGateFullPipelineE2ETests` passes (both export events arrive); OR a dedicated test proves the generator emits the xlsx event. TRX at `closure-evidence/G-H1.trx`.
 
-### G-H2 ☐ — `/sla-dashboard` served to anonymous users (security)
+### G-H2 ◐ — `/sla-dashboard` served to anonymous users (security)
+> **AUTH ADDED 2026-06-20** (commit 749f287e, via G-I1): `@attribute [Authorize]` now on SlaDashboard.razor; Web.UI 0/0. Live anon-probe evidence (=>302/401) pending app-running-against-SQL2025 → folded into EPIC-0/G-D2.
 - **Finding:** `GET /sla-dashboard` → HTTP 200 anonymous, renders real SLA dashboard (66 KB, deadline/escalation columns). No `[Authorize]`. (Report HIGH-2; live probe V2.)
 - **Where:** `07 UI/UI/ExxerCube.Prisma.Web.UI/Components/Pages/SlaDashboard.razor`.
 - **Do:** Add `@attribute [Authorize(Roles = "Reviewer,Admin")]` (match the policy used on protected pages). Re-verify anon ⇒ redirect/deny.
 - **DoD:** live probe `curl -o /dev/null -w '%{http_code}' /sla-dashboard` as anon ⇒ 302/401 (not 200); a `Tests.UI` test asserts the redirect. Evidence: `closure-evidence/G-H2-probe.txt`.
 
-### G-H3 ☐ — `/dashboard` served to anonymous users
+### G-H3 ◐ — `/dashboard` served to anonymous users
+> **AUTH ADDED 2026-06-20** (commit 749f287e, via G-I1): `@attribute [Authorize]` now on Dashboard.razor; Web.UI 0/0. Live anon-probe evidence pending runtime → folded into EPIC-0/G-D2.
 - **Finding:** `GET /dashboard` → HTTP 200 anonymous (operational processing metrics). (Report HIGH-3; live probe.)
 - **Where:** the dashboard page razor under `07 UI/.../Components/Pages/` (find `@page "/dashboard"`).
 - **Do:** Decide if `/dashboard` should be public; if it exposes processing metrics/case data, add `[Authorize]`. (Cross-check HRQ-4 scope.)
@@ -155,7 +159,8 @@
 
 **Staging-path priority:** **G-I1 (Identity) → G-C2 (export gate) → G-H1 (Excel) → G-H2/G-H3 (route auth).** The rest are accepted/hardening.
 
-### G-I1 ☐ — Implement ASP.NET Identity as infrastructure  **(KEYSTONE)**
+### G-I1 ◐ — Implement ASP.NET Identity as infrastructure  **(KEYSTONE)**
+> **CODE DONE 2026-06-20** (commit 749f287e, per ADR-014). New `02 Infrastructure/Infrastructure.Identity` adapter (DbContext, user, roles, adapter, seeder, migrator, AddPrismaIdentity, InitialIdentitySchema migration); Web.UI rewired (~40 files); [Authorize] on Dashboard+SlaDashboard. Infrastructure.Identity 0/0; Web.UI 0/0 (orchestrator-rebuilt); Tests.Infrastructure.Identity 7/7. TRX: closure-evidence/G-I1.trx. **◐ because:** live SQL2025 unreachable from agent ⇒ runtime boot/login/migration-apply/anon-redirect NOT yet proven (owner-gated; ⇒ EPIC-0/G-D2). Old unregistered Web.UI Data/ context kept as dead code (cleanup = G-I1-cleanup task).
 - **Why:** unblocks CR3, FR14, FR30 (all NHR pending login), closes HIGH-2/3 (route auth), and satisfies NFR16 (Identity + Windows auth in place of Azure AD).
 - **Do (owner direction):** define identity/auth interfaces in **Domain**; implement in an **Infrastructure adapter**; keep ALL Identity scaffolding inside the adapter project. Use **SQL Server `DESKTOP-FB2ES22\SQL2025` (Windows authentication)**. Seed a Reviewer + an Admin user for testing.
 - **DoD:** login works against live SQL; anonymous hitting `/sla-dashboard`, `/dashboard`, `/manual-review`, `/audit`, `/export` ⇒ redirect/deny; a Reviewer session opens the protected screens. Evidence: authenticated screenshots in `closure-evidence/ui/`.
@@ -185,5 +190,6 @@
 
 ## Progress log
 - 2026-06-20 — tracker created from PHASE2-FINAL-REPORT.md. All tasks pending; owner-decision items blocked pending rulings.
+- 2026-06-20 (orchestration wave 2) — **G-I1 Identity keystone CODE DONE** (749f287e; Web.UI 0/0 rebuilt, Tests 7/7) which also added [Authorize] to both dashboards (**G-H2/G-H3 auth core ◐**, live probe → EPIC-0). **G-H1 Excel** closed (d0211f46; Task.Run-over-sync-SaveAs starvation). **G-C1 non-notif guard** closed (fb95b1fb). New follow-ons: G-I1-cleanup (old Data/ dead code). Live-SQL-dependent verification deferred to EPIC-0/G-D2.
 - 2026-06-20 (orchestration wave 1) — **closed G-C2** (export gate, commit 8db5e781), **G-M2** (PDF off-by-one, 266e1e50), **G-H4** (7 de-scope ADRs, 8ea15725); landed **ADR-014** Identity-as-infra design. Pushed to Liv (HEAD 266e1e50). New follow-on items: G-C2b (review-approval re-trigger), G-C2c (3-process fusion-state propagation). Next: G-I1 Identity implementation (keystone) per ADR-014.
 - 2026-06-20 (later) — owner answered **all 13** HR items (see report §1a + §6). Resolved/accepted: CRIT-1 (non-notification satisfied by absence — grep evidence in closure-evidence/), CR8 (vendor-agnostic), INV-4 (SQL ledger, G-S2), NFR14 (PASS + G-S3), NFR15/INV-11 (PASS), NFR16 (de-scoped), NFR17 (deferred), CR4 (dev-OK + G-S4). New owner work items: **G-I1 Identity (keystone), G-S1 storage encryption, G-S2 audit ledger, G-S3 outbox worker, G-S4 DDL trigger, G-H4 ADR-per-interface.** **G-C2 unblocked (owner: export must block).** Remaining staging blockers: G-C2, G-H1, G-H2/G-H3 (via G-I1).
