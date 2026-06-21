@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="27966f4d-440e-48dc-9f24-1ec6aa7306aa" name="Abel Briones@DESKTOP-FB2ES22 2026-06-21 02:21:45.7192086" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-06-21T02:21:37.1897374Z" queuing="2026-06-21T02:21:37.1897374Z" start="2026-06-21T02:21:37.1897374Z" finish="2026-06-21T02:21:45.7196643Z" />
+  <TestSettings name="default" id="aa6cd2d5-1066-424c-8672-6f529a494f3e">
+    <Deployment runDeploymentRoot="Abel_Briones_DESKTOP-FB2ES22_2026-06-21_02_21_45.7192086" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="f6796454-8d21-40e7-8ff9-ad8ad17b70e7" testId="72dabac1-ad39-7f20-2571-7c8985e1d5e9" testName="ExxerCube.Prisma.Tests.Architecture.FR31NonNotificationRegressionGuardTests.Prisma_ProductionCode_MustNotReferenceExternalNotificationSinks_WithoutLegalDirectiveGate" computerName="DESKTOP-FB2ES22" duration="00:00:08.3460649" startTime="2026-06-21T02:21:37.3319153+00:00" endTime="2026-06-21T02:21:45.6854521+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="f6796454-8d21-40e7-8ff9-ad8ad17b70e7">
+      <Output>
+        <StdOut>FR31 guard: scanning 21 Prisma production assemblies for external-notification sinks.
+FR31/INV-5 guard PASSED: no external-notification sinks in Prisma production code.
+</StdOut>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ExxerCube.Prisma.Tests.Architecture.FR31NonNotificationRegressionGuardTests.Prisma_ProductionCode_MustNotReferenceExternalNotificationSinks_WithoutLegalDirectiveGate" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.architecture\release\net10.0\exxercube.prisma.tests.architecture.dll" id="72dabac1-ad39-7f20-2571-7c8985e1d5e9">
+      <Execution id="f6796454-8d21-40e7-8ff9-ad8ad17b70e7" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.Architecture\Release\net10.0\ExxerCube.Prisma.Tests.Architecture.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.Architecture.FR31NonNotificationRegressionGuardTests" name="ExxerCube.Prisma.Tests.Architecture.FR31NonNotificationRegressionGuardTests.Prisma_ProductionCode_MustNotReferenceExternalNotificationSinks_WithoutLegalDirectiveGate" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="72dabac1-ad39-7f20-2571-7c8985e1d5e9" executionId="f6796454-8d21-40e7-8ff9-ad8ad17b70e7" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>
