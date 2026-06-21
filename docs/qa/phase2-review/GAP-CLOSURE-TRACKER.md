@@ -15,7 +15,7 @@
 - **Where:** SignalR/notification emit paths — `04 Services/.../ProcessingHub*`, SLA escalation publisher, any `Notify*`/`Broadcast*`. (Grep `Notify`, `Broadcast`, `Publish.*Escalation`.)
 - **Do:** Introduce a non-notification guard: before any *client-facing* notification, check the case's legal-directive `AllowsClientNotification` (add to the directive/compliance-action model if absent; default DENY). Block + audit-log when not allowed.
 - **DoD:** new unit test proving a directive that forbids notification ⇒ no client broadcast emitted (NSubstitute on the hub/notifier) AND an audit row records the suppression; build 0/0; `--report-trx` captured. Evidence path: `docs/qa/phase2-review/closure-evidence/G-C1.trx`.
-- **Depends on:** none (default-deny is safe regardless of HRQ outcomes).
+- **Depends on:** **HRQ-12** (owner 2026-06-20 leans "no external-notification path exists ⇒ FR31 satisfied by absence"). **If HRQ-12 = (A):** scope shrinks to a *regression guard* — a test that FAILS if any external-notification sink is added without a legal gate (no full gate needed now). **If HRQ-12 = (B):** implement the full gate as described. Verify first: grep notification sinks + confirm SignalR audiences are operators-only.
 
 ### G-C2 ☐ — Gate Stage-5 export on review/confidence (FR14 / FR20 / INV-6)
 - **Finding:** Low-confidence classification publishes `DocumentFlaggedForReviewEvent` then `return result;` and **proceeds to export**. Fusion `Revisión manual requerida` also does not block. Unreviewed/low-confidence records produce regulatory output. (Report CRIT-2 + EX-06/EX-07; live `e2e-rerun.log`.)
@@ -60,12 +60,11 @@
 - **DoD:** integration test (Testcontainers SQL): two documents with RFC variants for the same person ⇒ one deduplicated Persona row. TRX at `closure-evidence/G-H5.trx`.
 - **Depends on:** FR24/FR26 persistence (already PASS).
 
-### G-H6 ⛔ — Azure Blob Storage adapter absent (CR8)
-- **Finding:** No `BlobServiceClient`/`BlobContainerClient` in production; only local FS adapter. PRD CR8 requires both local FS + Azure Blob. (Report HIGH-6; R3.)
-- **Where:** `02 Infrastructure/Infrastructure.FileStorage*` (find the `IDownloadStorage`/storage adapter abstraction).
-- **Do:** Owner decides if Azure Blob is in-scope for this release. If yes: implement an `AzureBlobStorageAdapter` behind the existing storage interface + config + tests. If no: formally de-scope CR8 for this release.
-- **DoD:** (implement) adapter + test against Azurite/Testcontainers; OR (de-scope) decision recorded + CR8 reclassified.
-- **Depends on:** owner scope decision.
+### G-H6 ☑(decision) — Storage stays vendor-agnostic; Azure Blob NOT a release blocker (CR8)
+- **Finding:** No `BlobServiceClient`/`BlobContainerClient`; only local FS adapter. CR8 (as written) requires both. (Report HIGH-6; R3.)
+- **✔ Owner decision (2026-06-20, HRQ-13 = A):** Azure Blob is **over-specification**. Keep storage **vendor-agnostic** behind `IDownloadStorage`; local FS adapter now; cloud adapters added **per deployment**. **CR8 reclassified FAIL → met via vendor-agnostic abstraction.** No release-blocking work.
+- **Remaining (optional, low priority):** ensure `IDownloadStorage` is genuinely provider-agnostic (no FS-specific leakage in the contract); document the adapter extension point. Update the PRD/PRP wording for CR8 to "vendor-agnostic storage interface."
+- **DoD:** PRD/PRP CR8 wording updated; a one-paragraph design note on the storage extension point. No Azure SDK dependency required.
 
 ---
 
@@ -123,23 +122,26 @@
 
 ## Section E — HUMAN REVIEW QUEUE (⛔ owner/architect decisions — resolve first where a task depends on them)
 
-> These are open in Notepad++ alongside the relevant source files. Each is a decision, not a code task. Record the decision inline (replace ⛔ with the ruling + date), then unblock the dependent G-task.
+> Full, easy-to-answer versions of these questions live in **PHASE2-FINAL-REPORT.md §6** (decision worksheet with options + fill-in lines). This table is the index + current owner answers. ✔ = owner answered 2026-06-20; ⛔ = still open.
 
-| ID | Decision needed | File(s) to inspect | Unblocks |
-|----|-----------------|--------------------|----------|
-| HRQ-1 | Does 7-yr retention *deletion* violate "immutable audit log" (FR17)? Is WORM/tamper-evidence required by UIF/CNBV? | `…/Infrastructure.Database/Services/AuditRetentionBackgroundService.cs` | audit-immutability disposition |
-| HRQ-2 | Does NFR14 require the exception path to *directly* chain audit-write + review-queue, or is the event-subscription chain sufficient? | `…/Athena/Prisma.Athena.Processing/ProcessingOrchestrator.cs` | NFR14 verdict |
-| HRQ-3 | Does concurrent event-driven processing satisfy "batch processing" (NFR15)? | `IOcrProcessingService` impl | NFR15 verdict |
-| HRQ-4 | Visual MudBlazor consistency of the 5 protected screens (needs login). | `…/Web.UI/Components/Pages/*.razor` | CR3 verdict + G-D2 |
-| HRQ-5 | Does dropping FK constraints in migrations violate CR4 "additive-only"? | `…/Migrations/20260613142328_DropAuditFileMetadataFk.cs`, `20260615195417_DropReviewCaseFileMetadataFk.cs` | CR4 verdict |
-| HRQ-6 | FR14 authenticated UI: does Manual Review correctly display/edit/update per Story 1.6 AC5? | `…/Components/Pages/ManualReviewDashboard.razor`, `ReviewCaseDetail.razor` | FR14 verdict |
-| HRQ-7 | FR30 runtime RBAC: are non-Reviewer/Admin roles correctly denied? | review pages `@attribute [Authorize]` | FR30 verdict |
-| HRQ-8 | Does `FusionExpedienteService` confidence output satisfy the PRP matcher/confidence-gating intent without `IFieldMatcher<T>`? | `…/Infrastructure.Classification/FusionExpedienteService.cs` | G-H4 |
-| HRQ-9 | Is HTTP `X-Correlation-ID` header propagation required, or is in-process event-chain propagation enough (NFR11/INV-11)? | correlation-id usage | INV-11 verdict |
-| HRQ-10 | Are NFR16 (Azure AD) and NFR17 (field-level PII encryption) binding for this release? If yes → both currently FAIL. | PRD Reasoning Path 9 | NFR16/17 verdicts |
-| HRQ-11 | Is "proceed to export despite fusion conflict / low confidence" a design choice or a defect? | `…/ReconciliationOrchestrator.cs:243-279` | G-C2 policy |
+| ID | Decision needed | Owner answer (2026-06-20) | File(s) to inspect | Unblocks |
+|----|-----------------|---------------------------|--------------------|----------|
+| HRQ-1 ✔ | Is "immutable audit log" satisfied by append-only + 7-yr retention deletion? | **Infra/ops concern, not app code** → deployment requirement (journal/WORM at deploy). Confirm mechanism. | `…/Infrastructure.Database/Services/AuditRetentionBackgroundService.cs` | INV-4 disposition (→ infra req, not FAIL) |
+| HRQ-2 ⛔ | Does the event-subscription chain satisfy NFR14, or must the error path directly chain audit+queue? | open | `…/Athena/Prisma.Athena.Processing/ProcessingOrchestrator.cs` | NFR14 verdict |
+| HRQ-3 ⛔ | Does concurrent event-driven processing satisfy "batch processing" (NFR15)? | open (default: yes) | `IOcrProcessingService` impl | NFR15 verdict |
+| HRQ-4 ⛔ | MudBlazor consistency of the 5 protected screens (needs login). | direction given: Identity+scaffold in infra adapter; SQL `DESKTOP-FB2ES22\SQL2025` Win-auth | `…/Web.UI/Components/Pages/*.razor` | CR3 + G-D2 |
+| HRQ-5 ⛔ | Does dropping FK constraints violate CR4 "additive-only"? | open (default: acceptable if intentional) | `…/Migrations/20260613142328_DropAuditFileMetadataFk.cs`, `20260615195417_DropReviewCaseFileMetadataFk.cs` | CR4 verdict |
+| HRQ-6 ⛔ | FR14 authenticated UI: display/edit/update per Story 1.6 AC5? | open (needs login walkthrough) | `…/Components/Pages/ManualReviewDashboard.razor`, `ReviewCaseDetail.razor` | FR14 verdict |
+| HRQ-7 ⛔ | FR30 runtime RBAC: are non-Reviewer/Admin roles denied? | open (needs session) | review pages `@attribute [Authorize]` | FR30 verdict |
+| HRQ-8 ✔ | Are the 7 missing PRP interfaces needed, or fulfilled elsewhere? | **Run research per interface** (implement vs de-scope) | `…/Infrastructure.Classification/FusionExpedienteService.cs` | G-H4 (research-first) |
+| HRQ-9 ⛔ | Is HTTP `X-Correlation-ID` required, or is in-process propagation enough? | open (default: in-process is enough) | correlation-id usage | INV-11 verdict |
+| HRQ-10 ⛔ | Are NFR16 (Azure AD) / NFR17 (PII field encryption) binding this release? | leaning: **Identity+Windows auth, de-scope Azure AD**; NFR17 = owner call | PRD Reasoning Path 9 | NFR16/17 verdicts |
+| HRQ-11 ⛔ | Block export on fusion conflict / low confidence, or flag-only by design? | open (default: **block** — G-C2) | `…/ReconciliationOrchestrator.cs:243-279` | G-C2 policy |
+| HRQ-12 ✔ | Does ANY component notify a party OUTSIDE the operators (FR31)? | **Leaning "no external path" → FR31 satisfied by absence; CRIT-1 downgrades.** Verify by grep + SignalR-audience check; add regression guard. | notification sinks / SignalR hubs | CRIT-1 / G-C1 scope |
+| HRQ-13 ✔ | Is Azure Blob (CR8) binding, or is vendor-agnostic storage enough? | **Vendor-agnostic via `IDownloadStorage`; Azure Blob over-spec → not a blocker.** | `…/Infrastructure.FileStorage*` | CR8 (→ met) / G-H6 |
 
 ---
 
 ## Progress log
-- 2026-06-20 — tracker created from PHASE2-FINAL-REPORT.md. All tasks pending; owner-decision items (Section E + G-H4/G-H6/G-D4/G-C2) blocked pending rulings.
+- 2026-06-20 — tracker created from PHASE2-FINAL-REPORT.md. All tasks pending; owner-decision items blocked pending rulings.
+- 2026-06-20 (later) — owner reviewed the report. Answers folded in: HRQ-1 (audit=infra req), HRQ-8 (research interfaces), HRQ-12 (non-notification satisfied by absence → G-C1 shrinks to a regression guard), HRQ-13 + G-H6 (Azure de-scoped, storage stays vendor-agnostic). Owner direction: Identity+scaffold in infra adapter, verify against live SQL `DESKTOP-FB2ES22\SQL2025` (Win auth); perf + real-SIARA deferred/accepted. Still open: HRQ-2/3/5/6/7/9/10/11. Full worksheet in report §6.

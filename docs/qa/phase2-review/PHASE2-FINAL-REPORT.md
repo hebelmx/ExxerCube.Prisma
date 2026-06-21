@@ -123,6 +123,11 @@ Based on R4 Part A (11 invariants) plus VERIFICATION-NOTES V4:
 > logger interface) and R4's FAIL (AuditRetentionBackgroundService deletes rows) are factually
 > correct. Owner must rule on whether sanctioned 7-year deletion satisfies "immutable."
 
+> **▶ Owner input (2026-06-20):** 7-year retention is an **infrastructure / operations** concern — there
+> is no amount of *application* code that makes durable retention happen. Tamper-evidence can be added at
+> deploy time (an append-only journal, WORM storage, hash-chaining). **This requirement must be reconciled
+> with the reality of a not-yet-deployed system.** → Decision captured in expanded **HRQ-1**.
+
 ---
 
 ## 5. Findings
@@ -138,6 +143,12 @@ guard, policy, middleware, or attribute for non-notification enforcement was loc
 independent search passes (R2 and R4). `ProcessingHub.NotifySLAEscalation` broadcasts SLA alerts
 unconditionally. `HubContextDomainEventBroadcaster` broadcasts all domain events without a
 notification-permission check.
+
+> **▶ Owner input (2026-06-20):** The system does not actively notify anyone *outside* its own operators.
+> The **absence** of any outbound-notification code can be taken as evidence that the system does not
+> leak/push notifications to the regulated parties — i.e. FR31 may be satisfied *by construction* (nothing
+> to gate because nothing notifies external parties). → Confirm no external-notification path exists in
+> **HRQ-12**; if confirmed, CRIT-1 downgrades from Critical to a low-risk note.
 
 **Evidence:** R2 grep pass: `NonNotification`, `non.notification`, `IsNotificationAllowed`,
 `NotifyClient`, `legal.*constraint.*notif`, `prohibit.*notif` — zero matches in production CSharp.
@@ -233,6 +244,10 @@ Of these, `IFieldMatcher<T>` is the most consequential — it is cited 7 times a
 sequential flow as the mechanism for field matching, unified record generation, export validation,
 and confidence-gated manual review routing.
 
+> **▶ Owner input (2026-06-20):** Research whether these interfaces are genuinely needed, or whether each
+> requirement is already fulfilled elsewhere (e.g. by `FusionExpedienteService`). Treat as an
+> ITDD-conformance question, **not an automatic defect**. → See **HRQ-8** (research task).
+
 **Evidence:** V3 grep: `interface IXxx` — 0 declarations each for all 7 names across
 `01 Core / 02 Infrastructure / 03 Orchestration / 04 Services`. Confirmed by R4 Part B.
 
@@ -280,6 +295,11 @@ confirmed this. No TODO or placeholder for a future Azure Blob adapter was found
 **Affected requirements:** CR8  
 **Risk:** Cloud deployment (which requires Azure Blob) is blocked; the product cannot satisfy
 its stated technical constraint.
+
+> **▶ Owner input (2026-06-20):** Azure Blob is an **over-specification**. We do not supply or host
+> infrastructure; our storage interfaces must be **vendor-agnostic** — a provider-agnostic abstraction
+> (which exists, `IDownloadStorage`) with concrete adapters added per deployment. A named Azure Blob
+> adapter is therefore **not a release blocker**. → Confirm de-scope in **HRQ-13**.
 
 ---
 
@@ -408,21 +428,157 @@ triangle badges in the sidebar to unauthenticated sessions. Visual treatment com
 
 ## 6. Human Review Queue
 
-Each item requires a specific human decision before it can be classified PASS or FAIL.
+These items need a human decision before they can be finalized. Each is written as a **plain question
+with concrete options** — just **mark one option** (or write a note on the `Your decision:` line). A
+**Recommended default** is offered; if you agree, write "Accept default." Where you already answered via
+comments on 2026-06-20, that is captured under **Owner answer** and the **Resulting disposition** is shown.
 
-| ID | Item | Question for Human Reviewer |
-|----|------|-----------------------------|
-| HRQ-1 | INV-4 / FR17 — Audit immutability vs. 7-year retention deletion | `AuditRetentionBackgroundService` deletes rows (no archive-first step to an immutable store). FR17 says "immutable audit log." NFR9 requires 7-year retention with deletion. Are these reconcilable? Does the deletion path satisfy or violate the immutability requirement? Does regulatory compliance (UIF/CNBV) require tamper-evident storage (e.g., WORM) or is deletion after retention period acceptable? |
-| HRQ-2 | NFR14 — Graceful file-error handling | `ProcessingOrchestrator`'s exception handler publishes `ProcessingErrorEvent` rather than directly chaining audit-write and manual-review-queue. Is the downstream event-subscription chain sufficient to satisfy NFR14, or must the exception path directly invoke `IAuditLogger` and `IManualReviewerPanel`? A human code trace through the event subscription graph is required. |
-| HRQ-3 | NFR15 — Batch processing | The primary pipeline is event-driven (one document per `DocumentDownloadedEvent`). `IOcrProcessingService.ProcessDocumentsAsync` accepts `IEnumerable<ImageData>` with `maxConcurrency`. Does concurrent event-driven processing satisfy the PRD's "batch processing for high-volume regulatory periods" intent? |
-| HRQ-4 | CR3 — MudBlazor UI consistency | Auth-protected pages (Manual Review, SLA Dashboard authenticated view, Export Management, Audit Trail, Processing) were not rendered in an authenticated session. Visual consistency of these screens against MudBlazor design standards requires a logged-in human reviewer. |
-| HRQ-5 | CR4 — Additive-only DB schema | Two EF Core migrations drop FK constraints in their `Up()` methods (`DropAuditFileMetadataFk`, `DropReviewCaseFileMetadataFk`). CR4 requires "adding new tables without modifying existing table structures." Does dropping a FK constraint (not a column or table) constitute a CR4 violation? Owner judgment required. |
-| HRQ-6 | FR14 — Manual review UI (authenticated) | The back-end correctly created ReviewCases for low-confidence results (confirmed live). The UI route `/manual-review` exists and redirects to login as expected. Authenticated UI behaviour — does the Blazor component correctly display, allow decision entry, and update the unified metadata record per Story 1.6 AC5? Requires login credentials. |
-| HRQ-7 | FR30 — RBAC runtime enforcement | `[Authorize(Roles = "Reviewer,Admin")]` is applied structurally. Requires an authenticated session to verify runtime enforcement of role gates and that non-Reviewer/Admin roles are correctly denied. |
-| HRQ-8 | INV-10 — Confidence-threshold gating | `IFieldMatcher<T>` is absent as a named interface. However, fusion produces a confidence score (0.83 in the live run). Does the existing `FusionExpedienteService` confidence output satisfy the PRP's confidence-gated routing intent, even without the named interface? Owner/architect judgment on design conformance. |
-| HRQ-9 | INV-11 — Correlation-ID propagation depth | Application-level propagation via domain events and AuditRecord correlation IDs is confirmed. Is HTTP-layer `X-Correlation-ID` header injection required for the distributed tracing requirement, or does in-process event-chain propagation satisfy it in the current 3-process-split architecture? |
-| HRQ-10 | NFR16 / NFR17 scope | PRD Reasoning Path 9 identifies Azure AD (NFR16) and field-level PII encryption (NFR17) as "Missing Requirements" but the synthesis states "Keep original requirements only." Are NFR16 and NFR17 binding for this release? If yes, both are unimplemented and would be FAIL. |
-| HRQ-11 | EX-07 — Fusion conflict not blocking export | Fusion returned `NextAction: Revisión manual requerida` with 1 conflict. Is it a design decision or defect that the Reconciliator proceeds to export despite this flag? If it is a defect, it should be promoted to HIGH severity finding. |
+> How to read each card: **Found** = what we observed · **Decide** = the choice only you can make ·
+> **Default** = our suggestion if you have no preference · **File to look at** = where to verify ·
+> **Your decision:** = write your answer here.
+
+---
+
+### HRQ-1 — Is the audit log "immutable enough"?  · affects INV-4 / FR17 / NFR9
+- **Found:** audit rows are written append-only (no edit path), but a background service *deletes* rows past the 7-year cutoff, and nothing enforces immutability at the database level.
+- **Decide — which matches your intent for "immutable audit log"?**
+  - (A) Append-only at the app layer is enough; scheduled 7-year deletion is fine.
+  - (B) We need tamper-evidence (append-only journal / WORM / hash-chain) — **provided by deployment infrastructure**, not app code.
+  - (C) Other: __________
+- **Owner answer (2026-06-20):** 7-yr retention is an *infrastructure/ops* concern; no app code makes durable retention happen; a journal (etc.) is a deploy-time measure → leaning **(B)**, tracked as a deployment requirement, not an app-code defect.
+- **Resulting disposition:** INV-4 stays **NEEDS HUMAN REVIEW**, reclassified as a *deployment/infra requirement* (not a code FAIL).
+- **File to look at:** `…/Infrastructure.Database/Services/AuditRetentionBackgroundService.cs`
+- **Your decision:** `____________________  (e.g. "Accept (B); mechanism = append-only journal at deploy")`
+
+---
+
+### HRQ-2 — Is event-based error handling enough for NFR14?  · affects NFR14
+- **Found:** on a file error the orchestrator publishes a `ProcessingErrorEvent`; it does **not** directly call audit-write + add-to-review-queue. Those happen via event subscribers.
+- **Decide:**
+  - (A) The event-subscription chain is sufficient — NFR14 PASS.
+  - (B) The error path must *directly* invoke `IAuditLogger` + the review queue — currently a gap.
+  - (C) Need a code trace first (I'll assign it): __________
+- **Default:** (A) if a subscriber demonstrably writes the audit row + queues the case (we can prove this with one trace test).
+- **File:** `…/Athena/Prisma.Athena.Processing/ProcessingOrchestrator.cs`
+- **Your decision:** `____________________`
+
+---
+
+### HRQ-3 — Does concurrent event processing count as "batch processing"?  · affects NFR15
+- **Found:** the pipeline is event-driven (one doc per event) with bounded concurrency; there is no explicit "process N documents as a batch" entry point.
+- **Decide:**
+  - (A) Concurrent event-driven processing satisfies the "high-volume regulatory periods" intent — NFR15 PASS.
+  - (B) A real batch entry point / throughput control is required — gap.
+- **Default:** (A).
+- **Your decision:** `____________________`
+
+---
+
+### HRQ-4 — Do the authenticated screens look right (MudBlazor consistency)?  · affects CR3
+- **Found:** the 5 protected screens (Manual Review, SLA Dashboard, Export, Audit, Processing) could not be rendered logged-in (no DB, no test user), so visual consistency is unverified.
+- **Decide:** this needs a **logged-in human look** once G-D2 (seeded login) lands. After looking:
+  - (A) Consistent with MudBlazor standards — CR3 PASS.
+  - (B) Inconsistencies found (list them): __________
+- **Owner direction (2026-06-20):** stand up Identity + scaffolding in an **infra adapter** and use live SQL **`DESKTOP-FB2ES22\SQL2025` (Windows auth)** so these screens can actually be viewed.
+- **File:** `…/Web.UI/Components/Pages/*.razor`
+- **Your decision (after viewing):** `____________________`
+
+---
+
+### HRQ-5 — Does dropping a FK constraint violate "additive-only" (CR4)?  · affects CR4
+- **Found:** two migrations drop FK constraints (`DropAuditFileMetadataFk`, `DropReviewCaseFileMetadataFk`). CR4 says "add new tables without modifying existing table structures." A dropped FK is a constraint change, not a table/column change.
+- **Decide:**
+  - (A) Dropping a FK is an acceptable, intentional design change — CR4 satisfied (note the rationale).
+  - (B) It violates CR4 — needs a reversible/forward-additive approach.
+- **Default:** (A) **if** the FK drops were deliberate (they look intentional — decoupling audit/review rows from file-metadata lifetime). Please confirm the rationale.
+- **Files:** `…/Migrations/20260613142328_DropAuditFileMetadataFk.cs`, `…/20260615195417_DropReviewCaseFileMetadataFk.cs`
+- **Your decision:** `____________________`
+
+---
+
+### HRQ-6 — Does the Manual Review screen work end-to-end (FR14)?  · affects FR14 / Story 1.6 AC5
+- **Found:** the back-end correctly creates ReviewCases for low-confidence docs (confirmed live); the UI route exists + redirects to login. Whether the screen actually **displays the record, lets a reviewer edit/decide, and updates the unified metadata** is unverified (needs login).
+- **Decide (after a logged-in walkthrough):**
+  - (A) Works per Story 1.6 AC5 — FR14 PASS.
+  - (B) Defects found: __________
+- **File:** `…/Web.UI/Components/Pages/ManualReviewDashboard.razor`, `ReviewCaseDetail.razor`
+- **Your decision (after walkthrough):** `____________________`
+
+---
+
+### HRQ-7 — Is role-based access actually enforced at runtime (FR30)?  · affects FR30
+- **Found:** `[Authorize(Roles="Reviewer,Admin")]` is present in source, but runtime enforcement (and denial of other roles) was not tested with a real session.
+- **Decide (after testing with a non-Reviewer user):**
+  - (A) Non-Reviewer/Admin correctly denied — FR30 PASS.
+  - (B) Enforcement gap: __________
+- **Note:** also re-check this once **HRQ-12 / HIGH-2** (the `/sla-dashboard` + `/dashboard` anonymous-access holes) are fixed.
+- **Your decision:** `____________________`
+
+---
+
+### HRQ-8 — Are the 7 missing PRP interfaces actually needed?  · affects HIGH-4 / INV-10 / FR9
+- **Found:** 7 PRP-named interfaces (esp. `IFieldMatcher<T>`) have 0 declarations; but `FusionExpedienteService` already performs field consolidation + emits a confidence score live.
+- **Decide — per interface (start with `IFieldMatcher<T>`):**
+  - (A) Already fulfilled by existing code (e.g. fusion) → **de-scope** the named interface + update the PRP.
+  - (B) Genuinely needed → implement to the PRP contract.
+  - (C) Needs the research below first.
+- **Owner answer (2026-06-20):** **run a research task** to determine, per interface, whether it is truly needed or already fulfilled elsewhere. → tracked as gap **G-H4** (research-first, not auto-defect).
+- **Specific research questions to answer (one row per interface):** Is the capability present under another name? Which file/service provides it? Is the PRP contract (inputs/outputs) met? Decision: implement / de-scope.
+- **File:** `…/Infrastructure.Classification/FusionExpedienteService.cs`
+- **Your decision / assignment:** `____________________`
+
+---
+
+### HRQ-9 — Is in-process correlation-ID propagation enough (NFR11/INV-11)?  · affects INV-11
+- **Found:** correlation IDs flow through domain events + audit rows (confirmed). HTTP-layer `X-Correlation-ID` header injection is not present.
+- **Decide:**
+  - (A) In-process event-chain propagation satisfies the tracing requirement — PASS.
+  - (B) HTTP header propagation is required across the 3-process split — gap.
+- **Default:** (A) for the current in-process SignalR architecture.
+- **Your decision:** `____________________`
+
+---
+
+### HRQ-10 — Are Azure AD (NFR16) and field-level PII encryption (NFR17) in scope for this release?  · affects NFR16 / NFR17
+- **Found:** both are listed as "Missing Requirements" in the PRD; neither is implemented. Your other comments point to **ASP.NET Identity + Windows auth** (not Azure AD).
+- **Decide:**
+  - NFR16 (auth): (A) Use ASP.NET Identity + Windows auth — **de-scope Azure AD** for this release. (B) Azure AD is binding → currently FAIL.
+  - NFR17 (PII field encryption): (A) In scope → currently FAIL, must implement. (B) Defer to a later release (note it).
+- **Default:** NFR16 → (A) de-scope Azure AD (consistent with your identity direction); NFR17 → your call (PII encryption is often a compliance must).
+- **Your decision:** `NFR16: ________   NFR17: ________`
+
+---
+
+### HRQ-11 — Should a fusion conflict / low confidence BLOCK export?  · affects CRIT-2 / G-C2 policy
+- **Found:** fusion returned `Revisión manual requerida` (1 conflict) and classification confidence was very low, yet Stage-5 export still ran. (This is the engine behind Critical CRIT-2.)
+- **Decide:**
+  - (A) **Block** export until review is resolved (recommended for a regulatory submission) — implement gap **G-C2**.
+  - (B) Flag-only is by design (export proceeds, review is advisory) — then CRIT-2 downgrades to a documented design note.
+- **Default:** (A) — unvalidated/low-confidence XML should not reach CNBV/SIRO automatically.
+- **File:** `…/Athena/Prisma.Athena.Processing/ReconciliationOrchestrator.cs:243-279`
+- **Your decision:** `____________________`
+
+---
+
+### HRQ-12 — Does the system ever notify a party OUTSIDE its operators? (the FR31 question)  · affects CRIT-1 / FR31 / INV-5
+- **Found:** no non-notification *guard* exists. Your comment notes the system may not notify any external party at all — in which case FR31 ("don't notify the client unless legally allowed") is satisfied by construction.
+- **Decide — confirm the factual claim:** does **any** component send a notification to a party **outside the system's own operators** (e.g. the regulated client, a third party) — email/SMS/Slack/webhook/SignalR-to-an-external-audience?
+  - (A) **No external-notification path exists** → FR31 satisfied by absence; **CRIT-1 downgrades** to a low-risk note + we add a regression test that fails if an external-notify path is ever introduced without a legal gate.
+  - (B) **Yes, there is one** (name it): __________ → CRIT-1 stands; implement the legal gate (G-C1).
+- **Owner answer (2026-06-20):** leaning **(A)** — absence of notification is evidence of no leak.
+- **Verification we will run:** grep all notification sinks + confirm SignalR broadcasts target only authenticated operators, not external parties. Result will be recorded here.
+- **Your decision:** `____________________`
+
+---
+
+### HRQ-13 — Confirm: storage stays vendor-agnostic; Azure Blob adapter is NOT a release blocker (CR8)  · affects HIGH-6 / CR8
+- **Found:** CR8 (as written) requires a named Azure Blob adapter; none exists. Your comment: Azure Blob is over-specification; we don't host infra; interfaces must be vendor-agnostic.
+- **Decide:**
+  - (A) **De-scope** the named Azure Blob requirement; require only a **vendor-agnostic storage interface** (`IDownloadStorage`, which exists) + a local FS adapter now, cloud adapters added per deployment. → **CR8 reclassified from FAIL to "met via vendor-agnostic abstraction."**
+  - (B) Azure Blob is binding for this release → keep CR8 FAIL, implement the adapter.
+- **Owner answer (2026-06-20):** **(A)** — vendor-agnostic; Azure Blob is over-spec.
+- **Resulting disposition:** **CR8 → NEEDS HUMAN REVIEW → resolved-by-owner: met via vendor-agnostic `IDownloadStorage`; named cloud adapters are per-deployment, not a release blocker.** Please confirm.
+- **Your decision:** `____________________`
 
 ---
 
@@ -458,18 +614,34 @@ of this review:
    All authenticated UI flows (manual review, SLA dashboard authenticated view, audit trail,
    export management, processing) were not verified. An authenticated session with Reviewer and
    Admin roles is required.
+   > **▶ Owner direction (2026-06-20):** Introduce identity + scaffolding as **infrastructure** — define the
+   > interfaces in the **Domain** layer, implement them in an **Infrastructure adapter**, and keep all
+   > Identity scaffolding inside the adapter project. For verification, use the **live SQL Server
+   > `DESKTOP-FB2ES22\SQL2025` (Windows authentication)** so DB-backed screens and authenticated flows can be
+   > exercised. → enables HRQ-4 / HRQ-6 / HRQ-7 and gap task G-D2.
 
 3. **DB disconnected for live Web UI:** `appsettings.json` hardcodes a non-available SQL Server.
    All DB-backed screens showed empty data. The `/health` endpoint returned 503, which also
    prevents health-check probes from confirming readiness.
+   
+   > **▶ Owner direction (2026-06-20):** Point the Web UI at the live SQL Server **`DESKTOP-FB2ES22\SQL2025`
+   > (Windows authentication)** for the next verification run, so DB-backed screens and `/health` readiness
+   > can be confirmed. (Replaces the hardcoded `…\SQL2022`.)
 
 4. **No performance instrumentation:** All latency/throughput NFRs (NFR1, NFR3, NFR4, NFR5, NFR6,
    NFR7) are NOT TESTED. No timing data was collected from the E2E re-run.
+   > **▶ Owner direction (2026-06-20):** Performance measurement is **deferred** — it will be done once a
+   > complete E2E run can be satisfied. NFR1/3/4/5/6/7 therefore remain **NOT TESTED (accepted deferral)**,
+   > not findings.
 
 5. **Live SIARA portal not exercised:** FR1 was tested against the simulator (not the production
    SIARA portal). Real portal authentication, TLS certificate chains, and network timeouts were
    not validated.
-
+   > **▶ Owner direction (2026-06-20):** This is an **accepted constraint** — there is, and will be, no
+   > access to the real SIARA portal until deployment, for legal reasons. Once the project is approved,
+   > credentials to a CNBV SIARA *simulator* can be obtained. FR1-against-the-real-portal is therefore
+   > **NOT TESTED (accepted, legally-gated)**, not a finding.
+   
 6. **Signed PDF excluded from DI:** FR16 (`DigitalPdfSigner`) is implemented and tested but
    deliberately excluded from the Reconciliator's DI composition (only `AddSiroExportServices`
    called). Runtime exercise requires DI wiring change.
@@ -483,8 +655,16 @@ of this review:
 `INSERT INTO [AuditRecords]`, a 643-byte SIRO XML file written, a 1,075-byte fusion handoff JSON,
 and a live classification result. However, the corpus dependency for E2E runs is fragile (one
 successful run from a specific simulator state). The majority of requirements could not be
-exercised: 15/32 FRs and 9/17 NFRs are NOT TESTED. The 58 Human Review items (HRQ-1 through
-HRQ-11) require resolution before confidence can be upgraded.
+exercised: 15/32 FRs and 9/17 NFRs are NOT TESTED. The 13 Human Review items (HRQ-1 through
+HRQ-13) require resolution before confidence can be upgraded.
+
+> **Owner reframes (2026-06-20) that affect this report — pending confirmation in the HR queue:**
+> CR8/Azure Blob → de-scoped to a vendor-agnostic storage interface (HRQ-13); CRIT-1/FR31 → likely
+> satisfied by absence of any external-notification path (HRQ-12); INV-4/FR17 audit "immutability" →
+> a deployment/infra requirement, not an app-code defect (HRQ-1); perf NFRs and real-SIARA-portal →
+> accepted deferrals/constraints, not findings. **The NOT READY recommendation still holds** on the
+> remaining evidence-backed blockers: CRIT-2 (unvalidated export, pending HRQ-11), HIGH-1 (Excel export
+> fails), and HIGH-2/HIGH-3 (unauthenticated SLA + analytics dashboards).
 
 ---
 
