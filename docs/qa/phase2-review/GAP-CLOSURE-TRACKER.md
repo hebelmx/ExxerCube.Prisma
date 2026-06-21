@@ -22,7 +22,7 @@
 - **Where:** `04 Services/Athena/Prisma.Athena.Processing/ReconciliationOrchestrator.cs:243-279` (low-confidence branch) and `ExecuteStage5ExportAsync` (line ~286). Threshold const `ClassificationConfidenceThreshold = 70`.
 - **Do:** When `RequiresManualReview` is true (confidence < threshold) OR fusion `NextAction == "Revisión manual requerida"`/has unresolved conflicts, **do NOT run Stage 5**; route the case to the manual-review queue and emit a "held for review" state instead of `ExportCompletedEvent`. Only export after a review decision marks it approved. Make the policy explicit + configurable.
 - **DoD:** test: a sub-threshold/conflicted case ⇒ no `ExportCompletedEvent`, a ReviewCase persisted, case status = held; an approved case ⇒ export proceeds. Build 0/0; TRX at `closure-evidence/G-C2.trx`.
-- **Depends on:** HRQ-11 (confirm "block on conflict" is the desired policy — owner). If owner says flag-only-by-design, downgrade to documentation instead of a block.
+- **Depends on:** ✔ **HRQ-11 RESOLVED** (owner 2026-06-20: *export must block; release only after human review*) → implement the blocking gate; no longer downgradeable. **This is the #1 remaining staging blocker.**
 
 ---
 
@@ -124,24 +124,57 @@
 
 > Full, easy-to-answer versions of these questions live in **PHASE2-FINAL-REPORT.md §6** (decision worksheet with options + fill-in lines). This table is the index + current owner answers. ✔ = owner answered 2026-06-20; ⛔ = still open.
 
-| ID | Decision needed | Owner answer (2026-06-20) | File(s) to inspect | Unblocks |
-|----|-----------------|---------------------------|--------------------|----------|
-| HRQ-1 ✔ | Is "immutable audit log" satisfied by append-only + 7-yr retention deletion? | **Infra/ops concern, not app code** → deployment requirement (journal/WORM at deploy). Confirm mechanism. | `…/Infrastructure.Database/Services/AuditRetentionBackgroundService.cs` | INV-4 disposition (→ infra req, not FAIL) |
-| HRQ-2 ⛔ | Does the event-subscription chain satisfy NFR14, or must the error path directly chain audit+queue? | open | `…/Athena/Prisma.Athena.Processing/ProcessingOrchestrator.cs` | NFR14 verdict |
-| HRQ-3 ⛔ | Does concurrent event-driven processing satisfy "batch processing" (NFR15)? | open (default: yes) | `IOcrProcessingService` impl | NFR15 verdict |
-| HRQ-4 ⛔ | MudBlazor consistency of the 5 protected screens (needs login). | direction given: Identity+scaffold in infra adapter; SQL `DESKTOP-FB2ES22\SQL2025` Win-auth | `…/Web.UI/Components/Pages/*.razor` | CR3 + G-D2 |
-| HRQ-5 ⛔ | Does dropping FK constraints violate CR4 "additive-only"? | open (default: acceptable if intentional) | `…/Migrations/20260613142328_DropAuditFileMetadataFk.cs`, `20260615195417_DropReviewCaseFileMetadataFk.cs` | CR4 verdict |
-| HRQ-6 ⛔ | FR14 authenticated UI: display/edit/update per Story 1.6 AC5? | open (needs login walkthrough) | `…/Components/Pages/ManualReviewDashboard.razor`, `ReviewCaseDetail.razor` | FR14 verdict |
-| HRQ-7 ⛔ | FR30 runtime RBAC: are non-Reviewer/Admin roles denied? | open (needs session) | review pages `@attribute [Authorize]` | FR30 verdict |
-| HRQ-8 ✔ | Are the 7 missing PRP interfaces needed, or fulfilled elsewhere? | **Run research per interface** (implement vs de-scope) | `…/Infrastructure.Classification/FusionExpedienteService.cs` | G-H4 (research-first) |
-| HRQ-9 ⛔ | Is HTTP `X-Correlation-ID` required, or is in-process propagation enough? | open (default: in-process is enough) | correlation-id usage | INV-11 verdict |
-| HRQ-10 ⛔ | Are NFR16 (Azure AD) / NFR17 (PII field encryption) binding this release? | leaning: **Identity+Windows auth, de-scope Azure AD**; NFR17 = owner call | PRD Reasoning Path 9 | NFR16/17 verdicts |
-| HRQ-11 ⛔ | Block export on fusion conflict / low confidence, or flag-only by design? | open (default: **block** — G-C2) | `…/ReconciliationOrchestrator.cs:243-279` | G-C2 policy |
-| HRQ-12 ✔ | Does ANY component notify a party OUTSIDE the operators (FR31)? | **Leaning "no external path" → FR31 satisfied by absence; CRIT-1 downgrades.** Verify by grep + SignalR-audience check; add regression guard. | notification sinks / SignalR hubs | CRIT-1 / G-C1 scope |
-| HRQ-13 ✔ | Is Azure Blob (CR8) binding, or is vendor-agnostic storage enough? | **Vendor-agnostic via `IDownloadStorage`; Azure Blob over-spec → not a blocker.** | `…/Infrastructure.FileStorage*` | CR8 (→ met) / G-H6 |
+**ALL 13 answered by owner 2026-06-20.** ✔ = resolved/decided.
+
+| ID | Decision | Owner answer (2026-06-20) | Unblocks / task |
+|----|----------|---------------------------|-----------------|
+| HRQ-1 ✔ | Audit "immutable"? | **SQL Server Append-Only Ledger Table** for tamper-evidence; Serilog → SEQ + SQL Server. Deploy/infra concern. INV-4 → met-by-design. | **G-S2** |
+| HRQ-2 ✔ | NFR14 event-error handling? | **PASS** — strengthen with a dedicated background worker (outbox/retry: unprocessed event → persist + re-raise; periodic delayed task). | **G-S3** |
+| HRQ-3 ✔ | NFR15 batch? | **PASS (A)** — ingestion is async; just pack the 1–3 docs per case. | — |
+| HRQ-4 ✔ | CR3 UI consistency? | Implement **Identity** first, then decide. CR3 stays NHR. | **G-I1** → G-D2 |
+| HRQ-5 ✔ | CR4 FK-drop? | **OK for now (dev, EF migrations).** Later: DDL trigger blocking DROP/ALTER on critical tables, or recreate DB with fresh migrations (nothing to preserve yet). | **G-S4** |
+| HRQ-6 ✔ | FR14 manual-review UI? | After Identity, re-check. FR14 stays NHR. | **G-I1** → G-D2 |
+| HRQ-7 ✔ | FR30 RBAC runtime? | After Identity, re-check. FR30 stays NHR. | **G-I1** → G-D2 |
+| HRQ-8 ✔ | 7 interfaces needed? | Agree research — needs additional evidence; **draft an ADR per interface** (implement vs de-scope). | **G-H4** |
+| HRQ-9 ✔ | Correlation-ID depth? | **PASS (A)** — in-process propagation is sufficient. INV-11 → PASS. | — |
+| HRQ-10 ✔ | NFR16/17 binding? | NFR16: Azure AD **over-spec → de-scope** (Identity + Windows auth). NFR17: **defer** to a later release. | **G-I1**; NFR17 backlog |
+| HRQ-11 ✔ | Block export on low-conf/conflict? | **Must BLOCK; release only after human review.** CRIT-2 confirmed. | **G-C2 (unblocked)** |
+| HRQ-12 ✔ | External-notification path? | **None — grep-confirmed** (`closure-evidence/HRQ-12-notification-sinks.txt`): Identity email no-op, email infra is Veriqan's, slack=false-positive, SignalR=operators. FR31/INV-5 → PASS-by-absence; **CRIT-1 downgraded.** | **G-C1** (regression guard) |
+| HRQ-13 ✔ | CR8 Azure binding? | **Vendor-agnostic `IDownloadStorage`; Azure over-spec.** Local FS now; Azure/AWS later; **storage MUST be encrypted (local + cloud), E2E.** | CR8 → met; **G-S1** (encryption) |
+
+---
+
+## Section F — Owner-added work items (2026-06-20 rulings)
+
+**Staging-path priority:** **G-I1 (Identity) → G-C2 (export gate) → G-H1 (Excel) → G-H2/G-H3 (route auth).** The rest are accepted/hardening.
+
+### G-I1 ☐ — Implement ASP.NET Identity as infrastructure  **(KEYSTONE)**
+- **Why:** unblocks CR3, FR14, FR30 (all NHR pending login), closes HIGH-2/3 (route auth), and satisfies NFR16 (Identity + Windows auth in place of Azure AD).
+- **Do (owner direction):** define identity/auth interfaces in **Domain**; implement in an **Infrastructure adapter**; keep ALL Identity scaffolding inside the adapter project. Use **SQL Server `DESKTOP-FB2ES22\SQL2025` (Windows authentication)**. Seed a Reviewer + an Admin user for testing.
+- **DoD:** login works against live SQL; anonymous hitting `/sla-dashboard`, `/dashboard`, `/manual-review`, `/audit`, `/export` ⇒ redirect/deny; a Reviewer session opens the protected screens. Evidence: authenticated screenshots in `closure-evidence/ui/`.
+
+### G-S1 ☐ — Storage encryption (local + cloud), E2E  [HRQ-13 · NFR8/NFR17-adjacent]
+- **Owner ruling:** storage stays vendor-agnostic behind `IDownloadStorage`; **encrypt at rest — the local FS adapter must be encrypted too**, not just future cloud adapters.
+- **DoD:** stored document bytes are ciphertext at rest; a test reads the on-disk file and asserts it is not plaintext; key handling documented.
+
+### G-S2 ☐ — Audit tamper-evidence via SQL Ledger  [HRQ-1 · INV-4/FR17]
+- **Owner ruling:** use **SQL Server Append-Only Ledger Table** for audit rows; Serilog → SEQ + SQL Server sinks. Deploy/infra.
+- **DoD:** audit table is a ledger (append-only/verifiable); a delete/update attempt is blocked or ledger-detectable; Serilog SEQ+SQL sinks configured.
+
+### G-S3 ☐ — Event-processing reliability worker (outbox/retry)  [HRQ-2 · NFR14 enhancement]
+- **Owner ruling:** NFR14 PASS; add a dedicated background worker — if an event wasn't processed → persist + re-raise; periodic delayed task.
+- **DoD:** a simulated dropped/failed event is detected, persisted, and re-raised; test proves recovery.
+
+### G-S4 ☐ — Production schema-protection  [HRQ-5 · CR4 hardening]
+- **Owner ruling:** dev EF migrations fine now; for prod add a **DDL trigger** blocking DROP/ALTER on critical tables (audit, review, …), or adopt a migration-squash/recreate policy.
+- **DoD:** a DDL trigger blocks a DROP on a protected table in a test DB (or a documented migration policy).
+
+### G-H4 ☐ (updated) — Research + ADR per absent PRP interface  [HRQ-8]
+- **Owner ruling:** per interface, gather additional evidence and **draft an ADR** recording: fulfilled elsewhere (e.g. fusion) → de-scope, or genuinely needed → implement. Start with `IFieldMatcher<T>`.
+- **DoD:** one ADR per interface (7) under `docs/architecture/adr/`, each with a decision.
 
 ---
 
 ## Progress log
 - 2026-06-20 — tracker created from PHASE2-FINAL-REPORT.md. All tasks pending; owner-decision items blocked pending rulings.
-- 2026-06-20 (later) — owner reviewed the report. Answers folded in: HRQ-1 (audit=infra req), HRQ-8 (research interfaces), HRQ-12 (non-notification satisfied by absence → G-C1 shrinks to a regression guard), HRQ-13 + G-H6 (Azure de-scoped, storage stays vendor-agnostic). Owner direction: Identity+scaffold in infra adapter, verify against live SQL `DESKTOP-FB2ES22\SQL2025` (Win auth); perf + real-SIARA deferred/accepted. Still open: HRQ-2/3/5/6/7/9/10/11. Full worksheet in report §6.
+- 2026-06-20 (later) — owner answered **all 13** HR items (see report §1a + §6). Resolved/accepted: CRIT-1 (non-notification satisfied by absence — grep evidence in closure-evidence/), CR8 (vendor-agnostic), INV-4 (SQL ledger, G-S2), NFR14 (PASS + G-S3), NFR15/INV-11 (PASS), NFR16 (de-scoped), NFR17 (deferred), CR4 (dev-OK + G-S4). New owner work items: **G-I1 Identity (keystone), G-S1 storage encryption, G-S2 audit ledger, G-S3 outbox worker, G-S4 DDL trigger, G-H4 ADR-per-interface.** **G-C2 unblocked (owner: export must block).** Remaining staging blockers: G-C2, G-H1, G-H2/G-H3 (via G-I1).

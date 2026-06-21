@@ -22,13 +22,43 @@ re-run, harness integration tests, and live Web UI probes performed on 2026-06-2
 branch Liv (build: 0 errors, 0 warnings; .NET 10.0.301; Docker 29.5.3).
 
 **Key result:** The core ingestion-through-SIRO-export pipeline ran end-to-end and produced
-live database-backed audit evidence, demonstrating meaningful functional maturity. However,
-the product carries three zero-implementation legal/compliance gaps (non-notification enforcement,
-export completeness gate, identity deduplication), a live pipeline failure (Excel export), two
-unauthenticated route exposures, and seven absent PRP-specified interfaces that collectively
-block staging readiness.
+live database-backed audit evidence, demonstrating meaningful functional maturity. After owner
+review (2026-06-20, see **§1a**), the remaining staging blockers narrow to: the **export
+completeness gate** (must block low-confidence/conflicted cases before export), the
+**Excel-export failure**, and **two unauthenticated route exposures** (to be closed by the
+Identity work). Several originally-flagged items were resolved or re-scoped by the owner —
+non-notification confirmed **satisfied-by-absence** (grep evidence), Azure Blob **de-scoped** to a
+vendor-agnostic interface, audit immutability assigned to a deploy-time **SQL ledger**, and
+NFR14 / NFR15 / INV-11 accepted as **PASS**.
 
-**Deployment Recommendation: NOT READY FOR STAGING** (see Section 9 for full rationale).
+**Deployment Recommendation: NOT READY FOR STAGING** — reduced, well-scoped blocker set (see §1a + §9).
+
+---
+
+## 1a. Owner Decisions & Resulting Dispositions (2026-06-20)
+
+The owner reviewed §6 and answered every Human-Review item. These rulings **supersede** the
+as-found dispositions in the summary tables (§2–§4) for the listed items; the owner's full
+reasoning + additional suggestions are in the §6 cards.
+
+| Item | Owner decision (+ suggestion) | New disposition | Follow-up |
+|------|-------------------------------|-----------------|-----------|
+| HRQ-12 · FR31 / INV-5 / CRIT-1 | No external-notification path exists — grep-confirmed (`closure-evidence/HRQ-12-notification-sinks.txt`): Identity email is a no-op, the email infra belongs to Veriqan, "slack" hits are false positives (`HorizLeftSlack`), SignalR targets operator dashboards. | **FR31 + INV-5 → PASS (satisfied by absence); CRIT-1 downgraded** to a low-risk note + regression guard | G-C1 → guard; scope SignalR to operator groups |
+| HRQ-11 · CRIT-2 / INV-6 / FR20 | **Must block; release only after human review.** | **CRIT-2 / INV-6 confirmed — build the blocking gate** | **G-C2 (unblocked)** |
+| HRQ-13 · CR8 / HIGH-6 | Local FS adapter passes now; Azure/AWS drafted later; **storage must be encrypted (local + cloud), E2E**. Azure = over-spec. | **CR8 → PASS (vendor-agnostic `IDownloadStorage`)** + NEW storage-encryption requirement | G-S1 (storage encryption) |
+| HRQ-1 · INV-4 / FR17 | Tamper-evidence via **SQL Server Append-Only Ledger Table**; Serilog → SEQ + SQL Server. Infra/deploy concern. | **INV-4 → met by deploy-time design (ledger)**, not an app-code FAIL | G-S2 (ledger + Serilog sinks) |
+| HRQ-2 · NFR14 | **PASS**; strengthen with a dedicated background worker (outbox/retry: unprocessed event → persist + re-raise; periodic delayed task). | **NFR14 → PASS** + enhancement | G-S3 (outbox/retry worker) |
+| HRQ-3 · NFR15 | (A) OK — ingestion is async; pack the 1–3 docs per case. | **NFR15 → PASS** | — |
+| HRQ-9 · INV-11 | (A) in-process propagation is sufficient. | **INV-11 → PASS** | — |
+| HRQ-10 · NFR16 / NFR17 | NFR16: Azure AD **over-spec → de-scope** (Identity + Windows auth). NFR17: **defer** to a later release. | **NFR16 → de-scoped (met via Identity, pending impl); NFR17 → deferred (backlog)** | G-I1 (Identity); NFR17 backlog |
+| HRQ-5 · CR4 | OK for now (dev, EF Core migrations). Later protect with a **DDL trigger** (block DROP/ALTER on critical tables) or recreate the DB with fresh migrations (nothing to preserve yet). | **CR4 → PASS (dev)** + prod hardening | G-S4 (DDL trigger / migration policy) |
+| HRQ-8 · HIGH-4 / 7 interfaces | Agree (research) — needs additional evidence; **draft an ADR per interface.** | **HIGH-4 → research + ADR-per-interface** (not auto-defect) | G-H4 (research + ADRs) |
+| HRQ-4 / 6 / 7 · CR3 / FR14 / FR30 | Implement **Identity** first, then re-check. | stay **NEEDS HUMAN REVIEW** (pending Identity) | G-I1 → then G-D2 walkthrough |
+
+**Net effect on staging blockers:** Critical reduces to **CRIT-2 only** (export gate); plus **HIGH-1**
+(Excel export) and **HIGH-2/3** (unauthenticated dashboards). **Identity implementation (G-I1) is now
+the keystone** — it unblocks CR3 / FR14 / FR30 and the auth exposures, and lets the SignalR broadcasts be
+scoped to authenticated operator groups.
 
 ---
 
@@ -135,6 +165,16 @@ Based on R4 Part A (11 invariants) plus VERIFICATION-NOTES V4:
 ### Critical Severity
 
 #### CRIT-1: Non-Notification Enforcement is Entirely Absent (FR31, INV-5)
+
+> **⤓ DOWNGRADED → LOW (owner ruling 2026-06-20, HRQ-12).** A targeted grep of all notification
+> sinks (`closure-evidence/HRQ-12-notification-sinks.txt`) confirmed there is **no channel that notifies
+> any party outside the system operators**: the only Prisma email sender is a no-op (`IdentityNoOpEmailSender`),
+> the remaining email code belongs to the separate Veriqan product, the "slack"/"webhook" hits are false
+> positives (`HorizLeftSlack`), and SignalR broadcasts target the operator dashboard. **FR31 / INV-5 are
+> therefore satisfied by absence**, and CRIT-1 is no longer a staging blocker. Residual action (G-C1): add a
+> regression guard that fails if an external-notification sink is introduced without a legal-directive gate,
+> and scope SignalR from `Clients.All` to authenticated operator groups once Identity lands (HIGH-2/3).
+> *The original finding is retained below for the audit trail.*
 
 **What:** The PRP explicitly identifies "Legal constraints prohibiting the notification of involved
 clients unless expressly allowed by legal directive" as a mandatory legal compliance constraint
@@ -444,11 +484,11 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
 - **Decide — which matches your intent for "immutable audit log"?**
   - (A) Append-only at the app layer is enough; scheduled 7-year deletion is fine.
   - (B) We need tamper-evidence (append-only journal / WORM / hash-chain) — **provided by deployment infrastructure**, not app code.
-  - (C) Other: __________
+  - (C) Other: Lets create a DB on SQLserver, i normally log with serilog, and log to SEQ and SQLServer when these is needed, the rows can be protected using Append-Only Ledger Table, 
 - **Owner answer (2026-06-20):** 7-yr retention is an *infrastructure/ops* concern; no app code makes durable retention happen; a journal (etc.) is a deploy-time measure → leaning **(B)**, tracked as a deployment requirement, not an app-code defect.
 - **Resulting disposition:** INV-4 stays **NEEDS HUMAN REVIEW**, reclassified as a *deployment/infra requirement* (not a code FAIL).
 - **File to look at:** `…/Infrastructure.Database/Services/AuditRetentionBackgroundService.cs`
-- **Your decision:** `____________________  (e.g. "Accept (B); mechanism = append-only journal at deploy")`
+- **Your decision:** `____________________  (e.g. "Accept (B); mechanism = append-only journal at deploy on SQL Server on a  Append-Only Ledger Table")`
 
 ---
 
@@ -460,7 +500,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (C) Need a code trace first (I'll assign it): __________
 - **Default:** (A) if a subscriber demonstrably writes the audit row + queues the case (we can prove this with one trace test).
 - **File:** `…/Athena/Prisma.Athena.Processing/ProcessingOrchestrator.cs`
-- **Your decision:** `____________________`
+- **Your decision:** `PASS but we can strong these with a background worker dedicated to ensure the events where proceeded if not persist and exeption an raise another event a periodic task with delay`
 
 ---
 
@@ -470,7 +510,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (A) Concurrent event-driven processing satisfies the "high-volume regulatory periods" intent — NFR15 PASS.
   - (B) A real batch entry point / throughput control is required — gap.
 - **Default:** (A).
-- **Your decision:** `____________________`
+- **Your decision:** `A is ok, the file ingestion is asyncronou we must only pack the 3 documents of each case (sometimes is only 1 or 2)`
 
 ---
 
@@ -481,7 +521,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (B) Inconsistencies found (list them): __________
 - **Owner direction (2026-06-20):** stand up Identity + scaffolding in an **infra adapter** and use live SQL **`DESKTOP-FB2ES22\SQL2025` (Windows auth)** so these screens can actually be viewed.
 - **File:** `…/Web.UI/Components/Pages/*.razor`
-- **Your decision (after viewing):** `____________________`
+- **Your decision (after viewing):** `Lets implement identity and we can decide`
 
 ---
 
@@ -492,17 +532,33 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (B) It violates CR4 — needs a reversible/forward-additive approach.
 - **Default:** (A) **if** the FK drops were deliberate (they look intentional — decoupling audit/review rows from file-metadata lifetime). Please confirm the rationale.
 - **Files:** `…/Migrations/20260613142328_DropAuditFileMetadataFk.cs`, `…/20260615195417_DropReviewCaseFileMetadataFk.cs`
-- **Your decision:** `____________________`
+- **Your decision:** `Since we are still on development and these migration are efcore designed is ok for now at the end we must make restriction to ensure nothing is droped, when the application need to updated these can be done on sql server
+we can use a trigger like these one CREATE TRIGGER tr_ProtectTables
+ON DATABASE 
+FOR DROP_TABLE, ALTER_TABLE 
+AS 
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Check for specific critical tables
+    IF EVENTDATA().value('(/EVENT_INSTANCE/ObjectName)[1]', 'NVARCHAR(100)') IN ('YourTable1', 'YourTable2')
+    BEGIN
+        PRINT 'Drop or Alter operations are not allowed on this critical table!';
+        ROLLBACK; -- Cancels the drop statement
+    END
+END;`' we can even make that inmediatly delete all the migrations and recreated since we don't have any thing to preserve at these moment we can delete the entire database and create with a brand new migrations
+
 
 ---
 
 ### HRQ-6 — Does the Manual Review screen work end-to-end (FR14)?  · affects FR14 / Story 1.6 AC5
-- **Found:** the back-end correctly creates ReviewCases for low-confidence docs (confirmed live); the UI route exists + redirects to login. Whether the screen actually **displays the record, lets a reviewer edit/decide, and updates the unified metadata** is unverified (needs login).
+- **Found:** the back-end correctly creates ReviewCases for low-confidence docs (confirmed live); the UI route exists + redirects to login. 
+Whether the screen actually **displays the record, lets a reviewer edit/decide, and updates the unified metadata** is unverified (needs login).
 - **Decide (after a logged-in walkthrough):**
   - (A) Works per Story 1.6 AC5 — FR14 PASS.
   - (B) Defects found: __________
 - **File:** `…/Web.UI/Components/Pages/ManualReviewDashboard.razor`, `ReviewCaseDetail.razor`
-- **Your decision (after walkthrough):** `____________________`
+- **Your decision (after walkthrough):** `After implementing Identity we can check again`
 
 ---
 
@@ -512,7 +568,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (A) Non-Reviewer/Admin correctly denied — FR30 PASS.
   - (B) Enforcement gap: __________
 - **Note:** also re-check this once **HRQ-12 / HIGH-2** (the `/sla-dashboard` + `/dashboard` anonymous-access holes) are fixed.
-- **Your decision:** `____________________`
+- **Your decision:** `After implementing Identity we can check again`
 
 ---
 
@@ -525,7 +581,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
 - **Owner answer (2026-06-20):** **run a research task** to determine, per interface, whether it is truly needed or already fulfilled elsewhere. → tracked as gap **G-H4** (research-first, not auto-defect).
 - **Specific research questions to answer (one row per interface):** Is the capability present under another name? Which file/service provides it? Is the PRP contract (inputs/outputs) met? Decision: implement / de-scope.
 - **File:** `…/Infrastructure.Classification/FusionExpedienteService.cs`
-- **Your decision / assignment:** `____________________`
+- **Your decision / assignment:** `Agree but there is the need for further or aditional evidence and draft an ADR per interface`
 
 ---
 
@@ -535,7 +591,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (A) In-process event-chain propagation satisfies the tracing requirement — PASS.
   - (B) HTTP header propagation is required across the 3-process split — gap.
 - **Default:** (A) for the current in-process SignalR architecture.
-- **Your decision:** `____________________`
+- **Your decision:** `A`
 
 ---
 
@@ -545,7 +601,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - NFR16 (auth): (A) Use ASP.NET Identity + Windows auth — **de-scope Azure AD** for this release. (B) Azure AD is binding → currently FAIL.
   - NFR17 (PII field encryption): (A) In scope → currently FAIL, must implement. (B) Defer to a later release (note it).
 - **Default:** NFR16 → (A) de-scope Azure AD (consistent with your identity direction); NFR17 → your call (PII encryption is often a compliance must).
-- **Your decision:** `NFR16: ________   NFR17: ________`
+- **Your decision:** `NFR16: Azure is overspecified as a comment on another part`   `NFR17: Defer to a later release`
 
 ---
 
@@ -556,7 +612,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (B) Flag-only is by design (export proceeds, review is advisory) — then CRIT-2 downgrades to a documented design note.
 - **Default:** (A) — unvalidated/low-confidence XML should not reach CNBV/SIRO automatically.
 - **File:** `…/Athena/Prisma.Athena.Processing/ReconciliationOrchestrator.cs:243-279`
-- **Your decision:** `____________________`
+- **Your decision:** `It must block, release only after human review`
 
 ---
 
@@ -567,7 +623,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (B) **Yes, there is one** (name it): __________ → CRIT-1 stands; implement the legal gate (G-C1).
 - **Owner answer (2026-06-20):** leaning **(A)** — absence of notification is evidence of no leak.
 - **Verification we will run:** grep all notification sinks + confirm SignalR broadcasts target only authenticated operators, not external parties. Result will be recorded here.
-- **Your decision:** `____________________`
+- **Your decision:** `Document with grep and grep results sinked to a file`
 
 ---
 
@@ -578,7 +634,7 @@ comments on 2026-06-20, that is captured under **Owner answer** and the **Result
   - (B) Azure Blob is binding for this release → keep CR8 FAIL, implement the adapter.
 - **Owner answer (2026-06-20):** **(A)** — vendor-agnostic; Azure Blob is over-spec.
 - **Resulting disposition:** **CR8 → NEEDS HUMAN REVIEW → resolved-by-owner: met via vendor-agnostic `IDownloadStorage`; named cloud adapters are per-deployment, not a release blocker.** Please confirm.
-- **Your decision:** `____________________`
+- **Your decision:** `local FS adapter now and pass at these point, azure, aws maybe drafted, but with encryption E2E also the local storage must be encrypted`
 
 ---
 
@@ -714,37 +770,37 @@ HRQ-13) require resolution before confidence can be upgraded.
 
 **NOT READY FOR STAGING**
 
-**Rationale:**
+**Rationale (updated after owner rulings 2026-06-20 — see §1a):**
 
-Three Critical findings independently block staging readiness:
+The blocker set narrowed substantially after owner review. **CRIT-1 was downgraded** (non-notification
+satisfied by absence, HRQ-12), **CR8 resolved** (vendor-agnostic storage), and **INV-4 / NFR14 / NFR15 /
+INV-11 / NFR16 / CR4** were resolved, accepted, or re-scoped. The product is **still NOT READY FOR STAGING**,
+but for a small, well-defined set:
 
-1. **CRIT-1 (non-notification enforcement absent):** Deploying to staging with zero enforcement
-   of the "no client notification without legal permission" rule risks live violation of Mexican
-   UIF/CNBV legal constraints. SignalR broadcasts are unconditional. This is not a UX gap — it
-   is a legal compliance gap with no code path to close it at runtime.
+1. **CRIT-2 (export completeness gate bypassed) — owner-confirmed must-fix.** The live pipeline emits SIRO
+   XML for documents at confidence 10/100 with unresolved fusion conflicts, without awaiting review. The
+   owner ruled (HRQ-11): **export must block; release only after human review.** Until the blocking gate
+   (G-C2) ships, a staging environment connected to downstream SIRO could submit invalid filings.
 
-2. **CRIT-2 (export completeness gate bypassed):** The live pipeline emits SIRO XML for
-   documents with classification confidence of 10 (out of 100), with unresolved fusion conflicts,
-   without awaiting manual review resolution. A staging environment connected to any downstream
-   SIRO ingestion system could submit invalid regulatory filings.
+2. **HIGH-1 (Excel export fails).** The DatosCargaOficio Excel — the second mandatory component of the SIRO
+   submission bundle — does not complete in the E2E gate; the registration workflow cannot finish end-to-end.
 
-3. **HIGH-1 (Excel export fails):** The DatosCargaOficio Excel file — the second mandatory
-   component of the SIRO submission bundle — does not complete in the E2E gate. The SIRO
-   registration workflow cannot be completed end-to-end.
+3. **HIGH-2/3 (unauthenticated `/sla-dashboard` + `/dashboard`).** Operational/SLA data served to anonymous
+   users. Closed by the **Identity** work (G-I1) + route `[Authorize]` + scoping SignalR from `Clients.All`
+   to authenticated operator groups.
 
-Beyond these three blockers, the combination of two unauthenticated route exposures (SLA
-dashboard, analytics dashboard) serving financial operational data, seven absent PRP-specified
-interfaces, and non-operational person identity deduplication across documents represents
-material risk for a financial regulatory compliance system processing Mexican legal documents
-under UIF/CNBV supervision.
+**Keystone:** **Identity implementation (G-I1)** unblocks CR3 / FR14 / FR30 (all NEEDS HUMAN REVIEW pending
+a logged-in session) and the auth exposures — it is the highest-leverage next step.
 
 **Minimum bar for re-evaluation:**
-- CRIT-1: Implement non-notification enforcement gate in the broadcast path.
-- CRIT-2: Wire a low-confidence/conflict block before Stage 5 export; resolve IFieldMatcher
-  gap or equivalent completeness gate.
-- HIGH-1: Fix `DatosCargaOficioLayoutGenerator` to emit `ExportCompletedEvent(DatosCargaOficioXlsx)`.
-- HIGH-2/3: Add `@attribute [Authorize]` to `SlaDashboard.razor` and `/dashboard`.
-- HRQ-1 (INV-4): Owner ruling on audit immutability required before staging with live audit data.
+- **CRIT-2 → G-C2:** block Stage-5 export on low confidence / unresolved fusion conflict; release only after a review decision.
+- **HIGH-1 → G-H1:** fix `DatosCargaOficioLayoutGenerator` to emit `ExportCompletedEvent(DatosCargaOficioXlsx)` (or fail loudly + audited).
+- **HIGH-2/3 → G-I1 + G-H2/G-H3:** stand up Identity (infra adapter, live SQL `DESKTOP-FB2ES22\SQL2025` Win-auth), add `[Authorize]` to the dashboards, scope SignalR audiences.
+- **Then re-run** the capstone E2E (both export events) + the authenticated UI walkthrough to clear FR14/FR30/CR3.
+
+**Owner-accepted, no longer blockers:** CRIT-1 (downgraded), CR8 (vendor-agnostic), INV-4 (deploy-time SQL
+ledger, G-S2), NFR14 (PASS + G-S3 outbox), NFR15/INV-11 (PASS), NFR16 (de-scoped), NFR17 (deferred), CR4
+(dev-acceptable, G-S4 prod hardening), storage encryption (new requirement G-S1), HIGH-4 interfaces (research + ADRs, G-H4).
 
 ---
 

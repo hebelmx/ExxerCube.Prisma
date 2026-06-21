@@ -1,0 +1,102 @@
+# HRQ-12 — External-notification sink scan (production source, excludes tests/simulator)
+# Run 2026-06-20. Q: does any component notify a party OUTSIDE the system operators?
+
+## (1) Email (SmtpClient/MailMessage/System.Net.Mail/IEmailSender/MailKit)
+Prisma/Code/Src/CSharp/01 Core/Veriqan.Application/Ports/EmailMessage.cs:7:/// <see cref="IEmailSender"/>.
+Prisma/Code/Src/CSharp/01 Core/Veriqan.Application/Ports/EmailMessage.cs:19:public sealed record EmailMessage(
+Prisma/Code/Src/CSharp/01 Core/Veriqan.Application/Ports/IEmailSender.cs:21:public interface IEmailSender
+Prisma/Code/Src/CSharp/01 Core/Veriqan.Application/Ports/IEmailSender.cs:35:    Task<Result> SendAsync(EmailMessage message, CancellationToken cancellationToken = default);
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/DependencyInjection/ServiceCollectionExtensions.cs:20:    ///   <item><description><see cref="IEmailSender"/> → <see cref="SmtpEmailSender"/> (Story 7.3, FR-17)</description></item>
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/DependencyInjection/ServiceCollectionExtensions.cs:57:        services.AddTransient<IEmailSender, SmtpEmailSender>();
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/DependencyInjection/ServiceCollectionExtensions.cs:64:            var emailSender = sp.GetRequiredService<IEmailSender>();
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:3:using System.Net.Mail;
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:15:/// <see cref="System.Net.Mail"/>-based implementation of <see cref="IEmailSender"/>.
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:29:public sealed class SmtpEmailSender : IEmailSender
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:47:    public async Task<Result> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:59:            using var client = BuildSmtpClient();
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:60:            using var mailMessage = BuildMailMessage(message);
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:66:            await client.SendMailAsync(mailMessage, cancellationToken).ConfigureAwait(false);
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:94:    private SmtpClient BuildSmtpClient()
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:96:        var client = new SmtpClient(_options.Host, _options.Port)
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:110:    private MailMessage BuildMailMessage(EmailMessage message)
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:112:        var mail = new MailMessage
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs:129:                // MemoryStream is disposed when MailMessage is disposed (BCL handles this).
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/VecAlertService.cs:23:/// <see cref="IEmailSender"/>.  Transient failures are retried using an exponential
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/VecAlertService.cs:47:    private readonly IEmailSender _emailSender;
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/VecAlertService.cs:60:        IEmailSender emailSender,
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/VecAlertService.cs:80:        IEmailSender emailSender,
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/VecAlertService.cs:253:    /// Composes the RED-alert <see cref="EmailMessage"/> from the verdict and context.
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/VecAlertService.cs:255:    private static EmailMessage ComposeRedAlert(VerdictSummary verdict, AlertContext context)
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Reporting/VecAlertService.cs:273:        return new EmailMessage(
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Components/Account/IdentityNoOpEmailSender.cs:6:internal sealed class IdentityNoOpEmailSender : IEmailSender<ApplicationUser>
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Components/Account/IdentityNoOpEmailSender.cs:8:    private readonly IEmailSender emailSender = new NoOpEmailSender();
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Components/Account/IdentityNoOpEmailSender.cs:11:        emailSender.SendEmailAsync(email, "Confirm your email", $"Please confirm your account by <a href='{confirmationLink}'>clicking here</a>.");
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Components/Account/IdentityNoOpEmailSender.cs:14:        emailSender.SendEmailAsync(email, "Reset your password", $"Please reset your password by <a href='{resetLink}'>clicking here</a>.");
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Components/Account/IdentityNoOpEmailSender.cs:17:        emailSender.SendEmailAsync(email, "Reset your password", $"Please reset your password using the following code: {resetCode}");
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Program.cs:272:        services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+## (2) SMS / Twilio
+  (none)
+
+## (3) Slack / webhook / external HTTP push
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Visual/Rules/MandatedBoldFieldsRule.cs:83:    private const double HorizLeftSlack = 5.0;
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Visual/Rules/MandatedBoldFieldsRule.cs:296:                var lo = labelLeft.Value - HorizLeftSlack;
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Visual/Rules/TypographyPointSizeFloorRule.cs:88:    // Samples must start at or to the right of the label left minus a small slack,
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Visual/Rules/TypographyPointSizeFloorRule.cs:90:    private const double HorizLeftSlack = 5.0;
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Visual/Rules/TypographyPointSizeFloorRule.cs:199:            // (within [labelLeft - HorizLeftSlack, labelLeft + HorizRightLimit]).
+Prisma/Code/Src/CSharp/02 Infrastructure/Veriqan.Infrastructure.Visual/Rules/TypographyPointSizeFloorRule.cs:227:                        var lo = labelLeft.Value - HorizLeftSlack;
+
+## (4) Generic notification senders
+  (none)
+
+## (5) SignalR broadcast audiences
+Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Reconciliation/SignalRReconciliationBroadcaster.cs:107:            await _hubContext.Clients.All.SendAsync(ReceiveMessage, stampedData, cancellationToken).ConfigureAwait(false);
+Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Reconciliation/SignalRReconciliationBroadcaster.cs:203:            await _hubContext.Clients.Group(groupName).SendAsync(ReceiveMessage, stampedData, cancellationToken).ConfigureAwait(false);
+Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Ingestion/SignalRIngestionBroadcaster.cs:106:            await _hubContext.Clients.All.SendAsync(ReceiveMessage, stampedData, cancellationToken).ConfigureAwait(false);
+Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Ingestion/SignalRIngestionBroadcaster.cs:202:            await _hubContext.Clients.Group(groupName).SendAsync(ReceiveMessage, stampedData, cancellationToken).ConfigureAwait(false);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Hubs/ProcessingHub.cs:38:        await Clients.All.SendAsync("ProcessingStatusUpdated", jobId, status, progress, message);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Hubs/ProcessingHub.cs:50:        await Clients.All.SendAsync("ProcessingComplete", jobId, result);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Hubs/ProcessingHub.cs:62:        await Clients.All.SendAsync("ProcessingError", jobId, error);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Hubs/ProcessingHub.cs:71:        await Clients.All.SendAsync("MetricsUpdated", metrics);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Hubs/ProcessingHub.cs:81:        await Clients.All.SendAsync("SLAStatusUpdated", fileId);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Hubs/ProcessingHub.cs:92:        await Clients.All.SendAsync("SLAEscalated", fileId, escalationLevel);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Hubs/ProcessingHub.cs:105:        await Clients.All.SendAsync("DomainEventOccurred", eventType, eventData, cancellationToken);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Services/HubContextDomainEventBroadcaster.cs:70:            await _hubContext.Clients.All.SendAsync(ReceiveMessage, data, cancellationToken).ConfigureAwait(false);
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Services/HubContextDomainEventBroadcaster.cs:142:            await _hubContext.Clients.Group(groupName).SendAsync(ReceiveMessage, data, cancellationToken).ConfigureAwait(false);
+
+## (6) SignalR hubs (to confirm audience = operators)
+Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Ingestion/SiaraIngestionHubClient.cs:39:public sealed class SiaraIngestionHubClient : BackgroundService
+Prisma/Code/Src/CSharp/04 Services/Athena/Prisma.Athena.Worker/Reconciliation/ReconciliationHub.cs:30:public sealed class ReconciliationHub : ExxerHub<ExtractionCompletedEvent>
+Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Ingestion/StubExxerHub.cs:15:public sealed class StubExxerHub<TEvent> : IExxerHub<TEvent> where TEvent : class
+Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker/Ingestion/IngestionHub.cs:30:public sealed class IngestionHub : ExxerHub<DocumentDownloadedEvent>
+Prisma/Code/Src/CSharp/04 Services/Reconciliator/Prisma.Reconciliator.Worker/ReconciliationHubClient.cs:40:public sealed class ReconciliationHubClient : BackgroundService
+Prisma/Code/Src/CSharp/07 UI/UI/ExxerCube.Prisma.Web.UI/Hubs/ProcessingHub.cs:12:public class ProcessingHub : ExxerHub<DomainEvent>
+
+================================================================================
+## CONCLUSION (characterized 2026-06-20)
+
+FR31 = "do NOT notify the involved/regulated client unless legal directive allows."
+
+Findings characterized:
+- EMAIL: the only Prisma email sender is `Web.UI/Components/Account/IdentityNoOpEmailSender.cs`
+  — a NO-OP (ASP.NET Identity account scaffolding that sends nothing). The other email code
+  (`Veriqan.Application/Ports/IEmailSender.cs`, `Veriqan.Infrastructure.Reporting/SmtpEmailSender.cs`,
+  `VecAlertService.cs`) belongs to the **Veriqan** product, NOT the Prisma compliance pipeline.
+  ⇒ No Prisma path emails the regulated client.
+- SMS/Twilio: none.
+- SLACK/WEBHOOK: 0 real integrations. All 6 "slack" hits are the substring in `HorizLeftSlack`
+  (a geometry constant in Veriqan visual rules). False positives.
+- SIGNALR (`Clients.All`/`Group`): ProcessingHub, SignalRIngestionBroadcaster,
+  SignalRReconciliationBroadcaster, HubContextDomainEventBroadcaster broadcast processing/SLA/
+  domain-event status to **connected operator dashboards** (the Web UI), NOT to the investigated client.
+
+VERDICT (HRQ-12 = A): No component notifies a party OUTSIDE the system operators. FR31 is
+**satisfied by absence** of any client-facing notification channel. ⇒ CRIT-1 downgrades from
+Critical to a low-risk note + a regression guard (a test that fails if an external-notification
+sink is introduced without a legal-directive gate).
+
+NUANCE / follow-up (security, not FR31): SignalR uses `Clients.All`, so status is broadcast to
+ALL connected clients. Combined with the unauthenticated dashboard exposure (HIGH-2/HIGH-3), this
+means operational data reaches any connected (possibly unauthenticated) client. Once Identity is
+enforced, broadcasts should target authenticated operator groups, not `Clients.All`. Tracked with
+the auth fixes (G-H2/G-H3), not FR31.
