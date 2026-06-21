@@ -39,6 +39,16 @@ public record ExtractionCompletedEvent : DomainEvent
     public int ConflictsDetected { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether the upstream fusion stage determined that mandatory human
+    /// review is required before the document may be exported
+    /// (<c>NextAction == ManualReviewRequired</c>).  When <see langword="true"/> the Reconciliator
+    /// MUST NOT produce regulatory output — Stage-5 export is gated by the export-gate policy.
+    /// Defaults to <see langword="false"/> so existing in-process callers compile unchanged and
+    /// the gate is not accidentally triggered by deserialised events that pre-date this field.
+    /// </summary>
+    public bool RequiresManualReview { get; init; }
+
+    /// <summary>
     /// Gets the short-lived process clearance token minted by the sender (MVP-PATH 1.5, A5).
     /// The receiving forwarder validates this token before forwarding the event into the local
     /// pipeline. Empty for in-process / single-service flows.

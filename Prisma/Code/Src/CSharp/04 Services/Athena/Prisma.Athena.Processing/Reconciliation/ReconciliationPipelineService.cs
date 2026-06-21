@@ -168,15 +168,41 @@ public sealed class ReconciliationPipelineService : IReadinessProbe
             return Result.WithFailure(load.Errors);
         }
 
-        // The expediente arrived from the Extractor via shared storage; the fusion decision was
-        // already made upstream. Build a stub FusionResult with AutoProcess + no conflicts so the
-        // export gate does not re-block on the fusion state (it will still block on low classification
-        // confidence, which is evaluated independently).
+        // Rebuild a faithful FusionResult from the handoff event so the export gate can correctly
+        // apply Gates 2 (ManualReviewRequired) and 3 (unresolved conflicts).
+        //
+        // Context: the Extractor persists only the fused Expediente in shared storage (the raw
+        // FusionResult is not serialised there) and stamps the gate-relevant decision flags on the
+        // ExtractionCompletedEvent that crosses the process boundary.
+        //
+        //   RequiresManualReview  → restore NextAction.ManualReviewRequired so Gate 2 fires.
+        //   ConflictsDetected > 0 → synthesise placeholder field names so Gate 3 fires; the exact
+        //                           names are not needed for the block decision (the gate checks Count).
+        //   Otherwise             → NextAction.AutoProcess / empty conflicts → gates pass (existing
+        //                           behaviour for clean documents).
+        //
+        // This faithfully restores the upstream fusion decision across the process boundary so that
+        // a conflicted/manual-review case can NEVER produce an export in the 3-process path.
+        var restoredNextAction = completedEvent.RequiresManualReview
+            ? NextAction.ManualReviewRequired
+            : NextAction.AutoProcess;
+
+        var restoredConflicts = new System.Collections.Generic.List<string>();
+        if (completedEvent.ConflictsDetected > 0)
+        {
+            // Synthesise placeholder names so ConflictingFields.Count matches the upstream count,
+            // which is all the gate needs to decide whether to block.
+            for (var i = 0; i < completedEvent.ConflictsDetected; i++)
+            {
+                restoredConflicts.Add($"Field{i + 1}");
+            }
+        }
+
         var fusionResult = new FusionResult
         {
             FusedExpediente = load.Value,
-            NextAction = NextAction.AutoProcess,
-            ConflictingFields = new System.Collections.Generic.List<string>(),
+            NextAction = restoredNextAction,
+            ConflictingFields = restoredConflicts,
         };
 
         var stagesCompleted = await _reconciliationOrchestrator.ReconcileAsync(

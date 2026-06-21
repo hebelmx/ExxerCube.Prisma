@@ -229,6 +229,7 @@ public sealed class ExtractionPipelineService : IReadinessProbe
             Path = save.Value!,
             FieldsFused = extraction.FusionResult?.FieldResults.Count ?? 0,
             ConflictsDetected = extraction.FusionResult?.ConflictingFields.Count ?? 0,
+            RequiresManualReview = extraction.FusionResult?.NextAction == ExxerCube.Prisma.Domain.Enum.NextAction.ManualReviewRequired,
             IsComplete = downloadEvent.IsComplete,
         };
 
