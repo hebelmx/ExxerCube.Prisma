@@ -1,6 +1,7 @@
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.ValueObjects;
 using IndFusion.Ember.Abstractions.Hubs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace ExxerCube.Prisma.Web.UI.Hubs;
@@ -9,6 +10,14 @@ namespace ExxerCube.Prisma.Web.UI.Hubs;
 /// SignalR hub for real-time OCR processing updates and domain event broadcasting.
 /// Inherits from ExxerHub to leverage Ember's transport-agnostic abstraction.
 /// </summary>
+/// <remarks>
+/// [Authorize] blocks unauthenticated WebSocket upgrade requests at the hub level (RV-2).
+/// The Web.UI uses ASP.NET Core Identity (cookie-based auth); Blazor circuits run inside an
+/// authenticated HTTP context, so the app's own components connect without additional steps.
+/// TODO: scope this to the "Operator" or "Reviewer" Identity roles when role groups are defined
+/// (G-H2 follow-up; the current policy is "any authenticated user").
+/// </remarks>
+[Authorize]
 public class ProcessingHub : ExxerHub<DomainEvent>
 {
     private readonly ILogger<ProcessingHub> _logger;

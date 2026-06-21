@@ -35,12 +35,19 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Default the Seq sink URL so %SEQ_URL% in appsettings always expands to a valid URI.
-        // Compose/k8s override via the SEQ_URL env var; this guard prevents a boot-time
-        // UriFormatException when the variable is unset (e.g. local `dotnet run`).
+        // RV-3: Pre-set Serilog sink env vars before building Log.Logger so appsettings.json
+        // %SEQ_URL% / %SERILOG_SQL_CONNECTION% tokens resolve to real values via the .NET
+        // environment-variable configuration provider (Windows %VAR% syntax is NOT expanded by
+        // .NET config — this guard is the correct substitution mechanism).
+        // SEQ_URL: default to localhost when unset (prevents boot-time UriFormatException).
+        // SERILOG_SQL_CONNECTION: default to empty — the MSSqlServer sink skips init when the
+        // connection string is null/empty, so the UI boots cleanly without a DB configured.
         Environment.SetEnvironmentVariable(
             "SEQ_URL",
             Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341");
+        Environment.SetEnvironmentVariable(
+            "SERILOG_SQL_CONNECTION",
+            Environment.GetEnvironmentVariable("SERILOG_SQL_CONNECTION") ?? string.Empty);
 
         // Configure Serilog from configuration
         Log.Logger = new LoggerConfiguration()
@@ -152,8 +159,12 @@ Inner Stack Trace:
                 Predicate = _ => false
             }).AllowAnonymous();
 
-            // Map SignalR hub
-            app.MapHub<ProcessingHub>("/processingHub");
+            // Map SignalR hub — RequireAuthorization() enforces the [Authorize] on ProcessingHub at the
+            // endpoint level so anonymous WebSocket upgrades are refused with 401 (RV-2).
+            // Blazor circuits connect inside an authenticated context (ASP.NET Core Identity cookie) so
+            // the UI's own hub usage is not affected.
+            // TODO: restrict to a named operator/reviewer policy when role groups are defined (G-H2).
+            app.MapHub<ProcessingHub>("/processingHub").RequireAuthorization();
 
             app.MapStaticAssets();
             app.MapRazorComponents<App>()

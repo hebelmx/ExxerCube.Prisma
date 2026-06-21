@@ -1119,4 +1119,197 @@ public sealed class IngestionOrchestratorTests
             Directory.Delete(storagePath, recursive: true);
         }
     }
+
+    // -------------------------------------------------------------------------
+    // RV-1: Encryption-at-rest on the Orion download-persist path (G-S1)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Minimal AES-256-GCM <see cref="IStorageEncryptor"/> for use in RV-1 tests only.
+    /// Produces the same on-disk blob layout as AesGcmStorageEncryptor:
+    /// [12 bytes nonce][16 bytes GCM tag][N bytes ciphertext].
+    /// </summary>
+    private sealed class TestAesGcmEncryptor : IStorageEncryptor
+    {
+        private readonly byte[] _key;
+
+        public TestAesGcmEncryptor()
+        {
+            _key = new byte[32];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(_key);
+        }
+
+        public Task<Result<byte[]>> EncryptAsync(byte[] plaintext, string purpose, CancellationToken ct = default)
+        {
+            const int NonceSize = 12;
+            const int TagSize = 16;
+            var nonce = new byte[NonceSize];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(nonce);
+
+            var cipher = new byte[plaintext.Length];
+            var tag = new byte[TagSize];
+
+            using var aes = new System.Security.Cryptography.AesGcm(_key, TagSize);
+            aes.Encrypt(nonce, plaintext, cipher, tag);
+
+            var blob = new byte[NonceSize + TagSize + cipher.Length];
+            Buffer.BlockCopy(nonce, 0, blob, 0, NonceSize);
+            Buffer.BlockCopy(tag, 0, blob, NonceSize, TagSize);
+            Buffer.BlockCopy(cipher, 0, blob, NonceSize + TagSize, cipher.Length);
+
+            return Task.FromResult(Result<byte[]>.Success(blob));
+        }
+
+        public Task<Result<byte[]>> DecryptAsync(byte[] ciphertext, string purpose, CancellationToken ct = default)
+        {
+            const int NonceSize = 12;
+            const int TagSize = 16;
+            var nonce = ciphertext[..NonceSize];
+            var tag = ciphertext[NonceSize..(NonceSize + TagSize)];
+            var encPayload = ciphertext[(NonceSize + TagSize)..];
+
+            var plaintext = new byte[encPayload.Length];
+            using var aes = new System.Security.Cryptography.AesGcm(_key, TagSize);
+            aes.Decrypt(nonce, encPayload, tag, plaintext);
+
+            return Task.FromResult(Result<byte[]>.Success(plaintext));
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_WithEncryptor_OnDiskBytesAreCiphertext_NotPlaintext()
+    {
+        // Arrange — verify the RV-1 contract: when IStorageEncryptor is wired, raw on-disk bytes
+        // must NOT equal the plaintext document bytes the downloader returned.
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        // Plaintext content we will assert is NOT on disk.
+        var plaintextContent = Encoding.UTF8.GetBytes("SENSITIVE-PDF-CONTENT-SHOULD-NOT-APPEAR-ON-DISK");
+        var fileUrl = "https://siara.local/cases/ENCTEST/encrypted.pdf";
+
+        downloader.DownloadAsync(fileUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(plaintextContent, fileUrl, FileFormat.Pdf));
+
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "ENCTEST",
+            Files = new[] { new DownloadableFile { Url = fileUrl, FileName = "encrypted.pdf", Format = FileFormat.Pdf } },
+        };
+
+        // Build orchestrator WITH encryptor (the production path).
+        var storagePath = Path.Combine(Path.GetTempPath(), "rv1-enc-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(storagePath);
+        var encryptor = new TestAesGcmEncryptor();
+        var orchestrator = new IngestionOrchestrator(
+            journal, downloader, eventHub,
+            NullLogger<IngestionOrchestrator>.Instance,
+            storageBasePath: storagePath,
+            postWriteFlushDelay: TimeSpan.Zero,
+            storageEncryptor: encryptor);
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert: ingestion succeeded
+            result.IsSuccess.ShouldBeTrue($"Ingestion failed: {string.Join(", ", result.Errors)}");
+
+            // Assert: ONE event broadcast — pipeline not broken by encryption
+            await eventHub.Received(1).SendToAllAsync(
+                Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>());
+
+            // Assert: on-disk bytes are NOT the plaintext content (ciphertext proof).
+            var storedFiles = Directory.GetFiles(storagePath, "encrypted.pdf", SearchOption.AllDirectories);
+            storedFiles.Length.ShouldBe(1, "Exactly one file should have been stored on disk.");
+
+            var diskBytes = await File.ReadAllBytesAsync(storedFiles[0], TestContext.Current.CancellationToken);
+
+            // Primary assertion: the on-disk blob must differ from the plaintext.
+            diskBytes.ShouldNotBe(plaintextContent,
+                "On-disk bytes must be ciphertext, not plaintext (G-S1 / RV-1 requirement).");
+
+            // Secondary assertion: the blob is larger than plaintext (AES-GCM adds 12-byte nonce + 16-byte tag).
+            diskBytes.Length.ShouldBeGreaterThan(plaintextContent.Length,
+                "Encrypted blob must be larger than plaintext due to nonce+tag overhead.");
+
+            // Guard: the plaintext sentinel string must NOT appear verbatim in the blob.
+            var diskString = Encoding.UTF8.GetString(diskBytes);
+            diskString.Contains("SENSITIVE-PDF-CONTENT-SHOULD-NOT-APPEAR-ON-DISK", StringComparison.Ordinal)
+                .ShouldBeFalse("Plaintext sentinel must not be readable in the on-disk ciphertext blob.");
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task IngestCase_WithoutEncryptor_OnDiskBytesMatchPlaintext_AndWarningIsLogged()
+    {
+        // Arrange — without an encryptor (dev mode), bytes are plaintext and the ctor warning fires.
+        // This test confirms the fallback path works (pipeline not broken by absent encryption key).
+        var journal = Substitute.For<IIngestionJournal>();
+        var downloader = Substitute.For<IDocumentDownloader>();
+        var eventHub = Substitute.For<IExxerHub<DocumentDownloadedEvent>>();
+
+        journal.ExistsAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var plaintextContent = Encoding.UTF8.GetBytes("dev-plaintext-content");
+        var fileUrl = "https://siara.local/cases/NOENC/doc.pdf";
+
+        downloader.DownloadAsync(fileUrl, Arg.Any<CancellationToken>())
+            .Returns(Downloaded(plaintextContent, fileUrl, FileFormat.Pdf));
+
+        eventHub.SendToAllAsync(Arg.Any<DocumentDownloadedEvent>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        var siaraCase = new SiaraCase
+        {
+            CaseId = "NOENC",
+            Files = new[] { new DownloadableFile { Url = fileUrl, FileName = "doc.pdf", Format = FileFormat.Pdf } },
+        };
+
+        // Build orchestrator WITHOUT encryptor (no storageEncryptor argument — falls back to plaintext).
+        var storagePath = Path.Combine(Path.GetTempPath(), "rv1-noenc-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(storagePath);
+        var orchestrator = new IngestionOrchestrator(
+            journal, downloader, eventHub,
+            NullLogger<IngestionOrchestrator>.Instance,
+            storageBasePath: storagePath,
+            postWriteFlushDelay: TimeSpan.Zero
+            // storageEncryptor: null (omitted — tests the dev-mode fallback)
+        );
+
+        try
+        {
+            // Act
+            var result = await orchestrator.IngestCaseAsync(siaraCase, Guid.NewGuid(), TestContext.Current.CancellationToken);
+
+            // Assert: ingestion still succeeds (plaintext fallback, not a crash)
+            result.IsSuccess.ShouldBeTrue("Dev-mode (no encryptor) ingestion should still succeed.");
+
+            var storedFiles = Directory.GetFiles(storagePath, "doc.pdf", SearchOption.AllDirectories);
+            storedFiles.Length.ShouldBe(1);
+
+            var diskBytes = await File.ReadAllBytesAsync(storedFiles[0], TestContext.Current.CancellationToken);
+            diskBytes.ShouldBe(plaintextContent,
+                "Without an encryptor (dev mode), on-disk bytes should be plaintext.");
+        }
+        finally
+        {
+            Directory.Delete(storagePath, recursive: true);
+        }
+    }
 }

@@ -34,6 +34,16 @@ public class IngestionOrchestrator
     private readonly IDashboardService? _dashboardService;
 
     /// <summary>
+    /// Optional AES-256-GCM encryptor (G-S1 RV-1). When present, document bytes are encrypted before being
+    /// written to the local filesystem so on-disk blobs are always ciphertext, never plaintext.
+    /// When null (dev/test without a key), bytes are written plaintext with a warning logged.
+    /// </summary>
+    private readonly IStorageEncryptor? _storageEncryptor;
+
+    /// <summary>Purpose label for HKDF sub-key derivation — must match across write and read.</summary>
+    private const string StorageEncryptionPurpose = "document-download";
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="IngestionOrchestrator"/> class.
     /// </summary>
     /// <param name="journal">The ingestion journal for idempotency tracking.</param>
@@ -71,6 +81,13 @@ public class IngestionOrchestrator
     /// is called after each new (non-duplicate) case is successfully stored and broadcast, so the Orion
     /// worker's <c>/dashboard</c> endpoint reflects real throughput instead of zero.
     /// </param>
+    /// <param name="storageEncryptor">
+    /// Optional AES-256-GCM encryptor (G-S1 / RV-1). When provided, document bytes are encrypted before
+    /// being written to the local filesystem — on-disk blobs are always ciphertext. When null (dev/test
+    /// without a key configured), bytes are written plaintext and a warning is logged at startup.
+    /// Production: register <c>AesGcmStorageEncryptor</c>
+    /// via <c>AddFileStorageServices</c> in the Orion Worker host and set <c>Storage:EncryptionKey</c>.
+    /// </param>
     public IngestionOrchestrator(
         IIngestionJournal journal,
         IDocumentDownloader downloader,
@@ -82,7 +99,8 @@ public class IngestionOrchestrator
         ProcessClearance processClearance = ProcessClearance.Download,
         TimeProvider? timeProvider = null,
         TimeSpan? postWriteFlushDelay = null,
-        IDashboardService? dashboardService = null)
+        IDashboardService? dashboardService = null,
+        IStorageEncryptor? storageEncryptor = null)
     {
         _journal = journal ?? throw new ArgumentNullException(nameof(journal));
         _downloader = downloader ?? throw new ArgumentNullException(nameof(downloader));
@@ -95,6 +113,15 @@ public class IngestionOrchestrator
         _timeProvider = timeProvider ?? TimeProvider.System;
         _postWriteFlushDelay = postWriteFlushDelay ?? TimeSpan.FromMilliseconds(250);
         _dashboardService = dashboardService;
+        _storageEncryptor = storageEncryptor;
+
+        if (_storageEncryptor is null)
+        {
+            _logger.LogWarning(
+                "Storage encryption is NOT configured for Orion Ingestion. " +
+                "Document bytes will be written PLAINTEXT to disk. " +
+                "Set Storage:EncryptionKey (via env var or secrets) for production.");
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -226,8 +253,8 @@ public class IngestionOrchestrator
 
             if (!isDuplicate)
             {
-                // Store the file under YYYY/MM/DD/{caseId}/{fileName}
-                var storeResult = StoreFileBytes(downloaded.Content, relativePath);
+                // Store the file under YYYY/MM/DD/{caseId}/{fileName} (encrypted when key configured — G-S1/RV-1)
+                var storeResult = await StoreFileBytesAsync(downloaded.Content, relativePath, cancellationToken).ConfigureAwait(false);
                 if (storeResult.IsFailure)
                 {
                     await EmitAuditAsync(
@@ -484,9 +511,14 @@ public class IngestionOrchestrator
 
     /// <summary>
     /// Writes the file bytes to the storage path derived from the relative path and the storage base.
-    /// Returns a failure result if the write fails; never throws.
+    /// When <see cref="_storageEncryptor"/> is configured, bytes are encrypted (AES-256-GCM) before being
+    /// written so on-disk blobs are always ciphertext (G-S1 / RV-1). Returns a failure result on error;
+    /// never throws.
     /// </summary>
-    private Result<bool> StoreFileBytes(byte[] content, string relativePath)
+    private async Task<Result<bool>> StoreFileBytesAsync(
+        byte[] content,
+        string relativePath,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -496,10 +528,47 @@ public class IngestionOrchestrator
             var dir = Path.GetDirectoryName(fullPath)!;
 
             Directory.CreateDirectory(dir);
-            File.WriteAllBytes(fullPath, content);
 
-            _logger.LogDebug("File stored at: {FullPath}", fullPath);
+            byte[] bytesToWrite;
+            if (_storageEncryptor is not null)
+            {
+                // Encrypt before touching the filesystem — on-disk bytes are ciphertext (G-S1).
+                var encryptResult = await _storageEncryptor
+                    .EncryptAsync(content, StorageEncryptionPurpose, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (encryptResult.IsCancelled())
+                    return ResultExtensions.Cancelled<bool>();
+
+                if (encryptResult.IsFailure)
+                {
+                    _logger.LogError(
+                        "Encryption failed for relative path {RelativePath}: {Error}",
+                        relativePath, string.Join(", ", encryptResult.Errors));
+                    return Result<bool>.WithFailure(
+                        $"Storage encryption failed: {string.Join(", ", encryptResult.Errors)}");
+                }
+
+                bytesToWrite = encryptResult.Value!;
+                _logger.LogDebug(
+                    "Encrypted {PlaintextBytes} bytes → {CiphertextBytes} byte blob for {RelativePath}",
+                    content.Length, bytesToWrite.Length, relativePath);
+            }
+            else
+            {
+                // Encryptor not configured — write plaintext (dev/test only; logged as warning at ctor).
+                bytesToWrite = content;
+            }
+
+            await File.WriteAllBytesAsync(fullPath, bytesToWrite, cancellationToken).ConfigureAwait(false);
+
+            _logger.LogDebug("File stored at: {FullPath} (encrypted={IsEncrypted})",
+                fullPath, _storageEncryptor is not null);
             return Result<bool>.Success(true);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return ResultExtensions.Cancelled<bool>();
         }
         catch (Exception ex)
         {

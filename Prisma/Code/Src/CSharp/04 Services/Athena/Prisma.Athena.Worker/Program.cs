@@ -30,12 +30,19 @@ using Prisma.Athena.Worker.Reconciliation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Default the Seq sink URL so %SEQ_URL% in appsettings always expands to a valid URI.
-// Compose/k8s override via the SEQ_URL env var; this guard prevents a boot-time
-// UriFormatException when the variable is unset (e.g. local `dotnet run`).
+// RV-3: Pre-set Serilog sink env vars before building Log.Logger so appsettings.json
+// %SEQ_URL% / %SERILOG_SQL_CONNECTION% tokens resolve to real values via the .NET
+// environment-variable configuration provider (Windows %VAR% syntax is NOT expanded by
+// .NET config — this guard is the correct substitution mechanism).
+// SEQ_URL: default to localhost when unset (prevents boot-time UriFormatException).
+// SERILOG_SQL_CONNECTION: default to empty — the MSSqlServer sink skips init when the
+// connection string is null/empty, so the worker boots cleanly without a DB configured.
 Environment.SetEnvironmentVariable(
     "SEQ_URL",
     Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341");
+Environment.SetEnvironmentVariable(
+    "SERILOG_SQL_CONNECTION",
+    Environment.GetEnvironmentVariable("SERILOG_SQL_CONNECTION") ?? string.Empty);
 
 // Configure Serilog from appsettings (mirrors Web.UI pattern)
 Log.Logger = new LoggerConfiguration()

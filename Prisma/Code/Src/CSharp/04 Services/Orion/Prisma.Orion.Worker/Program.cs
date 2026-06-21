@@ -6,6 +6,7 @@ using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Services.Manifest;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.FileStorage.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.FileSystem;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
@@ -24,12 +25,19 @@ using Prisma.Orion.Worker.Ingestion;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Default the Seq sink URL so %SEQ_URL% in appsettings always expands to a valid URI.
-// Compose/k8s override via the SEQ_URL env var; this guard prevents a boot-time
-// UriFormatException when the variable is unset (e.g. local `dotnet run`).
+// RV-3: Pre-set Serilog sink env vars before building Log.Logger so appsettings.json
+// %SEQ_URL% / %SERILOG_SQL_CONNECTION% tokens resolve to real values via the .NET
+// environment-variable configuration provider (Windows %VAR% syntax is NOT expanded by
+// .NET config — this guard is the correct substitution mechanism).
+// SEQ_URL: default to localhost when unset (prevents boot-time UriFormatException).
+// SERILOG_SQL_CONNECTION: default to empty — the MSSqlServer sink skips init when the
+// connection string is null/empty, so the worker boots cleanly without a DB configured.
 Environment.SetEnvironmentVariable(
     "SEQ_URL",
     Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341");
+Environment.SetEnvironmentVariable(
+    "SERILOG_SQL_CONNECTION",
+    Environment.GetEnvironmentVariable("SERILOG_SQL_CONNECTION") ?? string.Empty);
 
 // Configure Serilog from appsettings (mirrors Web.UI pattern)
 Log.Logger = new LoggerConfiguration()
@@ -54,6 +62,28 @@ else
     startupLogger.LogWarning(
         "Audit persistence DISABLED for Orion Worker: ConnectionStrings:DefaultConnection is blank or placeholder. " +
         "Set ConnectionStrings__DefaultConnection via environment variable or user-secrets for production.");
+}
+
+// G-S1 / RV-1: Storage at-rest encryption for the Orion download path.
+// AesGcmStorageEncryptor reads Storage:EncryptionKey from configuration.  Supply it via:
+//   - env var: Storage__EncryptionKey=<base64-of-32-bytes>   (Docker / k8s / CI)
+//   - dotnet user-secrets (local dev): Storage:EncryptionKey=<base64-of-32-bytes>
+//   Generate a key with: openssl rand -base64 32
+// AddFileStorageServices is only called when the key is present so the worker does not crash at
+// startup in dev/test — the orchestrator receives null and logs a plaintext-warning (fail-open).
+var storageEncryptionKey = builder.Configuration["Storage:EncryptionKey"];
+if (!string.IsNullOrWhiteSpace(storageEncryptionKey))
+{
+    builder.Services.AddFileStorageServices(options =>
+        builder.Configuration.GetSection("FileStorage").Bind(options));
+}
+else
+{
+    var encWarningLogger = LoggerFactory.Create(l => l.AddConsole()).CreateLogger("Orion.Worker.Startup");
+    encWarningLogger.LogWarning(
+        "Storage:EncryptionKey is not set. Document bytes will be written PLAINTEXT to disk. " +
+        "This is acceptable for dev/test but MUST NOT be used in production. " +
+        "Set Storage__EncryptionKey via environment variable or dotnet user-secrets.");
 }
 
 // Register orchestrator dependencies
@@ -186,6 +216,11 @@ builder.Services.AddScoped<IngestionOrchestrator>(sp =>
     // TimeProvider from DI if registered (e.g. FakeTimeProvider in tests), else system default.
     var timeProvider = sp.GetService<TimeProvider>();
 
+    // G-S1 / RV-1: Resolve the optional encryptor. GetService returns null when the key is not
+    // configured (dev/test), so the worker boots with a plaintext-warning rather than crashing.
+    // In production the key MUST be supplied — the constructor warning surfaces it clearly.
+    var storageEncryptor = sp.GetService<IStorageEncryptor>();
+
     return new IngestionOrchestrator(
         journal, downloader, eventHub, logger, storageBasePath,
         scopeFactory: scopeFactory,
@@ -193,7 +228,8 @@ builder.Services.AddScoped<IngestionOrchestrator>(sp =>
         processClearance: clearance,
         timeProvider: timeProvider,
         postWriteFlushDelay: postWriteFlushDelay,
-        dashboardService: sp.GetRequiredService<IDashboardService>());
+        dashboardService: sp.GetRequiredService<IDashboardService>(),
+        storageEncryptor: storageEncryptor);
 });
 
 // The SIARA watch loop (MVP-PATH 1.2): a singleton poll/watcher that owns the DI scopes (one warm
