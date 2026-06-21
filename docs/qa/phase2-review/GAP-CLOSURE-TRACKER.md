@@ -1,5 +1,10 @@
 # Phase-2 Gap-Closure Tracker
 
+> **▶ Orchestration brief (start here):** `docs/qa/phase2-review/REMEDIATION-ORCHESTRATION-KICKOFF.md` —
+> the master plan that groups these tasks into EPIC-0…8, the BMAD agent/skill mapping, sequencing,
+> owner rulings, and env gotchas. Launch with `/bmad-orchestrator docs/qa/phase2-review/REMEDIATION-ORCHESTRATION-KICKOFF.md`.
+> **This tracker is the task ledger** the orchestrator updates as it executes.
+
 **Source of truth for findings:** `docs/qa/phase2-review/PHASE2-FINAL-REPORT.md` (+ R1–R5 + VERIFICATION-NOTES).
 **Branch:** `Liv`. **Created:** 2026-06-20. **Status legend:** ☐ pending · ◐ in-progress · ☑ done · ⛔ blocked (owner decision).
 **For the executing agent:** each task is self-contained — file path, what to change, Definition of Done (DoD) with the *evidence to produce*. Verify from ground truth (build the touched project + a test); do NOT mark ☑ without the evidence. Build single projects (E: drive slow). xUnit v3 / MTP: `dotnet test <proj>` (NO `--nologo`), filter `--filter-query "/Asm/Ns/Class/Method"`, capture `--report-trx`. Result<T> + CancellationToken conventions apply to all new code.
