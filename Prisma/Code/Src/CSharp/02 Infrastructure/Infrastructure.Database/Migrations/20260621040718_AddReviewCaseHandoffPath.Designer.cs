@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExxerCube.Prisma.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(PrismaDbContext))]
-    partial class PrismaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260621040718_AddReviewCaseHandoffPath")]
+    partial class AddReviewCaseHandoffPath
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

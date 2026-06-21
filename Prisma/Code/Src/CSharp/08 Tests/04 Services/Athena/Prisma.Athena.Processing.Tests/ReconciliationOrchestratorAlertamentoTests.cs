@@ -43,6 +43,7 @@ public sealed class ReconciliationOrchestratorAlertamentoTests
                 Arg.Do<UnifiedMetadataRecord>(m => capturedMetadata.Add(m)),
                 Arg.Any<ClassificationResult>(),
                 Arg.Any<bool>(),
+                Arg.Any<string?>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(new List<ReviewCase>()));
 

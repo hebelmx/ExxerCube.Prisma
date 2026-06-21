@@ -95,6 +95,11 @@ builder.Services.AddSiroExportServices(builder.Configuration, ServiceLifetime.Si
 builder.Services.AddDatosCargaOficioExportServices(ServiceLifetime.Singleton);
 
 builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
+
+// G-C2b: register the approval-triggered re-export handler as a singleton.
+// StartAsync is called after app.Build() below so the IEventPublisher Rx stream is
+// already alive when the subscription is attached.
+builder.Services.AddSingleton<ReviewApprovalExportHandler>();
 builder.Services.AddSingleton<ReconciliationOrchestrator>(sp => new ReconciliationOrchestrator(
     sp.GetRequiredService<IEventPublisher>(),
     sp.GetRequiredService<ILogger<ReconciliationOrchestrator>>(),
@@ -132,6 +137,12 @@ builder.Services.AddSingleton<IReadinessProbe>(sp => sp.GetRequiredService<Recon
 builder.Services.AddSingleton<IHealthCheckService, ReconciliatorHealthCheckService>();
 
 var app = builder.Build();
+
+// G-C2b: start the approval-triggered re-export handler.  Must be called after Build() so the
+// singleton IEventPublisher (EventPublisher, Subject<DomainEvent>) is resolved from the root
+// provider and the Rx stream is alive before the subscription is attached.
+app.Services.GetRequiredService<ReviewApprovalExportHandler>()
+    .StartAsync(cancellationToken: default);
 
 // Health endpoints — mirror the Athena/Orion idiom (Orion Program.cs:225-244).
 // /health     → overall (Healthy 200 / Degraded 503)

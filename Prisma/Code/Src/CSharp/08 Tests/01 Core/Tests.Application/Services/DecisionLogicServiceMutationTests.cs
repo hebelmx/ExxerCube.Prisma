@@ -559,7 +559,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Identify_PanelFailure_ReturnsExactError()
     {
-        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.WithFailure("panel boom"));
 
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
@@ -572,7 +572,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Identify_PanelCancelled_ReturnsCancelled()
     {
-        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<ReviewCase>>());
 
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
@@ -584,7 +584,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Identify_SuccessNullValue_ReturnsEmptyList()
     {
-        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(null!));
 
         var result = await _service.IdentifyAndQueueReviewCasesAsync(
@@ -598,7 +598,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Identify_PanelThrows_ReturnsWrappedError()
     {
-        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        _panel.IdentifyReviewCasesAsync(Arg.Any<string>(), Arg.Any<UnifiedMetadataRecord>(), Arg.Any<ClassificationResult>(), Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns<Task<Result<List<ReviewCase>>>>(_ => throw new InvalidOperationException("boom"));
 
         var result = await _service.IdentifyAndQueueReviewCasesAsync(

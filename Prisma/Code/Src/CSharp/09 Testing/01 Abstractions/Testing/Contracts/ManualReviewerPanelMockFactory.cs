@@ -211,6 +211,7 @@ public static class ManualReviewerPanelMockFactory
             UnifiedMetadataRecord metadata,
             ClassificationResult classification,
             bool isComplete = true,
+            string? handoffPath = null,
             CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)

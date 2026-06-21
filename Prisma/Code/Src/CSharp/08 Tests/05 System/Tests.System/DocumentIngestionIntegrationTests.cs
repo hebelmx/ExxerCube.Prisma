@@ -46,7 +46,7 @@ public class DocumentIngestionIntegrationTests : IDisposable
         {
             StorageBasePath = _tempDirectory
         });
-        var downloadStorage = new FileSystemDownloadStorageAdapter(_storageLogger, storageOptions);
+        var downloadStorage = new FileSystemDownloadStorageAdapter(_storageLogger, storageOptions, Substitute.For<IStorageEncryptor>());
 
         // Mock browser automation agent for system tests
         _browserAutomationAgent = Substitute.For<IBrowserAutomationAgent>();

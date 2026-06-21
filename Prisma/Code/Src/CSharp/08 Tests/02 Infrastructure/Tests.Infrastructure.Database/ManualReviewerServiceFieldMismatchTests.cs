@@ -143,10 +143,10 @@ public sealed class ManualReviewerServiceFieldMismatchTests : IDisposable
         var metadata = MetadataWithOneAlert();
         var classification = HighConfidenceClassification();
 
-        var result1 = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, isComplete: true, ct);
+        var result1 = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, isComplete: true, cancellationToken: ct);
         result1.IsSuccess.ShouldBeTrue();
 
-        var result2 = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, isComplete: true, ct);
+        var result2 = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, isComplete: true, cancellationToken: ct);
         result2.IsSuccess.ShouldBeTrue();
 
         var mismatchCases = await _dbContext.ReviewCases
@@ -175,7 +175,7 @@ public sealed class ManualReviewerServiceFieldMismatchTests : IDisposable
 
         // First call — alerts present → creates Pending FieldMismatch row
         var resultWith = await _service.IdentifyReviewCasesAsync(
-            fileId, MetadataWithOneAlert(), classification, isComplete: true, ct);
+            fileId, MetadataWithOneAlert(), classification, isComplete: true, cancellationToken: ct);
         resultWith.IsSuccess.ShouldBeTrue();
 
         var before = await _dbContext.ReviewCases
@@ -186,7 +186,7 @@ public sealed class ManualReviewerServiceFieldMismatchTests : IDisposable
 
         // Second call — no alerts → heal
         var resultWithout = await _service.IdentifyReviewCasesAsync(
-            fileId, MetadataWithNoAlerts(), classification, isComplete: true, ct);
+            fileId, MetadataWithNoAlerts(), classification, isComplete: true, cancellationToken: ct);
         resultWithout.IsSuccess.ShouldBeTrue();
 
         var after = await _dbContext.ReviewCases

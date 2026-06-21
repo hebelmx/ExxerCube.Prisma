@@ -55,6 +55,13 @@ public interface IManualReviewerPanel
     /// Whether the source case package was complete (all companion files present).
     /// Defaults to <see langword="true"/> so existing callers compile unchanged.
     /// </param>
+    /// <param name="handoffPath">
+    /// Optional storage-relative path of the fused expediente handoff artifact (G-C2b).
+    /// When non-null it is stored on each new <see cref="ReviewCase"/> row so the
+    /// reviewer-approval handler can reload the expediente via <c>IExpedienteHandoffStore</c>
+    /// after the reviewer approves the case.  Defaults to <see langword="null"/> so existing
+    /// callers compile unchanged.
+    /// </param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of identified review cases or an error.</returns>
     Task<Result<List<ReviewCase>>> IdentifyReviewCasesAsync(
@@ -62,6 +69,7 @@ public interface IManualReviewerPanel
         UnifiedMetadataRecord metadata,
         ClassificationResult classification,
         bool isComplete = true,
+        string? handoffPath = null,
         CancellationToken cancellationToken = default);
 }
 

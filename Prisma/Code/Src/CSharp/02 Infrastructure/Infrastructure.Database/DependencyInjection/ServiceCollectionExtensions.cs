@@ -85,7 +85,15 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<IUnifiedMetadataStore, EfCoreUnifiedMetadataStore>();
-        services.AddScoped<IManualReviewerPanel, ManualReviewerService>();
+
+        // G-C2b: wire IEventPublisher (optional) so ManualReviewerService can publish
+        // ReviewDecisionApprovedEvent on Approve.  GetService<T> (not GetRequired) so the service
+        // degrades gracefully in hosts that do not register an IEventPublisher (e.g. lean processes).
+        services.AddScoped<IManualReviewerPanel>(sp => new ManualReviewerService(
+            sp.GetRequiredService<PrismaDbContext>(),
+            sp.GetRequiredService<ILogger<ManualReviewerService>>(),
+            sp.GetService<IUnifiedMetadataStore>(),
+            sp.GetService<IEventPublisher>()));
 
         // Cross-document person identity deduplication (FR10 / G-H5).
         // Scoped to match PrismaDbContext lifetime. The Athena Worker composition root

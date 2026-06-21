@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
 using ExxerCube.Prisma.Domain.ValueObjects;
@@ -13,6 +14,7 @@ public class ManualReviewerService : IManualReviewerPanel
     private readonly PrismaDbContext _dbContext;
     private readonly ILogger<ManualReviewerService> _logger;
     private readonly IUnifiedMetadataStore? _unifiedMetadataStore;
+    private readonly IEventPublisher? _eventPublisher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ManualReviewerService"/> class.
@@ -24,14 +26,23 @@ public class ManualReviewerService : IManualReviewerPanel
     /// <see cref="UnifiedMetadataRecord"/> (C3).  When <c>null</c> the service degrades to the
     /// previous stub behaviour (only a <c>ConfidenceLevel</c> annotation is emitted).
     /// </param>
+    /// <param name="eventPublisher">
+    /// Optional event publisher.  When provided and a reviewer submits an <c>Approve</c> decision,
+    /// a <see cref="ReviewDecisionApprovedEvent"/> is published so the
+    /// <c>ReviewApprovalExportHandler</c> can re-run Stage-5 export for the held case (G-C2b).
+    /// When <c>null</c> no event is published (graceful degradation for callers that do not wire
+    /// the event bus, e.g. in-process tests using the old two-parameter constructor).
+    /// </param>
     public ManualReviewerService(
         PrismaDbContext dbContext,
         ILogger<ManualReviewerService> logger,
-        IUnifiedMetadataStore? unifiedMetadataStore = null)
+        IUnifiedMetadataStore? unifiedMetadataStore = null,
+        IEventPublisher? eventPublisher = null)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _unifiedMetadataStore = unifiedMetadataStore;
+        _eventPublisher = eventPublisher;
     }
 
     /// <inheritdoc />
@@ -249,6 +260,38 @@ public class ManualReviewerService : IManualReviewerPanel
 
                 _logger.LogInformation("Review decision submitted successfully for case: {CaseId}, decision ID: {DecisionId}", caseId, decision.DecisionId);
 
+                // G-C2b: publish ReviewDecisionApprovedEvent exactly once on Approve so the
+                // ReviewApprovalExportHandler can re-run Stage-5 export for the held case.
+                // Only Approve triggers a re-export; Reject / RequestMoreInfo are no-ops here.
+                // Guard on _eventPublisher so callers that omit the optional publisher degrade
+                // gracefully (InMemory tests, contract tests) without blowing up.
+                if (_eventPublisher is not null && decision.DecisionType == DecisionType.Approve)
+                {
+                    if (!Guid.TryParse(reviewCase.FileId, out var approvedFileId))
+                    {
+                        _logger.LogWarning(
+                            "Cannot publish ReviewDecisionApprovedEvent for case {CaseId}: FileId '{FileId}' is not a valid Guid",
+                            caseId, reviewCase.FileId);
+                    }
+                    else
+                    {
+                        var approvedEvent = new ReviewDecisionApprovedEvent
+                        {
+                            EventId = Guid.NewGuid(),
+                            Timestamp = DateTime.UtcNow,
+                            FileId = approvedFileId,
+                            CaseId = caseId,
+                            DecisionId = decision.DecisionId,
+                            ReviewerId = decision.ReviewerId,
+                            HandoffPath = reviewCase.HandoffPath,
+                        };
+                        _eventPublisher.Publish(approvedEvent);
+                        _logger.LogInformation(
+                            "ReviewDecisionApprovedEvent published for case {CaseId}, FileId {FileId}, DecisionId {DecisionId}",
+                            caseId, approvedFileId, decision.DecisionId);
+                    }
+                }
+
                 return Result.Success();
             }
             catch (DbUpdateConcurrencyException ex)
@@ -430,6 +473,7 @@ public class ManualReviewerService : IManualReviewerPanel
         UnifiedMetadataRecord metadata,
         ClassificationResult classification,
         bool isComplete = true,
+        string? handoffPath = null,
         CancellationToken cancellationToken = default)
     {
         // Early cancellation check
@@ -490,7 +534,8 @@ public class ManualReviewerService : IManualReviewerPanel
                         ConfidenceLevel = classification.Confidence,
                         ClassificationAmbiguity = false,
                         Status = ReviewStatus.Pending,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        HandoffPath = handoffPath,
                     };
 
                     reviewCases.Add(incompleteCase);
@@ -549,7 +594,8 @@ public class ManualReviewerService : IManualReviewerPanel
                         ConfidenceLevel = classification.Confidence,
                         ClassificationAmbiguity = false,
                         Status = ReviewStatus.Pending,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        HandoffPath = handoffPath,
                     };
 
                     reviewCases.Add(mismatchCase);
@@ -607,7 +653,8 @@ public class ManualReviewerService : IManualReviewerPanel
                         ConfidenceLevel = classification.Confidence,
                         ClassificationAmbiguity = false,
                         Status = ReviewStatus.Pending,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        HandoffPath = handoffPath,
                     };
 
                     reviewCases.Add(lowConfidenceCase);
@@ -630,7 +677,8 @@ public class ManualReviewerService : IManualReviewerPanel
                         ConfidenceLevel = classification.Confidence,
                         ClassificationAmbiguity = true,
                         Status = ReviewStatus.Pending,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        HandoffPath = handoffPath,
                     };
 
                     reviewCases.Add(ambiguousCase);
@@ -654,7 +702,8 @@ public class ManualReviewerService : IManualReviewerPanel
                             ConfidenceLevel = classification.Confidence,
                             ClassificationAmbiguity = false,
                             Status = ReviewStatus.Pending,
-                            CreatedAt = DateTime.UtcNow
+                            CreatedAt = DateTime.UtcNow,
+                            HandoffPath = handoffPath,
                         };
 
                         reviewCases.Add(extractionErrorCase);

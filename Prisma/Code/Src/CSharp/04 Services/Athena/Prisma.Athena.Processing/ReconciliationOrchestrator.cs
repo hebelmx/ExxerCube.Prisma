@@ -142,7 +142,8 @@ public sealed class ReconciliationOrchestrator
 
         // REVIEW CASE PERSISTENCE (GH #6): run after Stage 4 so we have classificationResult.
         // Fail-open: any failure is logged at Warning and never throws — the pipeline must continue.
-        await PersistReviewCaseAsync(fileId, fusionResult, classificationResult, isComplete, cancellationToken)
+        // G-C2b: pass handoffPath so the ReviewCase rows carry it for the reviewer-approval handler.
+        await PersistReviewCaseAsync(fileId, fusionResult, classificationResult, isComplete, handoffPath, cancellationToken)
             .ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -265,6 +266,7 @@ public sealed class ReconciliationOrchestrator
         FusionResult? fusionResult,
         ClassificationResult? classificationResult,
         bool isComplete,
+        string? handoffPath,
         CancellationToken cancellationToken)
     {
         if (_reviewCaseScopeFactory is null)
@@ -306,7 +308,8 @@ public sealed class ReconciliationOrchestrator
                 metadata,
                 effectiveClassification,
                 isComplete,
-                cancellationToken).ConfigureAwait(false);
+                handoffPath: handoffPath,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             if (result.IsFailure)
             {

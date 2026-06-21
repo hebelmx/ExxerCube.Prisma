@@ -55,6 +55,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
                 Arg.Any<UnifiedMetadataRecord>(),
                 Arg.Any<ClassificationResult>(),
                 Arg.Any<bool>(),
+                Arg.Any<string?>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(new List<ReviewCase>()));
 
@@ -124,6 +125,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
             Arg.Is<UnifiedMetadataRecord>(m => m != null),
             Arg.Is<ClassificationResult>(c => c != null),
             Arg.Is<bool>(b => b == false),          // <-- the flag under test
+            Arg.Any<string?>(),                      // handoffPath (G-C2b)
             Arg.Is<CancellationToken>(ct => true));
     }
 
@@ -158,6 +160,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
             Arg.Is<UnifiedMetadataRecord>(m => m != null),
             Arg.Is<ClassificationResult>(c => c != null),
             Arg.Is<bool>(b => b == true),           // <-- the flag under test
+            Arg.Any<string?>(),                      // handoffPath (G-C2b)
             Arg.Is<CancellationToken>(ct => true));
     }
 
@@ -186,6 +189,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
                 Arg.Any<UnifiedMetadataRecord>(),
                 Arg.Any<ClassificationResult>(),
                 Arg.Any<bool>(),
+                Arg.Any<string?>(),
                 Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(new List<ReviewCase>()));
 
@@ -221,6 +225,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
             Arg.Is<UnifiedMetadataRecord>(m => m != null),           // metadata not null
             Arg.Is<ClassificationResult>(c => c != null),            // substituted non-null classification
             Arg.Is<bool>(b => b == false),                           // isComplete=false forwarded
+            Arg.Any<string?>(),                                       // handoffPath (G-C2b)
             Arg.Is<CancellationToken>(ct => true));
     }
 
@@ -271,6 +276,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
             Arg.Any<UnifiedMetadataRecord>(),
             Arg.Any<ClassificationResult>(),
             Arg.Any<bool>(),
+            Arg.Any<string?>(),
             Arg.Any<CancellationToken>());
     }
 }

@@ -59,6 +59,12 @@ public class ReviewCaseConfiguration : IEntityTypeConfiguration<ReviewCase>
         builder.Property(c => c.CreatedAt)
             .IsRequired();
 
+        // G-C2b: storage-relative path of the fused expediente handoff artifact.
+        // Nullable — only populated in the 3-process split when the export gate blocks the case.
+        builder.Property(c => c.HandoffPath)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
         // No referential constraint to FileMetadata: worker processes (the 3-process split) persist
         // ReviewCases keyed by FileId BEFORE a FileMetadata row exists, so an FK caused every worker
         // INSERT to fail and the review case to be silently dropped (fail-open) — the dashboard then

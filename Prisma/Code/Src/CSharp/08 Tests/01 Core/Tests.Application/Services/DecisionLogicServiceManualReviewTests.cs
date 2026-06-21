@@ -63,7 +63,7 @@ public class DecisionLogicServiceManualReviewTests
             }
         };
 
-        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.Success(expectedCases));
 
         // Act
@@ -90,7 +90,7 @@ public class DecisionLogicServiceManualReviewTests
         var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
 
-        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<ReviewCase>>());
 
         // Act
@@ -112,7 +112,7 @@ public class DecisionLogicServiceManualReviewTests
         var metadata = new UnifiedMetadataRecord();
         var classification = new ClassificationResult();
 
-        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.WithFailure("Identification failed"));
 
         // Act

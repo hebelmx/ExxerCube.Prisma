@@ -645,7 +645,8 @@ public class DecisionLogicService
         {
             _logger.LogInformation("Identifying review cases for file: {FileId}, classification confidence: {Confidence}", fileId, classification.Confidence);
 
-            var identifyResult = await _manualReviewerPanel.IdentifyReviewCasesAsync(fileId, metadata, classification, isComplete, cancellationToken).ConfigureAwait(false);
+            var identifyResult = await _manualReviewerPanel.IdentifyReviewCasesAsync(
+                fileId, metadata, classification, isComplete, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // Propagate cancellation from manual reviewer panel
             if (identifyResult.IsCancelled())

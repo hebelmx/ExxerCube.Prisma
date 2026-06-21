@@ -90,7 +90,7 @@ public sealed class MockManualReviewerPanelContractTests : ManualReviewerPanelCo
     {
         var metadata = new UnifiedMetadataRecord();
         var classification = new ClassificationResult();
-        _faultyPanel.IdentifyReviewCasesAsync("FILE-001", metadata, classification, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+        _faultyPanel.IdentifyReviewCasesAsync("FILE-001", metadata, classification, Arg.Any<bool>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<ReviewCase>>.WithFailure("Identification failed"));
 
         var result = await _faultyPanel.IdentifyReviewCasesAsync("FILE-001", metadata, classification, cancellationToken: TestContext.Current.CancellationToken);

@@ -46,6 +46,15 @@ public class ReviewCase
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
+    /// Gets or sets the storage-relative path of the fused expediente handoff artifact
+    /// (e.g. <c>2026/06/12/{fileId}.fusion.json</c>).  Set by the pipeline when the export
+    /// gate blocks the case so that the reviewer-approval handler can reload the expediente
+    /// via <c>IExpedienteHandoffStore</c> after approval (G-C2b).
+    /// <see langword="null"/> in the in-process / single-service path (no shared-storage handoff).
+    /// </summary>
+    public string? HandoffPath { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ReviewCase"/> class.
     /// </summary>
     public ReviewCase()
