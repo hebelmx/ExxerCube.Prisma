@@ -49,49 +49,35 @@ public sealed class PdfToImageConverter : IPdfToImageConverter
 
             var options = new RenderOptions(Dpi: dpi);
 
-            // PDFtoImage doesn't expose a page count, so iterate until a page returns null.
-            // IMPORTANT: create a NEW stream for each page because Conversion.ToImage() closes it.
-            int pageIndex = 0;
-            while (true)
+            // Obtain page count upfront so we iterate exactly 0..(pageCount-1) — no exception-as-sentinel.
+#pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
+            int pageCount = Conversion.GetPageCount(pdfBytes);
+#pragma warning restore CA1416
+
+            _logger.LogInformation("PDF has {PageCount} pages to convert", pageCount);
+
+            for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                try
-                {
-                    using var pdfStream = new MemoryStream(pdfBytes);
+                // IMPORTANT: create a NEW stream for each page because Conversion.ToImage() closes it.
+                using var pdfStream = new MemoryStream(pdfBytes);
 
 #pragma warning disable CA1416 // PDFtoImage is cross-platform (Windows, Linux, macOS)
-                    using var skBitmap = Conversion.ToImage(pdfStream, pageIndex, options: options);
+                using var skBitmap = Conversion.ToImage(pdfStream, pageIndex, options: options);
 #pragma warning restore CA1416
 
-                    if (skBitmap == null)
-                    {
-                        break; // No more pages
-                    }
+                using var image = Image.LoadPixelData<Rgba32>(
+                    skBitmap.GetPixelSpan(),
+                    skBitmap.Width,
+                    skBitmap.Height);
 
-                    using var image = Image.LoadPixelData<Rgba32>(
-                        skBitmap.GetPixelSpan(),
-                        skBitmap.Width,
-                        skBitmap.Height);
+                using var outputMs = new MemoryStream();
+                image.SaveAsPng(outputMs);
+                imagePages.Add(outputMs.ToArray());
 
-                    using var outputMs = new MemoryStream();
-                    image.SaveAsPng(outputMs);
-                    imagePages.Add(outputMs.ToArray());
-
-                    _logger.LogInformation("PDF page {PageNumber} converted ({Size} bytes)", pageIndex + 1, outputMs.Length);
-                    pageIndex++;
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    // Break on error (typically signals "no more pages" from PDFtoImage).
-                    _logger.LogWarning("Stopping PDF conversion at page {PageIndex}: {ExceptionType} - {Message}",
-                        pageIndex, ex.GetType().Name, ex.Message);
-                    break;
-                }
+                _logger.LogInformation("PDF page {PageNumber} of {PageCount} converted ({Size} bytes)",
+                    pageIndex + 1, pageCount, outputMs.Length);
             }
 
             _logger.LogInformation("PDF conversion complete: {PageCount} pages converted to images", imagePages.Count);
