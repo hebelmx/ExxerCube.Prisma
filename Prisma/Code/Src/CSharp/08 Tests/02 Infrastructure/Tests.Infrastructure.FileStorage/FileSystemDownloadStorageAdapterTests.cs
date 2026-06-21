@@ -1,9 +1,6 @@
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Infrastructure.FileStorage;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Shouldly;
-using Xunit;
+
 namespace ExxerCube.Prisma.Tests.Infrastructure.FileStorage;
 
 /// <summary>
@@ -11,6 +8,10 @@ namespace ExxerCube.Prisma.Tests.Infrastructure.FileStorage;
 /// </summary>
 public class FileSystemDownloadStorageAdapterTests : IDisposable
 {
+    // A valid 32-byte AES-256 test key (never use in production).
+    private static readonly string TestEncryptionKey = Convert.ToBase64String(
+        Enumerable.Range(10, 32).Select(i => (byte)i).ToArray());
+
     private readonly string _tempDirectory;
     private readonly ILogger<FileSystemDownloadStorageAdapter> _logger;
     private readonly FileSystemDownloadStorageAdapter _service;
@@ -28,12 +29,19 @@ public class FileSystemDownloadStorageAdapterTests : IDisposable
             StorageBasePath = _tempDirectory
         });
 
+        // Wire up the real AES-256-GCM encryptor so these tests cover the full wiring.
+        var config = Substitute.For<IConfiguration>();
+        config[AesGcmStorageEncryptor.ConfigurationKey].Returns(TestEncryptionKey);
+        var encryptor = new AesGcmStorageEncryptor(config, NullLogger<AesGcmStorageEncryptor>.Instance);
+
         _logger = XUnitLogger.CreateLogger<FileSystemDownloadStorageAdapter>(output);
-        _service = new FileSystemDownloadStorageAdapter(_logger, options);
+        _service = new FileSystemDownloadStorageAdapter(_logger, options, encryptor);
     }
 
     /// <summary>
-    /// Tests that <see cref="FileSystemDownloadStorageAdapter.SaveFileAsync"/> successfully saves a file.
+    /// Tests that <see cref="FileSystemDownloadStorageAdapter.SaveFileAsync"/> successfully saves
+    /// a file and that <see cref="FileSystemDownloadStorageAdapter.ReadFileAsync"/> recovers the
+    /// original plaintext (round-trip via the storage adapter — not raw disk bytes).
     /// </summary>
     [Fact]
     public async Task SaveFileAsync_ValidFile_SavesSuccessfully()
@@ -48,14 +56,15 @@ public class FileSystemDownloadStorageAdapterTests : IDisposable
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
-        if (result.IsSuccess)
-        {
-            result.Value.ShouldNotBeNullOrEmpty();
-            var savedPath = result.Value;
-            File.Exists(savedPath).ShouldBeTrue();
-            var savedContent = await File.ReadAllBytesAsync(savedPath, TestContext.Current.CancellationToken);
-            savedContent.ShouldBe(fileContent);
-        }
+        result.Value.ShouldNotBeNullOrEmpty();
+
+        var savedPath = result.Value!;
+        File.Exists(savedPath).ShouldBeTrue();
+
+        // The raw on-disk bytes are ciphertext — use ReadFileAsync to decrypt.
+        var readResult = await _service.ReadFileAsync(savedPath, TestContext.Current.CancellationToken);
+        readResult.IsSuccess.ShouldBeTrue();
+        readResult.Value.ShouldBe(fileContent);
     }
 
     /// <summary>
@@ -113,4 +122,3 @@ public class FileSystemDownloadStorageAdapterTests : IDisposable
         }
     }
 }
-

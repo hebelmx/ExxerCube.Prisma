@@ -22,6 +22,7 @@
     <TestingPlatformServer>true</TestingPlatformServer>
   </PropertyGroup>
   <ItemGroup Label="Testing Utilities">
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="NSubstitute" />
   </ItemGroup>
@@ -90,6 +91,8 @@
     <Using Include="ExxerCube.Prisma.Domain.Interfaces" />
     <Using Include="ExxerCube.Prisma.Infrastructure.FileStorage" />
     <Using Include="ExxerCube.Prisma.Testing.Abstractions" />
+    <Using Include="Microsoft.Extensions.Configuration" />
+    <Using Include="Microsoft.Extensions.Logging.Abstractions" />
     <Using Include="IndQuestResults" />
     <Using Include="IndQuestResults.Async" />
     <Using Include="IndQuestResults.Operations" />

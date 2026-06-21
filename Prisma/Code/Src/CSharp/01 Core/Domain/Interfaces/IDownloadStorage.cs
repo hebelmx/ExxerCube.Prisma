@@ -29,5 +29,18 @@ public interface IDownloadStorage
     /// <param name="checksum">The file checksum (optional, for checksum-based paths).</param>
     /// <returns>The deterministic storage path.</returns>
     string GenerateStoragePath(string fileName, FileFormat format, string? checksum = null);
+
+    /// <summary>
+    /// Reads and decrypts the file at the given storage path.
+    /// </summary>
+    /// <param name="storagePath">The path returned by <see cref="SaveFileAsync"/>.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>
+    /// A result containing the original plaintext bytes on success, or an error if the file
+    /// does not exist, is corrupt, or decryption fails.
+    /// </returns>
+    Task<Result<byte[]>> ReadFileAsync(
+        string storagePath,
+        CancellationToken cancellationToken = default);
 }
 
