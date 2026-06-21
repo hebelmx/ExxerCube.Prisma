@@ -12,16 +12,16 @@ namespace ExxerCube.Prisma.Web.UI.HealthChecks;
 /// </remarks>
 public sealed class PrismaDbHealthCheck : MsHealthChecks.IHealthCheck
 {
-    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+    private readonly IDbContextFactory<PrismaIdentityDbContext> _dbContextFactory;
     private readonly ILogger<PrismaDbHealthCheck> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PrismaDbHealthCheck"/> class.
     /// </summary>
-    /// <param name="dbContextFactory">Factory used to create a short-lived <see cref="ApplicationDbContext"/> per check.</param>
+    /// <param name="dbContextFactory">Factory used to create a short-lived <see cref="PrismaIdentityDbContext"/> per check.</param>
     /// <param name="logger">Logger.</param>
     public PrismaDbHealthCheck(
-        IDbContextFactory<ApplicationDbContext> dbContextFactory,
+        IDbContextFactory<PrismaIdentityDbContext> dbContextFactory,
         ILogger<PrismaDbHealthCheck> logger)
     {
         _dbContextFactory = dbContextFactory ?? throw new ArgumentNullException(nameof(dbContextFactory));

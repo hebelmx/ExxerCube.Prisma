@@ -1,11 +1,11 @@
-﻿@page "/Account/LoginWith2fa"
+@page "/Account/LoginWith2fa"
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
-@using ExxerCube.Prisma.Web.UI.Data
+@using ExxerCube.Prisma.Infrastructure.Identity
 
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<PrismaApplicationUser> SignInManager
+@inject UserManager<PrismaApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<LoginWith2fa> Logger
 
@@ -46,7 +46,7 @@
 
 @code {
     private string? message;
-    private ApplicationUser user = default!;
+    private PrismaApplicationUser user = default!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();

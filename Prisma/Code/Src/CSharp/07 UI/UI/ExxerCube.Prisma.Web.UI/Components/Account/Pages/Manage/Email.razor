@@ -1,14 +1,14 @@
-﻿@page "/Account/Manage/Email"
+@page "/Account/Manage/Email"
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
-@using ExxerCube.Prisma.Web.UI.Data
+@using ExxerCube.Prisma.Infrastructure.Identity
 
-@inject UserManager<ApplicationUser> UserManager
-@inject IEmailSender<ApplicationUser> EmailSender
+@inject UserManager<PrismaApplicationUser> UserManager
+@inject IEmailSender<PrismaApplicationUser> EmailSender
 @inject IdentityUserAccessor UserAccessor
 @inject NavigationManager NavigationManager
 
@@ -54,7 +54,7 @@
 
 @code {
     private string? message;
-    private ApplicationUser user = default!;
+    private PrismaApplicationUser user = default!;
     private string? email;
     private bool isEmailConfirmed;
 

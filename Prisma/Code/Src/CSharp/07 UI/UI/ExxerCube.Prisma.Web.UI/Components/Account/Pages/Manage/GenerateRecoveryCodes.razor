@@ -1,9 +1,9 @@
-﻿@page "/Account/Manage/GenerateRecoveryCodes"
+@page "/Account/Manage/GenerateRecoveryCodes"
 
 @using Microsoft.AspNetCore.Identity
-@using ExxerCube.Prisma.Web.UI.Data
+@using ExxerCube.Prisma.Infrastructure.Identity
 
-@inject UserManager<ApplicationUser> UserManager
+@inject UserManager<PrismaApplicationUser> UserManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<GenerateRecoveryCodes> Logger
@@ -40,7 +40,7 @@ else
 
 @code {
     private string? message;
-    private ApplicationUser user = default!;
+    private PrismaApplicationUser user = default!;
     private IEnumerable<string>? recoveryCodes;
 
     [CascadingParameter]

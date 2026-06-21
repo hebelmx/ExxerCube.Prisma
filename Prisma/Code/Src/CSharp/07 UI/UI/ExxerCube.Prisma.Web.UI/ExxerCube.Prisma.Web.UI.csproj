@@ -27,8 +27,8 @@
   <ItemGroup>
     <PackageReference Include="IndFusion.Ember" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <!-- Microsoft.AspNetCore.Identity.EntityFrameworkCore and Microsoft.EntityFrameworkCore.SqlServer
+         are now transitive through Infrastructure.Identity (ADR-014). Kept here for EF Tools CLI. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Extensions.MudBlazor.StaticInput" />
@@ -67,7 +67,9 @@
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Metrics\ExxerCube.Prisma.Infrastructure.Metrics.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\..\..\04 Services\CrossConcerns\ExxerCube.Prisma.CrossConcerns\ExxerCube.Prisma.CrossConcerns.csproj" />
-    
+    <!-- ADR-014: Identity adapter extracted from Web.UI into its own infrastructure project -->
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Identity\ExxerCube.Prisma.Infrastructure.Identity.csproj" />
+
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

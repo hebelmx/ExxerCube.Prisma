@@ -8,7 +8,10 @@ global using ExxerCube.Prisma.Domain.Sources;
 global using ExxerCube.Prisma.Web.UI;
 global using ExxerCube.Prisma.Web.UI.Components;
 global using ExxerCube.Prisma.Web.UI.Components.Account.Shared;
+// ADR-014: ExxerCube.Prisma.Web.UI.Data namespace is still referenced by Migrations snapshot;
+// the Identity types (PrismaApplicationUser, PrismaIdentityDbContext) now live in Infrastructure.Identity.
 global using ExxerCube.Prisma.Web.UI.Data;
+global using ExxerCube.Prisma.Infrastructure.Identity;
 global using ExxerCube.Prisma.Web.UI.Models;
 global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Components.Forms;

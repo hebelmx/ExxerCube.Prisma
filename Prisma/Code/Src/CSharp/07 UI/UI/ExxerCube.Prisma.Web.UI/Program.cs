@@ -142,6 +142,21 @@ Inner Stack Trace:
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
 
+            // ADR-014 Phase B3: Apply Identity schema migrations and seed roles/users before the
+            // application starts serving requests. Both helpers are fail-open (log errors, do not throw).
+            var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
+            try
+            {
+                Log.Information("Applying PrismaIdentity EF Core migrations...");
+                await app.Services.MigratePrismaIdentityAsync(startupLogger);
+                Log.Information("Seeding PrismaIdentity roles and users...");
+                await app.Services.SeedPrismaIdentityAsync(app.Configuration);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PrismaIdentity migration/seeding failed — application will continue");
+            }
+
             // Seed adaptive export templates (Excel, XML) on startup
             // This is idempotent - safe to run on every startup
             try
@@ -217,7 +232,7 @@ Inner Stack Trace:
         services.AddMetricsServices(pythonConfig.MaxConcurrency);
 
         // Add health checks (required by app.MapHealthChecks): register real DB-connectivity probe (E1-S4).
-        // PrismaDbHealthCheck calls CanConnectAsync via IDbContextFactory<ApplicationDbContext>; returns
+        // PrismaDbHealthCheck calls CanConnectAsync via IDbContextFactory<PrismaIdentityDbContext>; returns
         // Unhealthy (HTTP 503) when the database is unreachable.
         services.AddHealthChecks()
             .AddCheck<ExxerCube.Prisma.Web.UI.HealthChecks.PrismaDbHealthCheck>(
@@ -242,34 +257,19 @@ Inner Stack Trace:
             client.Timeout = TimeSpan.FromMinutes(5);
         });
 
+        // ADR-014: Identity adapter extracted from Web.UI into Infrastructure.Identity.
+        // AddPrismaIdentity registers: DbContextFactory<PrismaIdentityDbContext>, IdentityCore stack,
+        // cookie auth, PrismaNoOpEmailSender, IHttpContextAccessor, IIdentityProvider, IUserContextAccessor.
+        services.AddPrismaIdentity(configuration);
+
+        // Web-layer Identity scaffolding (Blazor/Razor abstractions — cannot move to infrastructure):
         services.AddCascadingAuthenticationState();
         services.AddScoped<IdentityUserAccessor>();
         services.AddScoped<IdentityRedirectManager>();
         services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
-        services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = IdentityConstants.ApplicationScheme;
-                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-            })
-            .AddIdentityCookies();
-
-        // Identity database connection (PrismaID - only for Identity tables)
-        var identityConnectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
         // Application database connection (Prisma - for all application tables)
         var applicationConnectionString = configuration.GetConnectionString("ApplicationConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationConnection' not found.");
-
-        services.AddDbContextFactory<ApplicationDbContext>(options =>
-            options.UseSqlServer(identityConnectionString));
-        services.AddDatabaseDeveloperPageExceptionFilter();
-
-        services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddSignInManager()
-            .AddDefaultTokenProviders();
-
-        services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
         // Add Story 1.1 services: Browser Automation, File Storage, and Database services
         services.AddDatabaseServices(applicationConnectionString, configuration);

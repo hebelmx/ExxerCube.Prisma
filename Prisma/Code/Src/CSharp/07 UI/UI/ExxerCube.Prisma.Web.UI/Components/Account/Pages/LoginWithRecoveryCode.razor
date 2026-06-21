@@ -1,11 +1,11 @@
-﻿@page "/Account/LoginWithRecoveryCode"
+@page "/Account/LoginWithRecoveryCode"
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
-@using ExxerCube.Prisma.Web.UI.Data
+@using ExxerCube.Prisma.Infrastructure.Identity
 
-@inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<PrismaApplicationUser> SignInManager
+@inject UserManager<PrismaApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<LoginWithRecoveryCode> Logger
 
@@ -35,7 +35,7 @@
 
 @code {
     private string? message;
-    private ApplicationUser user = default!;
+    private PrismaApplicationUser user = default!;
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = new();

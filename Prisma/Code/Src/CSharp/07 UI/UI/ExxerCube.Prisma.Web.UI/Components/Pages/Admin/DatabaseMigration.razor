@@ -1,11 +1,11 @@
 @page "/admin/database-migration"
 @using Microsoft.EntityFrameworkCore
-@using ExxerCube.Prisma.Web.UI.Data
+@using ExxerCube.Prisma.Infrastructure.Identity
 @using ExxerCube.Prisma.Infrastructure.Database.EntityFramework
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore.Infrastructure
 @attribute [Authorize(Roles = "Administrator")]
-@inject IDbContextFactory<ApplicationDbContext> IdentityDbFactory
+@inject IDbContextFactory<PrismaIdentityDbContext> IdentityDbFactory
 @inject IServiceScopeFactory ScopeFactory
 @inject ISnackbar Snackbar
 @inject ILogger<DatabaseMigration> Logger

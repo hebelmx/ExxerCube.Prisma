@@ -1,4 +1,4 @@
-using ExxerCube.Prisma.Web.UI.Data;
+using ExxerCube.Prisma.Infrastructure.Identity;
 using ExxerCube.Prisma.Web.UI.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -32,7 +32,7 @@ public sealed class PrismaDbHealthCheckTests
     public async Task CheckHealthAsync_WhenDatabaseReachable_ReturnsHealthy()
     {
         // Arrange: In-Memory provider always reports CanConnectAsync = true.
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<PrismaIdentityDbContext>()
             .UseInMemoryDatabase(databaseName: $"PrismaHealthTest_{Guid.NewGuid()}")
             .Options;
         var factory = new TestDbContextFactory(options);
@@ -55,7 +55,7 @@ public sealed class PrismaDbHealthCheckTests
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+        var options = new DbContextOptionsBuilder<PrismaIdentityDbContext>()
             .UseInMemoryDatabase(databaseName: $"PrismaHealthTest_{Guid.NewGuid()}")
             .Options;
         var factory = new TestDbContextFactory(options);
@@ -94,16 +94,16 @@ public sealed class PrismaDbHealthCheckTests
     /// Wraps pre-built <see cref="DbContextOptions{TContext}"/> so we can inject In-Memory contexts
     /// via the <see cref="IDbContextFactory{TContext}"/> interface without a real DI container.
     /// </summary>
-    private sealed class TestDbContextFactory : IDbContextFactory<ApplicationDbContext>
+    private sealed class TestDbContextFactory : IDbContextFactory<PrismaIdentityDbContext>
     {
-        private readonly DbContextOptions<ApplicationDbContext> _options;
+        private readonly DbContextOptions<PrismaIdentityDbContext> _options;
 
-        internal TestDbContextFactory(DbContextOptions<ApplicationDbContext> options) =>
+        internal TestDbContextFactory(DbContextOptions<PrismaIdentityDbContext> options) =>
             _options = options;
 
-        public ApplicationDbContext CreateDbContext() => new(_options);
+        public PrismaIdentityDbContext CreateDbContext() => new(_options);
 
-        public Task<ApplicationDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default) =>
+        public Task<PrismaIdentityDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(CreateDbContext());
     }
 
@@ -111,12 +111,12 @@ public sealed class PrismaDbHealthCheckTests
     /// A factory that always throws <see cref="InvalidOperationException"/> to simulate a
     /// completely unreachable database (no connection string, server offline, etc.).
     /// </summary>
-    private sealed class ThrowingDbContextFactory : IDbContextFactory<ApplicationDbContext>
+    private sealed class ThrowingDbContextFactory : IDbContextFactory<PrismaIdentityDbContext>
     {
-        public ApplicationDbContext CreateDbContext() =>
+        public PrismaIdentityDbContext CreateDbContext() =>
             throw new InvalidOperationException("Simulated database factory failure");
 
-        public Task<ApplicationDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default) =>
+        public Task<PrismaIdentityDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default) =>
             throw new InvalidOperationException("Simulated database factory failure");
     }
 }

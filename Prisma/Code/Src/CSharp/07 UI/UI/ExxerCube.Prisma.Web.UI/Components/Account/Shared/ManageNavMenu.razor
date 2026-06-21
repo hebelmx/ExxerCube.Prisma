@@ -1,7 +1,7 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using ExxerCube.Prisma.Web.UI.Data
+@using Microsoft.AspNetCore.Identity
+@using ExxerCube.Prisma.Infrastructure.Identity
 
-@inject SignInManager<ApplicationUser> SignInManager
+@inject SignInManager<PrismaApplicationUser> SignInManager
 
 <MudNavMenu>
     <MudNavLink Href="Account/Manage" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
