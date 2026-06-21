@@ -168,7 +168,16 @@ public sealed class ReconciliationPipelineService : IReadinessProbe
             return Result.WithFailure(load.Errors);
         }
 
-        var fusionResult = new FusionResult { FusedExpediente = load.Value };
+        // The expediente arrived from the Extractor via shared storage; the fusion decision was
+        // already made upstream. Build a stub FusionResult with AutoProcess + no conflicts so the
+        // export gate does not re-block on the fusion state (it will still block on low classification
+        // confidence, which is evaluated independently).
+        var fusionResult = new FusionResult
+        {
+            FusedExpediente = load.Value,
+            NextAction = NextAction.AutoProcess,
+            ConflictingFields = new System.Collections.Generic.List<string>(),
+        };
 
         var stagesCompleted = await _reconciliationOrchestrator.ReconcileAsync(
             ocrResult: null,

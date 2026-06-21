@@ -1,5 +1,6 @@
 using System.Xml.Linq;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
@@ -86,6 +87,7 @@ public sealed class ReconciliationOrchestratorSiroExportTests
             FusedExpediente = MinimalExpediente(),
             OverallConfidence = 0.9,
             ConflictingFields = new List<string>(),
+            NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
         };
 
         var stagesCompleted = await orchestrator.ReconcileAsync(
@@ -128,6 +130,7 @@ public sealed class ReconciliationOrchestratorSiroExportTests
             FusedExpediente = expediente,
             OverallConfidence = 0.95,
             ConflictingFields = new List<string>(),
+            NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
         };
 
         await orchestrator.ReconcileAsync(
@@ -252,6 +255,7 @@ public sealed class ReconciliationOrchestratorSiroExportTests
                 FusedExpediente = invalidExpediente,
                 OverallConfidence = 0.0,
                 ConflictingFields = new List<string>(),
+                NextAction = NextAction.AutoProcess, // G-C2: force gate open so Stage 5 runs and fails on validation
             },
             fileId: Guid.NewGuid(),
             correlationId: null,

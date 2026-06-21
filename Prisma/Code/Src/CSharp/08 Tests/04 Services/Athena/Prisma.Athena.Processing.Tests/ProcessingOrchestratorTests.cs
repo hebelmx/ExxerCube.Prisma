@@ -911,11 +911,13 @@ public sealed class ProcessingOrchestratorTests
     private static void SetupFusion(IFusionExpediente fusionService)
     {
         // FusedExpediente must have NumeroExpediente + NumeroOficio for Stage 5 SIRO export to proceed
-        // (SiroXmlExporter.ValidateMetadata requires both fields). Without these, Stage 5 skips with a warning.
+        // (SiroXmlExporter.ValidateMetadata requires both fields). NextAction = AutoProcess so the
+        // export gate does not block (G-C2: gate blocks on ManualReviewRequired/low-confidence/conflicts).
         var fusionResult = new FusionResult
         {
             OverallConfidence = 0.90,
             ConflictingFields = new List<string>(),
+            NextAction = ExxerCube.Prisma.Domain.Enum.NextAction.AutoProcess,
             FusedExpediente = new ExxerCube.Prisma.Domain.Entities.Expediente
             {
                 NumeroExpediente = "A/AS1-TEST-001",

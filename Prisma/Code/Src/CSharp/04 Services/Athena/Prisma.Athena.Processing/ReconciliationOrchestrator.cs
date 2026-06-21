@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
@@ -35,6 +36,7 @@ public sealed class ReconciliationOrchestrator
     private readonly IServiceScopeFactory? _reviewCaseScopeFactory;
     private readonly IDatosCargaOficioLayoutGenerator? _datosCargaGenerator;
     private readonly IStoragePathResolver? _storagePathResolver;
+    private readonly ExportGatePolicy _exportGatePolicy;
 
     /// <summary>Classification confidence threshold below which documents are flagged for review.</summary>
     private const int ClassificationConfidenceThreshold = 70;
@@ -60,6 +62,12 @@ public sealed class ReconciliationOrchestrator
     /// to the resolved path; when <see langword="null"/> the bytes remain in-memory (size is captured for
     /// the event). Either way the event is published.
     /// </param>
+    /// <param name="exportGatePolicy">
+    /// Optional export-gate policy that controls when Stage-5 export is blocked pending human review.
+    /// When <see langword="null"/> the default policy is used (all gates active — matches the owner
+    /// ruling that unreviewed/low-confidence/conflicted cases MUST NOT produce regulatory output).
+    /// See <see cref="ExportGatePolicy"/> for configurable conditions.
+    /// </param>
     public ReconciliationOrchestrator(
         IEventPublisher eventPublisher,
         ILogger logger,
@@ -67,7 +75,8 @@ public sealed class ReconciliationOrchestrator
         IResponseExporter? exporter = null,
         IServiceScopeFactory? reviewCaseScopeFactory = null,
         IDatosCargaOficioLayoutGenerator? datosCargaGenerator = null,
-        IStoragePathResolver? storagePathResolver = null)
+        IStoragePathResolver? storagePathResolver = null,
+        ExportGatePolicy? exportGatePolicy = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -76,6 +85,7 @@ public sealed class ReconciliationOrchestrator
         _reviewCaseScopeFactory = reviewCaseScopeFactory;
         _datosCargaGenerator = datosCargaGenerator;
         _storagePathResolver = storagePathResolver;
+        _exportGatePolicy = exportGatePolicy ?? new ExportGatePolicy();
     }
 
     /// <summary>
@@ -122,6 +132,31 @@ public sealed class ReconciliationOrchestrator
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // EXPORT GATE (G-C2 / FR14 / FR20 / INV-6 — owner ruling binding 2026-06-20):
+        // Block Stage-5 export when the case requires human review.
+        // All conditions are evaluated before skipping so callers receive complete diagnostic
+        // information via BlockReasons (helpful for the reviewer UI).
+        var blockReasons = EvaluateExportGate(fusionResult, classificationResult);
+        if (blockReasons.Count > 0)
+        {
+            _logger.LogWarning(
+                "Stage 5 BLOCKED by export gate for FileId {FileId}: {Reasons}",
+                fileId, string.Join("; ", blockReasons));
+
+            var heldEvent = new ExportHeldForReviewEvent
+            {
+                EventId = Guid.NewGuid(),
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = correlationId,
+                FileId = fileId,
+                BlockReasons = blockReasons,
+                ClassificationConfidence = classificationResult?.Confidence,
+            };
+            _eventPublisher.Publish(heldEvent);
+
+            return stagesCompleted; // Stage 5 intentionally skipped — not an error.
+        }
+
         // STAGE 5: Export
         var exported = await ExecuteStage5ExportAsync(
             fusionResult, classificationResult, fileId, correlationId, cancellationToken);
@@ -131,6 +166,65 @@ public sealed class ReconciliationOrchestrator
         }
 
         return stagesCompleted;
+    }
+
+    // ========================================================================
+    // Export Gate Evaluation (G-C2)
+    // ========================================================================
+
+    /// <summary>
+    /// Evaluates all conditions in the <see cref="ExportGatePolicy"/> and returns the list of
+    /// human-readable block reasons.  An empty list means export is allowed to proceed.
+    /// All conditions are evaluated (not short-circuited) so the caller receives complete
+    /// diagnostic information via <see cref="ExportHeldForReviewEvent.BlockReasons"/>.
+    /// </summary>
+    /// <param name="fusionResult">The fusion result (may be null — null counts as ManualReviewRequired).</param>
+    /// <param name="classificationResult">The classification result (may be null — treated as low-confidence).</param>
+    /// <returns>Non-empty list of reasons when export should be blocked; empty list when safe to export.</returns>
+    private List<string> EvaluateExportGate(
+        FusionResult? fusionResult,
+        ClassificationResult? classificationResult)
+    {
+        var reasons = new List<string>();
+
+        // Gate 1: Low-confidence classification.
+        // Only applies when a classifier is wired AND produced a result: a null classificationResult
+        // means Stage 4 was skipped (no classifier configured) — in that case this gate is a no-op so
+        // export-only configurations (no Stage 4) continue to work. If Stage 4 ran and confidence is
+        // low, the gate blocks.
+        if (_exportGatePolicy.BlockOnLowConfidence && classificationResult is not null)
+        {
+            if (classificationResult.Confidence < ClassificationConfidenceThreshold)
+            {
+                reasons.Add(
+                    $"Classification confidence {classificationResult.Confidence}% is below the required threshold of {ClassificationConfidenceThreshold}% (BlockOnLowConfidence)");
+            }
+        }
+
+        // Gate 2: Fusion NextAction == ManualReviewRequired.
+        // A null fusionResult (extraction stage failed) is also treated as ManualReviewRequired.
+        if (_exportGatePolicy.BlockOnFusionManualReviewRequired)
+        {
+            var nextAction = fusionResult?.NextAction ?? NextAction.ManualReviewRequired;
+            if (nextAction.Equals(NextAction.ManualReviewRequired))
+            {
+                reasons.Add(
+                    $"Fusion NextAction is '{nextAction.Name}' — mandatory human review required before export (BlockOnFusionManualReviewRequired)");
+            }
+        }
+
+        // Gate 3: Unresolved field conflicts in the fusion result.
+        if (_exportGatePolicy.BlockOnUnresolvedConflicts && fusionResult is not null)
+        {
+            if (fusionResult.ConflictingFields.Count > 0)
+            {
+                var fields = string.Join(", ", fusionResult.ConflictingFields);
+                reasons.Add(
+                    $"Fusion has {fusionResult.ConflictingFields.Count} unresolved field conflict(s): [{fields}] (BlockOnUnresolvedConflicts)");
+            }
+        }
+
+        return reasons;
     }
 
     /// <summary>

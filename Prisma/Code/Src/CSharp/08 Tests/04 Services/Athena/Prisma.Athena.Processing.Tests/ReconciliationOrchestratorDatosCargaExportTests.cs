@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.ValueObjects;
@@ -94,6 +95,7 @@ public sealed class ReconciliationOrchestratorDatosCargaExportTests
             FusedExpediente = MinimalExpediente(),
             OverallConfidence = 0.9,
             ConflictingFields = new List<string>(),
+            NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
         };
 
         var stages = await orchestrator.ReconcileAsync(
@@ -136,6 +138,7 @@ public sealed class ReconciliationOrchestratorDatosCargaExportTests
                 FusedExpediente = MinimalExpediente(),
                 OverallConfidence = 0.9,
                 ConflictingFields = new List<string>(),
+                NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
             },
             fileId: fileId,
             correlationId: null,
@@ -172,6 +175,7 @@ public sealed class ReconciliationOrchestratorDatosCargaExportTests
                 FusedExpediente = MinimalExpediente(),
                 OverallConfidence = 0.9,
                 ConflictingFields = new List<string>(),
+                NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
             },
             fileId: fileId,
             correlationId: null,
@@ -238,6 +242,7 @@ public sealed class ReconciliationOrchestratorDatosCargaExportTests
                 FusedExpediente = MinimalExpediente(),
                 OverallConfidence = 0.9,
                 ConflictingFields = new List<string>(),
+                NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
             },
             fileId: fileId,
             correlationId: null,

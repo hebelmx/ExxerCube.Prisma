@@ -345,10 +345,12 @@ public sealed class OrionToAthenaEndToEndTests : IDisposable
             .Returns(Result<OCRResult>.Success(ocrResult));
 
         // Stage 3: Fusion — FusedExpediente must have both required SIRO fields so Stage 5 runs.
+        // NextAction = AutoProcess so the export gate (G-C2) does not block Stage 5.
         var fusionResult = new FusionResult
         {
             OverallConfidence = 0.90,
             ConflictingFields = new List<string>(),
+            NextAction = NextAction.AutoProcess,
             FusedExpediente = new ExxerCube.Prisma.Domain.Entities.Expediente
             {
                 NumeroExpediente = "A/AS1-E2E-001",

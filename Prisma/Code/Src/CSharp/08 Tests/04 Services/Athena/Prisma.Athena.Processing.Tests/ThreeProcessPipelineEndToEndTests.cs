@@ -77,6 +77,7 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
             {
                 OverallConfidence = 0.92,
                 ConflictingFields = new List<string>(),
+                NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
                 // NumeroOficio is required by SiroXmlExporter.ValidateMetadata(); include it so Stage 5 succeeds.
                 FusedExpediente = new Expediente
                 {

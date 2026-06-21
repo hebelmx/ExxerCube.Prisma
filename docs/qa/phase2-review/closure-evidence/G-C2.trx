@@ -1,0 +1,1100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="8196b209-6145-42f4-94b8-aef0fe140675" name="Abel Briones@DESKTOP-FB2ES22 2026-06-21 02:11:24.0341197" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-06-21T02:11:22.3970622Z" queuing="2026-06-21T02:11:22.3970622Z" start="2026-06-21T02:11:22.3970622Z" finish="2026-06-21T02:11:24.0350836Z" />
+  <TestSettings name="default" id="d023abe5-b4db-4e70-b9d9-ebd201fcb9bc">
+    <Deployment runDeploymentRoot="Abel_Briones_DESKTOP-FB2ES22_2026-06-21_02_11_24.0341197" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="842cc7c0-b4a1-4f8d-b734-85be31f1bcdf" testId="5c06f783-7771-9c5f-efb3-1e82d2207e30" testName="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithoutConverter_LosesSmartEnumFormat" computerName="DESKTOP-FB2ES22" duration="00:00:00.3261869" startTime="2026-06-21T02:11:22.5659646+00:00" endTime="2026-06-21T02:11:22.9022985+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="842cc7c0-b4a1-4f8d-b734-85be31f1bcdf" />
+    <UnitTestResult executionId="ff7fabec-3a97-489e-b4cf-cf45f99efc09" testId="726b1b8b-99c0-aeb1-f969-ba8b70660682" testName="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_WebDefaults_IsCompleteFalse_PreservesAllProperties" computerName="DESKTOP-FB2ES22" duration="00:00:00.3261334" startTime="2026-06-21T02:11:22.5659852+00:00" endTime="2026-06-21T02:11:22.9023453+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="ff7fabec-3a97-489e-b4cf-cf45f99efc09" />
+    <UnitTestResult executionId="77d75300-800a-4a3d-a0ec-6a066749051c" testId="5f567828-473c-add0-2403-c8651c616c2c" testName="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_DefaultOptions_IsCompleteTrue_Preserved" computerName="DESKTOP-FB2ES22" duration="00:00:00.0017987" startTime="2026-06-21T02:11:22.9102495+00:00" endTime="2026-06-21T02:11:22.9121035+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="77d75300-800a-4a3d-a0ec-6a066749051c" />
+    <UnitTestResult executionId="9835f900-b8ce-4475-9f20-10504864fad3" testId="07b1fc51-8d11-fe07-13db-ce9954b5de02" testName="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_DefaultOptions_IsCompleteFalse_Preserved" computerName="DESKTOP-FB2ES22" duration="00:00:00.0002199" startTime="2026-06-21T02:11:22.9122489+00:00" endTime="2026-06-21T02:11:22.9125052+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="9835f900-b8ce-4475-9f20-10504864fad3" />
+    <UnitTestResult executionId="a728af43-81ce-48b1-89c6-777d9cb58915" testId="6b3c3b3d-e105-661c-164c-07ecc3b8b68c" testName="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithConverter_WebDefaults_PreservesEverything" computerName="DESKTOP-FB2ES22" duration="00:00:00.0093211" startTime="2026-06-21T02:11:22.9103059+00:00" endTime="2026-06-21T02:11:22.9196851+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a728af43-81ce-48b1-89c6-777d9cb58915" />
+    <UnitTestResult executionId="499610e6-9343-4ec4-9d21-a5e1be635dbf" testId="255371d8-3c78-59f6-4c94-834074ba92f7" testName="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithConverter_DefaultOptions_PreservesCaseFileFormats" computerName="DESKTOP-FB2ES22" duration="00:00:00.0021553" startTime="2026-06-21T02:11:22.9199787+00:00" endTime="2026-06-21T02:11:22.9221956+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="499610e6-9343-4ec4-9d21-a5e1be635dbf" />
+    <UnitTestResult executionId="b4e6fc58-b57e-48c1-aa76-9ec89d13e24d" testId="8407b972-8b4c-8ac6-2cc6-ecfa96437c7f" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdIsEmpty" computerName="DESKTOP-FB2ES22" duration="00:00:00.3736391" startTime="2026-06-21T02:11:22.5659750+00:00" endTime="2026-06-21T02:11:22.9470847+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b4e6fc58-b57e-48c1-aa76-9ec89d13e24d" />
+    <UnitTestResult executionId="39e8516b-980b-4b20-9c49-42d1d237d1d2" testId="30b4eee4-fd8a-a2cf-1031-0d6cd9cabef8" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdMismatches" computerName="DESKTOP-FB2ES22" duration="00:00:00.3735835" startTime="2026-06-21T02:11:22.5659141+00:00" endTime="2026-06-21T02:11:22.9470862+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="39e8516b-980b-4b20-9c49-42d1d237d1d2" />
+    <UnitTestResult executionId="dea24b37-eb79-4ece-8b4d-a39bf3e76446" testId="5b7be46b-e2bf-d389-7f78-e04287c6a746" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_EmitsError_WhenValidationFails" computerName="DESKTOP-FB2ES22" duration="00:00:00.3753774" startTime="2026-06-21T02:11:22.5659235+00:00" endTime="2026-06-21T02:11:22.9489153+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="dea24b37-eb79-4ece-8b4d-a39bf3e76446" />
+    <UnitTestResult executionId="2b0ba214-ec11-4b91-a56b-5bdd99686e83" testId="72db3f75-96de-7b1b-14af-b85524955469" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_DefensiveMode_NeverCrashes" computerName="DESKTOP-FB2ES22" duration="00:00:00.3755415" startTime="2026-06-21T02:11:22.5659342+00:00" endTime="2026-06-21T02:11:22.9490007+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="2b0ba214-ec11-4b91-a56b-5bdd99686e83" />
+    <UnitTestResult executionId="4516b465-1242-4fed-a3ce-1aba89a10696" testId="eecf1da0-05fa-5eb8-dd2e-12d5e81077e3" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_HandoffLoadFails_ReturnsFailure_NoReconcileNoCompletion" computerName="DESKTOP-FB2ES22" duration="00:00:00.3766626" startTime="2026-06-21T02:11:22.5659526+00:00" endTime="2026-06-21T02:11:22.9501017+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="4516b465-1242-4fed-a3ce-1aba89a10696" />
+    <UnitTestResult executionId="07f680c2-416d-4d3b-8eac-b660a3ef9fcc" testId="487a269d-bcb9-6305-2840-d0f7de30ba31" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_NullEvent_ReturnsFailure" computerName="DESKTOP-FB2ES22" duration="00:00:00.0019042" startTime="2026-06-21T02:11:22.9503439+00:00" endTime="2026-06-21T02:11:22.9523098+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="07f680c2-416d-4d3b-8eac-b660a3ef9fcc" />
+    <UnitTestResult executionId="e1f8a6aa-1328-48fe-a3e9-f7842410cee9" testId="60a5333c-7342-860a-d4c8-fd23ff5b27eb" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullClearanceTokenService_Throws" computerName="DESKTOP-FB2ES22" duration="00:00:00.0049094" startTime="2026-06-21T02:11:22.9473325+00:00" endTime="2026-06-21T02:11:22.9523099+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="e1f8a6aa-1328-48fe-a3e9-f7842410cee9" />
+    <UnitTestResult executionId="8dcfd3b5-03ce-49c7-a02d-27ec88cd4548" testId="261f38b5-b2fa-9c94-467a-452c3ac7c6da" testName="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_NullEvent_ReturnsFailure" computerName="DESKTOP-FB2ES22" duration="00:00:00.3797687" startTime="2026-06-21T02:11:22.5659408+00:00" endTime="2026-06-21T02:11:22.9532800+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="8dcfd3b5-03ce-49c7-a02d-27ec88cd4548" />
+    <UnitTestResult executionId="51bab72b-8f97-4313-ba30-3ebc2e933d89" testId="990594b1-8988-da70-f03b-3bf7e511812b" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenValidationFails" computerName="DESKTOP-FB2ES22" duration="00:00:00.0040643" startTime="2026-06-21T02:11:22.9526140+00:00" endTime="2026-06-21T02:11:22.9567611+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="51bab72b-8f97-4313-ba30-3ebc2e933d89" />
+    <UnitTestResult executionId="af59ce45-3ea2-4c2a-9d46-d37075bc9b7a" testId="8163e6a3-ce36-3f72-afc4-6fd27ced5678" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_Event_PublishesSameEventOntoLocalStream" computerName="DESKTOP-FB2ES22" duration="00:00:00.0108132" startTime="2026-06-21T02:11:22.9473260+00:00" endTime="2026-06-21T02:11:22.9582003+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="af59ce45-3ea2-4c2a-9d46-d37075bc9b7a" />
+    <UnitTestResult executionId="3122fc5f-4e26-487a-b100-3fdc4433182d" testId="5e5eebae-3a11-599e-c285-d5857c6d7409" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenIsMissing" computerName="DESKTOP-FB2ES22" duration="00:00:00.0026445" startTime="2026-06-21T02:11:22.9572223+00:00" endTime="2026-06-21T02:11:22.9599289+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="3122fc5f-4e26-487a-b100-3fdc4433182d" />
+    <UnitTestResult executionId="13a384a1-64a4-49f1-83df-3cde81e906e3" testId="0a0f9c88-7355-eceb-eab1-d20aa3be7f57" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_LoadsHandoffAndReconciles_EmitsCompletion" computerName="DESKTOP-FB2ES22" duration="00:00:00.0096303" startTime="2026-06-21T02:11:22.9526141+00:00" endTime="2026-06-21T02:11:22.9623073+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="13a384a1-64a4-49f1-83df-3cde81e906e3" />
+    <UnitTestResult executionId="9143c344-35df-4065-a5cb-d4e697258d5f" testId="70c29d8d-41eb-aef2-6bf5-12e575b87189" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenClearanceIsNotDownload" computerName="DESKTOP-FB2ES22" duration="00:00:00.0021207" startTime="2026-06-21T02:11:22.9603049+00:00" endTime="2026-06-21T02:11:22.9624768+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="9143c344-35df-4065-a5cb-d4e697258d5f" />
+    <UnitTestResult executionId="7617dfbc-4886-4694-8f3e-db42a333b259" testId="d816167c-e995-2418-1591-977d3cdd174f" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenClearanceIsNotExtract" computerName="DESKTOP-FB2ES22" duration="00:00:00.0038236" startTime="2026-06-21T02:11:22.9586060+00:00" endTime="2026-06-21T02:11:22.9624768+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="7617dfbc-4886-4694-8f3e-db42a333b259" />
+    <UnitTestResult executionId="f503d130-8b0e-4336-b655-b76b5515e3ea" testId="eae79cd9-56c9-ed7f-396a-da74f48d09cc" testName="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_DocxOnlyCase_SkipsImageStagesAndFusesDocx" computerName="DESKTOP-FB2ES22" duration="00:00:00.3902672" startTime="2026-06-21T02:11:22.5659074+00:00" endTime="2026-06-21T02:11:22.9638798+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="f503d130-8b0e-4336-b655-b76b5515e3ea" />
+    <UnitTestResult executionId="e1d3d85b-441b-4739-8c2b-1ed1e6710b73" testId="35896467-a4fd-1fcd-2365-89d79f1b382b" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdMismatches" computerName="DESKTOP-FB2ES22" duration="00:00:00.0018338" startTime="2026-06-21T02:11:22.9628050+00:00" endTime="2026-06-21T02:11:22.9646897+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="e1d3d85b-441b-4739-8c2b-1ed1e6710b73" />
+    <UnitTestResult executionId="a262b049-48ad-455b-9658-030c576812c4" testId="56b8b915-bdd8-adea-03da-021af4c0f8db" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdIsEmpty" computerName="DESKTOP-FB2ES22" duration="00:00:00.0023469" startTime="2026-06-21T02:11:22.9628686+00:00" endTime="2026-06-21T02:11:22.9652779+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a262b049-48ad-455b-9658-030c576812c4" />
+    <UnitTestResult executionId="aa9bca59-6cf8-4833-a5e7-b75098bf5043" testId="9180d2f9-ea94-ad4d-36c0-719f78301bfb" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenIsMissing" computerName="DESKTOP-FB2ES22" duration="00:00:00.0015324" startTime="2026-06-21T02:11:22.9649954+00:00" endTime="2026-06-21T02:11:22.9665983+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="aa9bca59-6cf8-4833-a5e7-b75098bf5043" />
+    <UnitTestResult executionId="c762a43f-8e63-4aad-b78d-b20903b129c9" testId="869de539-71c5-0d9b-a896-9b30552219a6" testName="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_WithFusedExpediente_SavesHandoffAndBroadcasts" computerName="DESKTOP-FB2ES22" duration="00:00:00.0132769" startTime="2026-06-21T02:11:22.9535287+00:00" endTime="2026-06-21T02:11:22.9668540+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="c762a43f-8e63-4aad-b78d-b20903b129c9" />
+    <UnitTestResult executionId="5ef737ca-0d8d-4646-8cac-43a58f6b5a63" testId="49c92956-3414-1507-8e7d-2e24c1f1b4d8" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_Success_BroadcastsViaIExxerHub" computerName="DESKTOP-FB2ES22" duration="00:00:00.3955987" startTime="2026-06-21T02:11:22.5659577+00:00" endTime="2026-06-21T02:11:22.9691973+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="5ef737ca-0d8d-4646-8cac-43a58f6b5a63" />
+    <UnitTestResult executionId="78613f12-8aff-47dd-a6f1-bab80605c87b" testId="bba16804-5e94-da40-5e6a-ee9f11ded6f1" testName="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_NoFusedExpediente_DoesNotHandoff" computerName="DESKTOP-FB2ES22" duration="00:00:00.0021358" startTime="2026-06-21T02:11:22.9673098+00:00" endTime="2026-06-21T02:11:22.9694903+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="78613f12-8aff-47dd-a6f1-bab80605c87b" />
+    <UnitTestResult executionId="557f591f-1857-4bce-8636-64264ff7b19a" testId="ab4ff819-7102-bab4-a06c-781759309342" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_Accepts_WhenClearanceIsExtractAndFileIdMatches" computerName="DESKTOP-FB2ES22" duration="00:00:00.0026652" startTime="2026-06-21T02:11:22.9669422+00:00" endTime="2026-06-21T02:11:22.9696474+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="557f591f-1857-4bce-8636-64264ff7b19a" />
+    <UnitTestResult executionId="cc19b4dd-3022-421f-8627-85acacc92c67" testId="d634d98b-93bd-44a4-c55b-ffb6cf008f0e" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.Constructor_NullClearanceTokenService_Throws" computerName="DESKTOP-FB2ES22" duration="00:00:00.0138395" startTime="2026-06-21T02:11:22.9698575+00:00" endTime="2026-06-21T02:11:22.9837465+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="cc19b4dd-3022-421f-8627-85acacc92c67" />
+    <UnitTestResult executionId="cb95450b-dc9a-4ce0-ad46-658af2c75bb5" testId="d583c1dc-0c99-d9f5-93a4-9f525ab9772d" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsReplay_WhenSameTokenForwardedTwice" computerName="DESKTOP-FB2ES22" duration="00:00:00.0182186" startTime="2026-06-21T02:11:22.9655675+00:00" endTime="2026-06-21T02:11:22.9838372+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="cb95450b-dc9a-4ce0-ad46-658af2c75bb5" />
+    <UnitTestResult executionId="3de4119e-1315-412e-8834-77b4b5ecfda9" testId="e3328512-6e29-cb80-8375-98b23afd2a32" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_CorrelationId_PreservedInEvents" computerName="DESKTOP-FB2ES22" duration="00:00:00.0145196" startTime="2026-06-21T02:11:22.9695280+00:00" endTime="2026-06-21T02:11:22.9841337+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="3de4119e-1315-412e-8834-77b4b5ecfda9" />
+    <UnitTestResult executionId="69f4ae4b-a002-48b1-9155-24264753dc26" testId="775123e3-d471-756d-d889-0b927397a76c" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_UnresolvedFusionConflicts_BlocksExportAndPublishesHeldEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.4108993" startTime="2026-06-21T02:11:22.5659958+00:00" endTime="2026-06-21T02:11:22.9843138+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="69f4ae4b-a002-48b1-9155-24264753dc26" />
+    <UnitTestResult executionId="02ede819-1b91-48ba-a209-fb7af21ce979" testId="4670b79f-c6a4-81ec-0a23-0e3e87489893" testName="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_StorePersistFails_ReturnsFailure_NoBroadcast" computerName="DESKTOP-FB2ES22" duration="00:00:00.0149952" startTime="2026-06-21T02:11:22.9698082+00:00" endTime="2026-06-21T02:11:22.9848394+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="02ede819-1b91-48ba-a209-fb7af21ce979" />
+    <UnitTestResult executionId="ccbba170-6659-419f-b9ed-9ffc638b8cf3" testId="362b0ba4-a451-0617-2607-33251b34a445" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullPublisher_Throws" computerName="DESKTOP-FB2ES22" duration="00:00:00.0009989" startTime="2026-06-21T02:11:22.9841018+00:00" endTime="2026-06-21T02:11:22.9851470+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="ccbba170-6659-419f-b9ed-9ffc638b8cf3" />
+    <UnitTestResult executionId="e01e2b90-cc6a-411c-a645-efa38647c366" testId="0c744e5e-932e-9833-f88c-af6887bc58bc" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenValidationFails" computerName="DESKTOP-FB2ES22" duration="00:00:00.0015140" startTime="2026-06-21T02:11:22.9840382+00:00" endTime="2026-06-21T02:11:22.9855889+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="e01e2b90-cc6a-411c-a645-efa38647c366" />
+    <UnitTestResult executionId="7063fba7-261f-4e6e-8868-f8e7acdada1a" testId="c595cb49-bab4-f3f1-2165-f10593d1f061" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_ConflictingFusion_PassesNonEmptyFieldConflictAlerts" computerName="DESKTOP-FB2ES22" duration="00:00:00.4128848" startTime="2026-06-21T02:11:22.5659909+00:00" endTime="2026-06-21T02:11:22.9862527+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="7063fba7-261f-4e6e-8868-f8e7acdada1a" />
+    <UnitTestResult executionId="7425d201-c523-4f85-9025-c26cdc1beac0" testId="71dad940-91d8-2d04-32b6-86c8ed37ed07" testName="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithEmptyCaseFiles_FusesPdfOnly" computerName="DESKTOP-FB2ES22" duration="00:00:00.0224897" startTime="2026-06-21T02:11:22.9641759+00:00" endTime="2026-06-21T02:11:22.9867087+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="7425d201-c523-4f85-9025-c26cdc1beac0" />
+    <UnitTestResult executionId="c2efc570-fb0a-4b05-a5ff-6c523fec1eec" testId="ca419afc-6f17-ff44-a68f-4c1f19ccd794" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_NullEvent_DoesNotPublish" computerName="DESKTOP-FB2ES22" duration="00:00:00.0016981" startTime="2026-06-21T02:11:22.9853531+00:00" endTime="2026-06-21T02:11:22.9870870+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="c2efc570-fb0a-4b05-a5ff-6c523fec1eec" />
+    <UnitTestResult executionId="3a34e332-7f45-4770-9d92-64e40a5822ee" testId="124bef60-73f9-f90a-c6ec-f8234d4b1e19" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_WithOptionalServices_EmitsStageEvents" computerName="DESKTOP-FB2ES22" duration="00:00:00.0384542" startTime="2026-06-21T02:11:22.9492991+00:00" endTime="2026-06-21T02:11:22.9877997+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="3a34e332-7f45-4770-9d92-64e40a5822ee" />
+    <UnitTestResult executionId="ef1fbeeb-8363-4850-b202-41d5dbc5058f" testId="89d8dd68-d326-c5ef-e927-7048e1ad4dbe" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsReplay_WhenSameTokenForwardedTwice" computerName="DESKTOP-FB2ES22" duration="00:00:00.0022667" startTime="2026-06-21T02:11:22.9857686+00:00" endTime="2026-06-21T02:11:22.9880713+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="ef1fbeeb-8363-4850-b202-41d5dbc5058f" />
+    <UnitTestResult executionId="3446ab7f-e0d5-4340-ad95-cb5e5be3090d" testId="1ffea67a-31f3-f472-f8ee-bf0b3718ed8c" testName="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_QualityRejected_DoesNotHandoff" computerName="DESKTOP-FB2ES22" duration="00:00:00.0030783" startTime="2026-06-21T02:11:22.9850794+00:00" endTime="2026-06-21T02:11:22.9881940+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="3446ab7f-e0d5-4340-ad95-cb5e5be3090d" />
+    <UnitTestResult executionId="66bafa06-a0af-48bf-832c-5fe982086629" testId="3d051f18-0f06-5391-caaa-d63c3e78e712" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_NullFusion_PassesEmptyFieldConflictAlerts" computerName="DESKTOP-FB2ES22" duration="00:00:00.0021979" startTime="2026-06-21T02:11:22.9865270+00:00" endTime="2026-06-21T02:11:22.9887648+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="66bafa06-a0af-48bf-832c-5fe982086629" />
+    <UnitTestResult executionId="ca25f9d6-47f3-4432-915d-46f8f10e3f8b" testId="0138f892-2f3f-f025-b14f-4d095c36082d" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.Constructor_NullReplayGuard_Throws" computerName="DESKTOP-FB2ES22" duration="00:00:00.0005897" startTime="2026-06-21T02:11:22.9882220+00:00" endTime="2026-06-21T02:11:22.9888390+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="ca25f9d6-47f3-4432-915d-46f8f10e3f8b" />
+    <UnitTestResult executionId="056d3bd7-ba95-4f5b-a79e-5d6565007178" testId="59d6d5ad-a85f-7aeb-338f-b13ff26c2001" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithIsCompleteTrue_CallsPanelWithIsCompleteTrue" computerName="DESKTOP-FB2ES22" duration="00:00:00.4155393" startTime="2026-06-21T02:11:22.5659985+00:00" endTime="2026-06-21T02:11:22.9888442+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="056d3bd7-ba95-4f5b-a79e-5d6565007178" />
+    <UnitTestResult executionId="00a3ce6b-2c87-4f42-80bd-645c9e62394c" testId="f8186178-906b-223f-96a6-b392f15396fb" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_FixtureExists_ValidatesFileStructure" computerName="DESKTOP-FB2ES22" duration="00:00:00.0011765" startTime="2026-06-21T02:11:22.9879633+00:00" endTime="2026-06-21T02:11:22.9891712+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="00a3ce6b-2c87-4f42-80bd-645c9e62394c" />
+    <UnitTestResult executionId="2f52689d-6a5d-4a48-a200-b2f8600bfe8f" testId="1d20ecbf-26f3-eb32-7b2a-2b759967fd48" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SiroXml_HasCorrectStructure" computerName="DESKTOP-FB2ES22" duration="00:00:00.0405731" startTime="2026-06-21T02:11:22.9492859+00:00" endTime="2026-06-21T02:11:22.9899176+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="2f52689d-6a5d-4a48-a200-b2f8600bfe8f" />
+    <UnitTestResult executionId="0934bc31-095c-4f3a-8040-5b6b7be52bfe" testId="e2cb659e-3913-c220-0605-a43004cf3dc0" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_NullEvent_DoesNotPublish" computerName="DESKTOP-FB2ES22" duration="00:00:00.0010272" startTime="2026-06-21T02:11:22.9889758+00:00" endTime="2026-06-21T02:11:22.9900307+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0934bc31-095c-4f3a-8040-5b6b7be52bfe" />
+    <UnitTestResult executionId="ef1e6c6a-cb46-44be-b5a5-53b9af742696" testId="0b98824b-14e7-1646-75fa-12586f450820" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_ConflictsDetected_EmitsConflictDetectedEvents" computerName="DESKTOP-FB2ES22" duration="00:00:00.0061505" startTime="2026-06-21T02:11:22.9843451+00:00" endTime="2026-06-21T02:11:22.9905244+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="ef1e6c6a-cb46-44be-b5a5-53b9af742696" />
+    <UnitTestResult executionId="3d3912f4-99a2-438b-b173-0d944158fe7d" testId="5b1aa64c-04ab-7462-6040-ed463654ae6a" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_AllGateConditionsActive_BlockReasonsContainsAllThree" computerName="DESKTOP-FB2ES22" duration="00:00:00.0062389" startTime="2026-06-21T02:11:22.9844919+00:00" endTime="2026-06-21T02:11:22.9907691+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="3d3912f4-99a2-438b-b173-0d944158fe7d" />
+    <UnitTestResult executionId="c38c7c51-f495-4a2d-a61c-1b88eb6c6471" testId="2bb7b1a9-3ee9-8fa0-7c82-2cb0cb0674e9" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_AllAgreeFusion_PassesEmptyFieldConflictAlerts" computerName="DESKTOP-FB2ES22" duration="00:00:00.0017743" startTime="2026-06-21T02:11:22.9889935+00:00" endTime="2026-06-21T02:11:22.9908156+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="c38c7c51-f495-4a2d-a61c-1b88eb6c6471" />
+    <UnitTestResult executionId="7d711157-c42e-40fd-b64c-05774d223e17" testId="880b4c82-a371-0b02-0646-ecc9588b1f63" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SkipsExport_WhenExporterNull" computerName="DESKTOP-FB2ES22" duration="00:00:00.0016753" startTime="2026-06-21T02:11:22.9901819+00:00" endTime="2026-06-21T02:11:22.9918911+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="7d711157-c42e-40fd-b64c-05774d223e17" />
+    <UnitTestResult executionId="565f81e2-f59e-4358-b64b-3b0fd52833cd" testId="036f824d-0626-3d53-a5c0-5aa581774312" testName="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithXmlAndDocxCaseFiles_FusesAllThreeSources" computerName="DESKTOP-FB2ES22" duration="00:00:00.0054457" startTime="2026-06-21T02:11:22.9868517+00:00" endTime="2026-06-21T02:11:22.9923378+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="565f81e2-f59e-4358-b64b-3b0fd52833cd" />
+    <UnitTestResult executionId="46ee2341-625c-447b-84d7-1025d046cc51" testId="2f614df3-c658-5e0a-53d3-ffc5e257ff3f" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_FusionManualReviewRequired_BlocksExportAndPublishesHeldEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0016264" startTime="2026-06-21T02:11:22.9910285+00:00" endTime="2026-06-21T02:11:22.9926915+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="46ee2341-625c-447b-84d7-1025d046cc51" />
+    <UnitTestResult executionId="3f8ce88b-2bc5-4027-85da-438dcb67490f" testId="7df59c50-4532-7dc7-62a8-79ecc0a1eca5" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SkipsExport_WhenFusionResultNull" computerName="DESKTOP-FB2ES22" duration="00:00:00.0008991" startTime="2026-06-21T02:11:22.9920513+00:00" endTime="2026-06-21T02:11:22.9929737+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="3f8ce88b-2bc5-4027-85da-438dcb67490f" />
+    <UnitTestResult executionId="c08f07f9-05c9-4b2a-a71b-7340c6948329" testId="57b67fa8-e241-fc1f-c21a-c00ffdadee7d" testName="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithXmlOnlyCompanion_FusesXmlAndPdf" computerName="DESKTOP-FB2ES22" duration="00:00:00.0018711" startTime="2026-06-21T02:11:22.9925813+00:00" endTime="2026-06-21T02:11:22.9944841+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="c08f07f9-05c9-4b2a-a71b-7340c6948329" />
+    <UnitTestResult executionId="5c5a0ff7-3228-4144-8b22-69063ef7818e" testId="fa4764f5-d6c8-7531-2634-a5f8079b2c05" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_WhenStorageUnresolvable_ForwardsOriginalEventUnchanged" computerName="DESKTOP-FB2ES22" duration="00:00:00.0073351" startTime="2026-06-21T02:11:22.9872819+00:00" endTime="2026-06-21T02:11:22.9946551+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="5c5a0ff7-3228-4144-8b22-69063ef7818e" />
+    <UnitTestResult executionId="4299c697-fbcc-400f-859c-7b8511bd6daa" testId="2fa917e3-5f69-0c96-2155-e0f5ba1759c3" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_HighConfidenceAutoProcessNoConflicts_ExportsAndPublishesCompletedEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0019204" startTime="2026-06-21T02:11:22.9928253+00:00" endTime="2026-06-21T02:11:22.9947757+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="4299c697-fbcc-400f-859c-7b8511bd6daa" />
+    <UnitTestResult executionId="4b666c90-8ca9-4dc0-a792-d83d2d097103" testId="6548721d-b81d-f8d6-38fd-22ac7166cbe5" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage4_LowConfidence_EmitsDocumentFlaggedForReviewEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0042464" startTime="2026-06-21T02:11:22.9906865+00:00" endTime="2026-06-21T02:11:22.9949643+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="4b666c90-8ca9-4dc0-a792-d83d2d097103" />
+    <UnitTestResult executionId="10a50c02-e296-4c73-9b87-cedb2e56966f" testId="cfa0fadd-149d-1034-0eb4-1fc71a47b7eb" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithNullClassifierAndIsCompleteFalse_CallsPanelWithNonNullClassification" computerName="DESKTOP-FB2ES22" duration="00:00:00.0062579" startTime="2026-06-21T02:11:22.9889878+00:00" endTime="2026-06-21T02:11:22.9952752+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="10a50c02-e296-4c73-9b87-cedb2e56966f" />
+    <UnitTestResult executionId="d883c8b4-c86d-413c-b8b4-c2834fc16b07" testId="4b98e0e0-493c-3f6f-65aa-9f52ade458d0" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_MultiplePipelineStages_MaintainsCorrelationIdThroughout" computerName="DESKTOP-FB2ES22" duration="00:00:00.0070142" startTime="2026-06-21T02:11:22.9893974+00:00" endTime="2026-06-21T02:11:22.9964487+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="d883c8b4-c86d-413c-b8b4-c2834fc16b07" />
+    <UnitTestResult executionId="1a199bcb-faed-4c0b-9f36-152efe179f64" testId="3a05cc0f-f409-639c-43ae-768eae724fbb" testName="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_XmlExtractionFails_DegradesToPdfPlusDocx" computerName="DESKTOP-FB2ES22" duration="00:00:00.0018633" startTime="2026-06-21T02:11:22.9946438+00:00" endTime="2026-06-21T02:11:22.9965309+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="1a199bcb-faed-4c0b-9f36-152efe179f64" />
+    <UnitTestResult executionId="668695c6-d6cb-408c-9c14-00a73a6950f5" testId="7e9dd9df-d1e4-5c5d-af50-7b94a05b0fd4" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_EmitsSiroXmlEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0034092" startTime="2026-06-21T02:11:22.9931163+00:00" endTime="2026-06-21T02:11:22.9965563+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="668695c6-d6cb-408c-9c14-00a73a6950f5" />
+    <UnitTestResult executionId="ba529522-4351-44a1-8506-dae1a09f8bf7" testId="2cd9d2dc-6ad8-5579-d99a-9a22d368aa14" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_WithFileLoader_CallsLoadImageAsync" computerName="DESKTOP-FB2ES22" duration="00:00:00.0021484" startTime="2026-06-21T02:11:22.9951204+00:00" endTime="2026-06-21T02:11:22.9972921+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="ba529522-4351-44a1-8506-dae1a09f8bf7" />
+    <UnitTestResult executionId="c0449442-241c-4aa1-b707-82184af67c18" testId="ef3a1540-0122-ae32-a97f-7f45ca99ca2c" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_Accepts_WhenClearanceIsDownloadAndFileIdMatches" computerName="DESKTOP-FB2ES22" duration="00:00:00.0029154" startTime="2026-06-21T02:11:22.9948127+00:00" endTime="2026-06-21T02:11:22.9977588+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="c0449442-241c-4aa1-b707-82184af67c18" />
+    <UnitTestResult executionId="8c371524-1c3a-41dc-94fe-aae00d18cde6" testId="e1d6f06e-69d4-e6c2-0378-1ac1281cb56b" testName="ExxerCube.Prisma.Athena.Processing.Tests.SharedStorageForwardingEndToEndTests.RelativePathOnEvent_ResolvedAgainstSharedBase_AndLoadedByPipeline" computerName="DESKTOP-FB2ES22" duration="00:00:00.4280467" startTime="2026-06-21T02:11:22.5659074+00:00" endTime="2026-06-21T02:11:22.9981804+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="8c371524-1c3a-41dc-94fe-aae00d18cde6" />
+    <UnitTestResult executionId="ae0838b5-e01e-4f2b-863f-bcf4922ee234" testId="c6c49cc4-79ce-92a3-7d5a-f7050089685e" testName="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_OrionPublishes_AthenaReceivesAndProcesses" computerName="DESKTOP-FB2ES22" duration="00:00:00.4281059" startTime="2026-06-21T02:11:22.5659696+00:00" endTime="2026-06-21T02:11:22.9982009+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="ae0838b5-e01e-4f2b-863f-bcf4922ee234" />
+    <UnitTestResult executionId="86717ae8-4e7b-4346-9a23-8250bb19559b" testId="69010070-11e2-014d-92f5-39858206ba64" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullResolver_Throws" computerName="DESKTOP-FB2ES22" duration="00:00:00.0005257" startTime="2026-06-21T02:11:22.9979765+00:00" endTime="2026-06-21T02:11:22.9985377+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="86717ae8-4e7b-4346-9a23-8250bb19559b" />
+    <UnitTestResult executionId="434862f5-9034-4883-ab04-e7277abcdb9e" testId="c17f4cfe-8f79-ab85-b857-357e90d19f41" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullReplayGuard_Throws" computerName="DESKTOP-FB2ES22" duration="00:00:00.0004889" startTime="2026-06-21T02:11:22.9986569+00:00" endTime="2026-06-21T02:11:22.9991720+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="434862f5-9034-4883-ab04-e7277abcdb9e" />
+    <UnitTestResult executionId="31f97fbc-0bca-4e68-959a-f33c220a6fd4" testId="fe05fe1b-0370-8687-f3a7-ddde4b357da0" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithIsCompleteFalse_CallsPanelWithIsCompleteFalse" computerName="DESKTOP-FB2ES22" duration="00:00:00.0043992" startTime="2026-06-21T02:11:22.9954146+00:00" endTime="2026-06-21T02:11:22.9998375+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="31f97fbc-0bca-4e68-959a-f33c220a6fd4" />
+    <UnitTestResult executionId="0ccbb7ab-54c1-442d-bd8d-f52ef70858ed" testId="580282e5-f36f-a2ea-0df3-ee16959b03a4" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_LowConfidenceClassification_BlocksExportAndPublishesHeldEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0052278" startTime="2026-06-21T02:11:22.9950054+00:00" endTime="2026-06-21T02:11:23.0002630+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0ccbb7ab-54c1-442d-bd8d-f52ef70858ed" />
+    <UnitTestResult executionId="3d821959-296a-4cb1-9edc-e8058714427d" testId="6e8433fa-bfb7-3769-b1f1-125f6299777a" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_WithRealFixture_EmitsAllPipelineEvents" computerName="DESKTOP-FB2ES22" duration="00:00:00.0043364" startTime="2026-06-21T02:11:22.9966142+00:00" endTime="2026-06-21T02:11:23.0009769+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="3d821959-296a-4cb1-9edc-e8058714427d" />
+    <UnitTestResult executionId="01ae1a35-8614-4304-a2be-8d70f0d93935" testId="28f38462-abc5-bc46-97a3-4945a444ebff" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_WithRelativeStoragePath_ResolvesToAbsoluteFileName" computerName="DESKTOP-FB2ES22" duration="00:00:00.0018315" startTime="2026-06-21T02:11:22.9993213+00:00" endTime="2026-06-21T02:11:23.0011771+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="01ae1a35-8614-4304-a2be-8d70f0d93935" />
+    <UnitTestResult executionId="614d370e-7c2b-4e54-bade-4a01d302d443" testId="6bc3a552-ecbe-c4fd-58d2-d041154b2402" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithNoScopeFactory_DoesNotCallPanel" computerName="DESKTOP-FB2ES22" duration="00:00:00.0017722" startTime="2026-06-21T02:11:22.9999995+00:00" endTime="2026-06-21T02:11:23.0018042+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="614d370e-7c2b-4e54-bade-4a01d302d443" />
+    <UnitTestResult executionId="719f1fa2-23d1-4804-9785-247722b2e95b" testId="e4ce0a59-6186-354d-0fb6-67c502caf026" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_GateDisabledByPolicy_LowConfidenceDoesNotBlockExport" computerName="DESKTOP-FB2ES22" duration="00:00:00.0015880" startTime="2026-06-21T02:11:23.0003977+00:00" endTime="2026-06-21T02:11:23.0020132+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="719f1fa2-23d1-4804-9785-247722b2e95b" />
+    <UnitTestResult executionId="053dc707-dfcd-4f2e-913b-35d5795caa85" testId="67b4a914-e4e1-f1ec-ab0f-6ae6e8358bf8" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage2_WithOcrExecutor_CallsExecuteOcrAsync" computerName="DESKTOP-FB2ES22" duration="00:00:00.0051590" startTime="2026-06-21T02:11:22.9974618+00:00" endTime="2026-06-21T02:11:23.0026463+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="053dc707-dfcd-4f2e-913b-35d5795caa85" />
+    <UnitTestResult executionId="47b1ee6b-a708-4fd8-82c1-791b5ccf086a" testId="238c85af-2c1d-1d45-54bc-db9709d98b89" testName="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_MultipleDocuments_ProcessedIndependently" computerName="DESKTOP-FB2ES22" duration="00:00:00.0055501" startTime="2026-06-21T02:11:22.9984504+00:00" endTime="2026-06-21T02:11:23.0040360+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="47b1ee6b-a708-4fd8-82c1-791b5ccf086a" />
+    <UnitTestResult executionId="1092cdc3-6519-4140-aea4-536fd1ed2935" testId="e8ceae7b-3775-f456-7043-454e6a4fa046" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_WithFusionExpediente_CallsFuseAsync" computerName="DESKTOP-FB2ES22" duration="00:00:00.0021204" startTime="2026-06-21T02:11:23.0028001+00:00" endTime="2026-06-21T02:11:23.0049513+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="1092cdc3-6519-4140-aea4-536fd1ed2935" />
+    <UnitTestResult executionId="a1529325-c391-4c20-b87d-39a4a143be26" testId="a9184d02-fb7e-6a2c-c8da-e1b037d6beff" testName="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RepublishesEventOntoLocalEventStream" computerName="DESKTOP-FB2ES22" duration="00:00:00.0040094" startTime="2026-06-21T02:11:23.0013152+00:00" endTime="2026-06-21T02:11:23.0053488+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a1529325-c391-4c20-b87d-39a4a143be26" />
+    <UnitTestResult executionId="e9116dc9-88b7-42f3-bffb-a292b7fc7fcb" testId="705655ac-07ad-ee31-4d1a-838755f14c59" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_WithTxtFieldExtractor_FeedsOcrDerivedExpedienteToFusion" computerName="DESKTOP-FB2ES22" duration="00:00:00.0032512" startTime="2026-06-21T02:11:23.0051441+00:00" endTime="2026-06-21T02:11:23.0084303+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="e9116dc9-88b7-42f3-bffb-a292b7fc7fcb" />
+    <UnitTestResult executionId="92230d68-d3f2-4771-ab60-bacf7a693f7b" testId="10d6b8a3-2208-d73c-01ed-c37be3bd62f6" testName="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_CorrelationIdPreserved_ThroughEntireFlow" computerName="DESKTOP-FB2ES22" duration="00:00:00.0042772" startTime="2026-06-21T02:11:23.0041880+00:00" endTime="2026-06-21T02:11:23.0084945+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="92230d68-d3f2-4771-ab60-bacf7a693f7b" />
+    <UnitTestResult executionId="9fc41611-4f92-411c-a232-93c1a7b4028b" testId="34e67178-b90f-d672-9de5-6a8915d96b99" testName="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.FixtureFiles_ExistForIntegrationTesting" computerName="DESKTOP-FB2ES22" duration="00:00:00.0004460" startTime="2026-06-21T02:11:23.0087108+00:00" endTime="2026-06-21T02:11:23.0091996+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="9fc41611-4f92-411c-a232-93c1a7b4028b" />
+    <UnitTestResult executionId="4bb59682-98ee-43c3-b222-bf7b11ae9d17" testId="0b8128ca-7e0f-7fcc-a357-953e9c6e4b2e" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage4_WithClassifier_CallsClassifyAsync" computerName="DESKTOP-FB2ES22" duration="00:00:00.0020940" startTime="2026-06-21T02:11:23.0086227+00:00" endTime="2026-06-21T02:11:23.0107854+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="4bb59682-98ee-43c3-b222-bf7b11ae9d17" />
+    <UnitTestResult executionId="381872a9-fcf6-4de2-a158-cd61f034effd" testId="65667322-766a-bd9d-bd12-bad6f35e9b26" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_NullEvent_ThrowsArgumentNullException" computerName="DESKTOP-FB2ES22" duration="00:00:00.0187757" startTime="2026-06-21T02:11:23.0109510+00:00" endTime="2026-06-21T02:11:23.0313659+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="381872a9-fcf6-4de2-a158-cd61f034effd" />
+    <UnitTestResult executionId="2148b68b-0a57-4823-b2a1-21dee346bd6e" testId="76e8e495-ad3f-6ffd-ec13-93f72f52e14b" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_QualityBelowThreshold_EmitsRejectionAndStops" computerName="DESKTOP-FB2ES22" duration="00:00:00.0024673" startTime="2026-06-21T02:11:23.0369332+00:00" endTime="2026-06-21T02:11:23.0394495+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="2148b68b-0a57-4823-b2a1-21dee346bd6e" />
+    <UnitTestResult executionId="9e4048c5-bd3e-4aeb-97a6-4f5ef33a4880" testId="773340fe-476f-d2be-33ce-ce69aba519c5" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_BroadcastsViaIExxerHub_NotIEventPublisher" computerName="DESKTOP-FB2ES22" duration="00:00:00.0014414" startTime="2026-06-21T02:11:23.0396807+00:00" endTime="2026-06-21T02:11:23.0411679+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="9e4048c5-bd3e-4aeb-97a6-4f5ef33a4880" />
+    <UnitTestResult executionId="8fe2e9a8-07b1-42b3-b62c-c74430a41b7d" testId="05809c7a-f423-246f-2777-80a3a1191104" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage2_OcrFails_EmitsProcessingErrorEvent_ContinuesPipeline" computerName="DESKTOP-FB2ES22" duration="00:00:00.0030925" startTime="2026-06-21T02:11:23.0413943+00:00" endTime="2026-06-21T02:11:23.0445314+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="8fe2e9a8-07b1-42b3-b62c-c74430a41b7d" />
+    <UnitTestResult executionId="2af059bd-2a56-49f3-878e-0994b1085cc1" testId="806fb2b6-0eb9-bb98-ff51-35dfff3e4a1c" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_NullEvent_ReturnsFailure" computerName="DESKTOP-FB2ES22" duration="00:00:00.0013738" startTime="2026-06-21T02:11:23.0447493+00:00" endTime="2026-06-21T02:11:23.0461582+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="2af059bd-2a56-49f3-878e-0994b1085cc1" />
+    <UnitTestResult executionId="ddfb7d4e-1435-4661-b6cb-8324ad6c8294" testId="6e4b4f5b-6746-6321-fad0-e97e52eaff12" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_CorrelationId_PreservedInResult" computerName="DESKTOP-FB2ES22" duration="00:00:00.0011058" startTime="2026-06-21T02:11:23.0463603+00:00" endTime="2026-06-21T02:11:23.0474972+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="ddfb7d4e-1435-4661-b6cb-8324ad6c8294" />
+    <UnitTestResult executionId="53350faa-81c4-4ce3-a8bc-0bbcff64651c" testId="4e51f82b-bf0b-5eef-a0eb-d7fa3eb4d393" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_WhenCancelled_ReturnsCancelledResult" computerName="DESKTOP-FB2ES22" duration="00:00:00.0014041" startTime="2026-06-21T02:11:23.0476707+00:00" endTime="2026-06-21T02:11:23.0491051+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="53350faa-81c4-4ce3-a8bc-0bbcff64651c" />
+    <UnitTestResult executionId="8b5ba783-b3bd-453c-adf6-230c35b7d85a" testId="8d5e45d2-2a87-0acf-95db-658a1a71db62" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_CancellationRequested_ThrowsOperationCanceledException" computerName="DESKTOP-FB2ES22" duration="00:00:00.0030529" startTime="2026-06-21T02:11:23.0493130+00:00" endTime="2026-06-21T02:11:23.0524292+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="8b5ba783-b3bd-453c-adf6-230c35b7d85a" />
+    <UnitTestResult executionId="0852283a-0778-4919-b4b7-63b838e380c4" testId="ab1da95f-aa1e-2e88-62bb-9ee37a6209a8" testName="ExxerCube.Prisma.Athena.Processing.Tests.ThreeProcessPipelineEndToEndTests.DocumentFlowsDownloaderToExtractorToReconciliator_AcrossAllThreeProcesses" computerName="DESKTOP-FB2ES22" duration="00:00:00.4838215" startTime="2026-06-21T02:11:22.5659928+00:00" endTime="2026-06-21T02:11:23.0539402+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0852283a-0778-4919-b4b7-63b838e380c4" />
+    <UnitTestResult executionId="6e2ab3cb-b342-4861-838c-7684f807b753" testId="b073516e-3eea-bdc1-5052-07cae172fd3c" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.StartAsync_SubscribesToDocumentDownloadedEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0067414" startTime="2026-06-21T02:11:23.0528179+00:00" endTime="2026-06-21T02:11:23.0596101+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="6e2ab3cb-b342-4861-838c-7684f807b753" />
+    <UnitTestResult executionId="94e37885-4d06-40c6-9fe7-eac69cdccc00" testId="945a3840-aee8-4dcd-78d8-93f6a36bc785" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_WithQualityAnalyzer_CallsAnalyzeAsync" computerName="DESKTOP-FB2ES22" duration="00:00:00.0035663" startTime="2026-06-21T02:11:23.0598388+00:00" endTime="2026-06-21T02:11:23.0634506+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="94e37885-4d06-40c6-9fe7-eac69cdccc00" />
+    <UnitTestResult executionId="b150ed90-9cc4-439b-a077-86c5cd2702aa" testId="e1a6107f-bf69-086a-f610-7603417267dc" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_NewDocument_EmitsProcessingStartedLog" computerName="DESKTOP-FB2ES22" duration="00:00:00.0007036" startTime="2026-06-21T02:11:23.0636456+00:00" endTime="2026-06-21T02:11:23.0643816+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b150ed90-9cc4-439b-a077-86c5cd2702aa" />
+    <UnitTestResult executionId="17fe558a-4c94-4023-abd1-f2b719819209" testId="f6ce8051-3d39-96b4-ee65-caa7ff185a38" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_EmitsDocumentProcessingCompletedEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0017604" startTime="2026-06-21T02:11:23.0645468+00:00" endTime="2026-06-21T02:11:23.0663376+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="17fe558a-4c94-4023-abd1-f2b719819209" />
+    <UnitTestResult executionId="b83a6abc-4d1e-47b8-b690-e3122f8402ab" testId="b32e39b5-4ee4-5391-20b7-2c03e581f31c" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_NewDocument_ReturnsSuccessAndBroadcastsEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0021553" startTime="2026-06-21T02:11:23.0665367+00:00" endTime="2026-06-21T02:11:23.0687291+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b83a6abc-4d1e-47b8-b690-e3122f8402ab" />
+    <UnitTestResult executionId="0281184a-495d-45fa-955f-a4ce9893a07c" testId="2882f7de-4183-f984-e05f-bbd33ccb427a" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_Stage1Fails_ReturnsFailure_SkipsRemaining" computerName="DESKTOP-FB2ES22" duration="00:00:00.0011846" startTime="2026-06-21T02:11:23.0688970+00:00" endTime="2026-06-21T02:11:23.0701116+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0281184a-495d-45fa-955f-a4ce9893a07c" />
+    <UnitTestResult executionId="c125ff00-e516-4d41-ae49-095f62a02081" testId="c53ed3e3-587d-6819-d081-ddf80d5f1895" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage5_WithExporter_CallsExportAsync" computerName="DESKTOP-FB2ES22" duration="00:00:00.0020050" startTime="2026-06-21T02:11:23.0702519+00:00" endTime="2026-06-21T02:11:23.0722860+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="c125ff00-e516-4d41-ae49-095f62a02081" />
+    <UnitTestResult executionId="e5f65741-3522-49ec-8d6c-30e05588dcb3" testId="019e4228-2d72-c14f-0cd8-9535af694216" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.AllStages_Complete_EmitsDocumentProcessingCompletedEvent_WithStageCount" computerName="DESKTOP-FB2ES22" duration="00:00:00.0029330" startTime="2026-06-21T02:11:23.0724525+00:00" endTime="2026-06-21T02:11:23.0754160+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="e5f65741-3522-49ec-8d6c-30e05588dcb3" />
+    <UnitTestResult executionId="4b18f665-788d-4395-b3c1-ec6f0638f226" testId="514e1b36-a89f-1d15-9457-2992673ff391" testName="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_AllStages_ReturnsSuccessWithProcessingResult" computerName="DESKTOP-FB2ES22" duration="00:00:00.0012113" startTime="2026-06-21T02:11:23.0755807+00:00" endTime="2026-06-21T02:11:23.0768177+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="4b18f665-788d-4395-b3c1-ec6f0638f226" />
+    <UnitTestResult executionId="a538f5ab-6474-4fda-951d-0846d90f064c" testId="382a66cc-3914-b21f-fa57-01f4b54df165" testName="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_XmlAndDocx_NoPdf_FusesBestEffort_XmlCarriesExpediente" computerName="DESKTOP-FB2ES22" duration="00:00:00.6163195" startTime="2026-06-21T02:11:22.5659291+00:00" endTime="2026-06-21T02:11:23.1898349+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a538f5ab-6474-4fda-951d-0846d90f064c" />
+    <UnitTestResult executionId="70709143-2fe6-4800-bbe8-c45c25c66313" testId="0d9f7392-572b-05e9-d8d7-0891a21b244b" testName="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_RealXmlAndDocxSources_FusionResultContainsFieldsFromBothSources" computerName="DESKTOP-FB2ES22" duration="00:00:00.6174066" startTime="2026-06-21T02:11:22.5659796+00:00" endTime="2026-06-21T02:11:23.1909347+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="70709143-2fe6-4800-bbe8-c45c25c66313" />
+    <UnitTestResult executionId="d219ed42-6280-480a-a85e-d262dbbdf122" testId="f3033371-0fc9-4628-98d5-e724ad499b42" testName="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_CorruptDocxCompanion_DegradesToXmlOnly_StillFuses" computerName="DESKTOP-FB2ES22" duration="00:00:00.0068108" startTime="2026-06-21T02:11:23.1914497+00:00" endTime="2026-06-21T02:11:23.1983203+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="d219ed42-6280-480a-a85e-d262dbbdf122" />
+    <UnitTestResult executionId="bf3989d1-6244-4993-943f-565b0fb81b0e" testId="89e2be0d-4668-684a-fe22-3d8d296733aa" testName="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_DocxOnly_RealShapedRequerimiento_DoesNotInvalidate_DegradesAnswerable" computerName="DESKTOP-FB2ES22" duration="00:00:00.0157481" startTime="2026-06-21T02:11:23.1904822+00:00" endTime="2026-06-21T02:11:23.2062835+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="bf3989d1-6244-4993-943f-565b0fb81b0e" />
+    <UnitTestResult executionId="a57bcbdc-8b39-4264-b5b4-c5122a052ada" testId="6a57e20e-f14a-ee4c-e674-a1d3d380070f" testName="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_XmlOnly_RealExpFormat_FusesExpedienteFromXml" computerName="DESKTOP-FB2ES22" duration="00:00:00.0031695" startTime="2026-06-21T02:11:23.2065505+00:00" endTime="2026-06-21T02:11:23.2097752+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a57bcbdc-8b39-4264-b5b4-c5122a052ada" />
+    <UnitTestResult executionId="eea389aa-ba30-414a-b1a1-30dc4f8277b4" testId="116979ee-fd85-e2c6-91b4-6632cc6c9a05" testName="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_CorruptXmlCompanion_DegradesToDocxOnly_StillFuses" computerName="DESKTOP-FB2ES22" duration="00:00:00.0125986" startTime="2026-06-21T02:11:23.1985288+00:00" endTime="2026-06-21T02:11:23.2111679+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="eea389aa-ba30-414a-b1a1-30dc4f8277b4" />
+    <UnitTestResult executionId="7dc47cff-b79b-4ebc-b098-d6916fa25f3f" testId="a5a88619-2b40-0492-0671-d41f7687e3e9" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_DatosCargaXlsx_Has24Headers" computerName="DESKTOP-FB2ES22" duration="00:00:01.4183528" startTime="2026-06-21T02:11:22.5659475+00:00" endTime="2026-06-21T02:11:23.9919181+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="7dc47cff-b79b-4ebc-b098-d6916fa25f3f" />
+    <UnitTestResult executionId="b4b095ac-8cb5-4765-93d5-163f0b010bcb" testId="19f991f7-361f-3c08-8231-465e24d0d105" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_NullGenerator_OnlySiroXmlEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0013588" startTime="2026-06-21T02:11:23.9924383+00:00" endTime="2026-06-21T02:11:23.9938377+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b4b095ac-8cb5-4765-93d5-163f0b010bcb" />
+    <UnitTestResult executionId="4eef2444-d7d9-4e94-bdec-ae5b0bd533b3" testId="ec691673-35d0-22ca-9523-b8412e82aca8" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_EmitsBothSiroXmlAndDatosCargaEvents" computerName="DESKTOP-FB2ES22" duration="00:00:00.0086222" startTime="2026-06-21T02:11:23.9941976+00:00" endTime="2026-06-21T02:11:24.0028525+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="4eef2444-d7d9-4e94-bdec-ae5b0bd533b3" />
+    <UnitTestResult executionId="2adca0e4-0b01-4ee6-a671-f00f71d4c9f9" testId="cf1d141e-57b5-24a0-9011-24ba9ed404ff" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_NullResolver_StillEmitsDatosCargaEvent" computerName="DESKTOP-FB2ES22" duration="00:00:00.0073654" startTime="2026-06-21T02:11:24.0029923+00:00" endTime="2026-06-21T02:11:24.0103935+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="2adca0e4-0b01-4ee6-a671-f00f71d4c9f9" />
+    <UnitTestResult executionId="cb448fb8-fbeb-4911-8e5a-9846b5963961" testId="09f6ff6a-2ce9-31a7-9cd1-d21c24b81071" testName="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_DatosCargaEvent_HasPositiveSize" computerName="DESKTOP-FB2ES22" duration="00:00:00.0059114" startTime="2026-06-21T02:11:24.0105983+00:00" endTime="2026-06-21T02:11:24.0165526+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="cb448fb8-fbeb-4911-8e5a-9846b5963961" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithoutConverter_LosesSmartEnumFormat" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="5c06f783-7771-9c5f-efb3-1e82d2207e30">
+      <Execution id="842cc7c0-b4a1-4f8d-b734-85be31f1bcdf" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithoutConverter_LosesSmartEnumFormat" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_WebDefaults_IsCompleteFalse_PreservesAllProperties" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="726b1b8b-99c0-aeb1-f969-ba8b70660682">
+      <Execution id="ff7fabec-3a97-489e-b4cf-cf45f99efc09" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_WebDefaults_IsCompleteFalse_PreservesAllProperties" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_DefaultOptions_IsCompleteTrue_Preserved" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="5f567828-473c-add0-2403-c8651c616c2c">
+      <Execution id="77d75300-800a-4a3d-a0ec-6a066749051c" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_DefaultOptions_IsCompleteTrue_Preserved" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_DefaultOptions_IsCompleteFalse_Preserved" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="07b1fc51-8d11-fe07-13db-ce9954b5de02">
+      <Execution id="9835f900-b8ce-4475-9f20-10504864fad3" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionCompletedEventSerializationTests.RoundTrip_DefaultOptions_IsCompleteFalse_Preserved" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithConverter_WebDefaults_PreservesEverything" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="6b3c3b3d-e105-661c-164c-07ecc3b8b68c">
+      <Execution id="a728af43-81ce-48b1-89c6-777d9cb58915" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithConverter_WebDefaults_PreservesEverything" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithConverter_DefaultOptions_PreservesCaseFileFormats" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="255371d8-3c78-59f6-4c94-834074ba92f7">
+      <Execution id="499610e6-9343-4ec4-9d21-a5e1be635dbf" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.DocumentDownloadedEventSerializationTests.RoundTrip_WithConverter_DefaultOptions_PreservesCaseFileFormats" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdIsEmpty" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="8407b972-8b4c-8ac6-2cc6-ecfa96437c7f">
+      <Execution id="b4e6fc58-b57e-48c1-aa76-9ec89d13e24d" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdIsEmpty" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdMismatches" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="30b4eee4-fd8a-a2cf-1031-0d6cd9cabef8">
+      <Execution id="39e8516b-980b-4b20-9c49-42d1d237d1d2" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdMismatches" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_EmitsError_WhenValidationFails" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="5b7be46b-e2bf-d389-7f78-e04287c6a746">
+      <Execution id="dea24b37-eb79-4ece-8b4d-a39bf3e76446" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_EmitsError_WhenValidationFails" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_DefensiveMode_NeverCrashes" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="72db3f75-96de-7b1b-14af-b85524955469">
+      <Execution id="2b0ba214-ec11-4b91-a56b-5bdd99686e83" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Integration</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_DefensiveMode_NeverCrashes" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_HandoffLoadFails_ReturnsFailure_NoReconcileNoCompletion" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="eecf1da0-05fa-5eb8-dd2e-12d5e81077e3">
+      <Execution id="4516b465-1242-4fed-a3ce-1aba89a10696" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_HandoffLoadFails_ReturnsFailure_NoReconcileNoCompletion" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_NullEvent_ReturnsFailure" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="487a269d-bcb9-6305-2840-d0f7de30ba31">
+      <Execution id="07f680c2-416d-4d3b-8eac-b660a3ef9fcc" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_NullEvent_ReturnsFailure" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullClearanceTokenService_Throws" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="60a5333c-7342-860a-d4c8-fd23ff5b27eb">
+      <Execution id="e1f8a6aa-1328-48fe-a3e9-f7842410cee9" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullClearanceTokenService_Throws" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_NullEvent_ReturnsFailure" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="261f38b5-b2fa-9c94-467a-452c3ac7c6da">
+      <Execution id="8dcfd3b5-03ce-49c7-a02d-27ec88cd4548" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_NullEvent_ReturnsFailure" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenValidationFails" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="990594b1-8988-da70-f03b-3bf7e511812b">
+      <Execution id="51bab72b-8f97-4313-ba30-3ebc2e933d89" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenValidationFails" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_Event_PublishesSameEventOntoLocalStream" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="8163e6a3-ce36-3f72-afc4-6fd27ced5678">
+      <Execution id="af59ce45-3ea2-4c2a-9d46-d37075bc9b7a" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_Event_PublishesSameEventOntoLocalStream" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenIsMissing" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="5e5eebae-3a11-599e-c285-d5857c6d7409">
+      <Execution id="3122fc5f-4e26-487a-b100-3fdc4433182d" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenIsMissing" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_LoadsHandoffAndReconciles_EmitsCompletion" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="0a0f9c88-7355-eceb-eab1-d20aa3be7f57">
+      <Execution id="13a384a1-64a4-49f1-83df-3cde81e906e3" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationPipelineServiceTests.ProcessAsync_LoadsHandoffAndReconciles_EmitsCompletion" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenClearanceIsNotDownload" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="70c29d8d-41eb-aef2-6bf5-12e575b87189">
+      <Execution id="9143c344-35df-4065-a5cb-d4e697258d5f" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenClearanceIsNotDownload" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenClearanceIsNotExtract" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="d816167c-e995-2418-1591-977d3cdd174f">
+      <Execution id="7617dfbc-4886-4694-8f3e-db42a333b259" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenClearanceIsNotExtract" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_DocxOnlyCase_SkipsImageStagesAndFusesDocx" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="eae79cd9-56c9-ed7f-396a-da74f48d09cc">
+      <Execution id="f503d130-8b0e-4336-b655-b76b5515e3ea" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests" name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_DocxOnlyCase_SkipsImageStagesAndFusesDocx" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdMismatches" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="35896467-a4fd-1fcd-2365-89d79f1b382b">
+      <Execution id="e1d3d85b-441b-4739-8c2b-1ed1e6710b73" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdMismatches" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdIsEmpty" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="56b8b915-bdd8-adea-03da-021af4c0f8db">
+      <Execution id="a262b049-48ad-455b-9658-030c576812c4" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsEvent_WhenFileIdIsEmpty" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenIsMissing" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="9180d2f9-ea94-ad4d-36c0-719f78301bfb">
+      <Execution id="aa9bca59-6cf8-4833-a5e7-b75098bf5043" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenIsMissing" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_WithFusedExpediente_SavesHandoffAndBroadcasts" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="869de539-71c5-0d9b-a896-9b30552219a6">
+      <Execution id="c762a43f-8e63-4aad-b78d-b20903b129c9" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_WithFusedExpediente_SavesHandoffAndBroadcasts" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_Success_BroadcastsViaIExxerHub" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="49c92956-3414-1507-8e7d-2e24c1f1b4d8">
+      <Execution id="5ef737ca-0d8d-4646-8cac-43a58f6b5a63" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>6</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_Success_BroadcastsViaIExxerHub" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_NoFusedExpediente_DoesNotHandoff" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="bba16804-5e94-da40-5e6a-ee9f11ded6f1">
+      <Execution id="78613f12-8aff-47dd-a6f1-bab80605c87b" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_NoFusedExpediente_DoesNotHandoff" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_Accepts_WhenClearanceIsExtractAndFileIdMatches" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="ab4ff819-7102-bab4-a06c-781759309342">
+      <Execution id="557f591f-1857-4bce-8636-64264ff7b19a" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_Accepts_WhenClearanceIsExtractAndFileIdMatches" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.Constructor_NullClearanceTokenService_Throws" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="d634d98b-93bd-44a4-c55b-ffb6cf008f0e">
+      <Execution id="cc19b4dd-3022-421f-8627-85acacc92c67" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.Constructor_NullClearanceTokenService_Throws" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsReplay_WhenSameTokenForwardedTwice" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="d583c1dc-0c99-d9f5-93a4-9f525ab9772d">
+      <Execution id="cb95450b-dc9a-4ce0-ad46-658af2c75bb5" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RejectsReplay_WhenSameTokenForwardedTwice" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_CorrelationId_PreservedInEvents" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="e3328512-6e29-cb80-8375-98b23afd2a32">
+      <Execution id="3de4119e-1315-412e-8834-77b4b5ecfda9" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_CorrelationId_PreservedInEvents" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_UnresolvedFusionConflicts_BlocksExportAndPublishesHeldEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="775123e3-d471-756d-d889-0b927397a76c">
+      <Execution id="69f4ae4b-a002-48b1-9155-24264753dc26" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_UnresolvedFusionConflicts_BlocksExportAndPublishesHeldEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_StorePersistFails_ReturnsFailure_NoBroadcast" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="4670b79f-c6a4-81ec-0a23-0e3e87489893">
+      <Execution id="02ede819-1b91-48ba-a209-fb7af21ce979" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_StorePersistFails_ReturnsFailure_NoBroadcast" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullPublisher_Throws" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="362b0ba4-a451-0617-2607-33251b34a445">
+      <Execution id="ccbba170-6659-419f-b9ed-9ffc638b8cf3" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullPublisher_Throws" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenValidationFails" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="0c744e5e-932e-9833-f88c-af6887bc58bc">
+      <Execution id="e01e2b90-cc6a-411c-a645-efa38647c366" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsEvent_WhenTokenValidationFails" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_ConflictingFusion_PassesNonEmptyFieldConflictAlerts" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="c595cb49-bab4-f3f1-2165-f10593d1f061">
+      <Execution id="7063fba7-261f-4e6e-8868-f8e7acdada1a" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_ConflictingFusion_PassesNonEmptyFieldConflictAlerts" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithEmptyCaseFiles_FusesPdfOnly" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="71dad940-91d8-2d04-32b6-86c8ed37ed07">
+      <Execution id="7425d201-c523-4f85-9025-c26cdc1beac0" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests" name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithEmptyCaseFiles_FusesPdfOnly" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_NullEvent_DoesNotPublish" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="ca419afc-6f17-ff44-a68f-4c1f19ccd794">
+      <Execution id="c2efc570-fb0a-4b05-a5ff-6c523fec1eec" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_NullEvent_DoesNotPublish" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_WithOptionalServices_EmitsStageEvents" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="124bef60-73f9-f90a-c6ec-f8234d4b1e19">
+      <Execution id="3a34e332-7f45-4770-9d92-64e40a5822ee" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Integration</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_WithOptionalServices_EmitsStageEvents" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsReplay_WhenSameTokenForwardedTwice" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="89d8dd68-d326-c5ef-e927-7048e1ad4dbe">
+      <Execution id="ef1fbeeb-8363-4850-b202-41d5dbc5058f" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_RejectsReplay_WhenSameTokenForwardedTwice" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_QualityRejected_DoesNotHandoff" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="1ffea67a-31f3-f472-f8ee-bf0b3718ed8c">
+      <Execution id="3446ab7f-e0d5-4340-ad95-cb5e5be3090d" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ExtractionPipelineServiceTests.ProcessAsync_QualityRejected_DoesNotHandoff" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_NullFusion_PassesEmptyFieldConflictAlerts" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="3d051f18-0f06-5391-caaa-d63c3e78e712">
+      <Execution id="66bafa06-a0af-48bf-832c-5fe982086629" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_NullFusion_PassesEmptyFieldConflictAlerts" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.Constructor_NullReplayGuard_Throws" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="0138f892-2f3f-f025-b14f-4d095c36082d">
+      <Execution id="ca25f9d6-47f3-4432-915d-46f8f10e3f8b" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.Constructor_NullReplayGuard_Throws" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithIsCompleteTrue_CallsPanelWithIsCompleteTrue" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="59d6d5ad-a85f-7aeb-338f-b13ff26c2001">
+      <Execution id="056d3bd7-ba95-4f5b-a79e-5d6565007178" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithIsCompleteTrue_CallsPanelWithIsCompleteTrue" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_FixtureExists_ValidatesFileStructure" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="f8186178-906b-223f-96a6-b392f15396fb">
+      <Execution id="00a3ce6b-2c87-4f42-80bd-645c9e62394c" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Integration</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_FixtureExists_ValidatesFileStructure" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SiroXml_HasCorrectStructure" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="1d20ecbf-26f3-eb32-7b2a-2b759967fd48">
+      <Execution id="2f52689d-6a5d-4a48-a200-b2f8600bfe8f" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SiroXml_HasCorrectStructure" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_NullEvent_DoesNotPublish" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="e2cb659e-3913-c220-0605-a43004cf3dc0">
+      <Execution id="0934bc31-095c-4f3a-8040-5b6b7be52bfe" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationEventForwarderTests.ForwardAsync_NullEvent_DoesNotPublish" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_ConflictsDetected_EmitsConflictDetectedEvents" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="0b98824b-14e7-1646-75fa-12586f450820">
+      <Execution id="ef1e6c6a-cb46-44be-b5a5-53b9af742696" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>3</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_ConflictsDetected_EmitsConflictDetectedEvents" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_AllGateConditionsActive_BlockReasonsContainsAllThree" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="5b1aa64c-04ab-7462-6040-ed463654ae6a">
+      <Execution id="3d3912f4-99a2-438b-b173-0d944158fe7d" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_AllGateConditionsActive_BlockReasonsContainsAllThree" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_AllAgreeFusion_PassesEmptyFieldConflictAlerts" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="2bb7b1a9-3ee9-8fa0-7c82-2cb0cb0674e9">
+      <Execution id="c38c7c51-f495-4a2d-a61c-1b88eb6c6471" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorAlertamentoTests.ReconcileAsync_AllAgreeFusion_PassesEmptyFieldConflictAlerts" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SkipsExport_WhenExporterNull" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="880b4c82-a371-0b02-0646-ecc9588b1f63">
+      <Execution id="7d711157-c42e-40fd-b64c-05774d223e17" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SkipsExport_WhenExporterNull" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithXmlAndDocxCaseFiles_FusesAllThreeSources" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="036f824d-0626-3d53-a5c0-5aa581774312">
+      <Execution id="565f81e2-f59e-4358-b64b-3b0fd52833cd" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests" name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithXmlAndDocxCaseFiles_FusesAllThreeSources" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_FusionManualReviewRequired_BlocksExportAndPublishesHeldEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="2f614df3-c658-5e0a-53d3-ffc5e257ff3f">
+      <Execution id="46ee2341-625c-447b-84d7-1025d046cc51" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_FusionManualReviewRequired_BlocksExportAndPublishesHeldEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SkipsExport_WhenFusionResultNull" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="7df59c50-4532-7dc7-62a8-79ecc0a1eca5">
+      <Execution id="3f8ce88b-2bc5-4027-85da-438dcb67490f" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_SkipsExport_WhenFusionResultNull" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithXmlOnlyCompanion_FusesXmlAndPdf" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="57b67fa8-e241-fc1f-c21a-c00ffdadee7d">
+      <Execution id="c08f07f9-05c9-4b2a-a71b-7340c6948329" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests" name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_WithXmlOnlyCompanion_FusesXmlAndPdf" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_WhenStorageUnresolvable_ForwardsOriginalEventUnchanged" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="fa4764f5-d6c8-7531-2634-a5f8079b2c05">
+      <Execution id="5c5a0ff7-3228-4144-8b22-69063ef7818e" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_WhenStorageUnresolvable_ForwardsOriginalEventUnchanged" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_HighConfidenceAutoProcessNoConflicts_ExportsAndPublishesCompletedEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="2fa917e3-5f69-0c96-2155-e0f5ba1759c3">
+      <Execution id="4299c697-fbcc-400f-859c-7b8511bd6daa" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_HighConfidenceAutoProcessNoConflicts_ExportsAndPublishesCompletedEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage4_LowConfidence_EmitsDocumentFlaggedForReviewEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="6548721d-b81d-f8d6-38fd-22ac7166cbe5">
+      <Execution id="4b666c90-8ca9-4dc0-a792-d83d2d097103" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>4</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage4_LowConfidence_EmitsDocumentFlaggedForReviewEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithNullClassifierAndIsCompleteFalse_CallsPanelWithNonNullClassification" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="cfa0fadd-149d-1034-0eb4-1fc71a47b7eb">
+      <Execution id="10a50c02-e296-4c73-9b87-cedb2e56966f" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithNullClassifierAndIsCompleteFalse_CallsPanelWithNonNullClassification" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_MultiplePipelineStages_MaintainsCorrelationIdThroughout" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="4b98e0e0-493c-3f6f-65aa-9f52ade458d0">
+      <Execution id="d883c8b4-c86d-413c-b8b4-c2834fc16b07" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Integration</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_MultiplePipelineStages_MaintainsCorrelationIdThroughout" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_XmlExtractionFails_DegradesToPdfPlusDocx" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="3a05cc0f-f409-639c-43ae-768eae724fbb">
+      <Execution id="1a199bcb-faed-4c0b-9f36-152efe179f64" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests" name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionTests.ExtractAsync_XmlExtractionFails_DegradesToPdfPlusDocx" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_EmitsSiroXmlEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="7e9dd9df-d1e4-5c5d-af50-7b94a05b0fd4">
+      <Execution id="668695c6-d6cb-408c-9c14-00a73a6950f5" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorSiroExportTests.ReconcileAsync_Stage5_EmitsSiroXmlEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_WithFileLoader_CallsLoadImageAsync" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="2cd9d2dc-6ad8-5579-d99a-9a22d368aa14">
+      <Execution id="ba529522-4351-44a1-8506-dae1a09f8bf7" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>1</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_WithFileLoader_CallsLoadImageAsync" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_Accepts_WhenClearanceIsDownloadAndFileIdMatches" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="ef3a1540-0122-ae32-a97f-7f45ca99ca2c">
+      <Execution id="c0449442-241c-4aa1-b707-82184af67c18" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_Accepts_WhenClearanceIsDownloadAndFileIdMatches" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.SharedStorageForwardingEndToEndTests.RelativePathOnEvent_ResolvedAgainstSharedBase_AndLoadedByPipeline" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="e1d6f06e-69d4-e6c2-0378-1ac1281cb56b">
+      <Execution id="8c371524-1c3a-41dc-94fe-aae00d18cde6" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>E2E</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.SharedStorageForwardingEndToEndTests" name="ExxerCube.Prisma.Athena.Processing.Tests.SharedStorageForwardingEndToEndTests.RelativePathOnEvent_ResolvedAgainstSharedBase_AndLoadedByPipeline" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_OrionPublishes_AthenaReceivesAndProcesses" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="c6c49cc4-79ce-92a3-7d5a-f7050089685e">
+      <Execution id="ae0838b5-e01e-4f2b-863f-bcf4922ee234" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>E2E</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests" name="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_OrionPublishes_AthenaReceivesAndProcesses" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullResolver_Throws" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="69010070-11e2-014d-92f5-39858206ba64">
+      <Execution id="86717ae8-4e7b-4346-9a23-8250bb19559b" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullResolver_Throws" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullReplayGuard_Throws" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="c17f4cfe-8f79-ab85-b857-357e90d19f41">
+      <Execution id="434862f5-9034-4883-ab04-e7277abcdb9e" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.Constructor_NullReplayGuard_Throws" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithIsCompleteFalse_CallsPanelWithIsCompleteFalse" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="fe05fe1b-0370-8687-f3a7-ddde4b357da0">
+      <Execution id="31f97fbc-0bca-4e68-959a-f33c220a6fd4" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithIsCompleteFalse_CallsPanelWithIsCompleteFalse" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_LowConfidenceClassification_BlocksExportAndPublishesHeldEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="580282e5-f36f-a2ea-0df3-ee16959b03a4">
+      <Execution id="0ccbb7ab-54c1-442d-bd8d-f52ef70858ed" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_LowConfidenceClassification_BlocksExportAndPublishesHeldEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_WithRealFixture_EmitsAllPipelineEvents" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="6e8433fa-bfb7-3769-b1f1-125f6299777a">
+      <Execution id="3d821959-296a-4cb1-9edc-e8058714427d" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Integration</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorIntegrationTests.ProcessDocument_WithRealFixture_EmitsAllPipelineEvents" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_WithRelativeStoragePath_ResolvesToAbsoluteFileName" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="28f38462-abc5-bc46-97a3-4945a444ebff">
+      <Execution id="01ae1a35-8614-4304-a2be-8d70f0d93935" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_WithRelativeStoragePath_ResolvesToAbsoluteFileName" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithNoScopeFactory_DoesNotCallPanel" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="6bc3a552-ecbe-c4fd-58d2-d041154b2402">
+      <Execution id="614d370e-7c2b-4e54-bade-4a01d302d443" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorIsCompleteTests.ReconcileAsync_WithNoScopeFactory_DoesNotCallPanel" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_GateDisabledByPolicy_LowConfidenceDoesNotBlockExport" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="e4ce0a59-6186-354d-0fb6-67c502caf026">
+      <Execution id="719f1fa2-23d1-4804-9785-247722b2e95b" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorExportGateTests.ReconcileAsync_GateDisabledByPolicy_LowConfidenceDoesNotBlockExport" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage2_WithOcrExecutor_CallsExecuteOcrAsync" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="67b4a914-e4e1-f1ec-ab0f-6ae6e8358bf8">
+      <Execution id="053dc707-dfcd-4f2e-913b-35d5795caa85" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>2</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage2_WithOcrExecutor_CallsExecuteOcrAsync" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_MultipleDocuments_ProcessedIndependently" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="238c85af-2c1d-1d45-54bc-db9709d98b89">
+      <Execution id="47b1ee6b-a708-4fd8-82c1-791b5ccf086a" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>E2E</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests" name="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_MultipleDocuments_ProcessedIndependently" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_WithFusionExpediente_CallsFuseAsync" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="e8ceae7b-3775-f456-7043-454e6a4fa046">
+      <Execution id="1092cdc3-6519-4140-aea4-536fd1ed2935" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>3</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_WithFusionExpediente_CallsFuseAsync" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RepublishesEventOntoLocalEventStream" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="a9184d02-fb7e-6a2c-c8da-e1b037d6beff">
+      <Execution id="a1529325-c391-4c20-b87d-39a4a143be26" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests" name="ExxerCube.Prisma.Athena.Processing.Tests.IngestionEventForwarderTests.ForwardAsync_RepublishesEventOntoLocalEventStream" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_WithTxtFieldExtractor_FeedsOcrDerivedExpedienteToFusion" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="705655ac-07ad-ee31-4d1a-838755f14c59">
+      <Execution id="e9116dc9-88b7-42f3-bffb-a292b7fc7fcb" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>3</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage3_WithTxtFieldExtractor_FeedsOcrDerivedExpedienteToFusion" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_CorrelationIdPreserved_ThroughEntireFlow" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="10d6b8a3-2208-d73c-01ed-c37be3bd62f6">
+      <Execution id="92230d68-d3f2-4771-ab60-bacf7a693f7b" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>E2E</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests" name="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.SharedEventPublisher_CorrelationIdPreserved_ThroughEntireFlow" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.FixtureFiles_ExistForIntegrationTesting" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="34e67178-b90f-d672-9de5-6a8915d96b99">
+      <Execution id="9fc41611-4f92-411c-a232-93c1a7b4028b" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>E2E</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests" name="ExxerCube.Prisma.Athena.Processing.Tests.OrionToAthenaEndToEndTests.FixtureFiles_ExistForIntegrationTesting" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage4_WithClassifier_CallsClassifyAsync" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="0b8128ca-7e0f-7fcc-a357-953e9c6e4b2e">
+      <Execution id="4bb59682-98ee-43c3-b222-bf7b11ae9d17" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>4</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage4_WithClassifier_CallsClassifyAsync" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_NullEvent_ThrowsArgumentNullException" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="65667322-766a-bd9d-bd12-bad6f35e9b26">
+      <Execution id="381872a9-fcf6-4de2-a158-cd61f034effd" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_NullEvent_ThrowsArgumentNullException" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_QualityBelowThreshold_EmitsRejectionAndStops" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="76e8e495-ad3f-6ffd-ec13-93f72f52e14b">
+      <Execution id="2148b68b-0a57-4823-b2a1-21dee346bd6e" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>1</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_QualityBelowThreshold_EmitsRejectionAndStops" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_BroadcastsViaIExxerHub_NotIEventPublisher" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="773340fe-476f-d2be-33ce-ce69aba519c5">
+      <Execution id="9e4048c5-bd3e-4aeb-97a6-4f5ef33a4880" />
+      <Properties>
+        <Property>
+          <Key>Stage</Key>
+          <Value>3.5</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_BroadcastsViaIExxerHub_NotIEventPublisher" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage2_OcrFails_EmitsProcessingErrorEvent_ContinuesPipeline" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="05809c7a-f423-246f-2777-80a3a1191104">
+      <Execution id="8fe2e9a8-07b1-42b3-b62c-c74430a41b7d" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>2</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage2_OcrFails_EmitsProcessingErrorEvent_ContinuesPipeline" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_NullEvent_ReturnsFailure" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="806fb2b6-0eb9-bb98-ff51-35dfff3e4a1c">
+      <Execution id="2af059bd-2a56-49f3-878e-0994b1085cc1" />
+      <Properties>
+        <Property>
+          <Key>Stage</Key>
+          <Value>3.5</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_NullEvent_ReturnsFailure" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_CorrelationId_PreservedInResult" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="6e4b4f5b-6746-6321-fad0-e97e52eaff12">
+      <Execution id="ddfb7d4e-1435-4661-b6cb-8324ad6c8294" />
+      <Properties>
+        <Property>
+          <Key>Stage</Key>
+          <Value>3.5</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_CorrelationId_PreservedInResult" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_WhenCancelled_ReturnsCancelledResult" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="4e51f82b-bf0b-5eef-a0eb-d7fa3eb4d393">
+      <Execution id="53350faa-81c4-4ce3-a8bc-0bbcff64651c" />
+      <Properties>
+        <Property>
+          <Key>Stage</Key>
+          <Value>3.5</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_WhenCancelled_ReturnsCancelledResult" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_CancellationRequested_ThrowsOperationCanceledException" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="8d5e45d2-2a87-0acf-95db-658a1a71db62">
+      <Execution id="8b5ba783-b3bd-453c-adf6-230c35b7d85a" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_CancellationRequested_ThrowsOperationCanceledException" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ThreeProcessPipelineEndToEndTests.DocumentFlowsDownloaderToExtractorToReconciliator_AcrossAllThreeProcesses" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="ab1da95f-aa1e-2e88-62bb-9ee37a6209a8">
+      <Execution id="0852283a-0778-4919-b4b7-63b838e380c4" />
+      <Properties>
+        <Property>
+          <Key>Category</Key>
+          <Value>E2E</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ThreeProcessPipelineEndToEndTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ThreeProcessPipelineEndToEndTests.DocumentFlowsDownloaderToExtractorToReconciliator_AcrossAllThreeProcesses" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.StartAsync_SubscribesToDocumentDownloadedEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="b073516e-3eea-bdc1-5052-07cae172fd3c">
+      <Execution id="6e2ab3cb-b342-4861-838c-7684f807b753" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>7</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.StartAsync_SubscribesToDocumentDownloadedEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_WithQualityAnalyzer_CallsAnalyzeAsync" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="945a3840-aee8-4dcd-78d8-93f6a36bc785">
+      <Execution id="94e37885-4d06-40c6-9fe7-eac69cdccc00" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>1</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage1_WithQualityAnalyzer_CallsAnalyzeAsync" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_NewDocument_EmitsProcessingStartedLog" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="e1a6107f-bf69-086a-f610-7603417267dc">
+      <Execution id="b150ed90-9cc4-439b-a077-86c5cd2702aa" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_NewDocument_EmitsProcessingStartedLog" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_EmitsDocumentProcessingCompletedEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="f6ce8051-3d39-96b4-ee65-caa7ff185a38">
+      <Execution id="17fe558a-4c94-4023-abd1-f2b719819209" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocument_EmitsDocumentProcessingCompletedEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_NewDocument_ReturnsSuccessAndBroadcastsEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="b32e39b5-4ee4-5391-20b7-2c03e581f31c">
+      <Execution id="b83a6abc-4d1e-47b8-b690-e3122f8402ab" />
+      <Properties>
+        <Property>
+          <Key>Stage</Key>
+          <Value>3.5</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_NewDocument_ReturnsSuccessAndBroadcastsEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_Stage1Fails_ReturnsFailure_SkipsRemaining" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="2882f7de-4183-f984-e05f-bbd33ccb427a">
+      <Execution id="0281184a-495d-45fa-955f-a4ce9893a07c" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>6</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_Stage1Fails_ReturnsFailure_SkipsRemaining" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage5_WithExporter_CallsExportAsync" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="c53ed3e3-587d-6819-d081-ddf80d5f1895">
+      <Execution id="c125ff00-e516-4d41-ae49-095f62a02081" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>5</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.Stage5_WithExporter_CallsExportAsync" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.AllStages_Complete_EmitsDocumentProcessingCompletedEvent_WithStageCount" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="019e4228-2d72-c14f-0cd8-9535af694216">
+      <Execution id="e5f65741-3522-49ec-8d6c-30e05588dcb3" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>5</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.AllStages_Complete_EmitsDocumentProcessingCompletedEvent_WithStageCount" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_AllStages_ReturnsSuccessWithProcessingResult" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="514e1b36-a89f-1d15-9457-2992673ff391">
+      <Execution id="4b18f665-788d-4395-b3c1-ec6f0638f226" />
+      <Properties>
+        <Property>
+          <Key>Phase</Key>
+          <Value>6</Value>
+        </Property>
+        <Property>
+          <Key>Category</Key>
+          <Value>Unit</Value>
+        </Property>
+      </Properties>
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ProcessingOrchestratorTests.ProcessDocumentWithResult_AllStages_ReturnsSuccessWithProcessingResult" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_XmlAndDocx_NoPdf_FusesBestEffort_XmlCarriesExpediente" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="382a66cc-3914-b21f-fa57-01f4b54df165">
+      <Execution id="a538f5ab-6474-4fda-951d-0846d90f064c" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests" name="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_XmlAndDocx_NoPdf_FusesBestEffort_XmlCarriesExpediente" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_RealXmlAndDocxSources_FusionResultContainsFieldsFromBothSources" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="0d9f7392-572b-05e9-d8d7-0891a21b244b">
+      <Execution id="70709143-2fe6-4800-bbe8-c45c25c66313" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_RealXmlAndDocxSources_FusionResultContainsFieldsFromBothSources" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_CorruptDocxCompanion_DegradesToXmlOnly_StillFuses" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="f3033371-0fc9-4628-98d5-e724ad499b42">
+      <Execution id="d219ed42-6280-480a-a85e-d262dbbdf122" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_CorruptDocxCompanion_DegradesToXmlOnly_StillFuses" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_DocxOnly_RealShapedRequerimiento_DoesNotInvalidate_DegradesAnswerable" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="89e2be0d-4668-684a-fe22-3d8d296733aa">
+      <Execution id="bf3989d1-6244-4993-943f-565b0fb81b0e" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests" name="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_DocxOnly_RealShapedRequerimiento_DoesNotInvalidate_DegradesAnswerable" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_XmlOnly_RealExpFormat_FusesExpedienteFromXml" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="6a57e20e-f14a-ee4c-e674-a1d3d380070f">
+      <Execution id="a57bcbdc-8b39-4264-b5b4-c5122a052ada" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests" name="ExxerCube.Prisma.Athena.Processing.Tests.CaseCombinationBestEffortTests.ExtractAsync_XmlOnly_RealExpFormat_FusesExpedienteFromXml" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_CorruptXmlCompanion_DegradesToDocxOnly_StillFuses" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="116979ee-fd85-e2c6-91b4-6632cc6c9a05">
+      <Execution id="eea389aa-ba30-414a-b1a1-30dc4f8277b4" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests" name="ExxerCube.Prisma.Athena.Processing.Tests.MultiSourceFusionIntegrationTests.ExtractAsync_CorruptXmlCompanion_DegradesToDocxOnly_StillFuses" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_DatosCargaXlsx_Has24Headers" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="a5a88619-2b40-0492-0671-d41f7687e3e9">
+      <Execution id="7dc47cff-b79b-4ebc-b098-d6916fa25f3f" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_DatosCargaXlsx_Has24Headers" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_NullGenerator_OnlySiroXmlEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="19f991f7-361f-3c08-8231-465e24d0d105">
+      <Execution id="b4b095ac-8cb5-4765-93d5-163f0b010bcb" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_NullGenerator_OnlySiroXmlEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_EmitsBothSiroXmlAndDatosCargaEvents" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="ec691673-35d0-22ca-9523-b8412e82aca8">
+      <Execution id="4eef2444-d7d9-4e94-bdec-ae5b0bd533b3" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_EmitsBothSiroXmlAndDatosCargaEvents" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_NullResolver_StillEmitsDatosCargaEvent" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="cf1d141e-57b5-24a0-9011-24ba9ed404ff">
+      <Execution id="2adca0e4-0b01-4ee6-a671-f00f71d4c9f9" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_NullResolver_StillEmitsDatosCargaEvent" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_DatosCargaEvent_HasPositiveSize" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.athena.processing.tests\net10.0\exxercube.prisma.athena.processing.tests.dll" id="09f6ff6a-2ce9-31a7-9cd1-d21c24b81071">
+      <Execution id="cb448fb8-fbeb-4911-8e5a-9846b5963961" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Athena.Processing.Tests\net10.0\ExxerCube.Prisma.Athena.Processing.Tests.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests" name="ExxerCube.Prisma.Athena.Processing.Tests.ReconciliationOrchestratorDatosCargaExportTests.ReconcileAsync_Stage5_DatosCargaEvent_HasPositiveSize" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="5c06f783-7771-9c5f-efb3-1e82d2207e30" executionId="842cc7c0-b4a1-4f8d-b734-85be31f1bcdf" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="726b1b8b-99c0-aeb1-f969-ba8b70660682" executionId="ff7fabec-3a97-489e-b4cf-cf45f99efc09" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="5f567828-473c-add0-2403-c8651c616c2c" executionId="77d75300-800a-4a3d-a0ec-6a066749051c" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="07b1fc51-8d11-fe07-13db-ce9954b5de02" executionId="9835f900-b8ce-4475-9f20-10504864fad3" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="6b3c3b3d-e105-661c-164c-07ecc3b8b68c" executionId="a728af43-81ce-48b1-89c6-777d9cb58915" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="255371d8-3c78-59f6-4c94-834074ba92f7" executionId="499610e6-9343-4ec4-9d21-a5e1be635dbf" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="8407b972-8b4c-8ac6-2cc6-ecfa96437c7f" executionId="b4e6fc58-b57e-48c1-aa76-9ec89d13e24d" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="30b4eee4-fd8a-a2cf-1031-0d6cd9cabef8" executionId="39e8516b-980b-4b20-9c49-42d1d237d1d2" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="5b7be46b-e2bf-d389-7f78-e04287c6a746" executionId="dea24b37-eb79-4ece-8b4d-a39bf3e76446" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="72db3f75-96de-7b1b-14af-b85524955469" executionId="2b0ba214-ec11-4b91-a56b-5bdd99686e83" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="eecf1da0-05fa-5eb8-dd2e-12d5e81077e3" executionId="4516b465-1242-4fed-a3ce-1aba89a10696" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="487a269d-bcb9-6305-2840-d0f7de30ba31" executionId="07f680c2-416d-4d3b-8eac-b660a3ef9fcc" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="60a5333c-7342-860a-d4c8-fd23ff5b27eb" executionId="e1f8a6aa-1328-48fe-a3e9-f7842410cee9" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="261f38b5-b2fa-9c94-467a-452c3ac7c6da" executionId="8dcfd3b5-03ce-49c7-a02d-27ec88cd4548" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="990594b1-8988-da70-f03b-3bf7e511812b" executionId="51bab72b-8f97-4313-ba30-3ebc2e933d89" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="8163e6a3-ce36-3f72-afc4-6fd27ced5678" executionId="af59ce45-3ea2-4c2a-9d46-d37075bc9b7a" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="5e5eebae-3a11-599e-c285-d5857c6d7409" executionId="3122fc5f-4e26-487a-b100-3fdc4433182d" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0a0f9c88-7355-eceb-eab1-d20aa3be7f57" executionId="13a384a1-64a4-49f1-83df-3cde81e906e3" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="70c29d8d-41eb-aef2-6bf5-12e575b87189" executionId="9143c344-35df-4065-a5cb-d4e697258d5f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="d816167c-e995-2418-1591-977d3cdd174f" executionId="7617dfbc-4886-4694-8f3e-db42a333b259" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="eae79cd9-56c9-ed7f-396a-da74f48d09cc" executionId="f503d130-8b0e-4336-b655-b76b5515e3ea" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="35896467-a4fd-1fcd-2365-89d79f1b382b" executionId="e1d3d85b-441b-4739-8c2b-1ed1e6710b73" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="56b8b915-bdd8-adea-03da-021af4c0f8db" executionId="a262b049-48ad-455b-9658-030c576812c4" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="9180d2f9-ea94-ad4d-36c0-719f78301bfb" executionId="aa9bca59-6cf8-4833-a5e7-b75098bf5043" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="869de539-71c5-0d9b-a896-9b30552219a6" executionId="c762a43f-8e63-4aad-b78d-b20903b129c9" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="49c92956-3414-1507-8e7d-2e24c1f1b4d8" executionId="5ef737ca-0d8d-4646-8cac-43a58f6b5a63" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="bba16804-5e94-da40-5e6a-ee9f11ded6f1" executionId="78613f12-8aff-47dd-a6f1-bab80605c87b" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="ab4ff819-7102-bab4-a06c-781759309342" executionId="557f591f-1857-4bce-8636-64264ff7b19a" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="d634d98b-93bd-44a4-c55b-ffb6cf008f0e" executionId="cc19b4dd-3022-421f-8627-85acacc92c67" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="d583c1dc-0c99-d9f5-93a4-9f525ab9772d" executionId="cb95450b-dc9a-4ce0-ad46-658af2c75bb5" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="e3328512-6e29-cb80-8375-98b23afd2a32" executionId="3de4119e-1315-412e-8834-77b4b5ecfda9" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="775123e3-d471-756d-d889-0b927397a76c" executionId="69f4ae4b-a002-48b1-9155-24264753dc26" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="4670b79f-c6a4-81ec-0a23-0e3e87489893" executionId="02ede819-1b91-48ba-a209-fb7af21ce979" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="362b0ba4-a451-0617-2607-33251b34a445" executionId="ccbba170-6659-419f-b9ed-9ffc638b8cf3" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0c744e5e-932e-9833-f88c-af6887bc58bc" executionId="e01e2b90-cc6a-411c-a645-efa38647c366" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="c595cb49-bab4-f3f1-2165-f10593d1f061" executionId="7063fba7-261f-4e6e-8868-f8e7acdada1a" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="71dad940-91d8-2d04-32b6-86c8ed37ed07" executionId="7425d201-c523-4f85-9025-c26cdc1beac0" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="ca419afc-6f17-ff44-a68f-4c1f19ccd794" executionId="c2efc570-fb0a-4b05-a5ff-6c523fec1eec" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="124bef60-73f9-f90a-c6ec-f8234d4b1e19" executionId="3a34e332-7f45-4770-9d92-64e40a5822ee" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="89d8dd68-d326-c5ef-e927-7048e1ad4dbe" executionId="ef1fbeeb-8363-4850-b202-41d5dbc5058f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="1ffea67a-31f3-f472-f8ee-bf0b3718ed8c" executionId="3446ab7f-e0d5-4340-ad95-cb5e5be3090d" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="3d051f18-0f06-5391-caaa-d63c3e78e712" executionId="66bafa06-a0af-48bf-832c-5fe982086629" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0138f892-2f3f-f025-b14f-4d095c36082d" executionId="ca25f9d6-47f3-4432-915d-46f8f10e3f8b" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="59d6d5ad-a85f-7aeb-338f-b13ff26c2001" executionId="056d3bd7-ba95-4f5b-a79e-5d6565007178" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="f8186178-906b-223f-96a6-b392f15396fb" executionId="00a3ce6b-2c87-4f42-80bd-645c9e62394c" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="1d20ecbf-26f3-eb32-7b2a-2b759967fd48" executionId="2f52689d-6a5d-4a48-a200-b2f8600bfe8f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="e2cb659e-3913-c220-0605-a43004cf3dc0" executionId="0934bc31-095c-4f3a-8040-5b6b7be52bfe" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0b98824b-14e7-1646-75fa-12586f450820" executionId="ef1e6c6a-cb46-44be-b5a5-53b9af742696" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="5b1aa64c-04ab-7462-6040-ed463654ae6a" executionId="3d3912f4-99a2-438b-b173-0d944158fe7d" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="2bb7b1a9-3ee9-8fa0-7c82-2cb0cb0674e9" executionId="c38c7c51-f495-4a2d-a61c-1b88eb6c6471" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="880b4c82-a371-0b02-0646-ecc9588b1f63" executionId="7d711157-c42e-40fd-b64c-05774d223e17" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="036f824d-0626-3d53-a5c0-5aa581774312" executionId="565f81e2-f59e-4358-b64b-3b0fd52833cd" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="2f614df3-c658-5e0a-53d3-ffc5e257ff3f" executionId="46ee2341-625c-447b-84d7-1025d046cc51" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="7df59c50-4532-7dc7-62a8-79ecc0a1eca5" executionId="3f8ce88b-2bc5-4027-85da-438dcb67490f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="57b67fa8-e241-fc1f-c21a-c00ffdadee7d" executionId="c08f07f9-05c9-4b2a-a71b-7340c6948329" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="fa4764f5-d6c8-7531-2634-a5f8079b2c05" executionId="5c5a0ff7-3228-4144-8b22-69063ef7818e" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="2fa917e3-5f69-0c96-2155-e0f5ba1759c3" executionId="4299c697-fbcc-400f-859c-7b8511bd6daa" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="6548721d-b81d-f8d6-38fd-22ac7166cbe5" executionId="4b666c90-8ca9-4dc0-a792-d83d2d097103" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="cfa0fadd-149d-1034-0eb4-1fc71a47b7eb" executionId="10a50c02-e296-4c73-9b87-cedb2e56966f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="4b98e0e0-493c-3f6f-65aa-9f52ade458d0" executionId="d883c8b4-c86d-413c-b8b4-c2834fc16b07" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="3a05cc0f-f409-639c-43ae-768eae724fbb" executionId="1a199bcb-faed-4c0b-9f36-152efe179f64" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="7e9dd9df-d1e4-5c5d-af50-7b94a05b0fd4" executionId="668695c6-d6cb-408c-9c14-00a73a6950f5" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="2cd9d2dc-6ad8-5579-d99a-9a22d368aa14" executionId="ba529522-4351-44a1-8506-dae1a09f8bf7" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="ef3a1540-0122-ae32-a97f-7f45ca99ca2c" executionId="c0449442-241c-4aa1-b707-82184af67c18" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="e1d6f06e-69d4-e6c2-0378-1ac1281cb56b" executionId="8c371524-1c3a-41dc-94fe-aae00d18cde6" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="c6c49cc4-79ce-92a3-7d5a-f7050089685e" executionId="ae0838b5-e01e-4f2b-863f-bcf4922ee234" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="69010070-11e2-014d-92f5-39858206ba64" executionId="86717ae8-4e7b-4346-9a23-8250bb19559b" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="c17f4cfe-8f79-ab85-b857-357e90d19f41" executionId="434862f5-9034-4883-ab04-e7277abcdb9e" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="fe05fe1b-0370-8687-f3a7-ddde4b357da0" executionId="31f97fbc-0bca-4e68-959a-f33c220a6fd4" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="580282e5-f36f-a2ea-0df3-ee16959b03a4" executionId="0ccbb7ab-54c1-442d-bd8d-f52ef70858ed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="6e8433fa-bfb7-3769-b1f1-125f6299777a" executionId="3d821959-296a-4cb1-9edc-e8058714427d" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="28f38462-abc5-bc46-97a3-4945a444ebff" executionId="01ae1a35-8614-4304-a2be-8d70f0d93935" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="6bc3a552-ecbe-c4fd-58d2-d041154b2402" executionId="614d370e-7c2b-4e54-bade-4a01d302d443" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="e4ce0a59-6186-354d-0fb6-67c502caf026" executionId="719f1fa2-23d1-4804-9785-247722b2e95b" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="67b4a914-e4e1-f1ec-ab0f-6ae6e8358bf8" executionId="053dc707-dfcd-4f2e-913b-35d5795caa85" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="238c85af-2c1d-1d45-54bc-db9709d98b89" executionId="47b1ee6b-a708-4fd8-82c1-791b5ccf086a" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="e8ceae7b-3775-f456-7043-454e6a4fa046" executionId="1092cdc3-6519-4140-aea4-536fd1ed2935" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="a9184d02-fb7e-6a2c-c8da-e1b037d6beff" executionId="a1529325-c391-4c20-b87d-39a4a143be26" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="705655ac-07ad-ee31-4d1a-838755f14c59" executionId="e9116dc9-88b7-42f3-bffb-a292b7fc7fcb" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="10d6b8a3-2208-d73c-01ed-c37be3bd62f6" executionId="92230d68-d3f2-4771-ab60-bacf7a693f7b" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="34e67178-b90f-d672-9de5-6a8915d96b99" executionId="9fc41611-4f92-411c-a232-93c1a7b4028b" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0b8128ca-7e0f-7fcc-a357-953e9c6e4b2e" executionId="4bb59682-98ee-43c3-b222-bf7b11ae9d17" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="65667322-766a-bd9d-bd12-bad6f35e9b26" executionId="381872a9-fcf6-4de2-a158-cd61f034effd" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="76e8e495-ad3f-6ffd-ec13-93f72f52e14b" executionId="2148b68b-0a57-4823-b2a1-21dee346bd6e" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="773340fe-476f-d2be-33ce-ce69aba519c5" executionId="9e4048c5-bd3e-4aeb-97a6-4f5ef33a4880" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="05809c7a-f423-246f-2777-80a3a1191104" executionId="8fe2e9a8-07b1-42b3-b62c-c74430a41b7d" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="806fb2b6-0eb9-bb98-ff51-35dfff3e4a1c" executionId="2af059bd-2a56-49f3-878e-0994b1085cc1" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="6e4b4f5b-6746-6321-fad0-e97e52eaff12" executionId="ddfb7d4e-1435-4661-b6cb-8324ad6c8294" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="4e51f82b-bf0b-5eef-a0eb-d7fa3eb4d393" executionId="53350faa-81c4-4ce3-a8bc-0bbcff64651c" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="8d5e45d2-2a87-0acf-95db-658a1a71db62" executionId="8b5ba783-b3bd-453c-adf6-230c35b7d85a" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="ab1da95f-aa1e-2e88-62bb-9ee37a6209a8" executionId="0852283a-0778-4919-b4b7-63b838e380c4" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="b073516e-3eea-bdc1-5052-07cae172fd3c" executionId="6e2ab3cb-b342-4861-838c-7684f807b753" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="945a3840-aee8-4dcd-78d8-93f6a36bc785" executionId="94e37885-4d06-40c6-9fe7-eac69cdccc00" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="e1a6107f-bf69-086a-f610-7603417267dc" executionId="b150ed90-9cc4-439b-a077-86c5cd2702aa" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="f6ce8051-3d39-96b4-ee65-caa7ff185a38" executionId="17fe558a-4c94-4023-abd1-f2b719819209" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="b32e39b5-4ee4-5391-20b7-2c03e581f31c" executionId="b83a6abc-4d1e-47b8-b690-e3122f8402ab" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="2882f7de-4183-f984-e05f-bbd33ccb427a" executionId="0281184a-495d-45fa-955f-a4ce9893a07c" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="c53ed3e3-587d-6819-d081-ddf80d5f1895" executionId="c125ff00-e516-4d41-ae49-095f62a02081" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="019e4228-2d72-c14f-0cd8-9535af694216" executionId="e5f65741-3522-49ec-8d6c-30e05588dcb3" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="514e1b36-a89f-1d15-9457-2992673ff391" executionId="4b18f665-788d-4395-b3c1-ec6f0638f226" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="382a66cc-3914-b21f-fa57-01f4b54df165" executionId="a538f5ab-6474-4fda-951d-0846d90f064c" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0d9f7392-572b-05e9-d8d7-0891a21b244b" executionId="70709143-2fe6-4800-bbe8-c45c25c66313" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="f3033371-0fc9-4628-98d5-e724ad499b42" executionId="d219ed42-6280-480a-a85e-d262dbbdf122" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="89e2be0d-4668-684a-fe22-3d8d296733aa" executionId="bf3989d1-6244-4993-943f-565b0fb81b0e" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="6a57e20e-f14a-ee4c-e674-a1d3d380070f" executionId="a57bcbdc-8b39-4264-b5b4-c5122a052ada" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="116979ee-fd85-e2c6-91b4-6632cc6c9a05" executionId="eea389aa-ba30-414a-b1a1-30dc4f8277b4" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="a5a88619-2b40-0492-0671-d41f7687e3e9" executionId="7dc47cff-b79b-4ebc-b098-d6916fa25f3f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="19f991f7-361f-3c08-8231-465e24d0d105" executionId="b4b095ac-8cb5-4765-93d5-163f0b010bcb" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="ec691673-35d0-22ca-9523-b8412e82aca8" executionId="4eef2444-d7d9-4e94-bdec-ae5b0bd533b3" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="cf1d141e-57b5-24a0-9011-24ba9ed404ff" executionId="2adca0e4-0b01-4ee6-a671-f00f71d4c9f9" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="09f6ff6a-2ce9-31a7-9cd1-d21c24b81071" executionId="cb448fb8-fbeb-4911-8e5a-9846b5963961" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="111" executed="111" passed="111" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>
