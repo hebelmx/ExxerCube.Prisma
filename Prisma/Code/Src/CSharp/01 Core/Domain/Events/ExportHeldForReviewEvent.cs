@@ -35,6 +35,16 @@ public record ExportHeldForReviewEvent : DomainEvent
     public int? ClassificationConfidence { get; init; }
 
     /// <summary>
+    /// Gets the storage-relative path of the fused expediente handoff artifact (e.g.
+    /// <c>2026/06/12/{fileId}.fusion.json</c>). Populated only when processing ran via the
+    /// 3-process split (Extractor → Reconciliator) where a shared-storage handoff artifact exists.
+    /// <see langword="null"/> in the in-process / single-service path.
+    /// Used by the re-export handler (<c>ReviewApprovalExportHandler</c>) to reload the
+    /// expediente via <c>IExpedienteHandoffStore</c> after reviewer approval (G-C2b).
+    /// </summary>
+    public string? HandoffPath { get; init; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="ExportHeldForReviewEvent"/> class.
     /// </summary>
     public ExportHeldForReviewEvent()

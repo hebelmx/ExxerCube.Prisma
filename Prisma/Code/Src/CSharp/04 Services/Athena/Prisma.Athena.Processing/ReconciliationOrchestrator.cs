@@ -103,6 +103,19 @@ public sealed class ReconciliationOrchestrator
     /// existing pending incomplete-case row is healed. Defaults to <see langword="true"/> so existing
     /// callers compile unchanged. GH #6.
     /// </param>
+    /// <param name="handoffPath">
+    /// Optional storage-relative path of the fused expediente handoff artifact (e.g.
+    /// <c>2026/06/12/{fileId}.fusion.json</c>). When set, this path is embedded in any
+    /// <see cref="ExportHeldForReviewEvent"/> so the review-approval handler can reload the
+    /// expediente via <c>IExpedienteHandoffStore</c> after the reviewer approves the case (G-C2b).
+    /// <see langword="null"/> in the in-process / single-service path.
+    /// </param>
+    /// <param name="approvedByReviewer">
+    /// When <see langword="true"/> the export gate is bypassed because a human reviewer has
+    /// explicitly approved this case. The gate still evaluates — so blocked-case diagnostics
+    /// continue to work — but the block is not applied and Stage 5 runs unconditionally.
+    /// <see langword="false"/> by default (normal pipeline behaviour; gate applies).
+    /// </param>
     /// <param name="cancellationToken">Cancellation token; honored between stages.</param>
     /// <returns>How many of Stages 4–5 completed.</returns>
     public async Task<int> ReconcileAsync(
@@ -111,6 +124,8 @@ public sealed class ReconciliationOrchestrator
         Guid fileId,
         Guid? correlationId,
         bool isComplete = true,
+        string? handoffPath = null,
+        bool approvedByReviewer = false,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -134,10 +149,14 @@ public sealed class ReconciliationOrchestrator
 
         // EXPORT GATE (G-C2 / FR14 / FR20 / INV-6 — owner ruling binding 2026-06-20):
         // Block Stage-5 export when the case requires human review.
-        // All conditions are evaluated before skipping so callers receive complete diagnostic
+        // All conditions are evaluated (not short-circuited) so callers receive complete diagnostic
         // information via BlockReasons (helpful for the reviewer UI).
+        //
+        // G-C2b: When approvedByReviewer is true the gate diagnostics still run (so BlockReasons
+        // is populated for logging/audit), but the block is NOT applied — Stage 5 proceeds because
+        // the human reviewer has explicitly cleared the case.  This is the only legitimate bypass.
         var blockReasons = EvaluateExportGate(fusionResult, classificationResult);
-        if (blockReasons.Count > 0)
+        if (blockReasons.Count > 0 && !approvedByReviewer)
         {
             _logger.LogWarning(
                 "Stage 5 BLOCKED by export gate for FileId {FileId}: {Reasons}",
@@ -151,10 +170,20 @@ public sealed class ReconciliationOrchestrator
                 FileId = fileId,
                 BlockReasons = blockReasons,
                 ClassificationConfidence = classificationResult?.Confidence,
+                HandoffPath = handoffPath,
             };
             _eventPublisher.Publish(heldEvent);
 
             return stagesCompleted; // Stage 5 intentionally skipped — not an error.
+        }
+
+        if (blockReasons.Count > 0 && approvedByReviewer)
+        {
+            // Gate would have blocked but reviewer override is in effect — log at Info so there
+            // is an explicit audit trail that human approval lifted the block for this case.
+            _logger.LogInformation(
+                "Stage 5 gate conditions detected for FileId {FileId} but proceeding: reviewer override is active. Conditions: {Reasons}",
+                fileId, string.Join("; ", blockReasons));
         }
 
         // STAGE 5: Export

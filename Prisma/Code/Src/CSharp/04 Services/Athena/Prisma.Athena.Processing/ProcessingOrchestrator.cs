@@ -164,10 +164,13 @@ public sealed class ProcessingOrchestrator
             cancellationToken.ThrowIfCancellationRequested();
 
             // Reconciliator half (Stages 4–5): Classification → Export.
+            // In-process path: no handoff artifact (single-service), reviewer override not active.
             stagesCompleted += await _reconciliationOrchestrator.ReconcileAsync(
                 extraction.OcrResult, extraction.FusionResult, fileId, correlationId,
                 isComplete: downloadEvent.IsComplete,
-                cancellationToken);
+                handoffPath: null,
+                approvedByReviewer: false,
+                cancellationToken: cancellationToken);
 
             stopwatch.Stop();
             EmitCompletionEvent(fileId, correlationId, stopwatch.Elapsed, stagesCompleted, autoProcessed: true);

@@ -211,6 +211,8 @@ public sealed class ReconciliationPipelineService : IReadinessProbe
             fileId: fileId,
             correlationId: correlationId,
             isComplete: completedEvent.IsComplete,
+            handoffPath: completedEvent.Path,
+            approvedByReviewer: false,
             cancellationToken: cancellationToken);
 
         _eventPublisher.Publish(new DocumentProcessingCompletedEvent
