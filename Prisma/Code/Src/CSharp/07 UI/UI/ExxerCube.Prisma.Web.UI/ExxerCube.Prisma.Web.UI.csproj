@@ -39,6 +39,7 @@
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.Seq" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" />
     <PackageReference Include="Serilog.Settings.Configuration" />
     <!-- OpenTelemetry for telemetry and distributed tracing -->
     <PackageReference Include="OpenTelemetry" />

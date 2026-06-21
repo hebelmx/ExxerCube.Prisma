@@ -110,6 +110,8 @@
 		<PackageVersion Include="Serilog" Version="4.3.1" />
 		<PackageVersion Include="Serilog.Extensions.Hosting" Version="10.0.0" />
 		<PackageVersion Include="Serilog.Sinks.Seq" Version="9.1.0" />
+		<!-- Serilog SQL Server sink — G-S2 audit durability (structured log rows alongside the ledger audit table) -->
+		<PackageVersion Include="Serilog.Sinks.MSSqlServer" Version="8.0.0" />
 		<!-- Testing and test related packages -->
 		<!-- Meziantou.Extensions.Logging.Xunit for logging in xUnit tests -->
 		<PackageVersion Include="Meziantou.Extensions.Logging.Xunit.v3" Version="2.0.1" />
