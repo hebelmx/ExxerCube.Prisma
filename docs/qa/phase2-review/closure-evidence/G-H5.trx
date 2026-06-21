@@ -1,0 +1,773 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="f26b1fce-1dbf-49f6-aa4d-f3c5424727c3" name="Abel Briones@DESKTOP-FB2ES22 2026-06-21 03:03:36.9214405" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-06-21T03:02:19.8691295Z" queuing="2026-06-21T03:02:19.8691295Z" start="2026-06-21T03:02:19.8691295Z" finish="2026-06-21T03:03:36.9218434Z" />
+  <TestSettings name="default" id="f258cea9-8224-4d22-b08d-028bdcc63937">
+    <Deployment runDeploymentRoot="Abel_Briones_DESKTOP-FB2ES22_2026-06-21_03_03_36.9214405" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="eeef7b2a-4be4-4014-a70f-2913e59febb0" testId="5a1f0680-ac7d-86c5-dbe8-efde2efa60a7" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Expediente_Allows_Nulls" computerName="DESKTOP-FB2ES22" duration="00:00:00.0397143" startTime="2026-06-21T03:02:27.7722054+00:00" endTime="2026-06-21T03:02:27.8172130+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="eeef7b2a-4be4-4014-a70f-2913e59febb0">
+      <Output>
+        <StdOut>[Missing expediente fixture] Expediente: 
+  AreaClave: 1
+  AreaDescripcion: HACENDARIO
+  AutoridadEspecificaNombre: 
+  AutoridadNombre: 
+  DiasPlazo: 5
+  FechaPublicacion: 2025-06-10
+  MeasureHint: Informacion
+  NumeroOficio: 999/AAA/-0000000000/2025
+  RfcList: AAA010101AAA
+  Subdivision: Hacendario
+  TieneAseguramiento: false
+
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b8ec72fe-58e7-4bbb-b711-d78a5033cfbd" testId="f9bd980e-1905-58d7-cf72-78d58aa5681e" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Container_ShouldBeAvailable" computerName="DESKTOP-FB2ES22" duration="00:00:00.0302064" startTime="2026-06-21T03:02:27.7722021+00:00" endTime="2026-06-21T03:02:27.8150311+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b8ec72fe-58e7-4bbb-b711-d78a5033cfbd" />
+    <UnitTestResult executionId="a45c650e-8d76-4caa-8659-6182b6df9802" testId="1f5ece46-f0a3-f6e7-bcdf-2830a0c24f3f" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Merge_Xml_Prioritizes_Against_Ocr_And_Flags_Conflicts" computerName="DESKTOP-FB2ES22" duration="00:00:00.0018008" startTime="2026-06-21T03:02:27.8274336+00:00" endTime="2026-06-21T03:02:27.8293002+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a45c650e-8d76-4caa-8659-6182b6df9802" />
+    <UnitTestResult executionId="d9294db0-725e-43e8-8813-1339a8f2a730" testId="0cd1eadc-aae9-d31e-ab31-48b7daacf020" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Aseguramiento_Fixture" computerName="DESKTOP-FB2ES22" duration="00:00:00.0112724" startTime="2026-06-21T03:02:27.8295368+00:00" endTime="2026-06-21T03:02:27.8408722+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="d9294db0-725e-43e8-8813-1339a8f2a730">
+      <Output>
+        <StdOut>[Aseguramiento fixture] Expediente: A/AS1-1111-222222-AAA
+  AreaClave: 3
+  AreaDescripcion: ASEGURAMIENTO
+  AutoridadEspecificaNombre: 
+  AutoridadNombre: SUBDELEGACION 8 SAN ANGEL
+  Descripcion: EAEROLÍNEAS PAYASO ORGULLO NACIONALIVE, S.A. DE C.V.
+  DiasPlazo: 7
+  Domicilio: Pza. de la Constitución S/N  CP 066V60 Col centro , CDMX
+  FechaPublicacion: 2025-06-05
+  MeasureHint: Aseguramiento
+  Nombre: EAEROLÍNEAS PAYASO ORGULLO NACIONALIVE, S.A. DE C.V.
+  NumeroOficio: 222/AAA/-4444444444/2025
+  RfcList: APON33333444
+  Subdivision: Aseguramiento
+  TieneAseguramiento: true
+
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9fea91fe-7f73-4816-8fef-cebfe2a55000" testId="75660e90-ad8b-d72c-98fe-388324301ab2" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Hacendario_Documentacion" computerName="DESKTOP-FB2ES22" duration="00:00:00.0026719" startTime="2026-06-21T03:02:27.8411711+00:00" endTime="2026-06-21T03:02:27.8438827+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="9fea91fe-7f73-4816-8fef-cebfe2a55000">
+      <Output>
+        <StdOut>[Hacendario fixture] Expediente: H/IN1-1111-222222-AAA
+  AreaClave: 1
+  AreaDescripcion: HACENDARIO
+  AutoridadEspecificaNombre: 
+  AutoridadNombre: ADMINISTRACION DESCONCENTRADA DE AUDITORIA FISCAL DE SONORA "2"
+  Descripcion: PEREZ Y PEREZ JHON DOE
+  DiasPlazo: 10
+  Domicilio: Parque Lira S/N 1 Sec Bosque de Chapultepec CP 11850
+  FechaPublicacion: 2025-06-04
+  Materno: Y PEREZ
+  MeasureHint: Documentacion
+  Nombre: JHON DOE
+  NumeroOficio: 333/BBB/-4444444444/2025
+  Paterno: PEREZ
+  RfcList: DOPJ111111222
+  Subdivision: Hacendario
+  TieneAseguramiento: false
+
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="329cbc27-4548-432d-9963-95225c3d5742" testId="38935b15-0d60-78a6-53a3-6fab7a651d8d" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_OperacionesIlicitas_With_Accounts_And_Rfc_Variants" computerName="DESKTOP-FB2ES22" duration="00:00:00.0105555" startTime="2026-06-21T03:02:27.8441018+00:00" endTime="2026-06-21T03:02:27.8547565+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="329cbc27-4548-432d-9963-95225c3d5742">
+      <Output>
+        <StdOut>[Operaciones Ilícitas fixture] Expediente: E/DE-3333-4444444-AAA
+  AreaClave: 4
+  AreaDescripcion: Operaciones Ilícitas
+  AutoridadEspecificaNombre: DIRECCION GENERAL DE LO CONTENCIOSO
+  AutoridadNombre: UNIDAD DE INTELIGENCIA FINANCIERA
+  CuentasRaw: 000104,00466773850,00453965120,00195019117
+  Descripcion: LUIS MCDONALD HUGO PACO
+  DiasPlazo: 1
+  Domicilio: NO SE CUENTA
+  FechaPublicacion: 2025-06-05
+  Materno: MCDONALD
+  MeasureHint: Desbloqueo
+  Nombre: HUGO PACO
+  NumeroOficio: 555/CCC/-6666666/2025
+  Paterno: LUIS
+  RfcList: LUMH111111111,LUMH222222222
+  Subdivision: OperacionesIlicitas
+  TieneAseguramiento: false
+
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="45d42df1-292e-4423-8046-1f79a728f5ab" testId="530569fb-2b26-3924-0b39-575b0295c14b" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Identity_Allows_Empty_Rfc_And_Curp" computerName="DESKTOP-FB2ES22" duration="00:00:00.0024380" startTime="2026-06-21T03:02:27.8551629+00:00" endTime="2026-06-21T03:02:27.8576732+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="45d42df1-292e-4423-8046-1f79a728f5ab">
+      <Output>
+        <StdOut>[Missing identity fixture] Expediente: J/JJ1-0000-000000-JJJ
+  AreaClave: 2
+  AreaDescripcion: JUDICIAL
+  AutoridadEspecificaNombre: 
+  AutoridadNombre: 
+  Descripcion: PERSONA SIN CURP
+  DiasPlazo: 4
+  FechaPublicacion: 2025-06-13
+  MeasureHint: Aseguramiento
+  Nombre: PERSONA SIN CURP
+  NumeroOficio: 999/DDD/-0000000000/2025
+  Subdivision: Judicial
+  TieneAseguramiento: true
+
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="53e68eb4-d816-49af-b860-18ac847bec9f" testId="1d55f299-fa97-2aa7-f306-25395482c6b9" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Subdivision_Falls_Back_To_Unknown" computerName="DESKTOP-FB2ES22" duration="00:00:00.0024423" startTime="2026-06-21T03:02:27.8581181+00:00" endTime="2026-06-21T03:02:27.8606219+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="53e68eb4-d816-49af-b860-18ac847bec9f">
+      <Output>
+        <StdOut>[Missing subdivision fixture] Expediente: X/XX1-0000-000000-XXX
+  AreaClave: 
+  AreaDescripcion: 
+  AutoridadEspecificaNombre: 
+  AutoridadNombre: 
+  DiasPlazo: 3
+  FechaPublicacion: 2025-06-11
+  MeasureHint: Aseguramiento
+  NumeroOficio: 999/BBB/-0000000000/2025
+  RfcList: BBB020202BBB
+  Subdivision: Unknown
+  TieneAseguramiento: true
+
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a0f17492-3314-464e-9780-2086e1ac3c60" testId="f0faae7a-9568-4cf5-8d2e-af9967011bfb" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Accounts_Leaves_CuentasRaw_Empty" computerName="DESKTOP-FB2ES22" duration="00:00:00.0018320" startTime="2026-06-21T03:02:27.8610353+00:00" endTime="2026-06-21T03:02:27.8629660+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a0f17492-3314-464e-9780-2086e1ac3c60">
+      <Output>
+        <StdOut>[Missing accounts fixture] Expediente: O/OO1-0000-000000-OOO
+  AreaClave: 4
+  AreaDescripcion: Operaciones Ilícitas
+  AutoridadEspecificaNombre: 
+  AutoridadNombre: 
+  DiasPlazo: 2
+  FechaPublicacion: 2025-06-14
+  MeasureHint: Desbloqueo
+  NumeroOficio: 999/EEE/-0000000000/2025
+  RfcList: CCC030303CCC
+  Subdivision: OperacionesIlicitas
+  TieneAseguramiento: false
+
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="1e76fe2c-be5b-4404-a4d4-9b903c383324" testId="432b7ce1-252d-e4f9-fa93-66bbebd2ae07" testName="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Judicial_With_Curp_And_Rfc" computerName="DESKTOP-FB2ES22" duration="00:00:00.0212958" startTime="2026-06-21T03:02:27.8634347+00:00" endTime="2026-06-21T03:02:27.8848024+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="1e76fe2c-be5b-4404-a4d4-9b903c383324">
+      <Output>
+        <StdOut>[Judicial fixture] Expediente: A/AS1-4444-5555555-HHHH
+  AreaClave: 2
+  AreaDescripcion: JUDICIAL
+  AutoridadEspecificaNombre: 
+  AutoridadNombre: JUZGADO CUARTO DE LO MERCANTIL DE PRIMERA INSTANCIA EN MATERIA MERCANTIL EN EL PRIMER PARTIDO JUDICIAL, ZONA METROPOLITANA DE GUAD.
+  Curp: ZUCM444444ABCDEF01
+  Descripcion: ZU CARNAL MARCELO
+  DiasPlazo: 3
+  FechaPublicacion: 2025-06-04
+  Materno: CARNAL
+  MeasureHint: Aseguramiento
+  Nombre: MARCELO
+  NumeroOficio: 333/ccc/-666666666/2025
+  Paterno: ZU
+  RfcList: ZUCM444444555
+  Subdivision: Judicial
+  TieneAseguramiento: true
+
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="7a91e88f-800f-490d-892b-e3071b409531" testId="a591848e-f731-bd4a-c455-8be167a29b7f" testName="ExxerCube.Prisma.Tests.System.Storage.MigrateOnlyPathIntegrationTests.RunMigrationsAsync_FreshDatabase_ReturnsZeroAndNoPendingMigrations" computerName="DESKTOP-FB2ES22" duration="00:00:01.6301222" startTime="2026-06-21T03:02:27.7721820+00:00" endTime="2026-06-21T03:02:29.4079953+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="7a91e88f-800f-490d-892b-e3071b409531" />
+    <UnitTestResult executionId="46e518aa-37dc-4c0a-8605-fad397f599e5" testId="6a490cd8-8471-22a4-3c59-056a4907a8bb" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldSeedData_Successfully" computerName="DESKTOP-FB2ES22" duration="00:00:01.6997984" startTime="2026-06-21T03:02:27.8275303+00:00" endTime="2026-06-21T03:02:29.5274302+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="46e518aa-37dc-4c0a-8605-fad397f599e5" />
+    <UnitTestResult executionId="f050bf6c-fa15-49ac-9c23-70a855bb7846" testId="9a4ef7d1-0c7f-f955-42a8-0b2c11426d51" testName="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.IngestionOrchestrator_IngestCase_AuditRecordsCarryProcessId" computerName="DESKTOP-FB2ES22" duration="00:00:01.7574314" startTime="2026-06-21T03:02:27.7721727+00:00" endTime="2026-06-21T03:02:29.5332048+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="f050bf6c-fa15-49ac-9c23-70a855bb7846">
+      <Output>
+        <StdOut>Audit record logged: 2ec8d540-93d1-4466-bed4-f40fd6ff21ab, action: Download, stage: Ingestion, correlation: f636a1cd-40bf-406a-b83a-5aed4a410396
+Audit record logged: 21191295-0491-4f18-b6cf-d54c40d855c2, action: Download, stage: Ingestion, correlation: f636a1cd-40bf-406a-b83a-5aed4a410396
+Retrieved 2 audit records for file: 17617df2-964d-dc2b-6425-27666a489f4d
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b229db22-2203-4cb9-bd79-0f58e7c470fe" testId="daa5d642-a4ff-08d3-e2fc-4ffdabb2c52c" testName="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WithCrossFormatVariant_ReturnsExistingRow" computerName="DESKTOP-FB2ES22" duration="00:00:01.7816214" startTime="2026-06-21T03:02:27.7721769+00:00" endTime="2026-06-21T03:02:29.5574540+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b229db22-2203-4cb9-bd79-0f58e7c470fe" />
+    <UnitTestResult executionId="633d3c6b-e4bc-448a-bd70-3c92671aa629" testId="43e5cc86-3348-d917-393a-f00217f5c326" testName="ExxerCube.Prisma.Tests.System.Storage.ReviewCaseFkDropIntegrationTests.IdentifyReviewCases_ForFileIdWithoutFileMetadata_PersistsToRealSql" computerName="DESKTOP-FB2ES22" duration="00:00:01.7987775" startTime="2026-06-21T03:02:27.7721925+00:00" endTime="2026-06-21T03:02:29.5744612+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="633d3c6b-e4bc-448a-bd70-3c92671aa629">
+      <Output>
+        <StdOut>Identifying review cases for file: 47a91c41-8d06-4513-8c6b-906c456d189d, classification confidence: 90, isComplete: False
+Incomplete case flagged: CASE-4d6b3881929c4d38b208f070da8fc743 for file 47a91c41-8d06-4513-8c6b-906c456d189d
+Identified ambiguous classification case: CASE-7dfd09adc1e44462a368c512b4e95ec9
+Saved review case changes for file 47a91c41-8d06-4513-8c6b-906c456d189d: 2 new case(s)
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d7bc3034-3dda-458c-8b77-e87e33657755" testId="bccf1abd-1594-b6d1-6a8f-85d9d3a0c18d" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldSupport_BasicCrudOperations" computerName="DESKTOP-FB2ES22" duration="00:00:00.0658485" startTime="2026-06-21T03:02:29.5280109+00:00" endTime="2026-06-21T03:02:29.5939232+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="d7bc3034-3dda-458c-8b77-e87e33657755" />
+    <UnitTestResult executionId="0c59e508-0368-4b11-846b-96115415f039" testId="1b07ac87-7d0a-6ec7-dda0-ed7756f8efac" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.AAA_DockerOrPodman_ShouldBeAvailable" computerName="DESKTOP-FB2ES22" duration="00:00:00.0959215" startTime="2026-06-21T03:02:29.5941561+00:00" endTime="2026-06-21T03:02:29.6909527+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0c59e508-0368-4b11-846b-96115415f039" />
+    <UnitTestResult executionId="1cc3faaa-f68c-40d6-bee7-d822752e2854" testId="1e06fd9a-d1c5-d41b-ea7f-15da2e36bf48" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.EFCore_ShouldCreateSchema_WhenApplyingMigrations" computerName="DESKTOP-FB2ES22" duration="00:00:00.0150427" startTime="2026-06-21T03:02:29.6912303+00:00" endTime="2026-06-21T03:02:29.7063155+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="1cc3faaa-f68c-40d6-bee7-d822752e2854" />
+    <UnitTestResult executionId="78c4a1e1-fbf8-4967-8a9a-c227c6047429" testId="b2a6f4ce-26f5-8746-47ae-ad6693c6cc80" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldExist_AndAcceptConnections" computerName="DESKTOP-FB2ES22" duration="00:00:00.0019605" startTime="2026-06-21T03:02:29.7065229+00:00" endTime="2026-06-21T03:02:29.7085159+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="78c4a1e1-fbf8-4967-8a9a-c227c6047429" />
+    <UnitTestResult executionId="a8079a7c-a9e2-4e66-b72c-bed5e9a09145" testId="f6401f77-ac28-5e47-9e0a-42ba62579af0" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldCleanup_BetweenTests" computerName="DESKTOP-FB2ES22" duration="00:00:00.0881363" startTime="2026-06-21T03:02:29.7086828+00:00" endTime="2026-06-21T03:02:29.7968675+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a8079a7c-a9e2-4e66-b72c-bed5e9a09145" />
+    <UnitTestResult executionId="f0188fbf-fe8c-46ff-b3a6-4cab095ac0d3" testId="dc1321b7-4327-f0e2-d38d-dff953812282" testName="ExxerCube.Prisma.Tests.System.Storage.Mission1HappyPathPipelineTests.HappyPath_EndToEnd_PersistsCorrelationAuditAndStorage" computerName="DESKTOP-FB2ES22" duration="00:00:02.6002324" startTime="2026-06-21T03:02:27.7722146+00:00" endTime="2026-06-21T03:02:30.3770607+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="f0188fbf-fe8c-46ff-b3a6-4cab095ac0d3">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentDownloadedEvent with ID b15c87f5-c090-4f57-85c3-73b69e54b572 (Correlation: af5debef-29ee-4e5e-9750-b89a573a5884)
+Publishing event OcrCompletedEvent with ID 15ec95fb-62d7-4fdd-a916-69b5d1c94320 (Correlation: af5debef-29ee-4e5e-9750-b89a573a5884)
+Persisted event DocumentDownloadedEvent with ID b15c87f5-c090-4f57-85c3-73b69e54b572 to database
+Persisted event OcrCompletedEvent with ID 15ec95fb-62d7-4fdd-a916-69b5d1c94320 to database
+Successfully parsed Expediente: A/AS1-1111-222222-AAA     with 1 pattern matches and 1 violations
+Comparing expedientes: XML vs OCR
+Comparison complete: 16/16 exact matches (100 % overall similarity)
+Audit record logged: b3f6635d-1403-4a75-9404-819b646f7004, action: Review, stage: Decision Logic, correlation: af5debef-29ee-4e5e-9750-b89a573a5884
+Publishing event DocumentProcessingCompletedEvent with ID 45d86739-970d-4f2b-8955-41c81c26a0f8 (Correlation: af5debef-29ee-4e5e-9750-b89a573a5884)
+Persisted event DocumentProcessingCompletedEvent with ID 45d86739-970d-4f2b-8955-41c81c26a0f8 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="42893304-24e3-4856-989a-3975e2257196" testId="88885390-5c03-c680-f180-fbc91bd398b3" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ClassificationCompletedEvent_MapsCorrectly" computerName="DESKTOP-FB2ES22" duration="00:00:02.7402150" startTime="2026-06-21T03:02:27.7721987+00:00" endTime="2026-06-21T03:02:30.5159794+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="42893304-24e3-4856-989a-3975e2257196">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event ClassificationCompletedEvent with ID 19aa2e8f-1db4-4402-8aeb-51331982c135 (Correlation: (null))
+Persisted event ClassificationCompletedEvent with ID 19aa2e8f-1db4-4402-8aeb-51331982c135 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d48f361b-6624-4183-a73f-594d4d87ef22" testId="339e929b-911d-e7f0-8423-6e0bfa0d44e3" testName="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_MalformedXmlLowQualityPdf_DefensiveIntelligenceContinues" computerName="DESKTOP-FB2ES22" duration="00:00:04.0289643" startTime="2026-06-21T03:02:27.7721868+00:00" endTime="2026-06-21T03:02:31.8047186+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="d48f361b-6624-4183-a73f-594d4d87ef22">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+[TEST] Starting defensive intelligence test - CorrelationId: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca
+[TEST] Simulating: Low quality PDF + Malformed XML with missing fields
+[SETUP] FileMetadata created - FileId: dda43642-0c7c-48d7-8f0d-40750690a966, FileName: missing_expediente-degraded.pdf
+Publishing event DocumentDownloadedEvent with ID 63c1d6fb-3e08-4e0f-9fc5-bbfe4972acfd (Correlation: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca)
+[STAGE 1] DocumentDownloadedEvent published
+Persisted event DocumentDownloadedEvent with ID 63c1d6fb-3e08-4e0f-9fc5-bbfe4972acfd to database
+Publishing event QualityAnalysisCompletedEvent with ID 81564e3e-8284-4204-90bc-8f0934f4d430 (Correlation: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca)
+[STAGE 2] QualityAnalysisCompletedEvent published - Quality: Q1 - Poor (VERY LOW)
+[STAGE 2] Metrics - Blur: 85.0, Noise: 75.0, Contrast: 35.0, Sharpness: 15.0
+Persisted event QualityAnalysisCompletedEvent with ID 81564e3e-8284-4204-90bc-8f0934f4d430 to database
+Publishing event OcrCompletedEvent with ID 6debfddc-eb4a-4dad-b8ee-8c84841d663b (Correlation: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca)
+[STAGE 3] OcrCompletedEvent published - Confidence: 45.0% (LOW), Fallback: True
+Persisted event OcrCompletedEvent with ID 6debfddc-eb4a-4dad-b8ee-8c84841d663b to database
+Publishing event ProcessingErrorEvent with ID 10fdbc1c-cc53-4f7b-8b95-3659b185874e (Correlation: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca)
+[STAGE 4] ProcessingErrorEvent published - Message: XML parsing failed: Missing required field 'Expediente'
+Persisted event ProcessingErrorEvent with ID 10fdbc1c-cc53-4f7b-8b95-3659b185874e to database
+Publishing event DocumentFlaggedForReviewEvent with ID a6083051-484d-4fcd-ac8f-599b35eb8c94 (Correlation: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca)
+[STAGE 5] DocumentFlaggedForReviewEvent published - Priority: Critical, Reasons: 4
+          - Low OCR confidence: 45%
+          - Missing XML fields: Expediente
+          - Low image quality: Q1_Poor
+          - Adaptive filter fallback triggered
+Persisted event DocumentFlaggedForReviewEvent with ID a6083051-484d-4fcd-ac8f-599b35eb8c94 to database
+Publishing event ClassificationCompletedEvent with ID 6ce05289-9437-4f14-a981-6845a754284f (Correlation: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca)
+[STAGE 6] ClassificationCompletedEvent published - Type: Unknown, Confidence: 35%
+Persisted event ClassificationCompletedEvent with ID 6ce05289-9437-4f14-a981-6845a754284f to database
+Publishing event DocumentProcessingCompletedEvent with ID eb39398c-feaa-4508-afbd-5ad455d0935a (Correlation: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca)
+[STAGE 7] DocumentProcessingCompletedEvent published - AutoProcessed: False
+[DEFENSIVE INTELLIGENCE] System continued processing despite errors!
+Persisted event DocumentProcessingCompletedEvent with ID eb39398c-feaa-4508-afbd-5ad455d0935a to database
+
+[AUDIT TRAIL] Retrieved 7 events from SQL Server
+  [ERROR] ProcessingErrorEvent found - Stage: Unknown, ActionType: Other, Success: False
+  [ERROR] Message: XML parsing failed: Missing required field 'Expediente'
+  [QUALITY] Poor quality detected - Level: , BlurScore: 85.0
+  [OCR] Low confidence - Confidence: 45.0%, FallbackTriggered: True
+  [FLAGGED] DocumentFlaggedForReviewEvent found
+  [FLAGGED] Priority: Critical, Reasons: Low OCR confidence: 45%, Missing XML fields: Expediente, Low image quality: Q1_Poor, Adaptive filter fallback triggered
+  [CLASSIFICATION] Type: Unknown, Confidence: 35%, RequiresManualReview: True
+  [COMPLETED] Processing completed - Success: True
+
+[SUCCESS] Defensive Intelligence verified!
+          CorrelationId: dd0ccbff-420c-4b2e-a0f7-7167b0d0c9ca
+          Errors encountered: 4 (Low quality, Low OCR confidence, Missing XML, Fallback triggered)
+          System behavior: Continued processing and completed successfully
+          Result: Document flagged for manual review with complete audit trail
+          Defensive Intelligence: OPERATIONAL
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="17489baf-c122-45a7-a5c1-268bde6a34af" testId="0fca6531-9f2c-2c64-941e-5c7769081943" testName="ExxerCube.Prisma.Tests.System.Storage.MigrateOnlyPathIntegrationTests.RunMigrationsAsync_NoContextRegistered_ReturnsZeroNoOp" computerName="DESKTOP-FB2ES22" duration="00:00:03.2248175" startTime="2026-06-21T03:02:29.4142127+00:00" endTime="2026-06-21T03:02:32.6391072+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="17489baf-c122-45a7-a5c1-268bde6a34af" />
+    <UnitTestResult executionId="0aa47e21-1994-4021-b336-4e5efc40cf26" testId="8732f8d3-463b-ba97-2f80-29f0f17d5713" testName="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WhenNoRowExists_ReturnsSuccessWithNull" computerName="DESKTOP-FB2ES22" duration="00:00:03.4012275" startTime="2026-06-21T03:02:29.5578564+00:00" endTime="2026-06-21T03:02:32.9591497+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0aa47e21-1994-4021-b336-4e5efc40cf26" />
+    <UnitTestResult executionId="b9fadd43-8147-4f4f-91d1-59f505b27117" testId="ec2beeb0-26a2-9b38-2a43-fcfad8587781" testName="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.QueuedAuditLogger_AfterDrain_RecordIsQueryableByFileId" computerName="DESKTOP-FB2ES22" duration="00:00:03.6384298" startTime="2026-06-21T03:02:29.5334059+00:00" endTime="2026-06-21T03:02:33.1718858+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b9fadd43-8147-4f4f-91d1-59f505b27117">
+      <Output>
+        <StdOut>Retrieved 1 audit records for file: 3031ab7b-0aca-4f9e-b9a3-798cde9283d5
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="56da2a91-b4ec-4a18-b8ff-695d3f5f0a5c" testId="1afcb81b-0e74-ea84-df07-ce1666dbfe77" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_OcrCompletedEvent_MapsCorrectly" computerName="DESKTOP-FB2ES22" duration="00:00:04.5077269" startTime="2026-06-21T03:02:30.5163299+00:00" endTime="2026-06-21T03:02:35.0241104+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="56da2a91-b4ec-4a18-b8ff-695d3f5f0a5c">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event OcrCompletedEvent with ID 99a84fd9-9814-4b46-8a67-e281bbe6e4c3 (Correlation: (null))
+Persisted event OcrCompletedEvent with ID 99a84fd9-9814-4b46-8a67-e281bbe6e4c3 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b026922c-04bc-4089-84ce-ee186f2b54b7" testId="c1e03932-ddcb-c9e3-265d-fa6253008085" testName="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindOrCreateAsync_TwoDocumentsSameRfcDifferentFormats_PersistsExactlyOnePersona" computerName="DESKTOP-FB2ES22" duration="00:00:03.3904208" startTime="2026-06-21T03:02:32.9594260+00:00" endTime="2026-06-21T03:02:36.3499005+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b026922c-04bc-4089-84ce-ee186f2b54b7" />
+    <UnitTestResult executionId="12cd37a8-11c6-40ce-ba2c-6ad1b4cf37a5" testId="ab90b0cd-3b19-88f8-c003-42384a94ec80" testName="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.ExtractionPipelineService_ProcessAsync_AuditRecordsCarryProcessId" computerName="DESKTOP-FB2ES22" duration="00:00:03.4287830" startTime="2026-06-21T03:02:33.1720749+00:00" endTime="2026-06-21T03:02:36.6009330+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="12cd37a8-11c6-40ce-ba2c-6ad1b4cf37a5">
+      <Output>
+        <StdOut>Audit record logged: b99511ab-5d98-4b30-956f-9ede640b9c74, action: Extraction, stage: Extraction, correlation: 92516c44-199e-4e92-96ef-7e2381e3e4d2
+Audit record logged: 588c4eee-08e6-434d-bac3-622b247b7a1a, action: Extraction, stage: Extraction, correlation: 92516c44-199e-4e92-96ef-7e2381e3e4d2
+Retrieved 2 audit records for file: e551752e-d9a2-42a7-a36e-2f4401987689
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2fddaefb-45ac-4340-b49d-97207c294d2e" testId="9e742417-258a-031f-430d-2ff5220b8bb5" testName="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_XmlOcrConflict_DetectsAndFlagsForReview" computerName="DESKTOP-FB2ES22" duration="00:00:05.7112337" startTime="2026-06-21T03:02:31.8050866+00:00" endTime="2026-06-21T03:02:37.5163991+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="2fddaefb-45ac-4340-b49d-97207c294d2e">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+[TEST] Starting conflict detection test - CorrelationId: 7831ee2c-1981-4efb-ba7c-c5c4922db17d
+[SETUP] FileMetadata created - FileId: 3d9544d2-27d5-4a68-920b-b24732da5843, FileName: 333BBB-44444444442025-conflict.pdf
+Publishing event DocumentDownloadedEvent with ID ee53583a-f60c-41aa-b2f5-ff2111fc7ef7 (Correlation: 7831ee2c-1981-4efb-ba7c-c5c4922db17d)
+[STAGE 1] DocumentDownloadedEvent published
+Persisted event DocumentDownloadedEvent with ID ee53583a-f60c-41aa-b2f5-ff2111fc7ef7 to database
+Publishing event QualityAnalysisCompletedEvent with ID d4160ca4-db5c-46c8-a9ba-8163ea0a196c (Correlation: 7831ee2c-1981-4efb-ba7c-c5c4922db17d)
+[STAGE 2] QualityAnalysisCompletedEvent published - Quality: Q3 - Low
+Persisted event QualityAnalysisCompletedEvent with ID d4160ca4-db5c-46c8-a9ba-8163ea0a196c to database
+Publishing event OcrCompletedEvent with ID 043e3e1e-55b9-4a89-822c-b2b6552f49f0 (Correlation: 7831ee2c-1981-4efb-ba7c-c5c4922db17d)
+[STAGE 3] OcrCompletedEvent published - Confidence: 85.0%
+Persisted event OcrCompletedEvent with ID 043e3e1e-55b9-4a89-822c-b2b6552f49f0 to database
+Publishing event ConflictDetectedEvent with ID ba165acf-d1c2-4cc7-b6a6-9f668596b210 (Correlation: 7831ee2c-1981-4efb-ba7c-c5c4922db17d)
+[STAGE 4] ConflictDetectedEvent published - Field: Subdivision, XML: Aseguramiento, OCR: Judicial
+Persisted event ConflictDetectedEvent with ID ba165acf-d1c2-4cc7-b6a6-9f668596b210 to database
+Publishing event DocumentFlaggedForReviewEvent with ID 2ed6bae9-61bd-4ce1-a167-32a16541c705 (Correlation: 7831ee2c-1981-4efb-ba7c-c5c4922db17d)
+[STAGE 5] DocumentFlaggedForReviewEvent published - Priority: High
+Persisted event DocumentFlaggedForReviewEvent with ID 2ed6bae9-61bd-4ce1-a167-32a16541c705 to database
+Publishing event ClassificationCompletedEvent with ID 1d508c1c-244b-4774-80ec-e98102931dc0 (Correlation: 7831ee2c-1981-4efb-ba7c-c5c4922db17d)
+[STAGE 6] ClassificationCompletedEvent published - RequiresManualReview: True
+Persisted event ClassificationCompletedEvent with ID 1d508c1c-244b-4774-80ec-e98102931dc0 to database
+Publishing event DocumentProcessingCompletedEvent with ID 2805c052-e5d8-44b6-b27f-00668f9e5e6c (Correlation: 7831ee2c-1981-4efb-ba7c-c5c4922db17d)
+[STAGE 7] DocumentProcessingCompletedEvent published - AutoProcessed: False
+Persisted event DocumentProcessingCompletedEvent with ID 2805c052-e5d8-44b6-b27f-00668f9e5e6c to database
+
+[AUDIT TRAIL] Retrieved 7 events from SQL Server
+  [CONFLICT] ConflictDetectedEvent found - Stage: Decision Logic
+  [CONFLICT] Field: Subdivision, XML: Aseguramiento, OCR: Judicial
+  [FLAGGED] DocumentFlaggedForReviewEvent found - Priority: High
+
+[SUCCESS] Conflict detection and flagging verified!
+          CorrelationId: 7831ee2c-1981-4efb-ba7c-c5c4922db17d
+          Conflict: Subdivision (XML: Aseguramiento vs OCR: Judicial)
+          Result: Flagged for manual review (Defensive Intelligence)
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b41036b5-c210-44c7-8e55-772a760b36fe" testId="d95e57be-b931-8b9d-a17e-f13544f29d7a" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentFlaggedForReview_TracksDefensiveIntelligence" computerName="DESKTOP-FB2ES22" duration="00:00:04.4648161" startTime="2026-06-21T03:02:35.0243009+00:00" endTime="2026-06-21T03:02:39.4891669+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b41036b5-c210-44c7-8e55-772a760b36fe">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentFlaggedForReviewEvent with ID d9d3d1d6-2d46-4025-8c7f-42190f1aa0e4 (Correlation: (null))
+Persisted event DocumentFlaggedForReviewEvent with ID d9d3d1d6-2d46-4025-8c7f-42190f1aa0e4 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="346ba81b-68b5-47b3-b340-cff69260b5d4" testId="0eee92ba-2a61-fb98-eebe-df175f8b308f" testName="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WhenCancelled_ReturnsFailure" computerName="DESKTOP-FB2ES22" duration="00:00:03.3358887" startTime="2026-06-21T03:02:36.3502167+00:00" endTime="2026-06-21T03:02:39.6861852+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="346ba81b-68b5-47b3-b340-cff69260b5d4" />
+    <UnitTestResult executionId="f46bb738-ef19-4583-938d-835ba275bffe" testId="628fe2df-a796-87ec-4c45-8c747e12744c" testName="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.ReconciliationPipelineService_ProcessAsync_AuditRecordsCarryProcessId" computerName="DESKTOP-FB2ES22" duration="00:00:03.3416241" startTime="2026-06-21T03:02:36.6014271+00:00" endTime="2026-06-21T03:02:39.9431692+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="f46bb738-ef19-4583-938d-835ba275bffe">
+      <Output>
+        <StdOut>Audit record logged: 1c7d66db-ba5d-474c-ae8e-cdb7781c256e, action: Classification, stage: Decision Logic, correlation: ecda60a5-9e71-4b95-90eb-ca3cba201522
+Audit record logged: 45b74613-0b1e-495a-b763-1083bca6b592, action: Export, stage: Export, correlation: ecda60a5-9e71-4b95-90eb-ca3cba201522
+Retrieved 2 audit records for file: 8354e2fd-b566-45fe-a4b3-e353bcdc3252
+Retrieved 2 audit records for file: 8354e2fd-b566-45fe-a4b3-e353bcdc3252
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2a44fc47-91c2-4cfc-89ba-1b935dd285f2" testId="0640765f-5e7e-e411-82e7-18fe0bb64dfa" testName="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_CleanAseguramientoCase_CompleteTraceabilityChain" computerName="DESKTOP-FB2ES22" duration="00:00:05.2953998" startTime="2026-06-21T03:02:37.5165832+00:00" endTime="2026-06-21T03:02:42.8120775+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="2a44fc47-91c2-4cfc-89ba-1b935dd285f2">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+[TEST] Starting pipeline test - CorrelationId: 9ef86238-3b32-4099-8b47-f7d4b3443b5f, FileId: f8e23b63-11ea-4bb5-a1e2-089a329503d2
+[SETUP] FileMetadata created - FileId: f8e23b63-11ea-4bb5-a1e2-089a329503d2, FileName: 222AAA-44444444442025.pdf
+Publishing event DocumentDownloadedEvent with ID c225f0b7-2ee8-4d6f-bc9a-7188d1e02405 (Correlation: 9ef86238-3b32-4099-8b47-f7d4b3443b5f)
+[STAGE 1] DocumentDownloadedEvent published
+Persisted event DocumentDownloadedEvent with ID c225f0b7-2ee8-4d6f-bc9a-7188d1e02405 to database
+Publishing event QualityAnalysisCompletedEvent with ID 66ae03dc-3a80-474f-84a4-cf54389e50f7 (Correlation: 9ef86238-3b32-4099-8b47-f7d4b3443b5f)
+[STAGE 2] QualityAnalysisCompletedEvent published - Quality: Pristine, Blur: 15.2
+Persisted event QualityAnalysisCompletedEvent with ID 66ae03dc-3a80-474f-84a4-cf54389e50f7 to database
+Publishing event OcrCompletedEvent with ID 9a7fa35b-793b-46e9-b3f1-7ac9944000cb (Correlation: 9ef86238-3b32-4099-8b47-f7d4b3443b5f)
+[STAGE 3] OcrCompletedEvent published - Confidence: 92.5%, Length: 15234 chars
+Persisted event OcrCompletedEvent with ID 9a7fa35b-793b-46e9-b3f1-7ac9944000cb to database
+Publishing event ClassificationCompletedEvent with ID 342a34f9-6f89-4de3-9ef3-c5adef4aab7e (Correlation: 9ef86238-3b32-4099-8b47-f7d4b3443b5f)
+[STAGE 4] ClassificationCompletedEvent published - Type: Aseguramiento/Bloqueo, Confidence: 95%
+Persisted event ClassificationCompletedEvent with ID 342a34f9-6f89-4de3-9ef3-c5adef4aab7e to database
+Publishing event DocumentProcessingCompletedEvent with ID dd90044e-96e0-4245-8de3-e2fd59e7e52c (Correlation: 9ef86238-3b32-4099-8b47-f7d4b3443b5f)
+[STAGE 5] DocumentProcessingCompletedEvent published - Total time: 5.5s, AutoProcessed: True
+Persisted event DocumentProcessingCompletedEvent with ID dd90044e-96e0-4245-8de3-e2fd59e7e52c to database
+
+[AUDIT TRAIL] Retrieved 5 events from SQL Server
+  [1] Download - Stage: Ingestion, FileId: f8e23b63-11ea-4bb5-a1e2-089a329503d2
+  [2] Quality Analysis - Stage: Extraction
+  [3] OCR - Stage: Extraction
+  [4] Classification - Stage: Decision Logic
+  [5] Completed - Stage: Export
+
+[SUCCESS] Complete traceability chain verified in SQL Server!
+          CorrelationId: 9ef86238-3b32-4099-8b47-f7d4b3443b5f
+          FileId: f8e23b63-11ea-4bb5-a1e2-089a329503d2
+          Events: 5
+          Duration: 00:00:00.8225791
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="0cd19006-b71c-4601-8955-6a1ab40604d2" testId="30c7e1bf-5410-b5fb-ca06-1f03bc958966" testName="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindOrCreateAsync_TwoDistinctRfcs_PersistesTwoPersonas" computerName="DESKTOP-FB2ES22" duration="00:00:03.3441877" startTime="2026-06-21T03:02:39.6870342+00:00" endTime="2026-06-21T03:02:43.0312820+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0cd19006-b71c-4601-8955-6a1ab40604d2" />
+    <UnitTestResult executionId="e40a649d-4aac-48f7-a733-ba75da97f011" testId="42bc3356-ace2-a87e-6af3-b306957f9942" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_SystemLevelError_AllowsNullFileId" computerName="DESKTOP-FB2ES22" duration="00:00:04.4521359" startTime="2026-06-21T03:02:39.4898780+00:00" endTime="2026-06-21T03:02:43.9420749+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="e40a649d-4aac-48f7-a733-ba75da97f011">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event ProcessingErrorEvent with ID 72e423f5-fdf6-4be8-9c70-dcb25fe1e0af (Correlation: (null))
+Persisted event ProcessingErrorEvent with ID 72e423f5-fdf6-4be8-9c70-dcb25fe1e0af to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="8f25070b-aa2e-4685-8ea9-4333592c194a" testId="6bae65fd-2c7d-cc75-2d11-e10f0b3a425b" testName="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WithEmptyRfc_ReturnsFailure" computerName="DESKTOP-FB2ES22" duration="00:00:03.2981645" startTime="2026-06-21T03:02:43.0315163+00:00" endTime="2026-06-21T03:02:46.3297260+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="8f25070b-aa2e-4685-8ea9-4333592c194a" />
+    <UnitTestResult executionId="99b11b9e-fa51-4782-9091-c1e2c472ff87" testId="127643f3-673c-d172-0e8d-c440627a5883" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_WithCorrelationId_PreservesTracing" computerName="DESKTOP-FB2ES22" duration="00:00:04.6667923" startTime="2026-06-21T03:02:43.9423931+00:00" endTime="2026-06-21T03:02:48.6092536+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="99b11b9e-fa51-4782-9091-c1e2c472ff87">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentDownloadedEvent with ID 63f7b222-96d3-43f6-a33e-3d30acf63fba (Correlation: 1d3cbe6b-d1f0-4834-8825-a2e4b4366f58)
+Persisted event DocumentDownloadedEvent with ID 63f7b222-96d3-43f6-a33e-3d30acf63fba to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a1a1cc26-a108-44ac-a7ce-ec204f86cda5" testId="969bd3a7-cd7d-5b33-3a49-bcd055b61776" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaSemanticAnalyzerIntegrationTests.OllamaHttpClient_RealLlm_GroundedOficioPrompt_ReturnsNonEmptyAnswer" computerName="DESKTOP-FB2ES22" duration="00:00:22.3283188" startTime="2026-06-21T03:02:29.8973195+00:00" endTime="2026-06-21T03:02:52.2256953+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a1a1cc26-a108-44ac-a7ce-ec204f86cda5" />
+    <UnitTestResult executionId="0cba9e89-dd72-467d-ac6a-cb30321b99c6" testId="5f14a151-d791-3177-9f2c-416f5951290a" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ProcessingErrorEvent_MarksAsFailure" computerName="DESKTOP-FB2ES22" duration="00:00:04.8048194" startTime="2026-06-21T03:02:48.6094540+00:00" endTime="2026-06-21T03:02:53.4143514+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0cba9e89-dd72-467d-ac6a-cb30321b99c6">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event ProcessingErrorEvent with ID 011c762a-73f6-43dd-a3c5-c7650cdea907 (Correlation: (null))
+Persisted event ProcessingErrorEvent with ID 011c762a-73f6-43dd-a3c5-c7650cdea907 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="f87d912e-6e15-459b-8a87-92177ad0e0da" testId="7bc7d6e4-b672-bc29-632a-4a665d9d7e75" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaSemanticAnalyzerIntegrationTests.SemanticAnalyzerService_WithRealOllama_EnrichesInformacionSolicitada" computerName="DESKTOP-FB2ES22" duration="00:00:05.1822558" startTime="2026-06-21T03:02:52.2259544+00:00" endTime="2026-06-21T03:02:57.4082678+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="f87d912e-6e15-459b-8a87-92177ad0e0da" />
+    <UnitTestResult executionId="199de901-c884-4f1b-935c-2cbbaec9c011" testId="bbff548c-5702-8364-8214-5a055511ac81" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.ApiTags_ShouldListAvailableModels" computerName="DESKTOP-FB2ES22" duration="00:00:00.0362440" startTime="2026-06-21T03:02:57.4097609+00:00" endTime="2026-06-21T03:02:57.4460536+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="199de901-c884-4f1b-935c-2cbbaec9c011" />
+    <UnitTestResult executionId="f1b51fbb-69e6-4296-9cfc-29439f947a16" testId="26be8344-e9b6-5855-4da0-41216b319c11" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.HealthCheck_ShouldPass" computerName="DESKTOP-FB2ES22" duration="00:00:00.0227775" startTime="2026-06-21T03:02:57.4462520+00:00" endTime="2026-06-21T03:02:57.4690745+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="f1b51fbb-69e6-4296-9cfc-29439f947a16" />
+    <UnitTestResult executionId="b7f82148-3002-4d5d-9303-cbdfa3dcadff" testId="9a508d86-ad7d-0434-ccb8-f130c953072d" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Models_ShouldBeLoaded" computerName="DESKTOP-FB2ES22" duration="00:00:00.0283040" startTime="2026-06-21T03:02:57.4693204+00:00" endTime="2026-06-21T03:02:57.4976834+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="b7f82148-3002-4d5d-9303-cbdfa3dcadff" />
+    <UnitTestResult executionId="3a5f0115-e3e8-472f-a87c-2770e6720c5b" testId="f95ce343-db4a-71fa-8513-cb98a1fea4b2" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentDownloadedEvent_SavesToDatabase" computerName="DESKTOP-FB2ES22" duration="00:00:04.8834208" startTime="2026-06-21T03:02:53.4156056+00:00" endTime="2026-06-21T03:02:58.2990874+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="3a5f0115-e3e8-472f-a87c-2770e6720c5b">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentDownloadedEvent with ID 6849b049-330d-441a-9c8f-470a329f1503 (Correlation: 2ececd25-8c66-42d7-aa86-d0e3f79e44d5)
+Persisted event DocumentDownloadedEvent with ID 6849b049-330d-441a-9c8f-470a329f1503 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="0ad0697d-9160-4450-9988-2f68b9b732b4" testId="636e2a93-49b0-eb5f-066a-3a8f154ebcb1" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.EmbeddingModel_ShouldGenerateEmbeddings" computerName="DESKTOP-FB2ES22" duration="00:00:01.8756510" startTime="2026-06-21T03:02:57.4978625+00:00" endTime="2026-06-21T03:02:59.3735563+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="0ad0697d-9160-4450-9988-2f68b9b732b4" />
+    <UnitTestResult executionId="7ebc956d-0832-477a-9900-4f3dbfe23d76" testId="cd26de40-0b99-bb93-d51e-810d16e222f9" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Container_ShouldBeAvailable" computerName="DESKTOP-FB2ES22" duration="00:00:00.0005347" startTime="2026-06-21T03:02:59.3737490+00:00" endTime="2026-06-21T03:02:59.3743136+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="7ebc956d-0832-477a-9900-4f3dbfe23d76" />
+    <UnitTestResult executionId="aa1d4f24-5448-4c7e-8643-7c7004c1f241" testId="25194fcb-9781-11ce-0caf-35d37e35e4c6" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.OllamaConfiguration_ShouldHaveCorrectSettings" computerName="DESKTOP-FB2ES22" duration="00:00:00.0001528" startTime="2026-06-21T03:02:59.3744120+00:00" endTime="2026-06-21T03:02:59.3745829+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="aa1d4f24-5448-4c7e-8643-7c7004c1f241" />
+    <UnitTestResult executionId="6b452428-7154-41ef-9f9a-c58094080d66" testId="8841a544-d6af-fbc7-1379-d280c06c7b5d" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Models_ShouldLoadIntoMemory" computerName="DESKTOP-FB2ES22" duration="00:00:00.9165181" startTime="2026-06-21T03:02:59.3746739+00:00" endTime="2026-06-21T03:03:00.2912255+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="6b452428-7154-41ef-9f9a-c58094080d66" />
+    <UnitTestResult executionId="291a8e8d-78f8-49d1-9c59-bb2ffc4377a5" testId="8df2cd99-6007-1817-ffc7-a59a531d4eb1" testName="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.LLMModel_ShouldGenerateText" computerName="DESKTOP-FB2ES22" duration="00:00:01.0660172" startTime="2026-06-21T03:03:00.2914714+00:00" endTime="2026-06-21T03:03:01.3575401+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="291a8e8d-78f8-49d1-9c59-bb2ffc4377a5" />
+    <UnitTestResult executionId="bbaed125-afcb-4d95-b9ce-8c7dbff6c75a" testId="0892c957-73f3-59c6-8c2b-f93f5554ab87" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentProcessingCompletedEvent_MapsCorrectly" computerName="DESKTOP-FB2ES22" duration="00:00:04.4996595" startTime="2026-06-21T03:02:58.2992489+00:00" endTime="2026-06-21T03:03:02.7989491+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="bbaed125-afcb-4d95-b9ce-8c7dbff6c75a">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentProcessingCompletedEvent with ID 894bb122-e47c-4d21-af69-e89be9739475 (Correlation: (null))
+Persisted event DocumentProcessingCompletedEvent with ID 894bb122-e47c-4d21-af69-e89be9739475 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="84dbc194-ddc7-46a4-b1f7-81590110f71f" testId="b256196e-dc5c-594b-bf00-51d161512a33" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ConflictDetectedEvent_MapsCorrectly" computerName="DESKTOP-FB2ES22" duration="00:00:04.4399447" startTime="2026-06-21T03:03:02.7992196+00:00" endTime="2026-06-21T03:03:07.2392023+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="84dbc194-ddc7-46a4-b1f7-81590110f71f">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event ConflictDetectedEvent with ID 38e3d001-7434-4d95-ac03-da45dc3fca28 (Correlation: (null))
+Persisted event ConflictDetectedEvent with ID 38e3d001-7434-4d95-ac03-da45dc3fca28 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a108d126-1acf-4fb9-8450-ec00931a133f" testId="9ed05810-10f6-1000-1f6a-43df4dd916ab" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvents_MultipleEvents_AllSavedInOrder" computerName="DESKTOP-FB2ES22" duration="00:00:04.4617087" startTime="2026-06-21T03:03:07.2393532+00:00" endTime="2026-06-21T03:03:11.7010973+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="a108d126-1acf-4fb9-8450-ec00931a133f">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentDownloadedEvent with ID 4394432c-dceb-4264-beed-b8ef96e4ad22 (Correlation: c5e25c31-9011-4879-a754-b98f0a234b98)
+Publishing event OcrCompletedEvent with ID 99c97391-6aa5-4602-8a7e-25e900fd3a44 (Correlation: c5e25c31-9011-4879-a754-b98f0a234b98)
+Publishing event ClassificationCompletedEvent with ID bc8c47e0-8449-42ba-9d56-93de0ffe526c (Correlation: c5e25c31-9011-4879-a754-b98f0a234b98)
+Persisted event DocumentDownloadedEvent with ID 4394432c-dceb-4264-beed-b8ef96e4ad22 to database
+Persisted event OcrCompletedEvent with ID 99c97391-6aa5-4602-8a7e-25e900fd3a44 to database
+Persisted event ClassificationCompletedEvent with ID bc8c47e0-8449-42ba-9d56-93de0ffe526c to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="817ada0b-2b80-4cb3-8bd8-6fabf53f7929" testId="609714f2-4297-cc74-a3bf-547aa00a6a05" testName="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.Worker_StopAsync_StopsGracefully" computerName="DESKTOP-FB2ES22" duration="00:00:05.3165190" startTime="2026-06-21T03:03:11.7012442+00:00" endTime="2026-06-21T03:03:17.0178124+00:00" testType="13CDC9D9-DDB5-4fa4-A97D-D965CCFC6D4B" outcome="Passed" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" relativeResultsDirectory="817ada0b-2b80-4cb3-8bd8-6fabf53f7929">
+      <Output>
+        <StdOut>EventPersistenceWorker starting - subscribing to domain events
+Publishing event DocumentDownloadedEvent with ID 5d5eb9b8-f4c1-467c-8fbc-3eb4df2eedd6 (Correlation: (null))
+Persisted event DocumentDownloadedEvent with ID 5d5eb9b8-f4c1-467c-8fbc-3eb4df2eedd6 to database
+EventPersistenceWorker stopping - unsubscribing from domain events
+Publishing event DocumentDownloadedEvent with ID 9b6f1cb1-30c8-417a-9859-275f7d9bd9b3 (Correlation: (null))
+EventPersistenceWorker stopping - unsubscribing from domain events
+</StdOut>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Expediente_Allows_Nulls" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="5a1f0680-ac7d-86c5-dbe8-efde2efa60a7">
+      <Execution id="eeef7b2a-4be4-4014-a70f-2913e59febb0" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Expediente_Allows_Nulls" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Container_ShouldBeAvailable" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="f9bd980e-1905-58d7-cf72-78d58aa5681e">
+      <Execution id="b8ec72fe-58e7-4bbb-b711-d78a5033cfbd" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Container_ShouldBeAvailable" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Merge_Xml_Prioritizes_Against_Ocr_And_Flags_Conflicts" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="1f5ece46-f0a3-f6e7-bcdf-2830a0c24f3f">
+      <Execution id="a45c650e-8d76-4caa-8659-6182b6df9802" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Merge_Xml_Prioritizes_Against_Ocr_And_Flags_Conflicts" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Aseguramiento_Fixture" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="0cd1eadc-aae9-d31e-ab31-48b7daacf020">
+      <Execution id="d9294db0-725e-43e8-8813-1339a8f2a730" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Aseguramiento_Fixture" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Hacendario_Documentacion" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="75660e90-ad8b-d72c-98fe-388324301ab2">
+      <Execution id="9fea91fe-7f73-4816-8fef-cebfe2a55000" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Hacendario_Documentacion" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_OperacionesIlicitas_With_Accounts_And_Rfc_Variants" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="38935b15-0d60-78a6-53a3-6fab7a651d8d">
+      <Execution id="329cbc27-4548-432d-9963-95225c3d5742" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_OperacionesIlicitas_With_Accounts_And_Rfc_Variants" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Identity_Allows_Empty_Rfc_And_Curp" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="530569fb-2b26-3924-0b39-575b0295c14b">
+      <Execution id="45d42df1-292e-4423-8046-1f79a728f5ab" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Identity_Allows_Empty_Rfc_And_Curp" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Subdivision_Falls_Back_To_Unknown" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="1d55f299-fa97-2aa7-f306-25395482c6b9">
+      <Execution id="53e68eb4-d816-49af-b860-18ac847bec9f" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Subdivision_Falls_Back_To_Unknown" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Accounts_Leaves_CuentasRaw_Empty" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="f0faae7a-9568-4cf5-8d2e-af9967011bfb">
+      <Execution id="a0f17492-3314-464e-9780-2086e1ac3c60" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_With_Missing_Accounts_Leaves_CuentasRaw_Empty" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Judicial_With_Curp_And_Rfc" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="432b7ce1-252d-e4f9-fa93-66bbebd2ae07">
+      <Execution id="1e76fe2c-be5b-4404-a4d4-9b903c383324" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests" name="ExxerCube.Prisma.Tests.System.Storage.XmlExtractorFixtureTests.Extract_Should_Parse_Judicial_With_Curp_And_Rfc" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.MigrateOnlyPathIntegrationTests.RunMigrationsAsync_FreshDatabase_ReturnsZeroAndNoPendingMigrations" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="a591848e-f731-bd4a-c455-8be167a29b7f">
+      <Execution id="7a91e88f-800f-490d-892b-e3071b409531" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.MigrateOnlyPathIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.MigrateOnlyPathIntegrationTests.RunMigrationsAsync_FreshDatabase_ReturnsZeroAndNoPendingMigrations" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldSeedData_Successfully" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="6a490cd8-8471-22a4-3c59-056a4907a8bb">
+      <Execution id="46e518aa-37dc-4c0a-8605-fad397f599e5" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldSeedData_Successfully" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.IngestionOrchestrator_IngestCase_AuditRecordsCarryProcessId" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="9a4ef7d1-0c7f-f955-42a8-0b2c11426d51">
+      <Execution id="f050bf6c-fa15-49ac-9c23-70a855bb7846" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.IngestionOrchestrator_IngestCase_AuditRecordsCarryProcessId" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WithCrossFormatVariant_ReturnsExistingRow" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="daa5d642-a4ff-08d3-e2fc-4ffdabb2c52c">
+      <Execution id="b229db22-2203-4cb9-bd79-0f58e7c470fe" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WithCrossFormatVariant_ReturnsExistingRow" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.ReviewCaseFkDropIntegrationTests.IdentifyReviewCases_ForFileIdWithoutFileMetadata_PersistsToRealSql" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="43e5cc86-3348-d917-393a-f00217f5c326">
+      <Execution id="633d3c6b-e4bc-448a-bd70-3c92671aa629" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.ReviewCaseFkDropIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.ReviewCaseFkDropIntegrationTests.IdentifyReviewCases_ForFileIdWithoutFileMetadata_PersistsToRealSql" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldSupport_BasicCrudOperations" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="bccf1abd-1594-b6d1-6a8f-85d9d3a0c18d">
+      <Execution id="d7bc3034-3dda-458c-8b77-e87e33657755" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldSupport_BasicCrudOperations" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.AAA_DockerOrPodman_ShouldBeAvailable" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="1b07ac87-7d0a-6ec7-dda0-ed7756f8efac">
+      <Execution id="0c59e508-0368-4b11-846b-96115415f039" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.AAA_DockerOrPodman_ShouldBeAvailable" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.EFCore_ShouldCreateSchema_WhenApplyingMigrations" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="1e06fd9a-d1c5-d41b-ea7f-15da2e36bf48">
+      <Execution id="1cc3faaa-f68c-40d6-bee7-d822752e2854" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.EFCore_ShouldCreateSchema_WhenApplyingMigrations" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldExist_AndAcceptConnections" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="b2a6f4ce-26f5-8746-47ae-ad6693c6cc80">
+      <Execution id="78c4a1e1-fbf8-4967-8a9a-c227c6047429" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldExist_AndAcceptConnections" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldCleanup_BetweenTests" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="f6401f77-ac28-5e47-9e0a-42ba62579af0">
+      <Execution id="a8079a7c-a9e2-4e66-b72c-bed5e9a09145" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.DatabaseInfrastructureSmokeTests.Database_ShouldCleanup_BetweenTests" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Mission1HappyPathPipelineTests.HappyPath_EndToEnd_PersistsCorrelationAuditAndStorage" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="dc1321b7-4327-f0e2-d38d-dff953812282">
+      <Execution id="f0188fbf-fe8c-46ff-b3a6-4cab095ac0d3" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Mission1HappyPathPipelineTests" name="ExxerCube.Prisma.Tests.System.Storage.Mission1HappyPathPipelineTests.HappyPath_EndToEnd_PersistsCorrelationAuditAndStorage" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ClassificationCompletedEvent_MapsCorrectly" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="88885390-5c03-c680-f180-fbc91bd398b3">
+      <Execution id="42893304-24e3-4856-989a-3975e2257196" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ClassificationCompletedEvent_MapsCorrectly" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_MalformedXmlLowQualityPdf_DefensiveIntelligenceContinues" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="339e929b-911d-e7f0-8423-6e0bfa0d44e3">
+      <Execution id="d48f361b-6624-4183-a73f-594d4d87ef22" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_MalformedXmlLowQualityPdf_DefensiveIntelligenceContinues" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.MigrateOnlyPathIntegrationTests.RunMigrationsAsync_NoContextRegistered_ReturnsZeroNoOp" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="0fca6531-9f2c-2c64-941e-5c7769081943">
+      <Execution id="17489baf-c122-45a7-a5c1-268bde6a34af" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.MigrateOnlyPathIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.MigrateOnlyPathIntegrationTests.RunMigrationsAsync_NoContextRegistered_ReturnsZeroNoOp" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WhenNoRowExists_ReturnsSuccessWithNull" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="8732f8d3-463b-ba97-2f80-29f0f17d5713">
+      <Execution id="0aa47e21-1994-4021-b336-4e5efc40cf26" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WhenNoRowExists_ReturnsSuccessWithNull" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.QueuedAuditLogger_AfterDrain_RecordIsQueryableByFileId" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="ec2beeb0-26a2-9b38-2a43-fcfad8587781">
+      <Execution id="b9fadd43-8147-4f4f-91d1-59f505b27117" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.QueuedAuditLogger_AfterDrain_RecordIsQueryableByFileId" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_OcrCompletedEvent_MapsCorrectly" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="1afcb81b-0e74-ea84-df07-ce1666dbfe77">
+      <Execution id="56da2a91-b4ec-4a18-b8ff-695d3f5f0a5c" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_OcrCompletedEvent_MapsCorrectly" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindOrCreateAsync_TwoDocumentsSameRfcDifferentFormats_PersistsExactlyOnePersona" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="c1e03932-ddcb-c9e3-265d-fa6253008085">
+      <Execution id="b026922c-04bc-4089-84ce-ee186f2b54b7" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindOrCreateAsync_TwoDocumentsSameRfcDifferentFormats_PersistsExactlyOnePersona" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.ExtractionPipelineService_ProcessAsync_AuditRecordsCarryProcessId" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="ab90b0cd-3b19-88f8-c003-42384a94ec80">
+      <Execution id="12cd37a8-11c6-40ce-ba2c-6ad1b4cf37a5" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.ExtractionPipelineService_ProcessAsync_AuditRecordsCarryProcessId" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_XmlOcrConflict_DetectsAndFlagsForReview" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="9e742417-258a-031f-430d-2ff5220b8bb5">
+      <Execution id="2fddaefb-45ac-4340-b49d-97207c294d2e" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_XmlOcrConflict_DetectsAndFlagsForReview" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentFlaggedForReview_TracksDefensiveIntelligence" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="d95e57be-b931-8b9d-a17e-f13544f29d7a">
+      <Execution id="b41036b5-c210-44c7-8e55-772a760b36fe" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentFlaggedForReview_TracksDefensiveIntelligence" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WhenCancelled_ReturnsFailure" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="0eee92ba-2a61-fb98-eebe-df175f8b308f">
+      <Execution id="346ba81b-68b5-47b3-b340-cff69260b5d4" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WhenCancelled_ReturnsFailure" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.ReconciliationPipelineService_ProcessAsync_AuditRecordsCarryProcessId" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="628fe2df-a796-87ec-4c45-8c747e12744c">
+      <Execution id="f46bb738-ef19-4583-938d-835ba275bffe" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.ProcessAuditIntegrationTests.ReconciliationPipelineService_ProcessAsync_AuditRecordsCarryProcessId" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_CleanAseguramientoCase_CompleteTraceabilityChain" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="0640765f-5e7e-e411-82e7-18fe0bb64dfa">
+      <Execution id="2a44fc47-91c2-4cfc-89ba-1b935dd285f2" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.DocumentProcessingPipelineIntegrationTests.ProcessDocument_CleanAseguramientoCase_CompleteTraceabilityChain" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindOrCreateAsync_TwoDistinctRfcs_PersistesTwoPersonas" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="30c7e1bf-5410-b5fb-ca06-1f03bc958966">
+      <Execution id="0cd19006-b71c-4601-8955-6a1ab40604d2" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindOrCreateAsync_TwoDistinctRfcs_PersistesTwoPersonas" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_SystemLevelError_AllowsNullFileId" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="42bc3356-ace2-a87e-6af3-b306957f9942">
+      <Execution id="e40a649d-4aac-48f7-a733-ba75da97f011" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_SystemLevelError_AllowsNullFileId" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WithEmptyRfc_ReturnsFailure" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="6bae65fd-2c7d-cc75-2d11-e10f0b3a425b">
+      <Execution id="8f25070b-aa2e-4685-8ea9-4333592c194a" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.PersonIdentityDedupIntegrationTests.FindByRfcAsync_WithEmptyRfc_ReturnsFailure" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_WithCorrelationId_PreservesTracing" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="127643f3-673c-d172-0e8d-c440627a5883">
+      <Execution id="99b11b9e-fa51-4782-9091-c1e2c472ff87" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_WithCorrelationId_PreservesTracing" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaSemanticAnalyzerIntegrationTests.OllamaHttpClient_RealLlm_GroundedOficioPrompt_ReturnsNonEmptyAnswer" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="969bd3a7-cd7d-5b33-3a49-bcd055b61776">
+      <Execution id="a1a1cc26-a108-44ac-a7ce-ec204f86cda5" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaSemanticAnalyzerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaSemanticAnalyzerIntegrationTests.OllamaHttpClient_RealLlm_GroundedOficioPrompt_ReturnsNonEmptyAnswer" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ProcessingErrorEvent_MarksAsFailure" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="5f14a151-d791-3177-9f2c-416f5951290a">
+      <Execution id="0cba9e89-dd72-467d-ac6a-cb30321b99c6" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ProcessingErrorEvent_MarksAsFailure" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaSemanticAnalyzerIntegrationTests.SemanticAnalyzerService_WithRealOllama_EnrichesInformacionSolicitada" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="7bc7d6e4-b672-bc29-632a-4a665d9d7e75">
+      <Execution id="f87d912e-6e15-459b-8a87-92177ad0e0da" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaSemanticAnalyzerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaSemanticAnalyzerIntegrationTests.SemanticAnalyzerService_WithRealOllama_EnrichesInformacionSolicitada" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.ApiTags_ShouldListAvailableModels" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="bbff548c-5702-8364-8214-5a055511ac81">
+      <Execution id="199de901-c884-4f1b-935c-2cbbaec9c011" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.ApiTags_ShouldListAvailableModels" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.HealthCheck_ShouldPass" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="26be8344-e9b6-5855-4da0-41216b319c11">
+      <Execution id="f1b51fbb-69e6-4296-9cfc-29439f947a16" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.HealthCheck_ShouldPass" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Models_ShouldBeLoaded" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="9a508d86-ad7d-0434-ccb8-f130c953072d">
+      <Execution id="b7f82148-3002-4d5d-9303-cbdfa3dcadff" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Models_ShouldBeLoaded" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentDownloadedEvent_SavesToDatabase" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="f95ce343-db4a-71fa-8513-cb98a1fea4b2">
+      <Execution id="3a5f0115-e3e8-472f-a87c-2770e6720c5b" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentDownloadedEvent_SavesToDatabase" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.EmbeddingModel_ShouldGenerateEmbeddings" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="636e2a93-49b0-eb5f-066a-3a8f154ebcb1">
+      <Execution id="0ad0697d-9160-4450-9988-2f68b9b732b4" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.EmbeddingModel_ShouldGenerateEmbeddings" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Container_ShouldBeAvailable" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="cd26de40-0b99-bb93-d51e-810d16e222f9">
+      <Execution id="7ebc956d-0832-477a-9900-4f3dbfe23d76" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Container_ShouldBeAvailable" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.OllamaConfiguration_ShouldHaveCorrectSettings" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="25194fcb-9781-11ce-0caf-35d37e35e4c6">
+      <Execution id="aa1d4f24-5448-4c7e-8643-7c7004c1f241" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.OllamaConfiguration_ShouldHaveCorrectSettings" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Models_ShouldLoadIntoMemory" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="8841a544-d6af-fbc7-1379-d280c06c7b5d">
+      <Execution id="6b452428-7154-41ef-9f9a-c58094080d66" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.Models_ShouldLoadIntoMemory" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.LLMModel_ShouldGenerateText" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="8df2cd99-6007-1817-ffc7-a59a531d4eb1">
+      <Execution id="291a8e8d-78f8-49d1-9c59-bb2ffc4377a5" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests" name="ExxerCube.Prisma.Tests.System.Storage.Infrastructure.OllamaInfrastructureSmokeTests.LLMModel_ShouldGenerateText" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentProcessingCompletedEvent_MapsCorrectly" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="0892c957-73f3-59c6-8c2b-f93f5554ab87">
+      <Execution id="bbaed125-afcb-4d95-b9ce-8c7dbff6c75a" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_DocumentProcessingCompletedEvent_MapsCorrectly" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ConflictDetectedEvent_MapsCorrectly" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="b256196e-dc5c-594b-bf00-51d161512a33">
+      <Execution id="84dbc194-ddc7-46a4-b1f7-81590110f71f" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvent_ConflictDetectedEvent_MapsCorrectly" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvents_MultipleEvents_AllSavedInOrder" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="9ed05810-10f6-1000-1f6a-43df4dd916ab">
+      <Execution id="a108d126-1acf-4fb9-8450-ec00931a133f" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.PersistEvents_MultipleEvents_AllSavedInOrder" />
+    </UnitTest>
+    <UnitTest name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.Worker_StopAsync_StopsGracefully" storage="e:\dynamic\exxercubebanamex\buildartifacts\prisma\bin\exxercube.prisma.tests.system.storage\net10.0\exxercube.prisma.tests.system.storage.dll" id="609714f2-4297-cc74-a3bf-547aa00a6a05">
+      <Execution id="817ada0b-2b80-4cb3-8bd8-6fabf53f7929" />
+      <TestMethod codeBase="E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\bin\ExxerCube.Prisma.Tests.System.Storage\net10.0\ExxerCube.Prisma.Tests.System.Storage.dll" adapterTypeName="executor://30ea7c6e-dd24-4152-a360-1387158cd41d/3.2.2" className="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests" name="ExxerCube.Prisma.Tests.System.Storage.EventPersistenceWorkerIntegrationTests.Worker_StopAsync_StopsGracefully" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="5a1f0680-ac7d-86c5-dbe8-efde2efa60a7" executionId="eeef7b2a-4be4-4014-a70f-2913e59febb0" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="f9bd980e-1905-58d7-cf72-78d58aa5681e" executionId="b8ec72fe-58e7-4bbb-b711-d78a5033cfbd" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="1f5ece46-f0a3-f6e7-bcdf-2830a0c24f3f" executionId="a45c650e-8d76-4caa-8659-6182b6df9802" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0cd1eadc-aae9-d31e-ab31-48b7daacf020" executionId="d9294db0-725e-43e8-8813-1339a8f2a730" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="75660e90-ad8b-d72c-98fe-388324301ab2" executionId="9fea91fe-7f73-4816-8fef-cebfe2a55000" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="38935b15-0d60-78a6-53a3-6fab7a651d8d" executionId="329cbc27-4548-432d-9963-95225c3d5742" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="530569fb-2b26-3924-0b39-575b0295c14b" executionId="45d42df1-292e-4423-8046-1f79a728f5ab" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="1d55f299-fa97-2aa7-f306-25395482c6b9" executionId="53e68eb4-d816-49af-b860-18ac847bec9f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="f0faae7a-9568-4cf5-8d2e-af9967011bfb" executionId="a0f17492-3314-464e-9780-2086e1ac3c60" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="432b7ce1-252d-e4f9-fa93-66bbebd2ae07" executionId="1e76fe2c-be5b-4404-a4d4-9b903c383324" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="a591848e-f731-bd4a-c455-8be167a29b7f" executionId="7a91e88f-800f-490d-892b-e3071b409531" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="6a490cd8-8471-22a4-3c59-056a4907a8bb" executionId="46e518aa-37dc-4c0a-8605-fad397f599e5" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="9a4ef7d1-0c7f-f955-42a8-0b2c11426d51" executionId="f050bf6c-fa15-49ac-9c23-70a855bb7846" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="daa5d642-a4ff-08d3-e2fc-4ffdabb2c52c" executionId="b229db22-2203-4cb9-bd79-0f58e7c470fe" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="43e5cc86-3348-d917-393a-f00217f5c326" executionId="633d3c6b-e4bc-448a-bd70-3c92671aa629" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="bccf1abd-1594-b6d1-6a8f-85d9d3a0c18d" executionId="d7bc3034-3dda-458c-8b77-e87e33657755" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="1b07ac87-7d0a-6ec7-dda0-ed7756f8efac" executionId="0c59e508-0368-4b11-846b-96115415f039" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="1e06fd9a-d1c5-d41b-ea7f-15da2e36bf48" executionId="1cc3faaa-f68c-40d6-bee7-d822752e2854" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="b2a6f4ce-26f5-8746-47ae-ad6693c6cc80" executionId="78c4a1e1-fbf8-4967-8a9a-c227c6047429" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="f6401f77-ac28-5e47-9e0a-42ba62579af0" executionId="a8079a7c-a9e2-4e66-b72c-bed5e9a09145" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="dc1321b7-4327-f0e2-d38d-dff953812282" executionId="f0188fbf-fe8c-46ff-b3a6-4cab095ac0d3" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="88885390-5c03-c680-f180-fbc91bd398b3" executionId="42893304-24e3-4856-989a-3975e2257196" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="339e929b-911d-e7f0-8423-6e0bfa0d44e3" executionId="d48f361b-6624-4183-a73f-594d4d87ef22" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0fca6531-9f2c-2c64-941e-5c7769081943" executionId="17489baf-c122-45a7-a5c1-268bde6a34af" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="8732f8d3-463b-ba97-2f80-29f0f17d5713" executionId="0aa47e21-1994-4021-b336-4e5efc40cf26" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="ec2beeb0-26a2-9b38-2a43-fcfad8587781" executionId="b9fadd43-8147-4f4f-91d1-59f505b27117" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="1afcb81b-0e74-ea84-df07-ce1666dbfe77" executionId="56da2a91-b4ec-4a18-b8ff-695d3f5f0a5c" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="c1e03932-ddcb-c9e3-265d-fa6253008085" executionId="b026922c-04bc-4089-84ce-ee186f2b54b7" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="ab90b0cd-3b19-88f8-c003-42384a94ec80" executionId="12cd37a8-11c6-40ce-ba2c-6ad1b4cf37a5" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="9e742417-258a-031f-430d-2ff5220b8bb5" executionId="2fddaefb-45ac-4340-b49d-97207c294d2e" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="d95e57be-b931-8b9d-a17e-f13544f29d7a" executionId="b41036b5-c210-44c7-8e55-772a760b36fe" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0eee92ba-2a61-fb98-eebe-df175f8b308f" executionId="346ba81b-68b5-47b3-b340-cff69260b5d4" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="628fe2df-a796-87ec-4c45-8c747e12744c" executionId="f46bb738-ef19-4583-938d-835ba275bffe" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0640765f-5e7e-e411-82e7-18fe0bb64dfa" executionId="2a44fc47-91c2-4cfc-89ba-1b935dd285f2" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="30c7e1bf-5410-b5fb-ca06-1f03bc958966" executionId="0cd19006-b71c-4601-8955-6a1ab40604d2" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="42bc3356-ace2-a87e-6af3-b306957f9942" executionId="e40a649d-4aac-48f7-a733-ba75da97f011" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="6bae65fd-2c7d-cc75-2d11-e10f0b3a425b" executionId="8f25070b-aa2e-4685-8ea9-4333592c194a" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="127643f3-673c-d172-0e8d-c440627a5883" executionId="99b11b9e-fa51-4782-9091-c1e2c472ff87" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="969bd3a7-cd7d-5b33-3a49-bcd055b61776" executionId="a1a1cc26-a108-44ac-a7ce-ec204f86cda5" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="5f14a151-d791-3177-9f2c-416f5951290a" executionId="0cba9e89-dd72-467d-ac6a-cb30321b99c6" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="7bc7d6e4-b672-bc29-632a-4a665d9d7e75" executionId="f87d912e-6e15-459b-8a87-92177ad0e0da" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="bbff548c-5702-8364-8214-5a055511ac81" executionId="199de901-c884-4f1b-935c-2cbbaec9c011" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="26be8344-e9b6-5855-4da0-41216b319c11" executionId="f1b51fbb-69e6-4296-9cfc-29439f947a16" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="9a508d86-ad7d-0434-ccb8-f130c953072d" executionId="b7f82148-3002-4d5d-9303-cbdfa3dcadff" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="f95ce343-db4a-71fa-8513-cb98a1fea4b2" executionId="3a5f0115-e3e8-472f-a87c-2770e6720c5b" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="636e2a93-49b0-eb5f-066a-3a8f154ebcb1" executionId="0ad0697d-9160-4450-9988-2f68b9b732b4" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="cd26de40-0b99-bb93-d51e-810d16e222f9" executionId="7ebc956d-0832-477a-9900-4f3dbfe23d76" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="25194fcb-9781-11ce-0caf-35d37e35e4c6" executionId="aa1d4f24-5448-4c7e-8643-7c7004c1f241" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="8841a544-d6af-fbc7-1379-d280c06c7b5d" executionId="6b452428-7154-41ef-9f9a-c58094080d66" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="8df2cd99-6007-1817-ffc7-a59a531d4eb1" executionId="291a8e8d-78f8-49d1-9c59-bb2ffc4377a5" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="0892c957-73f3-59c6-8c2b-f93f5554ab87" executionId="bbaed125-afcb-4d95-b9ce-8c7dbff6c75a" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="b256196e-dc5c-594b-bf00-51d161512a33" executionId="84dbc194-ddc7-46a4-b1f7-81590110f71f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="9ed05810-10f6-1000-1f6a-43df4dd916ab" executionId="a108d126-1acf-4fb9-8450-ec00931a133f" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestEntry testId="609714f2-4297-cc74-a3bf-547aa00a6a05" executionId="817ada0b-2b80-4cb3-8bd8-6fabf53f7929" testListId="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8C84FA94-04C1-424b-9868-57A2D4851A1D" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="54" executed="54" passed="54" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>

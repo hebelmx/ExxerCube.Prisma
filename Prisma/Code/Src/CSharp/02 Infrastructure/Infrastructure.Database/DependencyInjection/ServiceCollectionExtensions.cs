@@ -87,6 +87,16 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUnifiedMetadataStore, EfCoreUnifiedMetadataStore>();
         services.AddScoped<IManualReviewerPanel, ManualReviewerService>();
 
+        // Cross-document person identity deduplication (FR10 / G-H5).
+        // Scoped to match PrismaDbContext lifetime. The Athena Worker composition root
+        // calls AddDatabaseServices when a real connection string is present, so this
+        // registration is conditional on the same guard that gates the rest of the DB stack.
+        // The service also exposes the non-interface FindOrCreateAsync for callers that
+        // need the persist-or-reuse flow.
+        services.AddScoped<DbPersonIdentityResolverService>();
+        services.AddScoped<IPersonIdentityResolver>(sp =>
+            sp.GetRequiredService<DbPersonIdentityResolverService>());
+
         // Configure SLA options
         services.Configure<SLAOptions>(options =>
         {

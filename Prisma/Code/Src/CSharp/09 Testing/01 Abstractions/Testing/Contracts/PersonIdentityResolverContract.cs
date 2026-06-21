@@ -23,14 +23,18 @@ namespace ExxerCube.Prisma.Testing.Contracts;
 /// <c>IPersonIdentityResolverContractExecutionTests</c> (whose body was <c>await Task.CompletedTask</c>).
 /// </para>
 /// <para>
-/// <strong>Scope = current behaviour.</strong> <see cref="IPersonIdentityResolver.FindByRfcAsync"/> is a
-/// documented database <em>stub</em> today (returns success-with-null pending repository integration), so
-/// the contract pins that as the current behaviour, not a future DB lookup. The pure methods
-/// (resolve/dedup/variants) are mutation-hardened in the impl's untouched <c>*MutationTests</c>; the
-/// contract only asserts the cross-implementation behavioural invariants (Result semantics, cancellation,
-/// the documented dedup-across-RFC-formats invariant, variants include the original). Exact RFC-variant
-/// strings and exact name-normalisation remain implementation richness, kept in the impl-side tests
-/// (ADR-005 §5).
+/// <strong>Scope = cross-implementation behavioural invariants.</strong>
+/// <see cref="IPersonIdentityResolver.FindByRfcAsync"/> now has two implementations:
+/// the pure in-memory <c>PersonIdentityResolverService</c> (always returns null) and the DB-backed
+/// <c>DbPersonIdentityResolverService</c> (returns null when no matching row exists, which is the
+/// same result against an empty database). The contract asserts "not found → success(null)" which
+/// is valid for both. DB-specific deduplication persistence is tested in the system-level integration
+/// tests (<c>PersonIdentityDedupIntegrationTests</c>) where a real SQL Server container is available.
+/// </para>
+/// <para>
+/// The pure methods (resolve/dedup/variants) are mutation-hardened in the impl's
+/// <c>*MutationTests</c>; exact RFC-variant strings and name-normalisation remain implementation
+/// richness kept in the impl-side tests (ADR-005 §5).
 /// </para>
 /// </remarks>
 public abstract class PersonIdentityResolverContract
@@ -166,17 +170,20 @@ public abstract class PersonIdentityResolverContract
     //
 
     /// <summary>
-    /// Contract: a valid RFC lookup returns success with a null value (the documented stub behaviour —
-    /// "not found" is a valid success-with-null for the nullable result; folded from the orphaned
-    /// static helper).
+    /// Contract: looking up an RFC that has never been persisted returns <c>success(null)</c> —
+    /// "not found" is a valid non-error outcome for the nullable result type. This invariant holds
+    /// for both the in-memory service (always returns null) and the DB-backed service (returns null
+    /// when the Persona table contains no matching row).
     /// </summary>
     [Fact]
     public async Task FindByRfcAsync_WithValidRfc_ReturnsSuccessWithNullValue()
     {
-        var result = await Sut.FindByRfcAsync("PEGJ850101ABC", TestContext.Current.CancellationToken);
+        // Use a highly-unlikely RFC so neither in-memory nor a shared DB test fixture
+        // can collide with a pre-existing row.
+        var result = await Sut.FindByRfcAsync("TEST000101ZZZ", TestContext.Current.CancellationToken);
 
         result.IsSuccessMayBeNull.ShouldBeTrue("Result should be Success (even with null value)");
-        result.IsSuccessValueNull.ShouldBeTrue("Result value should be null");
+        result.IsSuccessValueNull.ShouldBeTrue("Result value should be null when RFC is not found");
         result.Value.ShouldBeNull("Value should be null when person not found");
     }
 
