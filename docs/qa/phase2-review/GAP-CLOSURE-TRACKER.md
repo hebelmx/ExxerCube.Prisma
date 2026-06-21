@@ -63,7 +63,8 @@
 - **DoD:** a decision record per interface + (if implement) interface + impl + tests; (if de-scope) PRP amended + note in report.
 - **Depends on:** HRQ-8 (does `FusionExpedienteService` confidence output satisfy the matcher intent?).
 
-### G-H5 ☐ — Cross-document identity dedup non-functional (FR10 / INV-2)
+### G-H5 ☑ — Cross-document identity dedup non-functional (FR10 / INV-2)
+> **CLOSED 2026-06-20** (commit 7a3703d0). New DB-backed `DbPersonIdentityResolverService` (in Infrastructure.Database) implements `IPersonIdentityResolver`: RFC + variant-set lookup, find-or-create one Persona, unique-index concurrency guard; registered (single, no shadowing) in `AddDatabaseServices` so the worker resolves the real impl. Contract updated off the null-stub. Tests.System.Storage 54/54 (Testcontainers SQL) incl. two-RFC-variants⇒one-Persona. TRX: G-H5.trx.
 - **Finding:** `PersonIdentityResolverService.FindByRfcAsync` returns `null` (its own behavioural contract `PersonIdentityResolverContract` asserts `ReturnsSuccessWithNullValue`); no DB persistence; not registered in Athena/Orion worker pipeline hosts. (Report HIGH-5; R4 INV-2.)
 - **Where:** `02 Infrastructure/Infrastructure.Classification/PersonIdentityResolverService.cs:166` + worker DI composition roots.
 - **Do:** Implement DB-backed RFC/alias lookup + dedup persistence (Persona table); register the service in the worker pipeline that creates Persona records; update the behavioural contract.
@@ -80,7 +81,10 @@
 
 ## Section C — MEDIUM / LOW (from R5 exploratory)
 
-### G-M1 ☐ — `/health/live` returns 404 (NFR-ops)
+### G-M1 ☑ / G-M3 ☑ / G-M4 ☑ — health endpoints + login scaffolding (commit a2447225)
+> **CLOSED 2026-06-20.** G-M1: `/health/live` mapped (Predicate=>false, AllowAnonymous) ⇒ 200 no-DB; `/health/ready` keeps DB gate. G-M4: `HealthCheckResponseWriter` emits per-check JSON. G-M3: removed ASP.NET external-auth scaffolding from Login.razor + ExternalLoginPicker. Web.UI 0/0; auth middleware preserved. Live-probe evidence ⇒ EPIC-0/G-D2. (Original G-M1 entry retained below.)
+
+### G-M1 ☑ — `/health/live` returns 404 (NFR-ops)
 - **Finding:** `/health/live` → 404 (liveness probe not registered); `/health` → 503, `/health/ready` → 503. (Report; live probe; R5 EX-04.)
 - **Where:** Web UI `Program.cs` health-check endpoint mapping.
 - **Do:** Register `/health/live` (liveness, no DB dependency) + keep `/health/ready` (readiness incl. DB). Liveness should be 200 when the process is up.
@@ -165,7 +169,8 @@
 - **Do (owner direction):** define identity/auth interfaces in **Domain**; implement in an **Infrastructure adapter**; keep ALL Identity scaffolding inside the adapter project. Use **SQL Server `DESKTOP-FB2ES22\SQL2025` (Windows authentication)**. Seed a Reviewer + an Admin user for testing.
 - **DoD:** login works against live SQL; anonymous hitting `/sla-dashboard`, `/dashboard`, `/manual-review`, `/audit`, `/export` ⇒ redirect/deny; a Reviewer session opens the protected screens. Evidence: authenticated screenshots in `closure-evidence/ui/`.
 
-### G-S1 ☐ — Storage encryption (local + cloud), E2E  [HRQ-13 · NFR8/NFR17-adjacent]
+### G-S1 ☑ — Storage encryption (local + cloud), E2E  [HRQ-13 · NFR8/NFR17-adjacent]
+> **CLOSED 2026-06-20** (commit 4367ad26). Owner key-mgmt ruling = AES-256 + config/env key + protect purpose strings. `IStorageEncryptor` seam + AES-256-GCM; master key from config/env (fail-fast), per-purpose HKDF subkeys, purpose string never persisted (HKDF info only). FS adapter encrypts on write / decrypts on read. Tests 53/53 incl. raw-on-disk-ciphertext + plaintext-purpose-absent. Key rotation = documented follow-up. TRX: G-S1.trx.
 - **Owner ruling:** storage stays vendor-agnostic behind `IDownloadStorage`; **encrypt at rest — the local FS adapter must be encrypted too**, not just future cloud adapters.
 - **DoD:** stored document bytes are ciphertext at rest; a test reads the on-disk file and asserts it is not plaintext; key handling documented.
 
@@ -173,7 +178,8 @@
 - **Owner ruling:** use **SQL Server Append-Only Ledger Table** for audit rows; Serilog → SEQ + SQL Server sinks. Deploy/infra.
 - **DoD:** audit table is a ledger (append-only/verifiable); a delete/update attempt is blocked or ledger-detectable; Serilog SEQ+SQL sinks configured.
 
-### G-S3 ☐ — Event-processing reliability worker (outbox/retry)  [HRQ-2 · NFR14 enhancement]
+### G-S3 ☑ — Event-processing reliability worker (outbox/retry)  [HRQ-2 · NFR14 enhancement]
+> **CLOSED 2026-06-20** (commit 79799c61). New OutboxEvents table; EventPersistenceWorker stamps processed/unprocessed; OutboxRetryWorker re-raises unprocessed events on an interval with a retry cap then dead-letters. Tests.System.Storage 62/62 (Testcontainers). TRX: G-S3.trx.
 - **Owner ruling:** NFR14 PASS; add a dedicated background worker — if an event wasn't processed → persist + re-raise; periodic delayed task.
 - **DoD:** a simulated dropped/failed event is detected, persisted, and re-raised; test proves recovery.
 
@@ -190,6 +196,7 @@
 
 ## Progress log
 - 2026-06-20 — tracker created from PHASE2-FINAL-REPORT.md. All tasks pending; owner-decision items blocked pending rulings.
+- 2026-06-20 (orchestration waves 3-4) — closed **G-H5** (DB dedup, 7a3703d0), **G-M1/M3/M4** (health+login, a2447225), **G-S1** (AES-256-GCM storage encryption, 4367ad26), **G-S3** (outbox/retry worker, 79799c61). All ground-truth-verified (Web.UI/Infra builds 0/0; FileStorage 53/53; Tests.System.Storage 62/62 Testcontainers). Owner key-mgmt ruling captured (AES-256 + protected purpose strings). Remaining code: G-S2+G-S4 (audit ledger + DDL trigger, combined — shared migration surface). Remaining runtime-gated: EPIC-0/G-D1, G-D2, capstone E2E, perf (need the live SQL2025+Docker+Playwright box).
 - 2026-06-20 (orchestration adversarial gate) — fanned out 3 skeptics against waves 1+2. Caught TWO real holes, both FIXED + ground-truth-verified: **G-C2c** (3-process path discarded fusion ManualReviewRequired → conflicted cases exported; commit 692e4608, 112/112) and **G-I1 auth was inert** ([Authorize] cosmetic — RouteView not AuthorizeRouteView + no UseAuthentication/UseAuthorization; commit dcf77713, Web.UI 0/0). G-H4: 4 de-scopes sound, 3 carry ITDD interface-debt (task 21, non-blocking). New follow-ons: G-H1b (Blazor-circuit SaveAs), G-H4-debt. Remaining staging items: runtime auth proof (EPIC-0/G-D2), G-C2b release-after-approval.
 - 2026-06-20 (orchestration wave 2) — **G-I1 Identity keystone CODE DONE** (749f287e; Web.UI 0/0 rebuilt, Tests 7/7) which also added [Authorize] to both dashboards (**G-H2/G-H3 auth core ◐**, live probe → EPIC-0). **G-H1 Excel** closed (d0211f46; Task.Run-over-sync-SaveAs starvation). **G-C1 non-notif guard** closed (fb95b1fb). New follow-ons: G-I1-cleanup (old Data/ dead code). Live-SQL-dependent verification deferred to EPIC-0/G-D2.
 - 2026-06-20 (orchestration wave 1) — **closed G-C2** (export gate, commit 8db5e781), **G-M2** (PDF off-by-one, 266e1e50), **G-H4** (7 de-scope ADRs, 8ea15725); landed **ADR-014** Identity-as-infra design. Pushed to Liv (HEAD 266e1e50). New follow-on items: G-C2b (review-approval re-trigger), G-C2c (3-process fusion-state propagation). Next: G-I1 Identity implementation (keystone) per ADR-014.
