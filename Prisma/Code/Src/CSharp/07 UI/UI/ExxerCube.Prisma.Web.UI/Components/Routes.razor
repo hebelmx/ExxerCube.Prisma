@@ -3,13 +3,18 @@
 
 <Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        @* Temporarily disabled authorization to allow registration and testing *@
-        @* <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
             <NotAuthorized>
-                <RedirectToLogin />
+                @if (context.User.Identity?.IsAuthenticated != true)
+                {
+                    <RedirectToLogin />
+                }
+                else
+                {
+                    <p role="alert">You are not authorized to access this resource.</p>
+                }
             </NotAuthorized>
-        </AuthorizeRouteView> *@
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
     <NotFound>

@@ -114,6 +114,13 @@ Inner Stack Trace:
 
             app.UseAntiforgery();
 
+            // Authentication and authorization middleware must appear after UseAntiforgery
+            // and before any endpoint mapping so that [Authorize] attributes and policy
+            // evaluation are active for all mapped routes (controllers, Razor components,
+            // SignalR hubs, health checks).
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             // Map API controllers
             app.MapControllers();
 
@@ -261,6 +268,11 @@ Inner Stack Trace:
         // AddPrismaIdentity registers: DbContextFactory<PrismaIdentityDbContext>, IdentityCore stack,
         // cookie auth, PrismaNoOpEmailSender, IHttpContextAccessor, IIdentityProvider, IUserContextAccessor.
         services.AddPrismaIdentity(configuration);
+
+        // AddPrismaIdentity registers the cookie auth scheme + Identity core but NOT the authorization
+        // middleware services. AddAuthorization() is required for app.UseAuthorization() and for
+        // [Authorize] attributes to be evaluated by the ASP.NET Core policy engine.
+        services.AddAuthorization();
 
         // Web-layer Identity scaffolding (Blazor/Razor abstractions — cannot move to infrastructure):
         services.AddCascadingAuthenticationState();
