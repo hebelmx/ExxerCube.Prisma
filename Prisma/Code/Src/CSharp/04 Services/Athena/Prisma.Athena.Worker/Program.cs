@@ -30,25 +30,39 @@ using Prisma.Athena.Worker.Reconciliation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// RV-3: Pre-set Serilog sink env vars before building Log.Logger so appsettings.json
-// %SEQ_URL% / %SERILOG_SQL_CONNECTION% tokens resolve to real values via the .NET
-// environment-variable configuration provider (Windows %VAR% syntax is NOT expanded by
-// .NET config — this guard is the correct substitution mechanism).
-// SEQ_URL: default to localhost when unset (prevents boot-time UriFormatException).
-// SERILOG_SQL_CONNECTION: default to empty — the MSSqlServer sink skips init when the
-// connection string is null/empty, so the worker boots cleanly without a DB configured.
+// RV-3: Pre-set the SEQ_URL env var before building Log.Logger so the appsettings.json
+// %SEQ_URL% token resolves via Serilog's environment-variable expansion. Default to
+// localhost when unset (prevents a boot-time UriFormatException from the Seq sink).
 Environment.SetEnvironmentVariable(
     "SEQ_URL",
     Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:5341");
-Environment.SetEnvironmentVariable(
-    "SERILOG_SQL_CONNECTION",
-    Environment.GetEnvironmentVariable("SERILOG_SQL_CONNECTION") ?? string.Empty);
 
-// Configure Serilog from appsettings (mirrors Web.UI pattern)
-Log.Logger = new LoggerConfiguration()
+// Configure Serilog from appsettings (Console/Seq). The SQL audit-log sink is added in code
+// here, and ONLY when a real connection string is present: the Serilog.Sinks.MSSqlServer v8
+// sink constructs eagerly and throws ArgumentNullException on a null/empty connectionString,
+// so it cannot be a static appsettings sink that "skips when blank" (it does not — proven by
+// the max-fidelity gate). Binding to DefaultConnection keeps the structured-log table in the
+// same database as the EF audit ledger (G-S2).
+var loggerConfiguration = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .CreateLogger();
+    .Enrich.FromLogContext();
+
+var serilogSqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrWhiteSpace(serilogSqlConnection)
+    && !serilogSqlConnection.StartsWith("DEV-PLACEHOLDER", StringComparison.OrdinalIgnoreCase))
+{
+    loggerConfiguration.WriteTo.MSSqlServer(
+        connectionString: serilogSqlConnection,
+        sinkOptions: new Serilog.Sinks.MSSqlServer.MSSqlServerSinkOptions
+        {
+            TableName = "SerilogLogs",
+            SchemaName = "dbo",
+            AutoCreateSqlTable = true,
+        },
+        restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning);
+}
+
+Log.Logger = loggerConfiguration.CreateLogger();
 builder.Host.UseSerilog();
 
 // Audit persistence (MVP-PATH 1.6 A6): wire AddDatabaseServices when a real connection string is
