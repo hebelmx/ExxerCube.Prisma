@@ -1,6 +1,6 @@
 ﻿# Veriqan Corpus Calibration Report
 
-**Generated:** 2026-06-19 20:34 UTC  
+**Generated:** 2026-06-20 17:02 UTC  
 **Corpus size:** 3 specimen(s)  
 **KnownGood:** 0 · **KnownSynthetic:** 3 (non-compliant placeholders — NOT compliance evidence) · **KnownBroken:** 0
 
@@ -16,9 +16,9 @@
 
 | Specimen | Label | Skipped | Signal | Findings | NewFails | AllowedFails (ref-data gaps) | KnownFixtureDefects (PDF non-compliance) |
 |----------|-------|---------|--------|----------|----------|------------------------------|------------------------------------------|
-| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | no | Red | 56 | none | CL-42 | CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
-| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | no | Red | 56 | none | CL-18, CL-42, CL-52, CL-53 | CL-28, CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§23-STATUS, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
-| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | no | Red | 56 | none | CL-42 | CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
+| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | no | Red | 57 | none | CL-42 | CL-31, CL-34, CL-35, CL-48, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
+| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | no | Red | 57 | none | CL-18, CL-42, CL-52, CL-53 | CL-28, CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§23-STATUS, CL-48, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
+| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | no | Red | 57 | none | CL-42 | CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§26-NOTAS, LAW-§27-GLOSARIO, CL-48 |
 
 ## Fail CheckIds per Specimen
 
@@ -30,6 +30,7 @@
 | CL-34 | no | yes | no | no |
 | CL-35 | no | yes | no | no |
 | CL-42 | yes | no | no | no |
+| CL-48 | no | yes | no | no |
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
 | LAW-§17-LEGENDS | no | yes | no | no |
 | LAW-§18-COMPLETE | no | yes | no | no |
@@ -50,6 +51,7 @@
 | CL-34 | no | yes | no | no |
 | CL-35 | no | yes | no | no |
 | CL-42 | yes | no | no | no |
+| CL-48 | no | yes | no | no |
 | CL-52 | yes | no | no | no |
 | CL-53 | yes | no | no | no |
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
@@ -71,6 +73,7 @@
 | CL-34 | no | yes | no | no |
 | CL-35 | no | yes | no | no |
 | CL-42 | yes | no | no | no |
+| CL-48 | no | yes | no | no |
 | LAW-§13-TRANSFERENCIA | no | yes | no | no |
 | LAW-§17-LEGENDS | no | yes | no | no |
 | LAW-§18-COMPLETE | no | yes | no | no |
@@ -91,6 +94,7 @@
 | CL-34 | 3 | 0 | 0 | n/a | 0% |
 | CL-35 | 3 | 0 | 0 | n/a | 0% |
 | CL-42 | 3 | 0 | 0 | n/a | 0% |
+| CL-48 | 3 | 0 | 0 | n/a | 0% |
 | CL-52 | 1 | 0 | 0 | n/a | 0% |
 | CL-53 | 1 | 0 | 0 | n/a | 0% |
 | LAW-§13-TRANSFERENCIA | 3 | 0 | 0 | n/a | 0% |
@@ -299,6 +303,7 @@ _Distribution is **good-only** — no separation measurable until KnownBroken sp
 | 01+Dummie+VEC+jul_ago+20252.pdf | CL-31 | Fixture PDF pagination labels do not match document page count — inherent synthetic generator limitation. |
 | 01+Dummie+VEC+jul_ago+20252.pdf | CL-34 | Fixture PDF card number absent from some pages — inherent synthetic generator limitation. |
 | 01+Dummie+VEC+jul_ago+20252.pdf | CL-35 | Fixture PDF uses non-Aptos embedded fonts — synthetic generator does not embed Aptos; this is a genuine typography non-compliance. |
+| 01+Dummie+VEC+jul_ago+20252.pdf | CL-48 | Fixture PDF has intra-page vertical gaps > 2 cm — a genuine consequence of the synthetic generator's missing mandatory sections (see LAW-SEC-PRESENCE) and non-standard section spacing (see LAW-SEC-ORDER-GAP), which leave large blank vertical bands. Detected by the CL-48 2 cm-gap check (VERIQAN-E2-S11); a true positive on this known-malformed synthetic, not a false fail. |
 | 01+Dummie+VEC+jul_ago+20252.pdf | LAW-TYPO-MINSIZE | Fixture PDF body text measured at 5.04 pt (word '11', page 1) — genuinely below the 8 pt floor. Synthetic generator emits small-size page-header numbers. Not a false rule. |
 | 01+Dummie+VEC+jul_ago+20252.pdf | LAW-SEC-ORDER-GAP | Fixture PDF section gap geometry is non-standard — mandatory sections appear out of order or with non-standard spacing in the synthetic layout. |
 | 01+Dummie+VEC+jul_ago+20252.pdf | LAW-SEC-PRESENCE | Fixture PDF is missing mandatory CONDUSEF sections (e.g. §2–§5, §9, §10, §14, §15) — genuine structural non-compliance of the synthetic generator. |
@@ -320,6 +325,7 @@ _Distribution is **good-only** — no separation measurable until KnownBroken sp
 | 02+Dummie+VEC+ago_sep+2025.pdf | LAW-§18-COMPLETE | Fixture PDF §18 benefit program completeness fails — same as specimen 01. |
 | 02+Dummie+VEC+ago_sep+2025.pdf | LAW-§20-WATERFALL | Fixture PDF §20 payment distribution waterfall is absent — same as specimen 01. |
 | 02+Dummie+VEC+ago_sep+2025.pdf | LAW-§23-STATUS | Fixture PDF §23 account status content is absent — genuine missing section content in the synthetic generator for the Ago-Sep period. |
+| 02+Dummie+VEC+ago_sep+2025.pdf | CL-48 | Fixture PDF has intra-page vertical gaps > 2 cm — a genuine consequence of the synthetic generator's missing mandatory sections (see LAW-SEC-PRESENCE) and non-standard section spacing (see LAW-SEC-ORDER-GAP), which leave large blank vertical bands. Detected by the CL-48 2 cm-gap check (VERIQAN-E2-S11); a true positive on this known-malformed synthetic, not a false fail. |
 | 02+Dummie+VEC+ago_sep+2025.pdf | LAW-§26-NOTAS | Fixture PDF §26 Notas Aclaratorias content is absent — same as specimen 01. |
 | 02+Dummie+VEC+ago_sep+2025.pdf | LAW-§27-GLOSARIO | Fixture PDF §27 Glosario content is absent — same as specimen 01. |
 | 03+Dummie+VEC+sep_oct+2025.pdf | CL-31 | Fixture PDF pagination labels do not match document page count — inherent synthetic generator limitation. |
@@ -334,4 +340,5 @@ _Distribution is **good-only** — no separation measurable until KnownBroken sp
 | 03+Dummie+VEC+sep_oct+2025.pdf | LAW-§20-WATERFALL | Fixture PDF §20 payment distribution waterfall is absent — same as specimen 01. |
 | 03+Dummie+VEC+sep_oct+2025.pdf | LAW-§26-NOTAS | Fixture PDF §26 Notas Aclaratorias content is absent — same as specimen 01. |
 | 03+Dummie+VEC+sep_oct+2025.pdf | LAW-§27-GLOSARIO | Fixture PDF §27 Glosario content is absent — same as specimen 01. |
+| 03+Dummie+VEC+sep_oct+2025.pdf | CL-48 | Fixture PDF has intra-page vertical gaps > 2 cm — a genuine consequence of the synthetic generator's missing mandatory sections (see LAW-SEC-PRESENCE) and non-standard section spacing (see LAW-SEC-ORDER-GAP), which leave large blank vertical bands. Detected by the CL-48 2 cm-gap check (VERIQAN-E2-S11); a true positive on this known-malformed synthetic, not a false fail. |
 
