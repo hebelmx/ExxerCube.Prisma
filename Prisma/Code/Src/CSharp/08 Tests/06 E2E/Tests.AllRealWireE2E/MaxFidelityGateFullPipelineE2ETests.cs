@@ -71,7 +71,9 @@ public sealed class MaxFidelityGateFullPipelineE2ETests : MaxFidelityGateE2EBase
     /// multi-source fusion, real classification, real SIRO XML export — and asserts the document survives the
     /// pipeline and that audit rows are persisted to real SQL.
     /// </summary>
-    [Fact(Timeout = 900_000)] // 15 min hard cap: login + sim + native OCR + SQL + 3 hops are slow but bounded.
+    [Fact(Timeout = 1_500_000)] // 25 min hard cap: login + sim + native OCR + Testcontainers SQL + 3 hops are
+                                // slow but bounded. Aligns with the class doc's "~6–20 min" worst case (the
+                                // prior 15 min cap was below it and flaked on a contended/throttled box).
     public async Task RealSiaraCase_FlowsAcrossAllThreeProcesses_WithRealPipeline_AndPersistsAudit()
     {
         var ct = TestContext.Current.CancellationToken;
