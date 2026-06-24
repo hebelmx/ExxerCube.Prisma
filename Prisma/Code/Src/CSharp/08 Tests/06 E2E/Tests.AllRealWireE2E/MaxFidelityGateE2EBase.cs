@@ -72,6 +72,16 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
     protected SqlServerContainerFixture? _sql;
     protected string _connectionString = string.Empty;
 
+    // ── Docker-free opt-in: target a LOCAL SQL Server instead of Testcontainers ──
+    // When the box has no Docker (e.g. WSL2/Hyper-V down), set PRISMA_GATE_LOCAL_SQL to a *master*
+    // connection string for a local SQL instance, e.g.
+    //   Server=DESKTOP-FB2ES22\SQL2025;Database=master;Integrated Security=True;TrustServerCertificate=True
+    // and the gate provisions/drops an isolated database on that instance instead of a container.
+    // When the variable is unset (the default / CI path), the Testcontainers path runs unchanged.
+    private static string? LocalSqlMaster => Environment.GetEnvironmentVariable("PRISMA_GATE_LOCAL_SQL");
+    private bool _usingLocalSql;
+    private string _localIsolatedDbName = string.Empty;
+
     protected Process? _simulatorProcess;
     protected bool _startedSim;
 
@@ -97,10 +107,21 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
             await StartSimulatorAsync();
         }
 
-        // 2) Spin up a real SQL Server via Testcontainers and provision an isolated database for this run.
-        _sql = new SqlServerContainerFixture();
-        await _sql.InitializeAsync();
-        _connectionString = await _sql.CreateIsolatedDatabaseAsync(GetType().Name, ct);
+        // 2) Provision a SQL Server + an isolated database for this run.
+        //    Default: a real SQL Server via Testcontainers (Docker). Opt-in (Docker-free): a local SQL
+        //    instance via PRISMA_GATE_LOCAL_SQL, used when Docker/WSL2 is unavailable on the box.
+        var localMaster = LocalSqlMaster;
+        if (!string.IsNullOrWhiteSpace(localMaster))
+        {
+            _usingLocalSql = true;
+            _connectionString = await CreateLocalIsolatedDatabaseAsync(localMaster, GetType().Name, ct);
+        }
+        else
+        {
+            _sql = new SqlServerContainerFixture();
+            await _sql.InitializeAsync();
+            _connectionString = await _sql.CreateIsolatedDatabaseAsync(GetType().Name, ct);
+        }
 
         // 3) Provision the schema (AddDatabaseServices does NOT auto-create it).
         var options = new DbContextOptionsBuilder<PrismaDbContext>()
@@ -133,6 +154,11 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
             await _sql.DisposeAsync();
         }
 
+        if (_usingLocalSql)
+        {
+            await DropLocalIsolatedDatabaseAsync();
+        }
+
         if (_startedSim && _simulatorProcess is { HasExited: false } proc)
         {
             try
@@ -158,6 +184,74 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
         catch
         {
             // Best-effort temp cleanup.
+        }
+    }
+
+    // ── Docker-free local-SQL isolation (mirrors SqlServerContainerFixture) ────────
+
+    /// <summary>
+    /// Creates an isolated database on a LOCAL SQL Server instance using the same drop-and-create
+    /// isolation pattern as <see cref="SqlServerContainerFixture.CreateIsolatedDatabaseAsync"/>, so the
+    /// gate can run end-to-end without Docker. A unique GUID suffix guarantees a clean DB even if a prior
+    /// run crashed before teardown.
+    /// </summary>
+    private async Task<string> CreateLocalIsolatedDatabaseAsync(
+        string masterConnectionString, string name, CancellationToken ct)
+    {
+        var safe = new string((name ?? "Test").Where(char.IsLetterOrDigit).ToArray());
+        if (safe.Length == 0)
+        {
+            safe = "Test";
+        }
+        if (safe.Length > 64)
+        {
+            safe = safe[..64];
+        }
+        _localIsolatedDbName = $"PrismaGate_{safe}_{Guid.NewGuid():N}";
+
+        await using var connection = new Microsoft.Data.SqlClient.SqlConnection(masterConnectionString);
+        await connection.OpenAsync(ct);
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = $@"
+            IF EXISTS (SELECT name FROM sys.databases WHERE name = N'{_localIsolatedDbName}')
+            BEGIN
+                ALTER DATABASE [{_localIsolatedDbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                DROP DATABASE [{_localIsolatedDbName}];
+            END;
+            CREATE DATABASE [{_localIsolatedDbName}];";
+        await cmd.ExecuteNonQueryAsync(ct);
+
+        return new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(masterConnectionString)
+        {
+            InitialCatalog = _localIsolatedDbName,
+        }.ConnectionString;
+    }
+
+    /// <summary>Drops the local isolated database created by <see cref="CreateLocalIsolatedDatabaseAsync"/>.</summary>
+    private async Task DropLocalIsolatedDatabaseAsync()
+    {
+        var localMaster = LocalSqlMaster;
+        if (string.IsNullOrWhiteSpace(localMaster) || string.IsNullOrEmpty(_localIsolatedDbName))
+        {
+            return;
+        }
+
+        try
+        {
+            await using var connection = new Microsoft.Data.SqlClient.SqlConnection(localMaster);
+            await connection.OpenAsync();
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = $@"
+                IF EXISTS (SELECT name FROM sys.databases WHERE name = N'{_localIsolatedDbName}')
+                BEGIN
+                    ALTER DATABASE [{_localIsolatedDbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                    DROP DATABASE [{_localIsolatedDbName}];
+                END;";
+            await cmd.ExecuteNonQueryAsync();
+        }
+        catch
+        {
+            // best-effort teardown — a leftover PrismaGate_* DB is harmless and GUID-unique.
         }
     }
 
