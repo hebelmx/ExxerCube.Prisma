@@ -1,10 +1,13 @@
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Events;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Prisma.Athena.Worker.Ingestion;
@@ -22,12 +25,16 @@ namespace ExxerCube.Prisma.Tests.AllRealWireE2E;
 //   3) Orion runs the REAL SIARA browser download + discovery against the live simulator (its only
 //      change is an isolated journal and disabling the autonomous watch loop so the test drives
 //      ingestion explicitly).
-// The SignalR transport is still routed through the in-memory TestServer handler (production hub +
-// auth code runs unchanged; no TCP port needed) — the same proven seam as the fast harness.
+// GateOrionApp and GateAthenaApp each start a REAL Kestrel listener on a dynamic loopback port
+// (dual-host pattern: TestServer host returned to WAF + separate Kestrel host for real TCP).
+// GateReconciliatorApp stays on the plain TestServer (nobody connects inbound to it).
+// The production SiaraIngestionHubClient and ReconciliationHubClient connect over real TCP so
+// SignalR keepalive runs and multi-minute idle windows cannot silently drop cross-process events.
 
 /// <summary>
 /// Orion Downloader host for the max-fidelity gate: real SIARA browser download + discovery against the
 /// live simulator, real SQL audit. The autonomous watch loop is disabled so the test drives ingestion.
+/// Exposes a real Kestrel listener on a dynamic loopback port via <see cref="HostedBaseAddress"/>.
 /// </summary>
 internal sealed class GateOrionApp : WebApplicationFactory<global::Prisma.Orion.Worker.Program>
 {
@@ -36,6 +43,14 @@ internal sealed class GateOrionApp : WebApplicationFactory<global::Prisma.Orion.
     private readonly string _connectionString;
     private readonly string _storageState;
     private readonly string _journalPath;
+    private IHost? _host;
+
+    /// <summary>
+    /// The base address of the real Kestrel listener. Populated after <see cref="WebApplicationFactory{T}.Services"/>
+    /// is first accessed (which triggers <see cref="CreateHost"/>). Use this to build URLs for downstream clients
+    /// that must connect over real TCP.
+    /// </summary>
+    internal Uri? HostedBaseAddress { get; private set; }
 
     internal GateOrionApp(
         string jwtSecret, string sharedStorageDir, string connectionString, string storageState, string journalPath)
@@ -98,12 +113,60 @@ internal sealed class GateOrionApp : WebApplicationFactory<global::Prisma.Orion.
             }
         });
     }
+
+    /// <inheritdoc/>
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        // Build the in-memory TestServer host first — WAF requires the returned host to expose a TestServer.
+        var testHost = builder.Build();
+
+        // Reconfigure the same deferred builder to add a real Kestrel listener on a dynamic loopback port,
+        // then build and start that second host. This is the dual-host pattern from PrismaWebApplicationFactory.
+        builder.ConfigureWebHost(webHost =>
+            webHost.UseKestrel(o => o.Listen(System.Net.IPAddress.Loopback, 0)));
+
+        try
+        {
+            _host = builder.Build();
+            _host.Start();
+
+            var addresses = _host.Services.GetRequiredService<IServer>()
+                .Features.Get<IServerAddressesFeature>()?.Addresses;
+            var firstAddress = addresses?.FirstOrDefault();
+            if (firstAddress is not null)
+            {
+                // Ensure address ends with '/' so Uri concatenation works correctly.
+                var normalized = firstAddress.TrimEnd('/') + '/';
+                HostedBaseAddress = new Uri(normalized);
+            }
+
+            testHost.Start();
+            return testHost;
+        }
+        catch
+        {
+            testHost.Dispose();
+            throw;
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _host?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
 }
 
 /// <summary>
 /// Athena Extractor host for the max-fidelity gate: the full real pipeline (FileSystemLoader →
 /// PolynomialImageQualityAnalyzer → TesseractOcrExecutor → FusionExpedienteService) plus real SQL audit.
-/// Nothing is stubbed; only the SignalR ingestion-client transport is routed through Orion's TestServer.
+/// Nothing is stubbed. The production <see cref="SiaraIngestionHubClient"/> connects to the Orion hub over
+/// a real TCP loopback connection (no <c>HttpMessageHandlerFactory</c> override — that is the point).
+/// Exposes a real Kestrel listener on a dynamic loopback port via <see cref="HostedBaseAddress"/>.
 /// </summary>
 internal sealed class GateAthenaApp : WebApplicationFactory<global::Prisma.Athena.Worker.Program>
 {
@@ -112,6 +175,14 @@ internal sealed class GateAthenaApp : WebApplicationFactory<global::Prisma.Athen
     private readonly string _connectionString;
     private readonly GateOrionApp _orionApp;
     private readonly bool _runExtractionPipeline;
+    private IHost? _host;
+
+    /// <summary>
+    /// The base address of the real Kestrel listener. Populated after <see cref="WebApplicationFactory{T}.Services"/>
+    /// is first accessed (which triggers <see cref="CreateHost"/>). Use this to build URLs for downstream clients
+    /// that must connect over real TCP.
+    /// </summary>
+    internal Uri? HostedBaseAddress { get; private set; }
 
     internal GateAthenaApp(
         string jwtSecret, string sharedStorageDir, string connectionString, GateOrionApp orionApp,
@@ -128,6 +199,18 @@ internal sealed class GateAthenaApp : WebApplicationFactory<global::Prisma.Athen
     {
         builder.ConfigureAppConfiguration((_, config) =>
         {
+            // _orionApp.Services was accessed before this factory was built (BuildThreeHostsWithDb order:
+            // Orion.Services → Athena.Services), so Orion's Kestrel host is already started and
+            // HostedBaseAddress is populated by the time ConfigureAppConfiguration runs here.
+            if (_orionApp.HostedBaseAddress is null)
+            {
+                throw new InvalidOperationException(
+                    "GateOrionApp.HostedBaseAddress is null when building GateAthenaApp. " +
+                    "Ensure _orionApp.Services is accessed (triggering CreateHost) before building GateAthenaApp.");
+            }
+
+            var ingestionHubUrl = new Uri(_orionApp.HostedBaseAddress, "hubs/ingestion").ToString();
+
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = _connectionString,
@@ -139,17 +222,16 @@ internal sealed class GateAthenaApp : WebApplicationFactory<global::Prisma.Athen
                 ["Siara:Actor:ActorId"]           = "athena-extractor-gate",
                 ["Siara:Actor:DisplayName"]       = "Athena Extractor (Gate)",
                 ["Storage:BasePath"]              = _sharedStorageDir,
-                ["Ingestion:HubUrl"]              = "http://orion-testserver/hubs/ingestion",
+                // Real TCP URL — SiaraIngestionHubClient uses its default handler (no factory override).
+                ["Ingestion:HubUrl"]              = ingestionHubUrl,
                 ["Ingestion:ReconnectDelay"]      = "00:00:00.200",
             });
         });
 
         builder.ConfigureServices(services =>
         {
-            // Route the production SiaraIngestionHubClient through Orion's TestServer handler (in-memory
-            // SignalR transport; all auth + hub code still runs).
-            services.Configure<IngestionClientOptions>(o =>
-                o.HttpMessageHandlerFactory = () => _orionApp.Server.CreateHandler());
+            // NO HttpMessageHandlerFactory override — the production SiaraIngestionHubClient connects to
+            // Orion's real Kestrel listener over TCP so SignalR keepalive runs normally.
 
             // Optionally disable the OCR extraction pipeline (AthenaWorkerService drives
             // ExtractionPipelineService.StartAsync) by setting runExtractionPipeline: false. This flag is now
@@ -169,12 +251,57 @@ internal sealed class GateAthenaApp : WebApplicationFactory<global::Prisma.Athen
             }
         });
     }
+
+    /// <inheritdoc/>
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        // Build the in-memory TestServer host first — WAF requires the returned host to expose a TestServer.
+        var testHost = builder.Build();
+
+        // Add a real Kestrel listener on a dynamic loopback port so the downstream Reconciliator's
+        // ReconciliationHubClient can connect over real TCP (same dual-host pattern as GateOrionApp).
+        builder.ConfigureWebHost(webHost =>
+            webHost.UseKestrel(o => o.Listen(System.Net.IPAddress.Loopback, 0)));
+
+        try
+        {
+            _host = builder.Build();
+            _host.Start();
+
+            var addresses = _host.Services.GetRequiredService<IServer>()
+                .Features.Get<IServerAddressesFeature>()?.Addresses;
+            var firstAddress = addresses?.FirstOrDefault();
+            if (firstAddress is not null)
+            {
+                var normalized = firstAddress.TrimEnd('/') + '/';
+                HostedBaseAddress = new Uri(normalized);
+            }
+
+            testHost.Start();
+            return testHost;
+        }
+        catch
+        {
+            testHost.Dispose();
+            throw;
+        }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _host?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
 }
 
 /// <summary>
 /// Reconciliator host for the max-fidelity gate: real FileClassifierService + real SiroXmlExporter +
 /// real SQL audit. Exposes an observable <see cref="EventPublisher"/> so the test can await the terminal
-/// export/completion events.
+/// export/completion events. Stays on the plain TestServer (no inbound SignalR connections to the Reconciliator).
 /// </summary>
 internal sealed class GateReconciliatorApp : WebApplicationFactory<global::Prisma.Reconciliator.Worker.Program>
 {
@@ -198,6 +325,18 @@ internal sealed class GateReconciliatorApp : WebApplicationFactory<global::Prism
     {
         builder.ConfigureAppConfiguration((_, config) =>
         {
+            // _athenaApp.Services was accessed before this factory was built (BuildThreeHostsWithDb order:
+            // Athena.Services → Reconciliator build), so Athena's Kestrel host is started and
+            // HostedBaseAddress is populated by the time ConfigureAppConfiguration runs here.
+            if (_athenaApp.HostedBaseAddress is null)
+            {
+                throw new InvalidOperationException(
+                    "GateAthenaApp.HostedBaseAddress is null when building GateReconciliatorApp. " +
+                    "Ensure _athenaApp.Services is accessed (triggering CreateHost) before building GateReconciliatorApp.");
+            }
+
+            var reconciliationHubUrl = new Uri(_athenaApp.HostedBaseAddress, "hubs/reconciliation").ToString();
+
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = _connectionString,
@@ -209,15 +348,16 @@ internal sealed class GateReconciliatorApp : WebApplicationFactory<global::Prism
                 ["Siara:Actor:ActorId"]             = "reconciliator-gate",
                 ["Siara:Actor:DisplayName"]         = "Reconciliator (Gate)",
                 ["Storage:BasePath"]                = _sharedStorageDir,
-                ["Reconciliation:HubUrl"]           = "http://athena-testserver/hubs/reconciliation",
+                // Real TCP URL — ReconciliationHubClient uses its default handler (no factory override).
+                ["Reconciliation:HubUrl"]           = reconciliationHubUrl,
                 ["Reconciliation:ReconnectDelay"]   = "00:00:00.200",
             });
         });
 
         builder.ConfigureServices(services =>
         {
-            services.Configure<ReconciliationClientOptions>(o =>
-                o.HttpMessageHandlerFactory = () => _athenaApp.Server.CreateHandler());
+            // NO HttpMessageHandlerFactory override — the production ReconciliationHubClient connects to
+            // Athena's real Kestrel listener over TCP so SignalR keepalive runs normally.
 
             // Replace IEventPublisher with our observable instance so the test can subscribe.
             services.RemoveAll<IEventPublisher>();

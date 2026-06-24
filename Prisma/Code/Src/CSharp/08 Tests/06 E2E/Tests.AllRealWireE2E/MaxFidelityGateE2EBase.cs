@@ -37,9 +37,10 @@ namespace ExxerCube.Prisma.Tests.AllRealWireE2E;
 /// </para>
 /// <para>
 /// <strong>What is real here that the fast <see cref="AllRealWireThreeHostE2ETests"/> stubs:</strong> the
-/// SIARA browser download, OCR, image quality, fusion, classification, and SQL persistence. The only thing
-/// shared with the fast harness is the in-memory SignalR transport seam (production hub + auth code runs;
-/// no TCP port needed).
+/// SIARA browser download, OCR, image quality, fusion, classification, and SQL persistence. Unlike the fast
+/// harness (which uses the in-memory TestServer SignalR seam), this gate uses a REAL Kestrel TCP transport
+/// for Orion and Athena — SignalR keepalive runs and multi-minute idle download windows cannot silently drop
+/// the cross-process <c>DocumentDownloadedEvent</c>.
 /// </para>
 /// <para>
 /// <strong>CI strategy (issue #16):</strong> CI runs ONE gate scenario per <c>dotnet test</c> invocation
@@ -421,19 +422,21 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
         return await task;
     }
 
-    // ── Bounded connect-wait (in-memory SignalR transport) ────────────────────────
+    // ── Bounded connect-wait (real TCP SignalR transport) ────────────────────────
 
     protected async Task WaitUntilHubClientsConnectedAsync(CancellationToken ct)
     {
+        // Probe the REAL Kestrel loopback addresses — no HttpMessageHandlerFactory needed.
+        var orionIngestionUrl = new Uri(_orionApp!.HostedBaseAddress!, "hubs/ingestion").ToString();
+        var athenaReconciliationUrl = new Uri(_athenaApp!.HostedBaseAddress!, "hubs/reconciliation").ToString();
+
         await ProbeHubUntilConnectedAsync(
-            hubUrl: "http://orion-testserver/hubs/ingestion",
-            handlerFactory: () => _orionApp!.Server.CreateHandler(),
+            hubUrl: orionIngestionUrl,
             jwtToken: MintToken("athena-extractor-gate-probe", "Extract"),
             ct: ct);
 
         await ProbeHubUntilConnectedAsync(
-            hubUrl: "http://athena-testserver/hubs/reconciliation",
-            handlerFactory: () => _athenaApp!.Server.CreateHandler(),
+            hubUrl: athenaReconciliationUrl,
             jwtToken: MintToken("reconciliator-gate-probe", "Reconcile"),
             ct: ct);
 
@@ -442,7 +445,6 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
 
     protected static async Task ProbeHubUntilConnectedAsync(
         string hubUrl,
-        Func<HttpMessageHandler> handlerFactory,
         string jwtToken,
         CancellationToken ct)
     {
@@ -454,7 +456,9 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
             var conn = new HubConnectionBuilder()
                 .WithUrl(hubUrl, opts =>
                 {
-                    opts.HttpMessageHandlerFactory = _ => handlerFactory();
+                    // Real TCP transport — no HttpMessageHandlerFactory override.
+                    // JWT is supplied via the access_token query-string hook, which works over
+                    // real loopback WebSocket connections exactly as it does in production.
                     opts.AccessTokenProvider = () => Task.FromResult<string?>(jwtToken);
                 })
                 .Build();
