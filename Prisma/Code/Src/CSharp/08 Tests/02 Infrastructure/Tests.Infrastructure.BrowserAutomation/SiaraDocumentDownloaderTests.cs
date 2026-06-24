@@ -136,6 +136,72 @@ public sealed class SiaraDocumentDownloaderTests
     }
 
     [Fact]
+    public async Task DownloadAsync_WhenIdIsAbsoluteUrl_SkipsFullPortalScrape()
+    {
+        // Finding #1: the orchestrator passes the case file's absolute URL (already learned from discovery).
+        // Re-scraping the WHOLE portal per file is O(portal) and redundant — SelectDocument's absolute-URL
+        // fallback already downloads the URL without requiring it in the presented set. So for an absolute
+        // URL the downloader must download directly WITHOUT calling RetrieveDocumentsAsync.
+        const string url = "https://siara.local/direct/doc-9.pdf";
+        var nav = SiaraDocumentDownloaderTestFactory.CreateNavigationTargetMock();
+        var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
+        var sut = SiaraDocumentDownloaderTestFactory.CreateDownloader(agent: agent, navigationTarget: nav);
+
+        var result = await sut.DownloadAsync(url, Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        await agent.Received(1).DownloadFileAsync(url, Arg.Any<CancellationToken>());
+        await nav.DidNotReceive().RetrieveDocumentsAsync(Arg.Any<IBrowserAutomationAgent>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DownloadAsync_WhenIdIsNotAUrl_StillScrapesThePresentedSet()
+    {
+        // The presented-set security gate (ADR-010) is preserved for non-URL ids: the downloader must still
+        // scrape and select from what SIARA actually presents.
+        var nav = SiaraDocumentDownloaderTestFactory.CreateNavigationTargetMock();
+        var sut = SiaraDocumentDownloaderTestFactory.CreateDownloader(navigationTarget: nav);
+
+        var result = await sut.DownloadAsync(DocId, Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        await nav.Received(1).RetrieveDocumentsAsync(Arg.Any<IBrowserAutomationAgent>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DownloadAsync_ClosesBrowserAfterDownload_SoPerFileLaunchesDoNotAccumulate()
+    {
+        // Finding #2: the orchestrator calls DownloadAsync once per case file on the same Scoped adapter.
+        // Each call must balance its browser launch with a close (after the awaited download) so Chromium
+        // instances never accumulate and exhaust the box. The close runs only AFTER this call's download has
+        // completed, so it never tears down an in-flight download.
+        var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
+        var sut = SiaraDocumentDownloaderTestFactory.CreateDownloader(agent: agent);
+
+        var result = await sut.DownloadAsync(DocId, Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        await agent.Received(1).CloseBrowserAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DownloadAsync_WhenDownloadFails_ClosesBrowserAndReleasesSession()
+    {
+        var provider = SiaraDocumentDownloaderTestFactory.CreateProviderMock();
+        var resolver = SiaraDocumentDownloaderTestFactory.CreateResolverMock(provider);
+        var agent = SiaraDocumentDownloaderTestFactory.CreateAgentMock();
+        agent.DownloadFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DownloadedFile>.WithFailure("network error"));
+        var sut = SiaraDocumentDownloaderTestFactory.CreateDownloader(resolver: resolver, agent: agent);
+
+        var result = await sut.DownloadAsync(DocId, Ct);
+
+        result.IsFailure.ShouldBeTrue();
+        await provider.Received(1).ReleaseAsync(Arg.Any<SiaraSession>(), Arg.Any<CancellationToken>());
+        await agent.Received(1).CloseBrowserAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task DownloadAsync_WhenContentEmpty_FailsAndReleasesSession()
     {
         var provider = SiaraDocumentDownloaderTestFactory.CreateProviderMock();

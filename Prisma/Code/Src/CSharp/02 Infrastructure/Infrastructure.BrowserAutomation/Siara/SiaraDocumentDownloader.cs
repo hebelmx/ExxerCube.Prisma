@@ -95,51 +95,72 @@ public sealed class SiaraDocumentDownloader : IDocumentDownloader
 
         var provider = providerResult.Value;
 
-        // SessionPassthrough attaches a storage-state to an EXISTING browser, so one must be launched
-        // before acquisition; the login modes launch their own browser inside AcquireAsync (so we do not
-        // pre-launch for them — the adapter's launch is not idempotent and a second launch would leak).
-        if (_authOptions.AuthMode == SiaraAuthMode.SessionPassthrough)
+        // From here a browser may be launched (passthrough pre-launches below; the login modes launch their
+        // own browser inside AcquireAsync). The browser-automation adapter is Scoped, so the orchestrator
+        // reuses ONE instance across all of a case's files. Each call therefore balances its launch with a
+        // close in the outer finally (Finding #2) so per-file Chromium launches never accumulate and exhaust
+        // the host. The close runs only AFTER the awaited download/teardown below, so it never interrupts an
+        // in-flight download.
+        try
         {
-            var launch = await _agent.LaunchBrowserAsync(cancellationToken).ConfigureAwait(false);
-            if (launch.IsCancelled())
+            // SessionPassthrough attaches a storage-state to an EXISTING browser, so one must be launched
+            // before acquisition; the login modes launch their own browser inside AcquireAsync (so we do not
+            // pre-launch for them — the adapter's launch is not idempotent and a second launch would leak).
+            if (_authOptions.AuthMode == SiaraAuthMode.SessionPassthrough)
+            {
+                var launch = await _agent.LaunchBrowserAsync(cancellationToken).ConfigureAwait(false);
+                if (launch.IsCancelled())
+                {
+                    return ResultExtensions.Cancelled<DownloadedDocument>();
+                }
+
+                if (launch.IsFailure)
+                {
+                    return Result<DownloadedDocument>.WithFailure(launch.Errors);
+                }
+            }
+
+            var sessionResult = await provider.AcquireAsync(BuildSessionRequest(documentId), cancellationToken).ConfigureAwait(false);
+            if (sessionResult.IsCancelled())
             {
                 return ResultExtensions.Cancelled<DownloadedDocument>();
             }
 
-            if (launch.IsFailure)
+            if (sessionResult.IsFailure || sessionResult.Value is null)
             {
-                return Result<DownloadedDocument>.WithFailure(launch.Errors);
+                return Result<DownloadedDocument>.WithFailure(sessionResult.Errors);
             }
-        }
 
-        var sessionResult = await provider.AcquireAsync(BuildSessionRequest(documentId), cancellationToken).ConfigureAwait(false);
-        if (sessionResult.IsCancelled())
-        {
-            return ResultExtensions.Cancelled<DownloadedDocument>();
-        }
+            var session = sessionResult.Value;
 
-        if (sessionResult.IsFailure || sessionResult.Value is null)
-        {
-            return Result<DownloadedDocument>.WithFailure(sessionResult.Errors);
-        }
-
-        var session = sessionResult.Value;
-
-        try
-        {
-            return await PullDocumentAsync(session, documentId, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                return await PullDocumentAsync(session, documentId, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                // Always release so an acquired session never leaks, even on a mid-pull failure. Use a fresh
+                // token: release must run even when the caller's token has been cancelled.
+                var release = await provider.ReleaseAsync(session, CancellationToken.None).ConfigureAwait(false);
+                if (release.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Failed to release SIARA session {SessionId}: {Error}",
+                        session.SessionId,
+                        release.Error);
+                }
+            }
         }
         finally
         {
-            // Always release so an acquired session never leaks, even on a mid-pull failure. Use a fresh
-            // token: release must run even when the caller's token has been cancelled.
-            var release = await provider.ReleaseAsync(session, CancellationToken.None).ConfigureAwait(false);
-            if (release.IsFailure)
+            // Balanced browser teardown (Finding #2): close the browser this call launched so the next file
+            // in the same case starts from a clean adapter instead of leaking a Chromium process. Best-effort
+            // with a fresh token — a close failure must never mask the download result, and closing here is
+            // safe because every download above is fully awaited before this runs.
+            var close = await _agent.CloseBrowserAsync(CancellationToken.None).ConfigureAwait(false);
+            if (close.IsFailure)
             {
-                _logger.LogWarning(
-                    "Failed to release SIARA session {SessionId}: {Error}",
-                    session.SessionId,
-                    release.Error);
+                _logger.LogWarning("Failed to close the SIARA browser after download: {Error}", close.Error);
             }
         }
     }
@@ -177,22 +198,46 @@ public sealed class SiaraDocumentDownloader : IDocumentDownloader
             return Result<DownloadedDocument>.WithFailure(navigate.Errors);
         }
 
-        var filesResult = await _navigationTarget.RetrieveDocumentsAsync(_agent, cancellationToken).ConfigureAwait(false);
-        if (filesResult.IsCancelled())
+        DownloadableFile file;
+        if (Uri.IsWellFormedUriString(documentId, UriKind.Absolute))
         {
-            return ResultExtensions.Cancelled<DownloadedDocument>();
+            // Finding #1: the caller already knows the exact SIARA URL (the orchestrator passes each case
+            // file's URL learned during discovery). Skip the full-portal RetrieveDocumentsAsync re-scrape —
+            // it is O(portal) per file and re-launches the DOM scrape over every served case. This changes no
+            // enforced behavior: SelectDocument's absolute-URL fallback already downloaded such a URL directly
+            // without requiring it in the presented set, so per-file re-scraping never actually gated an
+            // absolute-URL pull. NavigateToAsync above still establishes the authenticated context the
+            // download reads its cookies from, and the returned DownloadedDocument still carries the
+            // trustworthy actor + session id (ADR-010 P2 non-repudiation is unchanged). Non-URL ids keep the
+            // presented-set scrape + SelectDocument path below.
+            //
+            // Format is deliberately Unknown here (matches the prior SelectDocument absolute-URL fallback):
+            // the production caller (IngestionOrchestrator) takes Format from the discovery-provided
+            // SiaraCase.Files, never from DownloadedDocument.Format, so deriving it from the URL extension
+            // would be dead work. Revisit only if a consumer ever reads DownloadedDocument.Format.
+            file = new DownloadableFile { Url = documentId, FileName = documentId, Format = FileFormat.Unknown };
         }
-
-        if (filesResult.IsFailure || filesResult.Value is null)
+        else
         {
-            return Result<DownloadedDocument>.WithFailure(filesResult.Errors);
-        }
+            var filesResult = await _navigationTarget.RetrieveDocumentsAsync(_agent, cancellationToken).ConfigureAwait(false);
+            if (filesResult.IsCancelled())
+            {
+                return ResultExtensions.Cancelled<DownloadedDocument>();
+            }
 
-        var file = SelectDocument(filesResult.Value, documentId);
-        if (file is null)
-        {
-            return Result<DownloadedDocument>.WithFailure(
-                $"Document '{documentId}' was not found among the {filesResult.Value.Count} file(s) SIARA presented.");
+            if (filesResult.IsFailure || filesResult.Value is null)
+            {
+                return Result<DownloadedDocument>.WithFailure(filesResult.Errors);
+            }
+
+            var selected = SelectDocument(filesResult.Value, documentId);
+            if (selected is null)
+            {
+                return Result<DownloadedDocument>.WithFailure(
+                    $"Document '{documentId}' was not found among the {filesResult.Value.Count} file(s) SIARA presented.");
+            }
+
+            file = selected;
         }
 
         var downloadResult = await _agent.DownloadFileAsync(file.Url, cancellationToken).ConfigureAwait(false);
