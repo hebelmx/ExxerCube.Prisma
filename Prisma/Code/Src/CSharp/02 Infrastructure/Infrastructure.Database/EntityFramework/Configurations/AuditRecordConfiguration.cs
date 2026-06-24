@@ -60,7 +60,7 @@ public class AuditRecordConfiguration : IEntityTypeConfiguration<AuditRecord>
             .IsRequired();
 
         builder.Property(a => a.ErrorMessage)
-            .HasMaxLength(1000);
+            .HasMaxLength(4000);
 
         // ProcessId: the process/actor identity that produced this record (MVP-PATH 1.6 A6).
         // Nullable so that legacy records (produced before A6) remain unaffected.
