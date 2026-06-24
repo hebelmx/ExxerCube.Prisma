@@ -71,7 +71,7 @@ public sealed class MaxFidelityGatePartialCaseE2ETests : MaxFidelityGateE2EBase
         // re-created per OCR call and deadlocked when called a second time in the same test process (after
         // the full-pipeline gate had already used it). The fix lazy-initializes and REUSES the engine for the
         // lifetime of the singleton TesseractOcrExecutor, so both gate scenarios can now run OCR safely.
-        BuildThreeHostsWithDb(storageState, runAthenaPipeline: true);
+        await BuildThreeHostsWithDbAsync(storageState, runAthenaPipeline: true, ct: ct);
 
         // Capture the forwarded ingestion event on Athena's real event stream — the best-effort flag lives on
         // it, and the forward happens before any OCR so this resolves regardless of downstream pipeline timing.

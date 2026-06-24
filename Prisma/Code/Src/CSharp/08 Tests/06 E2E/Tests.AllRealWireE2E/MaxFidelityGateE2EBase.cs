@@ -86,13 +86,13 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
     protected Process? _simulatorProcess;
     protected bool _startedSim;
 
-    // These fields use 'internal' (not 'protected') because GateOrionApp / GateAthenaApp /
-    // GateReconciliatorApp are internal types; C# disallows 'protected' fields of internal
+    // These fields use 'internal' (not 'protected') because GateOrionHost / GateAthenaHost /
+    // GateReconciliatorHost are internal types; C# disallows 'protected' fields of internal
     // types on a public class (CS0052). All concrete subclasses live in the same assembly, so
     // 'internal' is identical to 'protected internal' in practice for this test assembly.
-    internal GateOrionApp? _orionApp;
-    internal GateAthenaApp? _athenaApp;
-    internal GateReconciliatorApp? _reconciliatorApp;
+    internal GateOrionHost? _orionApp;
+    internal GateAthenaHost? _athenaApp;
+    internal GateReconciliatorHost? _reconciliatorApp;
 
     // ── Fixture lifecycle ────────────────────────────────────────────────────────
 
@@ -259,35 +259,30 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
     // ── Host boot helper (shared by both gate scenarios) ───────────────────────────
 
     /// <summary>
-    /// Builds the three real worker hosts (Orion → Athena → Reconciliator) wired to the Testcontainers SQL
-    /// database and the live sim. Each worker reads <c>ConnectionStrings:DefaultConnection</c> EAGERLY at the
-    /// top of its <c>Program.cs</c> (to decide whether to wire <c>AddDatabaseServices</c>), which runs before
-    /// WebApplicationFactory applies the in-memory <c>ConfigureAppConfiguration</c>. So the connection string
-    /// must reach <c>WebApplication.CreateBuilder</c> via an environment variable (read at builder
-    /// construction). Scope it to the host-build window and restore the prior value so it never leaks to other
-    /// tests in this assembly.
+    /// Starts the three real worker hosts (Orion → Athena → Reconciliator) as single Kestrel hosts
+    /// wired to the gate SQL database and the live sim. Each worker receives the connection string via
+    /// <c>configureEarly</c>'s <c>AddInMemoryCollection</c>, which fires immediately after
+    /// <c>WebApplication.CreateBuilder</c> — BEFORE any inline config reads in <c>Program.BuildApp</c>.
+    /// The old process-level env-var hack (<c>ConnectionStrings__DefaultConnection</c>) is no longer needed
+    /// because the new <c>BuildApp</c> seam passes configuration in before the eager reads run.
     /// </summary>
-    protected void BuildThreeHostsWithDb(string storageState, bool runAthenaPipeline = true)
+    protected async Task BuildThreeHostsWithDbAsync(
+        string storageState,
+        bool runAthenaPipeline = true,
+        CancellationToken ct = default)
     {
-        const string connEnvVar = "ConnectionStrings__DefaultConnection";
-        var previousConnEnv = Environment.GetEnvironmentVariable(connEnvVar);
-        Environment.SetEnvironmentVariable(connEnvVar, _connectionString);
-        try
-        {
-            _orionApp = new GateOrionApp(SharedJwtSecret, _sharedStorageDir, _connectionString, storageState, JournalPath);
-            _ = _orionApp.Services;
+        _orionApp = await GateOrionHost.StartAsync(
+            SharedJwtSecret, _sharedStorageDir, _connectionString, storageState, JournalPath, ct)
+            .ConfigureAwait(false);
 
-            _athenaApp = new GateAthenaApp(SharedJwtSecret, _sharedStorageDir, _connectionString, _orionApp,
-                runExtractionPipeline: runAthenaPipeline);
-            _ = _athenaApp.Services;
+        _athenaApp = await GateAthenaHost.StartAsync(
+            SharedJwtSecret, _sharedStorageDir, _connectionString, _orionApp.BaseAddress,
+            runExtractionPipeline: runAthenaPipeline, ct)
+            .ConfigureAwait(false);
 
-            _reconciliatorApp = new GateReconciliatorApp(SharedJwtSecret, _sharedStorageDir, _connectionString, _athenaApp);
-            _ = _reconciliatorApp.Services;
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(connEnvVar, previousConnEnv);
-        }
+        _reconciliatorApp = await GateReconciliatorHost.StartAsync(
+            SharedJwtSecret, _sharedStorageDir, _connectionString, _athenaApp.BaseAddress, ct)
+            .ConfigureAwait(false);
     }
 
     // ── Discovery helper ─────────────────────────────────────────────────────────
@@ -427,8 +422,8 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
     protected async Task WaitUntilHubClientsConnectedAsync(CancellationToken ct)
     {
         // Probe the REAL Kestrel loopback addresses — no HttpMessageHandlerFactory needed.
-        var orionIngestionUrl = new Uri(_orionApp!.HostedBaseAddress!, "hubs/ingestion").ToString();
-        var athenaReconciliationUrl = new Uri(_athenaApp!.HostedBaseAddress!, "hubs/reconciliation").ToString();
+        var orionIngestionUrl = new Uri(_orionApp!.BaseAddress, "hubs/ingestion").ToString();
+        var athenaReconciliationUrl = new Uri(_athenaApp!.BaseAddress, "hubs/reconciliation").ToString();
 
         await ProbeHubUntilConnectedAsync(
             hubUrl: orionIngestionUrl,

@@ -36,9 +36,9 @@ namespace ExxerCube.Prisma.Tests.AllRealWireE2E;
 /// </list>
 /// <para>
 /// <strong>What is real here that the fast <see cref="AllRealWireThreeHostE2ETests"/> stubs:</strong> the
-/// SIARA browser download, OCR, image quality, fusion, classification, and SQL persistence. The only thing
-/// shared with the fast harness is the in-memory SignalR transport seam (production hub + auth code runs;
-/// no TCP port needed).
+/// SIARA browser download, OCR, image quality, fusion, classification, and SQL persistence. Unlike the
+/// fast harness (which uses the in-memory WAF TestServer SignalR seam), this gate boots each worker as a
+/// SINGLE real Kestrel host and the production hub clients connect over real TCP (SignalR keepalive runs).
 /// </para>
 /// <para>
 /// <strong>Scope notes (owner ruling 2: stubs/partials are OK to demo if labelled):</strong>
@@ -83,7 +83,7 @@ public sealed class MaxFidelityGateFullPipelineE2ETests : MaxFidelityGateE2EBase
         storageState.ShouldNotBeNullOrEmpty("the simulator login must yield an authenticated storage-state");
 
         // ── STEP 2: Boot the three real worker hosts wired to SQL + the live sim ──
-        BuildThreeHostsWithDb(storageState);
+        await BuildThreeHostsWithDbAsync(storageState, ct: ct);
 
         // ── STEP 3: Subscribe to the Reconciliator's terminal events ──
         // Stage 5 now emits TWO ExportCompletedEvents: SiroXml + DatosCargaOficioXlsx.
@@ -110,7 +110,7 @@ public sealed class MaxFidelityGateFullPipelineE2ETests : MaxFidelityGateE2EBase
             .GetEventStream<DocumentProcessingCompletedEvent>()
             .Subscribe(e => processingCompletedSource.TrySetResult(e));
 
-        // ── STEP 4: Wait for the production hub clients to connect over the in-memory transport ──
+        // ── STEP 4: Wait for the production hub clients to connect over the real TCP loopback transport ──
         await WaitUntilHubClientsConnectedAsync(ct);
 
         // ── STEP 5: REAL discovery — list a full 3-companion case package off the live sim ──
