@@ -34,15 +34,8 @@ public class FileSystemLoader : IFileLoader
     /// <param name="filePath">The path to the image file.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the loaded image data or an error.</returns>
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public async Task<Result<ImageData>> LoadImageAsync(string filePath, CancellationToken cancellationToken = default)
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            _logger.LogDebug("Running on Windows platform");
-            return Result<ImageData>.WithFailure($"Unsupported file extension: OS");
-        }
-
         // Check for cancellation before starting work
         if (cancellationToken.IsCancellationRequested)
         {
@@ -89,9 +82,21 @@ public class FileSystemLoader : IFileLoader
             {
                 imageData = await LoadPdfAsImageAsync(filePath, cancellationToken).ConfigureAwait(false);
             }
+            else if (OperatingSystem.IsWindows())
+            {
+                // CA1416: LoadImageFile uses System.Drawing (Windows-only). The OperatingSystem.IsWindows()
+                // guard above makes this call safe, but the analyzer cannot flow the platform guard through the
+                // Task.Run lambda, so suppress it narrowly at this single guarded call site.
+#pragma warning disable CA1416
+                imageData = await Task.Run(() => LoadImageFile(filePath), cancellationToken);
+#pragma warning restore CA1416
+            }
             else
             {
-                imageData = await Task.Run(() => LoadImageFile(filePath), cancellationToken);
+                // Raster decoding (LoadImageFile) goes through System.Drawing, which is Windows-only. The PDF
+                // path above is cross-platform (PDFium via IPdfToImageConverter); on non-Windows a raster primary
+                // is handed to the downstream OCR executor as raw bytes rather than failing the whole stage.
+                imageData = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
             }
 
             var result = new ImageData
@@ -125,14 +130,8 @@ public class FileSystemLoader : IFileLoader
     /// <param name="supportedExtensions">The supported file extensions.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
     /// <returns>A result containing the list of loaded image data or an error.</returns>
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public async Task<Result<List<ImageData>>> LoadImagesFromDirectoryAsync(string directoryPath, string[] supportedExtensions, CancellationToken cancellationToken = default)
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            _logger.LogDebug("Running on Windows platform");
-            return Result<List<ImageData>>.WithFailure($"Unsupported file extension: OS");
-        }
         // Check for cancellation before starting work
         if (cancellationToken.IsCancellationRequested)
         {

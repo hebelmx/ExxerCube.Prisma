@@ -370,10 +370,14 @@ public sealed class TesseractOcrExecutor : IOcrExecutor, IDisposable
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Tesseract-OCR", "tessdata"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Tesseract-OCR", "tessdata"),
 
-                // 3. Linux/Mac common paths
+                // 3. Linux/Mac common paths (Debian/Ubuntu install tessdata under a versioned
+                //    directory, e.g. /usr/share/tesseract-ocr/5/tessdata on Tesseract 5).
+                "/usr/share/tesseract-ocr/5/tessdata",
+                "/usr/share/tesseract-ocr/5.00/tessdata",
                 "/usr/share/tesseract-ocr/4.00/tessdata",
                 "/usr/share/tesseract-ocr/tessdata",
                 "/usr/local/share/tessdata",
+                "/usr/local/share/tesseract-ocr/tessdata",
                 "/opt/homebrew/share/tessdata",
 
                 // 4. Relative to application
