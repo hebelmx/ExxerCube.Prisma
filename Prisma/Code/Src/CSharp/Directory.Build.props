@@ -28,9 +28,12 @@
 		<!-- Allow central PackageVersion pins to override vulnerable/outdated transitive deps (e.g. System.Security.Cryptography.Xml) -->
 		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
-		<!-- Build artifacts outside repository (keeps repo clean) -->
-		<!-- Path: E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\ (was F:\ before restart) -->
-		<ArtifactsBaseDir>E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\</ArtifactsBaseDir>
+		<!-- Build artifacts outside repository (keeps repo clean).
+		     Overridable via the ArtifactsBaseDir env var / -p:. Windows keeps the original
+		     E:\ location; other OSes default to the repo-sibling IndFusion/BuildArtifacts/Prisma/
+		     (cross-platform, mirrors IndFusion.CubeXplorer). -->
+		<ArtifactsBaseDir Condition="'$(ArtifactsBaseDir)' == '' AND '$(OS)' == 'Windows_NT'">E:\Dynamic\ExxerCubeBanamex\BuildArtifacts\Prisma\</ArtifactsBaseDir>
+		<ArtifactsBaseDir Condition="'$(ArtifactsBaseDir)' == ''">$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', '..', '..', '..', '..', 'BuildArtifacts', 'Prisma'))/</ArtifactsBaseDir>
 		<BaseOutputPath>$(ArtifactsBaseDir)bin\$(MSBuildProjectName)\</BaseOutputPath>
 		<OutputPath>$(BaseOutputPath)$(Configuration)\</OutputPath>
 		<!-- Mutation-testing (Stryker.NET) accommodation. Stryker reconstructs the test-binary path as
