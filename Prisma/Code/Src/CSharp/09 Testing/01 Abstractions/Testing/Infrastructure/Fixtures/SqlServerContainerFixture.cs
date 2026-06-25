@@ -7,7 +7,7 @@ namespace ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
 /// <summary>
 /// SQL Server database container fixture for integration and system tests.
 /// Implements xUnit v3 IAsyncLifetime pattern with all Docker defensive programming patterns:
-/// - Verified image tag (mcr.microsoft.com/mssql/server:2022-latest)
+/// - Verified image tag (mcr.microsoft.com/mssql/server:2025-latest)
 /// - Defensive wait strategy with built-in readiness check
 /// - Console logging via TestContext for collection fixtures
 /// - Proper lifecycle management (StartAsync, StopAsync, DisposeAsync)
@@ -16,8 +16,8 @@ namespace ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
 /// </summary>
 public sealed class SqlServerContainerFixture : ContainerFixtureBase<MsSqlContainer>
 {
-    // SQL Server 2022 verified image - production-grade, well-maintained by Microsoft
-    private const string SqlServerImage = "mcr.microsoft.com/mssql/server:2022-latest";
+    // SQL Server 2025 verified image - production-grade, well-maintained by Microsoft (2022 retired)
+    private const string SqlServerImage = "mcr.microsoft.com/mssql/server:2025-latest";
     private const int SqlServerPort = 1433;
     private const string DefaultPassword = "YourStrong!Passw0rd"; // SQL Server password requirements: 8+ chars, uppercase, lowercase, digits, special chars
     private const string DefaultDatabase = "PrismaTestDb";

@@ -19,8 +19,8 @@ namespace ExxerCube.Prisma.Tests.System.Storage;
 /// G-S4 tests: verify that the DDL trigger blocks DROP TABLE on protected tables and
 ///             allows DROP TABLE on non-protected tables.
 ///
-/// All tests run against an isolated Testcontainers SQL Server 2022 database
-/// (mcr.microsoft.com/mssql/server:2022-latest). SQL Server 2022 supports ledger tables
+/// All tests run against an isolated Testcontainers SQL Server 2025 database
+/// (mcr.microsoft.com/mssql/server:2025-latest). SQL Server 2025 supports ledger tables
 /// fully. No changes are applied to the live DESKTOP-FB2ES22\SQL2025 instance.
 /// </summary>
 public sealed class AuditLedgerAndDdlTriggerTests : IDisposable
@@ -80,7 +80,7 @@ public sealed class AuditLedgerAndDdlTriggerTests : IDisposable
 
         result.ShouldNotBeNull("AuditRecords table must exist after migration");
         var ledgerTypeDesc = result!.ToString()!;
-        // SQL Server 2022 (mcr.microsoft.com/mssql/server:2022-latest) reports
+        // SQL Server 2025 (mcr.microsoft.com/mssql/server:2025-latest) reports
         // ledger_type_desc = 'APPEND_ONLY_LEDGER_TABLE' for append-only ledger tables.
         // Earlier docs listed 'APPEND_ONLY_LEDGER'; both mean the same thing.
         ledgerTypeDesc.ShouldBe("APPEND_ONLY_LEDGER_TABLE",

@@ -14,8 +14,8 @@ namespace ExxerCube.Prisma.Infrastructure.Database.Migrations
     /// configuration are preserved — the conversion is done by recreating the table with
     /// LEDGER = ON (APPEND_ONLY = ON) and migrating data via INSERT … SELECT.
     ///
-    /// SQL Server 2019 CU13+ and SQL Server 2022 support ledger tables.
-    /// The Testcontainers image (mcr.microsoft.com/mssql/server:2022-latest) is 2022
+    /// SQL Server 2019 CU13+ and SQL Server 2022/2025 support ledger tables.
+    /// The Testcontainers image (mcr.microsoft.com/mssql/server:2025-latest) is 2025
     /// and therefore fully supports this feature.
     ///
     /// G-S4 — Creates a DATABASE-level DDL trigger that blocks DROP TABLE and ALTER TABLE
