@@ -1,0 +1,19 @@
+<Project>
+
+  <!--
+    Linux-native shim for the Tesseract.NET (charlesw) wrapper. The NuGet ships
+    only Windows natives and on Linux P/Invokes sonames (libtesseract50.so,
+    libleptonica-1.82.0.so, libdl.so) that modern distros (Ubuntu 24.04+/26.04)
+    no longer provide under those exact names. This target — Linux only, and only
+    for projects whose output actually contains the Tesseract Windows natives —
+    runs build/link-tesseract-natives.sh to symlink the ABI-compatible system libs
+    into the loader's search dirs. No-op on Windows. See the script for details.
+  -->
+  <Target Name="LinkTesseractLinuxNatives"
+          AfterTargets="Build;Publish"
+          Condition="'$(OS)' == 'Unix' AND Exists('$(TargetDir)x64/leptonica-1.82.0.dll')">
+    <Exec Command="bash &quot;$(MSBuildThisFileDirectory)eng/link-tesseract-natives.sh&quot; &quot;$(TargetDir)&quot;"
+          ContinueOnError="true" />
+  </Target>
+
+</Project>
