@@ -22,10 +22,11 @@
     <PackageReference Include="Emgu.CV.runtime.windows" />
   </ItemGroup>
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-    <PackageReference Include="Emgu.CV.runtime.ubuntu-x64">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <!-- Note: NETSDK1206 warning is expected - EmguCV uses ubuntu-x64 RID which is distribution-specific -->
+    <!-- Distro-pinned native build (Ubuntu 26.04). The generic ubuntu-x64 package stopped at
+         4.12 and needs FFmpeg.58/VTK-9.1/HDF5-103 (absent on 26.04). NO PrivateAssets so the
+         native libcvextern.so flows to consumer outputs (tests, Web.UI). UseRidGraph=true
+         (Directory.Build.props, Linux) lets the SDK resolve this distro-specific RID asset. -->
+    <PackageReference Include="Emgu.CV.runtime.ubuntu-26.04-x64" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />

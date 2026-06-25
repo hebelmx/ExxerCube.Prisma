@@ -130,11 +130,14 @@
 		<PackageVersion Include="Testcontainers" Version="4.9.0" />
 		<PackageVersion Include="Testcontainers.MsSql" Version="4.9.0" />
 		<PackageVersion Include="Testcontainers.Ollama" Version="4.9.0" />
-		<!-- EmguCV held at 4.12.0.5764: 4.13 changes the native CvInvoke.CLAHE signature (breaking); Contrib/ubuntu-x64 have no matching upstream release -->
-		<PackageVersion Include="Emgu.CV" Version="4.12.0.5764" />
-		<PackageVersion Include="Emgu.CV.Contrib" Version="4.9.0.5494" />
-		<PackageVersion Include="Emgu.CV.runtime.windows" Version="4.12.0.5764" />
-		<PackageVersion Include="Emgu.CV.runtime.ubuntu-x64" Version="4.9.0.5494" />
+		<!-- EmguCV 4.13.0.5924: required for the Emgu.CV.runtime.ubuntu-26.04-x64 native package
+		     (natives built against Ubuntu 26.04 soversions — the generic ubuntu-x64 build needs
+		     FFmpeg.58/VTK-9.1/HDF5-103 which 26.04 doesn't ship). 4.13 added a bitShift arg to
+		     CvInvoke.CLAHE (default 0 = classic 8-bit behavior); the one call site passes 0. -->
+		<PackageVersion Include="Emgu.CV" Version="4.13.0.5924" />
+		<PackageVersion Include="Emgu.CV.Contrib" Version="4.13.0.5924" />
+		<PackageVersion Include="Emgu.CV.runtime.windows" Version="4.13.0.5924" />
+		<PackageVersion Include="Emgu.CV.runtime.ubuntu-26.04-x64" Version="4.13.0.5924" />
 		<!-- xUnit testing framework packages -->
 		<!-- xUnit v3 3.2.2 with the Microsoft.Testing.Platform v2 variant (xunit.v3.mtp-v2).
 		     Test projects reference xunit.v3.mtp-v2 instead of the default xunit.v3 (which is mtp-v1). -->

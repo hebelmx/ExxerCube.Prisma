@@ -152,10 +152,13 @@ public class OpenCvAdvancedEnhancementFilter : IImageEnhancementFilter
         // Split LAB channels
         var labChannels = labMat.Split();
 
-        // Apply CLAHE to L channel (index 0)
+        // Apply CLAHE to L channel (index 0).
+        // Emgu.CV 4.13 added the bitShift parameter (histogram-bin shift for >8-bit data);
+        // 0 = no shift = classic full-resolution 8-bit behavior (matches the pre-4.13 overload).
         using var claheResult = new Mat();
         var tileSize = new Size(8, 8);
-        CvInvoke.CLAHE(labChannels[0], clipLimit, tileSize, claheResult);
+        const int bitShift = 0;
+        CvInvoke.CLAHE(labChannels[0], clipLimit, tileSize, bitShift, claheResult);
         claheResult.CopyTo(labChannels[0]);
 
         // Merge channels back

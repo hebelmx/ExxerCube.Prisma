@@ -16,4 +16,19 @@
           ContinueOnError="true" />
   </Target>
 
+  <!--
+    Linux-native shim for Emgu.CV. The distro-pinned runtime package ships libcvextern.so
+    under runtimes/ubuntu-x64/native, but the portable linux-x64 host can't reach that
+    more-specific RID folder via the fallback graph. Symlink it into the base output dir
+    (which the DllImport loader probes). No-op on Windows / when the native isn't present.
+    The native's own system deps (VTK 9.5 / HDF5 310 / libavif16 / libgeotiff5 / liblapack3)
+    must be apt-installed separately. See the script for details.
+  -->
+  <Target Name="LinkEmguLinuxNative"
+          AfterTargets="Build;Publish"
+          Condition="'$(OS)' == 'Unix'">
+    <Exec Command="bash &quot;$(MSBuildThisFileDirectory)eng/link-emgu-native.sh&quot; &quot;$(TargetDir)&quot;"
+          ContinueOnError="true" />
+  </Target>
+
 </Project>

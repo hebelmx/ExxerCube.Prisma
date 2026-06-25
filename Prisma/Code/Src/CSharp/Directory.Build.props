@@ -9,6 +9,11 @@
 		<Nullable>enable</Nullable>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
+		<!-- Linux: re-enable the full RID fallback graph so distribution-specific native
+		     packages (Emgu.CV.runtime.ubuntu-26.04-x64) are resolved/restored. .NET 8+ omits
+		     distro-specific RID assets by default (NETSDK1206); this opts back in. No-op on Windows. -->
+		<UseRidGraph Condition="'$(OS)' == 'Unix'">true</UseRidGraph>
+
 		<!-- Enable parallel builds for faster compilation -->
 		<BuildInParallel>true</BuildInParallel>
 		<ContinueOnError>false</ContinueOnError>

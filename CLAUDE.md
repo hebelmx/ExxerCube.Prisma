@@ -268,8 +268,14 @@ static tracing). Evidence + per-suite numbers: GAP-MATRIX §9
   `ActivatorContent`, runtime/visual changes); needs visual testing.
 - **SixLabors.ImageSharp** at `3.1.12` — `4.x` requires a **paid commercial
   license** (enforced at build). A business/legal decision.
-- **Emgu.CV** at `4.12.0.5764` — `4.13` changes the native `CvInvoke.CLAHE`
-  signature; `Contrib`/`ubuntu-x64` have no matching upstream release.
+- **Emgu.CV** at `4.13.0.5924` (bumped from 4.12 for Linux/Ubuntu-26.04 native
+  support). `4.13` added a `bitShift` arg to `CvInvoke.CLAHE` (default `0` = classic
+  8-bit behavior; the one call site in `OpenCvAdvancedEnhancementFilter` passes `0`).
+  Linux native comes from the distro-pinned `Emgu.CV.runtime.ubuntu-26.04-x64`
+  (the generic `ubuntu-x64` build stopped at 4.12 and needs soversions absent on
+  26.04). Requires `UseRidGraph=true` (Linux, Directory.Build.props), the
+  `eng/link-emgu-native.sh` base-dir symlink (Directory.Build.targets), and the
+  system libs `libvtk9.5 libhdf5-310 libavif16 libgeotiff5 liblapack3`.
 - **Testcontainers** at `4.9.0` — `4.12` obsoletes the parameterless builder
   ctors (CS0618-as-error).
 - **BouncyCastle.Cryptography** on `2.7.0-beta` — the only stable (`2.6.2`) is
