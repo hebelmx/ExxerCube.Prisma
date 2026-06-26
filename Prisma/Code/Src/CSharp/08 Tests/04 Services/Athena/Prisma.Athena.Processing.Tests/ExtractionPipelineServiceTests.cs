@@ -167,4 +167,37 @@ public sealed class ExtractionPipelineServiceTests
         result.IsFailure.ShouldBeTrue();
         await hub.DidNotReceive().SendToAllAsync(Arg.Any<ExtractionCompletedEvent>(), Arg.Any<CancellationToken>());
     }
+
+    /// <summary>
+    /// Story 2.1b: the Expediente saved to the handoff store must carry the OCR body text in
+    /// <see cref="ExxerCube.Prisma.Domain.Entities.Expediente.BodyText"/> so the Reconciliator
+    /// process can feed it into Stage-4 keyword scoring without the raw OCRResult crossing the
+    /// process boundary (ADR-011 approved 2026-06-25).
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_WithOcrResult_SetsBodyTextOnExpedienteBeforeHandoff()
+    {
+        // "Extracted text here" is the OCR text returned by SetupQualityAndOcr.
+        const string expectedBodyText = "Extracted text here";
+
+        Expediente? capturedExpediente = null;
+
+        var (sut, store, _) = CreateSut(
+            ExxerCube.Prisma.Domain.Enum.ImageQualityLevel.Pristine,
+            new Expediente { NumeroExpediente = "EXP-BODY-123" });
+
+        store.SaveAsync(Arg.Any<Expediente>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ci =>
+            {
+                capturedExpediente = ci.ArgAt<Expediente>(0);
+                return Result<string>.Success(ci.ArgAt<string>(1));
+            });
+
+        var result = await sut.ProcessAsync(CreateDownloadEvent(), Ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        capturedExpediente.ShouldNotBeNull("SaveAsync must have been called");
+        capturedExpediente!.BodyText.ShouldBe(expectedBodyText,
+            "BodyText must equal the OCR text so the Reconciliator can keyword-score it");
+    }
 }

@@ -527,7 +527,9 @@ public sealed class ProcessingOrchestrator
             return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
         }
 
-        var ocrBodyText = ctx.OcrResult?.Text;
+        // Story 2.1b: fall back to Expediente.BodyText when OcrResult is null (consistency with
+        // 3-process path); in the monolith OcrResult is always present so this is a no-op there.
+        var ocrBodyText = ctx.OcrResult?.Text ?? ctx.FusionResult?.FusedExpediente?.BodyText;
         var metadata = new ExtractedMetadata
         {
             Expediente = ctx.FusionResult?.FusedExpediente,

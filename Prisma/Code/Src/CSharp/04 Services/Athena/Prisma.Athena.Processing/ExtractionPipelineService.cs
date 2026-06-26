@@ -200,6 +200,12 @@ public sealed class ExtractionPipelineService : IReadinessProbe
             return Result.Success();
         }
 
+        // Carry the OCR body text across the Extractor→Reconciliator boundary so Stage-4
+        // classification in the Reconciliator process sees the full OCR body for keyword scoring
+        // (Story 2.1b, ADR-011 approved 2026-06-25). Assigning null is fine — the orchestrator
+        // will fall back gracefully when BodyText is null.
+        expediente.BodyText = extraction.OcrResult?.Text;
+
         var relativePath = BuildHandoffRelativePath(fileId);
         var save = await _handoffStore.SaveAsync(expediente, relativePath, cancellationToken);
         if (save.IsFailure)

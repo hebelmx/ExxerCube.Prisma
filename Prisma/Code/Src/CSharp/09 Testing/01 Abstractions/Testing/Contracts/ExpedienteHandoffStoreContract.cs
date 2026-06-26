@@ -113,4 +113,29 @@ public abstract class ExpedienteHandoffStoreContract
         result.ShouldNotBeNull();
         result.IsFailure.ShouldBeTrue();
     }
+
+    /// <summary>
+    /// Contract: an expediente saved with a non-null <see cref="Expediente.BodyText"/> loads back with
+    /// <c>BodyText</c> intact (Story 2.1b round-trip — the field must survive JSON serialization so the
+    /// Reconciliator can read the OCR body text carried from the Extractor over the process boundary).
+    /// </summary>
+    [Fact]
+    public async Task SaveThenLoad_WithBodyText_BodyTextRoundTrips()
+    {
+        var expediente = new Expediente
+        {
+            NumeroExpediente = "A/AS1-2505-BODY-TST",
+            BodyText = "Este oficio notifica ASEGURAMIENTO de bienes por disposición judicial."
+        };
+        const string relative = "2026/06/25/body-text-round-trip.fusion.json";
+
+        var save = await Sut.SaveAsync(expediente, relative, TestContext.Current.CancellationToken);
+        save.IsSuccess.ShouldBeTrue();
+
+        var load = await Sut.LoadAsync(relative, TestContext.Current.CancellationToken);
+
+        load.IsSuccess.ShouldBeTrue();
+        load.Value.ShouldNotBeNull();
+        load.Value!.BodyText.ShouldBe(expediente.BodyText);
+    }
 }

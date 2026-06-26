@@ -350,7 +350,10 @@ public sealed class ReconciliationOrchestrator
 
         _logger.LogInformation("Stage 4: Classification - FileId: {FileId}", fileId);
 
-        var ocrBodyText = ocrResult?.Text;
+        // Story 2.1b: fall back to the Expediente's BodyText when ocrResult is null (3-process path).
+        // The Extractor populates BodyText before handoff so the Reconciliator can keyword-score the
+        // full OCR body without the raw OCR result crossing the process boundary (ADR-011).
+        var ocrBodyText = ocrResult?.Text ?? fusionResult?.FusedExpediente?.BodyText;
         var metadata = new ExtractedMetadata
         {
             Expediente = fusionResult?.FusedExpediente,

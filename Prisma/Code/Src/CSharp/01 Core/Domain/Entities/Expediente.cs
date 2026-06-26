@@ -119,6 +119,13 @@ public class Expediente
     public bool TieneAseguramiento { get; set; }
 
     /// <summary>
+    /// Gets or sets the OCR/extracted document body text, carried across the Extractor→Reconciliator
+    /// handoff so Stage-4 classification can keyword-match on the full body (ADR-011 carries only the
+    /// Expediente; this field deliberately rides along — owner-approved 2026-06-25).
+    /// </summary>
+    public string? BodyText { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of parties involved.
     /// </summary>
     public List<SolicitudParte> SolicitudPartes { get; set; } = new();
