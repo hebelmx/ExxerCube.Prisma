@@ -425,18 +425,28 @@ public class FileClassifierServiceTests
     }
 
     /// <summary>
-    /// Story 2.4 (gap 3): The variation_engine pld openings include "operaciones sospechosas".
-    /// The old classifier had no keyword matching this phrase.
-    /// After Story 2.4: "OPERACIONES SOSPECHOSAS" added to 90-tier.
-    /// Note: body avoids "reporte" to prevent an Informacion=90 tie (both categories at 90
-    /// would resolve to Informacion by dictionary insertion order; "reportes de operaciones
-    /// sospechosas" is the generator opening but here we isolate only the sospechosas signal).
+    /// Story 2.4b (variation 4 tie-hazard): The real AAAV2_refactored PLD variation-4 opening
+    /// "En seguimiento a reportes de operaciones inusuales," fires BOTH Informacion (via
+    /// "REPORTE" ⊂ "REPORTES" → InformacionScore = 90) AND OperacionesIlicitas (via
+    /// "OPERACIONES INUSUALES" → OperacionesIlicitasScore = 90) simultaneously. Prior to
+    /// Story 2.4b the max-score tie was resolved by dictionary insertion order (Informacion
+    /// wins, position 4 before OperacionesIlicitas position 6) at confidence 90 — silently
+    /// auto-exporting a money-laundering document as a generic information request.
+    ///
+    /// After Story 2.4b: the tie guard in CalculateConfidence returns &lt; 70 and
+    /// DetermineLevel1Category returns Unknown, holding the document for manual review.
+    ///
+    /// Note: exact PLD→OperacionesIlicitas classification for this phrase would require
+    /// keyword specificity-priority (longer match wins over shorter) — out of scope; logged
+    /// as future work. The safe outcome (Unknown, held for review) is correct and gate-protective.
     /// </summary>
     [Fact]
-    public async Task ClassifyAsync_WithPldPhraseOperacionesSospechosas_ReturnsOperacionesIlicitas()
+    public async Task ClassifyAsync_PldRealPhraseReportesInusuales_TieYieldsUnknownBelowGate()
     {
-        // Arrange — the sospechosas signal without "reportes" to keep Informacion at 10.
-        const string pldBody = "Con motivo de la detección de operaciones sospechosas en el sistema";
+        // Arrange — exact real generator variation-4 opening that creates the 90-90 tie.
+        // "REPORTES" ⊃ "REPORTE" → InformacionScore = 90.
+        // "OPERACIONES INUSUALES" → OperacionesIlicitasScore = 90.
+        const string pldBody = "En seguimiento a reportes de operaciones inusuales,";
 
         var metadata = new ExtractedMetadata
         {
@@ -451,11 +461,11 @@ public class FileClassifierServiceTests
         // Act
         var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
 
-        // Assert
+        // Assert — safe outcome: not auto-exported as Informacion at high confidence.
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.Unknown);
+        result.Value.Confidence.ShouldBeLessThan(70);
     }
 
     /// <summary>
@@ -603,6 +613,72 @@ public class FileClassifierServiceTests
         result.Value.ShouldNotBeNull();
         result.Value!.Confidence.ShouldBe(expectedConfidence,
             $"bodyText='{bodyText}' should yield confidence {expectedConfidence}");
+    }
+
+    // ── Story 2.4b: max-score tie hazard remediation ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Story 2.4b (Part 1 — gate protection): When TieneAseguramiento is true and the document
+    /// body also contains a competing keyword ("información" → InformacionScore = 90 in the
+    /// keyword path), the structured short-circuit must return Aseguramiento at high confidence
+    /// before the keyword path runs — the incidental keyword tie never reaches CalculateConfidence.
+    /// </summary>
+    [Fact]
+    public async Task Classify_StructuredAseguramientoWithCompetingKeyword_StaysAseguramientoHighConfidence()
+    {
+        // Arrange — TieneAseguramiento = true; LegalReferences contains "información" which
+        // would score InformacionScore = 90 if the keyword path ran.
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                TieneAseguramiento = true,
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-2-4B-001"
+            },
+            LegalReferences = new[] { "Se requiere información sobre las cuentas aseguradas" }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert — structured signal wins; incidental keyword competition is ignored.
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.Aseguramiento);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(80);
+    }
+
+    /// <summary>
+    /// Story 2.4b (Part 2 — tie guard): When two categories tie at the maximum keyword score
+    /// with no structured signal, the classifier must return Unknown at confidence below 70,
+    /// holding the document for manual review rather than auto-exporting via insertion-order
+    /// tie-breaking at spuriously high confidence.
+    /// </summary>
+    [Fact]
+    public async Task Classify_TwoCategoriesTieAtMax_ReturnsUnknownBelowThreshold()
+    {
+        // Arrange — "ASEGURAMIENTO" fires AseguramientoScore = 90; "INFORMACION" fires
+        // InformacionScore = 90; all others remain at 10. No structured signal.
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                TieneAseguramiento = false,
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-2-4B-002"
+            },
+            LegalReferences = new[] { "ASEGURAMIENTO INFORMACION" }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert — tie must not resolve to any category; held for manual review.
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.Unknown);
+        result.Value.Confidence.ShouldBeLessThan(70);
     }
 
     /// <summary>

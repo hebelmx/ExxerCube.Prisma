@@ -51,13 +51,37 @@ public class FileClassifierService : IFileClassifier
             var legalReferences = metadata.LegalReferences ?? Array.Empty<string>();
             var allText = string.Join(" ", legalReferences);
 
+            // Story 2.4b: TieneAseguramiento structured signal is authoritative — short-circuit
+            // before keyword scoring so an incidental keyword tie cannot corrupt this gate-critical
+            // tier. (Story 2.3 folded the boolean into ClassifyLevel1 as a scoring weight;
+            // Story 2.4b promotes it to a short-circuit to prevent the max-score tie hazard.)
+            if (expediente?.TieneAseguramiento == true)
+            {
+                var authScores = new ClassificationScores
+                {
+                    AseguramientoScore = 90,
+                    DesembargoScore = NoMatchFloor,
+                    DocumentacionScore = NoMatchFloor,
+                    InformacionScore = NoMatchFloor,
+                    TransferenciaScore = NoMatchFloor,
+                    OperacionesIlicitasScore = NoMatchFloor
+                };
+                var authLevel2 = ClassifyLevel2(areaDescripcion, numeroExpediente, allText);
+                var authResult = new ClassificationResult
+                {
+                    Level1 = ClassificationLevel1.Aseguramiento,
+                    Level2 = authLevel2,
+                    Scores = authScores,
+                    Confidence = 90
+                };
+                _logger.LogDebug(
+                    "Document classified as {Level1}/{Level2} with confidence {Confidence}% (authoritative TieneAseguramiento signal)",
+                    ClassificationLevel1.Aseguramiento, authLevel2, 90);
+                return Task.FromResult(Result<ClassificationResult>.Success(authResult));
+            }
+
             // Level 1 Classification - Deterministic rules based on keywords and patterns.
-            // Story 2.3 (option b): TieneAseguramiento boolean is forwarded as a high-weight fast
-            // path. We fold it into ClassifyLevel1 rather than re-routing Stage-4 DI to
-            // ExpedienteClasifierService (option a) to keep the change surface minimal and preserve
-            // the existing keyword path as a complementary signal.
-            var tieneAseguramiento = expediente?.TieneAseguramiento == true;
-            ClassifyLevel1(areaDescripcion, numeroExpediente, allText, scores, tieneAseguramiento);
+            ClassifyLevel1(areaDescripcion, numeroExpediente, allText, scores);
 
             // Level 2 Classification - Subcategories based on metadata
             var level2 = ClassifyLevel2(areaDescripcion, numeroExpediente, allText);
@@ -112,18 +136,15 @@ public class FileClassifierService : IFileClassifier
     //   "LFPIORPI" (pld legal articles)           none      →  "LFPIORPI"
     //   "ilícita" (fem. gender form of ilícito)   none      →  70-tier "ILICITO" → "ILICIT" (prefix)
     // ─────────────────────────────────────────────────────────────────────────────────────────────────
-    private static void ClassifyLevel1(string areaDescripcion, string numeroExpediente, string allText, ClassificationScores scores, bool tieneAseguramiento)
+    private static void ClassifyLevel1(string areaDescripcion, string numeroExpediente, string allText, ClassificationScores scores)
     {
         var combinedText = RemoveDiacritics($"{areaDescripcion} {numeroExpediente} {allText}".ToUpperInvariant());
 
         // Aseguramiento (Asset Seizure)
-        // Story 2.3: tieneAseguramiento is a structured boolean from the fused Expediente
-        // (XML companion → FusionExpedienteService → Extractor→Reconciliator handoff).
-        // It is more trustworthy than substring matching and shares the 90-point tier.
-        // Only TieneAseguramiento exists on Expediente as a typed boolean — no other
-        // Tiene*/boolean fields map to a document category at this time.
-        if (tieneAseguramiento ||
-            combinedText.Contains("ASEGURAMIENTO", StringComparison.OrdinalIgnoreCase) ||
+        // TieneAseguramiento structured boolean is handled by the short-circuit in ClassifyAsync
+        // (Story 2.4b) before this method is reached; when ClassifyLevel1 is called,
+        // TieneAseguramiento is always false/null.
+        if (combinedText.Contains("ASEGURAMIENTO", StringComparison.OrdinalIgnoreCase) ||
             combinedText.Contains("EMBARGO", StringComparison.OrdinalIgnoreCase) ||
             numeroExpediente.Contains("/AS", StringComparison.OrdinalIgnoreCase))
         {
@@ -357,12 +378,20 @@ public class FileClassifierService : IFileClassifier
 
         var averageScore = (int)scoresArray.Average();
 
+        // Story 2.4b: multi-way tie guard — when two or more categories share the maximum
+        // score the document is genuinely ambiguous. Return below the 70 export-gate threshold
+        // so it is held for manual review rather than silently auto-exported at high confidence.
+        // Without this guard, Where(s => s != maxScore) removes ALL occurrences of maxScore,
+        // so a 90-90 tie would yield scoreDifference = 80 and fall through the high-clarity
+        // branch at confidence 90 — the exact bug this guard corrects.
+        if (scoresArray.Count(s => s == maxScore) > 1)
+        {
+            return Math.Min(70, averageScore);
+        }
+
         // Separation score: gap between the top category and the next-best category.
         // Large gap = one category dominates clearly = high confidence.
         // Small gap = two or more categories compete = low confidence.
-        // Note: Where(s => s != maxScore) removes ALL occurrences of maxScore before
-        // finding the runner-up, so a two-way tie at 90 still yields a difference of 80
-        // (both 90s are excluded, leaving only the 10-floor values).
         var scoreDifference = maxScore - scoresArray.Where(s => s != maxScore).DefaultIfEmpty(0).Max();
 
         if (scoreDifference >= 60)
@@ -403,9 +432,18 @@ public class FileClassifierService : IFileClassifier
             { ClassificationLevel1.OperacionesIlicitas, scores.OperacionesIlicitasScore }
         };
 
-        // No-signal guard: all categories tied at the floor → no keyword matched anywhere.
+        var maxScoreValue = scoresDict.Values.Max();
+
+        // No-signal guard (Story 2.2): all categories at the floor → no keyword matched.
         // Return Unknown instead of letting insertion-order pick a spurious winner.
-        if (scoresDict.Values.Max() == NoMatchFloor)
+        if (maxScoreValue == NoMatchFloor)
+        {
+            return ClassificationLevel1.Unknown;
+        }
+
+        // Story 2.4b: multi-way tie guard — two or more categories share the top score above
+        // the floor. Return Unknown rather than awarding the win by dictionary insertion order.
+        if (scoresDict.Values.Count(v => v == maxScoreValue) > 1)
         {
             return ClassificationLevel1.Unknown;
         }
