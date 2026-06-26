@@ -527,9 +527,13 @@ public sealed class ProcessingOrchestrator
             return Result<ProcessingContext>.Success(ctx with { StagesCompleted = ctx.StagesCompleted + 1 });
         }
 
+        var ocrBodyText = ctx.OcrResult?.Text;
         var metadata = new ExtractedMetadata
         {
-            Expediente = ctx.FusionResult?.FusedExpediente
+            Expediente = ctx.FusionResult?.FusedExpediente,
+            LegalReferences = string.IsNullOrWhiteSpace(ocrBodyText)
+                ? Array.Empty<string>()
+                : new[] { ocrBodyText }
         };
 
         var classResult = await _classifier.ClassifyAsync(metadata, cancellationToken);

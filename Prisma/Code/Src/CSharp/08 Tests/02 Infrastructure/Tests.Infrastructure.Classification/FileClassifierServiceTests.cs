@@ -173,6 +173,45 @@ public class FileClassifierServiceTests
     }
 
     /// <summary>
+    /// Regression test for Story 2.1: OCR body text fed into LegalReferences must reach
+    /// keyword scorer. A document whose body contains ASEGURAMIENTO 4+ times (mimicking the
+    /// IMSS-2023-171230 tier-1 fixture) must classify as Aseguramiento with confidence ≥ 70.
+    /// </summary>
+    [Fact]
+    public async Task ClassifyDocument_WithAaseguramientoBodyText_ReturnsConfidenceAbove70()
+    {
+        // Arrange — inline stub reproducing the OCR body-text shape (no fixture file needed).
+        // The 1284-char tier-1 case contains ASEGURAMIENTO 4+ times; we replicate that signal.
+        const string ocrBody =
+            "INSTITUTO MEXICANO DEL SEGURO SOCIAL " +
+            "ASEGURAMIENTO DE CUENTAS BANCARIAS " +
+            "Con fundamento en el artículo 40-A del CFF se ordena el ASEGURAMIENTO " +
+            "de los fondos depositados en las cuentas. El ASEGURAMIENTO aplica a " +
+            "todas las cuentas enlistadas. Favor de acusar recibo del presente ASEGURAMIENTO.";
+
+        var metadata = new ExtractedMetadata
+        {
+            // Expediente intentionally minimal — keyword signal comes from LegalReferences only,
+            // proving the wiring that the orchestrators now set from OCR body text.
+            Expediente = new Expediente
+            {
+                NumeroExpediente = "TST-001",
+                AreaDescripcion = string.Empty
+            },
+            LegalReferences = new[] { ocrBody }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value.Level1.ShouldBe(ClassificationLevel1.Aseguramiento);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+    }
+
+    /// <summary>
     /// Tests that confidence score is calculated correctly.
     /// </summary>
     [Fact]

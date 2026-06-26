@@ -93,7 +93,7 @@ public sealed class ReconciliationOrchestrator
     /// After Stage 4, persists a review case reflecting the <paramref name="isComplete"/> flag (GH #6,
     /// fail-open: a persistence failure is logged at Warning and never throws).
     /// </summary>
-    /// <param name="ocrResult">The OCR result from the Extractor (currently unused by Stage 4; kept for fidelity/future use).</param>
+    /// <param name="ocrResult">The OCR result from the Extractor. Its body text is fed into <see cref="ExxerCube.Prisma.Domain.ValueObjects.ExtractedMetadata.LegalReferences"/> at Stage 4 so keyword scoring sees the full OCR body.</param>
     /// <param name="fusionResult">The fused result from the Extractor (its expediente feeds classification + export).</param>
     /// <param name="fileId">The file id (stable across the pipeline).</param>
     /// <param name="correlationId">The correlation id.</param>
@@ -350,9 +350,13 @@ public sealed class ReconciliationOrchestrator
 
         _logger.LogInformation("Stage 4: Classification - FileId: {FileId}", fileId);
 
+        var ocrBodyText = ocrResult?.Text;
         var metadata = new ExtractedMetadata
         {
-            Expediente = fusionResult?.FusedExpediente
+            Expediente = fusionResult?.FusedExpediente,
+            LegalReferences = string.IsNullOrWhiteSpace(ocrBodyText)
+                ? Array.Empty<string>()
+                : new[] { ocrBodyText }
         };
 
         var classResult = await _classifier.ClassifyAsync(metadata, cancellationToken);
