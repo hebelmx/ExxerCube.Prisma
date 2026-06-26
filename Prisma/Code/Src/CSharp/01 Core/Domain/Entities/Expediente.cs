@@ -126,6 +126,15 @@ public class Expediente
     public string? BodyText { get; set; }
 
     /// <summary>
+    /// Gets or sets the OCR-stage confidence, carried across the Extractor→Reconciliator handoff so the
+    /// export gate's weighted-aggregate (classification + OCR + fusion, ADR-023) can include the OCR
+    /// signal in the 3-process path where the raw <c>OCRResult</c> does not cross the boundary. Null when
+    /// OCR did not run (e.g. native-PDF-text path) or for a non-OCR source. Rides the JSON handoff
+    /// alongside <see cref="BodyText"/> (ADR-011 carries only the Expediente — owner-approved).
+    /// </summary>
+    public Confidence? OcrConfidence { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of parties involved.
     /// </summary>
     public List<SolicitudParte> SolicitudPartes { get; set; } = new();

@@ -253,7 +253,7 @@ public sealed class ReconciliationOrchestratorSiroExportTests
             fusionResult: new FusionResult
             {
                 FusedExpediente = invalidExpediente,
-                Confidence = Confidence.FromFusion(0.0),
+                Confidence = Confidence.FromFusion(0.90), // Story 2.7: no classifier here, so fusion is the only aggregate signal — keep it ≥0.65 so gate 1b stays open and Stage 5 runs, failing on validation
                 ConflictingFields = new List<string>(),
                 NextAction = NextAction.AutoProcess, // G-C2: force gate open so Stage 5 runs and fails on validation
             },

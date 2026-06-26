@@ -29,7 +29,10 @@ public sealed class ExportGatePolicy
     ///   "BlockOnFusionManualReviewRequired": true,
     ///   "BlockOnUnresolvedConflicts": true,
     ///   "ClassificationConfidenceThreshold": 0.70,
-    ///   "ManualReviewThreshold": 0.80
+    ///   "ManualReviewThreshold": 0.80,
+    ///   "BlockOnLowAggregateConfidence": true,
+    ///   "AggregateConfidenceThreshold": 0.65,
+    ///   "Weights": { "Classification": 0.50, "Ocr": 0.30, "Fusion": 0.20, "Quality": 0.0 }
     /// }
     /// </code>
     /// </summary>
@@ -80,4 +83,50 @@ public sealed class ExportGatePolicy
     /// <c>Confidence.Value</c> (0–1) — both on the 0–1 scale since Story 2.6, no <c>* 100</c>.
     /// </remarks>
     public double ManualReviewThreshold { get; set; } = 0.80;
+
+    /// <summary>
+    /// When <see langword="true"/> (default), the export gate also blocks when the weighted
+    /// document-confidence aggregate (classification + OCR + fusion, per ADR-023) falls below
+    /// <see cref="AggregateConfidenceThreshold"/>. This is gate 1b: it lets a document with a
+    /// passing classification score still be held when the OCR or fusion evidence is weak.
+    /// Set <see langword="false"/> to fall back to classification-only gating.
+    /// </summary>
+    public bool BlockOnLowAggregateConfidence { get; set; } = true;
+
+    /// <summary>
+    /// Minimum weighted document-confidence aggregate required to allow Stage-5 export (0.0–1.0).
+    /// Default: <c>0.65</c>. Evaluated only when <see cref="BlockOnLowAggregateConfidence"/> is
+    /// <see langword="true"/>. The aggregate is a weighted average of the available stage signals
+    /// (<see cref="ExxerCube.Prisma.Domain.ValueObjects.ConfidenceSource.Classification"/> /
+    /// <see cref="ExxerCube.Prisma.Domain.ValueObjects.ConfidenceSource.Ocr"/> /
+    /// <see cref="ExxerCube.Prisma.Domain.ValueObjects.ConfidenceSource.Fusion"/>) weighted by
+    /// <see cref="Weights"/>; a missing signal's weight is redistributed proportionally to the rest.
+    /// </summary>
+    public double AggregateConfidenceThreshold { get; set; } = 0.65;
+
+    /// <summary>
+    /// Per-signal weights for the document-confidence aggregate (ADR-023 D2). Quality is advisory
+    /// (default weight 0) until corpus calibration; promoting it is a config-only change.
+    /// </summary>
+    public AggregationWeights Weights { get; set; } = new();
+}
+
+/// <summary>
+/// Relative weights for the export-gate document-confidence aggregate (ADR-023 D2). Weights need
+/// not sum to 1 — the aggregate divides by the sum of the weights of the signals actually present,
+/// so a missing stage is redistributed proportionally across the rest.
+/// </summary>
+public sealed class AggregationWeights
+{
+    /// <summary>Gets or sets the weight of the classification confidence signal. Default <c>0.50</c> (primary).</summary>
+    public double Classification { get; set; } = 0.50;
+
+    /// <summary>Gets or sets the weight of the OCR confidence signal. Default <c>0.30</c> (document readability).</summary>
+    public double Ocr { get; set; } = 0.30;
+
+    /// <summary>Gets or sets the weight of the fusion confidence signal. Default <c>0.20</c> (source-reliability proxy).</summary>
+    public double Fusion { get; set; } = 0.20;
+
+    /// <summary>Gets or sets the weight of the quality confidence signal. Default <c>0.0</c> (advisory; see ADR-023 D2).</summary>
+    public double Quality { get; set; } = 0.0;
 }

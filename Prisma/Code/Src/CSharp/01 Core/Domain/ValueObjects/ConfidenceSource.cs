@@ -28,5 +28,12 @@ public enum ConfidenceSource
     /// Confidence produced by the document classification stage
     /// (e.g. an integer classifier score on the 0–100 scale).
     /// </summary>
-    Classification
+    Classification,
+
+    /// <summary>
+    /// A document-level confidence aggregated from multiple stage signals
+    /// (classification + OCR + fusion) via a weighted average — the value the
+    /// export gate evaluates. See ADR-023 (Unified Confidence Model).
+    /// </summary>
+    Aggregate
 }

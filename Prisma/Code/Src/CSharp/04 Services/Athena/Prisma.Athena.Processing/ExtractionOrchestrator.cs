@@ -400,6 +400,11 @@ public sealed class ExtractionOrchestrator
 
         var fields = extractionResult.Value;
         var expediente = MapExtractedFieldsToExpediente(fields);
+        // QualityIndex is deliberately left unset here (Story 2.7 / ADR-023 D2): the Stage-1 quality
+        // signal is ADVISORY-ONLY for MVP — its analyzer coefficients are still stub-trained, so it
+        // carries weight 0 in the export-gate aggregate. It is NOT populated here because doing so would
+        // also feed FusionExpedienteService's source-reliability adjustment and perturb fusion confidence.
+        // Promote it (and AggregationWeights.Quality) only after corpus calibration (PRISMA-GATED-S2).
         var metadata = new ExtractionMetadata
         {
             Source = SourceType.PDF_OCR_CNBV,

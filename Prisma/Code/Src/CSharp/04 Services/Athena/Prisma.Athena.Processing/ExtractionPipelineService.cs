@@ -206,6 +206,11 @@ public sealed class ExtractionPipelineService : IReadinessProbe
         // will fall back gracefully when BodyText is null.
         expediente.BodyText = extraction.OcrResult?.Text;
 
+        // Carry the OCR-stage confidence across the same boundary so the Reconciliator's export gate
+        // can include the OCR signal in its weighted document-confidence aggregate (Story 2.7, ADR-023);
+        // the raw OCRResult does not cross the process boundary. Null when OCR did not run.
+        expediente.OcrConfidence = extraction.OcrResult?.Confidence;
+
         var relativePath = BuildHandoffRelativePath(fileId);
         var save = await _handoffStore.SaveAsync(expediente, relativePath, cancellationToken);
         if (save.IsFailure)

@@ -153,7 +153,11 @@ public sealed class ReconciliationOrchestrator
         // G-C2b: When approvedByReviewer is true the gate diagnostics still run (so BlockReasons
         // is populated for logging/audit), but the block is NOT applied — Stage 5 proceeds because
         // the human reviewer has explicitly cleared the case.  This is the only legitimate bypass.
-        var blockReasons = EvaluateExportGate(fusionResult, classificationResult);
+        // OCR confidence for the gate aggregate: live in the monolith path (ocrResult non-null),
+        // else carried on the handoff Expediente in the 3-process path (OcrConfidence) — mirrors the
+        // BodyText fallback below. Null when OCR did not run.
+        var ocrConfidence = ocrResult?.Confidence ?? fusionResult?.FusedExpediente?.OcrConfidence;
+        var blockReasons = EvaluateExportGate(fusionResult, classificationResult, ocrConfidence);
         if (blockReasons.Count > 0 && !approvedByReviewer)
         {
             _logger.LogWarning(
@@ -207,10 +211,12 @@ public sealed class ReconciliationOrchestrator
     /// </summary>
     /// <param name="fusionResult">The fusion result (may be null — null counts as ManualReviewRequired).</param>
     /// <param name="classificationResult">The classification result (may be null — treated as low-confidence).</param>
+    /// <param name="ocrConfidence">The OCR-stage confidence for the aggregate (may be null — OCR did not run, or the 3-process handoff carried none).</param>
     /// <returns>Non-empty list of reasons when export should be blocked; empty list when safe to export.</returns>
     private List<string> EvaluateExportGate(
         FusionResult? fusionResult,
-        ClassificationResult? classificationResult)
+        ClassificationResult? classificationResult,
+        Confidence? ocrConfidence)
     {
         var reasons = new List<string>();
 
@@ -227,6 +233,35 @@ public sealed class ReconciliationOrchestrator
                 var thresholdPct = (int)Math.Round(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
                 reasons.Add(
                     $"Classification confidence {pct}% is below the required threshold of {thresholdPct}% (BlockOnLowConfidence)");
+            }
+        }
+
+        // Gate 1b: Low weighted document-confidence aggregate (ADR-023 D2). Combines the available stage
+        // signals (classification + OCR + fusion) by their configured weights; a missing signal's weight is
+        // redistributed proportionally because WeightedAverage divides by the sum of the weights present.
+        // This holds a document whose classification passes but whose OCR/fusion evidence is weak.
+        if (_exportGatePolicy.BlockOnLowAggregateConfidence)
+        {
+            var weighted = new List<(Confidence Confidence, double Weight)>();
+            if (classificationResult is not null)
+                weighted.Add((classificationResult.Confidence, _exportGatePolicy.Weights.Classification));
+            if (ocrConfidence is not null)
+                weighted.Add((ocrConfidence.Value, _exportGatePolicy.Weights.Ocr));
+            if (fusionResult is not null)
+                weighted.Add((fusionResult.Confidence, _exportGatePolicy.Weights.Fusion));
+
+            // Only evaluate with at least one present signal carrying positive weight (a fully-null pipeline
+            // is already handled by gates 1/2; an all-zero-weight config means "aggregate gate disabled").
+            if (weighted.Count > 0 && weighted.Sum(w => w.Weight) > 0)
+            {
+                var aggregate = Confidence.WeightedAverage(weighted, ConfidenceSource.Aggregate);
+                if (aggregate.Value < _exportGatePolicy.AggregateConfidenceThreshold)
+                {
+                    var pct = (int)Math.Round(aggregate.Value * 100);
+                    var thresholdPct = (int)Math.Round(_exportGatePolicy.AggregateConfidenceThreshold * 100);
+                    reasons.Add(
+                        $"Document-confidence aggregate {pct}% is below the required threshold of {thresholdPct}% (BlockOnLowAggregateConfidence)");
+                }
             }
         }
 

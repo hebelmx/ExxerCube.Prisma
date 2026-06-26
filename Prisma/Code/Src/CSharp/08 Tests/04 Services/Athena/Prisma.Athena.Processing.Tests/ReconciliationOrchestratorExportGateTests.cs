@@ -367,6 +367,7 @@ public sealed class ReconciliationOrchestratorExportGateTests
             BlockOnLowConfidence = false,
             BlockOnFusionManualReviewRequired = false,
             BlockOnUnresolvedConflicts = false,
+            BlockOnLowAggregateConfidence = false, // Story 2.7: the aggregate sub-gate is part of the policy escape hatch
         };
 
         var (orchestrator, publishedEvents, exporterSub) =
@@ -396,12 +397,14 @@ public sealed class ReconciliationOrchestratorExportGateTests
     // =========================================================================
 
     /// <summary>
-    /// When all three gate conditions are active simultaneously (low confidence + ManualReviewRequired
-    /// + conflicts), the <see cref="ExportHeldForReviewEvent.BlockReasons"/> list must contain
-    /// entries for all three conditions.  Verifies that gate evaluation is NOT short-circuited.
+    /// When all gate conditions are active simultaneously (low classification confidence + low weighted
+    /// aggregate + ManualReviewRequired + conflicts), the <see cref="ExportHeldForReviewEvent.BlockReasons"/>
+    /// list must contain an entry for every condition. Verifies that gate evaluation is NOT short-circuited.
+    /// Since Story 2.7 the weighted document-confidence aggregate (gate 1b) is a fourth active condition:
+    /// classification 0.30 with a low-confidence fusion result aggregates well below 0.65.
     /// </summary>
     [Fact]
-    public async Task ReconcileAsync_AllGateConditionsActive_BlockReasonsContainsAllThree()
+    public async Task ReconcileAsync_AllGateConditionsActive_BlockReasonsContainsEveryCondition()
     {
         // Arrange: confidence 30 (below threshold) + ManualReviewRequired + 2 conflicts
         const int veryLowConfidence = 30;
@@ -415,19 +418,104 @@ public sealed class ReconciliationOrchestratorExportGateTests
             correlationId: null,
             cancellationToken: Ct);
 
-        // Assert: one held event with all three reasons represented
+        // Assert: one held event with every active reason represented
         var heldEvents = publishedEvents.OfType<ExportHeldForReviewEvent>().ToList();
         heldEvents.Count.ShouldBe(1);
 
         var reasons = heldEvents[0].BlockReasons;
-        reasons.Count.ShouldBe(3, "all three gate conditions must produce a reason entry");
+        reasons.Count.ShouldBe(4, "all four active gate conditions must produce a reason entry");
 
         reasons.ShouldContain(r => r.Contains("BlockOnLowConfidence"),
             "low-confidence reason must be present");
+        reasons.ShouldContain(r => r.Contains("BlockOnLowAggregateConfidence"),
+            "low-aggregate reason must be present (Story 2.7)");
         reasons.ShouldContain(r => r.Contains("BlockOnFusionManualReviewRequired"),
             "fusion-state reason must be present");
         reasons.ShouldContain(r => r.Contains("BlockOnUnresolvedConflicts"),
             "conflict reason must be present");
+    }
+
+    // =========================================================================
+    // Story 2.7 — weighted document-confidence aggregate (gate 1b)
+    // =========================================================================
+
+    /// <summary>
+    /// Story 2.7 core behaviour: a document whose CLASSIFICATION confidence passes gate 1 (0.75 ≥ 0.70)
+    /// is still held when the OCR and fusion evidence is weak enough that the weighted aggregate falls
+    /// below 0.65. This proves OCR + fusion confidence now influence the export decision (they were
+    /// previously discarded). OCR confidence reaches the gate via the handoff Expediente.OcrConfidence.
+    /// </summary>
+    [Fact]
+    public async Task ReconcileAsync_HighClassificationButLowOcrAndFusion_BlocksOnAggregate()
+    {
+        var (orchestrator, publishedEvents, exporterSub) = CreateSut(classifierConfidence: 75);
+
+        var weakEvidenceFusion = new FusionResult
+        {
+            FusedExpediente = new Expediente
+            {
+                NumeroExpediente = "A/AS1-2505-003-TST",
+                NumeroOficio = "214-1-00000003/2026",
+                OcrConfidence = Confidence.FromOcr(40), // 0.40 — poor OCR
+            },
+            Confidence = Confidence.FromFusion(0.50),   // weak fusion
+            NextAction = NextAction.AutoProcess,        // gates 2/3 open
+            ConflictingFields = new List<string>(),
+        };
+
+        await orchestrator.ReconcileAsync(
+            ocrResult: null,
+            fusionResult: weakEvidenceFusion,
+            fileId: Guid.NewGuid(),
+            correlationId: null,
+            cancellationToken: Ct);
+
+        // aggregate = (0.75*0.50 + 0.40*0.30 + 0.50*0.20) / 1.0 = 0.595 < 0.65 → held, gate 1 (0.75) passes.
+        var held = publishedEvents.OfType<ExportHeldForReviewEvent>().ToList();
+        held.Count.ShouldBe(1);
+        held[0].BlockReasons.ShouldContain(r => r.Contains("BlockOnLowAggregateConfidence"),
+            "weak OCR + fusion must trip the aggregate gate even though classification (0.75) passed");
+        held[0].BlockReasons.ShouldNotContain(r => r.Contains("BlockOnLowConfidence"),
+            "classification at 0.75 must NOT trip gate 1");
+        publishedEvents.OfType<ExportCompletedEvent>().ShouldBeEmpty();
+        await exporterSub.DidNotReceive().ExportSiroXmlAsync(
+            Arg.Any<UnifiedMetadataRecord>(), Arg.Any<System.IO.Stream>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Counterpart: when classification, OCR and fusion are all strong the weighted aggregate clears
+    /// 0.65 and the document auto-exports — the aggregate gate does not over-block healthy documents.
+    /// </summary>
+    [Fact]
+    public async Task ReconcileAsync_AllSignalsStrong_AggregatePasses_Exports()
+    {
+        var (orchestrator, publishedEvents, exporterSub) = CreateSut(classifierConfidence: 90);
+
+        var strongFusion = new FusionResult
+        {
+            FusedExpediente = new Expediente
+            {
+                NumeroExpediente = "A/AS1-2505-004-TST",
+                NumeroOficio = "214-1-00000004/2026",
+                OcrConfidence = Confidence.FromOcr(95), // 0.95
+            },
+            Confidence = Confidence.FromFusion(0.90),
+            NextAction = NextAction.AutoProcess,
+            ConflictingFields = new List<string>(),
+        };
+
+        await orchestrator.ReconcileAsync(
+            ocrResult: null,
+            fusionResult: strongFusion,
+            fileId: Guid.NewGuid(),
+            correlationId: null,
+            cancellationToken: Ct);
+
+        // aggregate = (0.90*0.50 + 0.95*0.30 + 0.90*0.20) / 1.0 = 0.915 ≥ 0.65 → export.
+        publishedEvents.OfType<ExportCompletedEvent>().ShouldNotBeEmpty();
+        publishedEvents.OfType<ExportHeldForReviewEvent>().ShouldBeEmpty();
+        await exporterSub.Received(1).ExportSiroXmlAsync(
+            Arg.Any<UnifiedMetadataRecord>(), Arg.Any<System.IO.Stream>(), Arg.Any<CancellationToken>());
     }
 
     // =========================================================================
