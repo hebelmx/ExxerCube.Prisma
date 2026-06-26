@@ -42,8 +42,9 @@ public static class VeriqanOrchestrationExtensions
     /// Reference-data's CSV root directory is bound from the <c>"Veriqan:CsvReferenceData"</c>
     /// configuration section (e.g. the <c>Veriqan__CsvReferenceData__RootDirectory</c> env var
     /// or appsettings), so a host that supplies that config gets a configured root automatically.
-    /// Callers that need to override it in code may still call
-    /// <c>AddVeriqanReferenceData(opts => ...)</c> directly before <c>AddVeriqan</c>.
+    /// To override the root in code, supply it through that same configuration section rather than
+    /// calling <c>AddVeriqanReferenceData</c> a second time (it registers the provider with
+    /// <c>AddTransient</c>, so a duplicate call would double-register it).
     /// </para>
     /// </remarks>
     /// <param name="services">The service collection to configure.</param>

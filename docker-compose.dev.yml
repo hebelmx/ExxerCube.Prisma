@@ -96,9 +96,14 @@ services:
       - /bin/bash
       - -c
       - >-
+        for i in 1 2 3 4 5; do
         /opt/mssql-tools18/bin/sqlcmd -S sqlserver,1433 -U sa -P "$${MSSQL_SA_PASSWORD}" -C
         -Q "IF DB_ID('Prisma') IS NULL CREATE DATABASE [Prisma];
         IF DB_ID('PrismaID') IS NULL CREATE DATABASE [PrismaID];"
+        && exit 0;
+        echo "sqlcmd attempt $$i failed; retrying in 3s"; sleep 3;
+        done;
+        echo "sqlserver-init: database create failed after 5 attempts"; exit 1
     depends_on:
       sqlserver:
         condition: service_healthy
