@@ -567,6 +567,7 @@ public sealed class ReconciliationOrchestratorExportGateTests
             BlockOnUnresolvedConflicts = true,
             ClassificationConfidenceThreshold = 0.50,  // 50% — lower than the default 70%
             ManualReviewThreshold = 0.80,
+            BlockOnLowAggregateConfidence = false,     // isolate the classification-threshold behaviour from gate 1b
         };
         var (orchestrator, publishedEvents, exporterSub) =
             CreateSut(policy: customPolicy, classifierConfidence: classificationConfidence);
