@@ -354,5 +354,236 @@ public class FileClassifierServiceTests
         result.Value.Level1.ShouldBe(ClassificationLevel1.Unknown);
         result.Value.Confidence.ShouldBe(0);
     }
+
+    // ── Story 2.4: PLD / OperacionesIlicitas gap-closure tests ─────────────────────────────────────
+    // Each test body contains ONLY the generator-emitted prose that the old classifier missed.
+    // After the Story 2.4 reconciliation the text must reach OperacionesIlicitas at confidence ≥ 70.
+
+    /// <summary>
+    /// Story 2.4 (gap 1): The pld motivacion template emits "recursos de procedencia ilícita".
+    /// The old classifier missed this because (a) "OPERACIONES ILICITAS" is not a substring,
+    /// (b) "LAVADO" is absent, and (c) the 70-tier "ILICITO" did not match the feminine form
+    /// "ilícita" after ToUpperInvariant() yielded "ILÍCITA" (accented Í ≠ unaccented I).
+    /// After Story 2.4: RemoveDiacritics normalises "ILÍCITA" → "ILICITA"; and "PROCEDENCIA ILICITA"
+    /// is added to the 90-tier.
+    /// </summary>
+    [Fact]
+    public async Task ClassifyAsync_WithPldPhraseProcedenciaIlicita_ReturnsOperacionesIlicitas()
+    {
+        // Arrange — minimal body: ONLY the generator pld motivacion intro phrase.
+        const string pldBody = "posibles operaciones con recursos de procedencia ilícita";
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-PLD-001"
+            },
+            LegalReferences = new[] { pldBody }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+    }
+
+    /// <summary>
+    /// Story 2.4 (gap 2): The pld generate_instrucciones_cuentas emits "operaciones inusuales".
+    /// The old classifier had no keyword matching this phrase.
+    /// After Story 2.4: "OPERACIONES INUSUALES" added to 90-tier.
+    /// </summary>
+    [Fact]
+    public async Task ClassifyAsync_WithPldPhraseOperacionesInusuales_ReturnsOperacionesIlicitas()
+    {
+        // Arrange — only the exact generator instruction phrase that was previously missed.
+        const string pldBody = "Identificar operaciones inusuales en las cuentas auditadas";
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-PLD-002"
+            },
+            LegalReferences = new[] { pldBody }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+    }
+
+    /// <summary>
+    /// Story 2.4 (gap 3): The variation_engine pld openings include "operaciones sospechosas".
+    /// The old classifier had no keyword matching this phrase.
+    /// After Story 2.4: "OPERACIONES SOSPECHOSAS" added to 90-tier.
+    /// Note: body avoids "reporte" to prevent an Informacion=90 tie (both categories at 90
+    /// would resolve to Informacion by dictionary insertion order; "reportes de operaciones
+    /// sospechosas" is the generator opening but here we isolate only the sospechosas signal).
+    /// </summary>
+    [Fact]
+    public async Task ClassifyAsync_WithPldPhraseOperacionesSospechosas_ReturnsOperacionesIlicitas()
+    {
+        // Arrange — the sospechosas signal without "reportes" to keep Informacion at 10.
+        const string pldBody = "Con motivo de la detección de operaciones sospechosas en el sistema";
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-PLD-003"
+            },
+            LegalReferences = new[] { pldBody }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+    }
+
+    /// <summary>
+    /// Story 2.4 (gap 4): The pld legal articles include "LFPIORPI artículos 17, 18 y 23".
+    /// This abbreviation (Ley Federal para la Prevención e Identificación de Operaciones con
+    /// Recursos de Procedencia Ilícita) uniquely identifies the PLD legal framework.
+    /// After Story 2.4: "LFPIORPI" added to 90-tier.
+    /// </summary>
+    [Fact]
+    public async Task ClassifyAsync_WithPldLawAbbreviationLfpiorpi_ReturnsOperacionesIlicitas()
+    {
+        // Arrange — LFPIORPI appears verbatim in the pld legal articles generated by the corpus.
+        const string pldBody = "LFPIORPI artículos 17, 18 y 23";
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-PLD-004"
+            },
+            LegalReferences = new[] { pldBody }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+    }
+
+    /// <summary>
+    /// Story 2.4 (gap 5): The UIF (Unidad de Inteligencia Financiera) is the primary pld authority
+    /// in the generator; its area names and facultades text contain "inteligencia financiera".
+    /// After Story 2.4: "INTELIGENCIA FINANCIERA" added to 90-tier.
+    /// </summary>
+    [Fact]
+    public async Task ClassifyAsync_WithPldAuthorityInteligenciaFinanciera_ReturnsOperacionesIlicitas()
+    {
+        // Arrange — UIF authority area text that was previously unmatched.
+        const string pldBody = "Derivado de los análisis de inteligencia financiera sobre las operaciones";
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-PLD-005"
+            },
+            LegalReferences = new[] { pldBody }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+    }
+
+    /// <summary>
+    /// Story 2.4 (gap 6): The 70-tier previously checked only "ILICITO" (masculine form).
+    /// "ilícita" (feminine form, used in "conducta ilícita", "actividad ilícita") was missed
+    /// because ToUpperInvariant() yields "ILÍCITA" (accented Í) which does not contain "ILICITO".
+    /// After Story 2.4: RemoveDiacritics normalises "ILÍCITA" → "ILICITA"; the 70-tier now
+    /// checks the prefix "ILICIT" which matches all gender/number inflections.
+    /// </summary>
+    [Fact]
+    public async Task ClassifyAsync_WithAccentedIlicita_ReturnsOperacionesIlicitas()
+    {
+        // Arrange — feminine accented form that the old "ILICITO" check missed entirely.
+        const string pldBody = "la conducta ilícita investigada en las cuentas";
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-PLD-006"
+            },
+            LegalReferences = new[] { pldBody }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+    }
+
+    /// <summary>
+    /// Story 2.4 (accent cross-category fix): The informacion motivacion template emits
+    /// "se requiere información bancaria del contribuyente" — the accented "información" was
+    /// previously missed because ToUpperInvariant() yields "INFORMACIÓN" (accented Í) which
+    /// does not equal "INFORMACION". After Story 2.4: RemoveDiacritics → "INFORMACION" ✓.
+    /// </summary>
+    [Fact]
+    public async Task ClassifyAsync_WithAccentedInformacion_ReturnsInformacion()
+    {
+        // Arrange — the exact generator informacion motivacion phrase with accented "información".
+        const string infoBody = "se requiere información bancaria del contribuyente para verificar el cumplimiento";
+
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-INF-001"
+            },
+            LegalReferences = new[] { infoBody }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.Informacion);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+    }
 }
 

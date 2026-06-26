@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using IndQuestResults;
@@ -84,9 +86,35 @@ public class FileClassifierService : IFileClassifier
         }
     }
 
+    // ── Story 2.4: Classifier–Generator Reconciliation (2026-06-25) ──────────────────────────────────
+    // Source: AAAV2_refactored/core/ (legal_catalog.py, variation_engine.py, catalogs/authorities.json)
+    // Generator req-types → classifier categories:
+    //   fiscal        → Aseguramiento (via "embargo" in fiscal motivacion)
+    //   aseguramiento → Aseguramiento (via "aseguramiento precautorio")
+    //   judicial      → Informacion   (via "información sobre cuentas")
+    //   informacion   → Informacion   (via "información bancaria")
+    //   pld           → OperacionesIlicitas   ← primary gap closed by this story
+    //
+    // Accent strategy: RemoveDiacritics() is applied once to combinedText (see line below).
+    // This normalises ALL Spanish accented chars ("ilícita"→"ilicita", "información"→"informacion",
+    // "documentación"→"documentacion") before matching. Keywords stay ASCII-uppercase throughout.
+    // Cross-category accent gaps fixed by normalisation alone (no new keywords needed):
+    //   Informacion  : "información" (informacion/judicial motivacion) → now matches "INFORMACION"
+    //   Documentacion: "documentación" (PHRASE_VARIATIONS synonym)    → now matches "DOCUMENTACION"
+    //
+    // OperacionesIlicitas (pld) gaps closed — 6 new 90-tier keywords; 70-tier broadened:
+    //   Generator phrase                          Old match    Added keyword
+    //   "recursos de procedencia ilícita"         none      →  "PROCEDENCIA ILICITA"
+    //   "operaciones inusuales" (instructions)    none      →  "OPERACIONES INUSUALES"
+    //   "operaciones sospechosas" (variation)     none      →  "OPERACIONES SOSPECHOSAS"
+    //   "operaciones irregulares" (instructions)  none      →  "OPERACIONES IRREGULARES"
+    //   "inteligencia financiera" (UIF area name) none      →  "INTELIGENCIA FINANCIERA"
+    //   "LFPIORPI" (pld legal articles)           none      →  "LFPIORPI"
+    //   "ilícita" (fem. gender form of ilícito)   none      →  70-tier "ILICITO" → "ILICIT" (prefix)
+    // ─────────────────────────────────────────────────────────────────────────────────────────────────
     private static void ClassifyLevel1(string areaDescripcion, string numeroExpediente, string allText, ClassificationScores scores, bool tieneAseguramiento)
     {
-        var combinedText = $"{areaDescripcion} {numeroExpediente} {allText}".ToUpperInvariant();
+        var combinedText = RemoveDiacritics($"{areaDescripcion} {numeroExpediente} {allText}".ToUpperInvariant());
 
         // Aseguramiento (Asset Seizure)
         // Story 2.3: tieneAseguramiento is a structured boolean from the fused Expediente
@@ -172,15 +200,25 @@ public class FileClassifierService : IFileClassifier
             scores.TransferenciaScore = 10;
         }
 
-        // OperacionesIlicitas (Illicit Operations)
+        // OperacionesIlicitas (Illicit Operations / PLD)
+        // 90-tier: original 3 keywords + 6 new keywords from Story 2.4 reconciliation
         if (combinedText.Contains("OPERACIONES ILICITAS", StringComparison.OrdinalIgnoreCase) ||
+            combinedText.Contains("PROCEDENCIA ILICITA", StringComparison.OrdinalIgnoreCase) ||
+            combinedText.Contains("OPERACIONES INUSUALES", StringComparison.OrdinalIgnoreCase) ||
+            combinedText.Contains("OPERACIONES SOSPECHOSAS", StringComparison.OrdinalIgnoreCase) ||
+            combinedText.Contains("OPERACIONES IRREGULARES", StringComparison.OrdinalIgnoreCase) ||
+            combinedText.Contains("INTELIGENCIA FINANCIERA", StringComparison.OrdinalIgnoreCase) ||
+            combinedText.Contains("LFPIORPI", StringComparison.OrdinalIgnoreCase) ||
             combinedText.Contains("LAVADO", StringComparison.OrdinalIgnoreCase) ||
             combinedText.Contains("FINANCIAMIENTO TERRORISMO", StringComparison.OrdinalIgnoreCase))
         {
             scores.OperacionesIlicitasScore = 90;
         }
-        else if (combinedText.Contains("ILICITO", StringComparison.OrdinalIgnoreCase))
+        else if (combinedText.Contains("ILICIT", StringComparison.OrdinalIgnoreCase))
         {
+            // "ILICIT" prefix matches "ILICITO", "ILICITA", "ILICITAS", "ILICITOS" after
+            // diacritic normalisation (Story 2.4: previously only "ILICITO" was checked,
+            // missing the feminine form "ilícita" emitted by the pld motivacion template).
             scores.OperacionesIlicitasScore = 70;
         }
         else
@@ -191,7 +229,7 @@ public class FileClassifierService : IFileClassifier
 
     private static ClassificationLevel2? ClassifyLevel2(string areaDescripcion, string numeroExpediente, string allText)
     {
-        var combinedText = $"{areaDescripcion} {numeroExpediente} {allText}".ToUpperInvariant();
+        var combinedText = RemoveDiacritics($"{areaDescripcion} {numeroExpediente} {allText}".ToUpperInvariant());
 
         // Especial (Special)
         if (combinedText.Contains("ESPECIAL", StringComparison.OrdinalIgnoreCase) ||
@@ -279,6 +317,27 @@ public class FileClassifierService : IFileClassifier
         }
 
         return scoresDict.OrderByDescending(kvp => kvp.Value).First().Key;
+    }
+
+    /// <summary>
+    /// Strips diacritical marks (combining accents) from <paramref name="text"/> so that
+    /// keyword matching is accent-insensitive. For example "ILÍCITA" → "ILICITA" and
+    /// "INFORMACIÓN" → "INFORMACION". Applied once to <c>combinedText</c> before all
+    /// <c>Contains</c> checks; keywords remain ASCII-uppercase and need no accented variants.
+    /// </summary>
+    private static string RemoveDiacritics(string text)
+    {
+        var normalized = text.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(normalized.Length);
+        foreach (var c in normalized)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+            {
+                sb.Append(c);
+            }
+        }
+
+        return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 }
 
