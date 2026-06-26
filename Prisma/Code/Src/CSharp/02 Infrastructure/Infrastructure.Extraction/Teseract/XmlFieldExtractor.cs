@@ -80,6 +80,17 @@ public class XmlFieldExtractor : IFieldExtractor<XmlSource>
                 additional["NumeroOficio"] = numeroOficio;
             }
 
+            // SIARA folio — the same value as NumeroOficio; exposed here so
+            // FuseSolicitudSiaraAsync can see it from the XML source.  TxtFieldExtractor
+            // already writes this value under "SolicitudSiara" via ExtractCoreFields, so
+            // when all three companions provide it the fusion decision is AllAgree at
+            // max reliability, lifting overall confidence above the 0.70 threshold.
+            var solicitudSiara = Value(root, "Cnbv_SolicitudSiara");
+            if (!string.IsNullOrWhiteSpace(solicitudSiara))
+            {
+                additional["SolicitudSiara"] = solicitudSiara;
+            }
+
             // Primary persona (first PersonasSolicitud): Domicilio + name parts
             var solicitudEspecificaEl = root.Element(Ns + "SolicitudEspecifica");
             var primerPersona = solicitudEspecificaEl?.Element(Ns + "PersonasSolicitud");

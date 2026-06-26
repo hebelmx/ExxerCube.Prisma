@@ -553,6 +553,13 @@ public sealed class ExtractionOrchestrator
             NumeroExpediente = fields.Expediente ?? string.Empty,
             NumeroOficio = additional.GetValueOrDefault("NumeroOficio") ?? string.Empty,
             AutoridadNombre = additional.GetValueOrDefault("AutoridadNombre") ?? string.Empty,
+            // SolicitudSiara carries the same SIARA folio as NumeroOficio (e.g. CNBV/2025/158856).
+            // XmlFieldExtractor reads <Cnbv_SolicitudSiara> and TxtFieldExtractor's ExtractCoreFields
+            // writes the same folio value under "SolicitudSiara" in AdditionalFields, so mapping it
+            // here allows FuseSolicitudSiaraAsync to see multi-source agreement and contribute a
+            // 0.85-confidence optional field that lifts CalculateOverallConfidence above the 0.70
+            // ManualReviewThreshold even when XML is the sole source for NumeroExpediente.
+            SolicitudSiara = additional.GetValueOrDefault("SolicitudSiara") ?? string.Empty,
             Referencia1 = fields.Causa ?? string.Empty,
             Referencia2 = fields.AccionSolicitada ?? string.Empty,
         };
@@ -575,6 +582,16 @@ public sealed class ExtractionOrchestrator
                 Nombre    = nombre ?? string.Empty,
                 Domicilio = domicilio,
             });
+        }
+
+        // Propagate TieneAseguramiento from AdditionalFields so the classifier's
+        // short-circuit (Expediente.TieneAseguramiento == true → Aseguramiento/90 %)
+        // fires when the XML companion carries <TieneAseguramiento>true</TieneAseguramiento>.
+        // XmlFieldExtractor stores the value as the string "true"/"false"; bool.TryParse
+        // handles both the lowercase XML form and the "True" form that TxtFieldExtractor emits.
+        if (bool.TryParse(additional.GetValueOrDefault("TieneAseguramiento"), out var tieneAseg) && tieneAseg)
+        {
+            expediente.TieneAseguramiento = true;
         }
 
         foreach (var kvp in additional)
