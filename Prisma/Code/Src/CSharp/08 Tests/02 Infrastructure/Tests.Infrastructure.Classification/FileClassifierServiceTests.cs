@@ -235,5 +235,63 @@ public class FileClassifierServiceTests
         result.Value.ShouldNotBeNull();
         result.Value.Confidence.ShouldBeGreaterThan(70);
     }
+
+    /// <summary>
+    /// Story 2.2: A document with completely empty metadata (empty OCR output, wrong language,
+    /// unrecognised format) must return Unknown classification with confidence 0, not a spurious
+    /// (Aseguramiento, 10) caused by dictionary-insertion-order tie-breaking on all-floor scores.
+    /// </summary>
+    [Fact]
+    public async Task Classify_WithEmptyBodyText_ReturnsUnknownType()
+    {
+        // Arrange
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = string.Empty
+            },
+            LegalReferences = Array.Empty<string>()
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.Unknown);
+        result.Value.Confidence.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// Story 2.2: A document whose text contains no Spanish legal keywords must not silently
+    /// classify as Aseguramiento via dictionary insertion-order. The correct sentinel is Unknown.
+    /// </summary>
+    [Fact]
+    public async Task Classify_WithNoKeywordMatches_NeverReturnsAseguramientoByDefault()
+    {
+        // Arrange — noise text: no legal keyword from any category appears anywhere.
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = "lorem ipsum dolor sit amet",
+                NumeroExpediente = "NOISE-9999"
+            },
+            LegalReferences = new[] { "random unrelated text with no legal signal" }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldNotBe(ClassificationLevel1.Aseguramiento);
+        result.Value.Level1.ShouldBe(ClassificationLevel1.Unknown);
+        result.Value.Confidence.ShouldBe(0);
+    }
 }
 

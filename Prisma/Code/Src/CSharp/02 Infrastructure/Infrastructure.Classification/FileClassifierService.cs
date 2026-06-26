@@ -16,6 +16,12 @@ namespace ExxerCube.Prisma.Infrastructure.Classification;
 /// </summary>
 public class FileClassifierService : IFileClassifier
 {
+    /// <summary>
+    /// Score assigned to a category when no keyword matched. When every category sits at this floor
+    /// simultaneously the document carries no classification signal and should be reported as Unknown.
+    /// </summary>
+    private const int NoMatchFloor = 10;
+
     private readonly ILogger<FileClassifierService> _logger;
 
     /// <summary>
@@ -215,12 +221,19 @@ public class FileClassifierService : IFileClassifier
         };
 
         var maxScore = scoresArray.Max();
+
+        // No-signal guard: every category at the floor means zero meaningful signal.
+        if (maxScore == NoMatchFloor)
+        {
+            return 0;
+        }
+
         var averageScore = (int)scoresArray.Average();
 
         // Confidence is based on how clear the classification is
         // If max score is very high and others are low, confidence is high
         var scoreDifference = maxScore - scoresArray.Where(s => s != maxScore).DefaultIfEmpty(0).Max();
-        
+
         if (scoreDifference >= 60)
         {
             return Math.Min(100, maxScore);
@@ -246,6 +259,13 @@ public class FileClassifierService : IFileClassifier
             { ClassificationLevel1.Transferencia, scores.TransferenciaScore },
             { ClassificationLevel1.OperacionesIlicitas, scores.OperacionesIlicitasScore }
         };
+
+        // No-signal guard: all categories tied at the floor → no keyword matched anywhere.
+        // Return Unknown instead of letting insertion-order pick a spurious winner.
+        if (scoresDict.Values.Max() == NoMatchFloor)
+        {
+            return ClassificationLevel1.Unknown;
+        }
 
         return scoresDict.OrderByDescending(kvp => kvp.Value).First().Key;
     }

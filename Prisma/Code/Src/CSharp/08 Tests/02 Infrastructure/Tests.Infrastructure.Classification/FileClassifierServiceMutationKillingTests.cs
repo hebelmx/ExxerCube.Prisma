@@ -104,8 +104,9 @@ public class FileClassifierServiceMutationKillingTests
     // ── Level-1 default rung (score 10): no keyword present ─────────────────────────────────────────
 
     /// <summary>
-    /// With no category keyword, every score defaults to 10 (not 0), confidence is 10, and the tie resolves
-    /// to the first dictionary entry (Aseguramiento). Pins all six <c>else</c> blocks: a removed else leaves
+    /// With no category keyword, every score defaults to 10 (not 0). Because all six categories sit at the
+    /// no-match floor simultaneously the no-signal guards fire: confidence is 0 (not 10) and Level1 is
+    /// Unknown (not Aseguramiento by insertion-order). Pins all six <c>else</c> blocks: a removed else leaves
     /// the score at its 0 default.
     /// </summary>
     [Fact]
@@ -118,7 +119,8 @@ public class FileClassifierServiceMutationKillingTests
         result.Scores.InformacionScore.ShouldBe(10);
         result.Scores.TransferenciaScore.ShouldBe(10);
         result.Scores.OperacionesIlicitasScore.ShouldBe(10);
-        result.Confidence.ShouldBe(10);
+        result.Confidence.ShouldBe(0);
+        result.Level1.ShouldBe(ClassificationLevel1.Unknown);
         result.Level2.ShouldBeNull();
     }
 
