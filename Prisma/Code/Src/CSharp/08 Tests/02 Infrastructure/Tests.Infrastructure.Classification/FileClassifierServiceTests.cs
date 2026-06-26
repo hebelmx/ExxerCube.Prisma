@@ -554,6 +554,57 @@ public class FileClassifierServiceTests
         result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
     }
 
+    // ── Story 2.5: Confidence monotonicity ──────────────────────────────────────────────────────────
+    //
+    // CalculateConfidence is a separation/clarity score, not a calibrated probability.
+    // For single-dominant-category inputs (one category carries signal, all others at the 10-floor)
+    // it must decrease strictly as match strength decreases:
+    //   strong keyword (score 90) → diff=80 ≥ 60 → confidence = Math.Min(100, 90) = 90
+    //   weak keyword   (score 70) → diff=60 ≥ 60 → confidence = Math.Min(100, 70) = 70
+    //   no keyword     (all=10)   → maxScore == NoMatchFloor      → confidence = 0
+    // Result: 90 > 70 > 0 — strictly descending.
+    //
+    // NOTE — Confidence_IsZeroForNoSignalDocument: the zero-coverage case is already covered by
+    // Classify_WithEmptyBodyText_ReturnsUnknownType, Classify_WithNoKeywordMatches_NeverReturnsAseguramientoByDefault,
+    // and Classify_NoKeyword_AllScoresDefaultTo10 (all assert Confidence == 0). Adding a duplicate
+    // test would add no new failure surface; existing coverage is sufficient per Story 2.5 DoD.
+
+    /// <summary>
+    /// Story 2.5: Confidence must be strictly monotonically decreasing as single-category
+    /// match strength decreases: strong (90) &gt; weak (70) &gt; no-match (0).
+    /// Inputs are designed so only the Aseguramiento category varies; all others stay at the
+    /// 10-floor to avoid a competing-category tie that would collapse the difference and muddy
+    /// the comparison.
+    /// </summary>
+    [Theory]
+    [InlineData("ASEGURAMIENTO", 90)] // strong keyword → Aseguramiento=90, rest=10, diff=80 ≥ 60 → 90
+    [InlineData("ASEGURAR", 70)]      // weak keyword   → Aseguramiento=70, rest=10, diff=60 ≥ 60 → 70
+    [InlineData("lorem ipsum no keywords aqui", 0)] // no match → all=10, maxScore==floor → 0
+    public async Task Confidence_ScalesMonotonicallyWithMatchStrength(string bodyText, int expectedConfidence)
+    {
+        // Arrange — only LegalReferences varies; area and expediente are neutral non-keyword values
+        // so they do not trigger any category keyword and keep all scores at the 10-floor except
+        // the one driven by the body text above.
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = "TST-MONO-001"
+            },
+            LegalReferences = new[] { bodyText }
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Confidence.ShouldBe(expectedConfidence,
+            $"bodyText='{bodyText}' should yield confidence {expectedConfidence}");
+    }
+
     /// <summary>
     /// Story 2.4 (accent cross-category fix): The informacion motivacion template emits
     /// "se requiere información bancaria del contribuyente" — the accented "información" was
