@@ -19,6 +19,7 @@
     <PackageReference Include="System.Reactive" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\01 Core\Application\ExxerCube.Prisma.Application.csproj" />
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Export.Adaptive\ExxerCube.Prisma.Infrastructure.Export.Adaptive.csproj" />
   </ItemGroup>

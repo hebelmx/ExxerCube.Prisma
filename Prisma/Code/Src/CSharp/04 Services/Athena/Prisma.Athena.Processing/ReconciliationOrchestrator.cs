@@ -38,9 +38,6 @@ public sealed class ReconciliationOrchestrator
     private readonly IStoragePathResolver? _storagePathResolver;
     private readonly ExportGatePolicy _exportGatePolicy;
 
-    /// <summary>Classification confidence threshold below which documents are flagged for review.</summary>
-    private const int ClassificationConfidenceThreshold = 70;
-
     /// <summary>Initializes a new instance of the <see cref="ReconciliationOrchestrator"/> class.</summary>
     /// <param name="eventPublisher">The event publisher for domain events.</param>
     /// <param name="logger">The logger.</param>
@@ -224,10 +221,12 @@ public sealed class ReconciliationOrchestrator
         // low, the gate blocks.
         if (_exportGatePolicy.BlockOnLowConfidence && classificationResult is not null)
         {
-            if (classificationResult.Confidence < ClassificationConfidenceThreshold)
+            // Story 2.6 will remove the *100 conversion once ClassificationResult.Confidence uses the shared Confidence VO (0–1 scale).
+            var thresholdInt = (int)(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
+            if (classificationResult.Confidence < thresholdInt)
             {
                 reasons.Add(
-                    $"Classification confidence {classificationResult.Confidence}% is below the required threshold of {ClassificationConfidenceThreshold}% (BlockOnLowConfidence)");
+                    $"Classification confidence {classificationResult.Confidence}% is below the required threshold of {thresholdInt}% (BlockOnLowConfidence)");
             }
         }
 
@@ -373,7 +372,9 @@ public sealed class ReconciliationOrchestrator
 
         var result = classResult.Value!;
 
-        if (result.Confidence < ClassificationConfidenceThreshold)
+        // Story 2.6 will remove the *100 conversion once ClassificationResult.Confidence uses the shared Confidence VO (0–1 scale).
+        var classificationThresholdInt = (int)(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
+        if (result.Confidence < classificationThresholdInt)
         {
             _logger.LogWarning(
                 "Stage 4: Low confidence classification. FileId: {FileId}, Confidence: {Confidence}",
@@ -385,7 +386,7 @@ public sealed class ReconciliationOrchestrator
                 Timestamp = DateTime.UtcNow,
                 CorrelationId = correlationId,
                 FileId = fileId,
-                Reasons = new List<string> { $"Classification confidence {result.Confidence}% below threshold {ClassificationConfidenceThreshold}%" },
+                Reasons = new List<string> { $"Classification confidence {result.Confidence}% below threshold {classificationThresholdInt}%" },
                 Priority = "High"
             };
             _eventPublisher.Publish(flagEvent);
@@ -401,7 +402,7 @@ public sealed class ReconciliationOrchestrator
             RequirementTypeName = result.Level1.Name,
             Confidence = result.Confidence,
             Warnings = new List<string>(),
-            RequiresManualReview = result.Confidence < ClassificationConfidenceThreshold,
+            RequiresManualReview = result.Confidence < classificationThresholdInt,
             RelationType = "NewRequirement"
         };
         _eventPublisher.Publish(classificationEvent);

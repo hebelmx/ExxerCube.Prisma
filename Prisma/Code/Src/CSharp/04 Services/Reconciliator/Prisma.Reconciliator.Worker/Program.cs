@@ -1,4 +1,5 @@
 using Serilog;
+using ExxerCube.Prisma.Application;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Infrastructure.Database.Startup;
 using ExxerCube.Prisma.Domain.Interfaces;
@@ -150,6 +151,11 @@ namespace Prisma.Reconciliator.Worker
 
             builder.Services.AddSingleton<IFileClassifier, FileClassifierService>();
 
+            // Story 2.8: bind ExportGatePolicy from configuration so thresholds are overridable
+            // via appsettings / environment variables without code changes.
+            builder.Services.Configure<ExportGatePolicy>(
+                builder.Configuration.GetSection(ExportGatePolicy.SectionName));
+
             // G-C2b: register the approval-triggered re-export handler as a singleton.
             // StartAsync is called after app.Build() below so the IEventPublisher Rx stream is
             // already alive when the subscription is attached.
@@ -161,7 +167,8 @@ namespace Prisma.Reconciliator.Worker
                 exporter: sp.GetService<IResponseExporter>(),
                 reviewCaseScopeFactory: sp.GetService<IServiceScopeFactory>(),
                 datosCargaGenerator: sp.GetService<IDatosCargaOficioLayoutGenerator>(),
-                storagePathResolver: sp.GetService<IStoragePathResolver>()));
+                storagePathResolver: sp.GetService<IStoragePathResolver>(),
+                exportGatePolicy: sp.GetRequiredService<IOptions<ExportGatePolicy>>().Value));
 
             // Per-process audit (MVP-PATH 1.6 A6): ReconciliationPipelineService is singleton; IAuditLogger is scoped.
             // The service resolves IAuditLogger per audit call via IServiceScopeFactory (no captive dependency).

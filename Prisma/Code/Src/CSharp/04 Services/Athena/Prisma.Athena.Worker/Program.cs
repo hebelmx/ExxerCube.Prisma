@@ -1,5 +1,6 @@
 using System.Text;
 using Serilog;
+using ExxerCube.Prisma.Application;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Infrastructure.Database.Startup;
 using ExxerCube.Prisma.Domain.Events;
@@ -140,6 +141,11 @@ namespace Prisma.Athena.Worker
             // configured base before the pipeline loads the file.
             builder.Services.Configure<StorageOptions>(
                 builder.Configuration.GetSection(StorageOptions.SectionName));
+
+            // Story 2.8: bind ExportGatePolicy from configuration so thresholds are overridable
+            // via appsettings / environment variables without code changes.
+            builder.Services.Configure<ExportGatePolicy>(
+                builder.Configuration.GetSection(ExportGatePolicy.SectionName));
             builder.Services.AddSingleton<IStoragePathResolver, SharedStoragePathResolver>();
 
             builder.Services.AddSingleton<IClearanceReplayGuard, InMemoryClearanceReplayGuard>();
@@ -199,7 +205,8 @@ namespace Prisma.Athena.Worker
                     txtFieldExtractor: txtFieldExtractor,
                     xmlFieldExtractor: xmlFieldExtractor,
                     docxFieldExtractor: docxFieldExtractor,
-                    scopeFactory: sp.GetService<IServiceScopeFactory>());
+                    scopeFactory: sp.GetService<IServiceScopeFactory>(),
+                    exportGatePolicy: sp.GetRequiredService<IOptions<ExportGatePolicy>>().Value);
             });
 
             // Connection-level hub auth (follow-up to MVP-PATH 1.5): the reconciliation hub only accepts clients that

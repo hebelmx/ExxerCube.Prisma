@@ -44,16 +44,13 @@ public sealed class ProcessingOrchestrator
     /// </summary>
     public bool IsStarted { get; private set; }
 
+    private readonly ExportGatePolicy _exportGatePolicy;
+
     /// <summary>
     /// Quality confidence threshold below which documents are rejected.
     /// Images with quality level Q1_Poor are rejected.
     /// </summary>
     private const int QualityRejectionThreshold = 2; // Q1_Poor.Value = 1, anything below 2 is rejected
-
-    /// <summary>
-    /// Classification confidence threshold below which documents are flagged for review.
-    /// </summary>
-    private const int ClassificationConfidenceThreshold = 70;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessingOrchestrator"/> class.
@@ -74,6 +71,12 @@ public sealed class ProcessingOrchestrator
     /// Optional scope factory forwarded to <see cref="ReconciliationOrchestrator"/> for review-case
     /// persistence (GH #6). When <see langword="null"/> review-case persistence is a silent no-op.
     /// </param>
+    /// <param name="exportGatePolicy">
+    /// Optional export-gate policy controlling confidence thresholds for Stage-5 export and manual-review
+    /// routing. When <see langword="null"/> the default policy is used (all gates active, thresholds at
+    /// 0.70 / 0.80). Forwarded to the internal <see cref="ReconciliationOrchestrator"/> and used by the
+    /// ROP path's <c>RequiresManualReview</c> flag. Story 2.8.
+    /// </param>
     /// <remarks>
     /// Pipeline services are optional to support incremental testing.
     /// When null, that pipeline stage is skipped with a warning log.
@@ -91,7 +94,8 @@ public sealed class ProcessingOrchestrator
         IFieldExtractor<TxtSource>? txtFieldExtractor = null,
         IFieldExtractor<XmlSource>? xmlFieldExtractor = null,
         IFieldExtractor<DocxSource>? docxFieldExtractor = null,
-        IServiceScopeFactory? scopeFactory = null)
+        IServiceScopeFactory? scopeFactory = null,
+        ExportGatePolicy? exportGatePolicy = null)
     {
         _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -106,6 +110,7 @@ public sealed class ProcessingOrchestrator
         _xmlFieldExtractor = xmlFieldExtractor;
         _docxFieldExtractor = docxFieldExtractor;
         _scopeFactory = scopeFactory;
+        _exportGatePolicy = exportGatePolicy ?? new ExportGatePolicy();
 
         // Compose the two pipeline halves (MVP-PATH 1.4 Reconciliator edge): the in-process monolith runs both,
         // while the 3-process split hosts ExtractionOrchestrator (Extractor) and ReconciliationOrchestrator
@@ -114,7 +119,8 @@ public sealed class ProcessingOrchestrator
             eventPublisher, logger, qualityAnalyzer, ocrExecutor, fusionService, fileLoader, txtFieldExtractor,
             xmlFieldExtractor, docxFieldExtractor);
         _reconciliationOrchestrator = new ReconciliationOrchestrator(
-            eventPublisher, logger, classifier, exporter, reviewCaseScopeFactory: scopeFactory);
+            eventPublisher, logger, classifier, exporter, reviewCaseScopeFactory: scopeFactory,
+            exportGatePolicy: _exportGatePolicy);
     }
 
     /// <summary>
@@ -545,6 +551,8 @@ public sealed class ProcessingOrchestrator
         }
 
         var result = classResult.Value!;
+        // Story 2.6 will remove the *100 conversion once ClassificationResult.Confidence uses the shared Confidence VO (0–1 scale).
+        var classificationThresholdInt = (int)(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
         _eventPublisher.Publish(new ClassificationCompletedEvent
         {
             EventId = Guid.NewGuid(),
@@ -554,7 +562,7 @@ public sealed class ProcessingOrchestrator
             RequirementTypeId = (int)result.Level1,
             RequirementTypeName = result.Level1.Name,
             Confidence = result.Confidence,
-            RequiresManualReview = result.Confidence < ClassificationConfidenceThreshold,
+            RequiresManualReview = result.Confidence < classificationThresholdInt,
             RelationType = "NewRequirement"
         });
 

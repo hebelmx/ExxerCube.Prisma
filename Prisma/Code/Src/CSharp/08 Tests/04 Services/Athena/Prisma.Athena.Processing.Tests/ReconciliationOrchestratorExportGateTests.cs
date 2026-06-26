@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Application;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
@@ -427,5 +428,79 @@ public sealed class ReconciliationOrchestratorExportGateTests
             "fusion-state reason must be present");
         reasons.ShouldContain(r => r.Contains("BlockOnUnresolvedConflicts"),
             "conflict reason must be present");
+    }
+
+    // =========================================================================
+    // Story 2.8 — unit test: ExportGatePolicy default thresholds
+    // =========================================================================
+
+    /// <summary>
+    /// A default-constructed <see cref="ExportGatePolicy"/> must expose exactly the documented
+    /// threshold values so runtime behaviour matches the specification without any configuration.
+    /// </summary>
+    [Fact]
+    public void ExportGatePolicy_DefaultConstructed_HasExpectedThresholds()
+    {
+        var policy = new ExportGatePolicy();
+
+        policy.ClassificationConfidenceThreshold.ShouldBe(0.70,
+            "default ClassificationConfidenceThreshold must be 0.70 (70%)");
+        policy.ManualReviewThreshold.ShouldBe(0.80,
+            "default ManualReviewThreshold must be 0.80 (80%)");
+
+        // Boolean defaults (unchanged from pre-2.8 behaviour)
+        policy.BlockOnLowConfidence.ShouldBeTrue();
+        policy.BlockOnFusionManualReviewRequired.ShouldBeTrue();
+        policy.BlockOnUnresolvedConflicts.ShouldBeTrue();
+    }
+
+    // =========================================================================
+    // Story 2.8 — integration test: non-default policy lowers the gate threshold
+    // =========================================================================
+
+    /// <summary>
+    /// When a non-default <see cref="ExportGatePolicy"/> is injected (threshold 0.50 = 50%),
+    /// a document whose classification confidence is 0.60 (60 on the 0–100 int scale)
+    /// must PASS the gate and produce an <see cref="ExportCompletedEvent"/>.
+    /// This verifies that the threshold is truly read from the injected policy and not
+    /// from a hardcoded constant.
+    /// </summary>
+    [Fact]
+    public async Task ReconcileAsync_NonDefaultPolicy_LoweredThreshold_DocumentWithSufficientConfidencePasses()
+    {
+        // Arrange: custom policy with a lower 50% threshold.
+        // confidence=60 > 50 → gate must NOT block on confidence.
+        // Fusion is AutoProcess with no conflicts → other gates also clear.
+        const int classificationConfidence = 60; // 0–100 int scale
+        var customPolicy = new ExportGatePolicy
+        {
+            BlockOnLowConfidence = true,
+            BlockOnFusionManualReviewRequired = true,
+            BlockOnUnresolvedConflicts = true,
+            ClassificationConfidenceThreshold = 0.50,  // 50% — lower than the default 70%
+            ManualReviewThreshold = 0.80,
+        };
+        var (orchestrator, publishedEvents, exporterSub) =
+            CreateSut(policy: customPolicy, classifierConfidence: classificationConfidence);
+
+        // Act
+        await orchestrator.ReconcileAsync(
+            ocrResult: null,
+            fusionResult: FusionAutoProcess(),
+            fileId: Guid.NewGuid(),
+            correlationId: null,
+            cancellationToken: Ct);
+
+        // Assert: Stage 5 ran — export event published, no held-for-review event.
+        publishedEvents.OfType<ExportCompletedEvent>().ShouldNotBeEmpty(
+            "confidence 60 > threshold 50: export gate must pass and Stage 5 must run");
+        publishedEvents.OfType<ExportHeldForReviewEvent>().ShouldBeEmpty(
+            "no gate condition should fire when confidence exceeds the injected threshold");
+        await exporterSub
+            .Received(1)
+            .ExportSiroXmlAsync(
+                Arg.Any<UnifiedMetadataRecord>(),
+                Arg.Any<System.IO.Stream>(),
+                Arg.Any<CancellationToken>());
     }
 }

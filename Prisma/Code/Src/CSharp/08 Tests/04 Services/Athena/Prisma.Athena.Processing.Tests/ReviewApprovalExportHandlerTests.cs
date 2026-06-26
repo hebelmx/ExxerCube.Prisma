@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Application;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;

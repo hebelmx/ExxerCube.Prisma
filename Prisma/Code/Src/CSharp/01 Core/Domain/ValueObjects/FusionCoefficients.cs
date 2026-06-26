@@ -126,6 +126,15 @@ public class FusionCoefficients
     /// Gets or sets the minimum overall confidence threshold for AutoProcess (0.0-1.0).
     /// Default: 0.85 (85% confidence required to auto-process without review).
     /// </summary>
+    /// <remarks>
+    /// CROSS-REF (Story 2.8): This is a <em>fusion-reliability</em> threshold — it determines
+    /// the NextAction of the fusion result. It is intentionally separate from
+    /// <c>ExportGatePolicy.ClassificationConfidenceThreshold</c> (0.70) and
+    /// <c>ExportGatePolicy.ManualReviewThreshold</c> (0.80), which gate Stage-5 export based on
+    /// <em>classification</em> confidence. Do not merge these — they model different concerns.
+    /// If you change one, verify the other remains consistent. Story 2.6 (Confidence VO) will
+    /// establish a shared scale for all four confidence representations.
+    /// </remarks>
     public double AutoProcessThreshold { get; set; } = 0.85;
 
     /// <summary>
@@ -133,6 +142,13 @@ public class FusionCoefficients
     /// Default: 0.70 (70-85% confidence range triggers review recommendation).
     /// Below 0.70 = ManualReviewRequired.
     /// </summary>
+    /// <remarks>
+    /// CROSS-REF (Story 2.8): This is a <em>fusion-reliability</em> threshold. See the
+    /// <see cref="AutoProcessThreshold"/> remarks for why this value is separate from the
+    /// export-gate thresholds in <c>ExportGatePolicy</c>. Numeric coincidence with
+    /// <c>ExportGatePolicy.ClassificationConfidenceThreshold</c> (both 0.70) does NOT mean they
+    /// are the same concept — keep them independent.
+    /// </remarks>
     public double ManualReviewThreshold { get; set; } = 0.70;
 
     /// <summary>

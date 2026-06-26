@@ -1,3 +1,4 @@
+using ExxerCube.Prisma.Application;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Interfaces;
@@ -15,6 +16,7 @@ public class ManualReviewerService : IManualReviewerPanel
     private readonly ILogger<ManualReviewerService> _logger;
     private readonly IUnifiedMetadataStore? _unifiedMetadataStore;
     private readonly IEventPublisher? _eventPublisher;
+    private readonly ExportGatePolicy _policy;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ManualReviewerService"/> class.
@@ -33,16 +35,23 @@ public class ManualReviewerService : IManualReviewerPanel
     /// When <c>null</c> no event is published (graceful degradation for callers that do not wire
     /// the event bus, e.g. in-process tests using the old two-parameter constructor).
     /// </param>
+    /// <param name="exportGatePolicy">
+    /// Optional export-gate policy that supplies the manual-review confidence threshold
+    /// (<see cref="ExportGatePolicy.ManualReviewThreshold"/>). When <see langword="null"/> the
+    /// default policy is used (threshold 0.80 → 80%). Story 2.8.
+    /// </param>
     public ManualReviewerService(
         PrismaDbContext dbContext,
         ILogger<ManualReviewerService> logger,
         IUnifiedMetadataStore? unifiedMetadataStore = null,
-        IEventPublisher? eventPublisher = null)
+        IEventPublisher? eventPublisher = null,
+        ExportGatePolicy? exportGatePolicy = null)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _unifiedMetadataStore = unifiedMetadataStore;
         _eventPublisher = eventPublisher;
+        _policy = exportGatePolicy ?? new ExportGatePolicy();
     }
 
     /// <inheritdoc />
@@ -642,8 +651,9 @@ public class ManualReviewerService : IManualReviewerPanel
 
             if (!hasExistingNonCompleted)
             {
-                // Check for low confidence (< 80%)
-                if (classification.Confidence < 80)
+                // Check for low confidence: below ManualReviewThreshold (default 0.80 → 80%).
+                // Story 2.6 will remove the *100 conversion once ClassificationResult.Confidence uses the shared Confidence VO (0–1 scale).
+                if (classification.Confidence < (int)(_policy.ManualReviewThreshold * 100))
                 {
                     var lowConfidenceCase = new ReviewCase
                     {
