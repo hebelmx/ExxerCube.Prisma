@@ -345,6 +345,43 @@ public class FusionExpedienteServiceMutationTests
     }
 
     [Fact]
+    public async Task FuseAsync_OptionalFieldDuplicatingRequiredValue_DoesNotInflateConfidence()
+    {
+        // Epic 2 Story 2.6 MAJOR #1 — the SolicitudSiara double-count.
+        // SolicitudSiara (optional, 30% weight) carries the SAME folio value as the required
+        // NumeroOficio ("O"). It is one physical signal, not two, so it must NOT be counted a
+        // second time in the optional bucket. Required agree XML(0.60)+PDF(0.85) → 0.85 each;
+        // the genuine optional FundamentoLegal is XML-only → 0.60. With the dedup guard the
+        // duplicated SolicitudSiara is excluded, so the result is IDENTICAL to the baseline
+        // case with no SolicitudSiara at all (see _RequiredAndOptionalDiffer_ above).
+        var xml = new Expediente { NumeroExpediente = "E", NumeroOficio = "O", AreaDescripcion = "A", FundamentoLegal = "F", SolicitudSiara = "O" };
+        var pdf = new Expediente { NumeroExpediente = "E", NumeroOficio = "O", AreaDescripcion = "A", SolicitudSiara = "O" };
+
+        var r = (await _service.FuseAsync(xml, pdf, null, FlatMeta(), FlatMeta(), FlatMeta(), Ct)).Value!;
+
+        r.RequiredFieldsScore.ShouldBe(0.85, 0.0001);
+        r.OptionalFieldsScore.ShouldBe(0.60, 0.0001);                          // duplicate excluded, FundamentoLegal only
+        r.Confidence.Value.ShouldBe((0.85 * 0.70) + (0.60 * 0.30), 0.0001);    // 0.775 — NOT lifted by the duplicate
+    }
+
+    [Fact]
+    public async Task FuseAsync_OptionalFieldWithDistinctValue_StillCountsTowardConfidence()
+    {
+        // Counterpart to the dedup test: a SolicitudSiara that is GENUINELY DISTINCT from the
+        // NumeroOficio folio ("S" vs "O") is a real independent signal and MUST still contribute.
+        // Both optional fields now count: SolicitudSiara agrees XML+PDF → 0.85, FundamentoLegal
+        // XML-only → 0.60, so OptionalFieldsScore = (0.85 + 0.60) / 2 = 0.725.
+        var xml = new Expediente { NumeroExpediente = "E", NumeroOficio = "O", AreaDescripcion = "A", FundamentoLegal = "F", SolicitudSiara = "S" };
+        var pdf = new Expediente { NumeroExpediente = "E", NumeroOficio = "O", AreaDescripcion = "A", SolicitudSiara = "S" };
+
+        var r = (await _service.FuseAsync(xml, pdf, null, FlatMeta(), FlatMeta(), FlatMeta(), Ct)).Value!;
+
+        r.RequiredFieldsScore.ShouldBe(0.85, 0.0001);
+        r.OptionalFieldsScore.ShouldBe((0.85 + 0.60) / 2.0, 0.0001);           // 0.725 — distinct optional counts
+        r.Confidence.Value.ShouldBe((0.85 * 0.70) + (0.725 * 0.30), 0.0001);   // 0.8125
+    }
+
+    [Fact]
     public async Task FuseAsync_HighConfidenceNoConflict_AutoProcess()
     {
         // Everything agrees across XML+PDF → all confidence 0.85 ≥ AutoProcessThreshold, 0 conflicts.

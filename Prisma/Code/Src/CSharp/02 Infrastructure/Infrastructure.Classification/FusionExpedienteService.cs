@@ -2485,15 +2485,39 @@ public class FusionExpedienteService : IFusionExpediente
             .Where(kvp => kvp.Value.Decision != FusionDecision.AllSourcesNull)
             .ToList();
 
-        var requiredFieldsConfidence = fieldsWithData
+        var requiredEntries = fieldsWithData
             .Where(kvp => requiredFields.Contains(kvp.Key))
+            .ToList();
+
+        var requiredFieldsConfidence = requiredEntries
             .Select(kvp => kvp.Value.Confidence)
             .DefaultIfEmpty(0.0)
             .Average();
 
-        var optionalFieldsConfidence = fieldsWithData
-            .Where(kvp => !requiredFields.Contains(kvp.Key))
-            .Select(kvp => kvp.Value.Confidence)
+        // Value-dedup guard (Epic 2 Story 2.6, MAJOR #1): an optional field whose fused
+        // value is identical to one already counted is the SAME physical signal, not an
+        // independent one. Counting it again double-weights a single datum and overstates
+        // confidence (e.g. SolicitudSiara mirroring the NumeroOficio folio). Tally each
+        // distinct fused value at most once, preferring the higher-weight required bucket.
+        var countedValues = requiredEntries
+            .Select(kvp => kvp.Value.Value)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var optionalConfidences = new List<double>();
+        foreach (var kvp in fieldsWithData.Where(kvp => !requiredFields.Contains(kvp.Key)))
+        {
+            var value = kvp.Value.Value;
+            if (!string.IsNullOrWhiteSpace(value) && !countedValues.Add(value))
+            {
+                // Duplicate of an already-counted value (required or earlier optional) — skip.
+                continue;
+            }
+
+            optionalConfidences.Add(kvp.Value.Confidence);
+        }
+
+        var optionalFieldsConfidence = optionalConfidences
             .DefaultIfEmpty(0.0)
             .Average();
 
