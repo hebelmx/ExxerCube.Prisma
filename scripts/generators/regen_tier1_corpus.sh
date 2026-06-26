@@ -5,15 +5,36 @@
 #   8 internally-consistent 3-companion cases (PDF + DOCX + XML) under:
 #     Deployments/Siara.Simulator/bulk_generated_documents_all_formats/<caseId>/
 #
+# CANONICAL GREEN CASE (already committed to cases.json on 2026-06-25)
+#   CNBV-2025-158856_20260625_183315
+#   NumeroOficio  : CNBV/2025/158856  (XML == DOCX == PDF OCR — AllAgree)
+#   NumeroExpediente: EXP-8810-2024   (XML only, single-source confidence 0.60)
+#   TieneAseguramiento: true           (XML → Fix-1 propagates bool to Expediente)
+#   Classification: Aseguramiento/90% (short-circuit via Expediente.TieneAseguramiento)
+#   Fusion conflicts: 0                (Fix-2 excludes CNBV-recipient header from
+#                                       AutoridadNombre candidates)
+#   NextAction: ReviewRecommended      (confidence ≈ 0.74, not ManualReviewRequired)
+#   ExportGatePolicy: ALL PASS         (BlockOnLowConfidence=false, BlockOnFusion=false,
+#                                       BlockOnUnresolvedConflicts=false)
+#
 # WHY THESE ARE "GREEN"
 #   chaos=none → no field mutations.  Cnbv_NumeroOficio = the SIARA folio (e.g.
 #   AGAFF/2023/023947) so the XML, DOCX, and PDF OCR sources all extract the
 #   SAME NumeroOficio value → fusion AllAgree, 0 conflicts, NextAction !=
 #   ManualReviewRequired → ExportGatePolicy allows Stage-5 export.
 #
+#   Two code fixes (branch Liv, 2026-06-26) are required for green verdict:
+#   Fix-1  ExtractionOrchestrator.MapExtractedFieldsToExpediente now propagates
+#          AdditionalFields["TieneAseguramiento"] → Expediente.TieneAseguramiento (bool)
+#          so the classifier short-circuit fires for ASEGURAMIENTO type cases.
+#   Fix-2  FusionExpedienteService.FuseAutoridadNombreAsync now excludes PDF/DOCX
+#          candidates that carry "Comisión Nacional Bancaria y de Valores" (the CNBV
+#          recipient from the document header, NOT the issuing authority) so the XML
+#          issuing-authority value is not falsely flagged as conflicting.
+#
 # SEEDS
-#   seed=100 → 3 cases (AGAFF×2, SEIDO×1)
-#   seed=200 → 5 cases (INFONAVIT×2, IMSS×1, CNBV×1, AGAFF×1)
+#   seed=100 → 3 cases (type=aseguramiento, various authorities)
+#   seed=200 → 5 cases (mixed types, chaos=none)
 #   The folio values are deterministic per seed.  Dir names include a timestamp
 #   (non-deterministic) but the case content is always the same.
 #
@@ -61,19 +82,26 @@ mkdir -p "$CORPUS_DIR"
 echo "Clearing existing corpus ..."
 find "$CORPUS_DIR" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
 
-# ── Generate: batch 1 (seed=100, 3 cases) ────────────────────────────────────
+# ── Generate: batch 1 — ASEGURAMIENTO cases (canonical green for gate) ────────
+# seed=100, chaos=none, type=aseguramiento: these cases get TieneAseguramiento=true
+# in the XML, which after Fix-1 (ExtractionOrchestrator.MapExtractedFieldsToExpediente)
+# propagates to Expediente.TieneAseguramiento=true → FileClassifierService short-circuit
+# → Aseguramiento/90% classification confidence → ExportGatePolicy classification check
+# passes.  Fix-2 (FuseAutoridadNombreAsync candidate filter) ensures the CNBV recipient
+# in the PDF header does not conflict with the XML issuing-authority field.
 echo ""
-echo "Generating batch 1 (seed=100, 3 cases, chaos=none) ..."
+echo "Generating batch 1 (seed=100, 3 cases, chaos=none, type=aseguramiento) ..."
 (cd "$GENERATOR_DIR" && "$PYTHON" main_generator.py \
   --count 3 \
   --output "$CORPUS_DIR" \
   --chaos none \
+  --types aseguramiento \
   --formats pdf docx xml \
   --seed 100)
 
-# ── Generate: batch 2 (seed=200, 5 cases) ────────────────────────────────────
+# ── Generate: batch 2 — mixed types for additional green-gate coverage ─────────
 echo ""
-echo "Generating batch 2 (seed=200, 5 cases, chaos=none) ..."
+echo "Generating batch 2 (seed=200, 5 cases, chaos=none, mixed types) ..."
 (cd "$GENERATOR_DIR" && "$PYTHON" main_generator.py \
   --count 5 \
   --output "$CORPUS_DIR" \
@@ -121,4 +149,12 @@ if failures:
     sys.exit(1)
 else:
     print(f"\nAll {len(os.listdir(corpus_dir))} cases consistent — tier-1 corpus ready.")
+
+# Rewrite cases.json so the SIARA simulator discovers the newly-generated cases.
+cases_json = os.path.join(os.path.dirname(corpus_dir), "app", "cases.json")
+case_ids = sorted(d for d in os.listdir(corpus_dir) if os.path.isdir(os.path.join(corpus_dir, d)))
+import json
+with open(cases_json, "w", encoding="utf-8") as f:
+    json.dump(case_ids, f, indent=2)
+print(f"\nUpdated {cases_json} with {len(case_ids)} case ID(s).")
 PYEOF
