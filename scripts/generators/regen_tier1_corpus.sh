@@ -11,8 +11,8 @@
 #   NumeroExpediente: EXP-8810-2024   (XML only, single-source confidence 0.60)
 #   TieneAseguramiento: true           (XML → Fix-1 propagates bool to Expediente)
 #   Classification: Aseguramiento/90% (short-circuit via Expediente.TieneAseguramiento)
-#   Fusion conflicts: 0                (Fix-2 excludes CNBV-recipient header from
-#                                       AutoridadNombre candidates)
+#   Fusion conflicts: 0                (chaos=none → companions agree; no AutoridadNombre
+#                                       conflict occurs, so NO production filter is needed)
 #   NextAction: ReviewRecommended      (confidence ≈ 0.74, not ManualReviewRequired)
 #   ExportGatePolicy: ALL PASS         (BlockOnLowConfidence=false, BlockOnFusion=false,
 #                                       BlockOnUnresolvedConflicts=false)
@@ -23,14 +23,20 @@
 #   SAME NumeroOficio value → fusion AllAgree, 0 conflicts, NextAction !=
 #   ManualReviewRequired → ExportGatePolicy allows Stage-5 export.
 #
-#   Two code fixes (branch Liv, 2026-06-26) are required for green verdict:
+#   The §2-gate-green changes (branch Liv, 2026-06-26) are:
 #   Fix-1  ExtractionOrchestrator.MapExtractedFieldsToExpediente now propagates
 #          AdditionalFields["TieneAseguramiento"] → Expediente.TieneAseguramiento (bool)
 #          so the classifier short-circuit fires for ASEGURAMIENTO type cases.
-#   Fix-2  FusionExpedienteService.FuseAutoridadNombreAsync now excludes PDF/DOCX
-#          candidates that carry "Comisión Nacional Bancaria y de Valores" (the CNBV
-#          recipient from the document header, NOT the issuing authority) so the XML
-#          issuing-authority value is not falsely flagged as conflicting.
+#   Fix-3  XmlFieldExtractor + ExtractionOrchestrator wire SolicitudSiara into the
+#          Expediente (completes the pre-existing FuseSolicitudSiaraAsync path).
+#   Plus  SiroXmlExporter UTF-8 declaration + EventPersistenceWorker ProcessId stamping.
+#   NOTE: an earlier "Fix-2" (a hardcoded CNBV-recipient exclusion in
+#         FuseAutoridadNombreAsync) was REVERTED — the real gate run proved fusion has
+#         0 conflicts WITHOUT it (chaos=none corpus consistency, not a code filter).
+#   KNOWN CAVEAT: SolicitudSiara is derived from the same OCR pattern as NumeroOficio
+#         (AdaptiveTxtFieldExtractor "// Same pattern"), so wiring it into the optional
+#         bucket double-counts the folio and inflates overall confidence over the 0.70
+#         ManualReview bar — tracked for the Sprint-3 confidence re-architecture.
 #
 # SEEDS
 #   seed=100 → 3 cases (type=aseguramiento, various authorities)
@@ -87,8 +93,8 @@ find "$CORPUS_DIR" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} + 2>/dev/null
 # in the XML, which after Fix-1 (ExtractionOrchestrator.MapExtractedFieldsToExpediente)
 # propagates to Expediente.TieneAseguramiento=true → FileClassifierService short-circuit
 # → Aseguramiento/90% classification confidence → ExportGatePolicy classification check
-# passes.  Fix-2 (FuseAutoridadNombreAsync candidate filter) ensures the CNBV recipient
-# in the PDF header does not conflict with the XML issuing-authority field.
+# passes.  (No AutoridadNombre filter is needed: chaos=none keeps companions consistent,
+# so fusion sees 0 conflicts without any production-side exclusion.)
 echo ""
 echo "Generating batch 1 (seed=100, 3 cases, chaos=none, type=aseguramiento) ..."
 (cd "$GENERATOR_DIR" && "$PYTHON" main_generator.py \
