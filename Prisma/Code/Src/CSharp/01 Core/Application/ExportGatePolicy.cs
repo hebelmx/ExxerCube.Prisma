@@ -13,12 +13,11 @@ namespace ExxerCube.Prisma.Application;
 /// The default values implement the owner-ruling (binding, 2026-06-20):
 /// export MUST block on low-confidence OR fusion manual-review-required OR unresolved conflicts.
 ///
-/// Threshold scale: all thresholds use the 0.0–1.0 scale.
-/// The classification pipeline currently expresses confidence as int 0–100; callers that
-/// compare against <see cref="ClassificationConfidenceThreshold"/> must multiply by 100
-/// (e.g. <c>confidence &lt; ClassificationConfidenceThreshold * 100</c>).
-/// Story 2.6 (confidence-value-object) will remove the per-call conversion once a shared
-/// <c>Confidence</c> VO normalises every stage to the 0–1 scale.
+/// Threshold scale: all thresholds use the 0.0–1.0 scale. Since Story 2.6
+/// (confidence-value-object), every pipeline stage normalises confidence to the shared
+/// <c>Confidence</c> VO on 0–1, so callers compare directly on the same scale
+/// (e.g. <c>classification.Confidence.Value &lt; ClassificationConfidenceThreshold</c>) —
+/// no <c>* 100</c> conversion.
 /// </remarks>
 public sealed class ExportGatePolicy
 {
@@ -62,9 +61,9 @@ public sealed class ExportGatePolicy
     /// Default: <c>0.70</c> (70 %).
     /// </summary>
     /// <remarks>
-    /// Compared against <see cref="ExxerCube.Prisma.Domain.ValueObjects.ClassificationResult.Confidence"/>
-    /// (int 0–100) as <c>confidence &lt; ClassificationConfidenceThreshold * 100</c>.
-    /// Story 2.6 will remove this conversion once all stages use the shared Confidence VO.
+    /// Compared directly against <see cref="ExxerCube.Prisma.Domain.ValueObjects.ClassificationResult.Confidence"/>'s
+    /// <c>Confidence.Value</c> (0–1) as <c>classification.Confidence.Value &lt; ClassificationConfidenceThreshold</c>
+    /// — both on the 0–1 scale since Story 2.6, no <c>* 100</c>.
     /// </remarks>
     public double ClassificationConfidenceThreshold { get; set; } = 0.70;
 
@@ -77,9 +76,8 @@ public sealed class ExportGatePolicy
     /// case should be opened. A document whose classification confidence is below this
     /// value is routed to the review queue even if the export gate allows it through
     /// (because the gate threshold is lower, 0.70 &lt; 0.80).
-    /// Compared against <see cref="ExxerCube.Prisma.Domain.ValueObjects.ClassificationResult.Confidence"/>
-    /// (int 0–100) as <c>confidence &lt; ManualReviewThreshold * 100</c>.
-    /// Story 2.6 will remove this conversion once all stages use the shared Confidence VO.
+    /// Compared directly against <see cref="ExxerCube.Prisma.Domain.ValueObjects.ClassificationResult.Confidence"/>'s
+    /// <c>Confidence.Value</c> (0–1) — both on the 0–1 scale since Story 2.6, no <c>* 100</c>.
     /// </remarks>
     public double ManualReviewThreshold { get; set; } = 0.80;
 }
