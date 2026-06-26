@@ -9,6 +9,7 @@ using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Entities;
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -93,6 +94,13 @@ public class EventPersistenceWorker : BackgroundService
             using var scope = _serviceScopeFactory.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<IPrismaDbContext>();
 
+            // Resolve the originating worker process identity so the event-sourced audit row is
+            // attributable to the process that published it (orion-downloader / athena-extractor /
+            // reconciliator). Each worker hosts its own EventPersistenceWorker, so the actor resolved
+            // here is that process's identity. Fail-open to a non-empty degraded identity ("system")
+            // so an audit row is never left unattributed.
+            var processId = await ResolveProcessIdAsync(scope.ServiceProvider, cancellationToken).ConfigureAwait(false);
+
             // --- Outbox write (NFR14): persist the event payload first so the OutboxRetryWorker
             //     can detect and re-publish it if the audit-record write below fails.
             var outboxEntry = new OutboxEvent
@@ -114,7 +122,7 @@ public class EventPersistenceWorker : BackgroundService
             }
 
             // --- Audit record write (existing behaviour).
-            var auditRecord = MapEventToAuditRecord(domainEvent);
+            var auditRecord = MapEventToAuditRecord(domainEvent, processId);
             dbContext.AuditRecords.Add(auditRecord);
 
             // Commit both in one round-trip.
@@ -155,8 +163,9 @@ public class EventPersistenceWorker : BackgroundService
     /// Maps a domain event to an AuditRecord entity.
     /// </summary>
     /// <param name="domainEvent">The domain event to map.</param>
+    /// <param name="processId">The originating worker process identity to stamp on the audit record.</param>
     /// <returns>An AuditRecord entity.</returns>
-    private AuditRecord MapEventToAuditRecord(DomainEvent domainEvent)
+    private AuditRecord MapEventToAuditRecord(DomainEvent domainEvent, string processId)
     {
         var (actionType, stage, fileId) = GetAuditDetails(domainEvent);
 
@@ -170,9 +179,31 @@ public class EventPersistenceWorker : BackgroundService
             UserId = null, // System action
             Timestamp = domainEvent.Timestamp,
             Stage = stage,
+            ProcessId = processId,
             Success = !IsErrorEvent(domainEvent),
             ErrorMessage = GetErrorMessage(domainEvent),
         };
+    }
+
+    /// <summary>
+    /// Resolves the current worker process identity (the SIARA actor's <c>ActorId</c>) for audit
+    /// attribution. Fail-open: returns the non-empty degraded identity <c>"system"</c> when no
+    /// <see cref="ISiaraActorIdentityProvider"/> is registered (e.g. the Web.UI host) or actor
+    /// resolution fails, so an audit row is never persisted with a null/empty ProcessId.
+    /// </summary>
+    private static async Task<string> ResolveProcessIdAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
+    {
+        const string fallback = "system";
+        var actorProvider = serviceProvider.GetService<ISiaraActorIdentityProvider>();
+        if (actorProvider is null)
+        {
+            return fallback;
+        }
+
+        var actorResult = await actorProvider.GetCurrentActorAsync(cancellationToken).ConfigureAwait(false);
+        return actorResult.IsSuccess && !string.IsNullOrWhiteSpace(actorResult.Value?.ActorId)
+            ? actorResult.Value!.ActorId
+            : fallback;
     }
 
     /// <summary>
