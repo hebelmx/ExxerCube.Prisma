@@ -293,5 +293,66 @@ public class FileClassifierServiceTests
         result.Value.Level1.ShouldBe(ClassificationLevel1.Unknown);
         result.Value.Confidence.ShouldBe(0);
     }
+
+    /// <summary>
+    /// Story 2.3: The structured boolean TieneAseguramiento (populated by fusion from the XML
+    /// companion) must drive the classifier to Aseguramiento at high confidence even when no
+    /// keyword appears in area, expediente number, or LegalReferences.
+    /// </summary>
+    [Fact]
+    public async Task Classify_WithTieneAseguramientoTrue_ReturnsAseguramientoAbove80()
+    {
+        // Arrange — boolean flag set, all text fields empty (no keyword signal).
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                TieneAseguramiento = true,
+                AreaDescripcion = string.Empty,
+                NumeroExpediente = string.Empty
+            },
+            LegalReferences = Array.Empty<string>()
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldBe(ClassificationLevel1.Aseguramiento);
+        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(80);
+    }
+
+    /// <summary>
+    /// Story 2.3: When TieneAseguramiento is false and the area/text contain no Aseguramiento
+    /// keywords, the boolean must not push the result to Aseguramiento.  With no other category
+    /// signal present either, the result must be Unknown (no-signal guard from Story 2.2).
+    /// </summary>
+    [Fact]
+    public async Task Classify_WithTieneAseguramientoFalse_DoesNotReturnAseguramientoOnNameAlone()
+    {
+        // Arrange — boolean explicitly false, neutral non-keyword text only.
+        var metadata = new ExtractedMetadata
+        {
+            Expediente = new Expediente
+            {
+                TieneAseguramiento = false,
+                AreaDescripcion = "Informe general anual de actividades",
+                NumeroExpediente = "GEN-2024-001"
+            },
+            LegalReferences = Array.Empty<string>()
+        };
+
+        // Act
+        var result = await _service.ClassifyAsync(metadata, TestContext.Current.CancellationToken);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+        result.Value!.Level1.ShouldNotBe(ClassificationLevel1.Aseguramiento);
+        result.Value.Level1.ShouldBe(ClassificationLevel1.Unknown);
+        result.Value.Confidence.ShouldBe(0);
+    }
 }
 

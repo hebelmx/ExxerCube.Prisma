@@ -49,8 +49,13 @@ public class FileClassifierService : IFileClassifier
             var legalReferences = metadata.LegalReferences ?? Array.Empty<string>();
             var allText = string.Join(" ", legalReferences);
 
-            // Level 1 Classification - Deterministic rules based on keywords and patterns
-            ClassifyLevel1(areaDescripcion, numeroExpediente, allText, scores);
+            // Level 1 Classification - Deterministic rules based on keywords and patterns.
+            // Story 2.3 (option b): TieneAseguramiento boolean is forwarded as a high-weight fast
+            // path. We fold it into ClassifyLevel1 rather than re-routing Stage-4 DI to
+            // ExpedienteClasifierService (option a) to keep the change surface minimal and preserve
+            // the existing keyword path as a complementary signal.
+            var tieneAseguramiento = expediente?.TieneAseguramiento == true;
+            ClassifyLevel1(areaDescripcion, numeroExpediente, allText, scores, tieneAseguramiento);
 
             // Level 2 Classification - Subcategories based on metadata
             var level2 = ClassifyLevel2(areaDescripcion, numeroExpediente, allText);
@@ -79,12 +84,18 @@ public class FileClassifierService : IFileClassifier
         }
     }
 
-    private static void ClassifyLevel1(string areaDescripcion, string numeroExpediente, string allText, ClassificationScores scores)
+    private static void ClassifyLevel1(string areaDescripcion, string numeroExpediente, string allText, ClassificationScores scores, bool tieneAseguramiento)
     {
         var combinedText = $"{areaDescripcion} {numeroExpediente} {allText}".ToUpperInvariant();
 
         // Aseguramiento (Asset Seizure)
-        if (combinedText.Contains("ASEGURAMIENTO", StringComparison.OrdinalIgnoreCase) ||
+        // Story 2.3: tieneAseguramiento is a structured boolean from the fused Expediente
+        // (XML companion → FusionExpedienteService → Extractor→Reconciliator handoff).
+        // It is more trustworthy than substring matching and shares the 90-point tier.
+        // Only TieneAseguramiento exists on Expediente as a typed boolean — no other
+        // Tiene*/boolean fields map to a document category at this time.
+        if (tieneAseguramiento ||
+            combinedText.Contains("ASEGURAMIENTO", StringComparison.OrdinalIgnoreCase) ||
             combinedText.Contains("EMBARGO", StringComparison.OrdinalIgnoreCase) ||
             numeroExpediente.Contains("/AS", StringComparison.OrdinalIgnoreCase))
         {
