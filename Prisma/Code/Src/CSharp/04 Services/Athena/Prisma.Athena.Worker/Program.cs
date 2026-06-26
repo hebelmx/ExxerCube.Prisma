@@ -28,6 +28,13 @@ using Prisma.Athena.Worker;
 using Prisma.Athena.Worker.Ingestion;
 using Prisma.Athena.Worker.Reconciliation;
 
+// Linux native-interop guard: load the system Leptonica/Tesseract into the global symbol scope BEFORE
+// Emgu.CV (libcvextern.so, Stage 1) or SkiaSharp can interpose their bundled Leptonica copy. Without this,
+// Tesseract OCR (Stage 2) segfaults (exit 139) once OpenCV is co-resident. No-op off Linux; idempotent.
+// (The OCR assembly's module initializer also arms this; the explicit call makes the entrypoint ordering
+// unambiguous.) See LeptonicaInteropGuard for the full root-cause analysis.
+ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Teseract.LeptonicaInteropGuard.EnsureSystemLeptonicaLoadedFirst();
+
 var app = Prisma.Athena.Worker.Program.BuildApp(args);
 
 if (args.Contains("--migrate-only"))
