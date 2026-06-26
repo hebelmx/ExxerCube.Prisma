@@ -39,10 +39,11 @@ public static class VeriqanOrchestrationExtensions
     /// lightweight in-memory fallback is used (suitable for tests and local dev without SQL).
     /// </para>
     /// <para>
-    /// Reference-data is registered without a custom options action; callers that need to
-    /// override the CSV root directory should call <c>AddVeriqanReferenceData(opts => ...)</c>
-    /// directly before calling <c>AddVeriqan</c> (<c>TryAdd</c> semantics prevent double
-    /// registration).
+    /// Reference-data's CSV root directory is bound from the <c>"Veriqan:CsvReferenceData"</c>
+    /// configuration section (e.g. the <c>Veriqan__CsvReferenceData__RootDirectory</c> env var
+    /// or appsettings), so a host that supplies that config gets a configured root automatically.
+    /// Callers that need to override it in code may still call
+    /// <c>AddVeriqanReferenceData(opts => ...)</c> directly before <c>AddVeriqan</c>.
     /// </para>
     /// </remarks>
     /// <param name="services">The service collection to configure.</param>
@@ -62,7 +63,11 @@ public static class VeriqanOrchestrationExtensions
         services.AddVeriqanDisposition();
 
         // Infrastructure adapters
-        services.AddVeriqanReferenceData();
+        // Bind the CSV reference-data root from configuration so a host that supplies
+        // Veriqan:CsvReferenceData:RootDirectory (env var or appsettings) gets a configured
+        // root automatically — otherwise the worker readiness probe fails csvReferenceDataRoot.
+        services.AddVeriqanReferenceData(opts =>
+            config.GetSection("Veriqan:CsvReferenceData").Bind(opts));
         services.AddVeriqanExtraction(config);
         services.AddVeriqanValidation();
         services.AddVeriqanVisual();
