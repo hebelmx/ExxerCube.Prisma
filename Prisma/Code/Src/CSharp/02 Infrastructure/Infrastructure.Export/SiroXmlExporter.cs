@@ -174,7 +174,12 @@ public class SiroXmlExporter : IResponseExporter
             OmitXmlDeclaration = false
         };
 
-        using var stringWriter = new StringWriter();
+        // A plain StringWriter always reports UTF-16 as its Encoding, so XmlWriter ignores
+        // settings.Encoding and emits encoding="utf-16" in the XML declaration. The bytes are
+        // then written as UTF-8 (no BOM) at the call site, producing a file whose declaration
+        // contradicts its bytes — any compliant XML reader throws "no Unicode byte order mark".
+        // Utf8StringWriter forces the declaration to encoding="utf-8" to match the written bytes.
+        using var stringWriter = new Utf8StringWriter();
         using var xmlWriter = XmlWriter.Create(stringWriter, settings);
 
         xmlWriter.WriteStartDocument();
@@ -333,6 +338,16 @@ public class SiroXmlExporter : IResponseExporter
         {
             return Result.WithFailure($"Error validating SIRO schema: {ex.Message}", ex);
         }
+    }
+
+    /// <summary>
+    /// A <see cref="StringWriter"/> that reports UTF-8 as its encoding so that
+    /// <see cref="XmlWriter"/> emits <c>encoding="utf-8"</c> in the XML declaration,
+    /// matching the UTF-8 bytes the exporter actually writes to storage.
+    /// </summary>
+    private sealed class Utf8StringWriter : StringWriter
+    {
+        public override Encoding Encoding => Encoding.UTF8;
     }
 }
 
