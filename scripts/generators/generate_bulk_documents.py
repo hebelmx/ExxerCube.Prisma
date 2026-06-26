@@ -11,7 +11,13 @@ TOTAL_DOCUMENTS = 500
 BATCH_SIZE = 10
 DELAY_BETWEEN_BATCHES = 10  # Seconds
 OUTPUT_DIRECTORY = "bulk_generated_documents_all_formats"
-GENERATOR_SCRIPT = "Prisma/Fixtures/generators/AAAV2_refactored/main_generator.py"
+GENERATOR_SCRIPT = "Prisma/PRP/PRP1/research/generators/AAAV2_refactored/main_generator.py"  # corrected from stale "Prisma/Fixtures/generators/AAAV2_refactored/main_generator.py"
+
+# Venv Python interpreter — use this so generator deps (faker, python-docx,
+# lxml, jinja2) are available without polluting the system Python.
+# Create the venv once with: python3 -m venv .venv-corpus-gen &&
+#   .venv-corpus-gen/bin/pip install faker python-docx lxml tqdm python-dateutil jinja2 requests
+PYTHON_EXECUTABLE = ".venv-corpus-gen/bin/python3"
 
 # --- Generation Parameters (for diversity) ---
 CHAOS_LEVELS = ["none", "low", "medium", "high"]
@@ -44,7 +50,7 @@ def main():
 
         # --- Construct the command ---
         command = [
-            "python", GENERATOR_SCRIPT,
+            PYTHON_EXECUTABLE, GENERATOR_SCRIPT,
             "--count", str(BATCH_SIZE),
             "--output", OUTPUT_DIRECTORY,
             "--chaos", random_chaos,

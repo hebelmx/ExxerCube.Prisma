@@ -305,15 +305,24 @@ class MexicanDataGenerator:
         """Generate realistic SIARA folio number.
 
         Format: AUTHORITY/YYYY/######
-        Examples: AGAFADAFSON2/2025/000084, UIF/2025/123456
+        Examples: AGAFADAFSON2/2025/000084, SEIDO/2025/123456
+
+        NOTE: Only prefixes with 4+ uppercase letters are included here so the
+        generated folio matches the C# TxtFieldExtractor and DocxFieldExtractor
+        pattern `[A-Z]{4,}[A-Z0-9]{0,10}/\\d{4}/\\d{6}`.  3-letter prefixes such
+        as UIF, FGR, PJF do NOT match that pattern and would create a NumeroOficio
+        conflict between the XML source (which has the folio verbatim) and the
+        DOCX/PDF sources (which cannot find it via pattern), causing fusion to
+        trigger ManualReviewRequired and block the §2 export gate.
         """
         prefixes = [
-            'AGAFADAFSON2',  # SAT Auditoría
-            'AGAFF',         # SAT General
-            'UIF',           # Unidad de Inteligencia Financiera
-            'FGR',           # Fiscalía General
-            'SEIDO',         # Subprocuraduría
-            'PJF',           # Poder Judicial
+            'AGAFADAFSON2',  # SAT Auditoría Fiscal Sonora 2
+            'AGAFF',         # SAT Administración General Auditoría Fiscal Federal
+            'SEIDO',         # Subprocuraduría Especializada Investigación Delincuencia Organizada
+            'IMSS',          # Instituto Mexicano del Seguro Social
+            'SHCP',          # Secretaría de Hacienda y Crédito Público
+            'CNBV',          # Comisión Nacional Bancaria y de Valores
+            'INFONAVIT',     # Instituto del Fondo Nacional de la Vivienda
         ]
 
         prefix = random.choice(prefixes)

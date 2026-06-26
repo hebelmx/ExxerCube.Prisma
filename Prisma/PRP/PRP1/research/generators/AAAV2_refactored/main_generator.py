@@ -281,7 +281,7 @@ class CNBVFixtureGenerator:
         data = {
             # Identification
             'Cnbv_SolicitudSiara': folio_siara,
-            'Cnbv_NumeroOficio': f"OF-{random.randint(1000, 9999)}-{datetime.now().year}",
+            'Cnbv_NumeroOficio': folio_siara,  # SIARA folio — matches what TxtFieldExtractor and DocxFieldExtractor extract from PDF/DOCX text
             'Cnbv_OficioYear': str(datetime.now().year),
             'Cnbv_AreaDescripcion': authority_data['area'],
             'Cnbv_Folio': folio_siara,
