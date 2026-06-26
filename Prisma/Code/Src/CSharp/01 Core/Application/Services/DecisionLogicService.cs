@@ -11,6 +11,7 @@ public class DecisionLogicService
     private readonly IAuditLogger _auditLogger;
     private readonly ILogger<DecisionLogicService> _logger;
     private readonly IUnifiedMetadataStore? _unifiedMetadataStore;
+    private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DecisionLogicService"/> class.
@@ -26,13 +27,19 @@ public class DecisionLogicService
     /// When <c>null</c> the service degrades gracefully: cases are still identified and decisions
     /// still processed; only the unified-record persistence is skipped.
     /// </param>
+    /// <param name="actorIdentityProvider">
+    /// Optional provider of the current process actor identity. When <see langword="null"/>, audit records
+    /// use a null processId — fail-open so the pipeline is never blocked by an audit failure.
+    /// MVP-PATH 1.6 A6.
+    /// </param>
     public DecisionLogicService(
         IPersonIdentityResolver personIdentityResolver,
         ILegalDirectiveClassifier legalDirectiveClassifier,
         IManualReviewerPanel manualReviewerPanel,
         IAuditLogger auditLogger,
         ILogger<DecisionLogicService> logger,
-        IUnifiedMetadataStore? unifiedMetadataStore = null)
+        IUnifiedMetadataStore? unifiedMetadataStore = null,
+        ISiaraActorIdentityProvider? actorIdentityProvider = null)
     {
         _personIdentityResolver = personIdentityResolver;
         _legalDirectiveClassifier = legalDirectiveClassifier;
@@ -40,6 +47,7 @@ public class DecisionLogicService
         _auditLogger = auditLogger;
         _logger = logger;
         _unifiedMetadataStore = unifiedMetadataStore;
+        _actorIdentityProvider = actorIdentityProvider;
     }
 
     /// <summary>
@@ -71,6 +79,9 @@ public class DecisionLogicService
 
         // Generate correlation ID if not provided
         var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
+
+        // Resolve actor identity once for all audit calls in this operation (fail-open).
+        var actorId = await ResolveActorIdAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -142,7 +153,8 @@ public class DecisionLogicService
                         $"{{\"PersonName\":\"{person.Nombre}\",\"Rfc\":\"{person.Rfc ?? "N/A"}\",\"PersonaTipo\":\"{person.PersonaTipo}\"}}",
                         false,
                         "Operation cancelled",
-                        cancellationToken).ConfigureAwait(false);
+                        cancellationToken,
+                        processId: actorId).ConfigureAwait(false);
 
                     // Preserve partial results if work has been completed
                     if (resolvedPersons.Count > 0)
@@ -201,7 +213,8 @@ public class DecisionLogicService
                         $"{{\"PersonName\":\"{person.Nombre}\",\"Rfc\":\"{person.Rfc ?? "N/A"}\",\"PersonaTipo\":\"{person.PersonaTipo}\"}}",
                         false,
                         resolveResult.Error,
-                        cancellationToken).ConfigureAwait(false);
+                        cancellationToken,
+                        processId: actorId).ConfigureAwait(false);
 
                     continue;
                 }
@@ -216,7 +229,8 @@ public class DecisionLogicService
                     $"{{\"PersonName\":\"{person.Nombre}\",\"Rfc\":\"{person.Rfc ?? "N/A"}\",\"PersonaTipo\":\"{person.PersonaTipo}\"}}",
                     true,
                     null,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
 
                 if (resolveResult.Value != null)
                 {
@@ -240,7 +254,8 @@ public class DecisionLogicService
                     $"{{\"InputCount\":{persons.Count},\"ResolvedCount\":{resolvedPersons.Count}}}",
                     false,
                     "Operation cancelled",
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
 
                 // Preserve partial results if we have resolved persons (deduplication was cancelled, but resolution completed)
                 if (resolvedPersons.Count > 0)
@@ -280,7 +295,8 @@ public class DecisionLogicService
                     $"{{\"InputCount\":{persons.Count},\"ResolvedCount\":{resolvedPersons.Count}}}",
                     false,
                     deduplicateResult.Error,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
 
                 return Result<List<Persona>>.WithFailure($"Failed to deduplicate persons: {deduplicateResult.Error}");
             }
@@ -295,7 +311,8 @@ public class DecisionLogicService
                 $"{{\"InputCount\":{persons.Count},\"ResolvedCount\":{resolvedPersons.Count},\"DeduplicatedCount\":{deduplicateResult.Value?.Count ?? 0}}}",
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             _logger.LogInformation("Identity resolution completed: {OriginalCount} → {ResolvedCount} persons",
                 persons.Count, deduplicateResult.Value?.Count ?? 0);
@@ -346,6 +363,9 @@ public class DecisionLogicService
         // Generate correlation ID if not provided
         var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
 
+        // Resolve actor identity once for all audit calls in this operation (fail-open).
+        var actorId = await ResolveActorIdAsync(cancellationToken).ConfigureAwait(false);
+
         try
         {
             _logger.LogInformation("Starting legal directive classification for document (length: {Length}, CorrelationId: {CorrelationId})", documentText.Length, actualCorrelationId);
@@ -394,7 +414,8 @@ public class DecisionLogicService
                     null,
                     false,
                     classifyResult.Error,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
 
                 return Result<List<ComplianceAction>>.WithFailure($"Failed to classify legal directives: {classifyResult.Error}");
             }
@@ -416,7 +437,8 @@ public class DecisionLogicService
                 actionsDetails,
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             _logger.LogInformation("Legal directive classification completed: {Count} compliance actions identified",
                 actionsCount);
@@ -727,6 +749,9 @@ public class DecisionLogicService
             return Result.WithFailure("Decision cannot be null");
         }
 
+        // Resolve actor identity once for all audit calls in this operation (fail-open).
+        var actorId = await ResolveActorIdAsync(cancellationToken).ConfigureAwait(false);
+
         try
         {
             _logger.LogInformation("Processing review decision for case: {CaseId}, decision type: {DecisionType}", caseId, decision.DecisionType);
@@ -749,7 +774,8 @@ public class DecisionLogicService
                     reviewDetails,
                     false,
                     "Operation cancelled",
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
 
                 return ResultExtensions.Cancelled();
             }
@@ -769,7 +795,8 @@ public class DecisionLogicService
                     reviewDetails,
                     false,
                     submitResult.Error,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
 
                 return Result.WithFailure($"Failed to process review decision: {submitResult.Error}");
             }
@@ -785,7 +812,8 @@ public class DecisionLogicService
                 successReviewDetails,
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             _logger.LogInformation("Review decision processed successfully for case: {CaseId}, decision ID: {DecisionId}", caseId, decision.DecisionId);
 
@@ -847,5 +875,33 @@ public class DecisionLogicService
             _logger.LogError(ex, "Error processing review decision for case: {CaseId}", caseId);
             return Result.WithFailure($"Error processing review decision: {ex.Message}", ex);
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Process-identity helpers (MVP-PATH 1.6 A6)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Resolves the current actor identity string for audit records.
+    /// Fail-open: returns <see langword="null"/> when the provider is absent or resolution fails,
+    /// so the pipeline is never blocked by an identity lookup failure.
+    /// </summary>
+    private async Task<string?> ResolveActorIdAsync(CancellationToken ct)
+    {
+        if (_actorIdentityProvider is null)
+        {
+            return null;
+        }
+
+        var result = await _actorIdentityProvider.GetCurrentActorAsync(ct).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            _logger.LogWarning(
+                "Process identity resolution failed for DecisionLogic audit (fail-open). Error: {Error}",
+                string.Join(", ", result.Errors));
+            return null;
+        }
+
+        return result.Value?.ActorId;
     }
 }

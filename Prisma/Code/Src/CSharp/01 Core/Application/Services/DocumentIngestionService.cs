@@ -14,6 +14,7 @@ public class DocumentIngestionService
     private readonly IAuditLogger _auditLogger;
     private readonly IEventPublisher _eventPublisher;
     private readonly ILogger<DocumentIngestionService> _logger;
+    private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentIngestionService"/> class.
@@ -25,6 +26,11 @@ public class DocumentIngestionService
     /// <param name="auditLogger">The audit logger service.</param>
     /// <param name="eventPublisher">The event publisher for domain events.</param>
     /// <param name="logger">The logger instance.</param>
+    /// <param name="actorIdentityProvider">
+    /// Optional provider of the current process actor identity. When <see langword="null"/>, audit records
+    /// use a null processId — fail-open so the pipeline is never blocked by an audit failure.
+    /// MVP-PATH 1.6 A6.
+    /// </param>
     public DocumentIngestionService(
         IBrowserAutomationAgent browserAutomationAgent,
         IDownloadTracker downloadTracker,
@@ -32,7 +38,8 @@ public class DocumentIngestionService
         IFileMetadataLogger fileMetadataLogger,
         IAuditLogger auditLogger,
         IEventPublisher eventPublisher,
-        ILogger<DocumentIngestionService> logger)
+        ILogger<DocumentIngestionService> logger,
+        ISiaraActorIdentityProvider? actorIdentityProvider = null)
     {
         _browserAutomationAgent = browserAutomationAgent;
         _downloadTracker = downloadTracker;
@@ -41,6 +48,7 @@ public class DocumentIngestionService
         _auditLogger = auditLogger;
         _eventPublisher = eventPublisher;
         _logger = logger;
+        _actorIdentityProvider = actorIdentityProvider;
     }
 
     /// <summary>
@@ -67,7 +75,7 @@ public class DocumentIngestionService
             return Result<List<FileMetadata>>.WithFailure("Website URL cannot be null or empty");
         }
 
-        if (!Uri.TryCreate(websiteUrl, UriKind.Absolute, out var uri) || 
+        if (!Uri.TryCreate(websiteUrl, UriKind.Absolute, out var uri) ||
             (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
         {
             return Result<List<FileMetadata>>.WithFailure($"Invalid URL format: {websiteUrl}. Must be a valid HTTP or HTTPS URL.");
@@ -87,11 +95,14 @@ public class DocumentIngestionService
         var correlationId = Guid.NewGuid().ToString();
         _logger.LogInformation("Starting document ingestion from {WebsiteUrl} (CorrelationId: {CorrelationId})", websiteUrl, correlationId);
 
+        // Resolve actor identity once for all audit calls in this operation (fail-open).
+        var actorId = await ResolveActorIdAsync(cancellationToken).ConfigureAwait(false);
+
         try
         {
             // Step 1: Launch browser
             var launchResult = await _browserAutomationAgent.LaunchBrowserAsync(cancellationToken).ConfigureAwait(false);
-            
+
             // Propagate cancellation FIRST
             if (launchResult.IsCancelled())
             {
@@ -111,8 +122,9 @@ public class DocumentIngestionService
                     $"{{\"WebsiteUrl\":\"{websiteUrl}\",\"Action\":\"BrowserLaunch\"}}",
                     false,
                     launchResult.Error,
-                    cancellationToken).ConfigureAwait(false);
-                
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
+
                 return Result<List<FileMetadata>>.WithFailure($"Failed to launch browser: {launchResult.Error}");
             }
 
@@ -126,11 +138,12 @@ public class DocumentIngestionService
                 $"{{\"WebsiteUrl\":\"{websiteUrl}\",\"Action\":\"BrowserLaunch\"}}",
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             // Step 2: Navigate to website
             var navigateResult = await _browserAutomationAgent.NavigateToAsync(websiteUrl, cancellationToken).ConfigureAwait(false);
-            
+
             // Propagate cancellation FIRST
             if (navigateResult.IsCancelled())
             {
@@ -151,8 +164,9 @@ public class DocumentIngestionService
                     $"{{\"WebsiteUrl\":\"{websiteUrl}\",\"Action\":\"Navigate\"}}",
                     false,
                     navigateResult.Error,
-                    cancellationToken).ConfigureAwait(false);
-                
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
+
                 var _ = await _browserAutomationAgent.CloseBrowserAsync(cancellationToken).ConfigureAwait(false);
                 return Result<List<FileMetadata>>.WithFailure($"Failed to navigate to website: {navigateResult.Error}");
             }
@@ -167,7 +181,8 @@ public class DocumentIngestionService
                 $"{{\"WebsiteUrl\":\"{websiteUrl}\",\"Action\":\"Navigate\"}}",
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             // Step 3: Identify downloadable files
             var identifyResult = await _browserAutomationAgent.IdentifyDownloadableFilesAsync(filePatterns, cancellationToken).ConfigureAwait(false);
@@ -187,7 +202,7 @@ public class DocumentIngestionService
                 // Step 4: Process each file
                 foreach (var downloadableFile in downloadableFiles)
                 {
-                    var processResult = await ProcessFileAsync(downloadableFile, correlationId, cancellationToken).ConfigureAwait(false);
+                    var processResult = await ProcessFileAsync(downloadableFile, correlationId, actorId, cancellationToken).ConfigureAwait(false);
                     if (processResult.IsSuccess)
                     {
                         var fileMetadata = processResult.Value;
@@ -221,7 +236,7 @@ public class DocumentIngestionService
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             _logger.LogInformation("Document ingestion cancelled for {WebsiteUrl}", websiteUrl);
-            
+
             // Ensure browser is closed on cancellation
             try
             {
@@ -241,7 +256,7 @@ public class DocumentIngestionService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during document ingestion from {WebsiteUrl}", websiteUrl);
-            
+
             // Ensure browser is closed even on exception
             try
             {
@@ -263,13 +278,14 @@ public class DocumentIngestionService
     private async Task<Result<FileMetadata?>> ProcessFileAsync(
         DownloadableFile downloadableFile,
         string correlationId,
+        string? actorId,
         CancellationToken cancellationToken)
     {
         try
         {
             // Step 1: Download file
             var downloadResult = await _browserAutomationAgent.DownloadFileAsync(downloadableFile.Url, cancellationToken).ConfigureAwait(false);
-            
+
             // Log download audit
             await _auditLogger.LogAuditAsync(
                 AuditActionType.Download,
@@ -280,7 +296,8 @@ public class DocumentIngestionService
                 $"{{\"FileName\":\"{downloadableFile.FileName}\",\"Url\":\"{downloadableFile.Url}\",\"Format\":\"{downloadableFile.Format}\"}}",
                 downloadResult.IsSuccess,
                 downloadResult.IsFailure ? downloadResult.Error : null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             if (downloadResult.IsSuccess)
             {
@@ -295,7 +312,7 @@ public class DocumentIngestionService
 
                 // Step 3: Check for duplicates
                 var duplicateResult = await _downloadTracker.IsDuplicateAsync(checksum, cancellationToken).ConfigureAwait(false);
-                
+
                 // Log duplicate detection audit
                 await _auditLogger.LogAuditAsync(
                     AuditActionType.Download,
@@ -306,7 +323,9 @@ public class DocumentIngestionService
                     $"{{\"FileName\":\"{downloadableFile.FileName}\",\"Checksum\":\"{checksum}\"}}",
                     duplicateResult.IsSuccess,
                     duplicateResult.IsFailure ? duplicateResult.Error : null,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
+
                 if (duplicateResult.IsSuccess)
                 {
                     var isDuplicate = duplicateResult.Value;
@@ -354,11 +373,12 @@ public class DocumentIngestionService
                             $"{{\"FileName\":\"{downloadedFile.FileName}\",\"FilePath\":\"{storagePath}\",\"FileSize\":{downloadedFile.FileSize}}}",
                             true,
                             null,
-                            cancellationToken).ConfigureAwait(false);
+                            cancellationToken,
+                            processId: actorId).ConfigureAwait(false);
 
                         // Step 6: Log metadata to database
                         var logResult = await _fileMetadataLogger.LogFileMetadataAsync(fileMetadata, cancellationToken).ConfigureAwait(false);
-                        
+
                         // Log metadata logging audit
                         await _auditLogger.LogAuditAsync(
                             AuditActionType.Download,
@@ -369,7 +389,8 @@ public class DocumentIngestionService
                             $"{{\"FileName\":\"{downloadedFile.FileName}\",\"FileId\":\"{fileMetadata.FileId}\"}}",
                             logResult.IsSuccess,
                             logResult.IsFailure ? logResult.Error : null,
-                            cancellationToken).ConfigureAwait(false);
+                            cancellationToken,
+                            processId: actorId).ConfigureAwait(false);
 
                         if (logResult.IsFailure)
                         {
@@ -426,5 +447,32 @@ public class DocumentIngestionService
         var hashBytes = sha256.ComputeHash(content);
         return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
     }
-}
 
+    // -------------------------------------------------------------------------
+    // Process-identity helpers (MVP-PATH 1.6 A6)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Resolves the current actor identity string for audit records.
+    /// Fail-open: returns <see langword="null"/> when the provider is absent or resolution fails,
+    /// so the pipeline is never blocked by an identity lookup failure.
+    /// </summary>
+    private async Task<string?> ResolveActorIdAsync(CancellationToken ct)
+    {
+        if (_actorIdentityProvider is null)
+        {
+            return null;
+        }
+
+        var result = await _actorIdentityProvider.GetCurrentActorAsync(ct).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            _logger.LogWarning(
+                "Process identity resolution failed for Ingestion audit (fail-open). Error: {Error}",
+                string.Join(", ", result.Errors));
+            return null;
+        }
+
+        return result.Value?.ActorId;
+    }
+}

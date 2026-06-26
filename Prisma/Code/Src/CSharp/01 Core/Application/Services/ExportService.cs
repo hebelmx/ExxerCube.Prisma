@@ -13,6 +13,7 @@ public class ExportService
     private readonly IPdfRequirementSummarizer _pdfRequirementSummarizer;
     private readonly IAuditLogger _auditLogger;
     private readonly ILogger<ExportService> _logger;
+    private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportService"/> class.
@@ -23,13 +24,19 @@ public class ExportService
     /// <param name="pdfRequirementSummarizer">The PDF requirement summarizer service.</param>
     /// <param name="auditLogger">The audit logger service.</param>
     /// <param name="logger">The logger instance.</param>
+    /// <param name="actorIdentityProvider">
+    /// Optional provider of the current process actor identity. When <see langword="null"/>, audit records
+    /// use a null processId — fail-open so the pipeline is never blocked by an audit failure.
+    /// MVP-PATH 1.6 A6.
+    /// </param>
     public ExportService(
         IResponseExporter responseExporter,
         ILayoutGenerator layoutGenerator,
         ICriterionMapper criterionMapper,
         IPdfRequirementSummarizer pdfRequirementSummarizer,
         IAuditLogger auditLogger,
-        ILogger<ExportService> logger)
+        ILogger<ExportService> logger,
+        ISiaraActorIdentityProvider? actorIdentityProvider = null)
     {
         _responseExporter = responseExporter;
         _layoutGenerator = layoutGenerator;
@@ -37,6 +44,7 @@ public class ExportService
         _pdfRequirementSummarizer = pdfRequirementSummarizer;
         _auditLogger = auditLogger;
         _logger = logger;
+        _actorIdentityProvider = actorIdentityProvider;
     }
 
     /// <summary>
@@ -76,6 +84,9 @@ public class ExportService
         // Generate correlation ID if not provided
         var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
 
+        // Resolve actor identity once for all audit calls in this operation (fail-open).
+        var actorId = await ResolveActorIdAsync(cancellationToken).ConfigureAwait(false);
+
         try
         {
             _logger.LogInformation("Starting SIRO XML export orchestration for expediente: {Expediente} (CorrelationId: {CorrelationId})", metadata.Expediente?.NumeroExpediente ?? "Unknown", actualCorrelationId);
@@ -100,7 +111,7 @@ public class ExportService
             if (exportResult.IsFailure)
             {
                 _logger.LogError("SIRO XML export failed: {Error}", exportResult.Error);
-                
+
                 // Log audit for failed export
                 var exportDetails = $"{{\"Expediente\":\"{metadata.Expediente?.NumeroExpediente ?? "Unknown"}\",\"Oficio\":\"{metadata.Expediente?.NumeroOficio ?? "Unknown"}\",\"Format\":\"SIRO XML\"}}";
                 await _auditLogger.LogAuditAsync(
@@ -112,8 +123,9 @@ public class ExportService
                     exportDetails,
                     false,
                     exportResult.Error,
-                    cancellationToken).ConfigureAwait(false);
-                
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
+
                 return Result.WithFailure($"SIRO XML export failed: {exportResult.Error}");
             }
 
@@ -128,7 +140,8 @@ public class ExportService
                 successDetails,
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             _logger.LogInformation("Successfully completed SIRO XML export for expediente: {Expediente}", metadata.Expediente?.NumeroExpediente ?? "Unknown");
             return Result.Success();
@@ -182,6 +195,9 @@ public class ExportService
         // Generate correlation ID if not provided
         var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
 
+        // Resolve actor identity once for all audit calls in this operation (fail-open).
+        var actorId = await ResolveActorIdAsync(cancellationToken).ConfigureAwait(false);
+
         try
         {
             _logger.LogInformation("Starting Excel layout generation orchestration for expediente: {Expediente} (CorrelationId: {CorrelationId})", metadata.Expediente?.NumeroExpediente ?? "Unknown", actualCorrelationId);
@@ -205,7 +221,7 @@ public class ExportService
             if (layoutResult.IsFailure)
             {
                 _logger.LogError("Excel layout generation failed: {Error}", layoutResult.Error);
-                
+
                 // Log audit for failed layout generation
                 var layoutDetails = $"{{\"Expediente\":\"{metadata.Expediente.NumeroExpediente}\",\"Format\":\"Excel\"}}";
                 await _auditLogger.LogAuditAsync(
@@ -217,8 +233,9 @@ public class ExportService
                     layoutDetails,
                     false,
                     layoutResult.Error,
-                    cancellationToken).ConfigureAwait(false);
-                
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
+
                 return Result.WithFailure($"Excel layout generation failed: {layoutResult.Error}");
             }
 
@@ -233,7 +250,8 @@ public class ExportService
                 successLayoutDetails,
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             _logger.LogInformation("Successfully completed Excel layout generation for expediente: {Expediente}", metadata.Expediente.NumeroExpediente);
             return Result.Success();
@@ -348,6 +366,9 @@ public class ExportService
         // Generate correlation ID if not provided
         var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
 
+        // Resolve actor identity once for all audit calls in this operation (fail-open).
+        var actorId = await ResolveActorIdAsync(cancellationToken).ConfigureAwait(false);
+
         try
         {
             _logger.LogInformation("Starting signed PDF export with summarization for expediente: {Expediente} (CorrelationId: {CorrelationId})",
@@ -400,7 +421,8 @@ public class ExportService
                 exportDetails,
                 exportResult.IsSuccess,
                 exportResult.IsFailure ? exportResult.Error : null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             // Propagate cancellation
             if (exportResult.IsCancelled())
@@ -487,5 +509,33 @@ public class ExportService
         return validation.IsValid
             ? Result.Success()
             : Result.WithFailure($"Validation failed: {string.Join(", ", validation.Missing)}");
+    }
+
+    // -------------------------------------------------------------------------
+    // Process-identity helpers (MVP-PATH 1.6 A6)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Resolves the current actor identity string for audit records.
+    /// Fail-open: returns <see langword="null"/> when the provider is absent or resolution fails,
+    /// so the pipeline is never blocked by an identity lookup failure.
+    /// </summary>
+    private async Task<string?> ResolveActorIdAsync(CancellationToken ct)
+    {
+        if (_actorIdentityProvider is null)
+        {
+            return null;
+        }
+
+        var result = await _actorIdentityProvider.GetCurrentActorAsync(ct).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            _logger.LogWarning(
+                "Process identity resolution failed for Export audit (fail-open). Error: {Error}",
+                string.Join(", ", result.Errors));
+            return null;
+        }
+
+        return result.Value?.ActorId;
     }
 }

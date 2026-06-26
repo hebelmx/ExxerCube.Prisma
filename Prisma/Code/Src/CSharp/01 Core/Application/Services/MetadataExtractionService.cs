@@ -13,6 +13,7 @@ public class MetadataExtractionService
     private readonly IFileMover _fileMover;
     private readonly IAuditLogger _auditLogger;
     private readonly ILogger<MetadataExtractionService> _logger;
+    private readonly ISiaraActorIdentityProvider? _actorIdentityProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MetadataExtractionService"/> class.
@@ -24,6 +25,11 @@ public class MetadataExtractionService
     /// <param name="fileMover">The file mover service.</param>
     /// <param name="auditLogger">The audit logger service.</param>
     /// <param name="logger">The logger instance.</param>
+    /// <param name="actorIdentityProvider">
+    /// Optional provider of the current process actor identity. When <see langword="null"/>, audit records
+    /// use a null processId — fail-open so the pipeline is never blocked by an audit failure.
+    /// MVP-PATH 1.6 A6.
+    /// </param>
     public MetadataExtractionService(
         IFileTypeIdentifier fileTypeIdentifier,
         IMetadataExtractor metadataExtractor,
@@ -31,7 +37,8 @@ public class MetadataExtractionService
         ISafeFileNamer safeFileNamer,
         IFileMover fileMover,
         IAuditLogger auditLogger,
-        ILogger<MetadataExtractionService> logger)
+        ILogger<MetadataExtractionService> logger,
+        ISiaraActorIdentityProvider? actorIdentityProvider = null)
     {
         _fileTypeIdentifier = fileTypeIdentifier;
         _metadataExtractor = metadataExtractor;
@@ -40,6 +47,7 @@ public class MetadataExtractionService
         _fileMover = fileMover;
         _auditLogger = auditLogger;
         _logger = logger;
+        _actorIdentityProvider = actorIdentityProvider;
     }
 
     /// <summary>
@@ -82,6 +90,9 @@ public class MetadataExtractionService
         // Generate correlation ID if not provided
         var actualCorrelationId = correlationId ?? Guid.NewGuid().ToString();
 
+        // Resolve actor identity once for all audit calls in this operation (fail-open).
+        var actorId = await ResolveActorIdAsync(cancellationToken).ConfigureAwait(false);
+
         try
         {
             _logger.LogInformation("Starting metadata extraction for file: {FilePath} (CorrelationId: {CorrelationId})", filePath, actualCorrelationId);
@@ -89,12 +100,12 @@ public class MetadataExtractionService
             // Step 1: Identify file type based on content
             var fileContent = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
             var fileTypeResult = await _fileTypeIdentifier.IdentifyFileTypeAsync(fileContent, originalFileName, cancellationToken).ConfigureAwait(false);
-            
+
             // Propagate cancellation from dependencies FIRST
             if (fileTypeResult.IsCancelled())
             {
                 _logger.LogWarning("Metadata extraction cancelled by file type identifier");
-                
+
                 // Log audit for cancelled file type identification
                 await _auditLogger.LogAuditAsync(
                     AuditActionType.Extraction,
@@ -105,11 +116,12 @@ public class MetadataExtractionService
                     $"{{\"FileName\":\"{originalFileName}\",\"FilePath\":\"{filePath}\"}}",
                     false,
                     "Operation cancelled",
-                    cancellationToken).ConfigureAwait(false);
-                
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
+
                 return ResultExtensions.Cancelled<MetadataExtractionResult>();
             }
-            
+
             if (fileTypeResult.IsFailure)
             {
                 // Log audit for failed file type identification
@@ -122,8 +134,9 @@ public class MetadataExtractionService
                     $"{{\"FileName\":\"{originalFileName}\",\"FilePath\":\"{filePath}\"}}",
                     false,
                     fileTypeResult.Error ?? "File type identification failed",
-                    cancellationToken).ConfigureAwait(false);
-                
+                    cancellationToken,
+                    processId: actorId).ConfigureAwait(false);
+
                 return Result<MetadataExtractionResult>.WithFailure(fileTypeResult.Error!);
             }
 
@@ -137,14 +150,15 @@ public class MetadataExtractionService
                 $"{{\"FileName\":\"{originalFileName}\",\"FilePath\":\"{filePath}\"}}",
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             FileFormat fileFormat = fileTypeResult.Value ?? FileFormat.Unknown;
             _logger.LogDebug("Identified file type as: {FileFormat}", fileFormat);
 
             // Step 2: Extract metadata based on file type
             var metadataResult = await ExtractMetadataByTypeAsync(fileContent, fileFormat, cancellationToken).ConfigureAwait(false);
-            
+
             // Log metadata extraction audit
             await _auditLogger.LogAuditAsync(
                 AuditActionType.Extraction,
@@ -155,15 +169,16 @@ public class MetadataExtractionService
                 $"{{\"FileName\":\"{originalFileName}\",\"FileFormat\":\"{fileFormat}\"}}",
                 metadataResult.IsSuccess,
                 metadataResult.IsFailure ? metadataResult.Error : null,
-                cancellationToken).ConfigureAwait(false);
-            
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
+
             // Propagate cancellation from dependencies
             if (metadataResult.IsCancelled())
             {
                 _logger.LogWarning("Metadata extraction cancelled by metadata extractor");
                 return ResultExtensions.Cancelled<MetadataExtractionResult>();
             }
-            
+
             if (metadataResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(metadataResult.Error!);
@@ -179,14 +194,14 @@ public class MetadataExtractionService
 
             // Step 3: Classify document
             var classificationResult = await _fileClassifier.ClassifyAsync(metadata, cancellationToken).ConfigureAwait(false);
-            
+
             // Propagate cancellation from dependencies
             if (classificationResult.IsCancelled())
             {
                 _logger.LogWarning("Metadata extraction cancelled by file classifier");
                 return ResultExtensions.Cancelled<MetadataExtractionResult>();
             }
-            
+
             if (classificationResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(classificationResult.Error ?? "Classification failed");
@@ -200,7 +215,7 @@ public class MetadataExtractionService
 
             // AC9: Log all classification decisions with confidence scores to audit trail
             var classificationDetails = $"{{\"Level1\":\"{classification.Level1}\",\"Level2\":\"{classification.Level2}\",\"Confidence\":{classification.Confidence},\"Scores\":{{\"Aseguramiento\":{classification.Scores.AseguramientoScore},\"Desembargo\":{classification.Scores.DesembargoScore},\"Documentacion\":{classification.Scores.DocumentacionScore},\"Informacion\":{classification.Scores.InformacionScore},\"Transferencia\":{classification.Scores.TransferenciaScore},\"OperacionesIlicitas\":{classification.Scores.OperacionesIlicitasScore}}}}}";
-            
+
             // Log classification audit
             await _auditLogger.LogAuditAsync(
                 AuditActionType.Classification,
@@ -211,7 +226,8 @@ public class MetadataExtractionService
                 classificationDetails,
                 true,
                 null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
 
             _logger.LogInformation(
                 "Document classified as {Level1}/{Level2} with confidence {Confidence}%. " +
@@ -230,14 +246,14 @@ public class MetadataExtractionService
 
             // Step 4: Generate safe file name
             var fileNameResult = await _safeFileNamer.GenerateSafeFileNameAsync(originalFileName, classification, metadata, cancellationToken).ConfigureAwait(false);
-            
+
             // Propagate cancellation from dependencies
             if (fileNameResult.IsCancelled())
             {
                 _logger.LogWarning("Metadata extraction cancelled by safe file namer");
                 return ResultExtensions.Cancelled<MetadataExtractionResult>();
             }
-            
+
             if (fileNameResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(fileNameResult.Error ?? "Failed to generate safe file name");
@@ -253,7 +269,7 @@ public class MetadataExtractionService
 
             // Step 5: Move file to organized location
             var moveResult = await _fileMover.MoveFileAsync(filePath, classification, safeFileName, cancellationToken).ConfigureAwait(false);
-            
+
             // Log file move audit
             await _auditLogger.LogAuditAsync(
                 AuditActionType.Move,
@@ -264,15 +280,16 @@ public class MetadataExtractionService
                 $"{{\"OriginalPath\":\"{filePath}\",\"SafeFileName\":\"{safeFileName}\",\"Classification\":\"{classification.Level1}/{classification.Level2}\"}}",
                 moveResult.IsSuccess,
                 moveResult.IsFailure ? moveResult.Error : null,
-                cancellationToken).ConfigureAwait(false);
-            
+                cancellationToken,
+                processId: actorId).ConfigureAwait(false);
+
             // Propagate cancellation from dependencies
             if (moveResult.IsCancelled())
             {
                 _logger.LogWarning("Metadata extraction cancelled by file mover");
                 return ResultExtensions.Cancelled<MetadataExtractionResult>();
             }
-            
+
             if (moveResult.IsFailure)
             {
                 return Result<MetadataExtractionResult>.WithFailure(moveResult.Error ?? "Failed to move file");
@@ -322,5 +339,33 @@ public class MetadataExtractionService
             nameof(FileFormat.Pdf) => await _metadataExtractor.ExtractFromPdfAsync(fileContent, cancellationToken).ConfigureAwait(false),
             _ => Result<ExtractedMetadata>.WithFailure($"Unsupported file format: {fileFormat}")
         };
+    }
+
+    // -------------------------------------------------------------------------
+    // Process-identity helpers (MVP-PATH 1.6 A6)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Resolves the current actor identity string for audit records.
+    /// Fail-open: returns <see langword="null"/> when the provider is absent or resolution fails,
+    /// so the pipeline is never blocked by an identity lookup failure.
+    /// </summary>
+    private async Task<string?> ResolveActorIdAsync(CancellationToken ct)
+    {
+        if (_actorIdentityProvider is null)
+        {
+            return null;
+        }
+
+        var result = await _actorIdentityProvider.GetCurrentActorAsync(ct).ConfigureAwait(false);
+        if (result.IsFailure)
+        {
+            _logger.LogWarning(
+                "Process identity resolution failed for Extraction audit (fail-open). Error: {Error}",
+                string.Join(", ", result.Errors));
+            return null;
+        }
+
+        return result.Value?.ActorId;
     }
 }
