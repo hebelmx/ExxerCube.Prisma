@@ -559,7 +559,7 @@ public sealed class ProcessingOrchestrator
             FileId = ctx.FileId,
             RequirementTypeId = (int)result.Level1,
             RequirementTypeName = result.Level1.Name,
-            Confidence = (int)Math.Round(result.Confidence.Value * 100),
+            Confidence = result.Confidence,
             RequiresManualReview = result.Confidence.Value < _exportGatePolicy.ClassificationConfidenceThreshold,
             RelationType = "NewRequirement"
         });

@@ -207,7 +207,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
             FileId = fileId,
             RequirementTypeId = 5,
             RequirementTypeName = "Aseguramiento",
-            Confidence = 92,
+            Confidence = Confidence.FromInt(92),
             RequiresManualReview = false
         };
 
@@ -300,7 +300,7 @@ public class EventPersistenceWorkerIntegrationTests : IDisposable
             FileId = fileId,
             RequirementTypeId = 5,
             RequirementTypeName = "Aseguramiento",
-            Confidence = 92,
+            Confidence = Confidence.FromInt(92),
             CorrelationId = correlationId
         };
 

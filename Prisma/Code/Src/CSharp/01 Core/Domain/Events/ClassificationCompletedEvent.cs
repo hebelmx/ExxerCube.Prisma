@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 namespace ExxerCube.Prisma.Domain.Events;
 
 /// <summary>
@@ -21,9 +23,10 @@ public record ClassificationCompletedEvent : DomainEvent
     public string RequirementTypeName { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets the classification confidence score (0-100).
+    /// Gets the classification confidence as a <see cref="ValueObjects.Confidence"/> value object
+    /// on the [0, 1] scale, tagged with <see cref="ConfidenceSource.Classification"/>.
     /// </summary>
-    public int Confidence { get; init; }
+    public Confidence Confidence { get; init; }
 
     /// <summary>
     /// Gets the list of warnings generated during classification.
@@ -48,10 +51,6 @@ public record ClassificationCompletedEvent : DomainEvent
     /// </summary>
     public string ClassificationType { get; } = string.Empty;
     /// <summary>
-    /// The confidence score of the classification (0.0 to 1.0).
-    /// </summary>
-    public double ConfidenceScore { get; }
-    /// <summary>
     /// The correlation ID for tracking related events.
     /// </summary>
     public DateTimeOffset Timestamp1 { get; }
@@ -66,18 +65,18 @@ public record ClassificationCompletedEvent : DomainEvent
     /// <summary>
     /// Initializes a new instance of the <see cref="ClassificationCompletedEvent"/> class.
     /// </summary>
-    /// <param name="FileId"></param>
-    /// <param name="FileName"></param>
-    /// <param name="ClassificationType"></param>
-    /// <param name="ConfidenceScore"></param>
-    /// <param name="CorrelationId"></param>
-    /// <param name="Timestamp"></param>
+    /// <param name="FileId">The unique identifier for the classified file.</param>
+    /// <param name="FileName">The name of the classified file.</param>
+    /// <param name="ClassificationType">The classification type assigned to the document.</param>
+    /// <param name="ConfidenceScore">The raw confidence score on the [0, 1] scale; wrapped into <see cref="ValueObjects.Confidence"/>.</param>
+    /// <param name="CorrelationId">The correlation ID for tracing related events.</param>
+    /// <param name="Timestamp">The timestamp of the classification event.</param>
     public ClassificationCompletedEvent(Guid FileId, string FileName, string ClassificationType, double ConfidenceScore, Guid CorrelationId, DateTimeOffset Timestamp)
     {
         this.FileId = FileId;
         this.FileName = FileName;
         this.ClassificationType = ClassificationType;
-        this.ConfidenceScore = ConfidenceScore;
+        this.Confidence = new Confidence(ConfidenceScore, ConfidenceSource.Classification);
         this.CorrelationId = CorrelationId;
         Timestamp1 = Timestamp;
     }

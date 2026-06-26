@@ -190,14 +190,14 @@ public class DocumentProcessingPipelineIntegrationTests : IDisposable
             FileId = fileId,
             RequirementTypeId = 1,
             RequirementTypeName = "Aseguramiento/Bloqueo",
-            Confidence = 95,
+            Confidence = Confidence.FromInt(95),
             RequiresManualReview = false,
             RelationType = "NewRequirement",
             Warnings = new List<string>(),
             CorrelationId = correlationId,
         };
         _eventPublisher.Publish(classificationEvent);
-        _output.WriteLine($"[STAGE 4] ClassificationCompletedEvent published - Type: {classificationEvent.RequirementTypeName}, Confidence: {classificationEvent.Confidence}%");
+        _output.WriteLine($"[STAGE 4] ClassificationCompletedEvent published - Type: {classificationEvent.RequirementTypeName}, Confidence: {classificationEvent.Confidence.Value * 100:F0}%");
         await Task.Delay(200, TestContext.Current.CancellationToken);
 
         // Stage 5: Document Processing Completed
@@ -271,7 +271,7 @@ public class DocumentProcessingPipelineIntegrationTests : IDisposable
         var deserializedClass = JsonSerializer.Deserialize<ClassificationCompletedEvent>(classificationRecord.ActionDetails!, JsonOptions);
         deserializedClass.ShouldNotBeNull();
         deserializedClass!.RequirementTypeName.ShouldBe("Aseguramiento/Bloqueo");
-        deserializedClass.Confidence.ShouldBe(95);
+        deserializedClass.Confidence.Value.ShouldBe(0.95);
 
         // Verify Stage 5: Completed
         var completedRecord = auditTrail[4];
@@ -418,7 +418,7 @@ public class DocumentProcessingPipelineIntegrationTests : IDisposable
             FileId = fileId,
             RequirementTypeId = 2,
             RequirementTypeName = "Hacendario/Documentacion",
-            Confidence = 60, // Lower confidence due to conflict
+            Confidence = Confidence.FromInt(60), // Lower confidence due to conflict
             RequiresManualReview = true,
             RelationType = "NewRequirement",
             Warnings = new List<string> { "Subdivision conflict detected" },
@@ -496,7 +496,7 @@ public class DocumentProcessingPipelineIntegrationTests : IDisposable
         var deserializedClass = JsonSerializer.Deserialize<ClassificationCompletedEvent>(classificationRecord!.ActionDetails!, JsonOptions);
         deserializedClass.ShouldNotBeNull();
         deserializedClass!.RequiresManualReview.ShouldBeTrue("Classification should require manual review");
-        deserializedClass.Confidence.ShouldBe(60, "Confidence should be lower due to conflict");
+        deserializedClass.Confidence.Value.ShouldBe(0.60, "Confidence should be lower due to conflict");
 
         // Verify Processing Completed marked as NOT auto-processed
         var completedRecord = auditTrail.Last();
@@ -638,7 +638,7 @@ public class DocumentProcessingPipelineIntegrationTests : IDisposable
             FileId = fileId,
             RequirementTypeId = 0, // Unknown type due to poor data
             RequirementTypeName = "Unknown",
-            Confidence = 35, // Very low confidence
+            Confidence = Confidence.FromInt(35), // Very low confidence
             RequiresManualReview = true,
             RelationType = "Unknown",
             Warnings = new List<string>
@@ -650,7 +650,7 @@ public class DocumentProcessingPipelineIntegrationTests : IDisposable
             CorrelationId = correlationId,
         };
         _eventPublisher.Publish(classificationEvent);
-        _output.WriteLine($"[STAGE 6] ClassificationCompletedEvent published - Type: {classificationEvent.RequirementTypeName}, Confidence: {classificationEvent.Confidence}%");
+        _output.WriteLine($"[STAGE 6] ClassificationCompletedEvent published - Type: {classificationEvent.RequirementTypeName}, Confidence: {classificationEvent.Confidence.Value * 100:F0}%");
         await Task.Delay(200, TestContext.Current.CancellationToken);
 
         // Stage 7: Processing Completed (DEFENSIVE INTELLIGENCE - System continues despite errors!)
@@ -741,9 +741,9 @@ public class DocumentProcessingPipelineIntegrationTests : IDisposable
         var deserializedClass = JsonSerializer.Deserialize<ClassificationCompletedEvent>(classificationRecord!.ActionDetails!, JsonOptions);
         deserializedClass.ShouldNotBeNull();
         deserializedClass!.RequiresManualReview.ShouldBeTrue();
-        deserializedClass.Confidence.ShouldBe(35, "Confidence should be very low");
+        deserializedClass.Confidence.Value.ShouldBe(0.35, "Confidence should be very low");
         deserializedClass.RequirementTypeName.ShouldBe("Unknown");
-        _output.WriteLine($"  [CLASSIFICATION] Type: {deserializedClass.RequirementTypeName}, Confidence: {deserializedClass.Confidence}%, RequiresManualReview: {deserializedClass.RequiresManualReview}");
+        _output.WriteLine($"  [CLASSIFICATION] Type: {deserializedClass.RequirementTypeName}, Confidence: {deserializedClass.Confidence.Value * 100:F0}%, RequiresManualReview: {deserializedClass.RequiresManualReview}");
 
         // Verify Processing Completed (CRITICAL - System continued despite errors!)
         var completedRecord = auditTrail.Last();

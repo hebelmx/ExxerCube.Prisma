@@ -1,5 +1,6 @@
 using ExxerCube.Prisma.Domain.Events;
 using ExxerCube.Prisma.Domain.Enum;
+using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Tests.Domain.Domain.Events;
 
@@ -151,7 +152,7 @@ public class ProcessingEventsTests
             FileId = Guid.NewGuid(),
             RequirementTypeId = 5,
             RequirementTypeName = "Aseguramiento",
-            Confidence = 92,
+            Confidence = Confidence.FromInt(92),
             Warnings = warnings,
             RequiresManualReview = false,
             RelationType = "NewRequirement"
@@ -164,7 +165,7 @@ public class ProcessingEventsTests
         evt.FileId.ShouldNotBe(Guid.Empty);
         evt.RequirementTypeId.ShouldBe(5);
         evt.RequirementTypeName.ShouldBe("Aseguramiento");
-        evt.Confidence.ShouldBe(92);
+        evt.Confidence.Value.ShouldBe(0.92);
         evt.Warnings.ShouldNotBeNull();
         evt.Warnings.Count.ShouldBe(2);
         evt.RequiresManualReview.ShouldBeFalse();
@@ -183,13 +184,13 @@ public class ProcessingEventsTests
             FileId = Guid.NewGuid(),
             RequirementTypeId = 3,
             RequirementTypeName = "Desbloqueo",
-            Confidence = 65,
+            Confidence = Confidence.FromInt(65),
             RequiresManualReview = true
         };
 
         // Assert
         evt.RequiresManualReview.ShouldBeTrue();
-        evt.Confidence.ShouldBe(65);
+        evt.Confidence.Value.ShouldBe(0.65);
     }
 
     /// <summary>

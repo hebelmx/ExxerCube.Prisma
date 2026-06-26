@@ -389,7 +389,7 @@ public sealed class OutboxRetryWorkerTests : IDisposable
             FileId = Guid.NewGuid(),
             RequirementTypeId = 5,
             RequirementTypeName = "Aseguramiento",
-            Confidence = 90,
+            Confidence = Confidence.FromInt(90),
         };
 
         await SeedPendingOutboxEventAsync(transientEvent);

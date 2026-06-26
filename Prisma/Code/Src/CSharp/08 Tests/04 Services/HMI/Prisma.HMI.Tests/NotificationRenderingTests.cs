@@ -133,17 +133,17 @@ public sealed class NotificationRenderingTests
     private Notification RenderNotification(ClassificationCompletedEvent evt)
     {
         // Determine severity based on confidence score
-        var severity = evt.ConfidenceScore switch
+        var severity = evt.Confidence.Value switch
         {
             < 0.6 => NotificationSeverity.Warning,
             _ => NotificationSeverity.Success
         };
 
         // Format confidence as percentage
-        var confidencePercent = (evt.ConfidenceScore * 100).ToString("F0");
+        var confidencePercent = (evt.Confidence.Value * 100).ToString("F0");
 
         // Build message with suggestion for low confidence
-        var message = evt.ConfidenceScore < 0.6
+        var message = evt.Confidence.Value < 0.6
             ? $"Document '{evt.FileName}' classified as {evt.ClassificationType} with {confidencePercent}% confidence. Manual review recommended."
             : $"Document '{evt.FileName}' classified as {evt.ClassificationType} with {confidencePercent}% confidence.";
 
