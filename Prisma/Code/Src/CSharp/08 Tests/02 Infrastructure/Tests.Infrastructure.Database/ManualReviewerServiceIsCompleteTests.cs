@@ -65,7 +65,7 @@ public class ManualReviewerServiceIsCompleteTests : IDisposable
     {
         Level1 = ClassificationLevel1.Aseguramiento,
         Level2 = ClassificationLevel2.Judicial, // non-null → not ambiguous
-        Confidence = 90, // >= 80 → not low-confidence
+        Confidence = Confidence.FromInt(90), // >= 80 → not low-confidence
     };
 
     /// <summary>Returns a clean metadata record with no conflicting or missing fields.</summary>

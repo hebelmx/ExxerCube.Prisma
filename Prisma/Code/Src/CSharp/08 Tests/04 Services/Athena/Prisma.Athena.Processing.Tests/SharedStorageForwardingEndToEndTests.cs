@@ -83,7 +83,7 @@ public sealed class SharedStorageForwardingEndToEndTests : IDisposable
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ImageQualityLevel.Pristine,
-                Confidence = 0.95f,
+                Confidence = Confidence.FromQuality(0.95),
             }));
 
         var orchestrator = new ProcessingOrchestrator(

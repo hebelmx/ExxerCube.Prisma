@@ -51,14 +51,14 @@ public class ManualReviewerServiceIntegrationTests : IDisposable
             Classification = new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 75
+                Confidence = Confidence.FromInt(75)
             }
         };
 
         var classification = new ClassificationResult
         {
             Level1 = ClassificationLevel1.Aseguramiento,
-            Confidence = 75
+            Confidence = Confidence.FromInt(75)
         };
 
         // Act - Step 1: Identify review cases (first call)
@@ -137,10 +137,10 @@ public class ManualReviewerServiceIntegrationTests : IDisposable
 
         var metadata = new UnifiedMetadataRecord
         {
-            Classification = new ClassificationResult { Confidence = 75 }
+            Classification = new ClassificationResult { Confidence = Confidence.FromInt(75) }
         };
 
-        var classification = new ClassificationResult { Confidence = 75 };
+        var classification = new ClassificationResult { Confidence = Confidence.FromInt(75) };
 
         // Act
         var result = await _service.IdentifyReviewCasesAsync(fileId, metadata, classification, cancellationToken: TestContext.Current.CancellationToken);
@@ -246,7 +246,7 @@ public class ManualReviewerServiceIntegrationTests : IDisposable
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
                 Level2 = null,
-                Confidence = 75
+                Confidence = Confidence.FromInt(75)
             },
             MatchedFields = new MatchedFields
             {
@@ -258,7 +258,7 @@ public class ManualReviewerServiceIntegrationTests : IDisposable
         {
             Level1 = ClassificationLevel1.Aseguramiento,
             Level2 = null,
-            Confidence = 75
+            Confidence = Confidence.FromInt(75)
         };
 
         // Act

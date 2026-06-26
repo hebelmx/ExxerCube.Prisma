@@ -104,7 +104,7 @@ public static class FusionExpedienteMockFactory
             }
         }
 
-        fusion.OverallConfidence = confidences.Count > 0 ? confidences.Average() : 0.0;
+        fusion.Confidence = Confidence.FromFusion(confidences.Count > 0 ? confidences.Average() : 0.0);
         fusion.NextAction = DetermineNextAction(fusion, sources);
 
         return Result<FusionResult>.WithSuccess(fusion);
@@ -205,7 +205,7 @@ public static class FusionExpedienteMockFactory
             return NextAction.ManualReviewRequired;
         }
 
-        if (fusion.ConflictingFields.Count == 0 && fusion.OverallConfidence >= 0.85)
+        if (fusion.ConflictingFields.Count == 0 && fusion.Confidence.Value >= 0.85)
         {
             return NextAction.AutoProcess;
         }

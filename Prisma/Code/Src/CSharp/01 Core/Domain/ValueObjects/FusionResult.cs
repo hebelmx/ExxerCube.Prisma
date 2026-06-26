@@ -20,12 +20,13 @@ public class FusionResult
     public Expediente? FusedExpediente { get; set; }
 
     /// <summary>
-    /// Gets or sets the overall confidence score for the fused Expediente (0.0-1.0).
+    /// Gets or sets the overall confidence for the fused Expediente ([0, 1]).
     /// Calculated as weighted combination:
     /// - 70% weight on required fields confidence
     /// - 30% weight on optional fields confidence
+    /// Use <see cref="Confidence.Value"/> to read the 0–1 value.
     /// </summary>
-    public double OverallConfidence { get; set; }
+    public Confidence Confidence { get; set; }
 
     /// <summary>
     /// Gets or sets the confidence score specifically for required fields (0.0-1.0).

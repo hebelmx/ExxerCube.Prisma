@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using ExxerCube.Prisma.Domain.Events;
+using ExxerCube.Prisma.Domain.ValueObjects;
 
 namespace ExxerCube.Prisma.Tests.Infrastructure.Metrics;
 
@@ -487,7 +488,7 @@ public class ProcessingMetricsServiceMutationTests
             OCRResult = new OCRResult
             {
                 Text = "sample",
-                ConfidenceAvg = confidence,
+                Confidence = Confidence.FromOcr(confidence),
             },
             ExtractedFields = new ExtractedFields
             {

@@ -98,7 +98,7 @@ public class ProcessingMetricsService : IDisposable, IProcessingMetricsService
             context.Stopwatch.Stop();
 
             var processingTime = context.Stopwatch.Elapsed.TotalSeconds;
-            var confidence = result?.OCRResult.ConfidenceAvg ?? 0.0f;
+            var confidence = (float)(result?.OCRResult.Confidence.Value * 100 ?? 0.0);
             var fieldCount = (result?.ExtractedFields.Fechas.Count ?? 0) + (result?.ExtractedFields.Montos.Count ?? 0);
 
             var metrics = new ProcessingMetrics

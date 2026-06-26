@@ -219,7 +219,7 @@ public class TesseractOcrExecutorDegradedTests : IDisposable
             _logger.LogInformation($"  Document: {imageName}");
             _logger.LogInformation($"  Execution time: {elapsed.TotalSeconds:F2}s");
             _logger.LogInformation($"  Text length: {ocrResult.Text.Length} characters");
-            _logger.LogInformation($"  Confidence avg: {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Confidence avg: {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Confidence median: {ocrResult.ConfidenceMedian:F2}%");
             _logger.LogInformation($"  Language used: {ocrResult.LanguageUsed}");
             _logger.LogInformation($"  Text preview (first 200 chars): {ocrResult.Text.Substring(0, Math.Min(200, ocrResult.Text.Length))}");
@@ -236,7 +236,7 @@ public class TesseractOcrExecutorDegradedTests : IDisposable
                 _logger.LogWarning($"⚠️ Q4_VeryLow QUALITY THRESHOLD REACHED");
                 _logger.LogWarning($"   Tesseract baseline performance:");
                 _logger.LogWarning($"   - Text length: {ocrResult.Text.Length} chars");
-                _logger.LogWarning($"   - Confidence: {ocrResult.ConfidenceAvg:F2}%");
+                _logger.LogWarning($"   - Confidence: {ocrResult.Confidence.Value * 100:F2}%");
                 _logger.LogWarning($"   - Confidence entries: {ocrResult.Confidences.Count}");
                 _logger.LogWarning($"");
                 _logger.LogWarning($"   ⚠️ PRODUCTION SYSTEM SHOULD:");
@@ -252,7 +252,7 @@ public class TesseractOcrExecutorDegradedTests : IDisposable
                     () => ocrResult.LanguageUsed.ShouldBe("spa", "Should use Spanish as primary language")
                 );
 
-                _logger.LogInformation($"✓ Q4_VeryLow baseline documented: Confidence={ocrResult.ConfidenceAvg:F2}%, TextLength={ocrResult.Text.Length}");
+                _logger.LogInformation($"✓ Q4_VeryLow baseline documented: Confidence={ocrResult.Confidence.Value * 100:F2}%, TextLength={ocrResult.Text.Length}");
                 _logger.LogInformation($"✓ This quality level requires fallback mechanism in production");
             }
             else
@@ -262,7 +262,7 @@ public class TesseractOcrExecutorDegradedTests : IDisposable
                     () => ocrResult.Text.ShouldNotBeNullOrWhiteSpace("Should extract some text from degraded image"),
                     () => ocrResult.Text.Length.ShouldBeGreaterThan(50,
                         $"Should extract meaningful text from {qualityLevel} quality (minimum 50 chars)"),
-                    () => ocrResult.ConfidenceAvg.ShouldBeGreaterThanOrEqualTo(expectedMinConfidence,
+                    () => ((float)(ocrResult.Confidence.Value * 100)).ShouldBeGreaterThanOrEqualTo(expectedMinConfidence,
                         $"Confidence should meet minimum threshold for {qualityLevel}"),
                     () => ocrResult.Confidences.ShouldNotBeEmpty("Confidence list should not be empty"),
                     () => ocrResult.LanguageUsed.ShouldBe("spa", "Should use Spanish as primary language")

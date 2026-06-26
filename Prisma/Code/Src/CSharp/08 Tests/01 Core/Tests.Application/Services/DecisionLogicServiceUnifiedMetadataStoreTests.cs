@@ -42,7 +42,7 @@ public class DecisionLogicServiceUnifiedMetadataStoreTests
         var classification = new ClassificationResult
         {
             Level1 = ClassificationLevel1.Aseguramiento,
-            Confidence = 75,
+            Confidence = Confidence.FromInt(75),
         };
         var expectedCases = new List<ReviewCase>
         {
@@ -84,7 +84,7 @@ public class DecisionLogicServiceUnifiedMetadataStoreTests
         // Arrange
         const string fileId = "FILE-C2-NOSTOP-001";
         var metadata = new UnifiedMetadataRecord();
-        var classification = new ClassificationResult { Confidence = 90 };
+        var classification = new ClassificationResult { Confidence = Confidence.FromInt(90) };
         var expectedCases = new List<ReviewCase>
         {
             new() { CaseId = "CASE-002", FileId = fileId, Status = ReviewStatus.Pending },

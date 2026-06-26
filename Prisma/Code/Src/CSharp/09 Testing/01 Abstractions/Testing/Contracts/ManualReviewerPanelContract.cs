@@ -61,7 +61,7 @@ public abstract class ManualReviewerPanelContract
         => new() { Classification = classification, MatchedFields = matchedFields! };
 
     private static ClassificationResult Classification(int confidence, ClassificationLevel2? level2 = null)
-        => new() { Level1 = ClassificationLevel1.Aseguramiento, Level2 = level2, Confidence = confidence };
+        => new() { Level1 = ClassificationLevel1.Aseguramiento, Level2 = level2, Confidence = Confidence.FromInt(confidence) };
 
     private static ReviewDecision Decision(string caseId)
         => new()
@@ -351,7 +351,7 @@ public abstract class ManualReviewerPanelContract
         {
             Level1 = ClassificationLevel1.Aseguramiento,
             Level2 = ClassificationLevel2.Judicial, // non-null → not ambiguous
-            Confidence = 95, // well above the 80 threshold used by both known impls
+            Confidence = Confidence.FromInt(95), // well above the 80 threshold used by both known impls
         };
 
     /// <summary>

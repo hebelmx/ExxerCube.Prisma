@@ -72,7 +72,7 @@ public class EmguCvImageQualityAnalyzer : IImageQualityAnalyzer
             var assessment = new ImageQualityAssessment
             {
                 QualityLevel = qualityLevel,
-                Confidence = 0.85f, // High confidence with CV-based analysis
+                Confidence = Confidence.FromQuality(0.85), // High confidence with CV-based analysis
                 BlurScore = (float)blurScore,
                 NoiseLevel = (float)(noiseLevel / 100.0), // Normalize to 0-1 range
                 ContrastLevel = contrastLevel,

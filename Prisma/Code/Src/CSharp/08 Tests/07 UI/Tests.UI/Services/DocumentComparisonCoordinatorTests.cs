@@ -104,7 +104,7 @@ public sealed class DocumentComparisonCoordinatorTests
 
         // Assert
         result.Fusion.ShouldNotBeNull();
-        result.Fusion.OverallConfidence.ShouldBe(0.78);
+        result.Fusion.Confidence.Value.ShouldBe(0.78);
         result.Fusion.NextAction.ShouldBe(NextAction.ReviewRecommended);
         await _fusionService.Received(1).FuseAsync(
             xmlExp, pdfExp, null,
@@ -255,7 +255,7 @@ public sealed class DocumentComparisonCoordinatorTests
         result.Comparison.TotalFields.ShouldBe(7);
         result.Fusion.ShouldNotBeNull();
         result.Fusion.NextAction.ShouldBe(NextAction.AutoProcess);
-        result.Fusion.OverallConfidence.ShouldBe(0.95);
+        result.Fusion.Confidence.Value.ShouldBe(0.95);
     }
 
     // --- Helpers ---
@@ -298,7 +298,7 @@ public sealed class DocumentComparisonCoordinatorTests
     {
         return new FusionResult
         {
-            OverallConfidence = confidence,
+            Confidence = Confidence.FromFusion(confidence),
             NextAction = nextAction,
             FusedExpediente = CreateExpediente("FUSED-001")
         };

@@ -145,7 +145,7 @@ public class FusionExpedienteService : IFusionExpediente
             var fusionResult = new FusionResult
             {
                 FusedExpediente = fusedExpediente,
-                OverallConfidence = overallConfidence,
+                Confidence = Confidence.FromFusion(overallConfidence),
                 RequiredFieldsScore = requiredFieldsScore,
                 OptionalFieldsScore = optionalFieldsScore,
                 ConflictingFields = conflictingFields,

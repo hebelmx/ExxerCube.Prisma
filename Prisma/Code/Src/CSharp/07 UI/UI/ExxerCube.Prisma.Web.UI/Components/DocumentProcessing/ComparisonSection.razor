@@ -117,7 +117,7 @@
                         <MudGrid Class="mt-2 mb-3">
                             <MudItem xs="4">
                                 <MudPaper Class="pa-3" Elevation="1" Style="text-align: center;">
-                                    <MudText Typo="Typo.h4" Color="Color.Success">@($"{State.FusionResult.OverallConfidence:P0}")</MudText>
+                                    <MudText Typo="Typo.h4" Color="Color.Success">@($"{State.FusionResult.Confidence.Value:P0}")</MudText>
                                     <MudText Typo="Typo.caption">Overall Confidence</MudText>
                                 </MudPaper>
                             </MudItem>
@@ -258,7 +258,7 @@
             await OnComparisonCompleted.InvokeAsync(result);
 
             var fusionMessage = result.Fusion != null
-                ? $" | Fusion: {result.Fusion.OverallConfidence:P0} confidence, {result.Fusion.NextAction}"
+                ? $" | Fusion: {result.Fusion.Confidence.Value:P0} confidence, {result.Fusion.NextAction}"
                 : "";
 
             Snackbar.Add(

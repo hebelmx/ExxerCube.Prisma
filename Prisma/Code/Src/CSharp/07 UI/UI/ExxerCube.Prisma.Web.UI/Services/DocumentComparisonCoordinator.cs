@@ -100,7 +100,7 @@ public sealed class DocumentComparisonCoordinator
                 fusionResult = fusionResultResponse.Value;
                 _logger.LogInformation(
                     "Fusion complete: OverallConfidence={Confidence:F2}, NextAction={NextAction}",
-                    fusionResult.OverallConfidence, fusionResult.NextAction);
+                    fusionResult.Confidence.Value, fusionResult.NextAction);
             }
             else
             {
@@ -140,12 +140,12 @@ public sealed class DocumentComparisonCoordinator
     /// </summary>
     private ExtractionMetadata CreatePdfMetadata(PdfProcessingState pdfState)
     {
-        var ocrConfidence = pdfState.OcrResult?.OCRResult.ConfidenceAvg ?? 0.0f;
+        var ocrConfidence = pdfState.OcrResult?.OCRResult.Confidence.Value ?? 0.0;
 
         return new ExtractionMetadata
         {
             Source = SourceType.PDF_OCR_CNBV,
-            MeanConfidence = ocrConfidence / 100.0,
+            MeanConfidence = ocrConfidence,
             QualityIndex = 0.8,
             RegexMatches = 0,
             TotalFieldsExtracted = pdfState.Expediente != null ? CountPdfFields(pdfState.Expediente) : 0,

@@ -63,7 +63,7 @@ public class MetadataExtractionServiceTests : IDisposable
         {
             Level1 = ClassificationLevel1.Aseguramiento,
             Level2 = ClassificationLevel2.Especial,
-            Confidence = 90
+            Confidence = Confidence.FromInt(90)
         };
         var safeFileName = "ASEGURAMIENTO_ESPECIAL_test.xml";
         var newFilePath = Path.Combine(_testStoragePath, safeFileName);

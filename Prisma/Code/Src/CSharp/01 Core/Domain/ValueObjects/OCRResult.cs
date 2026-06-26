@@ -11,9 +11,11 @@ public class OCRResult
     public string Text { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the average confidence score (0.0 to 100.0).
+    /// Gets or sets the normalised confidence score ([0, 1]) with the producing stage.
+    /// Use <see cref="Confidence.Value"/> to read the 0–1 value; multiply by 100 where a
+    /// legacy 0–100 representation is required downstream.
     /// </summary>
-    public float ConfidenceAvg { get; set; }
+    public Confidence Confidence { get; set; }
 
     /// <summary>
     /// Gets or sets the median confidence score (0.0 to 100.0).
@@ -41,14 +43,14 @@ public class OCRResult
     /// Initializes a new instance of the <see cref="OCRResult"/> class with specified values.
     /// </summary>
     /// <param name="text">The extracted text.</param>
-    /// <param name="confidenceAvg">The average confidence score.</param>
+    /// <param name="confidenceAvg">The average confidence score on the 0–100 scale (OCR engine output).</param>
     /// <param name="confidenceMedian">The median confidence score.</param>
     /// <param name="confidences">The list of confidence scores.</param>
     /// <param name="languageUsed">The language used for OCR.</param>
     public OCRResult(string text, float confidenceAvg, float confidenceMedian, List<float> confidences, string languageUsed)
     {
         Text = text;
-        ConfidenceAvg = confidenceAvg;
+        Confidence = Confidence.FromOcr(confidenceAvg);
         ConfidenceMedian = confidenceMedian;
         Confidences = confidences;
         LanguageUsed = languageUsed;

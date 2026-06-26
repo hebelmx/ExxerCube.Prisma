@@ -326,7 +326,7 @@ public class FusionExpedienteServiceMutationTests
 
         r.RequiredFieldsScore.ShouldBe(0.60, 0.0001);
         r.OptionalFieldsScore.ShouldBe(0.60, 0.0001);
-        r.OverallConfidence.ShouldBe(0.60, 0.0001); // 0.60*0.70 + 0.60*0.30
+        r.Confidence.Value.ShouldBe(0.60, 0.0001); // 0.60*0.70 + 0.60*0.30
     }
 
     [Fact]
@@ -341,7 +341,7 @@ public class FusionExpedienteServiceMutationTests
 
         r.RequiredFieldsScore.ShouldBe(0.85, 0.0001);
         r.OptionalFieldsScore.ShouldBe(0.60, 0.0001);
-        r.OverallConfidence.ShouldBe((0.85 * 0.70) + (0.60 * 0.30), 0.0001); // 0.595 + 0.18 = 0.775
+        r.Confidence.Value.ShouldBe((0.85 * 0.70) + (0.60 * 0.30), 0.0001); // 0.595 + 0.18 = 0.775
     }
 
     [Fact]
@@ -353,7 +353,7 @@ public class FusionExpedienteServiceMutationTests
 
         var r = (await _service.FuseAsync(e1, e2, null, FlatMeta(), FlatMeta(), FlatMeta(), Ct)).Value!;
 
-        r.OverallConfidence.ShouldBe(0.85, 0.0001);
+        r.Confidence.Value.ShouldBe(0.85, 0.0001);
         r.ConflictingFields.ShouldBeEmpty();
         r.NextAction.ShouldBe(NextAction.AutoProcess);
     }
@@ -372,7 +372,7 @@ public class FusionExpedienteServiceMutationTests
 
         var r = (await service.FuseAsync(e1, e2, null, FlatMeta(), FlatMeta(), FlatMeta(), Ct)).Value!;
 
-        r.OverallConfidence.ShouldBe(0.80, 0.0001); // ≥0.70 (not manual) and <0.85 (not auto)
+        r.Confidence.Value.ShouldBe(0.80, 0.0001); // ≥0.70 (not manual) and <0.85 (not auto)
         r.NextAction.ShouldBe(NextAction.ReviewRecommended);
     }
 
@@ -403,7 +403,7 @@ public class FusionExpedienteServiceMutationTests
         // No optional field with data → optional avg defaults to 0.0 → overall = 0.50*0.70 + 0.0*0.30 = 0.35.
         r.RequiredFieldsScore.ShouldBe(0.50, 0.0001);
         r.OptionalFieldsScore.ShouldBe(0.0);
-        r.OverallConfidence.ShouldBe(0.35, 0.0001);
+        r.Confidence.Value.ShouldBe(0.35, 0.0001);
         r.NextAction.ShouldBe(NextAction.ManualReviewRequired);
     }
 

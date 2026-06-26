@@ -517,7 +517,7 @@ internal sealed class AthenaTestApp
                 .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
                 {
                     QualityLevel = ImageQualityLevel.Pristine,
-                    Confidence = 0.99f,
+                    Confidence = Confidence.FromQuality(0.99),
                 }));
             services.AddSingleton(qualityAnalyzer);
 
@@ -539,7 +539,7 @@ internal sealed class AthenaTestApp
                     Arg.Any<CancellationToken>())
                 .Returns(Result<FusionResult>.Success(new FusionResult
                 {
-                    OverallConfidence = 0.95,
+                    Confidence = Confidence.FromFusion(0.95),
                     ConflictingFields = new List<string>(),
                     FusedExpediente = new Expediente
                     {
@@ -557,7 +557,7 @@ internal sealed class AthenaTestApp
                 .Returns(Result<ClassificationResult>.Success(new ClassificationResult
                 {
                     Level1 = ClassificationLevel1.Aseguramiento,
-                    Confidence = 95,
+                    Confidence = Confidence.FromInt(95),
                 }));
             services.AddSingleton(classifier);
 
@@ -632,7 +632,7 @@ internal sealed class ReconciliatorTestApp
                 .Returns(Result<ClassificationResult>.Success(new ClassificationResult
                 {
                     Level1 = ClassificationLevel1.Aseguramiento,
-                    Confidence = 95,
+                    Confidence = Confidence.FromInt(95),
                 }));
             services.AddSingleton(classifier);
 

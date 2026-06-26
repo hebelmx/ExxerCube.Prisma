@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Domain.Interfaces;
 
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 /// <summary>
 /// Represents the quality assessment of an image.
 /// Used to select the optimal enhancement filter.
@@ -12,9 +14,9 @@ public class ImageQualityAssessment
     public ImageQualityLevel QualityLevel { get; set; } = ImageQualityLevel.Q2_MediumPoor;
 
     /// <summary>
-    /// Gets or sets the confidence score of the assessment (0.0 - 1.0).
+    /// Gets or sets the confidence score of the assessment ([0, 1]).
     /// </summary>
-    public float Confidence { get; set; } = 0.0f;
+    public Confidence Confidence { get; set; }
 
     /// <summary>
     /// Gets or sets the noise level detected (0.0 - 1.0).

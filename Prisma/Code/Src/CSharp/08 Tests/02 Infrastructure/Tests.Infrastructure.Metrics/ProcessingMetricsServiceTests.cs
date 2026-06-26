@@ -57,7 +57,7 @@ public class ProcessingMetricsServiceTests
             OCRResult = new OCRResult
             {
                 Text = "Sample text",
-                ConfidenceAvg = 0.95f
+                Confidence = Confidence.FromOcr(0.95f)
             },
             ExtractedFields = new ExtractedFields
             {

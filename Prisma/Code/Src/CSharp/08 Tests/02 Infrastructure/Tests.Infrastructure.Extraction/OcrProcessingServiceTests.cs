@@ -325,7 +325,7 @@ public class OcrProcessingServiceTests
         return new OCRResult
         {
             Text = "Sample OCR text",
-            ConfidenceAvg = 95.5f,
+            Confidence = Confidence.FromOcr(95.5f),
             ConfidenceMedian = 97.0f,
             Confidences = new List<float> { 95.0f, 97.0f, 94.5f },
             LanguageUsed = "spa"

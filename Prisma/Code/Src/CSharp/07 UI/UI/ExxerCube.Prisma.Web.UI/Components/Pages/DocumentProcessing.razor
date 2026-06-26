@@ -102,7 +102,7 @@
         });
 
         Logger.LogInformation("PDF loaded: {FixtureName}, OCR confidence: {Confidence:F1}%",
-            result.FixtureName, result.OcrResult.OCRResult.ConfidenceAvg);
+            result.FixtureName, result.OcrResult.OCRResult.Confidence.Value * 100);
     }
 
     /// <summary>
@@ -149,7 +149,7 @@
         if (result.Fusion != null)
         {
             Logger.LogInformation("Fusion complete: {Confidence:P0} confidence, {NextAction}",
-                result.Fusion.OverallConfidence, result.Fusion.NextAction);
+                result.Fusion.Confidence.Value, result.Fusion.NextAction);
         }
     }
 

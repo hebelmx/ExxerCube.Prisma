@@ -41,14 +41,14 @@ public class DecisionLogicServiceManualReviewTests
             Classification = new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 75
+                Confidence = Confidence.FromInt(75)
             }
         };
 
         var classification = new ClassificationResult
         {
             Level1 = ClassificationLevel1.Aseguramiento,
-            Confidence = 75
+            Confidence = Confidence.FromInt(75)
         };
 
         var expectedCases = new List<ReviewCase>

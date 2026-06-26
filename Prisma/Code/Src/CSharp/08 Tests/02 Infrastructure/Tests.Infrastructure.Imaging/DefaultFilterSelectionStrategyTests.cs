@@ -1,6 +1,7 @@
 using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Domain.Models;
+using ExxerCube.Prisma.Domain.ValueObjects;
 using ExxerCube.Prisma.Infrastructure.Imaging.Filters;
 
 using Shouldly;
@@ -104,7 +105,7 @@ public class DefaultFilterSelectionStrategyTests
             QualityLevel = ImageQualityLevel.Q2_MediumPoor,
             RecommendedFilter = ImageFilterType.PilSimple,
             NoiseLevel = 0.8f,
-            Confidence = 0.9f
+            Confidence = Confidence.FromQuality(0.9)
         };
 
         // Act
@@ -123,7 +124,7 @@ public class DefaultFilterSelectionStrategyTests
             QualityLevel = ImageQualityLevel.Q2_MediumPoor,
             RecommendedFilter = ImageFilterType.PilSimple,
             ContrastLevel = 0.2f,
-            Confidence = 0.9f
+            Confidence = Confidence.FromQuality(0.9)
         };
 
         // Act

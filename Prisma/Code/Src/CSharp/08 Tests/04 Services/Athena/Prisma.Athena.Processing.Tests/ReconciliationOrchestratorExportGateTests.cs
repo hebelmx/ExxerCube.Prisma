@@ -61,7 +61,7 @@ public sealed class ReconciliationOrchestratorExportGateTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = classifierConfidence,
+                Confidence = Confidence.FromInt(classifierConfidence),
             }));
 
         // Exporter: returns a successful empty MemoryStream so Stage 5 can complete when reached.
@@ -111,7 +111,7 @@ public sealed class ReconciliationOrchestratorExportGateTests
                 NumeroExpediente = "A/AS1-2505-001-TST",
                 NumeroOficio = "214-1-00000001/2026",
             },
-            OverallConfidence = 0.5,
+            Confidence = Confidence.FromFusion(0.5),
             NextAction = NextAction.ManualReviewRequired,
         };
 
@@ -131,7 +131,7 @@ public sealed class ReconciliationOrchestratorExportGateTests
             NumeroExpediente = "A/AS1-2505-002-TST",
             NumeroOficio = "214-1-00000002/2026",
         },
-        OverallConfidence = 0.97,
+        Confidence = Confidence.FromFusion(0.97),
         NextAction = NextAction.AutoProcess,
         ConflictingFields = new List<string>(), // no conflicts
     };
@@ -266,7 +266,7 @@ public sealed class ReconciliationOrchestratorExportGateTests
                 NumeroExpediente = "A/AS1-2505-003-TST",
                 NumeroOficio = "214-1-00000003/2026",
             },
-            OverallConfidence = 0.90,
+            Confidence = Confidence.FromFusion(0.90),
             NextAction = NextAction.AutoProcess,
             ConflictingFields = new List<string> { "RFC", "CURP" },
         };

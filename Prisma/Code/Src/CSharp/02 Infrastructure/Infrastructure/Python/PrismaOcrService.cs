@@ -1,5 +1,7 @@
 namespace ExxerCube.Prisma.Infrastructure.Python;
 
+using ExxerCube.Prisma.Domain.ValueObjects;
+
 /// <summary>
 /// OCR processing service using CSnakes for type-safe Python integration.
 /// </summary>
@@ -46,7 +48,7 @@ public class PrismaOcrService : IOcrProcessingService
             var ocrResultEntity = new OCRResult
             {
                 Text = "Placeholder OCR text - CSnakes bindings not yet generated",
-                ConfidenceAvg = 0.0f,
+                Confidence = Confidence.FromOcr(0.0f),
                 ConfidenceMedian = 0.0f,
                 Confidences = new List<float>(),
                 LanguageUsed = config.OCRConfig.Language

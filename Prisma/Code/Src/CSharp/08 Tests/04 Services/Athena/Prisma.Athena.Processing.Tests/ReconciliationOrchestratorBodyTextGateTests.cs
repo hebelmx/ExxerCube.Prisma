@@ -107,7 +107,7 @@ public sealed class ReconciliationOrchestratorBodyTextGateTests
                 // BodyText carries the OCR body from the Extractor process — no ocrResult here.
                 BodyText = "Este oficio notifica ASEGURAMIENTO de bienes por disposición judicial."
             },
-            OverallConfidence = 0.90,
+            Confidence = Confidence.FromFusion(0.90),
             NextAction = NextAction.AutoProcess,
             ConflictingFields = new List<string>(), // no conflicts → Gate 3 passes
         };
@@ -160,7 +160,7 @@ public sealed class ReconciliationOrchestratorBodyTextGateTests
                 NumeroExpediente = "EXP-NOSIGNAL-TST",
                 BodyText = null   // no OCR body — classifier sees empty LegalReferences
             },
-            OverallConfidence = 0.90,
+            Confidence = Confidence.FromFusion(0.90),
             NextAction = NextAction.AutoProcess,
             ConflictingFields = new List<string>(),
         };

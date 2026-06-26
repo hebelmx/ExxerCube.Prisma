@@ -126,7 +126,7 @@ public class PolynomialImageQualityAnalyzer : IImageQualityAnalyzer
             var assessment = new ImageQualityAssessment
             {
                 QualityLevel = qualityLevel,
-                Confidence = 0.9f,  // High confidence from trained model (R² > 0.89)
+                Confidence = Confidence.FromQuality(0.9),  // High confidence from trained model (R² > 0.89)
 
                 // Normalize features to [0, 1] range for assessment properties
                 NoiseLevel = (float)Math.Min(1.0, features.NoiseEstimate / 50.0),

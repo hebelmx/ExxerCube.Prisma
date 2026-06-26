@@ -61,7 +61,7 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ImageQualityLevel.Pristine,
-                Confidence = 0.95f,
+                Confidence = Confidence.FromQuality(0.95),
             }));
 
         var ocrExecutor = Substitute.For<IOcrExecutor>();
@@ -75,7 +75,7 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
                 Arg.Any<CancellationToken>())
             .Returns(Result<FusionResult>.Success(new FusionResult
             {
-                OverallConfidence = 0.92,
+                Confidence = Confidence.FromFusion(0.92),
                 ConflictingFields = new List<string>(),
                 NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
                 // NumeroOficio is required by SiroXmlExporter.ValidateMetadata(); include it so Stage 5 succeeds.
@@ -97,7 +97,7 @@ public sealed class ThreeProcessPipelineEndToEndTests : IDisposable
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 95,
+                Confidence = Confidence.FromInt(95),
             }));
 
         // Stage 5 now uses IResponseExporter.ExportSiroXmlAsync (MVP-PATH #8).

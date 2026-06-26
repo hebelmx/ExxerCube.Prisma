@@ -72,7 +72,7 @@ public class FileClassifierService : IFileClassifier
                     Level1 = ClassificationLevel1.Aseguramiento,
                     Level2 = authLevel2,
                     Scores = authScores,
-                    Confidence = 90
+                    Confidence = Confidence.FromInt(90)
                 };
                 _logger.LogDebug(
                     "Document classified as {Level1}/{Level2} with confidence {Confidence}% (authoritative TieneAseguramiento signal)",
@@ -97,7 +97,7 @@ public class FileClassifierService : IFileClassifier
                 Level1 = level1,
                 Level2 = level2,
                 Scores = scores,
-                Confidence = confidence
+                Confidence = Confidence.FromInt(confidence)
             };
 
             _logger.LogDebug("Document classified as {Level1}/{Level2} with confidence {Confidence}%", level1, level2, confidence);

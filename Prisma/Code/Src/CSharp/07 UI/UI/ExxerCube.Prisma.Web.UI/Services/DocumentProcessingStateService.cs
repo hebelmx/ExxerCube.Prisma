@@ -76,7 +76,7 @@ public sealed class DocumentProcessingStateService
     {
         update(_state.PdfState);
         _logger.LogDebug("PDF state updated: FixtureName={FixtureName}, OcrConfidence={OcrConfidence}",
-            _state.PdfState.FixtureName, _state.PdfState.OcrResult?.OCRResult.ConfidenceAvg);
+            _state.PdfState.FixtureName, _state.PdfState.OcrResult?.OCRResult.Confidence.Value * 100);
         NotifyStateChanged();
     }
 

@@ -167,7 +167,7 @@ public sealed class ReconciliationOrchestrator
                 CorrelationId = correlationId,
                 FileId = fileId,
                 BlockReasons = blockReasons,
-                ClassificationConfidence = classificationResult?.Confidence,
+                ClassificationConfidence = classificationResult is null ? (int?)null : (int)Math.Round(classificationResult.Confidence.Value * 100),
                 HandoffPath = handoffPath,
             };
             _eventPublisher.Publish(heldEvent);
@@ -221,12 +221,12 @@ public sealed class ReconciliationOrchestrator
         // low, the gate blocks.
         if (_exportGatePolicy.BlockOnLowConfidence && classificationResult is not null)
         {
-            // Story 2.6 will remove the *100 conversion once ClassificationResult.Confidence uses the shared Confidence VO (0–1 scale).
-            var thresholdInt = (int)(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
-            if (classificationResult.Confidence < thresholdInt)
+            if (classificationResult.Confidence.Value < _exportGatePolicy.ClassificationConfidenceThreshold)
             {
+                var pct = (int)Math.Round(classificationResult.Confidence.Value * 100);
+                var thresholdPct = (int)Math.Round(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
                 reasons.Add(
-                    $"Classification confidence {classificationResult.Confidence}% is below the required threshold of {thresholdInt}% (BlockOnLowConfidence)");
+                    $"Classification confidence {pct}% is below the required threshold of {thresholdPct}% (BlockOnLowConfidence)");
             }
         }
 
@@ -372,13 +372,13 @@ public sealed class ReconciliationOrchestrator
 
         var result = classResult.Value!;
 
-        // Story 2.6 will remove the *100 conversion once ClassificationResult.Confidence uses the shared Confidence VO (0–1 scale).
-        var classificationThresholdInt = (int)(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
-        if (result.Confidence < classificationThresholdInt)
+        if (result.Confidence.Value < _exportGatePolicy.ClassificationConfidenceThreshold)
         {
+            var pct = (int)Math.Round(result.Confidence.Value * 100);
+            var thresholdPct = (int)Math.Round(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
             _logger.LogWarning(
                 "Stage 4: Low confidence classification. FileId: {FileId}, Confidence: {Confidence}",
-                fileId, result.Confidence);
+                fileId, result.Confidence.Value);
 
             var flagEvent = new DocumentFlaggedForReviewEvent
             {
@@ -386,7 +386,7 @@ public sealed class ReconciliationOrchestrator
                 Timestamp = DateTime.UtcNow,
                 CorrelationId = correlationId,
                 FileId = fileId,
-                Reasons = new List<string> { $"Classification confidence {result.Confidence}% below threshold {classificationThresholdInt}%" },
+                Reasons = new List<string> { $"Classification confidence {pct}% below threshold {thresholdPct}%" },
                 Priority = "High"
             };
             _eventPublisher.Publish(flagEvent);
@@ -400,15 +400,15 @@ public sealed class ReconciliationOrchestrator
             FileId = fileId,
             RequirementTypeId = (int)result.Level1,
             RequirementTypeName = result.Level1.Name,
-            Confidence = result.Confidence,
+            Confidence = (int)Math.Round(result.Confidence.Value * 100),
             Warnings = new List<string>(),
-            RequiresManualReview = result.Confidence < classificationThresholdInt,
+            RequiresManualReview = result.Confidence.Value < _exportGatePolicy.ClassificationConfidenceThreshold,
             RelationType = "NewRequirement"
         };
         _eventPublisher.Publish(classificationEvent);
 
         _logger.LogInformation("Stage 4 complete: Classification - FileId: {FileId}, Type: {Type}, Confidence: {Confidence}",
-            fileId, result.Level1.Name, result.Confidence);
+            fileId, result.Level1.Name, result.Confidence.Value);
 
         return result;
     }

@@ -242,7 +242,7 @@ public class FileSystemOutputWriter : IOutputWriter
                 "",
                 "OCR Result:",
                 $"Text: {result.OCRResult.Text}",
-                $"Confidence Average: {result.OCRResult.ConfidenceAvg:F2}%",
+                $"Confidence Average: {result.OCRResult.Confidence.Value * 100:F2}%",
                 $"Confidence Median: {result.OCRResult.ConfidenceMedian:F2}%",
                 $"Language Used: {result.OCRResult.LanguageUsed}",
                 "",

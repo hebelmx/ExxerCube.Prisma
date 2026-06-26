@@ -88,7 +88,7 @@ public class PdfOcrFieldExtractorEnhancedTests
         var imageData = new ImageData { Data = pdfContent, SourcePath = "multipage.pdf" };
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "multipage.pdf" };
         var ocrText = "Page 1: Expediente: A/AS1-2505-088637-PHM";
-        var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.9f };
+        var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.9f) };
 
         _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
             .Returns(Result<ImageData>.Success(preprocessedImage));
@@ -114,7 +114,7 @@ public class PdfOcrFieldExtractorEnhancedTests
 
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "images_only.pdf" };
         var ocrText = ""; // No text extracted
-        var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.1f };
+        var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.1f) };
 
         _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
             .Returns(Result<ImageData>.Success(preprocessedImage));
@@ -193,7 +193,7 @@ public class PdfOcrFieldExtractorEnhancedTests
         var imageData = new ImageData { Data = pdfContent, SourcePath = "partial.pdf" };
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "partial.pdf" };
         var ocrText = "Expediente: A/AS1-2505-088637-PHM"; // Missing Causa
-        var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.7f };
+        var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.7f) };
 
         _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
             .Returns(Result<ImageData>.Success(preprocessedImage));
@@ -225,7 +225,7 @@ public class PdfOcrFieldExtractorEnhancedTests
         var imageData = new ImageData { Data = largePdf, SourcePath = "large.pdf" };
         var preprocessedImage = new ImageData { Data = largePdf, SourcePath = "large.pdf" };
         var ocrText = "Expediente: A/AS1-2505-088637-PHM";
-        var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.9f };
+        var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.9f) };
 
         _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
             .Returns(Result<ImageData>.Success(preprocessedImage));
@@ -254,7 +254,7 @@ public class PdfOcrFieldExtractorEnhancedTests
         var imageData = new ImageData { Data = pdfContent, SourcePath = "concurrent.pdf" };
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "concurrent.pdf" };
         var ocrText = "Expediente: A/AS1-2505-088637-PHM";
-        var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.9f };
+        var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.9f) };
 
         _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
             .Returns(Result<ImageData>.Success(preprocessedImage));

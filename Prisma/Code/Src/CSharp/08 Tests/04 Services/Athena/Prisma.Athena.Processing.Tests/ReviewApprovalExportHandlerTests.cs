@@ -69,7 +69,7 @@ public sealed class ReviewApprovalExportHandlerTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = classifierConfidence,
+                Confidence = Confidence.FromInt(classifierConfidence),
             }));
 
         // Exporter: returns success so Stage 5 completes when reached.
@@ -306,7 +306,7 @@ public sealed class ReviewApprovalExportHandlerTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 50, // below threshold
+                Confidence = Confidence.FromInt(50), // below threshold
             }));
 
         var exporterSub = Substitute.For<IResponseExporter>();
@@ -348,7 +348,7 @@ public sealed class ReviewApprovalExportHandlerTests
                 NumeroExpediente = "A/AS1-2506-REGRESSION",
                 NumeroOficio = "214-1-99999999/2026",
             },
-            OverallConfidence = 0.97,
+            Confidence = Confidence.FromFusion(0.97),
             NextAction = NextAction.AutoProcess,
             ConflictingFields = new List<string>(),
         };
@@ -403,7 +403,7 @@ public sealed class ReviewApprovalExportHandlerTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 40,
+                Confidence = Confidence.FromInt(40),
             }));
 
         var panelSub = Substitute.For<IManualReviewerPanel>();
@@ -437,7 +437,7 @@ public sealed class ReviewApprovalExportHandlerTests
                 NumeroExpediente = "A/AS1-2506-HANDOFFTEST",
                 NumeroOficio = "214-1-88888888/2026",
             },
-            OverallConfidence = 0.4,
+            Confidence = Confidence.FromFusion(0.4),
             NextAction = NextAction.ManualReviewRequired,
         };
 

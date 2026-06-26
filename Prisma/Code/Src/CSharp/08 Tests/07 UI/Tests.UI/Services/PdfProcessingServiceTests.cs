@@ -75,7 +75,7 @@ public sealed class PdfProcessingServiceTests
         // Assert
         result.OcrResult.ShouldNotBeNull();
         result.OcrResult.OCRResult.Text.ShouldBe("Expediente number EXP-001");
-        result.OcrResult.OCRResult.ConfidenceAvg.ShouldBe(92f, tolerance: 0.1f);
+        (result.OcrResult.OCRResult.Confidence.Value * 100).ShouldBe(92.0, tolerance: 0.1);
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public sealed class PdfProcessingServiceTests
         var result = await _sut.LoadFixtureAsync("no-meta.pdf", ct);
 
         // Assert — defaults to 0.8 confidence (80%) when not in metadata
-        result.OcrResult.OCRResult.ConfidenceAvg.ShouldBe(80f, tolerance: 0.1f);
+        (result.OcrResult.OCRResult.Confidence.Value * 100).ShouldBe(80.0, tolerance: 0.1);
     }
 
     // --- Helpers ---

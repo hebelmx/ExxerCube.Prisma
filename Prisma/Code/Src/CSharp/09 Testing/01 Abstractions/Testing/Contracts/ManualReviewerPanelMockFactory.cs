@@ -247,7 +247,7 @@ public static class ManualReviewerPanelMockFactory
                     .Any(c => c.RequiresReviewReason == ReviewReason.IncompleteCase);
                 if (!alreadyFlagged)
                 {
-                    var incompleteCase = NewCase(fileId, ReviewReason.IncompleteCase, classification.Confidence, ambiguity: false);
+                    var incompleteCase = NewCase(fileId, ReviewReason.IncompleteCase, (int)Math.Round(classification.Confidence.Value * 100), ambiguity: false);
                     reviewCases.Add(incompleteCase);
                     _cases.Add(incompleteCase);
                 }
@@ -268,15 +268,16 @@ public static class ManualReviewerPanelMockFactory
             // Confidence/ambiguity/extraction — only when no non-completed cases exist (dedup).
             if (existingNonCompleted.Count == 0)
             {
-                if (classification.Confidence < 80)
+                var confidenceInt = (int)Math.Round(classification.Confidence.Value * 100);
+                if (classification.Confidence.Value < 0.80)
                 {
-                    reviewCases.Add(NewCase(fileId, ReviewReason.LowConfidence, classification.Confidence, ambiguity: false));
+                    reviewCases.Add(NewCase(fileId, ReviewReason.LowConfidence, confidenceInt, ambiguity: false));
                 }
 
                 var isAmbiguous = classification.Level2 == null || (metadata.MatchedFields?.ConflictingFields?.Count > 0);
                 if (isAmbiguous)
                 {
-                    reviewCases.Add(NewCase(fileId, ReviewReason.AmbiguousClassification, classification.Confidence, ambiguity: true));
+                    reviewCases.Add(NewCase(fileId, ReviewReason.AmbiguousClassification, confidenceInt, ambiguity: true));
                 }
 
                 if (metadata.MatchedFields != null)
@@ -285,7 +286,7 @@ public static class ManualReviewerPanelMockFactory
                                               || (metadata.MatchedFields.MissingFields?.Count > 0);
                     if (hasExtractionErrors)
                     {
-                        reviewCases.Add(NewCase(fileId, ReviewReason.ExtractionError, classification.Confidence, ambiguity: false));
+                        reviewCases.Add(NewCase(fileId, ReviewReason.ExtractionError, confidenceInt, ambiguity: false));
                     }
                 }
 

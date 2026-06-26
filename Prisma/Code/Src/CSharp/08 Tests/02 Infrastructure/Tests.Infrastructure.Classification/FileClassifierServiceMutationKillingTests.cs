@@ -68,7 +68,7 @@ public class FileClassifierServiceMutationKillingTests
     {
         var result = await ClassifyAsync(area: keyword);
         result.Level1.Value.ShouldBe(expectedLevel1);
-        result.Confidence.ShouldBe(90);
+        result.Confidence.Value.ShouldBe(0.90);
     }
 
     /// <summary>The score for each high-rung category is exactly 90 (not just &gt; 70).</summary>
@@ -98,7 +98,7 @@ public class FileClassifierServiceMutationKillingTests
     {
         var result = await ClassifyAsync(area: keyword);
         result.Level1.Value.ShouldBe(expectedLevel1);
-        result.Confidence.ShouldBe(70);
+        result.Confidence.Value.ShouldBe(0.70);
     }
 
     // ── Level-1 default rung (score 10): no keyword present ─────────────────────────────────────────
@@ -119,7 +119,7 @@ public class FileClassifierServiceMutationKillingTests
         result.Scores.InformacionScore.ShouldBe(10);
         result.Scores.TransferenciaScore.ShouldBe(10);
         result.Scores.OperacionesIlicitasScore.ShouldBe(10);
-        result.Confidence.ShouldBe(0);
+        result.Confidence.Value.ShouldBe(0.0);
         result.Level1.ShouldBe(ClassificationLevel1.Unknown);
         result.Level2.ShouldBeNull();
     }
@@ -137,7 +137,7 @@ public class FileClassifierServiceMutationKillingTests
         result.Scores.AseguramientoScore.ShouldBe(90);
         result.Level1.Value.ShouldBe(0);
         result.Level2.ShouldBe(ClassificationLevel2.Especial);
-        result.Confidence.ShouldBe(90);
+        result.Confidence.Value.ShouldBe(0.90);
     }
 
     /// <summary>
@@ -198,7 +198,7 @@ public class FileClassifierServiceMutationKillingTests
     {
         var result = await ClassifyAsync(area: "ASEGURAR");
         result.Scores.AseguramientoScore.ShouldBe(70);
-        result.Confidence.ShouldBe(70);
+        result.Confidence.Value.ShouldBe(0.70);
     }
 
     /// <summary>
@@ -214,6 +214,6 @@ public class FileClassifierServiceMutationKillingTests
         result.Scores.AseguramientoScore.ShouldBe(90);
         result.Scores.DocumentacionScore.ShouldBe(70);
         result.Level1.Value.ShouldBe(0);
-        result.Confidence.ShouldBe(33);
+        result.Confidence.Value.ShouldBe(0.33);
     }
 }

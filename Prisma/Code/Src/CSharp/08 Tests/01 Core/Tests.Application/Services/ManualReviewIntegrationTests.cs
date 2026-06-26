@@ -95,7 +95,7 @@ public class ManualReviewIntegrationTests
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
                 Level2 = ClassificationLevel2.Judicial,
-                Confidence = 90
+                Confidence = Confidence.FromInt(90)
             }
         };
 
@@ -127,14 +127,14 @@ public class ManualReviewIntegrationTests
             Classification = new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 75
+                Confidence = Confidence.FromInt(75)
             }
         };
 
         var classification = new ClassificationResult
         {
             Level1 = ClassificationLevel1.Aseguramiento,
-            Confidence = 75
+            Confidence = Confidence.FromInt(75)
         };
 
         var reviewCases = new List<ReviewCase>

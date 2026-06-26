@@ -199,7 +199,7 @@ public class TesseractOcrExecutorEnhancedTests : IDisposable
             _logger.LogInformation($"  Document: {imageName}");
             _logger.LogInformation($"  Execution time: {elapsed.TotalSeconds:F2}s");
             _logger.LogInformation($"  Text length: {ocrResult.Text.Length} characters");
-            _logger.LogInformation($"  Confidence avg: {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Confidence avg: {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Confidence median: {ocrResult.ConfidenceMedian:F2}%");
             _logger.LogInformation($"  Language used: {ocrResult.LanguageUsed}");
             _logger.LogInformation($"  Text preview (first 200 chars): {ocrResult.Text.Substring(0, Math.Min(200, ocrResult.Text.Length))}");
@@ -207,10 +207,10 @@ public class TesseractOcrExecutorEnhancedTests : IDisposable
 
             // Calculate improvement from baseline
             float baselineConfidence = qualityLevel == "Q1_Poor" ? 85.0f : 47.5f; // Average baseline (Q1: 78-92%, Q2: 42-53%)
-            float improvement = ocrResult.ConfidenceAvg - baselineConfidence;
+            float improvement = (float)(ocrResult.Confidence.Value * 100) - baselineConfidence;
             _logger.LogInformation($"\n=== ENHANCEMENT ROI ===");
             _logger.LogInformation($"  Baseline avg confidence: {baselineConfidence:F2}%");
-            _logger.LogInformation($"  Enhanced confidence: {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Enhanced confidence: {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Improvement: {improvement:+0.00;-0.00}%");
 
             if (qualityLevel == "Q1_Poor" && improvement < 0)
@@ -221,7 +221,7 @@ public class TesseractOcrExecutorEnhancedTests : IDisposable
 
             if (qualityLevel == "Q2_MediumPoor")
             {
-                if (ocrResult.ConfidenceAvg >= 60.0f)
+                if (ocrResult.Confidence.Value * 100 >= 60.0f)
                 {
                     _logger.LogInformation($"  🎯 SUCCESS: Q2 enhanced reached 60%+ threshold (best-effort OCR)");
                     _logger.LogInformation($"  💡 BUSINESS IMPACT: Enhancement improved baseline (47.5%) by {improvement:+0.00}%");
@@ -238,7 +238,7 @@ public class TesseractOcrExecutorEnhancedTests : IDisposable
                 () => ocrResult.Text.ShouldNotBeNullOrWhiteSpace("Should extract text from enhanced image"),
                 () => ocrResult.Text.Length.ShouldBeGreaterThan(100,
                     $"Should extract substantial text from enhanced {qualityLevel} image"),
-                () => ocrResult.ConfidenceAvg.ShouldBeGreaterThanOrEqualTo(expectedMinConfidence,
+                () => ((float)(ocrResult.Confidence.Value * 100)).ShouldBeGreaterThanOrEqualTo(expectedMinConfidence,
                     $"Enhanced {qualityLevel} should reach {expectedMinConfidence}% confidence"),
                 () => ocrResult.Confidences.ShouldNotBeEmpty("Confidence list should not be empty"),
                 () => ocrResult.LanguageUsed.ShouldBe("spa", "Should use Spanish as primary language")

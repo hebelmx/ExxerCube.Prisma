@@ -248,7 +248,7 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
                 }
 
                 var pageText = ocrResult.Value.Text;
-                var pageConfidence = ocrResult.Value.ConfidenceAvg / 100.0f; // Convert from 0-100 to 0-1 scale
+                var pageConfidence = (float)ocrResult.Value.Confidence.Value; // Already on 0-1 scale
 
                 allPageTexts.Add(pageText);
                 confidences.Add(pageConfidence);

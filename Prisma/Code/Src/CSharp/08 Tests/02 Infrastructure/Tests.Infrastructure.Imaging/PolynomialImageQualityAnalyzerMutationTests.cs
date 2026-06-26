@@ -135,7 +135,7 @@ public class PolynomialImageQualityAnalyzerMutationTests
         result.IsSuccess.ShouldBeTrue();
         var a = result.Value!;
         a.QualityLevel.ShouldBe(ImageQualityLevel.Q2_MediumPoor); // blur 400 in [200,500)
-        a.Confidence.ShouldBe(0.9f);
+        a.Confidence.Value.ShouldBe(0.9, 1e-5);
         a.NoiseLevel.ShouldBe(0.08f, 1e-5f);        // Min(1, 4/50)
         a.ContrastLevel.ShouldBe(50f / 60f, 1e-5f); // Min(1, 50/60) = 0.8333
         a.SharpnessLevel.ShouldBe(0.2f, 1e-5f);     // Min(1, 0.02*10)

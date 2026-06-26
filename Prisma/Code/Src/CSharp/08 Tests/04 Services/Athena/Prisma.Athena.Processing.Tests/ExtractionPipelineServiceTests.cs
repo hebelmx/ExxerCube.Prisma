@@ -40,7 +40,7 @@ public sealed class ExtractionPipelineServiceTests
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = level,
-                Confidence = 0.95f
+                Confidence = Confidence.FromQuality(0.95)
             }));
 
         var ocrResult = new OCRResult("Extracted text here", 92.5f, 93.0f, new List<float> { 90, 95 }, "spa");
@@ -56,7 +56,7 @@ public sealed class ExtractionPipelineServiceTests
                 Arg.Any<CancellationToken>())
             .Returns(Result<FusionResult>.Success(new FusionResult
             {
-                OverallConfidence = 0.90,
+                Confidence = Confidence.FromFusion(0.90),
                 ConflictingFields = new List<string>(),
                 FusedExpediente = fused
             }));

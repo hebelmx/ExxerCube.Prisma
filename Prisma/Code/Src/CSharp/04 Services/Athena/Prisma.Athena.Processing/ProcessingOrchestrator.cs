@@ -468,7 +468,7 @@ public sealed class ProcessingOrchestrator
             CorrelationId = ctx.CorrelationId,
             FileId = ctx.FileId,
             OcrEngine = "Tesseract",
-            Confidence = (decimal)result.ConfidenceAvg,
+            Confidence = (decimal)(result.Confidence.Value * 100),
             ExtractedTextLength = result.Text.Length
         });
 
@@ -551,8 +551,6 @@ public sealed class ProcessingOrchestrator
         }
 
         var result = classResult.Value!;
-        // Story 2.6 will remove the *100 conversion once ClassificationResult.Confidence uses the shared Confidence VO (0–1 scale).
-        var classificationThresholdInt = (int)(_exportGatePolicy.ClassificationConfidenceThreshold * 100);
         _eventPublisher.Publish(new ClassificationCompletedEvent
         {
             EventId = Guid.NewGuid(),
@@ -561,8 +559,8 @@ public sealed class ProcessingOrchestrator
             FileId = ctx.FileId,
             RequirementTypeId = (int)result.Level1,
             RequirementTypeName = result.Level1.Name,
-            Confidence = result.Confidence,
-            RequiresManualReview = result.Confidence < classificationThresholdInt,
+            Confidence = (int)Math.Round(result.Confidence.Value * 100),
+            RequiresManualReview = result.Confidence.Value < _exportGatePolicy.ClassificationConfidenceThreshold,
             RelationType = "NewRequirement"
         });
 

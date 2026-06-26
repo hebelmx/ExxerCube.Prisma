@@ -39,7 +39,7 @@ public class StubImageQualityAnalyzer : IImageQualityAnalyzer
             var assessment = new ImageQualityAssessment
             {
                 QualityLevel = ImageQualityLevel.Q2_MediumPoor, // Default to medium-poor quality
-                Confidence = 0.7f,
+                Confidence = Confidence.FromQuality(0.7),
                 BlurScore = 50.0f,
                 NoiseLevel = 0.3f,
                 ContrastLevel = 0.6f,

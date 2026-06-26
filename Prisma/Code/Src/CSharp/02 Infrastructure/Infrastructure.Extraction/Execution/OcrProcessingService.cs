@@ -140,7 +140,7 @@ public class OcrProcessingService : IOcrProcessingService
                         return ResultExtensions.Cancelled<ProcessingResult>();
                     }
 
-                    var extractResult = await _fieldExtractor.ExtractFieldsAsync(ocrResultValue.Text, ocrResultValue.ConfidenceAvg).ConfigureAwait(false);
+                    var extractResult = await _fieldExtractor.ExtractFieldsAsync(ocrResultValue.Text, (float)(ocrResultValue.Confidence.Value * 100)).ConfigureAwait(false);
 
                     // Propagate cancellation from dependencies
                     if (extractResult.IsCancelled())
@@ -166,7 +166,7 @@ public class OcrProcessingService : IOcrProcessingService
                         {
                             FileId = Guid.TryParse(documentId, out var fileGuid) ? fileGuid : Guid.NewGuid(),
                             OcrEngine = "Tesseract/GOT-OCR2", // TODO: Track actual engine used
-                            Confidence = (decimal)ocrResultValue.ConfidenceAvg,
+                            Confidence = (decimal)(ocrResultValue.Confidence.Value * 100),
                             ExtractedTextLength = ocrResultValue.Text?.Length ?? 0,
                             ProcessingTime = TimeSpan.FromSeconds(1), // TODO: Calculate actual processing time
                             FallbackTriggered = false // TODO: Track fallback status

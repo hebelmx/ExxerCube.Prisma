@@ -32,7 +32,7 @@ public sealed class ReconciliationOrchestratorAlertamentoTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 90,
+                Confidence = Confidence.FromInt(90),
             }));
 
         var capturedMetadata = new List<UnifiedMetadataRecord>();
@@ -77,7 +77,7 @@ public sealed class ReconciliationOrchestratorAlertamentoTests
                 NumeroExpediente = "A/AS1-2505-001-TST",
                 NumeroOficio = "214-1-00000001/2026",
             },
-            OverallConfidence = 0.5,
+            Confidence = Confidence.FromFusion(0.5),
         };
 
         var conflictField = new FieldFusionResult
@@ -104,7 +104,7 @@ public sealed class ReconciliationOrchestratorAlertamentoTests
                 NumeroExpediente = "A/AS1-2505-002-TST",
                 NumeroOficio = "214-1-00000002/2026",
             },
-            OverallConfidence = 0.97,
+            Confidence = Confidence.FromFusion(0.97),
         };
 
         var agreeField = new FieldFusionResult

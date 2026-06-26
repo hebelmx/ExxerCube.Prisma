@@ -245,11 +245,11 @@ public class DocxFieldExtractor : IFieldExtractor<DocxSource>
                 }
 
                 var ocr = ocrResult.Value;
-                if (ocr.ConfidenceAvg < MinimumRemitenteConfidence)
+                if (ocr.Confidence.Value * 100 < MinimumRemitenteConfidence)
                 {
                     _logger.LogDebug(
                         "D2: OCR confidence {Confidence:F1} below threshold {Threshold} for image part {PartUri}; skipping.",
-                        ocr.ConfidenceAvg, MinimumRemitenteConfidence, partUri);
+                        ocr.Confidence.Value * 100, MinimumRemitenteConfidence, partUri);
                     continue;
                 }
 

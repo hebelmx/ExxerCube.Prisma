@@ -188,7 +188,7 @@ public sealed class ExtractionOrchestrator
         {
             _logger.LogWarning(
                 "Stage 1: Quality rejected. FileId: {FileId}, Level: {Level}, Confidence: {Confidence}",
-                fileId, assessment.QualityLevel.Name, assessment.Confidence);
+                fileId, assessment.QualityLevel.Name, assessment.Confidence.Value);
 
             var rejectedEvent = new QualityRejectedEvent
             {
@@ -196,7 +196,7 @@ public sealed class ExtractionOrchestrator
                 Timestamp = DateTime.UtcNow,
                 CorrelationId = correlationId,
                 FileId = fileId,
-                Score = (decimal)assessment.Confidence,
+                Score = (decimal)assessment.Confidence.Value,
                 Reason = $"Quality level {assessment.QualityLevel.Name} below threshold"
             };
             _eventPublisher.Publish(rejectedEvent);
@@ -269,7 +269,7 @@ public sealed class ExtractionOrchestrator
             CorrelationId = correlationId,
             FileId = fileId,
             OcrEngine = "Tesseract",
-            Confidence = (decimal)result.ConfidenceAvg,
+            Confidence = (decimal)(result.Confidence.Value * 100),
             ExtractedTextLength = result.Text.Length,
             ProcessingTime = ocrStopwatch.Elapsed,
             FallbackTriggered = false
@@ -277,7 +277,7 @@ public sealed class ExtractionOrchestrator
         _eventPublisher.Publish(ocrEvent);
 
         _logger.LogInformation("Stage 2 complete: OCR execution - FileId: {FileId}, Confidence: {Confidence}",
-            fileId, result.ConfidenceAvg);
+            fileId, result.Confidence.Value * 100);
 
         return result;
     }
@@ -374,7 +374,7 @@ public sealed class ExtractionOrchestrator
             return (null, new ExtractionMetadata());
         }
 
-        var confidence = (float)(ocrResult!.ConfidenceAvg / 100.0);
+        var confidence = (float)ocrResult!.Confidence.Value;
         var txtSource = new TxtSource(
             textContent: ocrResult.Text,
             ocrConfidence: confidence,

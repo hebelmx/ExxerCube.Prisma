@@ -124,7 +124,7 @@ public class TesseractOcrExecutorTests : IDisposable
             _logger.LogInformation($"\n=== TESSERACT RESULTS ===");
             _logger.LogInformation($"  Execution time: {elapsed.TotalSeconds:F2}s");
             _logger.LogInformation($"  Text length: {ocrResult.Text.Length} characters");
-            _logger.LogInformation($"  Confidence avg: {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Confidence avg: {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Confidence median: {ocrResult.ConfidenceMedian:F2}%");
             _logger.LogInformation($"  Language used: {ocrResult.LanguageUsed}");
             _logger.LogInformation($"  Text preview (first 200 chars): {ocrResult.Text.Substring(0, Math.Min(200, ocrResult.Text.Length))}");
@@ -139,7 +139,7 @@ public class TesseractOcrExecutorTests : IDisposable
                 () => ocrResult.Text.ShouldNotBeNullOrWhiteSpace("Extracted text should not be empty"),
                 () => ocrResult.Text.Length.ShouldBeGreaterThan(100,
                     "Should extract text from CNBV document (relaxed threshold for Tesseract comparison)"),
-                () => ocrResult.ConfidenceAvg.ShouldBeGreaterThanOrEqualTo(0,
+                () => ocrResult.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0,
                     "Confidence average should be non-negative"),
                 () => ocrResult.Confidences.ShouldNotBeEmpty("Confidence list should not be empty"),
                 () => ocrResult.LanguageUsed.ShouldBe("spa", "Should use Spanish as primary language")

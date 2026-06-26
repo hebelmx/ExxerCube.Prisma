@@ -81,7 +81,7 @@ public sealed class MultiSourceFusionTests
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ImageQualityLevel.Pristine,
-                Confidence = 0.95f,
+                Confidence = Confidence.FromQuality(0.95),
             }));
 
         var ocrExecutor = Substitute.For<IOcrExecutor>();
@@ -135,7 +135,7 @@ public sealed class MultiSourceFusionTests
                 capturedArr[2] = callInfo.ArgAt<Expediente?>(2); // docxExpediente
                 return Result<FusionResult>.Success(new FusionResult
                 {
-                    OverallConfidence = 0.90,
+                    Confidence = Confidence.FromFusion(0.90),
                     ConflictingFields = new List<string>(),
                     FusedExpediente = new Expediente { NumeroExpediente = "FUSED-001" },
                 });

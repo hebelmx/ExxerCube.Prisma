@@ -54,7 +54,7 @@ public sealed class ReviewCaseFkDropIntegrationTests : IDisposable
         // Arrange — a FileId with NO FileMetadata row (the real worker scenario).
         var fileId = Guid.NewGuid().ToString();
 
-        var classification = new ClassificationResult { Confidence = 90 };
+        var classification = new ClassificationResult { Confidence = Confidence.FromInt(90) };
         var metadata = new UnifiedMetadataRecord
         {
             Classification = classification,

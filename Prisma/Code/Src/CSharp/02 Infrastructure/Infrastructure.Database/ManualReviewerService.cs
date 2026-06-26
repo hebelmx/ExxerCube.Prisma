@@ -540,7 +540,7 @@ public class ManualReviewerService : IManualReviewerPanel
                         CaseId = $"CASE-{Guid.NewGuid():N}",
                         FileId = fileId,
                         RequiresReviewReason = ReviewReason.IncompleteCase,
-                        ConfidenceLevel = classification.Confidence,
+                        ConfidenceLevel = (int)Math.Round(classification.Confidence.Value * 100),
                         ClassificationAmbiguity = false,
                         Status = ReviewStatus.Pending,
                         CreatedAt = DateTime.UtcNow,
@@ -600,7 +600,7 @@ public class ManualReviewerService : IManualReviewerPanel
                         CaseId = $"CASE-{Guid.NewGuid():N}",
                         FileId = fileId,
                         RequiresReviewReason = ReviewReason.FieldMismatch,
-                        ConfidenceLevel = classification.Confidence,
+                        ConfidenceLevel = (int)Math.Round(classification.Confidence.Value * 100),
                         ClassificationAmbiguity = false,
                         Status = ReviewStatus.Pending,
                         CreatedAt = DateTime.UtcNow,
@@ -652,15 +652,14 @@ public class ManualReviewerService : IManualReviewerPanel
             if (!hasExistingNonCompleted)
             {
                 // Check for low confidence: below ManualReviewThreshold (default 0.80 → 80%).
-                // Story 2.6 will remove the *100 conversion once ClassificationResult.Confidence uses the shared Confidence VO (0–1 scale).
-                if (classification.Confidence < (int)(_policy.ManualReviewThreshold * 100))
+                if (classification.Confidence.Value < _policy.ManualReviewThreshold)
                 {
                     var lowConfidenceCase = new ReviewCase
                     {
                         CaseId = $"CASE-{Guid.NewGuid():N}",
                         FileId = fileId,
                         RequiresReviewReason = ReviewReason.LowConfidence,
-                        ConfidenceLevel = classification.Confidence,
+                        ConfidenceLevel = (int)Math.Round(classification.Confidence.Value * 100),
                         ClassificationAmbiguity = false,
                         Status = ReviewStatus.Pending,
                         CreatedAt = DateTime.UtcNow,
@@ -670,7 +669,7 @@ public class ManualReviewerService : IManualReviewerPanel
                     reviewCases.Add(lowConfidenceCase);
                     _logger.LogInformation(
                         "Identified low confidence case: {CaseId}, confidence: {Confidence}",
-                        lowConfidenceCase.CaseId, classification.Confidence);
+                        lowConfidenceCase.CaseId, classification.Confidence.Value);
                 }
 
                 // Check for ambiguous classification
@@ -684,7 +683,7 @@ public class ManualReviewerService : IManualReviewerPanel
                         CaseId = $"CASE-{Guid.NewGuid():N}",
                         FileId = fileId,
                         RequiresReviewReason = ReviewReason.AmbiguousClassification,
-                        ConfidenceLevel = classification.Confidence,
+                        ConfidenceLevel = (int)Math.Round(classification.Confidence.Value * 100),
                         ClassificationAmbiguity = true,
                         Status = ReviewStatus.Pending,
                         CreatedAt = DateTime.UtcNow,
@@ -709,7 +708,7 @@ public class ManualReviewerService : IManualReviewerPanel
                             CaseId = $"CASE-{Guid.NewGuid():N}",
                             FileId = fileId,
                             RequiresReviewReason = ReviewReason.ExtractionError,
-                            ConfidenceLevel = classification.Confidence,
+                            ConfidenceLevel = (int)Math.Round(classification.Confidence.Value * 100),
                             ClassificationAmbiguity = false,
                             Status = ReviewStatus.Pending,
                             CreatedAt = DateTime.UtcNow,

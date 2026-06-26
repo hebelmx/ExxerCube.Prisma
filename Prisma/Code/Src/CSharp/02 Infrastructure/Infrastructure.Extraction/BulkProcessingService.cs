@@ -170,7 +170,7 @@ public class BulkProcessingService : IBulkProcessingService
                 return Result<BulkProcessingResult>.Success(result);
             }
 
-            result.OcrConfidence = ocrResult.Value.OCRResult.ConfidenceAvg;
+            result.OcrConfidence = (float)(ocrResult.Value.OCRResult.Confidence.Value * 100);
             var sanitized = _sanitization.SanitizeAccountAndSwift(ocrResult.Value.OCRResult.Text);
             result.RawOcrText = sanitized.RawText;
             result.AccountSanitization = sanitized.Account;

@@ -160,7 +160,7 @@ public sealed class ProcessingOrchestratorTests
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ExxerCube.Prisma.Domain.Enum.ImageQualityLevel.Pristine,
-                Confidence = 0.95f,
+                Confidence = Confidence.FromQuality(0.95),
                 BlurScore = 0.1f,
                 NoiseLevel = 0.05f,
                 ContrastLevel = 0.85f,
@@ -199,7 +199,7 @@ public sealed class ProcessingOrchestratorTests
         var assessment = new ImageQualityAssessment
         {
             QualityLevel = ExxerCube.Prisma.Domain.Enum.ImageQualityLevel.Pristine,
-            Confidence = 0.95f,
+            Confidence = Confidence.FromQuality(0.95),
             BlurScore = 0.10f,
             NoiseLevel = 0.05f,
             ContrastLevel = 0.85f,
@@ -252,7 +252,7 @@ public sealed class ProcessingOrchestratorTests
         var assessment = new ImageQualityAssessment
         {
             QualityLevel = ExxerCube.Prisma.Domain.Enum.ImageQualityLevel.Q1_Poor,
-            Confidence = 0.30f,
+            Confidence = Confidence.FromQuality(0.30),
             BlurScore = 0.80f,
             NoiseLevel = 0.70f,
             ContrastLevel = 0.15f,
@@ -305,7 +305,7 @@ public sealed class ProcessingOrchestratorTests
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ExxerCube.Prisma.Domain.Enum.ImageQualityLevel.Pristine,
-                Confidence = 0.95f
+                Confidence = Confidence.FromQuality(0.95)
             }));
 
         var ocrResult = new OCRResult("Extracted text here", 92.5f, 93.0f, new List<float> { 90, 95 }, "spa");
@@ -331,7 +331,7 @@ public sealed class ProcessingOrchestratorTests
             Arg.Is<OcrCompletedEvent>(e =>
                 e.FileId == fileId &&
                 e.CorrelationId == correlationId &&
-                e.Confidence == (decimal)ocrResult.ConfidenceAvg &&
+                e.Confidence == (decimal)(ocrResult.Confidence.Value * 100) &&
                 e.ExtractedTextLength == ocrResult.Text.Length));
     }
 
@@ -355,7 +355,7 @@ public sealed class ProcessingOrchestratorTests
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ExxerCube.Prisma.Domain.Enum.ImageQualityLevel.Pristine,
-                Confidence = 0.95f
+                Confidence = Confidence.FromQuality(0.95)
             }));
 
         ocrExecutor.ExecuteOcrAsync(Arg.Any<ImageData>(), Arg.Any<ExxerCube.Prisma.Domain.Models.OCRConfig>())
@@ -423,7 +423,7 @@ public sealed class ProcessingOrchestratorTests
 
         var fusionResult = new FusionResult
         {
-            OverallConfidence = 0.75,
+            Confidence = Confidence.FromFusion(0.75),
             ConflictingFields = new List<string> { "RFC", "NombreTitular" }
         };
         fusionService.FuseAsync(
@@ -556,7 +556,7 @@ public sealed class ProcessingOrchestratorTests
         var classResult = new ClassificationResult
         {
             Level1 = ExxerCube.Prisma.Domain.Enum.ClassificationLevel1.Unknown,
-            Confidence = 45
+            Confidence = Confidence.FromInt(45)
         };
         classifier.ClassifyAsync(Arg.Any<ExtractedMetadata>(), Arg.Any<CancellationToken>())
             .Returns(Result<ClassificationResult>.Success(classResult));
@@ -900,7 +900,7 @@ public sealed class ProcessingOrchestratorTests
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ExxerCube.Prisma.Domain.Enum.ImageQualityLevel.Pristine,
-                Confidence = 0.95f
+                Confidence = Confidence.FromQuality(0.95)
             }));
 
         var ocrResult = new OCRResult("Extracted text here", 92.5f, 93.0f, new List<float> { 90, 95 }, "spa");
@@ -915,7 +915,7 @@ public sealed class ProcessingOrchestratorTests
         // export gate does not block (G-C2: gate blocks on ManualReviewRequired/low-confidence/conflicts).
         var fusionResult = new FusionResult
         {
-            OverallConfidence = 0.90,
+            Confidence = Confidence.FromFusion(0.90),
             ConflictingFields = new List<string>(),
             NextAction = ExxerCube.Prisma.Domain.Enum.NextAction.AutoProcess,
             FusedExpediente = new ExxerCube.Prisma.Domain.Entities.Expediente
@@ -967,7 +967,7 @@ public sealed class ProcessingOrchestratorTests
         var classResult = new ClassificationResult
         {
             Level1 = ExxerCube.Prisma.Domain.Enum.ClassificationLevel1.Aseguramiento,
-            Confidence = 95
+            Confidence = Confidence.FromInt(95)
         };
         classifier.ClassifyAsync(Arg.Any<ExtractedMetadata>(), Arg.Any<CancellationToken>())
             .Returns(Result<ClassificationResult>.Success(classResult));

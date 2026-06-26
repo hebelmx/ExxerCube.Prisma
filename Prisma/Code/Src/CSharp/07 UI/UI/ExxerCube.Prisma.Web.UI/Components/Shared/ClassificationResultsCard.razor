@@ -26,11 +26,11 @@
             <MudItem xs="12" md="6">
                 <MudText Typo="Typo.subtitle1" Class="mb-2">Confidence Score</MudText>
                 <div class="d-flex align-center">
-                    <MudProgressCircular Value="@Classification.Confidence" 
-                                       Color="@GetConfidenceColor(Classification.Confidence)"
-                                       Size="Size.Large" 
+                    <MudProgressCircular Value="@(Classification.Confidence.Value * 100)"
+                                       Color="@GetConfidenceColor((int)(Classification.Confidence.Value * 100))"
+                                       Size="Size.Large"
                                        Class="mr-3" />
-                    <MudText Typo="Typo.h5">@Classification.Confidence%</MudText>
+                    <MudText Typo="Typo.h5">@($"{Classification.Confidence.Value * 100:F0}")%</MudText>
                 </div>
             </MudItem>
             

@@ -198,7 +198,7 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
             _logger.LogInformation($"  Document: {imageName}");
             _logger.LogInformation($"  Execution time: {elapsed.TotalSeconds:F2}s");
             _logger.LogInformation($"  Text length: {ocrResult.Text.Length} characters");
-            _logger.LogInformation($"  Confidence avg: {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Confidence avg: {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Confidence median: {ocrResult.ConfidenceMedian:F2}%");
             _logger.LogInformation($"  Language used: {ocrResult.LanguageUsed}");
             _logger.LogInformation($"  Text preview (first 200 chars): {ocrResult.Text.Substring(0, Math.Min(200, ocrResult.Text.Length))}");
@@ -221,11 +221,11 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
 
             var key = $"{qualityLevel}_{Path.GetFileNameWithoutExtension(imageName).Split('-')[0]}";
             float standardScore = standardEnhancedScores.GetValueOrDefault(key, 0f);
-            float improvementFromStandard = ocrResult.ConfidenceAvg - standardScore;
+            float improvementFromStandard = (float)(ocrResult.Confidence.Value * 100) - standardScore;
 
             _logger.LogInformation($"\n=== AGGRESSIVE ENHANCEMENT ROI ===");
             _logger.LogInformation($"  Standard Enhanced:   {standardScore:F2}%");
-            _logger.LogInformation($"  Aggressive Enhanced: {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Aggressive Enhanced: {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Improvement:         {improvementFromStandard:+0.00;-0.00}%");
 
             if (improvementFromStandard < 0)
@@ -240,18 +240,18 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
 
             if (qualityLevel == "Q2_MediumPoor")
             {
-                if (ocrResult.ConfidenceAvg >= 70.0f)
+                if (ocrResult.Confidence.Value * 100 >= 70.0f)
                 {
                     _logger.LogInformation($"  🎯 SUCCESS: Q2 aggressive enhanced crossed 70% production threshold!");
 
                     // Special call-out for hard cases
                     if (imageName.Contains("333BBB"))
                     {
-                        _logger.LogInformation($"  🎊 BREAKTHROUGH: Rescued 333BBB from {standardScore:F2}% → {ocrResult.ConfidenceAvg:F2}% (was 0.38% short)!");
+                        _logger.LogInformation($"  🎊 BREAKTHROUGH: Rescued 333BBB from {standardScore:F2}% → {ocrResult.Confidence.Value * 100:F2}% (was 0.38% short)!");
                     }
                     else if (imageName.Contains("333ccc"))
                     {
-                        _logger.LogInformation($"  🎊 BREAKTHROUGH: Rescued 333ccc from {standardScore:F2}% → {ocrResult.ConfidenceAvg:F2}% (was 9.86% short)!");
+                        _logger.LogInformation($"  🎊 BREAKTHROUGH: Rescued 333ccc from {standardScore:F2}% → {ocrResult.Confidence.Value * 100:F2}% (was 9.86% short)!");
                     }
                 }
                 else
@@ -261,11 +261,11 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
                     // Special call-out for hard cases
                     if (imageName.Contains("333BBB"))
                     {
-                        _logger.LogWarning($"  ❌ HARD LIMIT CONFIRMED: 333BBB @ {ocrResult.ConfidenceAvg:F2}% (standard: {standardScore:F2}%, gap: {70.0f - ocrResult.ConfidenceAvg:F2}%)");
+                        _logger.LogWarning($"  ❌ HARD LIMIT CONFIRMED: 333BBB @ {ocrResult.Confidence.Value * 100:F2}% (standard: {standardScore:F2}%, gap: {70.0f - ocrResult.Confidence.Value * 100:F2}%)");
                     }
                     else if (imageName.Contains("333ccc"))
                     {
-                        _logger.LogWarning($"  ❌ HARD LIMIT CONFIRMED: 333ccc @ {ocrResult.ConfidenceAvg:F2}% (standard: {standardScore:F2}%, gap: {70.0f - ocrResult.ConfidenceAvg:F2}%)");
+                        _logger.LogWarning($"  ❌ HARD LIMIT CONFIRMED: 333ccc @ {ocrResult.Confidence.Value * 100:F2}% (standard: {standardScore:F2}%, gap: {70.0f - ocrResult.Confidence.Value * 100:F2}%)");
                     }
                 }
             }
@@ -275,7 +275,7 @@ public class GotOcr2OcrExecutorEnhancedAggressiveTests : IDisposable
                 () => ocrResult.Text.ShouldNotBeNullOrWhiteSpace("Should extract text from aggressive enhanced image"),
                 () => ocrResult.Text.Length.ShouldBeGreaterThan(50,
                     $"Should extract meaningful text from {qualityLevel} aggressive enhanced (minimum 50 chars)"),
-                () => ocrResult.ConfidenceAvg.ShouldBeGreaterThanOrEqualTo(0,
+                () => (ocrResult.Confidence.Value * 100).ShouldBeGreaterThanOrEqualTo(0,
                     "Confidence should be non-negative"),
                 () => ocrResult.Confidences.ShouldNotBeEmpty("Confidence list should not be empty"),
                 () => ocrResult.LanguageUsed.ShouldBe("spa", "Should use Spanish as primary language")

@@ -228,7 +228,7 @@ public sealed class ManualReviewerServiceGC2bTests : IDisposable
         var classification = new ClassificationResult
         {
             Level1 = ClassificationLevel1.Aseguramiento,
-            Confidence = 50, // intentionally low so at least one ReviewCase is created
+            Confidence = Confidence.FromInt(50), // intentionally low so at least one ReviewCase is created
         };
 
         // Act

@@ -211,7 +211,7 @@ public class TesseractOcrExecutorEnhancedAggressiveTests : IDisposable
             _logger.LogInformation($"  Document: {imageName}");
             _logger.LogInformation($"  Execution time: {elapsed.TotalSeconds:F2}s");
             _logger.LogInformation($"  Text length: {ocrResult.Text.Length} characters");
-            _logger.LogInformation($"  Confidence avg: {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Confidence avg: {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Confidence median: {ocrResult.ConfidenceMedian:F2}%");
             _logger.LogInformation($"  Language used: {ocrResult.LanguageUsed}");
             _logger.LogInformation($"  Text preview (first 200 chars): {ocrResult.Text.Substring(0, Math.Min(200, ocrResult.Text.Length))}");
@@ -220,13 +220,13 @@ public class TesseractOcrExecutorEnhancedAggressiveTests : IDisposable
             // Calculate improvement from baseline AND standard enhancement
             float baselineConfidence = qualityLevel == "Q1_Poor" ? 85.0f : 47.5f; // Phase 1 baseline
             float standardEnhancedConfidence = qualityLevel == "Q1_Poor" ? 86.5f : 65.0f; // Phase 2 standard
-            float improvementFromBaseline = ocrResult.ConfidenceAvg - baselineConfidence;
-            float improvementFromStandard = ocrResult.ConfidenceAvg - standardEnhancedConfidence;
+            float improvementFromBaseline = (float)(ocrResult.Confidence.Value * 100) - baselineConfidence;
+            float improvementFromStandard = (float)(ocrResult.Confidence.Value * 100) - standardEnhancedConfidence;
 
             _logger.LogInformation($"\n=== AGGRESSIVE ENHANCEMENT ROI ===");
             _logger.LogInformation($"  Baseline (Phase 1):          {baselineConfidence:F2}%");
             _logger.LogInformation($"  Standard Enhanced (Phase 2): {standardEnhancedConfidence:F2}%");
-            _logger.LogInformation($"  Aggressive Enhanced:         {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Aggressive Enhanced:         {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Improvement from baseline:   {improvementFromBaseline:+0.00;-0.00}%");
             _logger.LogInformation($"  Improvement from standard:   {improvementFromStandard:+0.00;-0.00}%");
 
@@ -242,7 +242,7 @@ public class TesseractOcrExecutorEnhancedAggressiveTests : IDisposable
 
             if (qualityLevel == "Q2_MediumPoor")
             {
-                if (ocrResult.ConfidenceAvg >= 70.0f)
+                if (ocrResult.Confidence.Value * 100 >= 70.0f)
                 {
                     _logger.LogInformation($"  🎯 SUCCESS: Q2 aggressive enhanced crossed 70% production threshold!");
                     _logger.LogInformation($"  💡 BUSINESS IMPACT: Aggressive filters can rescue Q2 documents");
@@ -279,7 +279,7 @@ public class TesseractOcrExecutorEnhancedAggressiveTests : IDisposable
                 () => ocrResult.Text.ShouldNotBeNullOrWhiteSpace("Should extract text from aggressive enhanced image"),
                 () => ocrResult.Text.Length.ShouldBeGreaterThan(50,
                     $"Should extract meaningful text from aggressive enhanced {qualityLevel} image"),
-                () => ocrResult.ConfidenceAvg.ShouldBeGreaterThanOrEqualTo(0,
+                () => ocrResult.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0,
                     "Confidence should be non-negative"),
                 () => ocrResult.Confidences.ShouldNotBeEmpty("Confidence list should not be empty"),
                 () => ocrResult.LanguageUsed.ShouldBe("spa", "Should use Spanish as primary language")

@@ -134,7 +134,7 @@ public class GotOcr2OcrExecutorTests : IDisposable
 
             _logger.LogInformation($"Results:");
             _logger.LogInformation($"  Text length: {ocrResult.Text.Length} characters");
-            _logger.LogInformation($"  Confidence avg: {ocrResult.ConfidenceAvg:F2}%");
+            _logger.LogInformation($"  Confidence avg: {ocrResult.Confidence.Value * 100:F2}%");
             _logger.LogInformation($"  Confidence median: {ocrResult.ConfidenceMedian:F2}%");
             _logger.LogInformation($"  Language used: {ocrResult.LanguageUsed}");
             _logger.LogInformation($"  Text preview (first 200 chars): {ocrResult.Text.Substring(0, Math.Min(200, ocrResult.Text.Length))}");
@@ -147,11 +147,11 @@ public class GotOcr2OcrExecutorTests : IDisposable
                 () => ocrResult.Text.ShouldNotBeNullOrWhiteSpace("Extracted text should not be empty"),
                 () => ocrResult.Text.Length.ShouldBeGreaterThan(500,
                     "Should extract substantial text from CNBV document (expected >1000 chars, minimum 500)"),
-                () => ocrResult.ConfidenceAvg.ShouldBeGreaterThan(0,
+                () => (ocrResult.Confidence.Value * 100).ShouldBeGreaterThan(0,
                     "Confidence average should be positive (heuristic-based calculation)"),
                 () => ocrResult.ConfidenceMedian.ShouldBeGreaterThan(0,
                     "Median confidence should be positive"),
-                () => ocrResult.ConfidenceMedian.ShouldBe(ocrResult.ConfidenceAvg,
+                () => ocrResult.ConfidenceMedian.ShouldBe((float)(ocrResult.Confidence.Value * 100),
                     "GOT-OCR2 returns same value for avg and median (single heuristic score)"),
                 () => ocrResult.Confidences.ShouldNotBeEmpty("Confidence list should not be empty"),
                 () => ocrResult.Confidences.Count.ShouldBe(1,

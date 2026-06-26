@@ -268,7 +268,7 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ImageQualityLevel.Pristine,
-                Confidence = 0.99f
+                Confidence = Confidence.FromQuality(0.99)
             }));
 
         var ocrExecutor = Substitute.For<IOcrExecutor>();
@@ -283,7 +283,7 @@ public sealed class ProcessAuditIntegrationTests : IDisposable
                 Arg.Any<CancellationToken>())
             .Returns(Result<FusionResult>.Success(new FusionResult
             {
-                OverallConfidence = 0.9,
+                Confidence = Confidence.FromFusion(0.9),
                 ConflictingFields = new List<string>(),
                 FusedExpediente = fusedExpediente
             }));

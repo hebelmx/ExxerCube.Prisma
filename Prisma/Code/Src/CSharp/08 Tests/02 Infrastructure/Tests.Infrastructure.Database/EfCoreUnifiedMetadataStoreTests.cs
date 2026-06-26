@@ -46,7 +46,7 @@ public class EfCoreUnifiedMetadataStoreTests : IDisposable
             Classification = new ClassificationResult
             {
                 Level1 = ClassificationLevel1.Aseguramiento,
-                Confidence = 85,
+                Confidence = Confidence.FromInt(85),
             },
         };
 
@@ -67,7 +67,7 @@ public class EfCoreUnifiedMetadataStoreTests : IDisposable
         loadResult.Value.Classification.ShouldNotBeNull();
         loadResult.Value.Classification!.Level1.ShouldNotBeNull();
         loadResult.Value.Classification.Level1!.Name.ShouldBe(ClassificationLevel1.Aseguramiento.Name);
-        loadResult.Value.Classification.Confidence.ShouldBe(85);
+        loadResult.Value.Classification.Confidence.Value.ShouldBe(0.85);
     }
 
     /// <summary>

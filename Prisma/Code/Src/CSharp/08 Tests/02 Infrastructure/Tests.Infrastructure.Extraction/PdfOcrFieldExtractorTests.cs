@@ -54,7 +54,7 @@ public class PdfOcrFieldExtractorTests
         var imageData = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var ocrText = "Expediente: A/AS1-2505-088637-PHM CAUSA: Test Causa";
-        var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.9f };
+        var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.9f) };
 
         _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
             .Returns(Result<ImageData>.Success(preprocessedImage));
@@ -91,7 +91,7 @@ public class PdfOcrFieldExtractorTests
             var imageData = new ImageData { Data = pdfContent, SourcePath = tempFile };
             var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = tempFile };
             var ocrText = "Expediente: A/AS1-2505-088637-PHM";
-            var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.9f };
+            var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.9f) };
 
             _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
                 .Returns(Result<ImageData>.Success(preprocessedImage));
@@ -196,7 +196,7 @@ public class PdfOcrFieldExtractorTests
         var imageData = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var ocrText = "Expediente: A/AS1-2505-088637-PHM";
-        var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.9f };
+        var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.9f) };
 
         _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
             .Returns(Result<ImageData>.Success(preprocessedImage));
@@ -231,7 +231,7 @@ public class PdfOcrFieldExtractorTests
         var imageData = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var preprocessedImage = new ImageData { Data = pdfContent, SourcePath = "test.pdf" };
         var ocrText = "Some text without expediente";
-        var ocrResult = new OCRResult { Text = ocrText, ConfidenceAvg = 0.9f };
+        var ocrResult = new OCRResult { Text = ocrText, Confidence = Confidence.FromOcr(0.9f) };
 
         _imagePreprocessor.PreprocessAsync(Arg.Any<ImageData>(), Arg.Any<ProcessingConfig>())
             .Returns(Result<ImageData>.Success(preprocessedImage));

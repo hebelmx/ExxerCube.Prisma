@@ -208,7 +208,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value.Level1.ShouldBe(ClassificationLevel1.Aseguramiento);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.70);
     }
 
     /// <summary>
@@ -233,7 +233,7 @@ public class FileClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value.Confidence.ShouldBeGreaterThan(70);
+        result.Value.Confidence.Value.ShouldBeGreaterThan(0.70);
     }
 
     /// <summary>
@@ -262,7 +262,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.Unknown);
-        result.Value.Confidence.ShouldBe(0);
+        result.Value.Confidence.Value.ShouldBe(0.0);
     }
 
     /// <summary>
@@ -291,7 +291,7 @@ public class FileClassifierServiceTests
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldNotBe(ClassificationLevel1.Aseguramiento);
         result.Value.Level1.ShouldBe(ClassificationLevel1.Unknown);
-        result.Value.Confidence.ShouldBe(0);
+        result.Value.Confidence.Value.ShouldBe(0.0);
     }
 
     /// <summary>
@@ -321,7 +321,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.Aseguramiento);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(80);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.80);
     }
 
     /// <summary>
@@ -352,7 +352,7 @@ public class FileClassifierServiceTests
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldNotBe(ClassificationLevel1.Aseguramiento);
         result.Value.Level1.ShouldBe(ClassificationLevel1.Unknown);
-        result.Value.Confidence.ShouldBe(0);
+        result.Value.Confidence.Value.ShouldBe(0.0);
     }
 
     // ── Story 2.4: PLD / OperacionesIlicitas gap-closure tests ─────────────────────────────────────
@@ -390,7 +390,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.70);
     }
 
     /// <summary>
@@ -421,7 +421,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.70);
     }
 
     /// <summary>
@@ -465,7 +465,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.Unknown);
-        result.Value.Confidence.ShouldBeLessThan(70);
+        result.Value.Confidence.Value.ShouldBeLessThan(0.70);
     }
 
     /// <summary>
@@ -497,7 +497,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.70);
     }
 
     /// <summary>
@@ -528,7 +528,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.70);
     }
 
     /// <summary>
@@ -561,7 +561,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.OperacionesIlicitas);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.70);
     }
 
     // ── Story 2.5: Confidence monotonicity ──────────────────────────────────────────────────────────
@@ -611,7 +611,7 @@ public class FileClassifierServiceTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
-        result.Value!.Confidence.ShouldBe(expectedConfidence,
+        result.Value!.Confidence.Value.ShouldBe(expectedConfidence / 100.0,
             $"bodyText='{bodyText}' should yield confidence {expectedConfidence}");
     }
 
@@ -646,7 +646,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.Aseguramiento);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(80);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.80);
     }
 
     /// <summary>
@@ -678,7 +678,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.Unknown);
-        result.Value.Confidence.ShouldBeLessThan(70);
+        result.Value.Confidence.Value.ShouldBeLessThan(0.70);
     }
 
     /// <summary>
@@ -710,7 +710,7 @@ public class FileClassifierServiceTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value!.Level1.ShouldBe(ClassificationLevel1.Informacion);
-        result.Value.Confidence.ShouldBeGreaterThanOrEqualTo(70);
+        result.Value.Confidence.Value.ShouldBeGreaterThanOrEqualTo(0.70);
     }
 }
 

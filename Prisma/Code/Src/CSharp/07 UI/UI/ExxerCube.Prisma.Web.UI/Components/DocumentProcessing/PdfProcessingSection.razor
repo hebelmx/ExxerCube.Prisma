@@ -62,7 +62,7 @@
                             <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Large" />
                         </div>
                         <MudText Typo="Typo.h2" Color="Color.Surface" Align="Align.Center" Style="font-weight: bold;">
-                            @($"{State.OcrResult.OCRResult.ConfidenceAvg:F1}%")
+                            @($"{State.OcrResult.OCRResult.Confidence.Value * 100:F1}%")
                         </MudText>
                         <MudText Typo="Typo.body1" Color="Color.Surface" Align="Align.Center">OCR Confidence</MudText>
                     </MudPaper>
@@ -106,7 +106,7 @@
                 <MudTabPanel Text="OCR Details" Icon="@Icons.Material.Filled.Info">
                     <MudGrid Class="mt-3">
                         <MudItem xs="12" sm="6">
-                            <MudTextField Value="@($"{State.OcrResult.OCRResult.ConfidenceAvg:F2}%")"
+                            <MudTextField Value="@($"{State.OcrResult.OCRResult.Confidence.Value * 100:F2}%")"
                                          Label="Average Confidence"
                                          ReadOnly="true"
                                          Variant="Variant.Outlined" />
@@ -154,7 +154,7 @@
                                          Variant="Variant.Outlined"
                                          Lines="30"
                                          ReadOnly="true"
-                                         HelperText="@($"{State.OcrResult.OCRResult.Text.Length} characters | {State.OcrResult.OCRResult.ConfidenceAvg:F1}% confidence")"
+                                         HelperText="@($"{State.OcrResult.OCRResult.Text.Length} characters | {State.OcrResult.OCRResult.Confidence.Value * 100:F1}% confidence")"
                                          Style="font-family: 'Courier New', monospace; font-size: 12px;" />
                         </MudPaper>
                     </MudItem>

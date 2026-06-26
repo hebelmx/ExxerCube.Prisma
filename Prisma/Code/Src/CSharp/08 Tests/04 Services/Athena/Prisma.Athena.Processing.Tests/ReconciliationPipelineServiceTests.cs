@@ -33,7 +33,7 @@ public sealed class ReconciliationPipelineServiceTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ExxerCube.Prisma.Domain.Enum.ClassificationLevel1.Aseguramiento,
-                Confidence = 95
+                Confidence = Confidence.FromInt(95)
             }));
 
         // Stage 5 now calls ExportSiroXmlAsync — return Success so Stage 5 completes.
@@ -132,7 +132,7 @@ public sealed class ReconciliationPipelineServiceTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ExxerCube.Prisma.Domain.Enum.ClassificationLevel1.Aseguramiento,
-                Confidence = 95,
+                Confidence = Confidence.FromInt(95),
             }));
 
         // Exporter would record calls if Stage 5 were (incorrectly) reached.

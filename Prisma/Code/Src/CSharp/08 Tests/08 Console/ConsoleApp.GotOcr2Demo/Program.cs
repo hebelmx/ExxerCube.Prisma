@@ -205,7 +205,7 @@ internal class Program
             Log.Information("✓ OCR succeeded");
             Log.Information("Results:");
             Log.Information("  Text length: {Length} characters", ocrResult?.Text.Length ?? 0);
-            Log.Information("  Confidence avg: {ConfidenceAvg:F2}%", ocrResult?.ConfidenceAvg);
+            Log.Information("  Confidence avg: {ConfidenceAvg:F2}%", ocrResult?.Confidence.Value * 100);
             Log.Information("  Confidence median: {ConfidenceMedian:F2}%", ocrResult?.ConfidenceMedian);
             Log.Information("  Language: {Language}", ocrResult?.LanguageUsed);
             Log.Information("  Processing time: {ProcessingTime:F2}s", elapsed.TotalSeconds);

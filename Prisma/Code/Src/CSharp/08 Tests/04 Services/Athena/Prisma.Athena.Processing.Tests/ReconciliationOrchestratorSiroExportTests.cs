@@ -85,7 +85,7 @@ public sealed class ReconciliationOrchestratorSiroExportTests
         var fusionResult = new FusionResult
         {
             FusedExpediente = MinimalExpediente(),
-            OverallConfidence = 0.9,
+            Confidence = Confidence.FromFusion(0.9),
             ConflictingFields = new List<string>(),
             NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
         };
@@ -128,7 +128,7 @@ public sealed class ReconciliationOrchestratorSiroExportTests
         var fusionResult = new FusionResult
         {
             FusedExpediente = expediente,
-            OverallConfidence = 0.95,
+            Confidence = Confidence.FromFusion(0.95),
             ConflictingFields = new List<string>(),
             NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
         };
@@ -192,7 +192,7 @@ public sealed class ReconciliationOrchestratorSiroExportTests
             fusionResult: new FusionResult
             {
                 FusedExpediente = MinimalExpediente(),
-                OverallConfidence = 0.9,
+                Confidence = Confidence.FromFusion(0.9),
                 ConflictingFields = new List<string>(),
             },
             fileId: Guid.NewGuid(),
@@ -253,7 +253,7 @@ public sealed class ReconciliationOrchestratorSiroExportTests
             fusionResult: new FusionResult
             {
                 FusedExpediente = invalidExpediente,
-                OverallConfidence = 0.0,
+                Confidence = Confidence.FromFusion(0.0),
                 ConflictingFields = new List<string>(),
                 NextAction = NextAction.AutoProcess, // G-C2: force gate open so Stage 5 runs and fails on validation
             },

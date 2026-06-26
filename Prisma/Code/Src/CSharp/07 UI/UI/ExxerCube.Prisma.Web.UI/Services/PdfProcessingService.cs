@@ -83,7 +83,7 @@ public sealed class PdfProcessingService
                 OCRResult = new OCRResult
                 {
                     Text = ocrText,
-                    ConfidenceAvg = confidence * 100,
+                    Confidence = new Confidence(confidence, ConfidenceSource.Ocr),
                     LanguageUsed = "spa"
                 },
                 ExtractedFields = new ExtractedFields

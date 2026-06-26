@@ -363,7 +363,7 @@ public sealed class DemoChecklistSevenStepsTests
         var substituteOcr = Substitute.For<IOcrExecutor>();
         substituteOcr.ExecuteOcrAsync(Arg.Any<ImageData>(), Arg.Any<OCRConfig>())
             .Returns(Task.FromResult(Result<OCRResult>.Success(
-                new OCRResult { Text = string.Empty, ConfidenceAvg = 0f })));
+                new OCRResult { Text = string.Empty, Confidence = Confidence.FromOcr(0f) })));
 
         var docxExtractor = new DocxFieldExtractor(NullLog<DocxFieldExtractor>(), substituteOcr);
 

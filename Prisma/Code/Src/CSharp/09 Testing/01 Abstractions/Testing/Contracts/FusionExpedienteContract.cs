@@ -91,7 +91,7 @@ public abstract class FusionExpedienteContract
         fusion.FusedExpediente.NumeroExpediente.ShouldBe("A/AS1-1111-222222-AAA");
         fusion.FusedExpediente.AreaDescripcion.ShouldBe("ASEGURAMIENTO");
 
-        fusion.OverallConfidence.ShouldBeGreaterThanOrEqualTo(AutoProcessThreshold);
+        fusion.Confidence.Value.ShouldBeGreaterThanOrEqualTo(AutoProcessThreshold);
         fusion.NextAction.ShouldBe(NextAction.AutoProcess);
         fusion.ConflictingFields.ShouldBeEmpty();
 

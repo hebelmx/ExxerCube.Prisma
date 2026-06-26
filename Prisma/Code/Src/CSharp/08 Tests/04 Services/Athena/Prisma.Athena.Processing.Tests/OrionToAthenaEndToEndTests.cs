@@ -332,7 +332,7 @@ public sealed class OrionToAthenaEndToEndTests : IDisposable
             .Returns(Result<ImageQualityAssessment>.Success(new ImageQualityAssessment
             {
                 QualityLevel = ImageQualityLevel.Pristine,
-                Confidence = 0.95f,
+                Confidence = Confidence.FromQuality(0.95),
                 BlurScore = 0.10f,
                 NoiseLevel = 0.05f,
                 ContrastLevel = 0.85f,
@@ -348,7 +348,7 @@ public sealed class OrionToAthenaEndToEndTests : IDisposable
         // NextAction = AutoProcess so the export gate (G-C2) does not block Stage 5.
         var fusionResult = new FusionResult
         {
-            OverallConfidence = 0.90,
+            Confidence = Confidence.FromFusion(0.90),
             ConflictingFields = new List<string>(),
             NextAction = NextAction.AutoProcess,
             FusedExpediente = new ExxerCube.Prisma.Domain.Entities.Expediente
@@ -371,7 +371,7 @@ public sealed class OrionToAthenaEndToEndTests : IDisposable
         var classResult = new ClassificationResult
         {
             Level1 = ClassificationLevel1.Aseguramiento,
-            Confidence = 95
+            Confidence = Confidence.FromInt(95)
         };
         classifier.ClassifyAsync(Arg.Any<ExtractedMetadata>(), Arg.Any<CancellationToken>())
             .Returns(Result<ClassificationResult>.Success(classResult));

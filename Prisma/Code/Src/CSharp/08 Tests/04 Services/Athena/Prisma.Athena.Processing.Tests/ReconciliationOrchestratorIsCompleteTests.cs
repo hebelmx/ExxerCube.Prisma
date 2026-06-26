@@ -45,7 +45,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ExxerCube.Prisma.Domain.Enum.ClassificationLevel1.Aseguramiento,
-                Confidence = 90,
+                Confidence = Confidence.FromInt(90),
             }));
 
         // NSubstitute panel that captures IdentifyReviewCasesAsync calls
@@ -85,7 +85,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
             NumeroExpediente = "A/AS1-2505-001-TST",
             NumeroOficio = "214-1-00000001/2026",
         },
-        OverallConfidence = 0.9,
+        Confidence = Confidence.FromFusion(0.9),
         ConflictingFields = new List<string>(),
     };
 
@@ -247,7 +247,7 @@ public sealed class ReconciliationOrchestratorIsCompleteTests
             .Returns(Result<ClassificationResult>.Success(new ClassificationResult
             {
                 Level1 = ExxerCube.Prisma.Domain.Enum.ClassificationLevel1.Aseguramiento,
-                Confidence = 90,
+                Confidence = Confidence.FromInt(90),
             }));
 
         var panelSub = Substitute.For<IManualReviewerPanel>();

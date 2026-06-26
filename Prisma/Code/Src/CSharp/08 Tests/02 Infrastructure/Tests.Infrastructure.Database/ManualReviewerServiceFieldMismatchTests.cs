@@ -59,7 +59,7 @@ public sealed class ManualReviewerServiceFieldMismatchTests : IDisposable
     {
         Level1 = ClassificationLevel1.Aseguramiento,
         Level2 = ClassificationLevel2.Judicial,
-        Confidence = 90,
+        Confidence = Confidence.FromInt(90),
     };
 
     /// <summary>Returns a metadata record with one <see cref="FieldConflictAlert"/>.</summary>

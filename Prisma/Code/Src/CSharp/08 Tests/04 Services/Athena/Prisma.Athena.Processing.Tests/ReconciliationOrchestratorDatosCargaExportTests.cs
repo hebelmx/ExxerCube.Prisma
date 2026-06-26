@@ -93,7 +93,7 @@ public sealed class ReconciliationOrchestratorDatosCargaExportTests
         var fusion = new FusionResult
         {
             FusedExpediente = MinimalExpediente(),
-            OverallConfidence = 0.9,
+            Confidence = Confidence.FromFusion(0.9),
             ConflictingFields = new List<string>(),
             NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
         };
@@ -136,7 +136,7 @@ public sealed class ReconciliationOrchestratorDatosCargaExportTests
             fusionResult: new FusionResult
             {
                 FusedExpediente = MinimalExpediente(),
-                OverallConfidence = 0.9,
+                Confidence = Confidence.FromFusion(0.9),
                 ConflictingFields = new List<string>(),
                 NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
             },
@@ -173,7 +173,7 @@ public sealed class ReconciliationOrchestratorDatosCargaExportTests
             fusionResult: new FusionResult
             {
                 FusedExpediente = MinimalExpediente(),
-                OverallConfidence = 0.9,
+                Confidence = Confidence.FromFusion(0.9),
                 ConflictingFields = new List<string>(),
                 NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
             },
@@ -240,7 +240,7 @@ public sealed class ReconciliationOrchestratorDatosCargaExportTests
             fusionResult: new FusionResult
             {
                 FusedExpediente = MinimalExpediente(),
-                OverallConfidence = 0.9,
+                Confidence = Confidence.FromFusion(0.9),
                 ConflictingFields = new List<string>(),
                 NextAction = NextAction.AutoProcess, // G-C2: AutoProcess so export gate allows Stage 5
             },

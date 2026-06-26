@@ -23,9 +23,11 @@ public class ClassificationResult
     public ClassificationScores Scores { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the overall confidence score (0-100).
+    /// Gets or sets the overall confidence score ([0, 1]).
+    /// Use <see cref="Confidence.Value"/> for the numeric value; multiply by 100 where a
+    /// legacy 0–100 integer is required downstream.
     /// </summary>
-    public int Confidence { get; set; }
+    public Confidence Confidence { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ClassificationResult"/> class.

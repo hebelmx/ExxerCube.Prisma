@@ -223,7 +223,7 @@ public sealed class ReviewApprovalExportHandler : IDisposable
             FusedExpediente = expediente,
             NextAction = NextAction.AutoProcess,
             ConflictingFields = new System.Collections.Generic.List<string>(),
-            OverallConfidence = 1.0,
+            Confidence = Confidence.FromFusion(1.0),
         };
     }
 
