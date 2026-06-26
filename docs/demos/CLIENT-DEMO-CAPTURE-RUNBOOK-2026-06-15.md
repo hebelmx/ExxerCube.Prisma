@@ -13,6 +13,90 @@ called out explicitly with the recommended workaround — do **not** improvise o
 
 ---
 
+## ⚠️ EXECUTION ADDENDUM — 2026-06-25 (Linux box + §2 gate) — READ BEFORE FILMING
+
+> **Why this exists:** the shot list below (§0–Appendix) was authored 2026-06-15 on branch `Kt2`
+> for a **Windows** box (PowerShell, `E:/`, LocalDB, per-stage launches). Development has since
+> moved to the **Linux (Ubuntu 26.04) dev box** on branch `Liv`, and the canonical full-pipeline
+> proof is now the **§2 max-fidelity gate** (`MaxFidelityGateFullPipelineE2ETests`), which runs the
+> real **3-process split** end-to-end. This addendum is the **current** execution truth; the
+> Windows commands in §0–§5 remain valid *only* if you film on the old Windows box. On the Linux
+> box, translate every `powershell`/`$env:`/`E:/` command to the bash recipe in **A2** below.
+
+### A0. GO / NO-GO gate — do NOT film the live full pipeline until BOTH are green
+
+Two blockers currently stop a clean live full-pipeline run on Linux. **Dedicated agents are fixing
+both right now** (branch `Liv`); this runbook is staged to execute *the moment they land*.
+
+| # | Blocker | Brief | Owner agent | Blocks which captures |
+|---|---------|-------|-------------|-----------------------|
+| 1 | Native OCR **SIGSEGV** (Tesseract/Leptonica ⟂ SkiaSharp/Emgu coexistence) — gate host dies exit 139 in Stage 2 | `docs/planning-artifacts/remediation/TASK-OCR-SEGFAULT-LINUX.md` | `ocr-segfault-troubleshooter` | Capture 2 (extraction), Capture 3 (layout), and the §2 gate "money shot" |
+| 2 | **Corpus inconsistency** — improvised PRP1 companions disagree → fusion `ManualReviewRequired` → export gate BLOCKS | `docs/planning-artifacts/remediation/TASK-GATE-CORPUS-SYNTHETIC-WORKLOAD.md` | `siara-corpus-generator` | Capture 3 (clean SIRO/xlsx export), Capture 5 close (green gate) |
+
+**Validation command — "is it green now?"** (run this; a clean pass = GO for the live full-pipeline captures):
+```bash
+TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata \
+dotnet test "Prisma/Code/Src/CSharp/08 Tests/06 E2E/Tests.AllRealWireE2E/ExxerCube.Prisma.Tests.AllRealWireE2E.csproj" \
+  --filter-query "/*/*/MaxFidelityGateFullPipelineE2ETests/RealSiaraCase_FlowsAcrossAllThreeProcesses_WithRealPipeline_AndPersistsAudit"
+```
+- Until **Blocker 1** is fixed: this dies with exit 139 (SIGSEGV) right after `Executing Tesseract OCR` → **NO-GO** for any OCR-bearing live capture.
+- After Blocker 1, until **Blocker 2** is fixed: the run survives OCR but export **BLOCKS** at the gate (fusion `ManualReviewRequired`) → the green-export captures (3, 5) are **NO-GO**; OCR-extraction captures are filmable.
+- Both green → **GO**. The captures that don't touch the live pipeline (Capture 0 simulator, Capture 4 `/oficio-summary`, the SLA/dashboard pages in Capture 5) are filmable **regardless** — record those first.
+
+### A1. The §2 gate is the new headline capture ("money shot")
+
+The strongest single piece of demo evidence is the **§2 gate running green end-to-end** — it proves
+the real **3-process split** with no mocks:
+```
+SIARA Simulator  ──(real browser download)──▶  Orion (Downloader)
+   ──(SignalR/Ember over real TCP)──▶  Athena (Extractor: Quality→OCR→Fusion→Classify)
+   ──(SignalR/Ember over real TCP)──▶  Reconciliator (Export: SIRO XML + DatosCarga xlsx)
+   ──▶  SQL audit ledger (rows from ≥2 distinct ProcessIds)
+```
+Evidence: `Prisma/Code/Src/CSharp/08 Tests/06 E2E/Tests.AllRealWireE2E/MaxFidelityGateFullPipelineE2ETests.cs`
+(test `RealSiaraCase_FlowsAcrossAllThreeProcesses_WithRealPipeline_AndPersistsAudit`). It asserts a
+populated SIRO XML (`SiroResponse` root, `NumeroExpediente`/`NumeroOficio`), a 24-column DatosCarga
+xlsx, and ≥2-process audit rows. **Recommended new capture order:** film the green gate run first as
+"prueba de sistema completo", then drill into the per-etapa UI captures (§1–§5) for the narrative.
+> Note vs. §0.4: the gate runs OCR + the 3-process pipeline across **separate processes**, which is
+> exactly why the single-process Tesseract re-init deadlock doesn't apply to it — but the *new*
+> Linux SIGSEGV (Blocker 1) is a different, native-coexistence crash. Both are handled by A0.
+
+### A2. Linux box launch recipe (translate §0–§5 PowerShell to this)
+
+One-time box setup (full recipe: `docs/planning-artifacts/remediation/EXECUTION-TRACKER.md`, 2026-06-25 handoff):
+```bash
+# Native Tesseract 5 data (eng/spa/osd present on this box)
+export TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata
+# Playwright chromium for Ubuntu 26.04 (PW 1.60 refuses the 26.04 download → symlink)
+ln -sfn ~/.cache/ms-playwright/chromium-1228 ~/.cache/ms-playwright/chromium-1223
+# Chromium sandbox under Ubuntu 26.04 (reversible; restore to 1 or reboot after)
+sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+# Docker must be up for Testcontainers SQL 2025 (the gate provisions its own DB)
+```
+SIARA simulator — run **http-only** so the gate/worker plain `HttpClient` probe works (sim on
+`http://localhost:5001`), from `Deployments/Siara.Simulator/app/`:
+```bash
+ASPNETCORE_ENVIRONMENT=Development \
+Kestrel__Endpoints__Https__Url=http://localhost:5002 \
+dotnet Siara.Simulator.dll
+# login BANAMEX / password123 ; corpus served from ../bulk_generated_documents_all_formats (gitignored)
+```
+PowerShell→bash command map for the per-stage captures:
+- `$env:NAME = "v"` → `export NAME=v` (or inline `NAME=v dotnet …`).
+- `E:/Dynamic/_demo/storage` → a local shared dir, e.g. `export Storage__BasePath="$HOME/_demo/storage"` (all 3 workers must point at the **same** path).
+- LocalDB conn strings (§0.1/§1) → either let the gate use Testcontainers SQL, or point at a real SQL 2025 via `ConnectionStrings__DefaultConnection` / `__ApplicationConnection` (the Web.UI appsettings now ship **empty** conn strings by design — supply them via env, so §0.1's "delete the hardcoded file" step is obsolete; just export the two vars).
+- Orion (Capture 1): `cd "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker" && ASPNETCORE_ENVIRONMENT=Development NavigationTargets__SiaraUrl=http://localhost:5001 Storage__BasePath="$HOME/_demo/storage" dotnet run`.
+- Athena (extraction) and **Reconciliator** (export) are now **separate worker processes** — the old runbook folded export into "Athena + Reconciliator"; on Linux launch all three (Orion, Athena, Reconciliator) as distinct `dotnet run`s pointing at the same `Storage__BasePath`, mirroring the gate.
+
+### A3. Live-status hook (fill in when the agents report)
+
+- [ ] Blocker 1 (OCR SIGSEGV) — fixed & validated (gate survives Stage 2). _Owner: `ocr-segfault-troubleshooter`._
+- [ ] Blocker 2 (consistent corpus) — tier-1 green cases generated & laid out in the sim corpus. _Owner: `siara-corpus-generator`._
+- [ ] §2 gate green end-to-end on Linux (A0 validation command passes) → **GO to film the full-pipeline captures.**
+
+---
+
 ## 0. Pre-flight (do this once, before any recording)
 
 ### 0.1 Fix the hardcoded DB server (blocks Web.UI boot off-box)
