@@ -290,7 +290,16 @@ class CNBVFixtureGenerator:
             'Cnbv_DiasPlazo': str(random.randint(3, 10)),
 
             # Authority
-            'AutoridadNombre': authority_data['nombre'],
+            # Set AutoridadNombre to "Comisión Nacional Bancaria y de Valores" — the
+            # CNBV is the receiving regulatory body whose name appears prominently in the
+            # document text.  TxtFieldExtractor and DocxFieldExtractor both extract this
+            # value via their Priority-2 rule (full-name search), so setting it here in the
+            # XML ensures the XML source agrees with the PDF/DOCX OCR sources during
+            # multi-source fusion.  Using the requesting authority's internal name instead
+            # would create an AutoridadNombre conflict (because the extractors always return
+            # "Comisión Nacional Bancaria y de Valores" from any CNBV-addressed letter) and
+            # trigger ManualReviewRequired, blocking the §2 export gate.
+            'AutoridadNombre': 'Comisión Nacional Bancaria y de Valores',
             'NombreSolicitante': f"{servidor['nombre_completo']}",
             'authority': authority_data,  # Include full authority data for LLM
             'tipo': req_type,  # Include requirement type for LLM

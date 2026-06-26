@@ -332,8 +332,22 @@ class MexicanDataGenerator:
         return f"{prefix}/{year}/{number:06d}"
 
     def generate_numero_expediente(self) -> str:
-        """Generate realistic case/file number."""
-        return f"EXP-{random.randint(1000, 9999)}-{random.randint(2020, 2025)}"
+        """Generate realistic CNBV/SIARA case/file number.
+
+        Format: X/YY1-NNNN-NNNNNN-ZZZ
+        Matches the regex used by TxtFieldExtractor and DocxFieldExtractor:
+        ``[A-Z]/[A-Z]{1,4}\\d*[-]\\d+[-]\\d+[-][A-Z]+``
+
+        Examples from real PRP1 fixtures: A/AS1-1111-222222-AAA
+        """
+        letter = random.choice(['A', 'B', 'H'])
+        area_codes = ['AS1', 'IN1', 'PL1', 'FI1', 'JU1', 'AS2', 'IN2']
+        area = random.choice(area_codes)
+        seq1 = random.randint(1000, 9999)
+        seq2 = random.randint(100000, 999999)
+        suffix_letters = ['AAA', 'BBB', 'SAT', 'UIF', 'FGR', 'IMX', 'HAC']
+        suffix = random.choice(suffix_letters)
+        return f"{letter}/{area}-{seq1}-{seq2}-{suffix}"
 
     def generate_creditos_fiscales(self, count: int = 5) -> List[str]:
         """Generate list of tax credit numbers."""

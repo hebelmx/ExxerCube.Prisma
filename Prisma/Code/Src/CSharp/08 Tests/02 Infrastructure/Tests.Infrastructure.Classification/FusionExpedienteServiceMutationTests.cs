@@ -809,4 +809,125 @@ public class FusionExpedienteServiceMutationTests
 
         fused.Subdivision.ShouldBe(LegalSubdivisionKind.H_IN);
     }
+
+    // ==================================================================================
+    // Section F — Tier-1 corpus validation (Story 2.6 honest-confidence math)
+    // ==================================================================================
+
+    /// <summary>
+    /// Validates the confidence math for the canonical Tier-1 green gate case
+    /// (seed=42, caseId=AGAFADAFSON2-2024-101415, chaos=none, IMSS aseguramiento).
+    ///
+    /// This test constructs Expediente objects exactly as MapExtractedFieldsToExpediente
+    /// would populate them after the three extractors run on the co-generated companions:
+    ///
+    ///   XmlFieldExtractor:
+    ///     NumeroExpediente  = "B/IN2-6635-733052-SAT"          (Cnbv_NumeroExpediente)
+    ///     NumeroOficio      = "AGAFADAFSON2/2024/101415"        (Cnbv_NumeroOficio)
+    ///     AutoridadNombre   = "Comisión Nacional Bancaria y de Valores"  (AutoridadNombre element)
+    ///     SolicitudSiara    = "AGAFADAFSON2/2024/101415"        (Cnbv_SolicitudSiara; = NumeroOficio)
+    ///     TieneAseguramiento= true                              (TieneAseguramiento element)
+    ///     AreaDescripcion   = ""  (not mapped from AdditionalFields to typed property by current orchestrator)
+    ///
+    ///   TxtFieldExtractor (from PDF OCR):
+    ///     NumeroExpediente  = "B/IN2-6635-733052-SAT"  (matches regex [A-Z]/[A-Z]{1,4}\d*[-]\d+[-]\d+[-][A-Z]+)
+    ///     NumeroOficio      = "AGAFADAFSON2/2024/101415"  (matches [A-Z]{4,}[A-Z0-9]{0,10}/\d{4}/\d{6})
+    ///     AutoridadNombre   = "Comisión Nacional Bancaria y de Valores"  (Priority-2 full-name match)
+    ///     SolicitudSiara    = "AGAFADAFSON2/2024/101415"  (same ExtractNumeroOficio function; = NumeroOficio)
+    ///     TieneAseguramiento= true  ("aseguramiento" keyword in document text)
+    ///
+    ///   DocxFieldExtractor (from DOCX):
+    ///     NumeroExpediente  = "B/IN2-6635-733052-SAT"  (DocxFieldExtractor uses same expediente pattern)
+    ///     NumeroOficio      = "AGAFADAFSON2/2024/101415"  (same SIARA folio pattern)
+    ///     AutoridadNombre   = "Comisión Nacional Bancaria y de Valores"  (same full-name extraction)
+    ///     SolicitudSiara    = "AGAFADAFSON2/2024/101415"
+    ///     TieneAseguramiento= true
+    ///
+    /// Confidence ledger (Story-2.6 CalculateOverallConfidence with dedup guard):
+    ///
+    ///   Required bucket (weight 0.70):
+    ///     NumeroExpediente  AllAgree (XML=0.60, PDF=0.85, DOCX=0.70) → max = 0.85
+    ///     NumeroOficio      AllAgree (XML=0.60, PDF=0.85, DOCX=0.70) → max = 0.85
+    ///     AreaDescripcion   AllSourcesNull (not mapped) → excluded
+    ///   RequiredFieldsScore = 0.85
+    ///
+    ///   countedValues after required = {"B/IN2-6635-733052-SAT", "AGAFADAFSON2/2024/101415"}
+    ///
+    ///   Optional bucket (weight 0.30, dedup guard active):
+    ///     SolicitudSiara "AGAFADAFSON2/2024/101415" == NumeroOficio → DEDUPED → excluded
+    ///     AutoridadNombre "Comisión Nacional Bancaria y de Valores" → distinct → AllAgree → 0.85
+    ///     TieneAseguramiento "True" → distinct from all above → AllAgree → 0.85
+    ///     (DiasPlazo, FechaPublicacion, NombreSolicitante: AllSourcesNull — not mapped to typed
+    ///      properties by current MapExtractedFieldsToExpediente; XmlFieldExtractor also misses
+    ///      Titular_Nombre / InstruccionesCuentasPorConocer because the generated XML has no
+    ///      SolicitudEspecifica wrapper → those fields absent from all Expediente objects)
+    ///   OptionalFieldsScore = avg(0.85, 0.85) = 0.85
+    ///
+    ///   OverallConfidence = 0.85 * 0.70 + 0.85 * 0.30 = 0.850
+    ///   NextAction = AutoProcess (>= AutoProcessThreshold 0.85)
+    ///   ConflictingFields = 0
+    ///   ExportGatePolicy: PASSES (no ManualReviewRequired, no conflicts, classification >= 0.70)
+    /// </summary>
+    [Fact]
+    public async Task FuseAsync_Tier1Corpus_Seed42_AGAFADAFSON2_2024_101415_AutoProcess()
+    {
+        const string expediente = "B/IN2-6635-733052-SAT";
+        const string oficio     = "AGAFADAFSON2/2024/101415";
+        const string autoridad  = "Comisión Nacional Bancaria y de Valores";
+
+        // Construct Expediente objects exactly as MapExtractedFieldsToExpediente would
+        // after running the three extractors on the co-generated companions.
+        // AreaDescripcion is deliberately left empty (not mapped from AdditionalFields).
+        var xmlExpediente = new Expediente
+        {
+            NumeroExpediente   = expediente,
+            NumeroOficio       = oficio,
+            AutoridadNombre    = autoridad,
+            SolicitudSiara     = oficio,   // == NumeroOficio; dedup guard will exclude it
+            TieneAseguramiento = true,
+        };
+        var pdfExpediente = new Expediente
+        {
+            NumeroExpediente   = expediente,
+            NumeroOficio       = oficio,
+            AutoridadNombre    = autoridad,
+            SolicitudSiara     = oficio,   // TxtFieldExtractor reuses ExtractNumeroOficio for SolicitudSiara
+            TieneAseguramiento = true,
+        };
+        var docxExpediente = new Expediente
+        {
+            NumeroExpediente   = expediente,
+            NumeroOficio       = oficio,
+            AutoridadNombre    = autoridad,
+            SolicitudSiara     = oficio,
+            TieneAseguramiento = true,
+        };
+
+        var result = (await _service.FuseAsync(
+            xmlExpediente, pdfExpediente, docxExpediente,
+            FlatMeta(), FlatMeta(), FlatMeta(),
+            Ct)).Value!;
+
+        // Required bucket: NumeroExpediente + NumeroOficio each at 0.85 (all-sources agree).
+        // AreaDescripcion excluded (AllSourcesNull).
+        result.RequiredFieldsScore.ShouldBe(0.85, 0.0001,
+            "NumeroExpediente and NumeroOficio both have 3-source agreement → max reliability 0.85 each");
+
+        // Optional bucket: SolicitudSiara == NumeroOficio → DEDUPED (excluded by Story-2.6 guard).
+        // AutoridadNombre and TieneAseguramiento are genuinely distinct and 3-source agreed → 0.85 each.
+        result.OptionalFieldsScore.ShouldBe(0.85, 0.0001,
+            "AutoridadNombre + TieneAseguramiento both 3-source agree; SolicitudSiara deduped");
+
+        // Overall = 0.85*0.70 + 0.85*0.30 = 0.850 (honest — no SolicitudSiara double-count).
+        result.Confidence.Value.ShouldBe(0.850, 0.0001,
+            "Honest 3-source confidence; SolicitudSiara dedup guard in effect");
+
+        // Zero conflicts: all sources agree on every populated field.
+        result.ConflictingFields.ShouldBeEmpty(
+            "chaos=none generation + AutoridadNombre aligned to CNBV → zero conflicts");
+
+        // Gate outcome: AutoProcess (>= 0.85 threshold).
+        result.NextAction.ShouldBe(NextAction.AutoProcess,
+            "Confidence 0.85 >= AutoProcessThreshold; ExportGatePolicy passes");
+    }
 }
