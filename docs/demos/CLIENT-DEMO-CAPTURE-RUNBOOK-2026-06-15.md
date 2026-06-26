@@ -89,11 +89,16 @@ PowerShell→bash command map for the per-stage captures:
 - Orion (Capture 1): `cd "Prisma/Code/Src/CSharp/04 Services/Orion/Prisma.Orion.Worker" && ASPNETCORE_ENVIRONMENT=Development NavigationTargets__SiaraUrl=http://localhost:5001 Storage__BasePath="$HOME/_demo/storage" dotnet run`.
 - Athena (extraction) and **Reconciliator** (export) are now **separate worker processes** — the old runbook folded export into "Athena + Reconciliator"; on Linux launch all three (Orion, Athena, Reconciliator) as distinct `dotnet run`s pointing at the same `Storage__BasePath`, mirroring the gate.
 
-### A3. Live-status hook (fill in when the agents report)
+### A3. Live-status hook — UPDATED 2026-06-25 after the first combined gate run
 
-- [ ] Blocker 1 (OCR SIGSEGV) — fixed & validated (gate survives Stage 2). _Owner: `ocr-segfault-troubleshooter`._
-- [ ] Blocker 2 (consistent corpus) — tier-1 green cases generated & laid out in the sim corpus. _Owner: `siara-corpus-generator`._
-- [ ] §2 gate green end-to-end on Linux (A0 validation command passes) → **GO to film the full-pipeline captures.**
+A full §2 gate run was executed on the Linux box with **both** fixes resident (commits `ea90aa17`
++ `3c7532a2`) against the tier-1 corpus. Result: the pipeline advanced from "segfault at Stage 2"
+all the way through fusion to **Stage 4**, then a **new, third** gate condition blocked export.
+
+- [x] **Blocker 1 (OCR SIGSEGV) — FIXED & PROVEN.** Gate Stage 2 ran Tesseract clean: `Text length: 1284, Confidence avg: 95.71%` — no exit 139. _Owner: `ocr-segfault-troubleshooter` (done)._
+- [x] **Blocker 2 (consistent corpus) — FIXED & PROVEN.** Gate fusion: `Confidence: 0.83, Conflicts: 0, NextAction: Revisar recomendado` (NOT ManualReviewRequired) → fusion no longer blocks export. _Owner: `siara-corpus-generator` (done)._
+- [ ] **Blocker 3 (NEW) — classification confidence.** `Stage 5 BLOCKED by export gate: Classification confidence 10% is below the required threshold of 70% (BlockOnLowConfidence)`. Stage 4 classified the tier-1 case as `Aseguramiento` at **10%** confidence. Root cause is downstream of both fixed blockers (out of both original task briefs' scope): the synthetic documents lack the legal phrasing the classifier keys on, and/or the classifier needs tuning. Likely fix is in the **corpus generator** (emit classifiable legal body text per requirement type) or the classifier thresholds. Until this lands, the export gate (`ExportGatePolicy.BlockOnLowConfidence`) blocks Stage 5.
+- [ ] §2 gate green end-to-end on Linux (A0 validation command passes) → **STILL NO-GO** for the live full-pipeline captures (blocked on #3 only). Captures that don't touch the live pipeline (Capture 0 sim, Capture 4 `/oficio-summary`, SLA/dashboard) remain filmable now.
 
 ---
 
