@@ -96,6 +96,15 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
 
     // ── Fixture lifecycle ────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Extension point called at the very start of <see cref="DisposeAsync"/> before any in-process
+    /// host or shared-storage cleanup runs.  Derived tests that launch OS-level child processes
+    /// (e.g. <c>RealTcpThreeProcessE2ETests</c>) override this to kill those processes first so
+    /// that all file handles on <c>_sharedStorageDir</c> are released before the base deletes it.
+    /// The base implementation is a no-op.
+    /// </summary>
+    protected virtual ValueTask OnExtendedDisposeAsync() => ValueTask.CompletedTask;
+
     /// <inheritdoc/>
     public async ValueTask InitializeAsync()
     {
@@ -135,6 +144,9 @@ public abstract class MaxFidelityGateE2EBase : IAsyncLifetime
     /// <inheritdoc/>
     public async ValueTask DisposeAsync()
     {
+        // Allow derived classes to kill OS-level child processes before we delete _sharedStorageDir.
+        await OnExtendedDisposeAsync().ConfigureAwait(false);
+
         if (_reconciliatorApp is not null)
         {
             await _reconciliatorApp.DisposeAsync();
