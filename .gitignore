@@ -556,6 +556,9 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+!.env.example
+!.env.veriqan.example
 .envrc
 .venv/
 .venv_*/

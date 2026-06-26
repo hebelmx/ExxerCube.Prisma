@@ -5,8 +5,9 @@
 #   1. cp .env.example .env   # and fill in SA_PASSWORD (and any other blanks)
 #   2. docker compose -f docker-compose.dev.yml up --build
 #
-# Services (6 total):
+# Services (7 total):
 #   sqlserver         — SQL Server 2022  (infrastructure dependency)
+#   sqlserver-init    — one-shot: creates empty Prisma + PrismaID databases
 #   seq               — Seq structured-log UI + ingestion  (port 5341 on host)
 #   siara-simulator   — SIARA portal simulator  (port 8084 on host)
 #   orion             — Orion Worker (ingestion)  (port 8081 on host)
@@ -77,6 +78,33 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
+  # SQL database bootstrap (one-shot)
+  # Creates the empty Prisma + PrismaID databases once SQL Server is healthy.
+  # Required because the worker hosts configure a Serilog MSSqlServer sink during
+  # host-build (before EF Core migrations run); that sink fails with SQL error
+  # 4060 if the target database does not yet exist on a fresh container. EF Core
+  # migrations then create the schema inside these empty databases at worker boot.
+  # ---------------------------------------------------------------------------
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: prisma-sqlserver-init
+    networks:
+      - prisma-dev
+    environment:
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+    entrypoint:
+      - /bin/bash
+      - -c
+      - >-
+        /opt/mssql-tools18/bin/sqlcmd -S sqlserver,1433 -U sa -P "$${MSSQL_SA_PASSWORD}" -C
+        -Q "IF DB_ID('Prisma') IS NULL CREATE DATABASE [Prisma];
+        IF DB_ID('PrismaID') IS NULL CREATE DATABASE [PrismaID];"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
+
+  # ---------------------------------------------------------------------------
   # Seq — structured log aggregation (UI + ingestion on port 80 inside the
   # container; mapped to host port 5341 for convenience).
   # Workers send logs to http://seq:5341 from inside the network — that is the
@@ -94,6 +122,9 @@ services:
                       # also listens on 5341 internally for OTLP in newer builds)
     environment:
       ACCEPT_EULA: "Y"
+      # datalust/seq:latest refuses to start without an admin password or an
+      # explicit opt-out. Dev stack runs without auth; set a password in prod.
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
     volumes:
       - seq-data:/data
     restart: unless-stopped
@@ -115,8 +146,14 @@ services:
       - "8084:8080"
     env_file: .env
     environment:
-      ASPNETCORE_URLS: "http://+:8080"
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      # The simulator's appsettings.json declares Kestrel Http (localhost:5001) +
+      # Https (localhost:5002) endpoints. When Kestrel:Endpoints is configured,
+      # ASPNETCORE_URLS is ignored, and the Https endpoint requires a dev cert that
+      # does not exist in the container (boot crash). Override both endpoints to
+      # http-scheme so no certificate is needed and the app is reachable on :8080.
+      Kestrel__Endpoints__Http__Url: "http://+:8080"
+      Kestrel__Endpoints__Https__Url: "http://+:8443"
       # Override Seq sink URL to the in-network Seq service (port 80 inside Docker).
       Serilog__WriteTo__2__Args__serverUrl: "http://seq:80"
     restart: unless-stopped
@@ -162,6 +199,8 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+      sqlserver-init:
+        condition: service_completed_successfully
       seq:
         condition: service_started
       siara-simulator:
@@ -200,6 +239,8 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+      sqlserver-init:
+        condition: service_completed_successfully
       seq:
         condition: service_started
     restart: unless-stopped
@@ -239,6 +280,8 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+      sqlserver-init:
+        condition: service_completed_successfully
       seq:
         condition: service_started
       athena:
@@ -282,6 +325,8 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+      sqlserver-init:
+        condition: service_completed_successfully
       seq:
         condition: service_started
       siara-simulator:
