@@ -129,9 +129,18 @@ real input). Synthetic authoring fills any missing verdict class.
 | `bad-font.pdf` | anonymized real / existing Dummie | **RED** (CL-35) | 3 |
 | `scanned.pdf` | image-only (authored if not supplied) | **BLOCKED** | 4 |
 
-> **Anonymization fidelity matters more here than for Prisma:** several open cardinal rules
-> (CL-34 card, CL-35 font, CL-31 pagination) are layout/graphics-sensitive. Anonymize *content*,
-> preserve *rendering* — otherwise the corpus won't exercise the very gaps the demo must prove fixed.
+> **Anonymization = substitution with COHERENT FAKES, not redaction (owner requirement).**
+> Replace each sensitive real value with a shape-valid, internally-consistent fake (PAN keeps
+> network/BIN + Luhn; valid RFC/CLABE; consistent across a product's 4 months so reconciliation
+> continuity holds) so the statement stays a **complete, processable** document — Veriqan needs
+> the fields populated to verify. Rationale: legally we can't hold or share real statements on a
+> zero-trust platform. Mechanism: *redact the real glyphs (truly remove — white-rect cover is NOT
+> enough; `pdftotext` must never read the real value) then re-render the fake in place.*
+> **Gate:** zero real last-4 in card-shaped tokens AND the fake last-4 present (proves replace,
+> not delete). Balances/amounts/dates stay unchanged (arithmetic must still validate).
+>
+> **Fidelity matters more here than for Prisma:** several cardinal rules (CL-34 card, CL-35 font,
+> CL-31 pagination) are layout/graphics-sensitive — preserve *rendering* while swapping *content*.
 > `scanned.pdf` doubles as the regression fixture proving cardinal gap #1 stays BLOCKED (not RED).
 
 ### 5a. Verified corpus inventory (2026-06-27)
