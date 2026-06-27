@@ -20,6 +20,12 @@
   //   Veriqan:LegalBaseline:EncryptionKey      — Base64-encoded 32-byte AES-256 key for at-rest encryption
   //                                               Generate: openssl rand -base64 32
   //                                               Required when SQL persistence is enabled.
+  //   Veriqan:Auth:Enabled                     — MUST be true in production (default true)
+  //   Veriqan:Auth:Jwt:Issuer                  — Issuer claim expected in bearer tokens
+  //   Veriqan:Auth:Jwt:Audience                — Audience claim expected in bearer tokens
+  //   Veriqan:Auth:Jwt:SigningKey               — HMAC-SHA256 signing key (min 32 chars)
+  //                                               Prefer env var: Veriqan__Auth__Jwt__SigningKey
+  //   Veriqan:Cors:AllowedOrigins              — JSON array of permitted cross-origin UI origins
 
   "ConnectionStrings": {
     "VeriqanDb": "<REPLACE_ME: SQL Server connection string, e.g. Server=myserver;Database=VeriqanDb;User Id=svc_veriqan;Password=...;>"
@@ -45,6 +51,28 @@
     },
     "LegalBaseline": {
       "EncryptionKey": "<REPLACE_ME: Base64-encoded 32-byte AES-256 key — use Key Vault in production>"
+    },
+    "Auth": {
+      // MUST remain true in production. Setting false disables all endpoint auth.
+      "Enabled": true,
+      "Jwt": {
+        // Issuer claim (iss) in your identity provider's tokens.
+        "Issuer": "<REPLACE_ME: https://your-identity-provider/issuer>",
+        // Audience claim (aud) in your identity provider's tokens.
+        "Audience": "<REPLACE_ME: https://veriqan.yourdomain.com>",
+        // HMAC-SHA256 signing key shared with the token issuer.
+        // STRONGLY prefer the environment variable form to avoid key leakage:
+        //   Veriqan__Auth__Jwt__SigningKey=<your-secret>
+        // Minimum 32 characters. Generate: openssl rand -base64 48
+        "SigningKey": "<REPLACE_ME: use env var Veriqan__Auth__Jwt__SigningKey instead>"
+      }
+    },
+    "Cors": {
+      // Permitted cross-origin UI origins for this worker's API.
+      // Add every origin that needs to call /verify or /batch from the browser.
+      "AllowedOrigins": [
+        "<REPLACE_ME: https://veriqan.yourdomain.com>"
+      ]
     }
   },
   "Logging": {
