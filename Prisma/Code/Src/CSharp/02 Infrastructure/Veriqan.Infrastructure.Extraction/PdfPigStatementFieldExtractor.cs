@@ -856,24 +856,25 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         List<Word> sorted,
         Dictionary<double, List<Word>> bands)
     {
-        // "Periodo 5-jul-2025 al 04-ago-2025" — find "Periodo" in left column.
+        // Dummie VEC layout:  "Periodo 5-jul-2025 al 04-ago-2025"  (X < 100, left column)
+        // Real Banamex layout: "Periodo: 4-mar-2026 al 01-abr-2026" (X ≈ 309, centre column)
+        // Both are handled by accepting "Periodo" or "Periodo:" with no column restriction.
         foreach (var w in sorted)
         {
-            if (!string.Equals(w.Text, "Periodo", StringComparison.OrdinalIgnoreCase))
-                continue;
-            if (w.BoundingBox.Left > 100)  // left-column guard
+            if (!string.Equals(w.Text.TrimEnd(':'), "Periodo", StringComparison.OrdinalIgnoreCase))
                 continue;
 
             var bandY = w.BoundingBox.Bottom;
             var band = GetBand(bands, bandY);
             var locator = BoundingBoxOf(band, 1);
 
-            // Tokens after "Periodo": date1, "al", date2
-            var idx = band.FindIndex(x => string.Equals(x.Text, "Periodo", StringComparison.OrdinalIgnoreCase));
+            // Tokens after "Periodo[:]": date1, "al", date2
+            var idx = band.FindIndex(x =>
+                string.Equals(x.Text.TrimEnd(':'), "Periodo", StringComparison.OrdinalIgnoreCase));
             if (idx < 0 || idx + 1 >= band.Count)
                 return ExtractedField<DateOnly>.Missing(locator);
 
-            // First token after "Periodo" is the start date.
+            // First token after "Periodo[:]" is the start date.
             var startToken = band[idx + 1].Text;
             if (TryParseSpanishDate(startToken, out var startDate))
                 return ExtractedField<DateOnly>.Found(startDate, locator);
@@ -892,13 +893,12 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         List<Word> sorted,
         Dictionary<double, List<Word>> bands)
     {
-        // "Número de días en el periodo: 31 días" — find "Número" in left column
-        // followed by "de" and "días".
+        // Dummie VEC:  "Número de días en el periodo: 31 días"  (X < 100, left column)
+        // Real layout: "Número de días en el periodo: 29 días"  (X ≈ 309, centre column)
+        // Discriminator: the band must contain "días" — unique to the day-count row.
         for (var i = 0; i + 1 < sorted.Count; i++)
         {
             if (!string.Equals(sorted[i].Text, "Número", StringComparison.OrdinalIgnoreCase))
-                continue;
-            if (sorted[i].BoundingBox.Left > 100)  // left-column guard
                 continue;
 
             var bandY = sorted[i].BoundingBox.Bottom;
@@ -938,14 +938,16 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         List<Word> sorted,
         Dictionary<double, List<Word>> bands)
     {
-        // "Fecha de Corte 04 de ago 2025" — in right column (X ≈ 298).
+        // Dummie VEC:  "Fecha de Corte 04 de ago 2025"  (separate "Corte" token)
+        // Real layout: "Fecha de corte: 01-abr-2026"    ("corte:" with fused colon)
+        // TrimEnd(':') normalises both variants for matching.
         for (var i = 0; i + 2 < sorted.Count; i++)
         {
             if (!string.Equals(sorted[i].Text, "Fecha", StringComparison.OrdinalIgnoreCase))
                 continue;
             if (!string.Equals(sorted[i + 1].Text, "de", StringComparison.OrdinalIgnoreCase))
                 continue;
-            if (!string.Equals(sorted[i + 2].Text, "Corte", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(sorted[i + 2].Text.TrimEnd(':'), "Corte", StringComparison.OrdinalIgnoreCase))
                 continue;
 
             var bandY = sorted[i].BoundingBox.Bottom;
@@ -1140,7 +1142,14 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 continue;
 
             var locator = BoundingBoxOf(band, 1);
-            return FindAmountInBand(band, locator, amtFmt, maxX: 300);
+
+            // Dummie VEC: value is close to the label (X ≤ 300).
+            // Real layout: value is in the far-right column (X ≈ 528).
+            // Try constrained first; fall back to unconstrained if nothing found.
+            var result = FindAmountInBand(band, locator, amtFmt, maxX: 300);
+            if (result.Status != ExtractionStatus.Extracted)
+                result = FindAmountInBand(band, locator, amtFmt);
+            return result;
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -1327,25 +1336,56 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         string[] labelTokens,
         AmountNumberFormatSession amtFmt)
     {
-        // The RESUMEN block is in the right column (X ≥ ~283).
-        // We iterate sorted words looking for the first token of the label in the right column.
+        // RESUMEN rows appear in either the right column (Dummie VEC, label X ≥ ~280,
+        // amount X ≥ 430) or the left column (real Banamex Visa layout, label X ≈ 25,
+        // amount X ≈ 200).
+        //
+        // Two-pass strategy:
+        //   Pass 1 — RIGHT column (original behaviour): label at X ≥ 280, amount unconstrained.
+        //   Pass 2 — LEFT column (real Banamex Visa fallback): label at X < 280, amount
+        //            capped at X ≤ 280 so we don't accidentally pick up a right-column amount
+        //            that leaked into the band via Y-band tolerance.
+
+        var rightResult = ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
+            labelMinX: 280.0, labelMaxX: double.MaxValue, amtMaxX: double.MaxValue);
+        if (rightResult.Status == ExtractionStatus.Extracted)
+            return rightResult;
+
+        return ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
+            labelMinX: 0.0, labelMaxX: 280.0, amtMaxX: 280.0);
+    }
+
+    /// <summary>
+    /// Inner helper for <see cref="ExtractResumenField"/>: scans <paramref name="sorted"/>
+    /// for a RESUMEN label within [labelMinX, labelMaxX) and returns the first leftmost amount
+    /// in [labelRight, amtMaxX].
+    /// </summary>
+    private static ExtractedField<decimal> ScanResumenColumn(
+        List<Word> sorted,
+        Dictionary<double, List<Word>> bands,
+        string[] labelTokens,
+        AmountNumberFormatSession amtFmt,
+        double labelMinX,
+        double labelMaxX,
+        double amtMaxX)
+    {
         for (var i = 0; i + labelTokens.Length - 1 < sorted.Count; i++)
         {
-            if (sorted[i].BoundingBox.Left < 280)
-                continue;   // left-column guard — RESUMEN is on the right
+            if (sorted[i].BoundingBox.Left < labelMinX || sorted[i].BoundingBox.Left >= labelMaxX)
+                continue;
 
             if (!string.Equals(sorted[i].Text, labelTokens[0], StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            // Verify the rest of the label tokens appear in sorted order on the same band.
             var bandY = sorted[i].BoundingBox.Bottom;
             var band = GetBand(bands, bandY);
             var bandSorted = band.OrderBy(x => x.BoundingBox.Left).ToList();
 
-            // Locate the first label token in the band.
+            // Locate the first label token in the expected column.
             var labelStart = bandSorted.FindIndex(x =>
                 string.Equals(x.Text, labelTokens[0], StringComparison.OrdinalIgnoreCase)
-                && x.BoundingBox.Left >= 280);
+                && x.BoundingBox.Left >= labelMinX
+                && x.BoundingBox.Left < labelMaxX);
 
             if (labelStart < 0)
                 continue;
@@ -1366,11 +1406,17 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             if (!allMatch)
                 continue;
 
+            // Amount must be to the right of the label and within the column ceiling.
+            // findLeftmost=true: picks the amount nearest to the label, not the one
+            // farthest right, so cross-column amounts that leaked in via Y-band tolerance
+            // are naturally skipped (they're farther right).
+            var labelRight = bandSorted[labelStart + labelTokens.Length - 1].BoundingBox.Right;
             var locator = BoundingBoxOf(band, 1);
 
-            // The amount in the RESUMEN block appears as a split "$ 32,446.69" pair
-            // at the far right (X ≈ 435-480).  Footnote markers and sign tokens precede it.
-            return FindAmountInBandSplitDollar(band, locator, amtFmt);
+            var result = FindAmountInBandSplitDollar(band, locator, amtFmt,
+                minX: labelRight, maxX: amtMaxX, findLeftmost: true);
+            if (result.Status == ExtractionStatus.Extracted)
+                return result;
         }
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
@@ -1995,17 +2041,42 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// right-column numeric text (CLABE, account numbers) that landed on the same band
     /// due to band-merging tolerance.  Defaults to <c>double.MaxValue</c> (no filter).
     /// </param>
+    /// <param name="minX">
+    /// Optional lower bound on <c>BoundingBox.Left</c> for candidate amount tokens.
+    /// Pass the right edge of the label to avoid picking up amounts that belong to a
+    /// different column that merged into this band via Y-band tolerance.
+    /// Defaults to <c>0.0</c> (no filter).
+    /// </param>
+    /// <param name="findLeftmost">
+    /// When <see langword="true"/> returns the leftmost matching amount token instead of
+    /// the rightmost.  Use <see langword="true"/> for RESUMEN/label-adjacent amounts to
+    /// avoid picking up cross-column amounts that leaked into the band.
+    /// Defaults to <see langword="false"/> (rightmost, consistent with original behaviour).
+    /// </param>
     private static ExtractedField<decimal> FindAmountInBand(
         List<Word> band,
         FieldLocator locator,
         AmountNumberFormatSession amtFmt,
-        double maxX = double.MaxValue)
+        double maxX = double.MaxValue,
+        double minX = 0.0,
+        bool findLeftmost = false)
     {
-        // Find rightmost token matching AmountPattern within the X constraint.
-        var amountWord = band
-            .Where(x => x.BoundingBox.Left <= maxX && AmountPattern.IsMatch(x.Text))
-            .OrderByDescending(x => x.BoundingBox.Left)
-            .FirstOrDefault();
+        // Find the rightmost (or leftmost when requested) token matching AmountPattern
+        // within the X constraints.
+        //
+        // Use findLeftmost=true when extracting amounts that are immediately adjacent to
+        // a label (e.g. RESUMEN rows), to avoid picking up cross-column amounts that
+        // merged into the band via Y-band tolerance.  Single-digit tokens are excluded
+        // in leftmost mode because they are footnote markers (e.g. "8"), not amounts.
+        var candidates = band
+            .Where(x => x.BoundingBox.Left >= minX
+                     && x.BoundingBox.Left <= maxX
+                     && AmountPattern.IsMatch(x.Text)
+                     && !(findLeftmost && IsSingleDigit(x.Text)));
+
+        var amountWord = findLeftmost
+            ? candidates.OrderBy(x => x.BoundingBox.Left).FirstOrDefault()
+            : candidates.OrderByDescending(x => x.BoundingBox.Left).FirstOrDefault();
 
         if (amountWord is null)
             return ExtractedField<decimal>.Missing(locator);
@@ -2017,18 +2088,47 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// Finds and parses an amount where the "$" sign and digits may be separate tokens
     /// (e.g. "$ 52,387.85" → two tokens "$" and "52,387.85").
     /// </summary>
+    /// <param name="band">Words on the target band, sorted left-to-right.</param>
+    /// <param name="locator">Fallback locator for Missing results.</param>
+    /// <param name="amtFmt">Session-scoped number-format detector.</param>
+    /// <param name="minX">
+    /// Optional lower bound on <c>BoundingBox.Left</c> for candidate amount tokens.
+    /// Pass the right edge of the label to avoid picking up amounts that belong to
+    /// a different column that merged into this band via Y-band tolerance.
+    /// Defaults to <c>0.0</c> (no filter).
+    /// </param>
+    /// <param name="maxX">
+    /// Optional upper bound on <c>BoundingBox.Left</c> for candidate amount tokens.
+    /// Use this to restrict the amount search to a specific column.
+    /// Defaults to <c>double.MaxValue</c> (no filter).
+    /// </param>
+    /// <param name="findLeftmost">
+    /// When <see langword="true"/> selects the leftmost eligible amount token rather than
+    /// the rightmost.  Propagated to <see cref="FindAmountInBand"/>.
+    /// Defaults to <see langword="false"/>.
+    /// </param>
     private static ExtractedField<decimal> FindAmountInBandSplitDollar(
         List<Word> band,
         FieldLocator locator,
-        AmountNumberFormatSession amtFmt)
+        AmountNumberFormatSession amtFmt,
+        double minX = 0.0,
+        double maxX = double.MaxValue,
+        bool findLeftmost = false)
     {
-        // Try combined amount tokens first.
-        var combined = FindAmountInBand(band, locator, amtFmt);
+        // Try combined amount tokens first (respecting minX / maxX / findLeftmost).
+        var combined = FindAmountInBand(band, locator, amtFmt,
+            maxX: maxX, minX: minX, findLeftmost: findLeftmost);
         if (combined.Status == ExtractionStatus.Extracted)
             return combined;
 
-        // Look for a bare "$" followed by a numeric token.
-        var dollarIdx = band.FindIndex(x => x.Text == "$");
+        // Look for a bare "$" followed by a numeric token within [minX, maxX].
+        // When findLeftmost, pick the first "$" to the right of minX.
+        var dollarCandidates = band.Where(x => x.Text == "$"
+            && x.BoundingBox.Left >= minX && x.BoundingBox.Left <= maxX);
+        var dollarWord = findLeftmost
+            ? dollarCandidates.OrderBy(x => x.BoundingBox.Left).FirstOrDefault()
+            : dollarCandidates.OrderByDescending(x => x.BoundingBox.Left).FirstOrDefault();
+        var dollarIdx = dollarWord is not null ? band.IndexOf(dollarWord) : -1;
         if (dollarIdx >= 0 && dollarIdx + 1 < band.Count)
         {
             var numToken = band[dollarIdx + 1];
@@ -2076,30 +2176,64 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     }
 
     // -----------------------------------------------------------------------
-    // Client name extraction (positional — right column, top of header)
+    // Client name extraction (positional — right column first, then left column
+    // fallback for statements where the name sits at low X values)
     // -----------------------------------------------------------------------
 
     private static ExtractedField<ExtractedClientName> ExtractClientName(List<Word> headerWords)
     {
+        // Primary strategy: right column (Dummie VEC / classic layout, X ≥ ClientNameXMin).
         var nameWords = headerWords
             .Where(w => w.BoundingBox.Left >= ClientNameXMin
                      && w.BoundingBox.Bottom >= ClientNameYMin)
             .OrderByDescending(w => w.BoundingBox.Bottom)
             .ToList();
 
-        if (nameWords.Count == 0)
-            return ExtractedField<ExtractedClientName>.Missing(FieldLocator.PageHint(1));
+        if (nameWords.Count > 0)
+        {
+            var topY = nameWords[0].BoundingBox.Bottom;
+            var nameBandWords = nameWords
+                .Where(w => Math.Abs(w.BoundingBox.Bottom - topY) <= YBandTolerance)
+                .OrderBy(w => w.BoundingBox.Left)
+                .ToList();
 
-        var topY = nameWords[0].BoundingBox.Bottom;
-        var nameBandWords = nameWords
-            .Where(w => Math.Abs(w.BoundingBox.Bottom - topY) <= YBandTolerance)
-            .OrderBy(w => w.BoundingBox.Left)
+            var fullName = string.Join(" ", nameBandWords.Select(w => w.Text)).Trim();
+            // If the extracted text contains digits it is likely a date ("4-mar-2026") or
+            // account number rather than a client name — fall through to the left-column path.
+            if (!string.IsNullOrWhiteSpace(fullName) && !fullName.Any(char.IsDigit))
+                return BuildClientNameField(fullName, nameBandWords);
+        }
+
+        // Fallback strategy: left column (real Banamex Visa layout, X < 200).
+        // The client name lives at the highest Y in that area (top of the header block).
+        var leftNameWords = headerWords
+            .Where(w => w.BoundingBox.Left < 200
+                     && w.BoundingBox.Bottom >= ClientNameYMin)
+            .OrderByDescending(w => w.BoundingBox.Bottom)
             .ToList();
 
-        var fullName = string.Join(" ", nameBandWords.Select(w => w.Text)).Trim();
-        if (string.IsNullOrWhiteSpace(fullName))
-            return ExtractedField<ExtractedClientName>.Missing(FieldLocator.PageHint(1));
+        if (leftNameWords.Count > 0)
+        {
+            var leftTopY = leftNameWords[0].BoundingBox.Bottom;
+            var leftBandWords = leftNameWords
+                .Where(w => Math.Abs(w.BoundingBox.Bottom - leftTopY) <= YBandTolerance)
+                // Filter out single-digit tokens (vertical account-number digits printed at
+                // the page margin that land on the same Y band as the client name).
+                .Where(w => !IsSingleDigit(w.Text))
+                .OrderBy(w => w.BoundingBox.Left)
+                .ToList();
 
+            var leftName = string.Join(" ", leftBandWords.Select(w => w.Text)).Trim();
+            if (!string.IsNullOrWhiteSpace(leftName) && !leftName.Any(char.IsDigit))
+                return BuildClientNameField(leftName, leftBandWords);
+        }
+
+        return ExtractedField<ExtractedClientName>.Missing(FieldLocator.PageHint(1));
+    }
+
+    private static ExtractedField<ExtractedClientName> BuildClientNameField(
+        string fullName, List<Word> nameBandWords)
+    {
         var tokens = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         string? firstNames = null;
         string? lastNames = null;
@@ -2194,7 +2328,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     }
 
     // -----------------------------------------------------------------------
-    // Generic labeled-field extraction (header zone, right column)
+    // Generic labeled-field extraction (header zone — handles both right-column
+    // and left-column layouts)
     // -----------------------------------------------------------------------
 
     private static ExtractedField<string> ExtractLabeledField(
@@ -2216,9 +2351,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 var labelRight = sorted[i + labelTokens.Length - 1].BoundingBox.Right;
                 var locator = BoundingBoxOf(sorted.Skip(i).Take(labelTokens.Length).ToList(), 1);
 
+                // Value must be to the right of the label (no fixed column minimum —
+                // handles both the right-column Dummie VEC layout and the left-column
+                // real Banamex Visa layout where labels are at X≈25 and values at X≈102).
                 var valueWords = sorted
-                    .Where(w => w.BoundingBox.Left > labelRight
-                             && w.BoundingBox.Left >= ValueColumnXMin - 10)
+                    .Where(w => w.BoundingBox.Left > labelRight)
                     .OrderBy(w => w.BoundingBox.Left)
                     .ToList();
 

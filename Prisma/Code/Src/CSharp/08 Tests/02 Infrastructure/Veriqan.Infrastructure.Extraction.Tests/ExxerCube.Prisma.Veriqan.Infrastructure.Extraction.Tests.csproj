@@ -80,6 +80,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>Fixtures\03+Dummie+VEC+sep_oct+2025.pdf</Link>
     </Content>
+    <!-- Golden-master demo corpus (production-quality Banamex Visa, Mar-Apr 2026). -->
+    <Content Include="..\..\..\..\..\..\Fixtures\PRP2\demo\good.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Fixtures\demo\good.pdf</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup Label="Testing Platform Capabilities">
     <ProjectCapability Include="DiagnoseCapabilities" />

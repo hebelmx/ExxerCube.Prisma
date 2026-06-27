@@ -1,0 +1,2 @@
+schemaVersion,institution,bundleId,generatedAt,periodLabel,periodStart,periodEnd,sourceMechanism,sourceReference,sourceNotes
+1.0.0,Demo Bank (Iqubica),demo-vec-neighbor-2026,2026-06-27T00:00:00Z,Mar-Abr 2026,2026-03-04,2026-04-01,manual,neighbor-months-2026-03+2026-05,Anti-tautology bundle built from 2026-03 and 2026-05 neighbor-month statements; NOT derived from the 2026-04 SUT
