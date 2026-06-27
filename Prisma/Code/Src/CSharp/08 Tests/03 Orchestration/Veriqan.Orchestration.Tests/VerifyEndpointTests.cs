@@ -79,13 +79,20 @@ public sealed class VerifyEndpointTests
     /// </summary>
     private static WebApplicationFactory<Program> CreateHost(IVerificationPipeline pipeline) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            // JWT auth is enabled by default (secure-by-default). These endpoint-behavior
+            // tests exercise validation/routing, not the auth gate, so disable it in the
+            // test host via the documented escape hatch. The enforced-auth contract
+            // (401 without a token) is covered separately by PostVerify_AuthEnabledNoToken_Returns401.
+            builder.UseSetting("Veriqan:Auth:Enabled", "false");
             builder.ConfigureServices(services =>
             {
                 // Remove the real scoped pipeline registered by AddVeriqan() and replace
                 // with the NSubstitute double so no real infrastructure is exercised.
                 services.RemoveAll<IVerificationPipeline>();
                 services.AddScoped<IVerificationPipeline>(_ => pipeline);
-            }));
+            });
+        });
 
     // -----------------------------------------------------------------------
     // POST /verify — happy path
@@ -155,5 +162,41 @@ public sealed class VerifyEndpointTests
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.UnprocessableEntity);
+    }
+
+    // -----------------------------------------------------------------------
+    // POST /verify — auth enforcement (security contract, #17)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// With JWT auth ENABLED (the secure-by-default state), a request to <c>/verify</c>
+    /// carrying no bearer token must be rejected with HTTP 401 Unauthorized, and the
+    /// pipeline must never be invoked.
+    /// </summary>
+    [Fact]
+    public async Task PostVerify_AuthEnabledNoToken_Returns401()
+    {
+        // Arrange — auth enabled with a placeholder signing key so the bearer handler
+        // is fully configured; the request deliberately carries no token.
+        var pipeline = Substitute.For<IVerificationPipeline>();
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("Veriqan:Auth:Enabled", "true");
+            builder.UseSetting("Veriqan:Auth:Jwt:SigningKey", "test-only-signing-key-0123456789-abcdef");
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IVerificationPipeline>();
+                services.AddScoped<IVerificationPipeline>(_ => pipeline);
+            });
+        });
+        using var client = factory.CreateClient();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/verify", BuildSubmission(), TestContext.Current.CancellationToken);
+
+        // Assert — rejected at the auth gate, before the pipeline.
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        await pipeline.DidNotReceive().ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>());
     }
 }
