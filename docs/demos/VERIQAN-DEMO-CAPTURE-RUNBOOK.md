@@ -292,10 +292,15 @@ RED finding).
 > documento está conforme. Ningún criterio genera hallazgo; el resultado queda
 > persistido con su hash, su sello de tiempo y la traza de auditoría completa."
 
-**GO/NO-GO gate:** `VecChecklist_GoodPdf_ReturnsGreenVerdict` PASS; W-UI 55-check grid
-renders all items green for `good.pdf` with zero RED rows. This gate also confirms the
-reference bundle is loaded (Binding stage must succeed for `good.pdf` to reach GREEN).
-If any CL item is RED on `good.pdf`, stop — a cardinal false-RED has regressed.
+**GO/NO-GO gate (see Demo Plan §5c — "legitimate rejection is proof"):** the binding stage
+must succeed (reference bundle loaded). `good.pdf` is an anonymized **real** statement, **not
+an assumed-compliant master** — so a *true-positive* RED (a genuine CONDUSEF violation the
+engine correctly catches) is acceptable and is itself a valid demo of detection working.
+What must NOT happen is a **false-RED** (a cardinal rule mis-firing on a compliant field) — if
+you see one, stop and diagnose. A fully-green `good.pdf` is the *target* once a
+CONDUSEF-and-bank-approved compliant master is supplied; until then, narrate the true verdict
+honestly ("el sistema detecta correctamente …"). The E2E test asserts `good.pdf`'s *true*
+verdict, not a forced GREEN.
 
 ---
 

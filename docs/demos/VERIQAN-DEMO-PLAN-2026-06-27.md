@@ -178,6 +178,32 @@ would be **tautological**. Instead:
 Maps cleanly onto the VEC reference bundle (`prior-statements.csv`, `sequential-images.csv`,
 products, rates): m−1 closing balance = m opening balance; m+1 confirms m's closing.
 
+### 5c. Compliance stance — "legitimate rejection is proof, not failure" (carried principle)
+
+The demo corpus is built from **anonymized real statements that were never authored to be
+CONDUSEF-compliant.** Therefore `good.pdf` is **not assumed compliant** — it is the
+*best-available real statement*. Consequences, which **carry over to every E2E test and demo
+design**:
+
+1. **A legitimate non-GREEN verdict on a real anonymized statement is a desired outcome, not a
+   bug.** When the verifier flags a genuine CONDUSEF violation in the source document, that
+   *demonstrates its detection power on real input* — it is a PASSING test of the engine.
+2. **Never manufacture GREEN.** Tests must not suppress findings, fabricate reference-bundle
+   values, or relax tolerances to force a pass. They assert the statement's *true* verdict and
+   that any RED findings are correct true-positives (right CheckIds + locators).
+3. **Triage every failing check** into: (a) genuine source non-compliance → keep (true
+   positive); (b) anonymization artifact → fix the anonymizer (with better redaction); (c)
+   missing/incorrect bundle value → fix the bundle.
+4. **The clean-GREEN capture is earned, not assumed.** A truly-GREEN demonstration requires a
+   **CONDUSEF-and-bank-approved compliant master** statement, added later. The path is to
+   *iterate the document* — fixing each true-positive non-compliance — until it legitimately
+   passes. Until then the honest verdict (likely with some true-positive findings) is itself a
+   valid demo that the system works.
+
+> In short: we let the system legitimately reject imperfect documents — that *proves* it works
+> — and we converge the master toward an approved compliant statement that earns GREEN on its
+> own merits.
+
 ---
 
 ## 6. Method (reuse Prisma's 5-phase audit)

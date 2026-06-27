@@ -58,6 +58,14 @@ What's left is **data, presentation, and production hardening.**
   when SQL persistence is active); `Veriqan:Alerts:Recipients` (≥1 address or the email stage warns
   instead of dispatching). Captured in `VERIQAN-DEMO-CAPTURE-RUNBOOK.md` §0.1.
 
+### 2b. Carried principle — compliance stance for the anonymized corpus
+`good.pdf` is an anonymized **real** statement, NOT an assumed-compliant master. A legitimate
+(true-positive) RED on it is **proof the engine works**, not a test failure — so E2E tests assert
+the *true* verdict and never manufacture GREEN (no suppressed findings / fabricated bundle values
+/ relaxed tolerances). Each failing check is triaged: genuine non-compliance (keep) · anonymization
+artifact (fix anonymizer) · missing bundle value (fix bundle). A clean GREEN demonstration is
+**earned** with a CONDUSEF-and-bank-approved compliant master (later). Full statement: Demo Plan §5c.
+
 ### Tier B — full-production readiness (genuinely open)
 | # | Gap | State | Evidence | Sev | Eff | Dep |
 |---|-----|-------|----------|-----|-----|-----|
