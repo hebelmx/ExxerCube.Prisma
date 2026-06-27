@@ -1,0 +1,115 @@
+@page "/red"
+@rendermode InteractiveServer
+@inject DemoDataService Demo
+
+<PageTitle>Caso RED — Veriqan Demo</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-1">Captura 3 — Hallazgos de Incumplimiento (RED)</MudText>
+<MudText Typo="Typo.body2" Class="mb-4 mud-text-secondary">
+    CL-21 (aritmética) · CL-35 (fuente) · Archivo: <em>@_case.FileName</em>
+</MudText>
+
+<!-- Verdict banner -->
+<MudPaper Class="vec-verdict-banner vec-signal-red mb-6" Elevation="3">
+    <MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Style="font-size:3rem;" />
+    <MudText Typo="Typo.h3" Color="Color.Error" Class="mt-1">RED</MudText>
+    <MudText Typo="Typo.subtitle1">Estado de cuenta no conforme — se encontraron hallazgos de incumplimiento</MudText>
+    <MudDivider Class="my-3" />
+    <MudGrid Justify="Justify.Center">
+        <MudItem><MudChip T="string" Color="Color.Success">@_case.PassCount Pass</MudChip></MudItem>
+        <MudItem><MudChip T="string" Color="Color.Error">@_case.FailCount Fail</MudChip></MudItem>
+        <MudItem><MudChip T="string" Color="Color.Default">@_case.InsufficientDataCount InsufficientData</MudChip></MudItem>
+        <MudItem><MudChip T="string" Color="Color.Info">@_case.ProcessingDuration.TotalSeconds.ToString("F2") s</MudChip></MudItem>
+    </MudGrid>
+</MudPaper>
+
+<!-- Main split layout: grid + PDF side-by-side -->
+<MudGrid>
+    <!-- Left: check grid + failure detail -->
+    <MudItem xs="12" md="6">
+        <MudText Typo="Typo.h6" Class="mb-2">Grilla de verificación</MudText>
+        <MudPaper Class="pa-4 mb-4" Elevation="1">
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                @foreach (var f in _case.Findings)
+                {
+                    var cssClass = f.Verdict switch
+                    {
+                        FindingVerdict.Pass => "vec-check-cell vec-check-pass",
+                        FindingVerdict.Fail => "vec-check-cell vec-check-fail",
+                        _ => "vec-check-cell vec-check-insufficient",
+                    };
+                    var tooltip = f.Verdict == FindingVerdict.Fail
+                        ? $"{f.CheckId}: {f.Label} | Esperado: {f.Expected} | Observado: {f.Observed}"
+                        : $"{f.CheckId}: {f.Label}";
+                    <MudTooltip Text="@tooltip">
+                        <div class="@cssClass">@f.CheckId.Replace("CL-", "")</div>
+                    </MudTooltip>
+                }
+            </div>
+        </MudPaper>
+
+        <!-- Failure detail table -->
+        <MudText Typo="Typo.h6" Class="mb-2">Hallazgos (Fail)</MudText>
+        <MudPaper Elevation="1">
+            <MudTable Items="_failFindings" Dense="true" Hover="true" Class="mb-0">
+                <HeaderContent>
+                    <MudTh>Check</MudTh>
+                    <MudTh>Verificación</MudTh>
+                    <MudTh>Esperado</MudTh>
+                    <MudTh>Observado</MudTh>
+                    <MudTh>DOF</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Error">@context.CheckId</MudChip>
+                    </MudTd>
+                    <MudTd>@context.Label</MudTd>
+                    <MudTd><code>@context.Expected</code></MudTd>
+                    <MudTd><code style="color:var(--mud-palette-error);">@context.Observed</code></MudTd>
+                    <MudTd><MudText Typo="Typo.caption">@context.DofNumeral</MudText></MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Right: marked-PDF viewer -->
+    <MudItem xs="12" md="6">
+        <MudText Typo="Typo.h6" Class="mb-2">PDF Marcado (preview)</MudText>
+        <MudPaper Class="pa-3" Elevation="1">
+            @if (_case.MarkedPdfPath is not null)
+            {
+                <iframe class="vec-pdf-frame" src="@_case.MarkedPdfPath" title="PDF marcado" />
+            }
+            else
+            {
+                <MudPaper Class="d-flex flex-column align-center justify-center" Elevation="0"
+                          Style="height:520px; border:2px dashed var(--mud-palette-divider); border-radius:4px;">
+                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Large"
+                             Color="Color.Error" Style="font-size:4rem;" />
+                    <MudText Typo="Typo.subtitle2" Class="mt-3">PDF Marcado</MudText>
+                    <MudText Typo="Typo.caption" Class="mt-1 mud-text-secondary text-center px-4">
+                        En producción, el pipeline genera un PDF con anotaciones visuales<br />
+                        que resaltan exactamente las zonas donde CL-21 y CL-35 fallaron.
+                    </MudText>
+                    <MudText Typo="Typo.caption" Class="mt-3">
+                        <code>exports/@_case.JobId.ToString()[..8]…-marked.pdf</code>
+                    </MudText>
+                </MudPaper>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private DemoStatementCase _case = null!;
+    private IReadOnlyList<DemoFinding> _failFindings = [];
+
+    protected override void OnInitialized()
+    {
+        _case = Demo.GetBySignal(VerdictSignal.Red)!;
+        _failFindings = _case.Findings
+            .Where(f => f.Verdict == FindingVerdict.Fail)
+            .ToList()
+            .AsReadOnly();
+    }
+}

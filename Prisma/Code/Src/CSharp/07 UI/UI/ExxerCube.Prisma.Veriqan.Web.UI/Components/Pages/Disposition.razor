@@ -1,0 +1,161 @@
+@page "/disposition"
+@rendermode InteractiveServer
+@inject DemoDataService Demo
+@inject ISnackbar Snackbar
+
+<PageTitle>Disposición y Auditoría — Veriqan Demo</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-1">Captura 5 — Disposición del Analista y Auditoría</MudText>
+<MudText Typo="Typo.body2" Class="mb-6 mud-text-secondary">
+    FR-16 (disposición), FR-18 (ledger inmutable) · Caso RED — <em>@_redCase.FileName</em>
+</MudText>
+
+<MudGrid>
+    <!-- Left: Disposition form -->
+    <MudItem xs="12" md="5">
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                <MudIcon Icon="@Icons.Material.Filled.AssignmentTurnedIn" Class="mr-2" />
+                Nueva disposición
+            </MudText>
+
+            <MudSelect T="string" Label="Check ID" @bind-Value="_selectedCheckId"
+                       Variant="Variant.Outlined" Class="mb-3">
+                @foreach (var id in _failCheckIds)
+                {
+                    <MudSelectItem Value="@id">
+                        @id — @ChecklistIds.Label(id)
+                    </MudSelectItem>
+                }
+                <MudSelectItem Value="@("(veredicto completo)")">(veredicto completo)</MudSelectItem>
+            </MudSelect>
+
+            <MudSelect T="DispositionAction" Label="Acción" @bind-Value="_action"
+                       Variant="Variant.Outlined" Class="mb-3">
+                <MudSelectItem Value="DispositionAction.Accept">Aceptar veredicto</MudSelectItem>
+                <MudSelectItem Value="DispositionAction.Reject">Rechazar / anular veredicto</MudSelectItem>
+            </MudSelect>
+
+            <MudTextField @bind-Value="_comment" Label="Comentario del analista"
+                          Variant="Variant.Outlined" Lines="3" Class="mb-3"
+                          Placeholder="Justificación de la disposición…" />
+
+            <MudTextField @bind-Value="_analystName" Label="Nombre del analista"
+                          Variant="Variant.Outlined" Class="mb-3" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                       StartIcon="@Icons.Material.Filled.Save"
+                       OnClick="RecordDisposition"
+                       Disabled="@(string.IsNullOrWhiteSpace(_comment) || string.IsNullOrWhiteSpace(_analystName))">
+                Registrar disposición
+            </MudButton>
+        </MudPaper>
+
+        <!-- Existing dispositions -->
+        @if (_dispositions.Count > 0)
+        {
+            <MudPaper Class="pa-4 mt-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-3">Disposiciones registradas</MudText>
+                @foreach (var d in _dispositions)
+                {
+                    <MudPaper Class="pa-2 mb-2" Elevation="0"
+                              Style="border:1px solid var(--mud-palette-divider);">
+                        <MudChip T="string" Size="Size.Small"
+                                 Color="@ActionColor(d.Action)">@d.Action</MudChip>
+                        <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                            @d.CheckId — @d.AnalystName · @d.RecordedAtUtc.ToString("HH:mm:ss UTC")
+                        </MudText>
+                        <MudText Typo="Typo.body2" Class="mt-1">@d.Comment</MudText>
+                    </MudPaper>
+                }
+            </MudPaper>
+        }
+    </MudItem>
+
+    <!-- Right: Audit trail -->
+    <MudItem xs="12" md="7">
+        <MudText Typo="Typo.h6" Class="mb-2">Ledger de auditoría (append-only)</MudText>
+        <MudPaper Elevation="1">
+            <MudTable Items="_auditRows" Dense="true" Hover="true" Striped="true" Class="mb-0">
+                <HeaderContent>
+                    <MudTh>Hora UTC</MudTh>
+                    <MudTh>Evento</MudTh>
+                    <MudTh>Actor</MudTh>
+                    <MudTh>Descripción</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>
+                        <MudText Typo="Typo.caption">
+                            @context.OccurredAtUtc.ToString("HH:mm:ss.fff")
+                        </MudText>
+                    </MudTd>
+                    <MudTd>
+                        <span class="vec-audit-event-type">@context.EventType</span>
+                    </MudTd>
+                    <MudTd>@context.Actor</MudTd>
+                    <MudTd>@context.Description</MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+        <MudText Typo="Typo.caption" Class="mt-2 mud-text-secondary">
+            En producción: tabla <code>veriqan.audit_entries</code> (append-only, sin UPDATE/DELETE permitido).
+        </MudText>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private DemoStatementCase _redCase = null!;
+    private List<DemoDisposition> _dispositions = [];
+    private List<DemoAuditRow> _auditRows = [];
+    private IReadOnlyList<string> _failCheckIds = [];
+
+    private string _selectedCheckId = string.Empty;
+    private DispositionAction _action = DispositionAction.Accept;
+    private string _comment = string.Empty;
+    private string _analystName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _redCase = Demo.GetBySignal(VerdictSignal.Red)!;
+        _dispositions = [.. _redCase.Dispositions];
+        _auditRows = [.. _redCase.AuditRows];
+        _failCheckIds = _redCase.FailCheckIds;
+        _selectedCheckId = _failCheckIds.Count > 0 ? _failCheckIds[0] : "(veredicto completo)";
+    }
+
+    private void RecordDisposition()
+    {
+        var disposition = new DemoDisposition
+        {
+            JobId = _redCase.JobId,
+            CheckId = _selectedCheckId,
+            Action = _action,
+            Comment = _comment,
+            AnalystName = _analystName,
+            RecordedAtUtc = DateTimeOffset.UtcNow,
+        };
+        _dispositions.Add(disposition);
+
+        // Add corresponding audit row
+        _auditRows.Add(new DemoAuditRow
+        {
+            JobId = _redCase.JobId,
+            OccurredAtUtc = disposition.RecordedAtUtc,
+            EventType = "Disposition",
+            Actor = _analystName,
+            Description = $"{_selectedCheckId} — {_action}: {_comment}",
+        });
+
+        Snackbar.Add($"Disposición registrada: {_action} para {_selectedCheckId}", Severity.Success);
+
+        _comment = string.Empty;
+        _analystName = string.Empty;
+    }
+
+    private static Color ActionColor(DispositionAction action) => action switch
+    {
+        DispositionAction.Accept => Color.Success,
+        DispositionAction.Reject => Color.Warning,
+        _ => Color.Default,
+    };
+}

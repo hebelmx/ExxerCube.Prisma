@@ -1,0 +1,155 @@
+@page "/upload"
+@rendermode InteractiveServer
+@inject DemoDataService Demo
+
+<PageTitle>Ingesta y Extracción — Veriqan Demo</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-1">Captura 1 — Ingesta y Extracción de Campos</MudText>
+<MudText Typo="Typo.body2" Class="mb-6 mud-text-secondary">
+    CL-1, CL-3, CL-6, CL-11, CL-12 · Corresponde al <em>Pipeline stage: Ingestion → Extraction</em>
+</MudText>
+
+<!-- Upload panel -->
+<MudGrid>
+    <MudItem xs="12" md="5">
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-3">
+                <MudIcon Icon="@Icons.Material.Filled.UploadFile" Class="mr-2" />
+                Subir estado de cuenta (PDF)
+            </MudText>
+
+            @if (!_submitted)
+            {
+                <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected" Accept=".pdf" MaximumFileCount="1">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.AttachFile">
+                            Seleccionar archivo PDF…
+                        </MudButton>
+                    </ActivatorContent>
+                </MudFileUpload>
+
+                @if (_selectedFileName is not null)
+                {
+                    <MudText Typo="Typo.body2" Class="mt-2">
+                        <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" Color="Color.Error" />
+                        @_selectedFileName
+                    </MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-3"
+                               StartIcon="@Icons.Material.Filled.Send"
+                               OnClick="SimulateSubmit">
+                        Verificar
+                    </MudButton>
+                }
+                else
+                {
+                    <MudText Typo="Typo.caption" Class="mt-3 mud-text-secondary">
+                        O haga clic en "Usar archivo de demo" para simular la ingesta.
+                    </MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Secondary" Class="mt-2"
+                               OnClick="UseDemo">
+                        Usar archivo de demo
+                    </MudButton>
+                }
+            }
+            else
+            {
+                <MudProgressLinear Color="Color.Primary" Indeterminate="_processing" Class="mb-3" />
+                @if (!_processing)
+                {
+                    <MudAlert Severity="Severity.Success" Dense="true">
+                        Documento recibido. Job ID: <strong>@_case?.JobId.ToString()[..8]…</strong>
+                    </MudAlert>
+                    <MudText Typo="Typo.caption" Class="mt-2 mud-text-secondary">
+                        Hash SHA-256: <code>@(_case?.ExtractedFields.ContentHash[..32])…</code>
+                    </MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Default" Class="mt-3"
+                               StartIcon="@Icons.Material.Filled.Refresh"
+                               OnClick="Reset">
+                        Reiniciar
+                    </MudButton>
+                }
+            }
+        </MudPaper>
+    </MudItem>
+
+    <!-- Extracted fields panel -->
+    <MudItem xs="12" md="7">
+        @if (_case is not null && !_processing)
+        {
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" Class="mb-3">
+                    <MudIcon Icon="@Icons.Material.Filled.FindInPage" Class="mr-2" />
+                    Campos extraídos
+                </MudText>
+                <MudSimpleTable Dense="true" Striped="true">
+                    <tbody>
+                        <tr><td><strong>Banco</strong></td><td>@_case.ExtractedFields.BankName</td></tr>
+                        <tr><td><strong>Cuenta</strong></td><td>@_case.ExtractedFields.MaskedAccount</td></tr>
+                        <tr><td><strong>Producto</strong></td><td>@_case.ExtractedFields.ProductType</td></tr>
+                        <tr><td><strong>Período</strong></td><td>@_case.ExtractedFields.Period</td></tr>
+                        <tr><td><strong>Fecha de corte</strong></td>
+                            <td>@(_case.ExtractedFields.CutDate == default ? "(no extraído)" : _case.ExtractedFields.CutDate.ToString("dd/MM/yyyy"))</td></tr>
+                        <tr><td><strong>Saldo inicial (MXN)</strong></td>
+                            <td>@_case.ExtractedFields.OpeningBalance.ToString("C")</td></tr>
+                        <tr><td><strong>Saldo final (MXN)</strong></td>
+                            <td>@_case.ExtractedFields.ClosingBalance.ToString("C")</td></tr>
+                        <tr><td><strong>Movimientos</strong></td><td>@_case.ExtractedFields.MovementCount</td></tr>
+                        <tr><td><strong>Páginas</strong></td><td>@_case.ExtractedFields.PageCount</td></tr>
+                        <tr>
+                            <td><strong>Hash SHA-256</strong></td>
+                            <td><code style="font-size:0.7rem;">@_case.ExtractedFields.ContentHash</code></td>
+                        </tr>
+                    </tbody>
+                </MudSimpleTable>
+            </MudPaper>
+        }
+        else if (!_submitted)
+        {
+            <MudPaper Class="pa-4 d-flex align-center justify-center" Elevation="1"
+                      Style="height:250px; border: 2px dashed var(--mud-palette-divider);">
+                <MudText Typo="Typo.body2" Class="mud-text-secondary text-center">
+                    Los campos extraídos aparecerán aquí<br />después de subir un estado de cuenta.
+                </MudText>
+            </MudPaper>
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string? _selectedFileName;
+    private bool _submitted;
+    private bool _processing;
+    private DemoStatementCase? _case;
+
+    private void OnFileSelected(IBrowserFile? file)
+    {
+        _selectedFileName = file?.Name;
+    }
+
+    private async Task SimulateSubmit()
+    {
+        _submitted = true;
+        _processing = true;
+        StateHasChanged();
+        await Task.Delay(1400); // simulate pipeline ingestion
+        _case = Demo.GetBySignal(VerdictSignal.Green);
+        _processing = false;
+    }
+
+    private async Task UseDemo()
+    {
+        _selectedFileName = "estado-cuenta-visa-9879-abr2026.pdf";
+        StateHasChanged();
+        await Task.Delay(50);
+        await SimulateSubmit();
+    }
+
+    private void Reset()
+    {
+        _selectedFileName = null;
+        _submitted = false;
+        _processing = false;
+        _case = null;
+    }
+}

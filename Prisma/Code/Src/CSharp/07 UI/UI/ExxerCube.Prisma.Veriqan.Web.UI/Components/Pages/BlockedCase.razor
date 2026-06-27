@@ -1,0 +1,93 @@
+@page "/blocked"
+@rendermode InteractiveServer
+@inject DemoDataService Demo
+
+<PageTitle>Caso BLOCKED — Veriqan Demo</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-1">Captura 4 — Degradación Segura (BLOCKED)</MudText>
+<MudText Typo="Typo.body2" Class="mb-4 mud-text-secondary">
+    Documento solo-imagen · CL-1…CL-55 → InsufficientData · Archivo: <em>@_case.FileName</em>
+</MudText>
+
+<!-- Verdict banner (orange / warning) -->
+<MudPaper Class="vec-verdict-banner vec-signal-blocked mb-6" Elevation="3">
+    <MudIcon Icon="@Icons.Material.Filled.Block" Color="Color.Warning" Style="font-size:3rem;" />
+    <MudText Typo="Typo.h3" Color="Color.Warning" Class="mt-1">BLOCKED</MudText>
+    <MudText Typo="Typo.subtitle1">
+        Pre-condición no cumplida — verificación automática detenida, se requiere revisión humana
+    </MudText>
+    <MudDivider Class="my-3" />
+    <MudGrid Justify="Justify.Center">
+        <MudItem>
+            <MudChip T="string" Color="Color.Warning">
+                Razón: @_case.BlockReason
+            </MudChip>
+        </MudItem>
+        <MudItem>
+            <MudChip T="string" Color="Color.Default">@_case.InsufficientDataCount InsufficientData</MudChip>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<!-- Block detail -->
+<MudAlert Severity="Severity.Warning" Class="mb-6">
+    <MudText Typo="Typo.subtitle2" Class="mb-1">Detalle técnico del bloqueo</MudText>
+    <MudText Typo="Typo.body2">@_case.BlockDetail</MudText>
+</MudAlert>
+
+<!-- Human-review CTA -->
+<MudPaper Class="pa-4 mb-6" Elevation="1">
+    <MudText Typo="Typo.h6" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.PersonSearch" Class="mr-2" Color="Color.Warning" />
+        Ruteo a revisión humana
+    </MudText>
+    <MudText Typo="Typo.body2" Class="mb-3">
+        Veriqan nunca rechaza silenciosamente un documento bloqueado. El job es enrutado
+        a la cola de revisión manual con el contexto completo disponible para el analista.
+    </MudText>
+    <MudGrid>
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="pa-3 text-center" Elevation="0" Style="border:1px solid var(--mud-palette-divider);">
+                <MudIcon Icon="@Icons.Material.Filled.Queue" Color="Color.Warning" Size="Size.Large" />
+                <MudText Typo="Typo.body2" Class="mt-1">Cola de revisión manual</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="pa-3 text-center" Elevation="0" Style="border:1px solid var(--mud-palette-divider);">
+                <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Info" Size="Size.Large" />
+                <MudText Typo="Typo.body2" Class="mt-1">Notificación al analista</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="pa-3 text-center" Elevation="0" Style="border:1px solid var(--mud-palette-divider);">
+                <MudIcon Icon="@Icons.Material.Filled.Gavel" Color="Color.Secondary" Size="Size.Large" />
+                <MudText Typo="Typo.body2" Class="mt-1">Disposición registrada en auditoría</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+<!-- Check grid — all gray (InsufficientData) -->
+<MudText Typo="Typo.h6" Class="mb-2">Grilla de verificación — todos en InsufficientData</MudText>
+<MudText Typo="Typo.caption" Class="mb-3 mud-text-secondary">
+    Gris = InsufficientData. Ningún check se ejecutó porque el documento no tiene capa de texto extraíble.
+</MudText>
+<MudPaper Class="pa-4" Elevation="1">
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        @foreach (var f in _case.Findings)
+        {
+            <MudTooltip Text="@($"{f.CheckId}: {f.Label} — InsufficientData")">
+                <div class="vec-check-cell vec-check-insufficient">@f.CheckId.Replace("CL-", "")</div>
+            </MudTooltip>
+        }
+    </div>
+</MudPaper>
+
+@code {
+    private DemoStatementCase _case = null!;
+
+    protected override void OnInitialized()
+    {
+        _case = Demo.GetBySignal(VerdictSignal.Blocked)!;
+    }
+}

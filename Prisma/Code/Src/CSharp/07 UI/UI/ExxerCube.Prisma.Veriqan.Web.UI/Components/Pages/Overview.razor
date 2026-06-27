@@ -1,0 +1,120 @@
+@page "/"
+@rendermode InteractiveServer
+@inject DemoDataService Demo
+
+<PageTitle>Veriqan VEC — Panorama General</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-1">Veriqan VEC</MudText>
+<MudText Typo="Typo.subtitle1" Class="mb-6 mud-text-secondary">
+    Verificación Automatizada de Estados de Cuenta Bancarios — 55 reglas regulatorias (DOF CNBV)
+</MudText>
+
+<!-- KPI row -->
+<MudGrid Class="mb-6">
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4 text-center" Elevation="2">
+            <MudIcon Icon="@Icons.Material.Filled.Description" Color="Color.Primary" Size="Size.Large" />
+            <MudText Typo="Typo.h4" Class="mt-2">13–20M</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">estados mensuales en México</MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4 text-center" Elevation="2">
+            <MudIcon Icon="@Icons.Material.Filled.Rule" Color="Color.Secondary" Size="Size.Large" />
+            <MudText Typo="Typo.h4" Class="mt-2">55</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">verificaciones por estado de cuenta</MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4 text-center" Elevation="2">
+            <MudIcon Icon="@Icons.Material.Filled.Speed" Color="Color.Success" Size="Size.Large" />
+            <MudText Typo="Typo.h4" Class="mt-2">&lt; 2 s</MudText>
+            <MudText Typo="Typo.body2" Class="mud-text-secondary">tiempo de verificación promedio</MudText>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<!-- Pipeline stages -->
+<MudText Typo="Typo.h6" Class="mb-3">Pipeline de verificación</MudText>
+<MudPaper Class="pa-4 mb-6" Elevation="1">
+    <MudTimeline TimelinePosition="TimelinePosition.Left">
+        @foreach (var stage in _stages)
+        {
+            <MudTimelineItem Color="stage.Color" Size="Size.Small">
+                <ItemContent>
+                    <MudText Typo="Typo.subtitle2">@stage.Name</MudText>
+                    <MudText Typo="Typo.body2" Class="mud-text-secondary">@stage.Description</MudText>
+                </ItemContent>
+            </MudTimelineItem>
+        }
+    </MudTimeline>
+</MudPaper>
+
+<!-- Verdict legend -->
+<MudText Typo="Typo.h6" Class="mb-3">Veredictos posibles</MudText>
+<MudGrid Class="mb-6">
+    @foreach (var v in _verdicts)
+    {
+        <MudItem xs="12" sm="4">
+            <MudAlert Severity="v.Severity" Dense="true">
+                <MudText Typo="Typo.subtitle2">@v.Signal</MudText>
+                <MudText Typo="Typo.body2">@v.Description</MudText>
+            </MudAlert>
+        </MudItem>
+    }
+</MudGrid>
+
+<!-- 55-check overview table -->
+<MudText Typo="Typo.h6" Class="mb-3">Lista maestra — CL-1 a CL-55</MudText>
+<MudPaper Elevation="1">
+    <MudTable Items="_allFindings" Dense="true" Hover="true" Striped="true"
+              SortLabel="Ordenar" Class="mb-0">
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Verificación</MudTh>
+            <MudTh>DOF</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.CheckId</MudChip>
+            </MudTd>
+            <MudTd>@context.Label</MudTd>
+            <MudTd><MudText Typo="Typo.caption">@context.DofNumeral</MudText></MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private record PipelineStage(string Name, string Description, Color Color);
+    private record VerdictRow(string Signal, string Description, Severity Severity);
+    private record CheckRow(string CheckId, string Label, string DofNumeral);
+
+    private readonly IReadOnlyList<PipelineStage> _stages =
+    [
+        new("Ingesta", "Recepción del PDF; cálculo del hash SHA-256; creación del job.", Color.Primary),
+        new("Extracción", "Extracción de texto con PdfPig; parsing de campos (encabezado, saldos, movimientos).", Color.Secondary),
+        new("Binding", "Vinculación del bundle de referencia (saldo anterior, imágenes secuenciales, tasas).", Color.Info),
+        new("Validación", "Ejecución de las 55 reglas VEC; generación de RuleFinding por regla.", Color.Warning),
+        new("Veredicto", "Agregación: BLOCKED > RED > GREEN. InsufficientData nunca escala a RED.", Color.Success),
+        new("Persistencia", "Persistencia del Job + Findings + Veredicto en PostgreSQL (veriqan.* schema).", Color.Dark),
+        new("Reporte", "Generación del PDF marcado con anotaciones visuales en las zonas fallidas.", Color.Primary),
+        new("Disposición", "El analista acepta, anula o escala; la acción se registra en el ledger de auditoría.", Color.Secondary),
+    ];
+
+    private readonly IReadOnlyList<VerdictRow> _verdicts =
+    [
+        new("GREEN", "Todos los checks pasan (Pass o InsufficientData). Estado conforme.", Severity.Success),
+        new("RED", "Uno o más checks fallaron (Fail). Estado no conforme; genera PDF marcado.", Severity.Error),
+        new("BLOCKED", "Pre-condición no cumplida (p.ej. PDF solo-imagen). Se rutea a revisión manual.", Severity.Warning),
+    ];
+
+    private IReadOnlyList<CheckRow> _allFindings = [];
+
+    protected override void OnInitialized()
+    {
+        _allFindings = ChecklistIds.AllIds
+            .Select(id => new CheckRow(id, ChecklistIds.Label(id), ChecklistIds.DofNumeral(id)))
+            .ToList()
+            .AsReadOnly();
+    }
+}

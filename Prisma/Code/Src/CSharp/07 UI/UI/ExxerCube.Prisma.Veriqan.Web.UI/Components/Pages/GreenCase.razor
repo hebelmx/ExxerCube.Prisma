@@ -1,0 +1,56 @@
+@page "/green"
+@rendermode InteractiveServer
+@inject DemoDataService Demo
+
+<PageTitle>Caso GREEN — Veriqan Demo</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-1">Captura 2 — Estado Conforme (GREEN)</MudText>
+<MudText Typo="Typo.body2" Class="mb-4 mud-text-secondary">
+    Todos los 55 checks pasan · Archivo: <em>@_case.FileName</em>
+</MudText>
+
+<!-- Verdict banner -->
+<MudPaper Class="vec-verdict-banner vec-signal-green mb-6" Elevation="3">
+    <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Style="font-size:3rem;" />
+    <MudText Typo="Typo.h3" Color="Color.Success" Class="mt-1">GREEN</MudText>
+    <MudText Typo="Typo.subtitle1">Estado de cuenta conforme — todos los checks superados</MudText>
+    <MudDivider Class="my-3" />
+    <MudGrid Justify="Justify.Center">
+        <MudItem><MudChip T="string" Color="Color.Success">@_case.PassCount Pass</MudChip></MudItem>
+        <MudItem><MudChip T="string" Color="Color.Error">@_case.FailCount Fail</MudChip></MudItem>
+        <MudItem><MudChip T="string" Color="Color.Default">@_case.InsufficientDataCount InsufficientData</MudChip></MudItem>
+        <MudItem><MudChip T="string" Color="Color.Info">@_case.ProcessingDuration.TotalSeconds.ToString("F2") s</MudChip></MudItem>
+    </MudGrid>
+</MudPaper>
+
+<!-- 55-check grid -->
+<MudText Typo="Typo.h6" Class="mb-2">Grilla de verificación — CL-1 a CL-55</MudText>
+<MudText Typo="Typo.caption" Class="mb-3 mud-text-secondary">
+    Verde = Pass · Rojo = Fail · Gris = InsufficientData. Pase el cursor para ver el detalle.
+</MudText>
+
+<MudPaper Class="pa-4 mb-4" Elevation="1">
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        @foreach (var f in _case.Findings)
+        {
+            var cssClass = f.Verdict switch
+            {
+                FindingVerdict.Pass => "vec-check-cell vec-check-pass",
+                FindingVerdict.Fail => "vec-check-cell vec-check-fail",
+                _ => "vec-check-cell vec-check-insufficient",
+            };
+            <MudTooltip Text="@($"{f.CheckId}: {f.Label}")">
+                <div class="@cssClass">@f.CheckId.Replace("CL-", "")</div>
+            </MudTooltip>
+        }
+    </div>
+</MudPaper>
+
+@code {
+    private DemoStatementCase _case = null!;
+
+    protected override void OnInitialized()
+    {
+        _case = Demo.GetBySignal(VerdictSignal.Green)!;
+    }
+}
