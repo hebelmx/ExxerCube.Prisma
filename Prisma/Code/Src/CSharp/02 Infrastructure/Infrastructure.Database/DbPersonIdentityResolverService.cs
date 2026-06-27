@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Domain.Enum;
+
 namespace ExxerCube.Prisma.Infrastructure.Database;
 
 /// <summary>
@@ -28,18 +30,22 @@ public sealed class DbPersonIdentityResolverService : IPersonIdentityResolver
 {
     private readonly IPrismaDbContext _db;
     private readonly ILogger<DbPersonIdentityResolverService> _logger;
+    private readonly IAuditLogger _auditLogger;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DbPersonIdentityResolverService"/>.
     /// </summary>
     /// <param name="db">The EF Core database context (scoped).</param>
     /// <param name="logger">Logger instance.</param>
+    /// <param name="auditLogger">Audit logger for writing identity-resolution audit trail entries.</param>
     public DbPersonIdentityResolverService(
         IPrismaDbContext db,
-        ILogger<DbPersonIdentityResolverService> logger)
+        ILogger<DbPersonIdentityResolverService> logger,
+        IAuditLogger auditLogger)
     {
         _db = db ?? throw new ArgumentNullException(nameof(db));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _auditLogger = auditLogger ?? throw new ArgumentNullException(nameof(auditLogger));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -308,6 +314,8 @@ public sealed class DbPersonIdentityResolverService : IPersonIdentityResolver
                 _logger.LogDebug(
                     "FindOrCreateAsync: returning existing Persona ParteId={ParteId} for RFC {Rfc}",
                     findResult.Value.ParteId, rfc);
+                await WriteIdentityAuditAsync(findResult.Value, rfc, created: false, cancellationToken)
+                    .ConfigureAwait(false);
                 return Result<Persona>.Success(findResult.Value);
             }
 
@@ -322,6 +330,8 @@ public sealed class DbPersonIdentityResolverService : IPersonIdentityResolver
                 _logger.LogInformation(
                     "FindOrCreateAsync: created Persona ParteId={ParteId} for RFC {Rfc}",
                     resolved.ParteId, rfc);
+                await WriteIdentityAuditAsync(resolved, rfc, created: true, cancellationToken)
+                    .ConfigureAwait(false);
                 return Result<Persona>.Success(resolved);
             }
             catch (DbUpdateException dbEx)
@@ -345,6 +355,8 @@ public sealed class DbPersonIdentityResolverService : IPersonIdentityResolver
                     return Result<Persona>.WithFailure(
                         $"Concurrent insert race: could not locate Persona for RFC {rfc} after retry.");
 
+                await WriteIdentityAuditAsync(retryResult.Value, rfc, created: false, cancellationToken)
+                    .ConfigureAwait(false);
                 return Result<Persona>.Success(retryResult.Value);
             }
         }
@@ -400,6 +412,52 @@ public sealed class DbPersonIdentityResolverService : IPersonIdentityResolver
         }
 
         return variants.ToList();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Audit trail
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Writes an <see cref="AuditActionType.IdentityResolved"/> entry for a completed
+    /// FindOrCreateAsync call.  Audit failures are <b>non-fatal</b>: a warning is logged
+    /// and the method returns normally so the resolution result is never affected.
+    /// </summary>
+    private async Task WriteIdentityAuditAsync(
+        Persona persona,
+        string rfc,
+        bool created,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var correlationId = Guid.NewGuid().ToString();
+            var outcome = created ? "Created" : "Matched";
+            var details = $"{{\"rfc\":\"{rfc}\",\"outcome\":\"{outcome}\",\"parteId\":{persona.ParteId}}}";
+
+            var auditResult = await _auditLogger.LogAuditAsync(
+                    AuditActionType.IdentityResolved,
+                    ProcessingStage.DecisionLogic,
+                    fileId: null,
+                    correlationId: correlationId,
+                    userId: null,
+                    actionDetails: details,
+                    success: true,
+                    errorMessage: null,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            if (auditResult.IsFailure)
+                _logger.LogWarning(
+                    "Identity-resolved audit write failed (non-fatal): RFC={Rfc}, Outcome={Outcome}, Error={Error}",
+                    rfc, outcome, auditResult.Error);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Identity-resolved audit write threw unexpectedly (non-fatal): RFC={Rfc}",
+                rfc);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────

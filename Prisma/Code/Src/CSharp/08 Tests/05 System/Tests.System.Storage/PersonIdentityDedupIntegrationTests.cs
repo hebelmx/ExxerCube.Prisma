@@ -1,9 +1,11 @@
 using ExxerCube.Prisma.Domain.Entities;
+using ExxerCube.Prisma.Domain.Enum;
 using ExxerCube.Prisma.Infrastructure.Database;
 using ExxerCube.Prisma.Infrastructure.Database.EntityFramework;
 using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
 using Meziantou.Extensions.Logging.Xunit.v3;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
 using Xunit;
 
@@ -56,10 +58,34 @@ public sealed class PersonIdentityDedupIntegrationTests : IDisposable
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    private DbPersonIdentityResolverService CreateSut(PrismaDbContext ctx)
+    /// <summary>
+    /// Builds the SUT.  When no <paramref name="auditLogger"/> is supplied a no-op NSubstitute
+    /// stub is used so that audit writes are silently absorbed without hitting the DB.
+    /// Pass a real <see cref="AuditLoggerService"/> when the test needs to assert on audit rows.
+    /// </summary>
+    private DbPersonIdentityResolverService CreateSut(PrismaDbContext ctx, IAuditLogger? auditLogger = null)
     {
-        var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<DbPersonIdentityResolverService>.Instance;
-        return new DbPersonIdentityResolverService(ctx, logger);
+        var logger = NullLogger<DbPersonIdentityResolverService>.Instance;
+        var audit = auditLogger ?? CreateStubAuditLogger();
+        return new DbPersonIdentityResolverService(ctx, logger, audit);
+    }
+
+    private static IAuditLogger CreateStubAuditLogger()
+    {
+        var stub = Substitute.For<IAuditLogger>();
+        stub.LogAuditAsync(
+                Arg.Any<AuditActionType>(),
+                Arg.Any<ProcessingStage>(),
+                Arg.Any<string?>(),
+                Arg.Any<string>(),
+                Arg.Any<string?>(),
+                Arg.Any<string?>(),
+                Arg.Any<bool>(),
+                Arg.Any<string?>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<string?>())
+            .Returns(Task.FromResult(Result.Success()));
+        return stub;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -256,6 +282,63 @@ public sealed class PersonIdentityDedupIntegrationTests : IDisposable
 
         var result = await sut.FindByRfcAsync("PEGJ850101ABC", cts.Token);
         result.IsFailure.ShouldBeTrue();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Audit trail integration test (E4-S1 gap)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// After a brand-new Persona is created by <see cref="DbPersonIdentityResolverService.FindOrCreateAsync"/>,
+    /// exactly one <see cref="AuditActionType.IdentityResolved"/> row must exist in the
+    /// <c>AuditRecords</c> ledger table (real SQL — not a stub).
+    /// </summary>
+    [Fact]
+    public async Task FindOrCreateAsync_NewIdentity_WritesIdentityResolvedAuditRow()
+    {
+        // Arrange — use a real AuditLoggerService backed by the same DbContext so the
+        // audit write goes to the same isolated SQL database.
+        var proto = new Persona
+        {
+            Nombre = "Carlos",
+            Paterno = "Ramirez",
+            Materno = "Torres",
+            Rfc = "RATC850202EEE",
+            Caracter = "Contribuyente",
+            PersonaTipo = "Fisica",
+        };
+
+        await using (var ctx = new PrismaDbContext(_dbOptions))
+        {
+            var auditLogger = new AuditLoggerService(
+                ctx,
+                NullLogger<AuditLoggerService>.Instance);
+            var sut = CreateSut(ctx, auditLogger);
+
+            // Act
+            var result = await sut.FindOrCreateAsync(proto, proto.Rfc, Ct);
+
+            // Assert — resolution succeeded.
+            result.IsSuccess.ShouldBeTrue($"FindOrCreateAsync failed: {result.Error}");
+            result.Value.ShouldNotBeNull();
+        }
+
+        // Assert — exactly one IdentityResolved audit row was written.
+        await using var queryCtx = new PrismaDbContext(_dbOptions);
+        var auditRows = await queryCtx.AuditRecords
+            .Where(r => r.ActionType == AuditActionType.IdentityResolved)
+            .ToListAsync(Ct);
+
+        auditRows.Count.ShouldBe(1,
+            "Exactly one IdentityResolved audit row must be written for a new Persona");
+
+        var row = auditRows[0];
+        row.Success.ShouldBeTrue();
+        row.Stage.ShouldBe(ProcessingStage.DecisionLogic);
+        row.UserId.ShouldBeNull("identity resolution is a system action — no user");
+        row.ActionDetails.ShouldNotBeNullOrEmpty();
+        row.ActionDetails!.ShouldContain("Created");
+        row.ActionDetails.ShouldContain("RATC850202EEE");
     }
 
     /// <inheritdoc/>

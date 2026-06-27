@@ -14,6 +14,7 @@ public sealed class AuditActionType : EnumModel
     public static readonly AuditActionType Review = new(4, "Review", "Review");
     public static readonly AuditActionType Export = new(5, "Export", "Export");
     public static readonly AuditActionType Escalation = new(6, "Escalation", "Escalation");
+    public static readonly AuditActionType IdentityResolved = new(7, "IdentityResolved", "Identity Resolved");
     public static readonly AuditActionType Unknown = new(-1, "Unknown", "Unknown");
     public static readonly AuditActionType Other = new(999, "Other", "Other");
 
