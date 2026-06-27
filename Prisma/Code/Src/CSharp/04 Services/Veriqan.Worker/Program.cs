@@ -169,7 +169,13 @@ else
                 ValidIssuer = issuer,
                 ValidateAudience = !string.IsNullOrWhiteSpace(audience),
                 ValidAudience = audience,
-                ValidateIssuerSigningKey = !string.IsNullOrWhiteSpace(signingKey),
+                // ALWAYS validate the token signature against the configured key.
+                // When no key is configured, IssuerSigningKey is null, so the handler has
+                // no key to verify against and rejects every token — which is the intended
+                // fail-closed behaviour. Keeping this true (never conditional on the key
+                // being present) removes any ambiguity about signature verification being
+                // skipped, and forged tokens are rejected with 401.
+                ValidateIssuerSigningKey = true,
                 IssuerSigningKey = string.IsNullOrWhiteSpace(signingKey)
                     ? null
                     : new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
@@ -179,19 +185,29 @@ else
             };
         });
 
-    builder.Services.AddAuthorization();
+    builder.Services.AddAuthorization(opts =>
+    {
+        // Defense-in-depth: any endpoint that forgets to declare .RequireAuthorization()
+        // or .AllowAnonymous() falls back to requiring an authenticated user, so a future
+        // undecorated endpoint cannot be exposed anonymously by omission. Health endpoints
+        // remain reachable because they declare .AllowAnonymous() explicitly.
+        opts.FallbackPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
+    });
 }
 
 var app = builder.Build();
 
 // ── Middleware pipeline — order is mandated by ASP.NET Core ──────────────────
-// 1. HTTPS redirect — upgrades plain-HTTP requests before any business logic runs.
-app.UseHttpsRedirection();
-
-// 2. HSTS — tells browsers to only use HTTPS for future visits. Suppress in Development
+// 1. HSTS — tells browsers to only use HTTPS for future visits. Suppress in Development
 //    so a self-signed dev-cert does not permanently poison the browser HSTS store.
+//    HSTS is registered before HTTPS redirection per the ASP.NET Core convention.
 if (!app.Environment.IsDevelopment())
     app.UseHsts();
+
+// 2. HTTPS redirect — upgrades plain-HTTP requests before any business logic runs.
+app.UseHttpsRedirection();
 
 // 3. CORS — must precede authentication so that pre-flight OPTIONS requests are answered
 //    before the auth middleware short-circuits them.

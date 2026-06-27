@@ -152,9 +152,9 @@ Classified + deduped (verified by normalized-text fingerprint) → **12 unique s
 
 | Product (label) | Type | Months | Masked acct |
 |---|---|---|---|
-| account-A-priority | **Cuenta Priority (checking)** | 2026-02 → 05 | ****8425 |
-| account-B-visa-9879 | **Visa credit card** | 2026-03 → 06 | ****9879 |
-| account-C-mc-8572 | **Mastercard credit card** | 2026-02 → 05 | ****8572 |
+| account-A-priority | **Cuenta Priority (checking)** | 2026-02 → 05 | ****0003 (fake) |
+| account-B-visa | **Visa credit card** | 2026-03 → 06 | ****0001 (fake) |
+| account-C-mc | **Mastercard credit card** | 2026-02 → 05 | ****0002 (fake) |
 
 > Note: VEC's 55-item checklist targets **credit-card** statements → B and C are the natural
 > SUTs; A (checking) is a distinct product the bank also wants processed.

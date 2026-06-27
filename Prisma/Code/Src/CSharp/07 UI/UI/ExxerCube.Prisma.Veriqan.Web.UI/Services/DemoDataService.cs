@@ -54,7 +54,7 @@ public sealed class DemoDataService
         var fields = new DemoExtractedFields
         {
             BankName = "BANCO DEMO S.A.",
-            MaskedAccount = "****9879",
+            MaskedAccount = "****0001",
             ProductType = "Tarjeta de Crédito Visa",
             Period = "15/03/2026 – 14/04/2026",
             CutDate = new DateOnly(2026, 4, 14),
@@ -69,7 +69,7 @@ public sealed class DemoDataService
         {
             JobId = jobId,
             CaseName = "Caso GREEN — Estado conforme",
-            FileName = "estado-cuenta-visa-9879-abr2026.pdf",
+            FileName = "estado-cuenta-visa-demo.pdf",
             Signal = VerdictSignal.Green,
             TotalChecks = 55,
             PassCount = 55,
@@ -96,7 +96,7 @@ public sealed class DemoDataService
         var fields = new DemoExtractedFields
         {
             BankName = "BANCO DEMO S.A.",
-            MaskedAccount = "****8572",
+            MaskedAccount = "****0002",
             ProductType = "Tarjeta de Crédito Mastercard",
             Period = "15/03/2026 – 14/04/2026",
             CutDate = new DateOnly(2026, 4, 14),
@@ -125,7 +125,7 @@ public sealed class DemoDataService
         {
             JobId = jobId,
             CaseName = "Caso RED — Hallazgos de incumplimiento",
-            FileName = "estado-cuenta-mc-8572-abr2026.pdf",
+            FileName = "estado-cuenta-mc-demo.pdf",
             Signal = VerdictSignal.Red,
             TotalChecks = 55,
             PassCount = 52,

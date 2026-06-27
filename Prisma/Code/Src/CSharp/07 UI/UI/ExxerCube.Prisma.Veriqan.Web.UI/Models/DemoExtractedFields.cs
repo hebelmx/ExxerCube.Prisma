@@ -9,7 +9,7 @@ public sealed class DemoExtractedFields
     /// <summary>Gets or sets the institution name printed on the statement.</summary>
     public string BankName { get; init; } = string.Empty;
 
-    /// <summary>Gets or sets the masked card/account number (e.g. "****9879").</summary>
+    /// <summary>Gets or sets the masked card/account number (e.g. "****0001").</summary>
     public string MaskedAccount { get; init; } = string.Empty;
 
     /// <summary>Gets or sets the product type (e.g. "Tarjeta de Crédito Visa").</summary>

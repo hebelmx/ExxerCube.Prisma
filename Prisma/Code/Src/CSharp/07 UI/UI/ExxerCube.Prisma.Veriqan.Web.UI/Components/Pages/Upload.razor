@@ -1,5 +1,6 @@
 @page "/upload"
 @rendermode InteractiveServer
+@implements IDisposable
 @inject DemoDataService Demo
 
 <PageTitle>Ingesta y Extracción — Veriqan Demo</PageTitle>
@@ -122,6 +123,10 @@
     private bool _processing;
     private DemoStatementCase? _case;
 
+    // Cancellation source tied to the component lifetime; the simulated-delay tasks
+    // observe this token so they are cancelled if the component is disposed mid-run.
+    private readonly CancellationTokenSource _cts = new();
+
     private void OnFileSelected(IBrowserFile? file)
     {
         _selectedFileName = file?.Name;
@@ -132,16 +137,32 @@
         _submitted = true;
         _processing = true;
         StateHasChanged();
-        await Task.Delay(1400); // simulate pipeline ingestion
-        _case = Demo.GetBySignal(VerdictSignal.Green);
+        try
+        {
+            await Task.Delay(1400, _cts.Token); // simulate pipeline ingestion
+            _case = Demo.GetBySignal(VerdictSignal.Green);
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed before the simulated delay completed — nothing to do.
+            return;
+        }
         _processing = false;
     }
 
     private async Task UseDemo()
     {
-        _selectedFileName = "estado-cuenta-visa-9879-abr2026.pdf";
+        // Neutral sample filename — carries no real account/card data.
+        _selectedFileName = "estado-cuenta-visa-demo.pdf";
         StateHasChanged();
-        await Task.Delay(50);
+        try
+        {
+            await Task.Delay(50, _cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
         await SimulateSubmit();
     }
 
@@ -151,5 +172,12 @@
         _submitted = false;
         _processing = false;
         _case = null;
+    }
+
+    /// <summary>Cancels any in-flight simulated work when the component is disposed.</summary>
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
     }
 }

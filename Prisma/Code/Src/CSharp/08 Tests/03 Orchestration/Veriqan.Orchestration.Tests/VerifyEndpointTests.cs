@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
@@ -196,6 +197,43 @@ public sealed class VerifyEndpointTests
         var response = await client.PostAsJsonAsync("/verify", BuildSubmission(), TestContext.Current.CancellationToken);
 
         // Assert — rejected at the auth gate, before the pipeline.
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+        await pipeline.DidNotReceive().ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// With JWT auth enabled and a real signing key configured, a FORGED HS256 token
+    /// (well-formed but signed with a key the server does not hold) must be rejected with
+    /// HTTP 401 and the pipeline must never run. Proves the signature is actually verified
+    /// (guards the "ValidateIssuerSigningKey" hardening).
+    /// </summary>
+    [Fact]
+    public async Task PostVerify_AuthEnabledForgedToken_Returns401()
+    {
+        var pipeline = Substitute.For<IVerificationPipeline>();
+
+        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("Veriqan:Auth:Enabled", "true");
+            builder.UseSetting("Veriqan:Auth:Jwt:SigningKey", "server-real-signing-key-0123456789-abcdef");
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IVerificationPipeline>();
+                services.AddScoped<IVerificationPipeline>(_ => pipeline);
+            });
+        });
+        using var client = factory.CreateClient();
+
+        // A structurally-valid JWT whose signature was NOT produced with the server's key.
+        static string B64Url(string s) =>
+            Convert.ToBase64String(Encoding.UTF8.GetBytes(s)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        var header = B64Url("{\"alg\":\"HS256\",\"typ\":\"JWT\"}");
+        var payload = B64Url("{\"sub\":\"attacker\",\"exp\":4102444800}"); // exp = year 2100
+        var forgedToken = $"{header}.{payload}.this-signature-is-forged-and-will-not-verify";
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {forgedToken}");
+
+        var response = await client.PostAsJsonAsync("/verify", BuildSubmission(), TestContext.Current.CancellationToken);
+
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
         await pipeline.DidNotReceive().ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>());
     }

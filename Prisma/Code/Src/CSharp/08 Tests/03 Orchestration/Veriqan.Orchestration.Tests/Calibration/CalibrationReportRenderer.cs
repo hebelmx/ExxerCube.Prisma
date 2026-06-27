@@ -20,7 +20,11 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests.Calibration;
 /// </remarks>
 public static class CalibrationReportRenderer
 {
-    private const string ReportRelPath = @"docs\qa\calibration\calibration-report.md";
+    // Cross-platform path segments — a hardcoded backslash string created a literal
+    // "docs\qa\calibration\..." file in the repo root on Linux instead of writing to
+    // docs/qa/calibration/. Path.Combine yields the correct separator per OS.
+    private static readonly string ReportRelPath =
+        Path.Combine("docs", "qa", "calibration", "calibration-report.md");
 
     /// <summary>
     /// Renders the Markdown report and writes it to the repo.
