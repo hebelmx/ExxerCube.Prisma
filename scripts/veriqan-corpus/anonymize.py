@@ -54,6 +54,115 @@ try:
 except ImportError:
     sys.exit("Pillow not found.  Run: pip install pillow")
 
+# ─── Validators & generators for synthetic PII ───────────────────────────────
+# Defined BEFORE the FAKE dict so FAKE can call generators at module-load time
+# and the assertion block can verify every value immediately after.
+
+
+def luhn_ok(num: str) -> bool:
+    """True iff `num` (digit string) passes the Luhn algorithm."""
+    digits = [int(c) for c in num]
+    s = 0
+    for i, d in enumerate(reversed(digits)):
+        if i % 2 == 1:
+            d *= 2
+            if d > 9:
+                d -= 9
+        s += d
+    return s % 10 == 0
+
+
+_CLABE_W = [3, 7, 1] * 6  # 18-element weight vector (Banxico/SAT 3-7-1)
+
+
+def clabe_ok(num: str) -> bool:
+    """True iff `num` is an 18-digit CLABE passing the Banxico mod-10 check."""
+    if len(num) != 18 or not num.isdigit():
+        return False
+    s = sum((int(num[i]) * _CLABE_W[i]) % 10 for i in range(17))
+    cd = (10 - (s % 10)) % 10
+    return cd == int(num[17])
+
+
+_RFC_TBL: dict[str, int] = {
+    **{str(i): i for i in range(10)},
+    'A': 10, 'B': 11, 'C': 12, 'D': 13, 'E': 14, 'F': 15, 'G': 16,
+    'H': 17, 'I': 18, 'J': 19, 'K': 20, 'L': 21, 'M': 22, 'N': 23,
+    '&': 24, 'O': 25, 'P': 26, 'Q': 27, 'R': 28, 'S': 29, 'T': 30,
+    'U': 31, 'V': 32, 'W': 33, 'X': 34, 'Y': 35, 'Z': 36, ' ': 37, 'Ñ': 38,
+}
+
+
+def rfc_checkdigit_ok(rfc: str) -> bool:
+    """
+    True iff the last character of `rfc` is the correct SAT mod-11 check digit.
+    Supports personal RFC (13 chars) and moral RFC (12 chars); body is
+    right-justified in a 12-char field (moral RFCs get a leading space).
+    """
+    if len(rfc) < 2:
+        return False
+    body, expected = rfc[:-1], rfc[-1]
+    padded = body.rjust(12)
+    factors = list(range(13, 1, -1))  # [13, 12, 11, ..., 2]
+    try:
+        s = sum(_RFC_TBL[c] * f for c, f in zip(padded, factors))
+    except KeyError:
+        return False
+    r = s % 11
+    d = 11 - r
+    computed = '0' if d == 11 else 'A' if d == 10 else str(d)
+    return computed == expected
+
+
+def _make_pan(prefix: str, last4: str, length: int = 16) -> str:
+    """
+    Return a Luhn-valid PAN: prefix + zero-padding + one adj digit + last4.
+    Deterministic (first adj in 0-9 that satisfies Luhn).
+    """
+    mid_len = length - len(prefix) - len(last4) - 1
+    if mid_len < 0:
+        raise ValueError(f"prefix+last4 too long for length={length}")
+    middle = "0" * mid_len
+    for adj in range(10):
+        candidate = prefix + middle + str(adj) + last4
+        if luhn_ok(candidate):
+            return candidate
+    raise ValueError(f"No Luhn-valid PAN: prefix={prefix!r} last4={last4!r}")
+
+
+def _make_clabe(bank: str, plaza: str, account11: str) -> str:
+    """
+    Return a valid 18-digit CLABE.
+    bank: 3-digit bank code  (e.g. '002' = Citibanamex)
+    plaza: 3-digit plaza code (e.g. '180' = CDMX centro)
+    account11: 11-digit account number suffix
+    """
+    if not (len(bank) == 3 and len(plaza) == 3 and len(account11) == 11):
+        raise ValueError("bank=3, plaza=3, account11=11 digits required")
+    body = bank + plaza + account11
+    s = sum((int(body[i]) * _CLABE_W[i]) % 10 for i in range(17))
+    cd = (10 - (s % 10)) % 10
+    return body + str(cd)
+
+
+def _make_rfc_personal(name4: str, dob_yymmdd: str, homoclave: str) -> str:
+    """
+    Build a 13-char personal RFC with the correct SAT mod-11 check digit.
+    name4: 4 capital letters from the holder name per SAT extraction rule
+    dob_yymmdd: 6-digit birth date (YYMMDD)
+    homoclave: 2 alphanumeric characters
+    """
+    body = name4 + dob_yymmdd + homoclave
+    if len(body) != 12:
+        raise ValueError(f"body must be 12 chars; got {body!r}")
+    factors = list(range(13, 1, -1))
+    s = sum(_RFC_TBL[c] * f for c, f in zip(body, factors))
+    r = s % 11
+    d = 11 - r
+    check = '0' if d == 11 else 'A' if d == 10 else str(d)
+    return body + check
+
+
 # ─── Paths ───────────────────────────────────────────────────────────────────
 
 _DOWNLOADS = Path.home() / "Downloads"
@@ -68,49 +177,83 @@ DEFAULT_MAPPING_PATH   = Path(os.environ.get("MAPPING_PATH",   _DOWNLOADS / "vec
 SUT_PRODUCT_PREFIX = "account-B-visa"
 SUT_MONTH          = "2026-04"
 
-# ─── Fake / demo identity (safe to commit — no real PII) ─────────────────────
+# ─── Fake / demo identity (generated + validated — safe to commit) ───────────
+#
+# All numeric PII values are produced by the generators above and asserted
+# valid by _assert_fake_values_valid() at the bottom of this section.
+#
+# RFC name-extraction rule for "CARLOS MENDOZA VARGAS":
+#   Apellido paterno (MENDOZA) → 1st letter M + 1st internal vowel E
+#   Apellido materno (VARGAS)  → 1st letter V
+#   Nombre           (CARLOS)  → 1st letter C
+#   → initials = MEVC
 
-FAKE = {
+_VISA_PFX   = "4111"           # standard Visa BIN
+_MC_PFX     = "5100"           # Mastercard 51xx BIN
+_DEBIT_PFX  = "4100"           # Visa debit BIN
+_CLABE_BANK = "002"            # Citibanamex bank code (Banxico registry)
+_CLABE_PLZA = "180"            # CDMX main plaza
+
+FAKE: dict[str, str] = {
     # Holder
-    "holder_name":          "CARLOS MENDOZA VARGAS",
-    "rfc_personal":         "MEVC000101XX0",
-    # Address (checking account)
-    "address_line1":        "AV REFORMA 1234 DESP 8",
-    "address_line2":        "COL JUAREZ",
-    "address_line3":        "06600 CIUDAD DE MEXICO, CDMX",
-    # Account-A numeric IDs (all values are synthetic)
-    "contract_A":           "7700000000",
-    "branch_A":             "0001",
-    "debit_card_A":         "5200000000000003",   # fully synthetic — last-4 = 0003
-    "checking_acct_A":      "000000042",
-    "clabe_A":              "002000000000000001",
-    "client_A":             "00000001",
-    # Account-B (Visa, product folder prefix: account-B-visa)
-    # Fake last-4 = 0001 — avoids the real-last-4 PII gate.
-    "card_B":               "4111222233330001",
-    "branch_B":             "0002",
-    "client_B":             "00000002",
-    "clabe_B":              "002000000000000002",
-    "rfc_b_field":          "MEVC000101XX0",
-    # Account-C (MC, product folder prefix: account-C-mc)
-    # Fake last-4 = 0002 — avoids the real-last-4 PII gate.
-    "card_C":               "5200111122220002",
-    "branch_C":             "0003",
-    "client_C":             "00000003",
-    "clabe_C":              "002000000000000003",
-    "rfc_c_field":          "MEVC000101XX0",
-    # Bank
-    "bank_name_full":       "Banco Demo IndFusion, S.A.",
-    "bank_name_sa":         "Banco Demo IndFusion, S.A., Integrante del Grupo Financiero IndFusion",
-    "bank_group":           "Grupo Financiero IndFusion",
-    "bank_short":           "IndFusion",
-    "bank_rfc":             "BDI000101IDF",
-    "bank_net":             "DemoNet",
-    "bank_app":             "App IndFusion",
-    "bank_phone":           "55 0000 0000",
-    "bank_address":         "Av. Demo 999, Col. Centro, 01000, Ciudad de Mexico",
-    "bank_une_email":       "une@bancoindifusion.demo.mx",
+    "holder_name":     "CARLOS MENDOZA VARGAS",
+    "rfc_personal":    _make_rfc_personal("MEVC", "000101", "XX"),  # → MEVC000101XX5
+    # Address (checking account header)
+    "address_line1":   "AV REFORMA 1234 DESP 8",
+    "address_line2":   "COL JUAREZ",
+    "address_line3":   "06600 CIUDAD DE MEXICO, CDMX",
+    # Account-A (checking): all values synthetic
+    "contract_A":      "7700000000",                               # 10-digit contract
+    "branch_A":        "0001",                                     # 4-digit branch
+    "debit_card_A":    _make_pan(_DEBIT_PFX, "0003"),              # Luhn-valid; last-4=0003
+    "checking_acct_A": "000000042",                                # 9-digit account
+    "clabe_A":         _make_clabe(_CLABE_BANK, _CLABE_PLZA, "00000000001"),  # cd=2
+    "client_A":        "00000001",                                 # 8-digit client code
+    # Account-B (Visa credit — folder prefix: account-B-visa)
+    # Fake last-4=0001 avoids the real-last-4 PII gate.
+    "card_B":          _make_pan(_VISA_PFX, "0001"),               # Luhn-valid
+    "branch_B":        "0002",
+    "client_B":        "00000002",
+    "clabe_B":         _make_clabe(_CLABE_BANK, _CLABE_PLZA, "00000000002"),  # cd=5
+    "rfc_b_field":     _make_rfc_personal("MEVC", "000101", "XX"),
+    # Account-C (MC credit — folder prefix: account-C-mc)
+    # Fake last-4=0002 avoids the PII gate.
+    "card_C":          _make_pan(_MC_PFX, "0002"),                 # Luhn-valid
+    "branch_C":        "0003",
+    "client_C":        "00000003",
+    "clabe_C":         _make_clabe(_CLABE_BANK, _CLABE_PLZA, "00000000003"),  # cd=8
+    "rfc_c_field":     _make_rfc_personal("MEVC", "000101", "XX"),
+    # Bank identity (synthetic; no public checksum asserted for bank RFC)
+    "bank_name_full":  "Banco Demo IndFusion, S.A.",
+    "bank_name_sa":    "Banco Demo IndFusion, S.A., Integrante del Grupo Financiero IndFusion",
+    "bank_group":      "Grupo Financiero IndFusion",
+    "bank_short":      "IndFusion",
+    "bank_rfc":        "BDI000101IDF",
+    "bank_net":        "DemoNet",
+    "bank_app":        "App IndFusion",
+    "bank_phone":      "55 0000 0000",
+    "bank_address":    "Av. Demo 999, Col. Centro, 01000, Ciudad de Mexico",
+    "bank_une_email":  "une@bancoindifusion.demo.mx",
 }
+
+
+def _assert_fake_values_valid() -> None:
+    """
+    Assert every generated synthetic value passes its Mexican-rule validator.
+    Raises AssertionError at import time if any value is invalid.
+    """
+    for key in ("rfc_personal", "rfc_b_field", "rfc_c_field"):
+        v = FAKE[key]
+        assert rfc_checkdigit_ok(v), f"FAKE[{key!r}]={v!r} fails rfc_checkdigit_ok"
+    for key in ("debit_card_A", "card_B", "card_C"):
+        v = FAKE[key]
+        assert luhn_ok(v), f"FAKE[{key!r}]={v!r} fails luhn_ok"
+    for key in ("clabe_A", "clabe_B", "clabe_C"):
+        v = FAKE[key]
+        assert clabe_ok(v), f"FAKE[{key!r}]={v!r} fails clabe_ok"
+
+
+_assert_fake_values_valid()  # ← fails fast at import if any value is wrong
 
 # ─── Real-PII patterns to auto-detect from source PDFs ───────────────────────
 
@@ -449,17 +592,19 @@ def _cover_region(page: fitz.Page, rect: fitz.Rect, fake: str, *, color=_COLOR_B
 
 
 # Coordinate regions for image-layer field values on credit-card page 1.
-# These boxes cover the AFP character-image clusters to the right of each label.
-# Derived by inspecting image-block bounding boxes for a Banamex CC statement.
-# Format: (x0, y0, x1, y1) in PDF points (origin bottom-left in spec,
-# but PyMuPDF uses top-left origin — values here are for PyMuPDF Rect).
+# The labels ("Número de tarjeta", "RFC", …) ARE in the text layer at the Y
+# ranges below (confirmed by diagnostic: label y=174-185, 186-197, 198-208,
+# 209-220, 220-231).  The AFP character-image values sit in the SAME Y rows,
+# to the right of the labels (label x≈26-101, value x starts at ≈100).
+# Boxes are NON-OVERLAPPING so that step 3's two-pass drawing (all rects
+# first, then all text) does not let a later white rect erase earlier text.
 _CC_P1_FIELD_BOXES: list[tuple[str, fitz.Rect, str]] = [
     # (fake_key, rect, label_for_logging)
-    ("card_number_fake",  fitz.Rect(100, 162, 295, 196), "Numero de tarjeta"),
-    ("rfc_field_fake",    fitz.Rect(100, 175, 295, 209), "RFC"),
-    ("branch_fake",       fitz.Rect(100, 186, 295, 220), "Numero de sucursal"),
-    ("client_fake",       fitz.Rect(100, 197, 295, 232), "Numero de cliente"),
-    ("clabe_fake",        fitz.Rect(100, 209, 295, 243), "CLABE Interbancaria"),
+    ("card_number_fake", fitz.Rect(100, 173, 305, 186), "Numero de tarjeta"),
+    ("rfc_field_fake",   fitz.Rect(100, 185, 305, 198), "RFC"),
+    ("branch_fake",      fitz.Rect(100, 197, 305, 210), "Numero de sucursal"),
+    ("client_fake",      fitz.Rect(100, 209, 305, 222), "Numero de cliente"),
+    ("clabe_fake",       fitz.Rect(100, 219, 305, 232), "CLABE Interbancaria"),
 ]
 
 
@@ -499,20 +644,36 @@ def anonymize_page(
         if n:
             log.debug("  p%d brand %r → %r (%d×)", page_num + 1, real_brand[:30], fake_brand[:25], n)
 
-    # ── 3. Credit-card page 1: cover image-layer field values ───────────────
+    # ── 3. Credit-card page 1: cover AFP image-layer field values ───────────
+    #
+    # Two-pass approach (critical):
+    #   Pass 1 — draw ALL white rects first.
+    #   Pass 2 — insert ALL fake text on top.
+    # This prevents a later white rect from visually erasing text that was
+    # drawn by an earlier insert_text call (painter's algorithm: last wins).
     if product_type == "credit_card" and page_num == 0:
-        # Map field_key to the appropriate fake value for this account
         fake_values = {
             "card_number_fake": FAKE.get(f"card_{label}", "4000000000000000"),
             "rfc_field_fake":   FAKE.get(f"rfc_{label.lower()}_field", FAKE["rfc_personal"]),
             "branch_fake":      FAKE.get(f"branch_{label}", "0001"),
             "client_fake":      FAKE.get(f"client_{label}", "00000001"),
-            "clabe_fake":       FAKE.get(f"clabe_{label}", "002000000000000001"),
+            "clabe_fake":       FAKE.get(f"clabe_{label}", FAKE["clabe_A"]),
         }
+        # Pass 1: white covers
+        for _fk, rect, _fl in _CC_P1_FIELD_BOXES:
+            page.draw_rect(rect, color=None, fill=_FILL_WHITE)
+        # Pass 2: fake text on top of ALL covers
         for fkey, rect, field_label in _CC_P1_FIELD_BOXES:
             fake_val = fake_values.get(fkey, "DEMO")
-            _cover_region(page, rect, fake_val)
-            log.debug("  p1 image-layer cover: %s → %s", field_label, fake_val)
+            # Baseline = 3 pt from rect bottom — safely within 11-13 pt row for 8 pt font.
+            page.insert_text(
+                fitz.Point(rect.x0 + 2, rect.y1 - 3),
+                fake_val,
+                fontname=_FONT_NAME,
+                fontsize=_FONT_SIZE,
+                color=_COLOR_BLACK,
+            )
+            log.debug("  p1 img-cover: %s → %r", field_label, fake_val)
 
     # ── 4. Bank logo: cover image blocks at top-left of page 1 ─────────────
     if page_num == 0:
