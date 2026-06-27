@@ -178,31 +178,40 @@ would be **tautological**. Instead:
 Maps cleanly onto the VEC reference bundle (`prior-statements.csv`, `sequential-images.csv`,
 products, rates): m−1 closing balance = m opening balance; m+1 confirms m's closing.
 
-### 5c. Compliance stance — "legitimate rejection is proof, not failure" (carried principle)
+### 5c. Compliance stance — "golden master, blindly evaluated; legitimate rejection is proof" (carried principle)
 
-The demo corpus is built from **anonymized real statements that were never authored to be
-CONDUSEF-compliant.** Therefore `good.pdf` is **not assumed compliant** — it is the
-*best-available real statement*. Consequences, which **carry over to every E2E test and demo
-design**:
+**The corpus is the MASTER GOLDEN DATASET — production-quality bank statements.** For *all*
+evaluation purposes it is treated as genuine production documentation, **not** as
+"anonymized / synthetic / doctored / test" data. This is deliberate **blind evaluation**: no
+agent, judge, summary, or the verifier itself is primed with the corpus's origin, because that
+knowledge would *bias the findings* (e.g. excusing a real failure as "just an artifact"). How
+the corpus was produced is **governance metadata kept in a separated record** (the
+corpus/anonymizer provenance + PII map outside the repo) and must never reach an evaluator.
 
-1. **A legitimate non-GREEN verdict on a real anonymized statement is a desired outcome, not a
-   bug.** When the verifier flags a genuine CONDUSEF violation in the source document, that
-   *demonstrates its detection power on real input* — it is a PASSING test of the engine.
-2. **Never manufacture GREEN.** Tests must not suppress findings, fabricate reference-bundle
-   values, or relax tolerances to force a pass. They assert the statement's *true* verdict and
-   that any RED findings are correct true-positives (right CheckIds + locators).
-3. **Triage every failing check** into: (a) genuine source non-compliance → keep (true
-   positive); (b) anonymization artifact → fix the anonymizer (with better redaction); (c)
-   missing/incorrect bundle value → fix the bundle.
+`good.pdf` is therefore **a real production statement, not assumed compliant.** Consequences,
+which **carry over to every E2E test and demo design**:
+
+1. **A legitimate non-GREEN verdict is a desired outcome, not a bug.** When the verifier flags a
+   genuine CONDUSEF violation, that *demonstrates detection power on production input* — a
+   PASSING test of the engine.
+2. **Never manufacture GREEN, and never excuse a finding by the corpus's origin.** Tests must not
+   suppress findings, fabricate reference-bundle values, relax tolerances, or bypass guards (e.g.
+   the extraction-coverage floor) to force a verdict. There is no "it's only anonymized" escape
+   hatch — every finding stands on its merits.
+3. **Triage every finding into exactly two causes:** (a) genuine document non-compliance → it's a
+   true positive; fix the *document* (iterate the master toward compliance); (b) missing/incorrect
+   reference-bundle value → fix the *bundle*. (A system defect that mis-reads a valid document —
+   e.g. a weak extractor or a false-RED — is a **product gap to fix**, tracked in the MVP-path, not
+   a property of the corpus.)
 4. **The clean-GREEN capture is earned, not assumed.** A truly-GREEN demonstration requires a
-   **CONDUSEF-and-bank-approved compliant master** statement, added later. The path is to
-   *iterate the document* — fixing each true-positive non-compliance — until it legitimately
-   passes. Until then the honest verdict (likely with some true-positive findings) is itself a
-   valid demo that the system works.
+   **CONDUSEF-and-bank-approved compliant master** statement. The path is to *iterate the master
+   document* — resolving each true-positive non-compliance — until it legitimately passes. Until
+   then the honest verdict is itself a valid demo that the system works.
 
-> In short: we let the system legitimately reject imperfect documents — that *proves* it works
-> — and we converge the master toward an approved compliant statement that earns GREEN on its
-> own merits.
+> In short: the corpus is production-grade golden data, evaluated blind; we let the system
+> legitimately reject imperfect documents — that *proves* it works — and we converge the master
+> toward an approved compliant statement that earns GREEN on its own merits. No finding is ever
+> waved off because of how the data was prepared.
 
 ---
 
