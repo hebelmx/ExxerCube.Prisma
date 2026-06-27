@@ -47,6 +47,17 @@ What's left is **data, presentation, and production hardening.**
 | W4 | **`VecChecklistDemoE2ETests`** deterministic proof over the 4-fixture corpus. | to author | — | M | build |
 | W5 | **Capture runbook** + recording. | to author | — | S–M | build |
 
+### 2a. W3 prep notes (surfaced while authoring the W5 runbook — verify when corpus lands)
+- **Reference-bundle file naming mismatch.** The PRP2 CSVs are named
+  `Check+list+demo+v2+Iqubica_<SECTION>.csv`, but `CsvReferenceDataAdapter` expects
+  lowercase-hyphenated names (`bundle-metadata.csv`, `products.csv`, `interest-rates.csv`, …)
+  inside an institution sub-directory (e.g. `Iqubica/`). **W3 must rename/reorganize** before the
+  bundle loads — the wiring (`d5636c6d`) binds the root, but the file layout must match the adapter.
+- **Config keys beyond the demo plan** (required for a real run): `ConnectionStrings:VeriqanDb`
+  (not `DefaultConnection`); `Veriqan:LegalBaseline:EncryptionKey` (startup validator requires it
+  when SQL persistence is active); `Veriqan:Alerts:Recipients` (≥1 address or the email stage warns
+  instead of dispatching). Captured in `VERIQAN-DEMO-CAPTURE-RUNBOOK.md` §0.1.
+
 ### Tier B — full-production readiness (genuinely open)
 | # | Gap | State | Evidence | Sev | Eff | Dep |
 |---|-----|-------|----------|-----|-----|-----|
