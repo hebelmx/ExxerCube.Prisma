@@ -66,6 +66,21 @@ the *true* verdict and never manufacture GREEN (no suppressed findings / fabrica
 artifact (fix anonymizer) · missing bundle value (fix bundle). A clean GREEN demonstration is
 **earned** with a CONDUSEF-and-bank-approved compliant master (later). Full statement: Demo Plan §5c.
 
+### 2c. Gaps surfaced by the demo E2E (W3, 2026-06-27) — the exercise working as intended
+- **N5 — Field extractor under-performs on the real Banamex Visa (BSSB) credit-card layout.**
+  The pipeline extracts only ~8 structured fields from the anonymized real statements (text is
+  99% intact — 2522 vs 2541 words — so NOT anonymization damage), below
+  `TenantProfile.MinExtractionCoverageCount = 10` → the SUT `good.pdf` BLOCKs in production. The
+  W3 agent bypassed the floor (`minExtractionCoverageCount: 0`) to reach RED — **rejected as a
+  relaxation per §5c.** Real fix: harden `PdfPigStatementFieldExtractor` field-detection for this
+  layout so coverage clears naturally and CL-21 (payment-distribution arithmetic) can evaluate.
+  **Owner ruling: fix the extractor, no bypass.** *(M–L, in progress)*
+- **Design — BLOCKED is for real defects + must carry a confidence degree.** A low-extraction
+  BLOCK ("couldn't read the layout") is a system defect, not a verdict on the document. BLOCKED /
+  abstain should be a deliberate human "callback" only when the document genuinely has a defect,
+  and every verdict/finding should expose a **confidence degree** (owner: "time to develop"). Track
+  as a design item feeding the verdict/abstain-safety layer.
+
 ### Tier B — full-production readiness (genuinely open)
 | # | Gap | State | Evidence | Sev | Eff | Dep |
 |---|-----|-------|----------|-----|-----|-----|
