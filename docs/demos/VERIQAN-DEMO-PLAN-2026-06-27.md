@@ -134,6 +134,41 @@ real input). Synthetic authoring fills any missing verdict class.
 > preserve *rendering* — otherwise the corpus won't exercise the very gaps the demo must prove fixed.
 > `scanned.pdf` doubles as the regression fixture proving cardinal gap #1 stays BLOCKED (not RED).
 
+### 5a. Verified corpus inventory (2026-06-27)
+
+Owner supplied 20 real Banamex PDFs (in `/home/abel/Downloads`, **never** in the repo).
+Classified + deduped (verified by normalized-text fingerprint) → **12 unique statements =
+3 distinct products × 4 consecutive months**, organized at
+`/home/abel/Downloads/bank-statements-sorted/` (manifest: `statement-manifest.json`, local only):
+
+| Product (label) | Type | Months | Masked acct |
+|---|---|---|---|
+| account-A-priority | **Cuenta Priority (checking)** | 2026-02 → 05 | ****8425 |
+| account-B-visa-9879 | **Visa credit card** | 2026-03 → 06 | ****9879 |
+| account-C-mc-8572 | **Mastercard credit card** | 2026-02 → 05 | ****8572 |
+
+> Note: VEC's 55-item checklist targets **credit-card** statements → B and C are the natural
+> SUTs; A (checking) is a distinct product the bank also wants processed.
+
+### 5b. Reconciliation-from-neighbors — the anti-tautology design (owner methodology)
+
+The bank's production system is *given* the expected reference data per the checklist. We don't
+have it for these specimens. Naively asserting "the statement contains X" using X we injected
+would be **tautological**. Instead:
+
+- For each product, the **intermediate month is the SUT** (System Under Test); each statement is
+  independently a SUT for the system.
+- The **prior month (m−1) and next month (m+1)** are deeply analyzed to **reconstruct the
+  reference bundle** (prior/closing balances for continuity, products, rates, sequential images,
+  mandatory legends, etc.). The verification of month *m* draws its ground truth from the
+  **neighbours**, *not* from month *m* itself.
+- All 3 statements of the product are **anonymized/transformed identically** (same fake
+  identity/logo) so continuity across m−1, m, m+1 still holds after anonymization.
+- This makes the E2E test a genuine verification of the SUT month, not a restatement of injected data.
+
+Maps cleanly onto the VEC reference bundle (`prior-statements.csv`, `sequential-images.csv`,
+products, rates): m−1 closing balance = m opening balance; m+1 confirms m's closing.
+
 ---
 
 ## 6. Method (reuse Prisma's 5-phase audit)
