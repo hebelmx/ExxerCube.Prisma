@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Python.GotOcr2</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Python.GotOcr2.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring GOT-OCR2 Python interop services.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Python.GotOcr2.DependencyInjection.ServiceCollectionExtensions.AddGotOcr2PythonEnvironment(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.String)">
+            <summary>
+            Adds GOT-OCR2 Python environment and configuration to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="pythonLibPath">Path to Python library (optional, will use redistributable if not provided).</param>
+            <param name="venvPath">Path to Python virtual environment (optional, will create if not exists).</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:CSnakes.Runtime.IGotOcr2Wrapper">
+            <summary>
+            Represents functions of the Python module <c>got_ocr2_wrapper</c>.
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.IsCudaSupported">
+            <summary>
+            Invokes the Python function <c>is_cuda_supported</c>:
+            <code><![CDATA[
+            def is_cuda_supported() -> bool: ...
+            ]]></code>
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.SelectOptimalDevice(System.Int64)">
+            <summary>
+            Invokes the Python function <c>select_optimal_device</c>:
+            <code><![CDATA[
+            def select_optimal_device(batch_size: int = 1) -> Tuple[str, any]: ...
+            ]]></code>
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.LoadModel">
+            <summary>
+            Invokes the Python function <c>load_model</c>:
+            <code><![CDATA[
+            def load_model(): ...
+            ]]></code>
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.GetModelInfo">
+            <summary>
+            Invokes the Python function <c>get_model_info</c>:
+            <code><![CDATA[
+            def get_model_info() -> str: ...
+            ]]></code>
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.ExecuteOcr(System.Byte[],System.String,System.Double,System.Int64)">
+            <summary>
+            Invokes the Python function <c>execute_ocr</c>:
+            <code><![CDATA[
+            def execute_ocr(
+                image_bytes: bytes,
+                language: str = "spa",
+                confidence_threshold: float = 0.7,
+                batch_size: int = 1
+            ) -> Tuple[str, float, float, List[float], str]: ...
+            ]]></code>
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.CalculateConfidenceHeuristic(System.String,System.Double)">
+            <summary>
+            Invokes the Python function <c>calculate_confidence_heuristic</c>:
+            <code><![CDATA[
+            def calculate_confidence_heuristic(text: str, threshold: float) -> float: ...
+            ]]></code>
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.ExecuteOcrFromFile(System.String,System.String,System.Double)">
+            <summary>
+            Invokes the Python function <c>execute_ocr_from_file</c>:
+            <code><![CDATA[
+            def execute_ocr_from_file(
+                file_path: str,
+                language: str = "spa",
+                confidence_threshold: float = 0.7
+            ) -> Tuple[str, float, float, List[float], str]: ...
+            ]]></code>
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.GetVersion">
+            <summary>
+            Invokes the Python function <c>get_version</c>:
+            <code><![CDATA[
+            def get_version() -> str: ...
+            ]]></code>
+            </summary>
+        </member>
+        <member name="M:CSnakes.Runtime.IGotOcr2Wrapper.HealthCheck">
+            <summary>
+            Invokes the Python function <c>health_check</c>:
+            <code><![CDATA[
+            def health_check() -> bool: ...
+            ]]></code>
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Extraction.Txt</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor">
+            <summary>
+            Adaptive field extractor for text sources (typically OCR output).
+            Implements <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor`1"/> for <see cref="T:ExxerCube.Prisma.Domain.Sources.TxtSource"/>.
+            </summary>
+            <remarks>
+            <para>
+            This extractor is designed to handle OCR text output with typical errors:
+            - Character substitutions (0 → O, 1 → I, 5 → S)
+            - Missing or misplaced field labels
+            - Variable spacing and formatting
+            - Typos in manually filled fields
+            </para>
+            <para>
+            <strong>Extraction Strategy:</strong>
+            </para>
+            <list type="number">
+              <item><description>Pattern-based extraction using regex</description></item>
+              <item><description>Fuzzy matching for OCR errors (Levenshtein distance)</description></item>
+              <item><description>Contextual search (look for labels + surrounding text)</description></item>
+              <item><description>Multi-line pattern matching for complex fields</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor"/> class.
+            </summary>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractFieldsAsync(ExxerCube.Prisma.Domain.Sources.TxtSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[])">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractFieldAsync(ExxerCube.Prisma.Domain.Sources.TxtSource,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractCoreFields(System.String,ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields,System.Single)">
+            <summary>
+            Extracts ALL extractable fields from text automatically.
+            This ensures maximum field coverage regardless of fieldDefinitions passed.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.AddFieldIfNotPresent(ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields,System.String,System.String)">
+            <summary>
+            Helper method to add field to AdditionalFields if value is not null and not already present.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractFieldByName(System.String,System.String,System.Single)">
+            <summary>
+            Extracts a field by name from text.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ApplyFieldToExtractedFields(ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields,System.String,System.String)">
+            <summary>
+            Applies extracted field value to ExtractedFields object.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractExpediente(System.String)">
+            <summary>
+            Extracts Expediente using pattern matching.
+            Pattern: A/AS1-2505-088637-PHM or B/CDEF-1234-567890-ABC or similar formats.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractCausa(System.String)">
+            <summary>
+            Extracts Causa using contextual search.
+            Looks for "CAUSA:", "Causa:", etc. followed by text.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractAccionSolicitada(System.String)">
+            <summary>
+            Extracts AccionSolicitada using contextual search.
+            Looks for "ACCIÓN SOLICITADA:", "Accion Solicitada:", etc.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractNumeroOficio(System.String)">
+            <summary>
+            Extracts NumeroOficio (e.g., AGAFADAFSON2/2025/000084).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractAutoridadNombre(System.String)">
+            <summary>
+            Extracts AutoridadNombre (authority name).
+            </summary>
+            <remarks>
+            Priority rules:
+            1. SAT wins when explicitly self-identified as "SAT - Servicio de Administración Tributaria"
+               (a composite label that unambiguously names the authority as SAT).
+            2. CNBV wins over AGAFF: in CNBV/SIARA documents the CNBV is the recipient authority
+               while AGAFF may appear as the sender; CNBV is the governing regulator in this system.
+            3. Acronyms (SAT bare, CNBV, AGAFF) are checked last using word-boundary guards to
+               avoid false matches inside email addresses (@sat.gob.mx) or URLs.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractNombreSolicitante(System.String)">
+            <summary>
+            Extracts NombreSolicitante (requester name) using honorific + name pattern.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractEmail(System.String)">
+            <summary>
+            Extracts email address from text.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractTelefono(System.String)">
+            <summary>
+            Extracts Mexican phone number.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractCodigoPostal(System.String)">
+            <summary>
+            Extracts postal code (C.P.).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractDireccion(System.String)">
+            <summary>
+            Extracts address (multi-line block containing address keywords).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractFundamentoLegal(System.String)">
+            <summary>
+            Extracts FundamentoLegal (legal article citations).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractAutoridadEspecifica(System.String)">
+            <summary>
+            Extracts AutoridadEspecificaNombre (specific department/office name).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractFechaPublicacion(System.String)">
+            <summary>
+            Extracts FechaPublicacion (publication date).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractDiasPlazo(System.String)">
+            <summary>
+            Extracts DiasPlazo (deadline in days).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.ExtractTieneAseguramiento(System.String)">
+            <summary>
+            Determines if document involves asset seizure (TieneAseguramiento).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor.CleanOcrErrors(System.String)">
+            <summary>
+            Cleans common OCR errors (O→0, I→1, S→5).
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Txt.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring text field extraction services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Txt.DependencyInjection.ServiceCollectionExtensions.AddTxtFieldExtraction(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds text field extraction services to the dependency injection container.
+            </summary>
+            <param name="services">The service collection to add services to.</param>
+            <returns>The service collection for chaining.</returns>
+            <remarks>
+            <para>
+            This method registers the following services:
+            </para>
+            <list type="bullet">
+              <item><description><see cref="T:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor`1"/> → <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Txt.AdaptiveTxtFieldExtractor"/> (Scoped)</description></item>
+            </list>
+            </remarks>
+        </member>
+    </members>
+</doc>

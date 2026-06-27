@@ -15,7 +15,7 @@ namespace ExxerCube.Prisma.Infrastructure.Database;
 /// same row.
 /// </para>
 /// <para>
-/// Dedup persistence contract: <see cref="FindOrCreateAsync"/> is the authoritative
+/// Dedup persistence contract: <see cref="FindOrCreateAsync(Persona,CancellationToken)"/> is the authoritative
 /// "find or persist" entry point. Concurrent callers targeting the same RFC are protected by an
 /// optimistic retry — if a second caller races in between the "not found" check and the INSERT,
 /// the unique-index violation is caught and the winner's row is returned instead.
@@ -184,7 +184,7 @@ public sealed class DbPersonIdentityResolverService : IPersonIdentityResolver
     /// Queries the <c>Persona</c> table using all RFC variants produced by
     /// <see cref="GenerateRfcVariants"/> so that "PEGJ850101ABC" and "PEG-850101-ABC"
     /// resolve to the same persisted row. Returns <c>success(null)</c> when no match exists
-    /// (caller may then persist via <see cref="FindOrCreateAsync"/>).
+    /// (caller may then persist via <see cref="FindOrCreateAsync(Persona,CancellationToken)"/>).
     /// </remarks>
     public async Task<Result<Persona?>> FindByRfcAsync(
         string rfc,
@@ -262,7 +262,41 @@ public sealed class DbPersonIdentityResolverService : IPersonIdentityResolver
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // FindOrCreateAsync — dedup persistence (not on IPersonIdentityResolver interface)
+    // IPersonIdentityResolver — FindOrCreateAsync (interface entry point)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Interface entry point. Extracts the RFC from <paramref name="person"/> and delegates to the
+    /// full <see cref="FindOrCreateAsync(Persona, string, CancellationToken)"/> implementation.
+    /// When no RFC is present the person cannot be cross-document-deduped by RFC key; the method
+    /// falls back to in-memory normalisation (no DB row is written).
+    /// </remarks>
+    public Task<Result<Persona>> FindOrCreateAsync(
+        Persona person,
+        CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromResult(Result<Persona>.WithFailure("Operation was cancelled."));
+
+        if (person is null)
+            return Task.FromResult(Result<Persona>.WithFailure("Person cannot be null."));
+
+        if (string.IsNullOrWhiteSpace(person.Rfc))
+        {
+            // No RFC — resolve in memory only; persistence requires an RFC key.
+            _logger.LogDebug(
+                "FindOrCreateAsync: person {Nombre} has no RFC; falling back to in-memory resolve",
+                person.Nombre);
+            return ResolveIdentityAsync(person, cancellationToken);
+        }
+
+        // Delegate to the full implementation: resolve → find/persist → audit.
+        return FindOrCreateAsync(person, person.Rfc, cancellationToken);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FindOrCreateAsync — full implementation (resolve + DB find-or-insert + audit)
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>

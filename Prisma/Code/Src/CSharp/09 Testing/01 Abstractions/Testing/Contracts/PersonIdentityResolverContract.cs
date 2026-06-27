@@ -210,6 +210,48 @@ public abstract class PersonIdentityResolverContract
     }
 
     //
+    // FindOrCreateAsync
+    //
+
+    /// <summary>Contract: a null person is rejected with a failure (not a throw).</summary>
+    [Fact]
+    public async Task FindOrCreateAsync_WithNullPerson_ReturnsFailure()
+    {
+        var result = await Sut.FindOrCreateAsync(null!, TestContext.Current.CancellationToken);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldNotBeNullOrEmpty();
+    }
+
+    /// <summary>Contract: a pre-cancelled token yields a failure (not a throw).</summary>
+    [Fact]
+    public async Task FindOrCreateAsync_WhenCancelled_ReturnsFailure()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var result = await Sut.FindOrCreateAsync(new Persona { Nombre = "Juan" }, cts.Token);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    /// <summary>
+    /// Contract: a valid person resolves successfully with a non-null returned person.
+    /// In-memory implementations normalise without persisting; DB-backed implementations
+    /// also persist. Both must return a successful result with a non-null value.
+    /// </summary>
+    [Fact]
+    public async Task FindOrCreateAsync_WithValidPerson_ReturnsSuccessWithNonNullPerson()
+    {
+        var person = new Persona { ParteId = 1, Nombre = "Juan", Paterno = "Perez" };
+
+        var result = await Sut.FindOrCreateAsync(person, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldNotBeNull();
+    }
+
+    //
     // GenerateRfcVariants
     //
 

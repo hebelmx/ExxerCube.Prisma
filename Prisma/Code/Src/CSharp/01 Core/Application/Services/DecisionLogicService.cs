@@ -138,7 +138,7 @@ public class DecisionLogicService
                     return ResultExtensions.Cancelled<List<Persona>>();
                 }
 
-                var resolveResult = await _personIdentityResolver.ResolveIdentityAsync(person, cancellationToken).ConfigureAwait(false);
+                var resolveResult = await _personIdentityResolver.FindOrCreateAsync(person, cancellationToken).ConfigureAwait(false);
 
                 // Propagate cancellation from dependencies FIRST
                 if (resolveResult.IsCancelled())

@@ -43,7 +43,7 @@ public class DecisionLogicServiceTests
         var resolvedPerson2 = new Persona { ParteId = 2, Nombre = "Maria", Rfc = "MARG900202XYZ" };
         var resolvedList = new List<Persona> { resolvedPerson1, resolvedPerson2 };
 
-        _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
+        _personIdentityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<Persona>.Success(resolvedPerson1), Result<Persona>.Success(resolvedPerson2));
 
         _personIdentityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<System.Threading.CancellationToken>())
@@ -111,7 +111,7 @@ public class DecisionLogicServiceTests
             new ComplianceAction { ActionType = ComplianceActionKind.Block, Confidence = 80 }
         };
 
-        _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
+        _personIdentityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<Persona>.Success(resolvedPerson));
 
         _personIdentityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<System.Threading.CancellationToken>())
@@ -182,7 +182,7 @@ public class DecisionLogicServiceTests
         var persons = new List<Persona> { new Persona { ParteId = 1, Nombre = "Juan" } };
         var documentText = "Test text";
 
-        _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
+        _personIdentityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<Persona>.WithFailure("Identity resolution failed"));
 
         // Act
@@ -206,7 +206,7 @@ public class DecisionLogicServiceTests
         var resolvedPerson = new Persona { ParteId = 1, Nombre = "Juan" };
         var resolvedList = new List<Persona> { resolvedPerson };
 
-        _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
+        _personIdentityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<System.Threading.CancellationToken>())
             .Returns(Result<Persona>.Success(resolvedPerson));
 
         _personIdentityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<System.Threading.CancellationToken>())

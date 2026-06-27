@@ -163,6 +163,19 @@ public class PersonIdentityResolverService : IPersonIdentityResolver
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// In-memory fallback: resolves and normalises the person's identity without persisting.
+    /// Cross-document identity deduplication by RFC requires the DB-backed
+    /// <c>DbPersonIdentityResolverService</c> implementation.
+    /// </remarks>
+    public Task<Result<Persona>> FindOrCreateAsync(
+        Persona person,
+        CancellationToken cancellationToken = default)
+    {
+        return ResolveIdentityAsync(person, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task<Result<Persona?>> FindByRfcAsync(
         string rfc,
         CancellationToken cancellationToken = default)

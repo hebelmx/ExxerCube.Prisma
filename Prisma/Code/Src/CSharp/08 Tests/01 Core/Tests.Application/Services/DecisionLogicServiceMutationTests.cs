@@ -38,7 +38,7 @@ public class DecisionLogicServiceMutationTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBeNull();
         result.Value.Count.ShouldBe(0);
-        await _resolver.DidNotReceive().ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>());
+        await _resolver.DidNotReceive().FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class DecisionLogicServiceMutationTests
         var result = await _service.ResolvePersonIdentitiesAsync(new List<Persona>(), cancellationToken: TestContext.Current.CancellationToken);
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Count.ShouldBe(0);
-        await _resolver.DidNotReceive().ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>());
+        await _resolver.DidNotReceive().FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Resolve_AllSucceed_ReturnsDeduplicated()
     {
         var resolved = new List<Persona> { P(1, "A"), P(2, "B") };
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<Persona>>.Success(resolved));
@@ -78,9 +78,9 @@ public class DecisionLogicServiceMutationTests
     public async Task Resolve_PerPersonFailure_IsSkipped()
     {
         // Person 1 fails (continue), person 2 succeeds -> only P2 is forwarded to dedup.
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
             .Returns(Result<Persona>.WithFailure("bad p1"));
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         List<Persona>? forwarded = null;
         _resolver.DeduplicatePersonsAsync(Arg.Do<List<Persona>>(l => forwarded = l), Arg.Any<CancellationToken>())
@@ -97,7 +97,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Resolve_SuccessWithNullValue_NotAdded()
     {
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(Result<Persona>.Success(null!));
         List<Persona>? forwarded = null;
         _resolver.DeduplicatePersonsAsync(Arg.Do<List<Persona>>(l => forwarded = l), Arg.Any<CancellationToken>())
@@ -113,7 +113,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Resolve_DeduplicationFailure_ReturnsExactError()
     {
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<Persona>>.WithFailure("dedup boom"));
@@ -127,7 +127,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Resolve_SuccessNullDedupValue_ReturnsEmptyList()
     {
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<Persona>>.Success(null!));
@@ -142,7 +142,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Resolve_ResolverThrows_ReturnsWrappedError()
     {
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns<Task<Result<Persona>>>(_ => throw new InvalidOperationException("boom"));
 
         var result = await _service.ResolvePersonIdentitiesAsync(Persons(1), cancellationToken: TestContext.Current.CancellationToken);
@@ -156,7 +156,7 @@ public class DecisionLogicServiceMutationTests
     {
         // Cancel after exactly one of four persons is resolved -> partial path with dedup success.
         using var cts = new CancellationTokenSource();
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => { cts.Cancel(); return Result<Persona>.Success((Persona)ci[0]); });
         var deduped = new List<Persona> { P(1, "P1") };
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
@@ -175,7 +175,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Resolve_PartialCancellationDedupFailure_WarnsWithDedupFailedSuffix()
     {
         using var cts = new CancellationTokenSource();
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => { cts.Cancel(); return Result<Persona>.Success((Persona)ci[0]); });
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<Persona>>.WithFailure("dedup down"));
@@ -193,9 +193,9 @@ public class DecisionLogicServiceMutationTests
     public async Task Resolve_ResolverReturnsCancelledMidway_PartialDedupSuccess()
     {
         // P1 resolves, P2's resolver RETURNS cancelled -> partial path with dedup success.
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<Persona>());
         var deduped = new List<Persona> { P(1, "P1") };
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
@@ -214,7 +214,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Resolve_ResolverReturnsCancelledNoWork_ReturnsCancelled()
     {
         // First person's resolver returns cancelled, nothing resolved yet -> Count==0 -> plain Cancelled.
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<Persona>());
 
         var result = await _service.ResolvePersonIdentitiesAsync(Persons(2), cancellationToken: TestContext.Current.CancellationToken);
@@ -226,9 +226,9 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Resolve_ResolverCancelledMidway_DedupFailure_FailedSuffix()
     {
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<Persona>());
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<Persona>>.WithFailure("dedup down"));
@@ -242,9 +242,9 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Resolve_ResolverCancelledMidway_DedupCancelled_CancelledSuffix()
     {
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 1), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<Persona>());
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<Persona>>());
@@ -258,7 +258,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Resolve_DedupCancelledAfterFullResolve_WarnsIncomplete()
     {
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<Persona>>());
@@ -277,9 +277,9 @@ public class DecisionLogicServiceMutationTests
     {
         // P2 fails to resolve (continue), P1 & P3 succeed -> completed(2) < total(3); dedup then cancelled.
         // completed<total is required to kill the confidence `/`->`*` mutant (clamping makes completed==total equivalent).
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId == 2), Arg.Any<CancellationToken>())
             .Returns(Result<Persona>.WithFailure("p2 bad"));
-        _resolver.ResolveIdentityAsync(Arg.Is<Persona>(p => p.ParteId != 2), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Is<Persona>(p => p.ParteId != 2), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<Persona>>());
@@ -297,7 +297,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Resolve_AllFailThenDedupCancelled_NoWorkReturnsCancelled()
     {
         // Every person fails to resolve -> resolvedPersons empty -> dedup(empty) cancelled -> Count==0 path.
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(Result<Persona>.WithFailure("all bad"));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<Persona>>());
@@ -312,7 +312,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Resolve_BetweenIterationCancel_DedupCancelled_CancelledSuffix()
     {
         using var cts = new CancellationTokenSource();
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => { cts.Cancel(); return Result<Persona>.Success((Persona)ci[0]); });
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(ResultExtensions.Cancelled<List<Persona>>());
@@ -455,7 +455,7 @@ public class DecisionLogicServiceMutationTests
     public async Task Process_IdentityResolutionFailure_ReturnsExactError()
     {
         // ResolvePersonIdentitiesAsync fails via dedup failure.
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<Persona>>.WithFailure("dedup boom"));
@@ -469,7 +469,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Process_ClassificationFailureNoPartial_ReturnsExactError()
     {
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<List<Persona>>.Success((List<Persona>)ci[0]));
@@ -487,7 +487,7 @@ public class DecisionLogicServiceMutationTests
     [Fact]
     public async Task Process_Success_CombinesPersonsAndActions()
     {
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<Persona>.Success((Persona)ci[0]));
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(ci => Result<List<Persona>>.Success((List<Persona>)ci[0]));
@@ -510,7 +510,7 @@ public class DecisionLogicServiceMutationTests
         // Cancel during identity resolution (shared token) -> resolve returns partial WithWarnings;
         // the now-cancelled token makes classify return Cancelled -> the partial-preservation branch.
         using var cts = new CancellationTokenSource();
-        _resolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _resolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(ci => { cts.Cancel(); return Result<Persona>.Success((Persona)ci[0]); });
         var deduped = new List<Persona> { P(1, "P1") };
         _resolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())

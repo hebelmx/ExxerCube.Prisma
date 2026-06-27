@@ -117,7 +117,7 @@ public class DecisionLogicIntegrationTests
 
         var resolvedList = new List<Persona> { resolvedPerson1, resolvedPerson2 };
 
-        _identityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _identityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
                 var person = callInfo.Arg<Persona>();
@@ -208,7 +208,7 @@ public class DecisionLogicIntegrationTests
             RfcVariants = new List<string> { "PEGJ850101ABC", "PEGJ850101" }
         };
 
-        _identityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _identityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Persona>.Success(mockResolvedPerson)));
 
         _identityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
@@ -349,7 +349,7 @@ public class DecisionLogicIntegrationTests
             RfcVariants = new List<string> { "PEGJ850101ABC", "PEG-850101-ABC", "PEGJ850101" }
         };
 
-        _identityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _identityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
                 var person = callInfo.Arg<Persona>();
@@ -472,7 +472,7 @@ public class DecisionLogicIntegrationTests
             RfcVariants = new List<string> { "PEGJ850101ABC", "PEGJ850101" }
         };
 
-        _identityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _identityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result<Persona>.Success(resolvedPerson)));
 
         _identityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())

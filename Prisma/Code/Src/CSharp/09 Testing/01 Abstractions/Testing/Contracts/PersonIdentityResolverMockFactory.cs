@@ -130,6 +130,12 @@ public static class PersonIdentityResolverMockFactory
             return Task.FromResult(Result<Persona?>.Success(null));
         }
 
+        public Task<Result<Persona>> FindOrCreateAsync(Persona person, CancellationToken cancellationToken = default)
+        {
+            // Reference fake resolves in memory without persisting — mirrors PersonIdentityResolverService.
+            return ResolveIdentityAsync(person, cancellationToken);
+        }
+
         public List<string> GenerateRfcVariants(string rfc)
         {
             if (string.IsNullOrWhiteSpace(rfc))

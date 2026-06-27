@@ -1,0 +1,404 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Extraction.Adaptive</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxExtractor">
+            <summary>
+            Adaptive DOCX extractor orchestrator that coordinates multiple extraction strategies.
+            </summary>
+            <remarks>
+            <para>
+            Orchestrates multiple <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxStrategy"/> implementations to provide
+            robust extraction across diverse document formats. Supports three extraction modes:
+            </para>
+            <list type="bullet">
+              <item><description><strong>BestStrategy:</strong> Selects highest confidence strategy and uses it exclusively</description></item>
+              <item><description><strong>MergeAll:</strong> Runs all capable strategies and merges their results</description></item>
+              <item><description><strong>Complement:</strong> Fills gaps in existing extraction using new extraction</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxExtractor.#ctor(System.Collections.Generic.IReadOnlyList{ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxStrategy},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxExtractor})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxExtractor"/> class.
+            </summary>
+            <param name="strategies">Collection of extraction strategies to orchestrate.</param>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxExtractor.ExtractAsync(System.String,ExxerCube.Prisma.Domain.Interfaces.ExtractionMode,ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxExtractor.GetStrategyConfidencesAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter">
+            <summary>
+            Adapter that wraps <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxExtractor"/> to implement <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor`1"/> for backward compatibility.
+            </summary>
+            <remarks>
+            <para>
+            This adapter enables transparent migration from the old DocxFieldExtractor to the new
+            adaptive extraction system without breaking existing consumer code. It implements the classic **Adapter Pattern**.
+            </para>
+            <para>
+            <strong>Migration Strategy:</strong>
+            </para>
+            <list type="bullet">
+              <item><description>Consumers continue using <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IFieldExtractor`1"/> interface</description></item>
+              <item><description>DI container injects this adapter instead of old DocxFieldExtractor</description></item>
+              <item><description>Adapter delegates to new <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxExtractor"/> with all 5 strategies</description></item>
+              <item><description>Zero consumer code changes required - transparent migration</description></item>
+              <item><description>Rollback: Simply swap DI registration back to old DocxFieldExtractor</description></item>
+            </list>
+            <para>
+            <strong>Extraction Flow:</strong> DocxSource → Extract Text → IAdaptiveDocxExtractor → ExtractedFields
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter.#ctor(ExxerCube.Prisma.Domain.Interfaces.IAdaptiveDocxExtractor,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter"/> class.
+            </summary>
+            <param name="adaptiveExtractor">The adaptive DOCX extractor orchestrator.</param>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter.ExtractFieldsAsync(ExxerCube.Prisma.Domain.Sources.DocxSource,ExxerCube.Prisma.Domain.ValueObjects.FieldDefinition[])">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter.ExtractFieldAsync(ExxerCube.Prisma.Domain.Sources.DocxSource,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter.ExtractTextFromDocxSourceAsync(ExxerCube.Prisma.Domain.Sources.DocxSource)">
+            <summary>
+            Extracts text content from DocxSource (byte[] or file path).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter.ExtractTextFromDocxBytes(System.Byte[])">
+            <summary>
+            Extracts text content from DOCX byte array using DocumentFormat.OpenXml.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.AdaptiveDocxFieldExtractorAdapter.MapExtractedFieldToFieldValue(ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields,System.String)">
+            <summary>
+            Maps ExtractedFields to FieldValue for specific field name.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for registering adaptive DOCX extraction services in the dependency injection container.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection.ServiceCollectionExtensions.AddAdaptiveDocxExtraction(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+             <summary>
+             Adds adaptive DOCX extraction services to the service collection.
+             </summary>
+             <param name="services">The service collection.</param>
+             <returns>The service collection for chaining.</returns>
+             <remarks>
+             <para>
+             Registers all 5 extraction strategies, the orchestrator, and the migration adapter.
+             </para>
+             <para>
+             <strong>Migration Usage:</strong>
+             </para>
+             <code>
+             // In your DI configuration, call this method:
+             services.AddAdaptiveDocxExtraction();
+            
+             // This registers:
+             // - 5 IAdaptiveDocxStrategy implementations
+             // - IAdaptiveDocxExtractor (orchestrator)
+             // - IFieldMergeStrategy
+             // - IFieldExtractor&lt;DocxSource&gt; (adapter for backward compatibility)
+             </code>
+             <para>
+             <strong>Rollback:</strong> To revert to old DocxFieldExtractor, simply remove this call
+             and re-register the old extractor.
+             </para>
+             </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection.ServiceCollectionExtensions.AddAdaptiveDocxExtractionOnly(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+             <summary>
+             Adds adaptive DOCX extraction services WITHOUT replacing the old IFieldExtractor registration.
+             Use this for side-by-side comparison or gradual migration.
+             </summary>
+             <param name="services">The service collection.</param>
+             <returns>The service collection for chaining.</returns>
+             <remarks>
+             <para>
+             This method registers only the new adaptive extraction system WITHOUT replacing
+             the old <c>IFieldExtractor&lt;DocxSource&gt;</c> registration. Use this when you want to:
+             </para>
+             <list type="bullet">
+               <item><description>Run old and new systems side-by-side for comparison</description></item>
+               <item><description>Gradually migrate specific consumers</description></item>
+               <item><description>Test new system in production without full migration</description></item>
+             </list>
+             <para>
+             <strong>Usage:</strong>
+             </para>
+             <code>
+             // Register new system alongside old:
+             services.AddAdaptiveDocxExtractionOnly();
+            
+             // Consumers can inject IAdaptiveDocxExtractor directly:
+             public class MyService
+             {
+                 public MyService(IAdaptiveDocxExtractor adaptiveExtractor) { }
+             }
+             </code>
+             </remarks>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.EnhancedFieldMergeStrategy">
+            <summary>
+            Enhanced field merge strategy with conflict detection and resolution.
+            </summary>
+            <remarks>
+            <para>
+            Merges extracted fields from multiple sources with sophisticated conflict detection,
+            resolution tracking, and comprehensive metadata. Supports both multi-source merging
+            and two-source (primary/secondary) merging.
+            </para>
+            <para>
+            <strong>Merge Semantics:</strong>
+            </para>
+            <list type="bullet">
+              <item><description>First non-null value wins for core fields (Expediente, Causa, AccionSolicitada)</description></item>
+              <item><description>Collections are combined (Montos, Fechas, AdditionalFields)</description></item>
+              <item><description>Conflicts detected when same field has different non-null values</description></item>
+              <item><description>Two-parameter overload: Primary source wins on conflicts</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.EnhancedFieldMergeStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.EnhancedFieldMergeStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.EnhancedFieldMergeStrategy"/> class.
+            </summary>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.EnhancedFieldMergeStrategy.MergeAsync(System.Collections.Generic.IReadOnlyList{ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.EnhancedFieldMergeStrategy.MergeAsync(ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields,ExxerCube.Prisma.Domain.ValueObjects.ExtractedFields,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy">
+            <summary>
+            Complement extraction strategy that combines multiple extraction techniques.
+            </summary>
+            <remarks>
+            <para>
+            Uses a hybrid approach combining structured labels, contextual patterns, and narrative extraction
+            to maximize field extraction. Best suited as a fallback or complement to other specialized strategies.
+            </para>
+            <para>
+            <strong>Confidence Scoring:</strong>
+            </para>
+            <list type="bullet">
+              <item><description>85: High extraction success (5+ fields extracted)</description></item>
+              <item><description>75: Moderate extraction (3-4 fields)</description></item>
+              <item><description>60: Minimal extraction (1-2 fields)</description></item>
+              <item><description>0: No data extracted</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy.AssessmentKeywords">
+            <summary>
+            Keywords used for document assessment.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy"/> class.
+            </summary>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy.StrategyName">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy.ExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy.CanExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ComplementExtractionStrategy.GetConfidenceAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy">
+            <summary>
+            Contextual DOCX extraction strategy for documents with narrative/prose format.
+            </summary>
+            <remarks>
+            <para>
+            Uses contextual clues and keyword proximity to extract fields from documents
+            that don't follow rigid label:value patterns. Best suited for narrative documents,
+            official letters, and prose-formatted legal texts.
+            </para>
+            <para>
+            <strong>Confidence Scoring:</strong>
+            </para>
+            <list type="bullet">
+              <item><description>80: High keyword density with contextual patterns</description></item>
+              <item><description>70: Moderate keyword presence with some context</description></item>
+              <item><description>50: Minimal keywords found</description></item>
+              <item><description>0: No contextual indicators found</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy.ContextualKeywords">
+            <summary>
+            Contextual keywords used for document assessment and extraction.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy"/> class.
+            </summary>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy.StrategyName">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy.ExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy.CanExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.ContextualDocxStrategy.GetConfidenceAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy">
+            <summary>
+            Search-based DOCX extraction strategy optimized for keyword proximity extraction.
+            </summary>
+            <remarks>
+            <para>
+            Uses broad keyword matching and proximity-based extraction for documents with minimal structure.
+            Best suited as a fallback strategy when structured approaches fail, or for highly variable document formats.
+            </para>
+            <para>
+            <strong>Confidence Scoring:</strong>
+            </para>
+            <list type="bullet">
+              <item><description>75: Strong keyword presence and successful extraction</description></item>
+              <item><description>65: Moderate keyword presence</description></item>
+              <item><description>50: Minimal keyword presence</description></item>
+              <item><description>0: No relevant keywords found</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy.PrimaryKeywords">
+            <summary>
+            Primary search keywords for document assessment.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy"/> class.
+            </summary>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy.StrategyName">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy.ExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy.CanExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.SearchExtractionStrategy.GetConfidenceAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy">
+            <summary>
+            Adaptive DOCX extraction strategy for well-formatted CNBV documents.
+            </summary>
+            <remarks>
+            <para>
+            Uses regex patterns to extract fields from structured documents with predictable formatting.
+            Best suited for standard CNBV templates with labeled fields.
+            </para>
+            <para>
+            <strong>Confidence Scoring:</strong>
+            </para>
+            <list type="bullet">
+              <item><description>90: 3+ standard CNBV labels found (Expediente, Oficio, Autoridad, etc.)</description></item>
+              <item><description>75: 2 standard labels found</description></item>
+              <item><description>50: 1 standard label found</description></item>
+              <item><description>0: No standard labels found</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy.StandardLabels">
+            <summary>
+            Standard CNBV field labels used for confidence scoring.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy"/> class.
+            </summary>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy.StrategyName">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy.ExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy.CanExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.StructuredDocxStrategy.GetConfidenceAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy">
+            <summary>
+            Table-based DOCX extraction strategy for structured tabular documents.
+            </summary>
+            <remarks>
+            <para>
+            Extracts fields from documents formatted as tables with key-value pairs.
+            Best suited for documents with clear table structures (| Key | Value |).
+            </para>
+            <para>
+            <strong>Confidence Scoring:</strong>
+            </para>
+            <list type="bullet">
+              <item><description>95: Strong table structure with pipe delimiters</description></item>
+              <item><description>85: Moderate table indicators</description></item>
+              <item><description>60: Minimal table-like patterns</description></item>
+              <item><description>0: No table structure found</description></item>
+            </list>
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy.FieldMappings">
+            <summary>
+            Table field names that map to our domain fields.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy"/> class.
+            </summary>
+            <param name="logger">Logger instance for diagnostics.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy.StrategyName">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy.ExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy.CanExtractAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.Strategies.TableBasedDocxStrategy.GetConfidenceAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

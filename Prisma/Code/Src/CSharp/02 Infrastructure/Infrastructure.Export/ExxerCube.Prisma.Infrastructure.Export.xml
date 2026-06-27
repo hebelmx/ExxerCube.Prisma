@@ -1,0 +1,274 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Export</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions">
+            <summary>
+            Configuration options for digital certificate management for PDF signing.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.SectionName">
+            <summary>
+            Configuration section name.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.Source">
+            <summary>
+            Gets or sets the certificate source type (AzureKeyVault, WindowsStore, File).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.KeyVaultUrl">
+            <summary>
+            Gets or sets the Azure Key Vault URL (required if Source is AzureKeyVault).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.CertificateName">
+            <summary>
+            Gets or sets the certificate name in Azure Key Vault or Windows Certificate Store.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.CertificateThumbprint">
+            <summary>
+            Gets or sets the certificate thumbprint (required if Source is WindowsStore).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.FallbackToFile">
+            <summary>
+            Gets or sets a value indicating whether to fallback to file-based certificate if Key Vault is unavailable.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.FileCertificatePath">
+            <summary>
+            Gets or sets the file path to the certificate file (PFX/P12 format) if using file-based certificate.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.CertificatePassword">
+            <summary>
+            Gets or sets the certificate password if the certificate file is password-protected.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.FilePath">
+            <summary>
+            Gets or sets the file path to the certificate file (PFX/P12 format) - alias for FileCertificatePath for test compatibility.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions.Password">
+            <summary>
+            Gets or sets the certificate password - alias for CertificatePassword for test compatibility.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter">
+            <summary>
+            Composite response exporter that delegates to specialized exporters for XML and PDF formats.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter.#ctor(ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter,ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter"/> class.
+            </summary>
+            <param name="xmlExporter">The XML exporter for SIRO XML exports.</param>
+            <param name="pdfSigner">The PDF signer for digitally signed PDF exports.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter.ExportSiroXmlAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter.ExportSignedPdfAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.CriterionMapperService">
+            <summary>
+            Implements criterion mapper service for mapping compliance requirements to SIRO regulatory criteria.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.CriterionMapperService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.CriterionMapperService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.CriterionMapperService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.CriterionMapperService.MapToSiroCriteriaAsync(System.Collections.Generic.List{ExxerCube.Prisma.Domain.Entities.ComplianceRequirement},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring export services dependency injection.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions.AddSiroExportServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration,Microsoft.Extensions.DependencyInjection.ServiceLifetime)">
+            <summary>
+            Adds the SIRO XML export services to the service collection (minimal, no
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IPdfRequirementSummarizer"/> / <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IMetadataExtractor"/> dependency).
+            Use this in worker hosts that run the SIRO export stage (Reconciliator).
+            </summary>
+            <remarks>
+            Registers:
+            <list type="bullet">
+              <item><see cref="T:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter"/> (concrete — consumed by <see cref="T:ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter"/>)</item>
+              <item><see cref="T:ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner"/> (concrete)</item>
+              <item><see cref="T:ExxerCube.Prisma.Domain.Interfaces.IResponseExporter"/> → <see cref="T:ExxerCube.Prisma.Infrastructure.Export.CompositeResponseExporter"/></item>
+              <item><see cref="T:ExxerCube.Prisma.Domain.Interfaces.ILayoutGenerator"/> → <see cref="T:ExxerCube.Prisma.Infrastructure.Export.ExcelLayoutGenerator"/></item>
+              <item><see cref="T:ExxerCube.Prisma.Domain.Interfaces.ICriterionMapper"/> → <see cref="T:ExxerCube.Prisma.Infrastructure.Export.CriterionMapperService"/></item>
+              <item><see cref="T:ExxerCube.Prisma.Infrastructure.Export.CertificateOptions"/> (configured from <paramref name="configuration"/>)</item>
+            </list>
+            Does NOT register <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IPdfRequirementSummarizer"/> — that service depends on
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IMetadataExtractor"/> which is not available in worker hosts.  Callers that
+            need PDF summarisation must additionally register <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IMetadataExtractor"/> and
+            call <see cref="M:ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions.AddPdfRequirementSummarizer(Microsoft.Extensions.DependencyInjection.IServiceCollection)"/>.
+            <para>
+            <paramref name="lifetime"/> controls the service lifetime.  Worker hosts (Reconciliator)
+            must use <see cref="F:Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton"/> because the orchestrators that consume
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IResponseExporter"/> are themselves singletons — resolving a scoped service from
+            a singleton's root provider violates scope validation.  The SIRO exporters are stateless, so
+            Singleton is safe.  The Web UI (which uses request-scoped pipelines) passes
+            <see cref="F:Microsoft.Extensions.DependencyInjection.ServiceLifetime.Scoped"/> (the default) via <see cref="M:ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions.AddExportServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)"/>.
+            </para>
+            </remarks>
+            <param name="services">The service collection.</param>
+            <param name="configuration">The configuration (optional, for certificate options).</param>
+            <param name="lifetime">
+            Service lifetime for the export registrations.
+            Defaults to <see cref="F:Microsoft.Extensions.DependencyInjection.ServiceLifetime.Scoped"/> (Web UI / request-scoped pipelines).
+            Pass <see cref="F:Microsoft.Extensions.DependencyInjection.ServiceLifetime.Singleton"/> in worker hosts whose orchestrators are singletons.
+            </param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions.AddPdfRequirementSummarizer(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds the PDF requirement summarizer service.  Requires <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IMetadataExtractor"/>
+            to already be registered (e.g. via <c>AddExtractionServices()</c>).
+            </summary>
+            <param name="services">The service collection.</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.DependencyInjection.ServiceCollectionExtensions.AddExportServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adds the full set of export services including PDF summarisation.
+            Requires <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IMetadataExtractor"/> to already be registered (e.g. via
+            <c>AddExtractionServices()</c>).  Used by the Web UI host which registers the
+            full extraction + export stack.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configuration">The configuration (optional, for certificate options).</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner">
+            <summary>
+            Implements digitally signed PDF export using X.509 certificates with cryptographic watermarking.
+            Uses PdfSharp for PDF generation and BouncyCastle for cryptographic operations.
+            Provides certificate-based cryptographic proof of authenticity (not PAdES-certified but compliant).
+            Supports Azure Key Vault, Windows Certificate Store, and file-based certificate sources.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner.#ctor(Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Export.CertificateOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner"/> class.
+            </summary>
+            <param name="certificateOptions">The certificate configuration options.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner.ExportSiroXmlAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner.ExportSignedPdfAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner.CreateCryptographicSignature(System.Byte[],System.Security.Cryptography.X509Certificates.X509Certificate2)">
+            <summary>
+            Creates a cryptographic signature hash of the PDF content using the certificate's private key.
+            Uses .NET's built-in RSA signing with SHA-256 for cryptographic operations.
+            </summary>
+            <param name="pdfContent">The PDF content bytes to sign.</param>
+            <param name="certificate">The X.509 certificate with private key.</param>
+            <returns>A result containing the signature hash bytes.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.DigitalPdfSigner.EmbedCryptographicWatermark(PdfSharp.Pdf.PdfDocument,System.Security.Cryptography.X509Certificates.X509Certificate2,System.Byte[])">
+            <summary>
+            Embeds cryptographic watermark information into the PDF document metadata.
+            This includes certificate information and signature hash for verification.
+            </summary>
+            <param name="document">The PDF document to watermark.</param>
+            <param name="certificate">The signing certificate.</param>
+            <param name="signatureHash">The cryptographic signature hash.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.ExcelLayoutGenerator">
+            <summary>
+            Implements Excel layout generation for SIRO registration systems (FR18) from unified metadata records.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.ExcelLayoutGenerator.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.ExcelLayoutGenerator})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.ExcelLayoutGenerator"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.ExcelLayoutGenerator.GenerateExcelLayoutAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.PdfRequirementSummarizerService">
+            <summary>
+            Implements PDF requirement summarization using rule-based classification to categorize requirements.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.PdfRequirementSummarizerService.#ctor(ExxerCube.Prisma.Domain.Interfaces.IMetadataExtractor,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.PdfRequirementSummarizerService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.PdfRequirementSummarizerService"/> class.
+            </summary>
+            <param name="metadataExtractor">The metadata extractor for extracting text from PDFs.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.PdfRequirementSummarizerService.SummarizeRequirementsAsync(System.Byte[],System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.PdfRequirementSummarizerService.SummarizeRequirementsFromTextAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter">
+            <summary>
+            Implements SIRO-compliant XML export generation from unified metadata records.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter},System.Xml.Schema.XmlSchemaSet)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter"/> class with schema validation.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="siroSchemaSet">The SIRO XML schema set for validation (optional).</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter.ExportSiroXmlAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter.ExportSignedPdfAsync(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.IO.Stream,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter.ValidateMetadata(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord)">
+            <summary>
+            Validates that metadata contains all required fields for SIRO export.
+            </summary>
+            <param name="metadata">The metadata to validate.</param>
+            <returns>A result indicating validation success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter.GenerateSiroXml(ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord)">
+            <summary>
+            Generates SIRO-compliant XML content from unified metadata record.
+            </summary>
+            <param name="metadata">The unified metadata record.</param>
+            <returns>The SIRO XML content as a string.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Export.SiroXmlExporter.ValidateXmlSchema(System.String)">
+            <summary>
+            Validates XML content against SIRO schema.
+            </summary>
+            <param name="xmlContent">The XML content to validate.</param>
+            <returns>A result indicating validation success or failure.</returns>
+        </member>
+    </members>
+</doc>

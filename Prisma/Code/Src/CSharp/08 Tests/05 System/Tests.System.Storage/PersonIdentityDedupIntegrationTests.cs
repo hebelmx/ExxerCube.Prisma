@@ -341,6 +341,67 @@ public sealed class PersonIdentityDedupIntegrationTests : IDisposable
         row.ActionDetails.ShouldContain("RATC850202EEE");
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // E4-S1 production-path gate: IPersonIdentityResolver.FindOrCreateAsync persists + audits
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// E4-S1 gate (D6 closure): resolving a person through the <em>interface</em>
+    /// <see cref="IPersonIdentityResolver.FindOrCreateAsync"/> — the call site used by
+    /// <c>DecisionLogicService</c> — reaches DB persistence and writes an
+    /// <see cref="AuditActionType.IdentityResolved"/> audit row.  This test proved impossible to
+    /// satisfy before the gap was closed because <c>FindOrCreateAsync</c> was not on the interface.
+    /// </summary>
+    [Fact]
+    public async Task FindOrCreateAsync_ViaInterface_PersistsPersonaAndAuditRow()
+    {
+        // Arrange — the resolver is typed as the interface exactly as DecisionLogicService holds it.
+        var proto = new Persona
+        {
+            Nombre = "Sofia",
+            Paterno = "Mendoza",
+            Rfc = "MESO800303GGG",
+            Caracter = "Contribuyente",
+            PersonaTipo = "Fisica",
+        };
+
+        await using (var ctx = new PrismaDbContext(_dbOptions))
+        {
+            var auditLogger = new AuditLoggerService(
+                ctx,
+                NullLogger<AuditLoggerService>.Instance);
+
+            // Key: variable declared as IPersonIdentityResolver (the interface), not the concrete type.
+            IPersonIdentityResolver resolver = new DbPersonIdentityResolverService(
+                ctx,
+                NullLogger<DbPersonIdentityResolverService>.Instance,
+                auditLogger);
+
+            // Act — call through the interface method (the production path closed by E4-S1).
+            var result = await resolver.FindOrCreateAsync(proto, Ct);
+
+            result.IsSuccess.ShouldBeTrue($"FindOrCreateAsync via interface failed: {result.Error}");
+            result.Value.ShouldNotBeNull();
+            result.Value!.ParteId.ShouldBeGreaterThan(0, "SQL IDENTITY must assign a ParteId");
+        }
+
+        // Assert (a) — Persona row persisted in DB.
+        await using var queryCtx = new PrismaDbContext(_dbOptions);
+        var personas = await queryCtx.Persona
+            .Where(p => p.Rfc == "MESO800303GGG")
+            .ToListAsync(Ct);
+        personas.Count.ShouldBe(1, "FindOrCreateAsync via interface must persist exactly one Persona row");
+
+        // Assert (b) — IdentityResolved audit row written.
+        var auditRows = await queryCtx.AuditRecords
+            .Where(r => r.ActionType == AuditActionType.IdentityResolved)
+            .ToListAsync(Ct);
+        auditRows.Count.ShouldBeGreaterThanOrEqualTo(1, "IdentityResolved audit must be written via the interface path");
+        auditRows.ShouldContain(
+            r => r.ActionDetails != null && r.ActionDetails.Contains("MESO800303GGG"),
+            "Audit row must reference the resolved RFC");
+    }
+
     /// <inheritdoc/>
     public void Dispose() { /* DbContext disposed in each using block */ }
 }

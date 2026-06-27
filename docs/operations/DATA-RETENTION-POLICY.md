@@ -25,8 +25,12 @@ created by migration `20260621100000_AuditLedgerAndDdlTrigger.cs`:
 - A database-level DDL trigger (`TR_ProtectCriticalSchema`) blocks `DROP`/`ALTER` of the audit
   and review tables in production databases (test databases named `PrismaTest_%` are exempt for
   isolation).
-- The ledger's built-in cryptographic digest provides tamper evidence; no application-level HMAC
-  chaining is required while the ledger feature is in use.
+- The ledger provides cryptographic tamper evidence via its database digest; verification is
+  **on-demand** (`sys.sp_generate_database_ledger_digest` to capture a digest, then
+  `sys.sp_verify_database_ledger` to verify the table history against it) — it is not surfaced
+  automatically, so a periodic digest-generation + verification step should be scheduled (and the
+  digests stored in WORM/immutable storage). No application-level HMAC chaining is required while
+  the ledger feature is in use.
 
 Because the table is append-only, **retention is enforced by NOT deleting** — there is no purge
 job for audit rows within the 7-year window, and deletion is technically impossible at the DB

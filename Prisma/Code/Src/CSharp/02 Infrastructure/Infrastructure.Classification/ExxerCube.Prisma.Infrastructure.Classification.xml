@@ -1,0 +1,811 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Classification</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.ClassificationDictionary">
+             <summary>
+             Classification dictionary mapping Spanish legal phrases to compliance action kinds.
+             Uses fuzzy phrase matching to handle variations in legal language.
+             </summary>
+             <remarks>
+             Design Philosophy:
+             - Hardcoded for Phase 1 (dictionary-driven approach)
+             - Extensible for Phase 3 (AI-generated dictionaries)
+             - Phrase variations handled by ITextComparer fuzzy matching (≥85% similarity threshold)
+            
+             Dictionary Sources:
+             - Historical oficios from SAT, FGR, UIF
+             - Legal terminology from Mexican financial law
+             - Audit findings (e.g., "aseguramiento de fondos" vs "aseguramiento de los fondos")
+            
+             Future Enhancement (Phase 3): Generate dictionaries dynamically using AI from historical documents
+             </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.ClassificationDictionary.DefaultThreshold">
+            <summary>
+            Similarity threshold for fuzzy phrase matching (85% = tolerates minor typos and variations).
+            Based on audit findings: "aseguramiento de fondos" should match "aseguramiento de los fondos".
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.ClassificationDictionary.BlockPhrases">
+            <summary>
+            Dictionary mapping legal directive phrases to Block (asset freeze) actions.
+            </summary>
+            <remarks>
+            Spanish Terms:
+            - Aseguramiento: Preventive asset freeze (SAT, FGR)
+            - Bloqueo: Account block (FGR, CNBV)
+            - Congelamiento: Asset freeze (UIF)
+            - Embargo: Judicial seizure (general)
+            - Inmovilización: Immobilization of assets
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.ClassificationDictionary.UnblockPhrases">
+            <summary>
+            Dictionary mapping legal directive phrases to Unblock (asset unfreeze) actions.
+            </summary>
+            <remarks>
+            Spanish Terms:
+            - Desbloqueo: Account unblock
+            - Desaseguramiento: Asset unfreeze (reverse of aseguramiento)
+            - Liberación: Release/liberation of assets
+            - Desembargo: Judicial release
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.ClassificationDictionary.DocumentPhrases">
+            <summary>
+            Dictionary mapping legal directive phrases to Document request actions.
+            </summary>
+            <remarks>
+            Spanish Terms:
+            - Documentación: General document requests
+            - Expedición: Issuance of documents
+            - Constancia: Certificate/proof documents
+            - Certificación: Official certification
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.ClassificationDictionary.TransferPhrases">
+            <summary>
+            Dictionary mapping legal directive phrases to Transfer actions.
+            </summary>
+            <remarks>
+            Spanish Terms:
+            - Transferencia: Bank transfer
+            - Giro: Money order/transfer
+            - Traspaso: Transfer between accounts
+            - Movimiento: Account movement
+            </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.ClassificationDictionary.InformationPhrases">
+            <summary>
+            Dictionary mapping legal directive phrases to Information request actions.
+            </summary>
+            <remarks>
+            Spanish Terms:
+            - Información: General information requests
+            - Reporte: Report submission
+            - Notificación: Notification/notice
+            - Comunicación: Communication/correspondence
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.ClassificationDictionary.GetAllDictionaries">
+            <summary>
+            Gets all phrase dictionaries for iteration.
+            Ordered by precedence: Unblock > Block/Transfer/Document > Information.
+            </summary>
+            <remarks>
+            Precedence rationale:
+            1. Unblock has highest priority (e.g., "desbloquear el aseguramiento" is Unblock, not Block)
+            2. Block, Transfer, Document are specific operations (equal precedence)
+            3. Information is catch-all for general requests (lowest precedence)
+            </remarks>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for registering classification services in the dependency injection container.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection.ServiceCollectionExtensions.AddClassificationServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Adds classification services to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="configuration">The configuration (optional, for matching policy options).</param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService">
+             <summary>
+             Expediente classification service for CNBV requirement type detection and legal validation.
+             Implements pattern-based classification, Article 4 validation, and Article 17 rejection analysis.
+             </summary>
+             <remarks>
+             Classification Logic:
+             - Type 100 (Information): No asset seizure, keyword "solicito información"
+             - Type 101 (Aseguramiento): TieneAseguramiento=true, keywords "asegurar", "bloquear"
+             - Type 102 (Desbloqueo): Keywords "desbloquear", "liberar", references prior seizure
+             - Type 103 (Transferencia): Keywords "transferir", has CLABE
+             - Type 104 (Situación Fondos): Keywords "cheque de caja", "situar fondos"
+            
+             Article 4: Validates all 42 mandatory fields from R29 A-2911
+             Article 17: Checks 6 rejection grounds per CNBV regulations
+             </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService.#ctor(ExxerCube.Prisma.Domain.Interfaces.ISemanticAnalyzer,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService"/> class.
+            </summary>
+            <param name="semanticAnalyzer">The semantic analyzer service (NEW - uses fuzzy matching).</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService.ClassifyAsync(ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService.ValidateArticle4Async(ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Enum.RequirementType,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService.CheckArticle17RejectionAsync(ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService.AnalyzeSemanticRequirementsAsync(ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService.EnrichSemanticAnalysisWithExpedienteMetadata(ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.ValueObjects.SemanticAnalysis)">
+            <summary>
+            Enriches the semantic analysis with expediente-specific metadata (amounts, accounts, currencies, etc.).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.ExpedienteClasifierService.InferDocumentTextFromMetadata(ExxerCube.Prisma.Domain.Entities.Expediente)">
+            <summary>
+            Infers document text from expediente metadata when Referencia fields are null/empty.
+            Maps TieneAseguramiento and AreaDescripcion to Spanish legal phrases.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.FieldMatchingRule">
+            <summary>
+            Field-specific matching rule configuration.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.FieldMatchingRule.ConflictThreshold">
+            <summary>
+            Gets or sets the conflict threshold for this specific field (overrides global threshold).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.FieldMatchingRule.MinimumConfidence">
+            <summary>
+            Gets or sets the minimum confidence required for this specific field (overrides global minimum).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.FieldMatchingRule.SourcePriority">
+            <summary>
+            Gets or sets the source priority for this specific field (overrides global priority).
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.FileClassifierService">
+            <summary>
+            Service for classifying documents into regulatory categories using deterministic rule-based classification.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FileClassifierService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.FileClassifierService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.FileClassifierService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FileClassifierService.ClassifyAsync(ExxerCube.Prisma.Domain.ValueObjects.ExtractedMetadata,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService">
+             <summary>
+             Multi-source data fusion service for reconciling Expediente data from XML, PDF, and DOCX sources.
+             Implements weighted voting algorithm with dynamic source reliability calculation.
+             </summary>
+             <remarks>
+             Fusion Algorithm:
+             1. Calculate dynamic source reliability from ExtractionMetadata (OCR confidence, image quality, extraction success)
+             2. For each field: exact match → fuzzy match (85% threshold) → weighted voting
+             3. Calculate overall confidence weighted by field importance (required fields have higher weight)
+             4. Determine NextAction based on confidence thresholds (AutoProcess: &gt;0.85, ManualReview: &lt;0.70)
+            
+             DRY Principle Applied:
+             - Extractors pre-calculate all quality metrics in ExtractionMetadata
+             - Fusion service uses these metrics for dynamic weighting, no duplicate validation
+             </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService},ExxerCube.Prisma.Domain.ValueObjects.FusionCoefficients,ExxerCube.Prisma.Domain.Interfaces.IBusinessDayCalculator)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+            <param name="coefficients">Fusion coefficients (optional, defaults to <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.FusionCoefficients"/>).</param>
+            <param name="businessDayCalculator">
+            Optional holiday-aware business-day calculator. When provided, FechaEstimadaConclusion
+            is computed using Mexican federal holidays in addition to weekends. When <see langword="null"/>,
+            the built-in weekend-only fallback is used (backwards-compatible behaviour).
+            </param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService.FuseAsync(ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.ValueObjects.ExtractionMetadata,ExxerCube.Prisma.Domain.ValueObjects.ExtractionMetadata,ExxerCube.Prisma.Domain.ValueObjects.ExtractionMetadata,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService.FuseFieldAsync(System.String,System.Collections.Generic.List{ExxerCube.Prisma.Domain.ValueObjects.FieldCandidate},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService.FusePrimarySolicitudEspecificaFieldsAsync(ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.Dictionary{ExxerCube.Prisma.Domain.Enum.SourceType,System.Double},ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.Dictionary{System.String,ExxerCube.Prisma.Domain.ValueObjects.FieldFusionResult},System.Collections.Generic.List{System.String},System.Threading.CancellationToken)">
+            <summary>
+            Fuses fields from the primary SolicitudEspecifica (first in collection).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService.FuseSolicitudEspecificaIdAsync(ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.Dictionary{ExxerCube.Prisma.Domain.Enum.SourceType,System.Double},ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.Dictionary{System.String,ExxerCube.Prisma.Domain.ValueObjects.FieldFusionResult},System.Collections.Generic.List{System.String},System.Threading.CancellationToken)">
+            <summary>
+            Fuses SolicitudEspecificaId from the primary SolicitudEspecifica.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService.FuseSolicitudMeasureAsync(ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.Dictionary{ExxerCube.Prisma.Domain.Enum.SourceType,System.Double},ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.Dictionary{System.String,ExxerCube.Prisma.Domain.ValueObjects.FieldFusionResult},System.Collections.Generic.List{System.String},System.Threading.CancellationToken)">
+            <summary>
+            Fuses Measure (MeasureKind enum) from the primary SolicitudEspecifica.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService.FuseSolicitudInstruccionesAsync(ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.Dictionary{ExxerCube.Prisma.Domain.Enum.SourceType,System.Double},ExxerCube.Prisma.Domain.Entities.Expediente,System.Collections.Generic.Dictionary{System.String,ExxerCube.Prisma.Domain.ValueObjects.FieldFusionResult},System.Collections.Generic.List{System.String},System.Threading.CancellationToken)">
+            <summary>
+            Fuses InstruccionesCuentasPorConocer from the primary SolicitudEspecifica.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.FusionExpedienteService.CalculateBusinessDays(System.DateTime,System.Int32)">
+            <summary>
+            Calculates a future date by adding business days (skipping weekends).
+            </summary>
+            <param name="startDate">The starting date.</param>
+            <param name="businessDays">The number of business days to add.</param>
+            <returns>The calculated end date.</returns>
+            <remarks>
+            Weekend-only fallback used when no <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IBusinessDayCalculator"/> is injected.
+            Only skips weekends (Saturday/Sunday); does not account for Mexican federal holidays.
+            In production the MexicoBusinessDayCalculator adapter is injected via DI,
+            making this path unreachable for normal operation.
+            </remarks>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService">
+            <summary>
+            Service for classifying legal directives from document text and mapping clauses to compliance actions.
+            </summary>
+            <remarks>
+            This implementation uses naive keyword matching which has been superseded by fuzzy phrase matching.
+            Use SemanticAnalyzerAdapter (wrapping SemanticAnalyzerService) instead for improved accuracy.
+            This class is maintained for backward compatibility during migration but will be removed in a future release.
+            Migration path: ILegalDirectiveClassifier now resolves to SemanticAnalyzerAdapter in DI container.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService.ClassifyDirectivesAsync(System.String,ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService.DetectLegalInstrumentsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService.MapToComplianceActionAsync(System.String,ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService.DetermineActionTypeWithPrecedence(System.String)">
+            <summary>
+            Determines the action type with precedence rules when multiple keywords are present.
+            Implements priority-based classification to handle ambiguous documents.
+            </summary>
+            <param name="text">The document text (already uppercased).</param>
+            <returns>The highest priority action type detected.</returns>
+            <remarks>
+            Priority order:
+            1. Unblock (highest - e.g., "desbloquear el aseguramiento" is Unblock, not Block)
+            2. Block, Transfer, Document (specific operations)
+            3. Information (default for general requests)
+            4. Unknown (flag for review)
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService.DetectDocumentRelationType(System.String)">
+            <summary>
+            Detects the document relation type to determine how to process relative to existing requirements.
+            Helps avoid duplicate processing of reminders and properly link related documents.
+            </summary>
+            <param name="text">The document text (already uppercased).</param>
+            <returns>The detected document relation type.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService.ExtractActionDetails(System.String,ExxerCube.Prisma.Domain.Entities.ComplianceAction)">
+            <summary>
+            Delegates to <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor"/> — single source of truth for regex patterns.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService.ApplyEdgeCaseValidation(System.String,ExxerCube.Prisma.Domain.Entities.ComplianceAction)">
+            <summary>
+            Applies edge case validation to detect potential issues requiring manual review.
+            Adds warnings and sets RequiresManualReview flag when edge cases are detected.
+            </summary>
+            <param name="text">The document text (already uppercased).</param>
+            <param name="action">The compliance action to validate.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyOptions">
+            <summary>
+            Configuration options for field matching policies.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyOptions.ConflictThreshold">
+            <summary>
+            Gets or sets the conflict threshold for determining if field values are in conflict (0.0-1.0).
+            Default: 0.5 (values must agree at least 50%).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyOptions.MinimumConfidence">
+            <summary>
+            Gets or sets the minimum confidence score required for a field match to be considered valid (0.0-1.0).
+            Default: 0.3 (minimum 30% confidence).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyOptions.SourcePriority">
+            <summary>
+            Gets or sets a value indicating whether to prefer values from specific source types.
+            Order matters - first source type has highest priority.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyOptions.FieldRules">
+            <summary>
+            Gets or sets field-specific matching rules.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService">
+            <summary>
+            Matching policy service implementation for configurable field matching rules.
+            Implements <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IMatchingPolicy"/> to determine best values and calculate agreement levels.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService.#ctor(Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService"/> class.
+            </summary>
+            <param name="options">The matching policy configuration options.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService.SelectBestValueAsync(System.String,System.Collections.Generic.List{ExxerCube.Prisma.Domain.ValueObjects.FieldValue})">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService.CalculateAgreementLevelAsync(System.Collections.Generic.List{ExxerCube.Prisma.Domain.ValueObjects.FieldValue})">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.MatchingPolicyService.HasConflictAsync(System.Collections.Generic.List{ExxerCube.Prisma.Domain.ValueObjects.FieldValue},System.Single)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingOptions">
+            <summary>
+            Tunable thresholds and aliases for name matching.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingOptions.AcceptThreshold">
+            <summary>Score threshold to auto-accept a name match.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingOptions.ConflictThreshold">
+            <summary>Score threshold below which a conflict is flagged; between conflict and accept is review.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingOptions.Aliases">
+            <summary>Common aliases/variants for Spanish names/surnames (case-insensitive).</summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingPolicy">
+            <summary>
+            Matching policy for names that uses fuzzy metrics with conservative thresholds and alias awareness.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingPolicy.#ctor(Microsoft.Extensions.Options.IOptionsMonitor{ExxerCube.Prisma.Infrastructure.Classification.NameMatchingOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.NameMatchingPolicy})">
+            <summary>
+            Initializes a new instance with options and logging support.
+            </summary>
+            <param name="options">Options monitor for thresholds and aliases.</param>
+            <param name="logger">Logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingPolicy.SelectBestValueAsync(System.String,System.Collections.Generic.List{ExxerCube.Prisma.Domain.ValueObjects.FieldValue})">
+            <summary>
+            Selects the best candidate value using fuzzy scoring and alias awareness.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingPolicy.CalculateAgreementLevelAsync(System.Collections.Generic.List{ExxerCube.Prisma.Domain.ValueObjects.FieldValue})">
+            <summary>
+            Calculates the overall agreement among provided values as the WEAKEST score across distinct pairs
+            (so a single disagreeing value among otherwise-agreeing ones is surfaced as low agreement / a conflict).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.NameMatchingPolicy.HasConflictAsync(System.Collections.Generic.List{ExxerCube.Prisma.Domain.ValueObjects.FieldValue},System.Single)">
+            <summary>
+            Determines whether the values conflict below a given threshold.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.OllamaHttpClient">
+            <summary>
+            Ollama HTTP adapter: <c>POST {endpoint}/api/generate</c> with JSON body
+            <c>{model, prompt, stream:false, options:{temperature:0}}</c>, parses the <c>response</c> field.
+            All HTTP, timeout, and JSON-parse errors return a failure result (fail-open).
+            </summary>
+            <remarks>
+            Registered as a typed <c>HttpClient</c> via <c>services.AddHttpClient&lt;OllamaHttpClient&gt;()</c>.
+            The injected <see cref="T:System.Net.Http.HttpClient"/> base address and timeout are overridden per call from
+            <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions"/> so config changes take effect without restarting the host.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.OllamaHttpClient.#ctor(System.Net.Http.HttpClient,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions},Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.OllamaHttpClient})">
+            <summary>
+            Initializes the client with a typed <see cref="T:System.Net.Http.HttpClient"/> from DI and the current options.
+            </summary>
+            <param name="http">Typed HttpClient provided by the AddHttpClient registration.</param>
+            <param name="options">Bound Ollama options (endpoint, model, timeout).</param>
+            <param name="logger">Logger for structured diagnostics.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.OllamaHttpClient.GenerateAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions">
+            <summary>
+            Configuration options for the local Ollama LLM service.
+            Bind from the <c>"Ollama"</c> configuration section via
+            <c>services.Configure&lt;OllamaOptions&gt;(config.GetSection(OllamaOptions.SectionName))</c>.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions.SectionName">
+            <summary>The IConfiguration section name to bind this class from.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions.Endpoint">
+            <summary>
+            Base URL of the Ollama HTTP API, e.g. <c>"http://localhost:11434"</c>.
+            Must not end with a trailing slash.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions.Model">
+            <summary>
+            Ollama model tag to use for generation, e.g. <c>"llama3.2:3b"</c>.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions.Enabled">
+            <summary>
+            Whether the Ollama integration is active.
+            <c>false</c> (default) means <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.OllamaHttpClient"/> is registered but
+            <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService"/> silently skips LLM enrichment, so environments
+            without a running Ollama instance work unchanged.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions.TimeoutSeconds">
+            <summary>
+            HTTP request timeout in seconds for a single generate call (default 60 s).
+            Set higher for slow hardware or large models.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService">
+            <summary>
+            Service for resolving person identities by handling RFC variants and alias names.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService.ResolveIdentityAsync(ExxerCube.Prisma.Domain.Entities.Persona,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService.DeduplicatePersonsAsync(System.Collections.Generic.List{ExxerCube.Prisma.Domain.Entities.Persona},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService.FindByRfcAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService.GenerateRfcVariants(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor">
+            <summary>
+            Pure static helper that extracts structured sub-answer fields from Spanish legal document text.
+            Shared between <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService"/> and <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.LegalDirectiveClassifierService"/>
+            so regex patterns live in ONE place (no duplication).
+            All methods are best-effort: unmatched fields return null/empty, never throw.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.AccountPattern">
+            <summary>
+            Matches explicit account-number references like "cuenta 1234567890".
+            Requires the word "cuenta" to distinguish from random long digits.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ClabePattern">
+            <summary>18-digit CLABE (Mexican interbank routing code).</summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.AmountDollarSign">
+            <summary>Dollar-sign prefixed monetary amounts: $1,000,000.00</summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.AmountKeyword">
+            <summary>Amounts preceded by monetary keywords (monto/cantidad/importe/suma).</summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.AmountCurrencyWord">
+            <summary>Amounts followed by explicit currency words (pesos/dólares/dolares).</summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.AmountMultiComma">
+            <summary>
+            Amounts with at least two comma groups (distinguishes from plain account numbers).
+            e.g. 1,000,000.00
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.PesosPattern">
+            <summary>Detects explicit "pesos" currency marker.</summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.DolaresPattern">
+            <summary>Detects explicit "dólares" / "dolares" currency marker.</summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ParcialKeyword">
+            <summary>
+            Partial-freeze keywords: "parcial", "hasta por el monto", "importe de".
+            Presence of an explicit amount also implies partial.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ExpedienteIdPattern">
+            <summary>
+            Expediente/oficio identifiers.
+            Covers: A/AS1-1111-222222-AAA, 222/AAA/-4444444444/2025, B/CDEF-1234-567890-ABC,
+            IMSSCOB/40/01/001283/2025, AGAFADAFSON2/2025/000084.
+            Pattern: one or more alphanumeric segments separated by / or -, with at least two segments.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.IsoDatePattern">
+            <summary>ISO 8601 or common Spanish date formats: 2025-06-05, 05/06/2025, 5 de junio de 2025.</summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.PopulateBloqueo(System.String,ExxerCube.Prisma.Domain.ValueObjects.BloqueoRequirement)">
+            <summary>
+            Extracts Bloqueo sub-fields: accounts, amount+currency, products, partial flag.
+            </summary>
+            <param name="text">Raw document text (any case).</param>
+            <param name="req">Requirement object to populate in-place.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.PopulateDesbloqueo(System.String,System.String,ExxerCube.Prisma.Domain.ValueObjects.DesbloqueoRequirement)">
+            <summary>
+            Extracts Desbloqueo sub-fields: original-block expediente/oficio reference.
+            Picks the expediente id that differs from the current case id (when available).
+            </summary>
+            <param name="text">Raw document text.</param>
+            <param name="currentExpediente">The current case id to exclude (may be null).</param>
+            <param name="req">Requirement object to populate in-place.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.PopulateDocumentacion(System.String,ExxerCube.Prisma.Domain.ValueObjects.DocumentacionRequirement)">
+            <summary>
+            Extracts Documentacion sub-fields: document types + date ranges.
+            </summary>
+            <param name="text">Raw document text.</param>
+            <param name="req">Requirement object to populate in-place.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.PopulateTransferencia(System.String,ExxerCube.Prisma.Domain.ValueObjects.TransferenciaRequirement)">
+            <summary>
+            Extracts Transferencia sub-fields: destination account (CLABE preferred), amount.
+            </summary>
+            <param name="text">Raw document text.</param>
+            <param name="req">Requirement object to populate in-place.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.PopulateInformacion(System.String,ExxerCube.Prisma.Domain.ValueObjects.InformacionGeneralRequirement)">
+            <summary>
+            Extracts Informacion sub-fields: best-effort sentence/phrase pull for InformacionSolicitada.
+            E2 (Ollama) will enrich this further; this provides a deterministic baseline.
+            </summary>
+            <param name="text">Raw document text.</param>
+            <param name="req">Requirement object to populate in-place.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ExtractAccountNumbers(System.String)">
+            <summary>
+            Extracts all account numbers (4+ digit sequences preceded by "cuenta").
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ExtractFirstAccountNumber(System.String)">
+            <summary>Returns the first "cuenta NNNN" match or null.</summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ExtractProducts(System.String)">
+            <summary>
+            Extracts product types (TARJETA, CUENTA) found in text.
+            Returns a deduplicated list preserving match order.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ExtractAmountAndCurrency(System.String)">
+            <summary>
+            Extracts the best monetary amount and its currency from text.
+            Priority: dollar-sign > keyword context > currency word > multi-comma.
+            Returns (null, null) when no amount found.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ExtractReferencedExpedienteId(System.String,System.String)">
+            <summary>
+            Finds an expediente/oficio id in text that is distinct from <paramref name="currentExpediente"/>.
+            Returns null when none found.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ExtractDocumentTypes(System.String)">
+            <summary>
+            Detects document sub-types from curated vocabulary (aligned with ClassificationDictionary style).
+            Dates are extracted and paired with each doc type when a range is present in the text.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.ExtractDateRange(System.String)">
+            <summary>
+            Parses date pairs from text. Returns the earliest and latest dates found (or null when fewer than 2).
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.RequirementDetailExtractor.InfoRequestPhrase">
+            <summary>
+            Best-effort pull for InformacionSolicitada: finds the first sentence containing
+            information-request indicators. Returns null when nothing found.
+            E2 (Ollama) will refine this with an LLM prompt.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter">
+             <summary>
+             Adapter that implements ILegalDirectiveClassifier by wrapping ISemanticAnalyzer.
+             Provides backward compatibility for legacy code while using the new semantic analysis architecture.
+             </summary>
+             <remarks>
+             Architecture Notes:
+             - This is an ADAPTER pattern implementation that bridges legacy ILegalDirectiveClassifier with new ISemanticAnalyzer
+             - ISemanticAnalyzer returns rich SemanticAnalysis domain objects (the "WHAT" of requirements)
+             - ILegalDirectiveClassifier returns primitive List&lt;ComplianceAction&gt; (legacy interface)
+             - This adapter converts SemanticAnalysis → List&lt;ComplianceAction&gt; for backward compatibility
+            
+             Design Philosophy:
+             - Allows gradual migration: Legacy consumers continue using ILegalDirectiveClassifier
+             - New consumers can inject ISemanticAnalyzer directly for richer semantics
+             - Eventually, ILegalDirectiveClassifier will be deprecated and this adapter removed
+            
+             Mapping Strategy:
+             - SemanticAnalysis.RequiereBloqueo → ComplianceAction(Block)
+             - SemanticAnalysis.RequiereDesbloqueo → ComplianceAction(Unblock)
+             - SemanticAnalysis.RequiereTransferencia → ComplianceAction(Transfer)
+             - SemanticAnalysis.RequiereDocumentacion → ComplianceAction(Document)
+             - SemanticAnalysis.RequiereInformacionGeneral → ComplianceAction(Information)
+             - Confidence scores converted from 0.0-1.0 (double) to 0-100 (int)
+             </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter.#ctor(ExxerCube.Prisma.Domain.Interfaces.ISemanticAnalyzer,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter"/> class.
+            </summary>
+            <param name="semanticAnalyzer">The semantic analyzer to wrap.</param>
+            <param name="logger">Logger for diagnostics.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter.ClassifyDirectivesAsync(System.String,ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <inheritdoc />
+            <remarks>
+            Implementation delegates to ISemanticAnalyzer.AnalyzeDirectivesAsync and converts the result.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter.DetectLegalInstrumentsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+            <remarks>
+            Legal instrument detection is not implemented in the new semantic analyzer architecture.
+            Returns empty list to maintain interface compatibility.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter.MapToComplianceActionAsync(System.String,ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <inheritdoc />
+            <remarks>
+            Implementation delegates to ClassifyDirectivesAsync and returns the first action.
+            If multiple actions are detected, logs a warning and returns the highest-confidence action.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter.ConvertToComplianceActions(ExxerCube.Prisma.Domain.ValueObjects.SemanticAnalysis,ExxerCube.Prisma.Domain.Entities.Expediente)">
+            <summary>
+            Converts SemanticAnalysis domain object to list of ComplianceAction entities.
+            </summary>
+            <param name="analysis">The semantic analysis result.</param>
+            <param name="expediente">Optional expediente for context.</param>
+            <returns>List of compliance actions derived from the semantic analysis.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerAdapter.ConvertConfidence(System.Double)">
+            <summary>
+            Converts confidence score from 0.0-1.0 (double) to 0-100 (int).
+            </summary>
+            <param name="confidence">Confidence score as double (0.0 to 1.0).</param>
+            <returns>Confidence score as integer (0 to 100).</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService">
+             <summary>
+             Production semantic analyzer using fuzzy phrase matching and classification dictionaries.
+             Fixes the audit gap by returning rich SemanticAnalysis domain objects instead of primitive List&lt;ComplianceAction&gt;.
+             </summary>
+             <remarks>
+             Architecture:
+             - Uses ITextComparer.FindBestMatch for fuzzy phrase matching (tolerates typos and variations)
+             - Uses ClassificationDictionary for phrase-to-action mappings (100+ Spanish legal phrases)
+             - Populates SemanticAnalysis with confidence scores from fuzzy matching
+             - Supports multiple directives in single document
+            
+             Audit Gap Fixes:
+             - FIXED: Returns SemanticAnalysis (rich domain objects) instead of List&lt;ComplianceAction&gt; (primitives)
+             - FIXED: Uses fuzzy matching instead of naive keyword Contains() checks
+             - FIXED: Tolerates phrase variations (e.g., "aseguramiento de fondos" vs "aseguramiento de los fondos")
+             - FIXED: Provides confidence scores (0.0-1.0) instead of arbitrary integers
+            
+             Phase 1 Implementation:
+             - Hardcoded classification dictionary (extensible for Phase 3 AI approach)
+             - Fuzzy matching with 85% similarity threshold
+             - Precedence-based classification (Unblock > Block/Transfer/Document > Information)
+             </remarks>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.InformacionLlmQuestion">
+            <summary>
+            Grounded prompt used to ask the LLM what information the authority requests.
+            The document text is appended before this question at call time.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.#ctor(ExxerCube.Prisma.Domain.Interfaces.ITextComparer,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService},ExxerCube.Prisma.Domain.Interfaces.IOllamaClient,Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService"/> class
+            with an optional <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IOllamaClient"/> for LLM-based enrichment of interpreted fields.
+            </summary>
+            <param name="textComparer">Text comparer for fuzzy phrase matching.</param>
+            <param name="logger">Logger instance.</param>
+            <param name="ollamaClient">
+            Optional Ollama LLM client.  When <see langword="null"/> or when
+            <see cref="P:ExxerCube.Prisma.Infrastructure.Classification.OllamaOptions.Enabled"/> is <see langword="false"/> the analyzer runs in
+            structured-only mode (E1 result) and never calls the LLM.
+            </param>
+            <param name="ollamaOptions">
+            Ollama configuration (Enabled, Endpoint, Model, Timeout).
+            Defaults to a disabled instance when not supplied.
+            </param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.AnalyzeDirectivesAsync(System.String,ExxerCube.Prisma.Domain.Entities.Expediente,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.EnrichInformacionWithLlmAsync(System.String,ExxerCube.Prisma.Domain.ValueObjects.InformacionGeneralRequirement,System.Threading.CancellationToken)">
+            <summary>
+            Calls the LLM with a grounded prompt to fill <see cref="P:ExxerCube.Prisma.Domain.ValueObjects.InformacionGeneralRequirement.InformacionSolicitada"/>
+            when E1 left it empty. Fails-open: any error is logged and the structured result is kept unchanged.
+            The LLM NEVER overwrites a confidently-extracted structured value; this method is only called
+            when the field is empty after structured extraction.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.DetectBlockRequirement(System.String,ExxerCube.Prisma.Domain.ValueObjects.SemanticAnalysis)">
+            <summary>
+            Detects Block (asset freeze) requirements using fuzzy phrase matching.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.DetectUnblockRequirement(System.String,ExxerCube.Prisma.Domain.ValueObjects.SemanticAnalysis,System.String)">
+            <summary>
+            Detects Unblock (asset unfreeze) requirements using fuzzy phrase matching.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.DetectDocumentRequirement(System.String,ExxerCube.Prisma.Domain.ValueObjects.SemanticAnalysis)">
+            <summary>
+            Detects Document submission requirements using fuzzy phrase matching.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.DetectTransferRequirement(System.String,ExxerCube.Prisma.Domain.ValueObjects.SemanticAnalysis)">
+            <summary>
+            Detects Transfer requirements using fuzzy phrase matching.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.DetectInformationRequirement(System.String,ExxerCube.Prisma.Domain.ValueObjects.SemanticAnalysis)">
+            <summary>
+            Detects Information request requirements using fuzzy phrase matching.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.FindBestPhraseMatch(System.String,System.Collections.Generic.Dictionary{System.String,ExxerCube.Prisma.Domain.Enum.ComplianceActionKind})">
+            <summary>
+            Finds the best matching phrase in a dictionary using fuzzy matching.
+            </summary>
+            <param name="documentText">The document text to search.</param>
+            <param name="phraseDictionary">Dictionary of phrases to match against.</param>
+            <returns>
+            Tuple of (matched: bool, confidence: double, matchedPhrase: string):
+            - matched: true if any phrase matched above threshold
+            - confidence: similarity score (0.0-1.0) of best match
+            - matchedPhrase: the dictionary phrase that matched (or empty if no match)
+            </returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Classification.SemanticAnalyzerService.CountDetectedRequirements(ExxerCube.Prisma.Domain.ValueObjects.SemanticAnalysis)">
+            <summary>
+            Counts how many requirements were detected in the semantic analysis.
+            </summary>
+        </member>
+    </members>
+</doc>

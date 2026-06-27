@@ -83,7 +83,7 @@ public class DecisionLogicServiceEdgeCaseTests
         var callCount = 0;
 
         // Mock: First two resolutions succeed, then cancellation is requested
-        _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _personIdentityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
                 callCount++;
@@ -222,7 +222,7 @@ public class DecisionLogicServiceEdgeCaseTests
         // Arrange
         var persons = new List<Persona> { new Persona { ParteId = 1, Nombre = "Juan" } };
 
-        _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+        _personIdentityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(Result<Persona>.WithFailure("Resolver exception", default(Persona), new Exception("Test exception")));
 
         _personIdentityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())

@@ -1,0 +1,1642 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExxerCube.Prisma.Infrastructure.Database</name>
+    </assembly>
+    <members>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService">
+            <summary>
+            Service for logging audit records to the database with async, non-blocking operations.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService.#ctor(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService"/> class.
+            </summary>
+            <param name="dbContext">The database context.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService.LogAuditAsync(ExxerCube.Prisma.Domain.Enum.AuditActionType,ExxerCube.Prisma.Domain.Enum.ProcessingStage,System.String,System.String,System.String,System.String,System.Boolean,System.String,System.Threading.CancellationToken,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService.GetAuditRecordsByFileIdAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService.GetAuditRecordsByCorrelationIdAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.AuditLoggerService.GetAuditRecordsAsync(System.DateTime,System.DateTime,ExxerCube.Prisma.Domain.Enum.AuditActionType,System.String,System.Threading.CancellationToken,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.AuditOptions">
+            <summary>
+            Configuration options for audit logging and retention policies.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Database.AuditOptions.SectionName">
+            <summary>
+            Gets or sets the configuration section name.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.AuditOptions.RetentionYears">
+            <summary>
+            Gets or sets the retention period in years (default: 7 years per regulatory requirements).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.AuditOptions.ArchiveAfterYears">
+            <summary>
+            Gets or sets the number of years after which to archive audit records (default: 1 year).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.AuditOptions.ArchiveLocation">
+            <summary>
+            Gets or sets the archive location path (optional, null if archiving is disabled).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.AuditOptions.AutoDeleteAfterRetention">
+            <summary>
+            Gets or sets a value indicating whether to automatically delete audit records after retention period (default: true).
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.AuditRetentionOptions">
+            <summary>
+            Configuration options for audit retention background service.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Database.AuditRetentionOptions.SectionName">
+            <summary>
+            Gets or sets the configuration section name.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.AuditRetentionOptions.IntervalHours">
+            <summary>
+            Gets or sets the interval in hours between retention policy enforcement cycles (default: 24 hours).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.AuditRetentionOptions.BatchSize">
+            <summary>
+            Gets or sets the batch size for processing records during deletion (default: 1000).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.AuditRetentionOptions.RetryDelayHours">
+            <summary>
+            Gets or sets the retry delay in hours if an error occurs (default: 1 hour).
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfileOptions">
+            <summary>
+            Selects which named <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfile"/> (under the <c>ConnectionProfiles</c> section)
+            is active. Bound from the <c>Database</c> configuration section; overridable per machine via the
+            <c>Database__ActiveProfile</c> environment variable or user-secrets without editing committed files.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfileOptions.SectionName">
+            <summary>The configuration section name that holds this selector.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfileOptions.ActiveProfile">
+            <summary>
+            Name of the active profile to look up under <c>ConnectionProfiles</c>.
+            Defaults to <c>LocalDb</c> so an unconfigured environment stays portable.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfile">
+            <summary>
+            A single named database target: the two logical connection strings the composition roots consume.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfile.DefaultConnection">
+            <summary>Connection string for the identity database (PrismaID).</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfile.ApplicationConnection">
+            <summary>Connection string for the application database (Prisma).</summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfileResolver">
+            <summary>
+            Resolves the active <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfile"/> from configuration.
+            </summary>
+            <remarks>
+            Selection order:
+            <list type="number">
+            <item>If <c>Database:ActiveProfile</c> names a profile under <c>ConnectionProfiles</c> that supplies at
+            least one connection string, that profile wins (any missing leg is back-filled from the legacy
+            <c>ConnectionStrings</c> keys).</item>
+            <item>Otherwise it falls back to the legacy <c>ConnectionStrings:DefaultConnection</c> /
+            <c>ConnectionStrings:ApplicationConnection</c> keys — so existing environments behave unchanged.</item>
+            </list>
+            Only <see cref="T:Microsoft.Extensions.Configuration.IConfiguration"/> string indexing is used, so no extra binder package is required.
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfileResolver.ResolveActiveProfile(Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>
+            Resolves the connection strings for the active profile, falling back to the legacy
+            <c>ConnectionStrings</c> keys when no profile is configured.
+            </summary>
+            <param name="configuration">The application configuration.</param>
+            <returns>The resolved <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Configuration.ConnectionProfile"/> (connection strings may be empty if none are configured).</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.DependencyInjection.ServiceCollectionExtensions">
+            <summary>
+            Extension methods for configuring database dependency injection.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.DependencyInjection.ServiceCollectionExtensions.AddDatabaseServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,Microsoft.Extensions.Configuration.IConfiguration,System.Boolean)">
+            <summary>
+            Adds database services to the service collection.
+            </summary>
+            <param name="services">The service collection.</param>
+            <param name="connectionString">The database connection string.</param>
+            <param name="configuration">The configuration instance (optional, for SLA options).</param>
+            <param name="registerEventPersistence">
+            When <see langword="true"/> (default) registers the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker"/>
+            hosted service, which subscribes to the local Rx domain-event stream (<see cref="T:ExxerCube.Prisma.Domain.Interfaces.IEventPublisher"/>)
+            to persist the event-store trail. Lean processes that wire the database only for audit (e.g. the
+            Orion Downloader in the 3-process split) have no local event stream and do not register
+            <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IEventPublisher"/> — they must pass <see langword="false"/>, otherwise the worker fails to
+            construct and the host cannot start.
+            </param>
+            <returns>The service collection for chaining.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.DownloadTrackerService">
+            <summary>
+            Service for tracking downloaded files and detecting duplicates using checksums.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.DownloadTrackerService.#ctor(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.DownloadTrackerService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.DownloadTrackerService"/> class.
+            </summary>
+            <param name="dbContext">The database context.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.DownloadTrackerService.IsDuplicateAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.DownloadTrackerService.GetFileMetadataByChecksumAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EfCoreUnifiedMetadataStore">
+            <summary>
+            EF Core implementation of <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IUnifiedMetadataStore"/>.
+            Persists and retrieves the consolidated <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord"/> as a JSON payload
+            in the <c>UnifiedMetadataRecords</c> table, keyed by file identifier.
+            </summary>
+            <remarks>
+            <para>
+            <strong>Serialisation:</strong> <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord"/> contains SmartEnum
+            (<see cref="T:ExxerCube.Prisma.Domain.Enum.EnumModel"/>-derived) members. The local <see cref="T:ExxerCube.Prisma.Infrastructure.Database.DatabaseEnumModelJsonConverterFactory"/>
+            is included in the serialiser options so that enum members round-trip correctly via their stable
+            <c>Name</c> string (identical to the strategy in the Infrastructure.FileSystem handoff store).
+            </para>
+            <para>
+            <strong>Cross-infrastructure isolation:</strong> To avoid introducing a project reference from
+            <c>Infrastructure.Database</c> to <c>Infrastructure</c> (which would violate the no-cross-infra rule),
+            the converter factory is re-implemented as an internal class within this file. The logic is
+            identical; the class name differs to satisfy the architecture duplicate-name guard.
+            </para>
+            <para>
+            <strong>Fault tolerance:</strong> Every public method is fail-open — persistence errors are logged
+            and returned as <see cref="T:IndQuestResults.Result"/> failures, never thrown.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EfCoreUnifiedMetadataStore.#ctor(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.EfCoreUnifiedMetadataStore})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.EfCoreUnifiedMetadataStore"/> class.
+            </summary>
+            <param name="dbContext">The EF Core database context.</param>
+            <param name="logger">The logger.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EfCoreUnifiedMetadataStore.SaveAsync(System.String,ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EfCoreUnifiedMetadataStore.GetByFileIdAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.DatabaseEnumModelJsonConverterFactory">
+            <summary>
+            Internal <see cref="T:System.Text.Json.Serialization.JsonConverterFactory"/> for <see cref="T:ExxerCube.Prisma.Domain.Enum.EnumModel"/>-derived types within the
+            Infrastructure.Database project.  Logically identical to the
+            <c>ExxerCube.Prisma.Domain.Serialization.EnumModelJsonConverterFactory</c> in the
+            Domain project; re-declared here to keep the EF JSON column converter self-contained.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.DatabaseEnumModelJsonConverterFactory.CanConvert(System.Type)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.DatabaseEnumModelJsonConverterFactory.CreateConverter(System.Type,System.Text.Json.JsonSerializerOptions)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.DatabaseEnumModelJsonConverter`1">
+            <summary>
+            Type-safe JSON converter for a concrete <typeparamref name="TEnum"/> derived from
+            <see cref="T:ExxerCube.Prisma.Domain.Enum.EnumModel"/>.  Serialises to the stable <c>Name</c> string and deserialises via
+            <see cref="M:ExxerCube.Prisma.Domain.Enum.EnumModel.FromName``1(System.String)"/>.
+            </summary>
+            <typeparam name="TEnum">The concrete <see cref="T:ExxerCube.Prisma.Domain.Enum.EnumModel"/> subtype.</typeparam>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.DatabaseEnumModelJsonConverter`1.Read(System.Text.Json.Utf8JsonReader@,System.Type,System.Text.Json.JsonSerializerOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.DatabaseEnumModelJsonConverter`1.Write(System.Text.Json.Utf8JsonWriter,`0,System.Text.Json.JsonSerializerOptions)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.AuditRecordConfiguration">
+            <summary>
+            Entity Framework Core configuration for AuditRecord entity.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.AuditRecordConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{ExxerCube.Prisma.Domain.Entities.AuditRecord})">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.FileMetadataConfiguration">
+            <summary>
+            Entity Framework Core configuration for FileMetadata entity.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.FileMetadataConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{ExxerCube.Prisma.Domain.Entities.FileMetadata})">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.PersistedUnifiedMetadataConfiguration">
+            <summary>
+            Entity Framework Core configuration for <see cref="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities.PersistedUnifiedMetadata"/>.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.PersistedUnifiedMetadataConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities.PersistedUnifiedMetadata})">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.PersonaConfiguration">
+            <summary>
+            Entity Framework Core configuration for Persona entity.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.PersonaConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{ExxerCube.Prisma.Domain.Entities.Persona})">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.RequirementTypeDictionaryConfiguration">
+            <summary>
+            Entity Framework Core configuration for RequirementTypeDictionary.
+            Includes seed data for known CNBV requirement types (100-104, 999).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.RequirementTypeDictionaryConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{ExxerCube.Prisma.Domain.Entities.RequirementTypeDictionary})">
+            <inheritdoc/>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.ReviewCaseConfiguration">
+            <summary>
+            Entity Framework Core configuration for ReviewCase entity.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.ReviewCaseConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{ExxerCube.Prisma.Domain.Entities.ReviewCase})">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.ReviewDecisionConfiguration">
+            <summary>
+            Entity Framework Core configuration for ReviewDecision entity.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.ReviewDecisionConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{ExxerCube.Prisma.Domain.Entities.ReviewDecision})">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.SLAStatusConfiguration">
+            <summary>
+            Entity Framework Core configuration for SLAStatus entity.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Configurations.SLAStatusConfiguration.Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder{ExxerCube.Prisma.Domain.Entities.SLAStatus})">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Design.PrismaDbContextFactory">
+            <summary>
+            Design-time factory for PrismaDbContext to support EF Core migrations and tooling.
+            This is ONLY used at design time (dotnet ef commands), not at runtime.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Design.PrismaDbContextFactory.CreateDbContext(System.String[])">
+            <summary>
+            Creates a new instance of PrismaDbContext for design-time operations.
+            Resolves the connection string from the environment so EF Core tooling works on any
+            box (Linux/Docker/Windows) without a hardcoded machine name.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities.PersistedUnifiedMetadata">
+            <summary>
+            EF Core persistence entity that stores the serialised <c>UnifiedMetadataRecord</c> JSON payload
+            keyed by the originating file identifier.  The payload is stored as a single <c>nvarchar(max)</c>
+            column so that the rich value-object graph (including SmartEnum members) can be round-tripped
+            without spreading it across many relational columns.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities.PersistedUnifiedMetadata.FileId">
+            <summary>
+            Gets or sets the file identifier (primary key).  Matches <c>FileMetadata.FileId</c> semantics
+            but carries no FK constraint so the record can be written before or after the file row exists.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities.PersistedUnifiedMetadata.PayloadJson">
+            <summary>
+            Gets or sets the JSON-serialised <c>UnifiedMetadataRecord</c> payload.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities.PersistedUnifiedMetadata.UpdatedAt">
+            <summary>
+            Gets or sets the UTC timestamp of the last upsert operation.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.EnumModelConversions">
+            <summary>
+            Extension helpers for mapping EnumModel-derived SmartEnums to ints in EF Core.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.EnumModelConversions.HasEnumModelConversion``1(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder{``0})">
+            <summary>
+            Registers a conversion between an EnumModel SmartEnum and its integer value.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext">
+            <summary>
+            Represents the database context interface for the Prisma application.
+            This interface abstracts Entity Framework Core database operations and provides access
+            to entity sets for file metadata, personas, SLA statuses, review cases, review decisions, and audit records.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.FileMetadata">
+            <summary>
+            Gets or sets the FileMetadata entity set.
+            Represents metadata information for processed files in the system.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Persona">
+            <summary>
+            Gets or sets the Persona entity set.
+            Represents persona information extracted from processed documents.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.SLAStatus">
+            <summary>
+            Gets or sets the SLAStatus entity set.
+            Represents Service Level Agreement status tracking for review cases.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.ReviewCases">
+            <summary>
+            Gets or sets the ReviewCases entity set.
+            Represents review cases that are being processed or have been processed.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.ReviewDecisions">
+            <summary>
+            Gets or sets the ReviewDecisions entity set.
+            Represents decisions made during the review process for cases.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AuditRecords">
+            <summary>
+            Gets or sets the AuditRecords entity set.
+            Represents audit trail records for tracking changes and operations in the system.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Database">
+            <summary>
+            Gets the Database facade for accessing database-specific operations.
+            Provides access to database-level functionality such as transactions and raw SQL execution.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.SaveChanges">
+            <summary>
+            Saves all changes made in this context to the database synchronously.
+            </summary>
+            <returns>The number of state entries written to the database.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.SaveChanges(System.Boolean)">
+            <summary>
+            Saves all changes made in this context to the database synchronously.
+            </summary>
+            <param name="acceptAllChangesOnSuccess">Indicates whether to accept all changes on success. If true, the state of all tracked entities will be set to Unchanged after saving.</param>
+            <returns>The number of state entries written to the database.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.SaveChangesAsync(System.Threading.CancellationToken)">
+            <summary>
+            Saves all changes made in this context to the database asynchronously.
+            </summary>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous save operation. The task result contains the number of state entries written to the database.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.SaveChangesAsync(System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Saves all changes made in this context to the database asynchronously.
+            </summary>
+            <param name="acceptAllChangesOnSuccess">Indicates whether to accept all changes on success. If true, the state of all tracked entities will be set to Unchanged after saving.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous save operation. The task result contains the number of state entries written to the database.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Dispose">
+            <summary>
+            Releases all resources used by the database context synchronously.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.DisposeAsync">
+            <summary>
+            Releases all resources used by the database context asynchronously.
+            </summary>
+            <returns>A task that represents the asynchronous dispose operation.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Entry``1(``0)">
+            <summary>
+            Gets an EntityEntry for the given entity, providing access to change tracking information and operations.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+            <param name="entity">The entity to get the entry for.</param>
+            <returns>An EntityEntry for the given entity.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Entry(System.Object)">
+            <summary>
+            Gets an EntityEntry for the given entity, providing access to change tracking information and operations.
+            </summary>
+            <param name="entity">The entity to get the entry for.</param>
+            <returns>An EntityEntry for the given entity.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Add``1(``0)">
+            <summary>
+            Begins tracking the given entity in the Added state, which will cause it to be inserted into the database when SaveChanges is called.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+            <param name="entity">The entity to add.</param>
+            <returns>The EntityEntry for the entity. The entry provides access to change tracking information and operations.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Add(System.Object)">
+            <summary>
+            Begins tracking the given entity in the Added state, which will cause it to be inserted into the database when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to add.</param>
+            <returns>The EntityEntry for the entity. The entry provides access to change tracking information and operations.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AddAsync``1(``0,System.Threading.CancellationToken)">
+            <summary>
+            Begins tracking the given entity in the Added state asynchronously, which will cause it to be inserted into the database when SaveChanges is called.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+            <param name="entity">The entity to add.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous add operation. The task result contains the EntityEntry for the entity.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AddAsync(System.Object,System.Threading.CancellationToken)">
+            <summary>
+            Begins tracking the given entity in the Added state asynchronously, which will cause it to be inserted into the database when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to add.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous add operation. The task result contains the EntityEntry for the entity.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Attach``1(``0)">
+            <summary>
+            Begins tracking the given entity in the Unchanged state, which means it will not be inserted, updated, or deleted when SaveChanges is called.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+            <param name="entity">The entity to attach.</param>
+            <returns>The EntityEntry for the entity. The entry provides access to change tracking information and operations.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Attach(System.Object)">
+            <summary>
+            Begins tracking the given entity in the Unchanged state, which means it will not be inserted, updated, or deleted when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to attach.</param>
+            <returns>The EntityEntry for the entity. The entry provides access to change tracking information and operations.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Update``1(``0)">
+            <summary>
+            Begins tracking the given entity in the Modified state, which will cause it to be updated in the database when SaveChanges is called.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+            <param name="entity">The entity to update.</param>
+            <returns>The EntityEntry for the entity. The entry provides access to change tracking information and operations.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Update(System.Object)">
+            <summary>
+            Begins tracking the given entity in the Modified state, which will cause it to be updated in the database when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to update.</param>
+            <returns>The EntityEntry for the entity. The entry provides access to change tracking information and operations.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Remove``1(``0)">
+            <summary>
+            Begins tracking the given entity in the Deleted state, which will cause it to be deleted from the database when SaveChanges is called.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+            <param name="entity">The entity to remove.</param>
+            <returns>The EntityEntry for the entity. The entry provides access to change tracking information and operations.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Remove(System.Object)">
+            <summary>
+            Begins tracking the given entity in the Deleted state, which will cause it to be deleted from the database when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to remove.</param>
+            <returns>The EntityEntry for the entity. The entry provides access to change tracking information and operations.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AddRange(System.Object[])">
+            <summary>
+            Begins tracking multiple entities in the Added state, which will cause them to be inserted into the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to add.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AddRange(System.Collections.Generic.IEnumerable{System.Object})">
+            <summary>
+            Begins tracking multiple entities in the Added state, which will cause them to be inserted into the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to add.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AddRangeAsync(System.Object[])">
+            <summary>
+            Begins tracking multiple entities in the Added state asynchronously, which will cause them to be inserted into the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to add.</param>
+            <returns>A task that represents the asynchronous add operation.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AddRangeAsync(System.Collections.Generic.IEnumerable{System.Object},System.Threading.CancellationToken)">
+            <summary>
+            Begins tracking multiple entities in the Added state asynchronously, which will cause them to be inserted into the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to add.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous add operation.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AttachRange(System.Object[])">
+            <summary>
+            Begins tracking multiple entities in the Unchanged state, which means they will not be inserted, updated, or deleted when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to attach.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.AttachRange(System.Collections.Generic.IEnumerable{System.Object})">
+            <summary>
+            Begins tracking multiple entities in the Unchanged state, which means they will not be inserted, updated, or deleted when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to attach.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.UpdateRange(System.Object[])">
+            <summary>
+            Begins tracking multiple entities in the Modified state, which will cause them to be updated in the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to update.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.UpdateRange(System.Collections.Generic.IEnumerable{System.Object})">
+            <summary>
+            Begins tracking multiple entities in the Modified state, which will cause them to be updated in the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to update.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.RemoveRange(System.Object[])">
+            <summary>
+            Begins tracking multiple entities in the Deleted state, which will cause them to be deleted from the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to remove.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.RemoveRange(System.Collections.Generic.IEnumerable{System.Object})">
+            <summary>
+            Begins tracking multiple entities in the Deleted state, which will cause them to be deleted from the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to remove.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Find(System.Type,System.Object[])">
+            <summary>
+            Finds an entity with the given primary key values synchronously.
+            </summary>
+            <param name="entityType">The type of entity to find.</param>
+            <param name="keyValues">The values of the primary key for the entity to be found.</param>
+            <returns>The entity found, or null if no entity with the given primary key values exists in the context.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.Find``1(System.Object[])">
+            <summary>
+            Finds an entity with the given primary key values synchronously.
+            </summary>
+            <typeparam name="TEntity">The type of entity to find.</typeparam>
+            <param name="keyValues">The values of the primary key for the entity to be found.</param>
+            <returns>The entity found, or null if no entity with the given primary key values exists in the context.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.FindAsync(System.Type,System.Object[])">
+            <summary>
+            Finds an entity with the given primary key values asynchronously.
+            </summary>
+            <param name="entityType">The type of entity to find.</param>
+            <param name="keyValues">The values of the primary key for the entity to be found.</param>
+            <returns>A task that represents the asynchronous find operation. The task result contains the entity found, or null if no entity with the given primary key values exists in the context.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.FindAsync(System.Type,System.Object[],System.Threading.CancellationToken)">
+            <summary>
+            Finds an entity with the given primary key values asynchronously.
+            </summary>
+            <param name="entityType">The type of entity to find.</param>
+            <param name="keyValues">The values of the primary key for the entity to be found.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous find operation. The task result contains the entity found, or null if no entity with the given primary key values exists in the context.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.FindAsync``1(System.Object[])">
+            <summary>
+            Finds an entity with the given primary key values asynchronously.
+            </summary>
+            <typeparam name="TEntity">The type of entity to find.</typeparam>
+            <param name="keyValues">The values of the primary key for the entity to be found.</param>
+            <returns>A task that represents the asynchronous find operation. The task result contains the entity found, or null if no entity with the given primary key values exists in the context.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext.FindAsync``1(System.Object[],System.Threading.CancellationToken)">
+            <summary>
+            Finds an entity with the given primary key values asynchronously.
+            </summary>
+            <typeparam name="TEntity">The type of entity to find.</typeparam>
+            <param name="keyValues">The values of the primary key for the entity to be found.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous find operation. The task result contains the entity found, or null if no entity with the given primary key values exists in the context.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext">
+            <summary>
+            Entity Framework Core database context for Prisma application.
+            Implements IPrismaDbContext for Infrastructure-internal abstraction and testability.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.#ctor(Microsoft.EntityFrameworkCore.DbContextOptions{ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext"/> class.
+            </summary>
+            <param name="options">The database context options.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.FileMetadata">
+            <summary>
+            Gets or sets the FileMetadata entity set.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.Persona">
+            <summary>
+            Gets or sets the Persona entity set.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.SLAStatus">
+            <summary>
+            Gets or sets the SLAStatus entity set.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.ReviewCases">
+            <summary>
+            Gets or sets the ReviewCases entity set.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.ReviewDecisions">
+            <summary>
+            Gets or sets the ReviewDecisions entity set.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.AuditRecords">
+            <summary>
+            Gets or sets the AuditRecords entity set.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.RequirementTypeDictionary">
+            <summary>
+            Gets or sets the RequirementTypeDictionary entity set.
+            Lookup table for CNBV requirement types (seeded from legal research).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.UnifiedMetadataRecords">
+            <summary>
+            Gets or sets the persisted unified metadata records entity set.
+            Stores the JSON-serialised <see cref="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Entities.PersistedUnifiedMetadata"/> keyed by file identifier,
+            enabling reviewer overrides (C2) and field-annotation hydration (C3).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext.OnModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1">
+            <summary>
+            Generic repository implementation for Entity Framework Core operations.
+            Provides a wrapper around DbContext methods with Result-based error handling.
+            </summary>
+            <typeparam name="TEntity">The type of entity this repository manages.</typeparam>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.#ctor(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.IPrismaDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository{`0}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1"/> class.
+            </summary>
+            <param name="dbContext">The database context to use for operations.</param>
+            <param name="logger">The logger instance for this repository.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when dbContext or logger is null.</exception>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.GetDbSet">
+            <summary>
+            Gets the DbSet for the entity type from the database context.
+            </summary>
+            <returns>The DbSet for the entity type.</returns>
+            <exception cref="T:System.InvalidOperationException">Thrown when the DbSet cannot be found for the entity type.</exception>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.GetEntry(`0)">
+            <summary>
+            Gets an EntityEntry for the given entity, providing access to change tracking information and operations.
+            </summary>
+            <param name="entity">The entity to get the entry for.</param>
+            <returns>An EntityEntry for the given entity.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when entity is null.</exception>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.AddAsync(`0,System.Threading.CancellationToken)">
+            <summary>
+            Begins tracking the given entity in the Added state, which will cause it to be inserted into the database when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to add.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A result containing the EntityEntry for the entity or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.AddRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <summary>
+            Begins tracking multiple entities in the Added state, which will cause them to be inserted into the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to add.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.Attach(`0)">
+            <summary>
+            Begins tracking the given entity in the Unchanged state, which means it will not be inserted, updated, or deleted when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to attach.</param>
+            <returns>A result containing the EntityEntry for the entity or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.AttachRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Begins tracking multiple entities in the Unchanged state, which means they will not be inserted, updated, or deleted when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to attach.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.Update(`0)">
+            <summary>
+            Begins tracking the given entity in the Modified state, which will cause it to be updated in the database when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to update.</param>
+            <returns>A result containing the EntityEntry for the entity or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.UpdateRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Begins tracking multiple entities in the Modified state, which will cause them to be updated in the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to update.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.Remove(`0)">
+            <summary>
+            Begins tracking the given entity in the Deleted state, which will cause it to be deleted from the database when SaveChanges is called.
+            </summary>
+            <param name="entity">The entity to remove.</param>
+            <returns>A result containing the EntityEntry for the entity or an error.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Begins tracking multiple entities in the Deleted state, which will cause them to be deleted from the database when SaveChanges is called.
+            </summary>
+            <param name="entities">The entities to remove.</param>
+            <returns>A result indicating success or failure.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.Find(System.Object[])">
+            <summary>
+            Finds an entity with the given primary key values synchronously.
+            </summary>
+            <param name="keyValues">The values of the primary key for the entity to be found.</param>
+            <returns>A result containing the entity found, or null if no entity with the given primary key values exists in the context.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.FindAsync(System.Object[],System.Threading.CancellationToken)">
+            <summary>
+            Finds an entity with the given primary key values asynchronously.
+            </summary>
+            <param name="keyValues">The values of the primary key for the entity to be found.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous find operation. The task result contains the entity found, or null if no entity with the given primary key values exists in the context.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.GetQueryable">
+            <summary>
+            Gets a queryable collection of entities that can be used to build LINQ queries.
+            </summary>
+            <returns>A queryable collection of entities.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.GetQueryable(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            Gets a queryable collection of entities filtered by the specified predicate.
+            </summary>
+            <param name="predicate">The predicate to filter entities.</param>
+            <returns>A queryable collection of entities matching the predicate.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when predicate is null.</exception>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.AnyAsync(System.Threading.CancellationToken)">
+            <summary>
+            Checks if any entities exist in the database.
+            </summary>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous operation. The task result indicates whether any entities exist.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.AnyAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Checks if any entities match the specified predicate.
+            </summary>
+            <param name="predicate">The predicate to test entities against.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous operation. The task result indicates whether any entities match the predicate.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when predicate is null.</exception>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.CountAsync(System.Threading.CancellationToken)">
+            <summary>
+            Counts the total number of entities in the database.
+            </summary>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous operation. The task result contains the count of entities.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.EntityFramework.Repository`1.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <summary>
+            Counts the number of entities that match the specified predicate.
+            </summary>
+            <param name="predicate">The predicate to test entities against.</param>
+            <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
+            <returns>A task that represents the asynchronous operation. The task result contains the count of matching entities.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when predicate is null.</exception>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Factories.SpecificationFactory">
+            <summary>
+            Factory for creating query specifications.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Factories.SpecificationFactory.CreateFileMetadataFilters(System.Nullable{System.DateTime},System.Nullable{System.DateTime},ExxerCube.Prisma.Domain.Enum.FileFormat,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.FileMetadataLoggerService">
+            <summary>
+            Service for logging file metadata to the database.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.FileMetadataLoggerService.#ctor(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.FileMetadataLoggerService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.FileMetadataLoggerService"/> class.
+            </summary>
+            <param name="dbContext">The database context.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.FileMetadataLoggerService.LogFileMetadataAsync(ExxerCube.Prisma.Domain.Entities.FileMetadata,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLABackgroundJobHealthCheck">
+            <summary>
+            Health check for SLA background update service, verifying the service is running and operational.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLABackgroundJobHealthCheck.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLABackgroundJobHealthCheck})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLABackgroundJobHealthCheck"/> class.
+            </summary>
+            <param name="scopeFactory">The service scope factory for creating scoped services.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLABackgroundJobHealthCheck.CheckHealthAsync(Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckContext,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck">
+            <summary>
+            Health check for SLA Enforcer service, verifying database connectivity and SLA calculation functionality.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck"/> class.
+            </summary>
+            <param name="scopeFactory">The service scope factory for creating scoped services.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck.CheckHealthAsync(Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckContext,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck.CheckDatabaseConnectivityAsync(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,System.Threading.CancellationToken)">
+            <summary>
+            Checks database connectivity by attempting to query the SLAStatus table.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck.CheckSLACalculationAsync(ExxerCube.Prisma.Domain.Interfaces.ISLAEnforcer,System.Threading.CancellationToken)">
+            <summary>
+            Checks SLA calculation functionality by performing a test calculation.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck.CheckQueryFunctionalityAsync(ExxerCube.Prisma.Domain.Interfaces.ISLAEnforcer,System.Threading.CancellationToken)">
+            <summary>
+            Checks query functionality by querying active cases.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.HealthChecks.SLAEnforcerHealthCheck.HealthCheckSubResult">
+            <summary>
+            Represents a sub-result of a health check component.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService">
+            <summary>
+            Service for managing manual review cases and decisions.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService.#ctor(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService},ExxerCube.Prisma.Domain.Interfaces.IUnifiedMetadataStore)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService"/> class.
+            </summary>
+            <param name="dbContext">The database context.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="unifiedMetadataStore">
+            Optional store used to hydrate real field annotations from the persisted
+            <see cref="T:ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord"/> (C3).  When <c>null</c> the service degrades to the
+            previous stub behaviour (only a <c>ConfidenceLevel</c> annotation is emitted).
+            </param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService.GetReviewCasesAsync(ExxerCube.Prisma.Domain.Models.ReviewFilters,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService.SubmitReviewDecisionAsync(System.String,ExxerCube.Prisma.Domain.Entities.ReviewDecision,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService.GetFieldAnnotationsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.ManualReviewerService.IdentifyReviewCasesAsync(System.String,ExxerCube.Prisma.Domain.ValueObjects.UnifiedMetadataRecord,ExxerCube.Prisma.Domain.ValueObjects.ClassificationResult,System.Boolean,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector">
+            <summary>
+            Metrics collector for SLA tracking and escalation operations.
+            Collects metrics for monitoring SLA service performance and health.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.#ctor(Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector"/> class.
+            </summary>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.RecordCalculation(System.Double,System.Boolean)">
+            <summary>
+            Records an SLA calculation operation.
+            </summary>
+            <param name="duration">The duration of the calculation in milliseconds.</param>
+            <param name="success">Whether the calculation was successful.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.RecordUpdate(System.Double,System.Boolean)">
+            <summary>
+            Records an SLA update operation.
+            </summary>
+            <param name="duration">The duration of the update in milliseconds.</param>
+            <param name="success">Whether the update was successful.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.RecordQuery(System.Double,System.String,System.Boolean)">
+            <summary>
+            Records an SLA query operation.
+            </summary>
+            <param name="duration">The duration of the query in milliseconds.</param>
+            <param name="queryType">The type of query (e.g., "active", "at_risk", "breached").</param>
+            <param name="success">Whether the query was successful.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.RecordEscalation(ExxerCube.Prisma.Domain.Enum.EscalationLevel)">
+            <summary>
+            Records an escalation event.
+            </summary>
+            <param name="escalationLevel">The escalation level.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.RecordError(System.String,System.String)">
+            <summary>
+            Records an error occurrence.
+            </summary>
+            <param name="operation">The operation that failed.</param>
+            <param name="errorType">The type of error.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.UpdateAtRiskCases(System.Int64)">
+            <summary>
+            Updates the current count of at-risk cases.
+            </summary>
+            <param name="count">The current count of at-risk cases.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.UpdateBreachedCases(System.Int64)">
+            <summary>
+            Updates the current count of breached cases.
+            </summary>
+            <param name="count">The current count of breached cases.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.UpdateActiveCases(System.Int64)">
+            <summary>
+            Updates the current count of active cases.
+            </summary>
+            <param name="count">The current count of active cases.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.StartTimer(System.String)">
+            <summary>
+            Creates a timer for measuring operation duration.
+            </summary>
+            <param name="operationName">The name of the operation.</param>
+            <returns>A disposable timer that records duration when disposed.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.GetMetricsSnapshot">
+            <summary>
+            Gets the current metrics snapshot for monitoring.
+            </summary>
+            <returns>A dictionary containing current metric values.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.GetCurrentGaugeValue(System.String)">
+            <summary>
+            Gets the last-reported value of a gauge metric. The collector tracks gauge state internally because
+            reading a live UpDownCounter value back is not part of the OpenTelemetry metrics API; the exported
+            metric is reconstructed from the deltas reported via the Update* methods.
+            </summary>
+            <param name="gaugeName">One of "at_risk", "breached", or "active".</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector.OperationTimer">
+            <summary>
+            Timer helper class for measuring operation duration.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Migrations.AddAuditProcessId">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.AddAuditProcessId.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.AddAuditProcessId.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.AddAuditProcessId.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Migrations.DropAuditFileMetadataFk">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.DropAuditFileMetadataFk.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.DropAuditFileMetadataFk.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.DropAuditFileMetadataFk.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Migrations.AddUnifiedMetadataRecords">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.AddUnifiedMetadataRecords.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.AddUnifiedMetadataRecords.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Migrations.DropReviewCaseFileMetadataFk">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.DropReviewCaseFileMetadataFk.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.DropReviewCaseFileMetadataFk.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.DropReviewCaseFileMetadataFk.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Migrations.InitialCreate">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.InitialCreate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.InitialCreate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Migrations.InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2">
+            <summary>
+            Entity Framework Core implementation of the domain repository abstraction.
+            </summary>
+            <typeparam name="T">Entity type handled by the repository.</typeparam>
+            <typeparam name="TId">Identifier type used to locate entities.</typeparam>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.#ctor(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2"/> class.
+            </summary>
+            <param name="dbContext">Database context backing the repository.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.GetByIdAsync(`1,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.FindAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.ExistsAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.CountAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.ListAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.ListAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.ListAsync(ExxerCube.Prisma.Domain.Interfaces.ISpecification{`0},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.FirstOrDefaultAsync(ExxerCube.Prisma.Domain.Interfaces.ISpecification{`0},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.AddAsync(`0,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.AddRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.UpdateAsync(`0,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.RemoveAsync(`0,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.RemoveRangeAsync(System.Collections.Generic.IEnumerable{`0},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.EfCoreRepository`2.SaveChangesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Repositories.SpecificationEvaluator`1">
+            <summary>
+            Applies an <see cref="T:ExxerCube.Prisma.Domain.Interfaces.ISpecification`1"/> to an EF Core <see cref="T:System.Linq.IQueryable`1"/>.
+            </summary>
+            <typeparam name="T">Entity type being queried.</typeparam>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Repositories.SpecificationEvaluator`1.GetQuery(System.Linq.IQueryable{`0},ExxerCube.Prisma.Domain.Interfaces.ISpecification{`0})">
+            <summary>
+            Applies the provided specification to the supplied queryable.
+            </summary>
+            <param name="inputQuery">Source queryable.</param>
+            <param name="specification">Specification to apply.</param>
+            <returns>An <see cref="T:System.Linq.IQueryable`1"/> representing the specification.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService">
+            <summary>
+            Resilient wrapper for SLA Enforcer service, providing circuit breaker, retry, and timeout protection.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.#ctor(ExxerCube.Prisma.Domain.Interfaces.ISLAEnforcer,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService"/> class.
+            </summary>
+            <param name="innerService">The inner SLA enforcer service.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The resilience options.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.CalculateSLAStatusAsync(System.String,System.DateTime,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.UpdateSLAStatusAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.GetSLAStatusAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.GetActiveCasesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.GetAtRiskCasesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.GetBreachedCasesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.EscalateCaseAsync(System.String,ExxerCube.Prisma.Domain.Enum.EscalationLevel,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.CalculateBusinessDaysAsync(System.DateTime,System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.ExecuteWithResilienceAsync``1(System.Func{System.Threading.Tasks.Task{IndQuestResults.Result{``0}}},System.String,System.Threading.CancellationToken)">
+            <summary>
+            Executes an operation with resilience policies (timeout, retry, circuit breaker).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.IsTransientError(System.String)">
+            <summary>
+            Determines if an error is transient and should be retried.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.BuildCircuitBreakerPolicy">
+            <summary>
+            Builds the circuit breaker policy.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.BuildRetryPolicy">
+            <summary>
+            Builds the retry policy with exponential backoff.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.BuildTimeoutPolicy">
+            <summary>
+            Builds the timeout policy.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Resilience.ResilientSLAEnforcerService.TransientException">
+            <summary>
+            Exception used to indicate transient errors that should trigger retries.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions">
+            <summary>
+            Configuration options for SLA service resilience patterns.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions.SectionName">
+            <summary>
+            Configuration section name.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions.CircuitBreakerFailureThreshold">
+            <summary>
+            Gets or sets the number of consecutive failures before opening the circuit breaker (default: 5).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions.CircuitBreakerResetTimeout">
+            <summary>
+            Gets or sets the duration before attempting to close the circuit breaker (default: 1 minute).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions.CircuitBreakerSuccessThreshold">
+            <summary>
+            Gets or sets the number of successful operations required to close the circuit breaker (default: 3).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions.MaxRetryAttempts">
+            <summary>
+            Gets or sets the maximum number of retry attempts (default: 3).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions.RetryBaseDelay">
+            <summary>
+            Gets or sets the base delay for exponential backoff retry (default: 1 second).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions.RetryMaxDelay">
+            <summary>
+            Gets or sets the maximum delay for exponential backoff retry (default: 8 seconds).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Resilience.SLAResilienceOptions.OperationTimeout">
+            <summary>
+            Gets or sets the timeout for database operations (default: 5 seconds).
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService">
+            <summary>
+            Background service that periodically enforces audit log retention policies.
+            Archives records older than ArchiveAfterYears and deletes records older than RetentionYears.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Database.AuditOptions},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Database.AuditRetentionOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService"/> class.
+            </summary>
+            <param name="scopeFactory">The service scope factory for creating scoped services.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="auditOptions">The audit configuration options.</param>
+            <param name="retentionOptions">The retention background service configuration options.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService.EnforceRetentionPoliciesAsync(System.Threading.CancellationToken)">
+            <summary>
+            Enforces audit log retention policies by archiving and deleting old records.
+            </summary>
+            <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService.ArchiveOldRecordsAsync(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Archives audit records older than the specified cutoff date to cold storage.
+            </summary>
+            <param name="dbContext">The database context.</param>
+            <param name="cutoffDate">The cutoff date for archiving.</param>
+            <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.AuditRetentionBackgroundService.DeleteOldRecordsAsync(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,System.DateTime,System.Threading.CancellationToken)">
+            <summary>
+            Deletes audit records older than the specified cutoff date.
+            </summary>
+            <param name="dbContext">The database context.</param>
+            <param name="cutoffDate">The cutoff date for deletion.</param>
+            <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker">
+            <summary>
+            Background service that subscribes to domain events and persists them to the database.
+            Implements defensive intelligence - never blocks main processing flow.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.JsonOptions">
+            <summary>
+            JSON serializer options optimized for .NET 10 record types with init properties.
+            Uses default PascalCase naming to match C# property names exactly (for internal storage).
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.#ctor(ExxerCube.Prisma.Domain.Interfaces.IEventPublisher,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker},Microsoft.Extensions.DependencyInjection.IServiceScopeFactory)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker"/> class.
+            </summary>
+            <param name="eventPublisher">Event publisher to subscribe to.</param>
+            <param name="logger">Logger for diagnostics.</param>
+            <param name="serviceScopeFactory">Service scope factory for creating scoped DbContext.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.ExecuteAsync(System.Threading.CancellationToken)">
+            <summary>
+            Executes the background service, subscribing to all domain events.
+            </summary>
+            <param name="stoppingToken">Cancellation token to signal shutdown.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.PersistEventAsync(ExxerCube.Prisma.Domain.Events.DomainEvent,System.Threading.CancellationToken)">
+            <summary>
+            Persists a domain event to the database as an AuditRecord.
+            </summary>
+            <param name="domainEvent">The domain event to persist.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.MapEventToAuditRecord(ExxerCube.Prisma.Domain.Events.DomainEvent)">
+            <summary>
+            Maps a domain event to an AuditRecord entity.
+            </summary>
+            <param name="domainEvent">The domain event to map.</param>
+            <returns>An AuditRecord entity.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.GetAuditDetails(ExxerCube.Prisma.Domain.Events.DomainEvent)">
+            <summary>
+            Determines the audit action type, processing stage, and file ID from a domain event.
+            </summary>
+            <param name="domainEvent">The domain event.</param>
+            <returns>Tuple of action type, stage, and file ID.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.IsErrorEvent(ExxerCube.Prisma.Domain.Events.DomainEvent)">
+            <summary>
+            Determines if a domain event represents an error.
+            </summary>
+            <param name="domainEvent">The domain event.</param>
+            <returns>True if the event is an error event.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.GetErrorMessage(ExxerCube.Prisma.Domain.Events.DomainEvent)">
+            <summary>
+            Extracts error message from an error event.
+            </summary>
+            <param name="domainEvent">The domain event.</param>
+            <returns>Error message if event is an error, otherwise null.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.EventPersistenceWorker.StopAsync(System.Threading.CancellationToken)">
+            <summary>
+            Disposes the event stream subscription on shutdown.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A task representing the asynchronous operation.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService">
+            <summary>
+            Service for logging audit records using a fire-and-forget queued pattern for true non-blocking operations.
+            Query operations use direct database access for immediate results.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService.#ctor(ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService,Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService"/> class.
+            </summary>
+            <param name="processorService">The queued audit processor service that provides the channel.</param>
+            <param name="scopeFactory">The service scope factory for creating scoped database contexts for queries.</param>
+            <param name="logger">The logger instance.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService.LogAuditAsync(ExxerCube.Prisma.Domain.Enum.AuditActionType,ExxerCube.Prisma.Domain.Enum.ProcessingStage,System.String,System.String,System.String,System.String,System.Boolean,System.String,System.Threading.CancellationToken,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService.GetAuditRecordsByFileIdAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService.GetAuditRecordsByCorrelationIdAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditLoggerService.GetAuditRecordsAsync(System.DateTime,System.DateTime,ExxerCube.Prisma.Domain.Enum.AuditActionType,System.String,System.Threading.CancellationToken,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService">
+            <summary>
+            Background service that processes queued audit records in batches for efficient database writes.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Database.AuditOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService"/> class.
+            </summary>
+            <param name="scopeFactory">The service scope factory for creating scoped services.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="auditOptions">The audit configuration options.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService.AuditChannel">
+            <summary>
+            Gets the audit channel for queuing audit records.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService.GetBatchesAsync(System.Threading.CancellationToken)">
+            <summary>
+            Reads audit records from the channel and groups them into batches.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.QueuedAuditProcessorService.ProcessBatchAsync(System.Collections.Generic.List{ExxerCube.Prisma.Domain.Entities.AuditRecord},System.Threading.CancellationToken)">
+            <summary>
+            Processes a batch of audit records by writing them to the database.
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Services.SLAUpdateBackgroundService">
+            <summary>
+            Background service that periodically updates SLA statuses and triggers automatic escalations.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.SLAUpdateBackgroundService.#ctor(Microsoft.Extensions.DependencyInjection.IServiceScopeFactory,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.Services.SLAUpdateBackgroundService},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Database.SLAUpdateOptions})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Services.SLAUpdateBackgroundService"/> class.
+            </summary>
+            <param name="scopeFactory">The service scope factory for creating scoped services.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The SLA update configuration options.</param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.SLAUpdateBackgroundService.ExecuteAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Services.SLAUpdateBackgroundService.UpdateSLAStatusesAsync(System.Threading.CancellationToken)">
+            <summary>
+            Updates SLA statuses in batches and triggers automatic escalations.
+            </summary>
+            <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService">
+            <summary>
+            Service for enforcing SLA deadlines and managing escalations.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.#ctor(ExxerCube.Prisma.Infrastructure.Database.EntityFramework.PrismaDbContext,Microsoft.Extensions.Logging.ILogger{ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService},Microsoft.Extensions.Options.IOptions{ExxerCube.Prisma.Infrastructure.Database.SLAOptions},ExxerCube.Prisma.Infrastructure.Database.Metrics.SLAMetricsCollector,ExxerCube.Prisma.Domain.Interfaces.IBusinessDayCalculator)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService"/> class.
+            </summary>
+            <param name="dbContext">The database context.</param>
+            <param name="logger">The logger instance.</param>
+            <param name="options">The SLA configuration options.</param>
+            <param name="metricsCollector">The metrics collector for SLA operations.</param>
+            <param name="businessDayCalculator">
+            Optional holiday-aware business-day calculator. When provided, deadline and elapsed-day calculations
+            skip Mexican federal holidays in addition to weekends. When <see langword="null"/>, the built-in
+            weekend-only fallback methods are used (backwards-compatible behaviour).
+            </param>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.CalculateSLAStatusAsync(System.String,System.DateTime,System.Int32,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.UpdateSLAStatusAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.GetSLAStatusAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.GetAtRiskCasesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.GetBreachedCasesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.GetActiveCasesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.EscalateCaseAsync(System.String,ExxerCube.Prisma.Domain.Enum.EscalationLevel,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.CalculateBusinessDaysAsync(System.DateTime,System.DateTime,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.AddBusinessDays(System.DateTime,System.Int32)">
+            <summary>
+            Weekend-only fallback: adds business days to a date, excluding weekends only.
+            Used when no <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IBusinessDayCalculator"/> is injected (e.g. in unit tests that construct the
+            service without DI). In production the holiday-aware adapter is injected and this path is unused.
+            </summary>
+            <param name="startDate">The start date.</param>
+            <param name="businessDays">The number of business days to add.</param>
+            <returns>The date after adding business days.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.CalculateBusinessDays(System.DateTime,System.DateTime)">
+            <summary>
+            Weekend-only fallback: calculates the number of business days between two dates, excluding weekends only.
+            Used when no <see cref="T:ExxerCube.Prisma.Domain.Interfaces.IBusinessDayCalculator"/> is injected. In production the holiday-aware adapter
+            is injected and this path is unused.
+            </summary>
+            <param name="startDate">The start date (inclusive).</param>
+            <param name="endDate">The end date (exclusive).</param>
+            <returns>The number of business days.</returns>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.SLAEnforcerService.DetermineEscalationLevel(System.TimeSpan,System.Boolean)">
+            <summary>
+            Determines the escalation level based on remaining time and breach status.
+            </summary>
+            <param name="remainingTime">The time remaining until deadline.</param>
+            <param name="isBreached">Whether the deadline has been breached.</param>
+            <returns>The escalation level.</returns>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.SLAOptions">
+            <summary>
+            Configuration options for SLA tracking and escalation.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Database.SLAOptions.SectionName">
+            <summary>
+            Configuration section name.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.SLAOptions.CriticalThreshold">
+            <summary>
+            Gets or sets the critical threshold (default: 4 hours).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.SLAOptions.WarningThreshold">
+            <summary>
+            Gets or sets the warning threshold (default: 24 hours).
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.SLAUpdateOptions">
+            <summary>
+            Configuration options for SLA background update service.
+            </summary>
+        </member>
+        <member name="F:ExxerCube.Prisma.Infrastructure.Database.SLAUpdateOptions.SectionName">
+            <summary>
+            Configuration section name.
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.SLAUpdateOptions.UpdateIntervalSeconds">
+            <summary>
+            Gets or sets the update interval in seconds (default: 60 seconds).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.SLAUpdateOptions.BatchSize">
+            <summary>
+            Gets or sets the batch size for processing SLA updates (default: 100).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.SLAUpdateOptions.MaxRetries">
+            <summary>
+            Gets or sets the maximum number of retries on failure (default: 3).
+            </summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.SLAUpdateOptions.RetryDelaySeconds">
+            <summary>
+            Gets or sets the retry delay in seconds (default: 5 seconds).
+            </summary>
+        </member>
+        <member name="T:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification">
+            <summary>
+            Encapsulates the filtering, ordering and paging rules for retrieving file metadata records.
+            </summary>
+        </member>
+        <member name="M:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.#ctor(System.Nullable{System.DateTime},System.Nullable{System.DateTime},ExxerCube.Prisma.Domain.Enum.FileFormat,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            Initializes a new instance of the <see cref="T:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification"/> class.
+            </summary>
+            <param name="startDate">Optional lower bound for the download timestamp.</param>
+            <param name="endDate">Optional upper bound for the download timestamp.</param>
+            <param name="format">Optional file format filter.</param>
+            <param name="skip">Optional number of rows to skip.</param>
+            <param name="take">Optional number of rows to take.</param>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.StartDate">
+            <summary>Gets the optional start date filter.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.EndDate">
+            <summary>Gets the optional end date filter.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.Format">
+            <summary>Gets the optional file format filter.</summary>
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.Criteria">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.OrderBy">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.OrderByDescending">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.Includes">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.Skip">
+            <inheritdoc />
+        </member>
+        <member name="P:ExxerCube.Prisma.Infrastructure.Database.Specifications.FileMetadataFiltersSpecification.Take">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

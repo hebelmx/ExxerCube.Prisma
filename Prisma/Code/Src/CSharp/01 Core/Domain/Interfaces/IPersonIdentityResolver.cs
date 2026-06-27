@@ -36,6 +36,21 @@ public interface IPersonIdentityResolver
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Resolves the person's canonical identity and, when backed by a durable store, persists it
+    /// (or returns the existing match) so identities dedup across documents. The in-memory
+    /// implementation resolves without persisting.
+    /// </summary>
+    /// <param name="person">The person to resolve and, for durable implementations, persist.</param>
+    /// <param name="cancellationToken">Cancellation token to cancel the operation.</param>
+    /// <returns>
+    /// A result containing the canonical (and potentially persisted) <see cref="Persona"/>,
+    /// or a failure result (never a throw) on cancellation or null input.
+    /// </returns>
+    Task<Result<Persona>> FindOrCreateAsync(
+        Persona person,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Generates RFC variants for identity resolution (e.g., "ABC123456789" → ["ABC123456789", "ABC-123456-789", "ABC 123456 789"]).
     /// </summary>
     /// <param name="rfc">The RFC to generate variants for.</param>
