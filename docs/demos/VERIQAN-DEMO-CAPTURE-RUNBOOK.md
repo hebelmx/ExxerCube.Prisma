@@ -111,8 +111,8 @@ once W4 is authored).
 | Fixture | Expected verdict | Key checklist items | Source |
 |---|---|---|---|
 | `good.pdf` | **GREEN** | all CL-1…CL-55 pass | Anonymized intermediate statement (Aug–Sep 2025 period); bank name + logo changed |
-| `bad-math.pdf` | **RED** (CL-21) | CL-21 arithmetic reconciliation | Movement total does not match reported balance; rendering preserved |
-| `bad-font.pdf` | **RED** (CL-35) | CL-35 font compliance | Aptos font absent or not embedded; font metadata preserved |
+| `bad-math-cl21.pdf` | **RED** (CL-21) | CL-21 arithmetic reconciliation | Movement total does not match reported balance; rendering preserved |
+| `bad-font-cl35.pdf` | **RED** (CL-35) | CL-35 font compliance | Aptos font absent or not embedded; font metadata preserved |
 | `scanned.pdf` | **BLOCKED** | density guard (§1, commit `60fe635d`) | Image-only PDF; zero text layer; authored synthetically |
 
 The corpus is built from a series of anonymized real statements: prior (Jul–Aug 2025),
@@ -123,7 +123,7 @@ have valid ground truth. Interim synthetic PDFs are at
 `02+Dummie+VEC+ago_sep+2025.pdf`, and `03+Dummie+VEC+sep_oct+2025.pdf` until the
 owner-supplied anonymized set lands (W3).
 
-> **Anonymization fidelity rule:** for `bad-math.pdf` and `bad-font.pdf`, mask PAN,
+> **Anonymization fidelity rule:** for `bad-math-cl21.pdf` and `bad-font-cl35.pdf`, mask PAN,
 > account numbers, and cardholder names — but **preserve layout, fonts, and geometry**.
 > CL-31 pagination, CL-34 card-in-image, and CL-35 font embed all fire on rendering;
 > destroying geometry breaks the very gaps the demo must prove fixed.
@@ -154,10 +154,10 @@ Artifacts written to `exports/` (consumed by the demo UI and Capture 3):
 ```
 exports/
 ├── good.verdict.json
-├── bad-math.verdict.json        # findings: [{ rule: "CL-21", locator: ... }]
-├── bad-math.marked.pdf          # red annotations at the failing location
-├── bad-font.verdict.json        # findings: [{ rule: "CL-35", locator: ... }]
-├── bad-font.marked.pdf          # red annotations at the font-non-compliant region
+├── bad-math-cl21.verdict.json        # findings: [{ rule: "CL-21", locator: ... }]
+├── bad-math-cl21.marked.pdf          # red annotations at the failing location
+├── bad-font-cl35.verdict.json        # findings: [{ rule: "CL-35", locator: ... }]
+├── bad-font-cl35.marked.pdf          # red annotations at the font-non-compliant region
 └── scanned.verdict.json         # verdict: BLOCKED, reason: InsufficientData
 ```
 
@@ -315,18 +315,18 @@ closed.
 
 **On-screen (W-UI findings panel + marked PDF viewer):**
 
-*Part A — `bad-math.pdf`:*
+*Part A — `bad-math-cl21.pdf`:*
 - 55-check grid: CL-21 row is RED; all other rows green or abstained.
 - RED verdict banner.
 - Finding card: "CL-21 — Aritmética de movimientos: saldo reportado vs. suma de
   movimientos discrepan en $X.XX."
-- Side panel or tab: `bad-math.marked.pdf` — red highlight over the balance-due cell
+- Side panel or tab: `bad-math-cl21.marked.pdf` — red highlight over the balance-due cell
   and the movement-total column on the offending page.
 
-*Part B — `bad-font.pdf`:*
+*Part B — `bad-font-cl35.pdf`:*
 - Switch fixture. 55-check grid: CL-35 row RED.
 - Finding: "CL-35 — Fuente Aptos no encontrada o no incrustada en el documento."
-- `bad-font.marked.pdf` — red highlight over the font-non-compliant body-text region.
+- `bad-font-cl35.marked.pdf` — red highlight over the font-non-compliant body-text region.
 
 **Narración (ES):**
 > "Ahora dos estados de cuenta con defectos. El primer criterio, **CL-21**, detecta que
@@ -337,14 +337,14 @@ closed.
 > **ROJO**, con el hallazgo descrito con precisión y el PDF marcado listo para el
 > analista. El sistema no rechaza genéricamente; especifica qué falló y dónde."
 
-> **Pre-flight CL-35 check:** if `bad-font.pdf` returns GREEN or BLOCKED instead of RED
+> **Pre-flight CL-35 check:** if `bad-font-cl35.pdf` returns GREEN or BLOCKED instead of RED
 > on CL-35, the font rule has regressed — stop and diagnose before filming. The GO/NO-GO
 > gate below covers this explicitly.
 
 **GO/NO-GO gate:**
-- `VecChecklist_BadMathPdf_ReturnsRedVerdict_Cl21` PASS and `exports/bad-math.marked.pdf`
+- `VecChecklist_BadMathPdf_ReturnsRedVerdict_Cl21` PASS and `exports/bad-math-cl21.marked.pdf`
   exists with a visible red annotation on the correct page.
-- `VecChecklist_BadFontPdf_ReturnsRedVerdict_Cl35` PASS and `exports/bad-font.marked.pdf`
+- `VecChecklist_BadFontPdf_ReturnsRedVerdict_Cl35` PASS and `exports/bad-font-cl35.marked.pdf`
   exists with a visible annotation. If either marked PDF has no visible annotation or the
   annotation is on the wrong page, do not film — diagnose the marked-PDF rotation/Y-flip
   fix (commits `f9d5e8e1`/`1adfcbc9`) first.
@@ -398,7 +398,7 @@ real pipeline on real documents.
 **On-screen:**
 
 *Step 1 — Disposition screen (W-UI):*
-- Open the `bad-math.pdf` case from the verdict list. Show the verdict detail: RED,
+- Open the `bad-math-cl21.pdf` case from the verdict list. Show the verdict detail: RED,
   CL-21 finding, document hash, timestamp, processing path.
 - Analyst clicks "Aceptar hallazgo" (or "Escalar" — either action writes the audit row).
 - Audit trail panel updates immediately: `{ verdictId, action, actor, timestamp, finding }`
@@ -463,7 +463,7 @@ Aligned with `VERIQAN-MVP-PATH-2026-06-27.md` §5 and extended to cover all 6 ca
 | **0 — Panorama** | None | `Prisma/Fixtures/PRP2/Check+list+demo+v2+Iqubica.xlsx` opens; 55 rows (CL-1…CL-55) visible. No pipeline required. |
 | **1 — Ingesta** | W-UI upload panel + W3 bundle | Extracted-fields panel renders billing period, document hash, and balance fields for `good.pdf`; no 500-class error; `bundle-metadata.csv` present so Binding does not abort. |
 | **2 — GREEN** | W4 E2E test + W-UI 55-check grid + W3 bundle | `VecChecklist_GoodPdf_ReturnsGreenVerdict` PASS; UI 55-check grid shows zero RED rows for `good.pdf`; GREEN verdict banner renders. |
-| **3 — RED + marked PDF** | W4 E2E test + W-UI findings panel + W-UI marked-PDF viewer | `VecChecklist_BadMathPdf_ReturnsRedVerdict_Cl21` PASS + `exports/bad-math.marked.pdf` has visible annotation; `VecChecklist_BadFontPdf_ReturnsRedVerdict_Cl35` PASS + `exports/bad-font.marked.pdf` has visible annotation. Both marked PDFs must show annotations on the correct page (not rotated / Y-flipped). |
+| **3 — RED + marked PDF** | W4 E2E test + W-UI findings panel + W-UI marked-PDF viewer | `VecChecklist_BadMathPdf_ReturnsRedVerdict_Cl21` PASS + `exports/bad-math-cl21.marked.pdf` has visible annotation; `VecChecklist_BadFontPdf_ReturnsRedVerdict_Cl35` PASS + `exports/bad-font-cl35.marked.pdf` has visible annotation. Both marked PDFs must show annotations on the correct page (not rotated / Y-flipped). |
 | **4 — BLOCKED** | W4 E2E test + W-UI BLOCKED banner + density guard `60fe635d` | `VecChecklist_ScannedPdf_ReturnsBlockedVerdict` PASS; UI shows BLOCKED banner; 55-check grid has zero RED items for `scanned.pdf`. |
 | **5 — Disposición + Auditoría** | W-UI disposition screen + SQL persistence (`ConnectionStrings__VeriqanDb` set) + all W4 tests | Disposition action writes a visible audit row in the UI; all 4 `VecChecklistDemoE2ETests` pass green in the terminal during the recording; Worker has not been restarted since the pre-run (gap #15). |
 

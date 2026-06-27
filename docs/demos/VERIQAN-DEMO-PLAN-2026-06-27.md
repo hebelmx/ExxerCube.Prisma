@@ -125,8 +125,8 @@ real input). Synthetic authoring fills any missing verdict class.
 | Fixture | Source | Expected verdict | Drives capture |
 |---|---|---|---|
 | `good.pdf` | anonymized real compliant (or authored) | **GREEN** | 2 |
-| `bad-math.pdf` | anonymized real / existing Dummie | **RED** (CL-21) | 3 |
-| `bad-font.pdf` | anonymized real / existing Dummie | **RED** (CL-35) | 3 |
+| `bad-math-cl21.pdf` | anonymized real / existing Dummie | **RED** (CL-21) | 3 |
+| `bad-font-cl35.pdf` | anonymized real / existing Dummie | **RED** (CL-35) | 3 |
 | `scanned.pdf` | image-only (authored if not supplied) | **BLOCKED** | 4 |
 
 > **Anonymization = substitution with COHERENT FAKES, not redaction (owner requirement).**

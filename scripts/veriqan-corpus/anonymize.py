@@ -950,8 +950,8 @@ def run_batch(
     shutil.copy2(sut_master_path, good_path)
     log.info("SUT good master → %s", good_path)
 
-    # Filenames match the VEC spec: bad-math, bad-font, scanned (no "bad-" prefix)
-    defect_names = {"math": "bad-math", "font": "bad-font", "scanned": "scanned"}
+    # Filenames match the VEC spec: bad-math-cl21, bad-font-cl35, scanned (no "bad-" prefix)
+    defect_names = {"math": "bad-math-cl21", "font": "bad-font-cl35", "scanned": "scanned"}
     for defect, stem in defect_names.items():
         out_path = defects_dir / f"{stem}.pdf"
         anonymize_doc(

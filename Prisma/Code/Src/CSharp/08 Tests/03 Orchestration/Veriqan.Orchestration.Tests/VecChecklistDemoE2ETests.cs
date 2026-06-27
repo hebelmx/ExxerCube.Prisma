@@ -28,8 +28,8 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// <list type="table">
 ///   <listheader><term>File</term><description>Expected verdict / rule</description></listheader>
 ///   <item><term>good.pdf</term><description>GREEN — statement is fully compliant</description></item>
-///   <item><term>bad-math.pdf</term><description>RED — CL-21 arithmetic mismatch</description></item>
-///   <item><term>bad-font.pdf</term><description>RED — CL-35 required font family absent</description></item>
+///   <item><term>bad-math-cl21.pdf</term><description>RED — CL-21 arithmetic mismatch</description></item>
+///   <item><term>bad-font-cl35.pdf</term><description>RED — CL-35 required font family absent</description></item>
 ///   <item><term>scanned.pdf</term><description>BLOCKED — image-only PDF, text-layer floor not met</description></item>
 /// </list>
 /// <para>
@@ -122,11 +122,11 @@ public sealed class VecChecklistDemoE2ETests
         // good.pdf → fully compliant statement; engine must find zero Fail findings
         ["good.pdf",     VerdictSignal.Green,   null   ],
 
-        // bad-math.pdf → arithmetic total mismatch; CL-21 must fire
-        ["bad-math.pdf", VerdictSignal.Red,     "CL-21"],
+        // bad-math-cl21.pdf → arithmetic total mismatch; CL-21 must fire
+        ["bad-math-cl21.pdf", VerdictSignal.Red,     "CL-21"],
 
-        // bad-font.pdf → required font family absent; CL-35 must fire
-        ["bad-font.pdf", VerdictSignal.Red,     "CL-35"],
+        // bad-font-cl35.pdf → required font family absent; CL-35 must fire
+        ["bad-font-cl35.pdf", VerdictSignal.Red,     "CL-35"],
 
         // scanned.pdf  → image-only PDF; text-layer floor guard blocks processing
         ["scanned.pdf",  VerdictSignal.Blocked, null   ],

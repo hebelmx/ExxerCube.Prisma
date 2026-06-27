@@ -44,13 +44,13 @@ python anonymize.py \
 # Break a CL-21 arithmetic identity (alter a balance figure)
 python anonymize.py \
   --in ~/Downloads/bank-statements-sorted/account-B-visa/2026-04.pdf \
-  --out ~/Downloads/vec-corpus-staging/defects/bad-math.pdf \
+  --out ~/Downloads/vec-corpus-staging/defects/bad-math-cl21.pdf \
   --inject math
 
 # Wrong font on the "Estado de Cuenta" title → CL-35 fails
 python anonymize.py \
   --in ~/Downloads/bank-statements-sorted/account-B-visa/2026-04.pdf \
-  --out ~/Downloads/vec-corpus-staging/defects/bad-font.pdf \
+  --out ~/Downloads/vec-corpus-staging/defects/bad-font-cl35.pdf \
   --inject font
 
 # Rasterize all pages to images (no text layer) → text-density guard BLOCKED
@@ -86,8 +86,8 @@ This produces:
 │   └── 2026-05.pdf
 └── defects/
     ├── good.pdf          # copy of SUT master (baseline)
-    ├── bad-math.pdf      # CL-21 arithmetic identity broken
-    ├── bad-font.pdf      # CL-35 wrong-font injection
+    ├── bad-math-cl21.pdf      # CL-21 arithmetic identity broken
+    ├── bad-font-cl35.pdf      # CL-35 wrong-font injection
     └── scanned.pdf       # text-density BLOCKED (image-only, no text layer)
 ```
 
@@ -149,8 +149,8 @@ python anonymize.py --batch --rebuild-mapping
 
 | Variant | Veriqan rule broken | What changes |
 |---|---|---|
-| `bad-math.pdf` | CL-21 arithmetic identity | "El pago para no generar intereses" altered by +$0.44 — balance table and payment table disagree |
-| `bad-font.pdf` | CL-35 font consistency | "Estado de Cuenta Mensual" title re-rendered in Courier (wrong font) |
+| `bad-math-cl21.pdf` | CL-21 arithmetic identity | "El pago para no generar intereses" altered by +$0.44 — balance table and payment table disagree |
+| `bad-font-cl35.pdf` | CL-35 font consistency | "Estado de Cuenta Mensual" title re-rendered in Courier (wrong font) |
 | `scanned.pdf` | Text-density guard | All pages rasterized to 150-dpi images; text layer removed → `pdftotext` yields ~0 chars |
 
 ## SUT product
