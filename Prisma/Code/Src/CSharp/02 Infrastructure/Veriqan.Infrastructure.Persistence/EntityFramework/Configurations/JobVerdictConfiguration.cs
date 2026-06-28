@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -31,6 +32,20 @@ internal sealed class JobVerdictConfiguration : IEntityTypeConfiguration<JobVerd
         builder.Property(v => v.Signal)
             .IsRequired()
             .HasConversion<int>();
+
+        // BankTierVerdict / CondusefTierVerdict: two-tier verdict columns (Story 1.4).
+        // Stored as int (same convention as Signal).
+        // Default VerdictSignal.Green so pre-migration rows read as Green after the
+        // AddTwoTierVerdictColumns migration runs (int 0 in the generated DDL).
+        builder.Property(v => v.BankTierVerdict)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(VerdictSignal.Green);
+
+        builder.Property(v => v.CondusefTierVerdict)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(VerdictSignal.Green);
 
         // AlertSentAt: nullable dedup flag — null = not yet sent; set = already dispatched.
         // Configured as a concurrency token so two concurrent retries racing to set it raise

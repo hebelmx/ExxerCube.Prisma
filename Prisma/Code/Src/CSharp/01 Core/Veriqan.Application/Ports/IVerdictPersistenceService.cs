@@ -40,6 +40,21 @@ public interface IVerdictPersistenceService
     /// Semantic version of the verification engine that produced these findings, stored on every
     /// <see cref="Finding"/> row for auditability (NFR-7).
     /// </param>
+    /// <param name="bankTierVerdict">
+    /// Bank-tier verdict (Story 1.4). Defaults to <c>Green</c> so existing early-exit
+    /// blocked callers that supply only <paramref name="signal"/> compile unchanged.
+    /// The main pipeline path supplies <c>VerdictSummary.BankTierVerdict</c>.
+    /// </param>
+    /// <param name="condusefTierVerdict">
+    /// CONDUSEF-tier verdict (Story 1.4). Defaults to <c>Green</c> — same rationale as
+    /// <paramref name="bankTierVerdict"/>. The main pipeline path supplies
+    /// <c>VerdictSummary.CondusefTierVerdict</c>.
+    /// </param>
+    /// <param name="checklistTiers">
+    /// Per-tenant checklist-tier map used to stamp each <see cref="Finding"/> with its
+    /// <see cref="Domain.Entities.Finding.Tier"/> (Story 1.4). Pass <see langword="null"/>
+    /// when unavailable; unmapped check IDs default to <c>ChecklistTier.Condusef</c>.
+    /// </param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>
     /// A <see cref="Result{T}"/> containing the persisted <see cref="JobVerdict"/> on success.
@@ -51,5 +66,8 @@ public interface IVerdictPersistenceService
         Domain.Enums.VerdictSignal signal,
         IReadOnlyList<RuleFinding> findings,
         string engineVersion,
+        Domain.Enums.VerdictSignal bankTierVerdict = Domain.Enums.VerdictSignal.Green,
+        Domain.Enums.VerdictSignal condusefTierVerdict = Domain.Enums.VerdictSignal.Green,
+        IReadOnlyDictionary<string, Domain.Enums.ChecklistTier>? checklistTiers = null,
         CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -46,5 +47,19 @@ internal sealed class FindingConfiguration : IEntityTypeConfiguration<Finding>
         builder.Property(f => f.EngineVersion)
             .HasMaxLength(50)
             .IsRequired();
+
+        // Tier: regulatory tier this check belongs to (Story 1.4).
+        // Stored as int; DB default = Condusef (1) for pre-migration / raw-SQL rows.
+        //
+        // HasSentinel(-1): EF's CLR sentinel defaults to the CLR default of the type (0 = Bank).
+        // Without an explicit sentinel, EF treats Tier=Bank as "not set" and lets the DB default
+        // (Condusef=1) override it, silently storing the wrong tier.  Setting the sentinel to
+        // (ChecklistTier)(-1) — outside the valid enum range — forces EF to always include the
+        // explicit Tier in every INSERT, regardless of which tier is assigned.
+        builder.Property(f => f.Tier)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(ChecklistTier.Condusef)
+            .HasSentinel((ChecklistTier)(-1));
     }
 }

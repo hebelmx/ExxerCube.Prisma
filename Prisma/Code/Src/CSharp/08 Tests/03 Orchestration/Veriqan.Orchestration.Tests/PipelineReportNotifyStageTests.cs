@@ -181,6 +181,8 @@ public sealed class PipelineReportNotifyStageTests
         persist
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(
                 Result<JobVerdict>.WithSuccess(new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Red))));
@@ -295,6 +297,8 @@ public sealed class PipelineReportNotifyStageTests
         persist
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(
                 Result<JobVerdict>.WithSuccess(new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked))));

@@ -42,6 +42,9 @@ internal sealed class EfVerdictPersistenceService : IVerdictPersistenceService
         VerdictSignal signal,
         IReadOnlyList<RuleFinding> findings,
         string engineVersion,
+        VerdictSignal bankTierVerdict = VerdictSignal.Green,
+        VerdictSignal condusefTierVerdict = VerdictSignal.Green,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null,
         CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -53,9 +56,11 @@ internal sealed class EfVerdictPersistenceService : IVerdictPersistenceService
         var verdict = new JobVerdict(
             id: Guid.NewGuid(),
             verificationJobId: jobId,
-            signal: signal);
+            signal: signal,
+            bankTierVerdict: bankTierVerdict,
+            condusefTierVerdict: condusefTierVerdict);
 
-        var findingEntities = MapFindings(jobId, findings, engineVersion);
+        var findingEntities = MapFindings(jobId, findings, engineVersion, checklistTiers);
 
         _logger.LogInformation(
             "Persisting JobVerdict {VerdictId} Signal={Signal} for Job {JobId} with {FindingCount} finding(s).",
@@ -107,16 +112,29 @@ internal sealed class EfVerdictPersistenceService : IVerdictPersistenceService
 
     /// <summary>
     /// Maps each <see cref="RuleFinding"/> (rich in-process value object) to a
-    /// <see cref="Finding"/> persistence entity.
+    /// <see cref="Finding"/> persistence entity, stamping each with its
+    /// <see cref="Finding.Tier"/> resolved from <paramref name="checklistTiers"/> (Story 1.4).
     /// </summary>
+    /// <param name="jobId">Parent job identifier.</param>
+    /// <param name="rulefindings">Source findings from the verification engine.</param>
+    /// <param name="engineVersion">Engine version tag stored on every row.</param>
+    /// <param name="checklistTiers">
+    /// Per-tenant tier map; <see langword="null"/> or missing keys default to
+    /// <see cref="ChecklistTier.Condusef"/> (conservative fallback).
+    /// </param>
     private static List<Finding> MapFindings(
         Guid jobId,
         IReadOnlyList<RuleFinding> rulefindings,
-        string engineVersion)
+        string engineVersion,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers)
     {
         var entities = new List<Finding>(rulefindings.Count);
         foreach (var rf in rulefindings)
         {
+            var tier = checklistTiers is not null && checklistTiers.TryGetValue(rf.CheckId, out var t)
+                ? t
+                : ChecklistTier.Condusef;
+
             entities.Add(new Finding(
                 id: Guid.NewGuid(),
                 verificationJobId: jobId,
@@ -124,7 +142,8 @@ internal sealed class EfVerdictPersistenceService : IVerdictPersistenceService
                 verdict: rf.Verdict,
                 engineVersion: engineVersion,
                 expected: rf.Expected,
-                observed: rf.Observed));
+                observed: rf.Observed,
+                tier: tier));
         }
 
         return entities;

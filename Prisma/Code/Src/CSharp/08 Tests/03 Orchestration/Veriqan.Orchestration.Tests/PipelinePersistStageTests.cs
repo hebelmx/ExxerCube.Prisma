@@ -352,6 +352,8 @@ public sealed class PipelinePersistStageTests
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(Result<JobVerdict>.WithSuccess(fakeVerdict)));
 
@@ -378,6 +380,9 @@ public sealed class PipelinePersistStageTests
             Arg.Any<VerdictSignal>(),
             Arg.Any<IReadOnlyList<RuleFinding>>(),
             Arg.Any<string>(),
+            Arg.Any<VerdictSignal>(),
+            Arg.Any<VerdictSignal>(),
+            Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -396,6 +401,8 @@ public sealed class PipelinePersistStageTests
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(Result<JobVerdict>.WithFailure(persistError)));
 
@@ -441,6 +448,8 @@ public sealed class PipelinePersistStageTests
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(Result<JobVerdict>.WithSuccess(fakeVerdict)));
 
@@ -469,6 +478,9 @@ public sealed class PipelinePersistStageTests
             VerdictSignal.Blocked,
             Arg.Any<IReadOnlyList<RuleFinding>>(),
             Arg.Any<string>(),
+            VerdictSignal.Blocked,
+            VerdictSignal.Blocked,
+            Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -488,6 +500,8 @@ public sealed class PipelinePersistStageTests
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(Result<JobVerdict>.WithFailure(persistError)));
 

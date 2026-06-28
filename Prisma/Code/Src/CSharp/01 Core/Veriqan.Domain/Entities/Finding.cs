@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
+
 namespace ExxerCube.Prisma.Veriqan.Domain.Entities;
 
 /// <summary>
@@ -20,6 +22,11 @@ public sealed class Finding
     /// <param name="engineVersion">Version of the verification engine that produced this finding.</param>
     /// <param name="expected">Expected value, if applicable.</param>
     /// <param name="observed">Observed value, if applicable.</param>
+    /// <param name="tier">
+    /// Regulatory tier this check belongs to (Story 1.4).
+    /// Defaults to <c>ChecklistTier.Condusef</c> — the conservative fallback when no tier map
+    /// is available, ensuring unmapped checks are never silently dropped from a RED outcome.
+    /// </param>
     public Finding(
         Guid id,
         Guid verificationJobId,
@@ -27,7 +34,8 @@ public sealed class Finding
         FindingVerdict verdict,
         string engineVersion,
         string? expected = null,
-        string? observed = null)
+        string? observed = null,
+        ChecklistTier tier = ChecklistTier.Condusef)
     {
         ArgumentNullException.ThrowIfNull(checkId);
         ArgumentNullException.ThrowIfNull(engineVersion);
@@ -38,6 +46,7 @@ public sealed class Finding
         EngineVersion = engineVersion;
         Expected = expected;
         Observed = observed;
+        Tier = tier;
     }
 
     /// <summary>Gets the unique identifier for this finding.</summary>
@@ -62,4 +71,16 @@ public sealed class Finding
 
     /// <summary>Gets the semantic version of the verification engine that ran this check.</summary>
     public string EngineVersion { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Gets the regulatory tier this check belongs to (Story 1.4).
+    /// </summary>
+    /// <remarks>
+    /// Populated from the per-tenant checklist-tier map when available; defaults to
+    /// <c>ChecklistTier.Condusef</c> when the map is absent or the check ID is not mapped
+    /// (conservative default — unmapped checks count toward the regulatory floor).
+    /// Pre-existing rows (before migration <c>AddTwoTierVerdictColumns</c>) carry the DB
+    /// default of <c>Condusef</c> (integer value 1).
+    /// </remarks>
+    public ChecklistTier Tier { get; private set; }
 }

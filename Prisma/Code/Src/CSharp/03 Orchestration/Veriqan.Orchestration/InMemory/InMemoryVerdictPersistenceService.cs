@@ -33,6 +33,9 @@ internal sealed class InMemoryVerdictPersistenceService : IVerdictPersistenceSer
         VerdictSignal signal,
         IReadOnlyList<RuleFinding> findings,
         string engineVersion,
+        VerdictSignal bankTierVerdict = VerdictSignal.Green,
+        VerdictSignal condusefTierVerdict = VerdictSignal.Green,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null,
         CancellationToken cancellationToken = default)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -44,13 +47,19 @@ internal sealed class InMemoryVerdictPersistenceService : IVerdictPersistenceSer
         var verdict = new JobVerdict(
             id: Guid.NewGuid(),
             verificationJobId: jobId,
-            signal: signal);
+            signal: signal,
+            bankTierVerdict: bankTierVerdict,
+            condusefTierVerdict: condusefTierVerdict);
 
         _verdicts[jobId] = verdict;
 
         var findingEntities = new List<Finding>(findings.Count);
         foreach (var rf in findings)
         {
+            var tier = checklistTiers is not null && checklistTiers.TryGetValue(rf.CheckId, out var t)
+                ? t
+                : ChecklistTier.Condusef;
+
             findingEntities.Add(new Finding(
                 id: Guid.NewGuid(),
                 verificationJobId: jobId,
@@ -58,7 +67,8 @@ internal sealed class InMemoryVerdictPersistenceService : IVerdictPersistenceSer
                 verdict: rf.Verdict,
                 engineVersion: engineVersion,
                 expected: rf.Expected,
-                observed: rf.Observed));
+                observed: rf.Observed,
+                tier: tier));
         }
 
         _findings[jobId] = findingEntities;

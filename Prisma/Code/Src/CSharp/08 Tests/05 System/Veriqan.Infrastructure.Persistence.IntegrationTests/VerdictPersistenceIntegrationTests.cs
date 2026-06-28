@@ -1,12 +1,8 @@
-// DEFERRED: This test requires a running SQL Server container (Docker).
-// Docker is NOT available on this machine. The test is authored and compiled
-// but cannot be executed until Docker is available (CI or a Docker-capable dev box).
-//
-// To run: docker must be available, then:
-//   dotnet test ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.IntegrationTests.csproj
-//
 // Story: VERIQAN-E1-S5 — Persist stage (Stage 8: JobVerdict + Findings persistence).
+// Story 1.4 — Persist + expose two-tier verdict (BankTierVerdict, CondusefTierVerdict, Finding.Tier).
+// Docker IS available in this session; these tests run LIVE on a SQL Server Testcontainer.
 
+using System.Collections.Generic;
 using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
@@ -202,6 +198,125 @@ public sealed class VerdictPersistenceIntegrationTests
             _logger.LogInformation(
                 "VerdictPersistence happy-path passed: {VerdictId} | {FindingCount} findings.",
                 storedVerdict.Id,
+                storedFindings.Count);
+        }
+    }
+
+    /// <summary>
+    /// Story 1.4 round-trip: <see cref="EfVerdictPersistenceService.PersistAsync"/> persists
+    /// <see cref="JobVerdict.BankTierVerdict"/> + <see cref="JobVerdict.CondusefTierVerdict"/>
+    /// and each <see cref="Finding.Tier"/> is stamped from the supplied <c>checklistTiers</c> map.
+    /// Reads back both the verdict columns and the finding tier to confirm the DB stores them
+    /// exactly as passed (no silent drop, no default override).
+    /// </summary>
+    [Fact]
+    public async Task PersistAsync_TwoTierVerdict_RoundTripsCorrectly()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var (scope, _) = await BuildScopeAsync("verdict_persist_two_tier", ct);
+
+        await using (scope)
+        {
+            var svc = scope.ServiceProvider.GetRequiredService<EfVerdictPersistenceService>();
+            var ctx = scope.ServiceProvider.GetRequiredService<VeriqanDbContext>();
+
+            var jobId = Guid.NewGuid();
+            const string engineVersion = "1.0.0";
+
+            // Seed the parent VerificationJob (FK required by real SQL).
+            var parentJob = new VerificationJob(
+                id: jobId,
+                contentHash: jobId.ToString("N") + "tt",
+                receivedAtUtc: DateTimeOffset.UtcNow,
+                status: VerificationJobStatus.Pending);
+            await ctx.VerificationJobs.AddAsync(parentJob, ct);
+            await ctx.SaveChangesAsync(ct);
+
+            // Two findings: one Bank-tier (CL-BANK-01) and one Condusef-tier (CL-COND-01).
+            // Both fail so both tier verdicts become non-green.
+            IReadOnlyList<RuleFinding> ruleFindings =
+            [
+                RuleFinding.Fail(
+                    "CL-BANK-01",
+                    TechniqueClass.Deterministic,
+                    FindingSeverity.Warning,
+                    engineVersion,
+                    expected: "bank-expected",
+                    observed: "bank-observed"),
+                RuleFinding.Fail(
+                    "CL-COND-01",
+                    TechniqueClass.Deterministic,
+                    FindingSeverity.Critical,
+                    engineVersion,
+                    expected: "condusef-expected",
+                    observed: "condusef-observed"),
+            ];
+
+            // Tier map: CL-BANK-01 is Bank-only; CL-COND-01 is Condusef.
+            IReadOnlyDictionary<string, ChecklistTier> tierMap = new Dictionary<string, ChecklistTier>
+            {
+                ["CL-BANK-01"] = ChecklistTier.Bank,
+                ["CL-COND-01"] = ChecklistTier.Condusef,
+            };
+
+            // The expected overall verdict: Bank=Yellow (bank-tier fail), Condusef=Red (condusef-tier fail).
+            // Under the two-tier combination rule Condusef Red overrides → overall Red.
+
+            // Act
+            var result = await svc.PersistAsync(
+                jobId: jobId,
+                signal: VerdictSignal.Red,
+                findings: ruleFindings,
+                engineVersion: engineVersion,
+                bankTierVerdict: VerdictSignal.Yellow,
+                condusefTierVerdict: VerdictSignal.Red,
+                checklistTiers: tierMap,
+                cancellationToken: ct);
+
+            // Assert — service call succeeded
+            result.IsSuccess.ShouldBeTrue(
+                $"PersistAsync returned failure: {result.Error}");
+            result.Value.ShouldNotBeNull();
+
+            // Assert — JobVerdict tier columns round-trip from the database
+            var storedVerdict = await ctx.JobVerdicts
+                .AsNoTracking()
+                .Where(v => v.VerificationJobId == jobId)
+                .SingleOrDefaultAsync(ct);
+
+            storedVerdict.ShouldNotBeNull("A JobVerdict row must exist for the given jobId.");
+            storedVerdict.Signal.ShouldBe(VerdictSignal.Red, "overall signal must be Red");
+            storedVerdict.BankTierVerdict.ShouldBe(
+                VerdictSignal.Yellow,
+                "BankTierVerdict must persist as Yellow (Story 1.4)");
+            storedVerdict.CondusefTierVerdict.ShouldBe(
+                VerdictSignal.Red,
+                "CondusefTierVerdict must persist as Red (Story 1.4)");
+
+            // Assert — Finding.Tier stamped correctly from the tier map
+            var storedFindings = await ctx.Findings
+                .AsNoTracking()
+                .Where(f => f.VerificationJobId == jobId)
+                .ToListAsync(ct);
+
+            storedFindings.Count.ShouldBe(2, "Expected exactly 2 Finding rows.");
+
+            var bankFinding = storedFindings.SingleOrDefault(f => f.CheckId == "CL-BANK-01");
+            bankFinding.ShouldNotBeNull("CL-BANK-01 finding must exist");
+            bankFinding!.Tier.ShouldBe(ChecklistTier.Bank,
+                "CL-BANK-01 must be stamped as Bank tier (Story 1.4)");
+
+            var condusefFinding = storedFindings.SingleOrDefault(f => f.CheckId == "CL-COND-01");
+            condusefFinding.ShouldNotBeNull("CL-COND-01 finding must exist");
+            condusefFinding!.Tier.ShouldBe(ChecklistTier.Condusef,
+                "CL-COND-01 must be stamped as Condusef tier (Story 1.4)");
+
+            _logger.LogInformation(
+                "Two-tier round-trip passed: VerdictId={VerdictId} Bank={Bank} Condusef={Condusef} Findings={Count}",
+                storedVerdict.Id,
+                storedVerdict.BankTierVerdict,
+                storedVerdict.CondusefTierVerdict,
                 storedFindings.Count);
         }
     }

@@ -513,6 +513,8 @@ public sealed class ObservabilityTests : IDisposable
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(
                 Result<JobVerdict>.WithSuccess(

@@ -17,11 +17,26 @@ public sealed class JobVerdict
     /// <param name="id">Unique verdict identifier.</param>
     /// <param name="verificationJobId">Parent job identifier.</param>
     /// <param name="signal">Traffic-light signal summarising all findings.</param>
-    public JobVerdict(Guid id, Guid verificationJobId, VerdictSignal signal)
+    /// <param name="bankTierVerdict">
+    /// Bank-tier verdict (Story 1.4). Defaults to <c>VerdictSignal.Green</c> for
+    /// pre-migration rows and early-exit blocked paths that carry no tier data.
+    /// </param>
+    /// <param name="condusefTierVerdict">
+    /// CONDUSEF-tier verdict (Story 1.4). Defaults to <c>VerdictSignal.Green</c> for
+    /// pre-migration rows; see <c>VerdictSummary.ToJobVerdict</c> for the live mapping.
+    /// </param>
+    public JobVerdict(
+        Guid id,
+        Guid verificationJobId,
+        VerdictSignal signal,
+        VerdictSignal bankTierVerdict = VerdictSignal.Green,
+        VerdictSignal condusefTierVerdict = VerdictSignal.Green)
     {
         Id = id;
         VerificationJobId = verificationJobId;
         Signal = signal;
+        BankTierVerdict = bankTierVerdict;
+        CondusefTierVerdict = condusefTierVerdict;
     }
 
     /// <summary>Gets the unique identifier for this verdict record.</summary>
@@ -32,6 +47,30 @@ public sealed class JobVerdict
 
     /// <summary>Gets the traffic-light signal summarising all check findings.</summary>
     public VerdictSignal Signal { get; private set; }
+
+    /// <summary>
+    /// Gets the verdict from the bank's own ruleset tier (Story 1.4).
+    /// </summary>
+    /// <remarks>
+    /// <c>Green</c> — no bank-tier failures.
+    /// <c>Yellow</c> — bank-tier improvement opportunities present.
+    /// <c>Blocked</c> — set on early-exit blocked verdicts.
+    /// Pre-existing rows (before migration <c>AddTwoTierVerdictColumns</c>) carry the DB
+    /// default of <c>Green</c> (integer value 0).
+    /// </remarks>
+    public VerdictSignal BankTierVerdict { get; private set; }
+
+    /// <summary>
+    /// Gets the verdict from the CONDUSEF regulatory tier (Story 1.4).
+    /// </summary>
+    /// <remarks>
+    /// <c>Green</c> — no CONDUSEF-mandated failures.
+    /// <c>Red</c> — at least one CONDUSEF-mandated rule failed.
+    /// <c>Blocked</c> — set on early-exit blocked verdicts.
+    /// Pre-existing rows (before migration <c>AddTwoTierVerdictColumns</c>) carry the DB
+    /// default of <c>Green</c> (integer value 0).
+    /// </remarks>
+    public VerdictSignal CondusefTierVerdict { get; private set; }
 
     /// <summary>
     /// Gets the UTC timestamp at which a RED-alert email was sent for this verdict,

@@ -436,12 +436,15 @@ public sealed record VerdictSummary
     /// Projects this summary onto a new <see cref="Domain.Entities.JobVerdict"/> entity.
     /// </summary>
     /// <remarks>
-    /// Persistence mapping is deferred to Story 7.4; this convenience method is provided
-    /// so callers can build the entity without knowing the internal mapping.
+    /// Wires <see cref="Signal"/>, <see cref="BankTierVerdict"/>, and
+    /// <see cref="CondusefTierVerdict"/> into the persisted entity (Story 1.4).
     /// </remarks>
     /// <param name="id">Unique identifier for the new <see cref="Domain.Entities.JobVerdict"/>.</param>
     /// <param name="verificationJobId">Parent job identifier.</param>
-    /// <returns>A new <see cref="Domain.Entities.JobVerdict"/> with <see cref="Signal"/> wired in.</returns>
+    /// <returns>
+    /// A new <see cref="Domain.Entities.JobVerdict"/> with the overall signal and both tier
+    /// verdicts mapped from this summary.
+    /// </returns>
     public Domain.Entities.JobVerdict ToJobVerdict(System.Guid id, System.Guid verificationJobId) =>
-        new(id, verificationJobId, Signal);
+        new(id, verificationJobId, Signal, BankTierVerdict, CondusefTierVerdict);
 }

@@ -149,6 +149,8 @@ public sealed class TextLayerDensityGuardTests
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(Result<JobVerdict>.WithSuccess(persistResult)));
 
@@ -193,6 +195,9 @@ public sealed class TextLayerDensityGuardTests
             VerdictSignal.Blocked,
             Arg.Any<IReadOnlyList<RuleFinding>>(),
             Arg.Any<string>(),
+            VerdictSignal.Blocked,
+            VerdictSignal.Blocked,
+            Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
             Arg.Any<CancellationToken>());
     }
 
@@ -233,6 +238,8 @@ public sealed class TextLayerDensityGuardTests
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
                 Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<string>(),
+                Arg.Any<VerdictSignal>(), Arg.Any<VerdictSignal>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(
                 Result<JobVerdict>.WithSuccess(

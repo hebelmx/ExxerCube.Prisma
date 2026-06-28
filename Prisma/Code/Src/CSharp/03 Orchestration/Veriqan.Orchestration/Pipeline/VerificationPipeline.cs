@@ -268,6 +268,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                     signal: VerdictSignal.Blocked,
                     findings: Array.Empty<RuleFinding>(),
                     engineVersion: EngineVersion,
+                    bankTierVerdict: VerdictSignal.Blocked,
+                    condusefTierVerdict: VerdictSignal.Blocked,
                     cancellationToken: ct).ConfigureAwait(false);
 
             if (coveragePersistResult.IsCancelled())
@@ -407,6 +409,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                     signal: VerdictSignal.Blocked,
                     findings: Array.Empty<RuleFinding>(),
                     engineVersion: EngineVersion,
+                    bankTierVerdict: VerdictSignal.Blocked,
+                    condusefTierVerdict: VerdictSignal.Blocked,
                     cancellationToken: ct).ConfigureAwait(false);
 
             if (textLayerPersistResult.IsCancelled())
@@ -554,6 +558,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                         signal: VerdictSignal.Blocked,
                         findings: Array.Empty<RuleFinding>(),
                         engineVersion: EngineVersion,
+                        bankTierVerdict: VerdictSignal.Blocked,
+                        condusefTierVerdict: VerdictSignal.Blocked,
                         cancellationToken: ct).ConfigureAwait(false);
 
                 if (blockedPersistResult.IsCancelled())
@@ -799,6 +805,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         // Stage 8 — Persist (verdict + findings durable before report/notify)
         // Non-optional: a persist failure returns Result.WithFailure so the caller knows the
         // verdict was NOT written.  Never silently discard a computed verdict.
+        // Story 1.4: thread both tier verdicts and the tier map so each Finding is stamped
+        // with its ChecklistTier and the JobVerdict carries BankTierVerdict + CondusefTierVerdict.
         Result<JobVerdict> persistResult;
         using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
             persistResult = await _verdictPersistence.PersistAsync(
@@ -806,6 +814,9 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 signal: summary.Signal,
                 findings: findings,
                 engineVersion: EngineVersion,
+                bankTierVerdict: summary.BankTierVerdict,
+                condusefTierVerdict: summary.CondusefTierVerdict,
+                checklistTiers: checklistTiers,
                 cancellationToken: ct).ConfigureAwait(false);
 
         if (persistResult.IsCancelled())
