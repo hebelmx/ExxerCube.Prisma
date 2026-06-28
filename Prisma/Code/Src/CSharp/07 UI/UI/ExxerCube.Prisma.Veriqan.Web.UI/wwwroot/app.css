@@ -10,6 +10,10 @@
     border-left: 6px solid #F44336;
 }
 
+.vec-signal-yellow {
+    border-left: 6px solid #FFC107;
+}
+
 .vec-signal-blocked {
     border-left: 6px solid #FF9800;
 }

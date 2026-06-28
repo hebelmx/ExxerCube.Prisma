@@ -1,8 +1,11 @@
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
+
 namespace ExxerCube.Prisma.Veriqan.Web.UI.Services;
 
 /// <summary>
 /// Static registry of the 55 VEC checklist identifiers (CL-1…CL-55) with
-/// human-readable labels and DOF numeral references used by the demo UI grid.
+/// human-readable labels, DOF numeral references, and regulatory tier assignments
+/// used by the demo UI grid.
 /// </summary>
 internal static class ChecklistIds
 {
@@ -81,6 +84,41 @@ internal static class ChecklistIds
         "CL-54" => "Firma digital del emisor",
         "CL-55" => "Hash de integridad en pie de página",
         _ => checkId,
+    };
+
+    /// <summary>
+    /// Returns the regulatory tier for the given check ID.
+    /// Source: <c>Prisma/Data/Veriqan/reference-bundles/Demo_Bank_(Iqubica)/checklist-tiers.csv</c>
+    /// (56 rows: 10 Bank rows / 26 Both rows / 20 Condusef rows).
+    /// Check IDs in CL-1..55 that are not listed in the CSV (CL-1..9, CL-11..16, CL-38, CL-54, CL-55)
+    /// fall through to the default <see cref="ChecklistTier.Condusef"/> per the conservative-default
+    /// contract in <see cref="ChecklistTier"/> XML docs.
+    /// LAW-xxx and ITEM-58 CSV entries have no corresponding AllIds entry and are not mapped here.
+    /// </summary>
+    internal static ChecklistTier Tier(string checkId) => checkId switch
+    {
+        // ── Bank tier (from CSV rows marked "Bank") ─────────────────────────────
+        // Row: CL-27/CL-30/CL-47
+        "CL-27" or "CL-30" or "CL-47" => ChecklistTier.Bank,
+        // Rows: CL-35, CL-37, CL-45, CL-49, CL-50, CL-51, CL-52, CL-53
+        "CL-35" => ChecklistTier.Bank,
+        "CL-37" => ChecklistTier.Bank,
+        "CL-45" => ChecklistTier.Bank,
+        "CL-49" => ChecklistTier.Bank,
+        "CL-50" => ChecklistTier.Bank,
+        "CL-51" => ChecklistTier.Bank,
+        "CL-52" => ChecklistTier.Bank,
+        "CL-53" => ChecklistTier.Bank,
+        // ── Both tier (from CSV rows marked "Both") ──────────────────────────────
+        "CL-10" or "CL-17" or "CL-18" or "CL-19" or "CL-20" or "CL-21" or "CL-22" => ChecklistTier.Both,
+        "CL-23" or "CL-24" or "CL-25" or "CL-26" or "CL-28" or "CL-29" => ChecklistTier.Both,
+        "CL-31" or "CL-32" or "CL-33" or "CL-34" or "CL-36" => ChecklistTier.Both,
+        "CL-39" or "CL-40" or "CL-41" or "CL-42" or "CL-43" or "CL-44" => ChecklistTier.Both,
+        "CL-46" or "CL-48" => ChecklistTier.Both,
+        // ── Default: Condusef ─────────────────────────────────────────────────────
+        // Per ChecklistTier docs: unmapped checks count toward the regulatory floor.
+        // Covers CL-1..9, CL-11..16, CL-38, CL-54, CL-55 and any other unlisted ID.
+        _ => ChecklistTier.Condusef,
     };
 
     /// <summary>Returns the DOF regulation numeral for the given check, or an empty string.</summary>

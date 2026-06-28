@@ -1,0 +1,72 @@
+@* Reusable tri-state verdict banner: GREEN / YELLOW / RED / BLOCKED.
+   Accepts a VerdictSignal and optional child content (metric chips, block reason, etc.)
+   rendered below the divider. Always shows a one-line tier legend at the bottom.
+   Usage:
+     <VerdictBanner Signal="VerdictSignal.Red">
+         <MudGrid Justify="Justify.Center"> ... chips ... </MudGrid>
+     </VerdictBanner>
+*@
+
+<MudPaper Class="@($"vec-verdict-banner {_signalCss} mb-6")" Elevation="3">
+    <MudIcon Icon="@_icon" Color="@_color" Style="font-size:3rem;" />
+    <MudText Typo="Typo.h3" Color="@_color" Class="mt-1">@_label</MudText>
+    <MudText Typo="Typo.subtitle1">@_tagline</MudText>
+    <MudDivider Class="my-3" />
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+        <MudDivider Class="my-2" />
+    }
+    <MudText Typo="Typo.caption" Class="mud-text-secondary">
+        <span style="color:#4CAF50;">&#9679;</span> Verde&nbsp;=&nbsp;Conforme
+        &nbsp;·&nbsp;
+        <span style="color:#FFC107;">&#9679;</span> Amarillo&nbsp;=&nbsp;Oportunidades del banco (CONDUSEF en regla)
+        &nbsp;·&nbsp;
+        <span style="color:#F44336;">&#9679;</span> Rojo&nbsp;=&nbsp;Incumplimiento regulatorio CONDUSEF
+    </MudText>
+</MudPaper>
+
+@code {
+    /// <summary>The traffic-light signal that drives color, icon, and copy.</summary>
+    [Parameter] public VerdictSignal Signal { get; set; }
+
+    /// <summary>Optional metric chips or extra content rendered between the divider and the legend.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string _signalCss = string.Empty;
+    private string _icon = string.Empty;
+    private Color _color = Color.Default;
+    private string _label = string.Empty;
+    private string _tagline = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        (_signalCss, _icon, _color, _label, _tagline) = Signal switch
+        {
+            VerdictSignal.Green => (
+                "vec-signal-green",
+                Icons.Material.Filled.CheckCircle,
+                Color.Success,
+                "GREEN",
+                "Conforme — todos los checks superados"),
+            VerdictSignal.Yellow => (
+                "vec-signal-yellow",
+                Icons.Material.Filled.Warning,
+                Color.Warning,
+                "YELLOW",
+                "Conforme al banco; oportunidades de mejora — CONDUSEF en regla"),
+            VerdictSignal.Red => (
+                "vec-signal-red",
+                Icons.Material.Filled.Cancel,
+                Color.Error,
+                "RED",
+                "No conforme — incumplimiento regulatorio CONDUSEF"),
+            _ => (
+                "vec-signal-blocked",
+                Icons.Material.Filled.Block,
+                Color.Warning,
+                "BLOCKED",
+                "Pre-condición no cumplida — verificación automática detenida, se requiere revisión humana"),
+        };
+    }
+}

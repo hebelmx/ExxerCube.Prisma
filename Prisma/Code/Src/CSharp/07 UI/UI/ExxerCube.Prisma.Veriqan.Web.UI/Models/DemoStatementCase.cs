@@ -19,6 +19,19 @@ public sealed class DemoStatementCase
     /// <summary>Gets or sets the traffic-light verdict signal.</summary>
     public VerdictSignal Signal { get; init; }
 
+    /// <summary>
+    /// Gets or sets the CONDUSEF-tier verdict (checks whose tier is
+    /// <see cref="ChecklistTier.Condusef"/> or <see cref="ChecklistTier.Both"/>).
+    /// Red when at least one such check fails; Green otherwise.
+    /// </summary>
+    public VerdictSignal CondusefTierVerdict { get; init; }
+
+    /// <summary>
+    /// Gets or sets the bank-tier verdict (checks whose tier is <see cref="ChecklistTier.Bank"/>).
+    /// Yellow when at least one such check fails; Green otherwise.
+    /// </summary>
+    public VerdictSignal BankTierVerdict { get; init; }
+
     /// <summary>Gets or sets the total number of findings evaluated.</summary>
     public int TotalChecks { get; init; }
 

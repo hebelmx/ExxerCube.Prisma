@@ -31,4 +31,11 @@ public sealed class DemoFinding
 
     /// <summary>Gets the DOF numeral reference (Mexican regulation article), or empty string.</summary>
     public string DofNumeral { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the regulatory tier of the check.
+    /// Sourced from <c>checklist-tiers.csv</c> in the reference bundle via
+    /// <see cref="ExxerCube.Prisma.Veriqan.Web.UI.Services.ChecklistIds.Tier"/>.
+    /// </summary>
+    public ChecklistTier Tier { get; init; }
 }

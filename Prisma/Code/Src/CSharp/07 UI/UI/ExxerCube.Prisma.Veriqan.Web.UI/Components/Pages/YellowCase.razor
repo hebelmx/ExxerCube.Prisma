@@ -1,27 +1,27 @@
-@page "/red"
+@page "/yellow"
 @rendermode InteractiveServer
 @inject DemoDataService Demo
 
-<PageTitle>Caso RED — Veriqan Demo</PageTitle>
+<PageTitle>Caso YELLOW — Veriqan Demo</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-1">Captura 3 — Hallazgos de Incumplimiento (RED)</MudText>
+<MudText Typo="Typo.h5" Class="mb-1">Captura 4 — Oportunidades de Mejora (YELLOW)</MudText>
 <MudText Typo="Typo.body2" Class="mb-4 mud-text-secondary">
-    CL-21 (aritmética) · CL-35 (fuente) · Archivo: <em>@_case.FileName</em>
+    CL-35 (fuente) · CL-37 (contraste) · CONDUSEF en regla · Archivo: <em>@_case.FileName</em>
 </MudText>
 
 <!-- Verdict banner -->
-<VerdictBanner Signal="VerdictSignal.Red">
+<VerdictBanner Signal="VerdictSignal.Yellow">
     <MudGrid Justify="Justify.Center">
         <MudItem><MudChip T="string" Color="Color.Success">@_case.PassCount Pass</MudChip></MudItem>
-        <MudItem><MudChip T="string" Color="Color.Error">@_case.FailCount Fail</MudChip></MudItem>
+        <MudItem><MudChip T="string" Color="Color.Warning">@_case.FailCount Mejora banco</MudChip></MudItem>
         <MudItem><MudChip T="string" Color="Color.Default">@_case.InsufficientDataCount InsufficientData</MudChip></MudItem>
         <MudItem><MudChip T="string" Color="Color.Info">@_case.ProcessingDuration.TotalSeconds.ToString("F2") s</MudChip></MudItem>
     </MudGrid>
 </VerdictBanner>
 
-<!-- Main split layout: grid + PDF side-by-side -->
+<!-- Main split layout: grid + detail side-by-side -->
 <MudGrid>
-    <!-- Left: check grid + failure detail -->
+    <!-- Left: check grid + tier-grouped detail -->
     <MudItem xs="12" md="6">
         <MudText Typo="Typo.h6" Class="mb-2">Grilla de verificación</MudText>
         <MudPaper Class="pa-4 mb-4" Elevation="1">
@@ -44,9 +44,7 @@
             </div>
         </MudPaper>
 
-        <!-- ── Tier-grouped failure sections (Story 2.2) ───────────────────── -->
-
-        <!-- CONDUSEF / Both failures → RED -->
+        <!-- ── CONDUSEF section (will be empty for YELLOW) ─────────────────── -->
         <MudText Typo="Typo.h6" Class="mb-2">
             <MudIcon Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Style="vertical-align:middle;" />
             Incumplimiento CONDUSEF (RED)
@@ -54,7 +52,9 @@
         <MudPaper Elevation="1" Class="mb-4">
             @if (_condusefFailFindings.Count == 0)
             {
-                <MudAlert Severity="Severity.Success" Dense="true" Class="ma-2">Sin incumplimientos CONDUSEF.</MudAlert>
+                <MudAlert Severity="Severity.Success" Dense="true" Class="ma-2">
+                    Sin incumplimientos CONDUSEF — estado conforme a nivel regulatorio.
+                </MudAlert>
             }
             else
             {
@@ -83,7 +83,7 @@
             }
         </MudPaper>
 
-        <!-- Bank-only failures → YELLOW improvement opportunities -->
+        <!-- ── Bank improvement opportunities ─────────────────────────────── -->
         <MudText Typo="Typo.h6" Class="mb-2">
             <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Style="vertical-align:middle;" />
             Oportunidades de mejora del banco (YELLOW)
@@ -91,7 +91,7 @@
         <MudPaper Elevation="1" Class="mb-4">
             @if (_bankFailFindings.Count == 0)
             {
-                <MudAlert Severity="Severity.Info" Dense="true" Class="ma-2">Sin oportunidades de mejora en este caso.</MudAlert>
+                <MudAlert Severity="Severity.Info" Dense="true" Class="ma-2">Sin oportunidades de mejora identificadas.</MudAlert>
             }
             else
             {
@@ -117,30 +117,48 @@
         </MudPaper>
     </MudItem>
 
-    <!-- Right: marked-PDF viewer -->
+    <!-- Right: explanation panel -->
     <MudItem xs="12" md="6">
-        <MudText Typo="Typo.h6" Class="mb-2">PDF Marcado (preview)</MudText>
+        <MudText Typo="Typo.h6" Class="mb-2">¿Qué significa YELLOW?</MudText>
+        <MudPaper Class="pa-4 mb-4" Elevation="1">
+            <MudAlert Severity="Severity.Warning" Class="mb-3">
+                <MudText Typo="Typo.subtitle2">CONDUSEF en regla — el banco puede mejorar</MudText>
+            </MudAlert>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                El estado de cuenta cumple todos los requisitos regulatorios de CONDUSEF.
+                Sin embargo, el banco tiene oportunidades de mejorar su estándar interno:
+            </MudText>
+            <MudList T="string" Dense="true">
+                <MudListItem T="string" Icon="@Icons.Material.Filled.ArrowRight">
+                    <b>CL-35 — Tipo de fuente:</b> El banco exige Aptos 10 pt para uniformidad visual;
+                    se detectó Arial 8 pt. Esto no viola la regulación CONDUSEF, pero afecta
+                    la consistencia de marca.
+                </MudListItem>
+                <MudListItem T="string" Icon="@Icons.Material.Filled.ArrowRight">
+                    <b>CL-37 — Contraste texto/fondo:</b> El estándar interno requiere relación ≥ 4.5:1
+                    (WCAG AA). Se midió 3.1:1. Recomendación de accesibilidad del banco, no obligación CONDUSEF.
+                </MudListItem>
+            </MudList>
+            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                Verdicts de tier: CONDUSEF = <MudChip T="string" Size="Size.Small" Color="Color.Success">GREEN</MudChip>
+                &nbsp;· Banco = <MudChip T="string" Size="Size.Small" Color="Color.Warning">YELLOW</MudChip>
+            </MudText>
+        </MudPaper>
+
+        <MudText Typo="Typo.h6" Class="mb-2">Datos del documento</MudText>
         <MudPaper Class="pa-3" Elevation="1">
-            @if (_case.MarkedPdfPath is not null)
-            {
-                <iframe class="vec-pdf-frame" src="@_case.MarkedPdfPath" title="PDF marcado" />
-            }
-            else
-            {
-                <MudPaper Class="d-flex flex-column align-center justify-center" Elevation="0"
-                          Style="height:520px; border:2px dashed var(--mud-palette-divider); border-radius:4px;">
-                    <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Large"
-                             Color="Color.Error" Style="font-size:4rem;" />
-                    <MudText Typo="Typo.subtitle2" Class="mt-3">PDF Marcado</MudText>
-                    <MudText Typo="Typo.caption" Class="mt-1 mud-text-secondary text-center px-4">
-                        En producción, el pipeline genera un PDF con anotaciones visuales<br />
-                        que resaltan exactamente las zonas donde CL-21 y CL-35 fallaron.
-                    </MudText>
-                    <MudText Typo="Typo.caption" Class="mt-3">
-                        <code>exports/@_case.JobId.ToString()[..8]…-marked.pdf</code>
-                    </MudText>
-                </MudPaper>
-            }
+            <MudSimpleTable Dense="true">
+                <tbody>
+                    <tr><td><b>Banco</b></td><td>@_case.ExtractedFields.BankName</td></tr>
+                    <tr><td><b>Cuenta</b></td><td>@_case.ExtractedFields.MaskedAccount</td></tr>
+                    <tr><td><b>Producto</b></td><td>@_case.ExtractedFields.ProductType</td></tr>
+                    <tr><td><b>Período</b></td><td>@_case.ExtractedFields.Period</td></tr>
+                    <tr><td><b>Saldo final</b></td><td>@_case.ExtractedFields.ClosingBalance.ToString("C2")</td></tr>
+                    <tr><td><b>Movimientos</b></td><td>@_case.ExtractedFields.MovementCount</td></tr>
+                    <tr><td><b>Páginas</b></td><td>@_case.ExtractedFields.PageCount</td></tr>
+                </tbody>
+            </MudSimpleTable>
         </MudPaper>
     </MudItem>
 </MudGrid>
@@ -152,7 +170,7 @@
 
     protected override void OnInitialized()
     {
-        _case = Demo.GetBySignal(VerdictSignal.Red)!;
+        _case = Demo.GetBySignal(VerdictSignal.Yellow)!;
 
         _condusefFailFindings = _case.Findings
             .Where(f => f.Verdict == FindingVerdict.Fail &&

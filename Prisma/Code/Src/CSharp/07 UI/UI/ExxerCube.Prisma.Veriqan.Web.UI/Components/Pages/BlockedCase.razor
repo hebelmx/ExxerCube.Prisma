@@ -9,14 +9,8 @@
     Documento solo-imagen · CL-1…CL-55 → InsufficientData · Archivo: <em>@_case.FileName</em>
 </MudText>
 
-<!-- Verdict banner (orange / warning) -->
-<MudPaper Class="vec-verdict-banner vec-signal-blocked mb-6" Elevation="3">
-    <MudIcon Icon="@Icons.Material.Filled.Block" Color="Color.Warning" Style="font-size:3rem;" />
-    <MudText Typo="Typo.h3" Color="Color.Warning" Class="mt-1">BLOCKED</MudText>
-    <MudText Typo="Typo.subtitle1">
-        Pre-condición no cumplida — verificación automática detenida, se requiere revisión humana
-    </MudText>
-    <MudDivider Class="my-3" />
+<!-- Verdict banner -->
+<VerdictBanner Signal="VerdictSignal.Blocked">
     <MudGrid Justify="Justify.Center">
         <MudItem>
             <MudChip T="string" Color="Color.Warning">
@@ -27,7 +21,7 @@
             <MudChip T="string" Color="Color.Default">@_case.InsufficientDataCount InsufficientData</MudChip>
         </MudItem>
     </MudGrid>
-</MudPaper>
+</VerdictBanner>
 
 <!-- Block detail -->
 <MudAlert Severity="Severity.Warning" Class="mb-6">

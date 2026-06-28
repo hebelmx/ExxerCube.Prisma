@@ -20,15 +20,17 @@ public sealed class DemoDataService
     /// <summary>Initialises the service and builds the three demo cases in memory.</summary>
     public DemoDataService()
     {
-        var greenJobId = new Guid("11111111-0000-0000-0000-000000000001");
-        var redJobId = new Guid("22222222-0000-0000-0000-000000000002");
+        var greenJobId   = new Guid("11111111-0000-0000-0000-000000000001");
+        var redJobId     = new Guid("22222222-0000-0000-0000-000000000002");
         var blockedJobId = new Guid("33333333-0000-0000-0000-000000000003");
+        var yellowJobId  = new Guid("44444444-0000-0000-0000-000000000004");
 
         _cases =
         [
             BuildGreenCase(greenJobId),
             BuildRedCase(redJobId),
             BuildBlockedCase(blockedJobId),
+            BuildYellowCase(yellowJobId),
         ];
     }
 
@@ -71,6 +73,8 @@ public sealed class DemoDataService
             CaseName = "Caso GREEN — Estado conforme",
             FileName = "estado-cuenta-visa-demo.pdf",
             Signal = VerdictSignal.Green,
+            CondusefTierVerdict = ComputeCondusefTierVerdict(findings),
+            BankTierVerdict = ComputeBankTierVerdict(findings),
             TotalChecks = 55,
             PassCount = 55,
             FailCount = 0,
@@ -127,6 +131,8 @@ public sealed class DemoDataService
             CaseName = "Caso RED — Hallazgos de incumplimiento",
             FileName = "estado-cuenta-mc-demo.pdf",
             Signal = VerdictSignal.Red,
+            CondusefTierVerdict = ComputeCondusefTierVerdict(findings),
+            BankTierVerdict = ComputeBankTierVerdict(findings),
             TotalChecks = 55,
             PassCount = 52,
             FailCount = 2,
@@ -169,6 +175,8 @@ public sealed class DemoDataService
             CaseName = "Caso BLOCKED — Solo imagen, requiere revisión humana",
             FileName = "estado-cuenta-escaneado.pdf",
             Signal = VerdictSignal.Blocked,
+            CondusefTierVerdict = ComputeCondusefTierVerdict(findings),
+            BankTierVerdict = ComputeBankTierVerdict(findings),
             TotalChecks = 55,
             PassCount = 0,
             FailCount = 0,
@@ -220,6 +228,7 @@ public sealed class DemoDataService
         Severity = FindingSeverity.Info,
         Label = ChecklistIds.Label(checkId),
         DofNumeral = ChecklistIds.DofNumeral(checkId),
+        Tier = ChecklistIds.Tier(checkId),
     };
 
     private static DemoFinding BuildFailFinding(string checkId)
@@ -228,6 +237,7 @@ public sealed class DemoDataService
         {
             "CL-21" => ("$9,432.10", "$9,512.90"),
             "CL-35" => ("Aptos 10 pt", "Arial 8 pt"),
+            "CL-37" => ("≥ 4.5:1", "3.1:1"),
             _ => ("(esperado)", "(observado)"),
         };
         return new DemoFinding
@@ -240,6 +250,7 @@ public sealed class DemoDataService
             Expected = expected,
             Observed = observed,
             DofNumeral = ChecklistIds.DofNumeral(checkId),
+            Tier = ChecklistIds.Tier(checkId),
         };
     }
 
@@ -251,7 +262,80 @@ public sealed class DemoDataService
         Severity = FindingSeverity.Info,
         Label = ChecklistIds.Label(checkId),
         DofNumeral = ChecklistIds.DofNumeral(checkId),
+        Tier = ChecklistIds.Tier(checkId),
     };
+
+    private static DemoStatementCase BuildYellowCase(Guid jobId)
+    {
+        var receivedAt = DateTimeOffset.UtcNow.AddMinutes(-3);
+        // CL-35 (Tipo de fuente — Bank tier) and CL-37 (Contraste texto/fondo — Bank tier).
+        // Both are bank-internal visual standards; neither is a CONDUSEF regulatory mandate.
+        // Zero Both/Condusef failures → CondusefTierVerdict=Green, BankTierVerdict=Yellow,
+        // overall Signal=Yellow (good.pdf-style: compliant at law, improvement opportunities at bank bar).
+        var failIds = new[] { "CL-35", "CL-37" };
+        var findings = BuildAllFindings(failCheckIds: failIds, insufficientCheckIds: []);
+        var fields = new DemoExtractedFields
+        {
+            BankName = "BANCO DEMO S.A.",
+            MaskedAccount = "****0003",
+            ProductType = "Tarjeta de Crédito Gold",
+            Period = "15/03/2026 – 14/04/2026",
+            CutDate = new DateOnly(2026, 4, 14),
+            OpeningBalance = 2_100.00m,
+            ClosingBalance = 2_350.50m,
+            MovementCount = 18,
+            ContentHash = "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4",
+            PageCount = 3,
+        };
+
+        return new DemoStatementCase
+        {
+            JobId = jobId,
+            CaseName = "Caso YELLOW — Oportunidades de mejora del banco",
+            FileName = "estado-cuenta-gold-demo.pdf",
+            Signal = VerdictSignal.Yellow,
+            CondusefTierVerdict = ComputeCondusefTierVerdict(findings),
+            BankTierVerdict = ComputeBankTierVerdict(findings),
+            TotalChecks = 55,
+            PassCount = 53,
+            FailCount = 2,
+            InsufficientDataCount = 0,
+            FailCheckIds = failIds,
+            Findings = findings,
+            ExtractedFields = fields,
+            ProcessingDuration = TimeSpan.FromSeconds(1.55),
+            ReceivedAtUtc = receivedAt,
+            MarkedPdfPath = null,
+            AuditRows = BuildAuditRows(jobId, receivedAt, VerdictSignal.Yellow),
+            Dispositions = [],
+        };
+    }
+
+    // ── Tier verdict helpers ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns <see cref="VerdictSignal.Red"/> when at least one Fail finding belongs to
+    /// <see cref="ChecklistTier.Condusef"/> or <see cref="ChecklistTier.Both"/>;
+    /// otherwise <see cref="VerdictSignal.Green"/>.
+    /// </summary>
+    private static VerdictSignal ComputeCondusefTierVerdict(IReadOnlyList<DemoFinding> findings)
+    {
+        bool hasCondusefFail = findings.Any(f =>
+            f.Verdict == FindingVerdict.Fail &&
+            (f.Tier == ChecklistTier.Condusef || f.Tier == ChecklistTier.Both));
+        return hasCondusefFail ? VerdictSignal.Red : VerdictSignal.Green;
+    }
+
+    /// <summary>
+    /// Returns <see cref="VerdictSignal.Yellow"/> when at least one Fail finding belongs to
+    /// <see cref="ChecklistTier.Bank"/>; otherwise <see cref="VerdictSignal.Green"/>.
+    /// </summary>
+    private static VerdictSignal ComputeBankTierVerdict(IReadOnlyList<DemoFinding> findings)
+    {
+        bool hasBankFail = findings.Any(f =>
+            f.Verdict == FindingVerdict.Fail && f.Tier == ChecklistTier.Bank);
+        return hasBankFail ? VerdictSignal.Yellow : VerdictSignal.Green;
+    }
 
     private static IReadOnlyList<DemoAuditRow> BuildAuditRows(
         Guid jobId, DateTimeOffset receivedAt, VerdictSignal signal)
@@ -281,6 +365,19 @@ public sealed class DemoDataService
                 EventType = "Disposition",
                 Actor = "Ana García",
                 Description = "CL-21 escalado a revisor senior con comentario de analista.",
+            });
+        }
+
+        if (signal == VerdictSignal.Yellow)
+        {
+            rows.Add(new DemoAuditRow
+            {
+                JobId = jobId,
+                OccurredAtUtc = receivedAt.AddMinutes(1),
+                EventType = "Recommendation",
+                Actor = "Pipeline",
+                Description = "CL-35 y CL-37 marcados como oportunidades de mejora (nivel banco). " +
+                              "Sin incumplimiento CONDUSEF detectado.",
             });
         }
 
