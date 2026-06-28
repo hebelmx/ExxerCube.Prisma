@@ -76,9 +76,15 @@ status: IN PROGRESS (orchestrated)
 | 1 | A1 confidence domain+app | S4.1 | DONE `b76927c6` | App.Tests 134/134, Validation.Tests 479/479; build 0/0 |
 | 2 | A2 confidence persistence | S4.1 | DONE `d68d2df8` | Persistence.IntegrationTests 8/8 (Testcontainers SQL); migration AddConfidenceColumns |
 | 3 | A3 confidence UI | S4.1 | DONE `a5ad1738` | Web.UI build 0/0; real Confianza % column; placeholder retired |
-| 4 | B1 ExtractionGap core | S4.2 | pending | | Application + Orchestration.Tests green; floors emit ExtractionGap; Blocked special-cases handled |
-| 5 | B2 ExtractionGap UI | S4.2 | pending | | Web.UI build 0/0; scanned case reframed; banner renders ExtractionGap |
+| 4a | B1a ExtractionGap+TransientFailure taxonomy | S4.2 | DONE `e796f02c` | App 134/134, Orch 81/81, Validation 479/479; 3 floors emit ExtractionGap; Blocked reserved |
+| 4b | B1b correctness guards | S4.2 | DONE `e49ec905` | confident-absent=RED (verified+test); multi-statement stub. Orch 90/90, Validation 483/483, App 151/151 |
+| 5 | B2 ExtractionGap UI | S4.2 | pending | | Web.UI build 0/0; scanned case -> ExtractionGap; banner renders ExtractionGap; confidence legend |
 | R | Adversarial review | epic | pending | | refute against this tracker + epic doc; triage |
+
+### More review items for gate R (do NOT lose)
+- **TransientFailure has NO emitter (by design).** Verified the pipeline surfaces transient failures as Result.WithFailure (extraction stage `VerificationPipeline.cs:190-205`) / Cancelled<T> — never a persisted permanent verdict, so there was no misrouting bug. Residual risk = extractor swallowing a crash into empty-success → coverage floor → ExtractionGap; lives in the extractor impl = Epic 6 S6.7. Review should confirm this reasoning + that no batch path silently drops transient-failed items.
+- **Guard #2 multi-statement is a COARSE stub** (PageCount>20). Does NOT catch 2 short concatenated statements (the dangerous case); could false-positive on a long single statement. Real detection (account-number anchors) deferred to Epic 6 + needs extractor plumbing. Review the honesty of the framing + that the demo corpus is ≤20 pages (it is — demo E2E green).
+- **Persisted ExtractionGap (signal=4) not covered by a persistence integration test** (A2's test predates B1a). Low risk (enum→int stores 4), but review/should add coverage.
 
 ### Review items to scrutinize at gate R (do NOT lose)
 - **A3 InsufficientData confidence = 1.0.** DemoDataService shows 1.0 on InsufficientData rows (rationale: confidence = input-read certainty, not verdict certainty). But A1's recorder records the LOW field confidence on the below-threshold abstain path, so a real low-confidence abstain yields <0.8, not 1.0. Verify the demo's InsufficientData rows represent non-low-confidence abstains (missing reference data / cannot-determine) — and consider a column legend/tooltip clarifying "confidence = certainty of the value read, not of the verdict." Also: the scanned case's 55 synthesized InsufficientData findings become moot once B2 reframes it to ExtractionGap.
