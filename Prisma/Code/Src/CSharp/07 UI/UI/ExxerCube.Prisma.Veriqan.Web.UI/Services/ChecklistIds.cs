@@ -98,7 +98,8 @@ internal static class ChecklistIds
     internal static ChecklistTier Tier(string checkId) => checkId switch
     {
         // ── Bank tier (from CSV rows marked "Bank") ─────────────────────────────
-        // Row: CLIENT-IMG-CATALOG (brand image catalog — Bank tier)
+        // CL-27: sign-coherence (E10.C3), CL-30: reversal linkage (E10.C4), CL-47: GAT legend (E10.C5).
+        // CLIENT-IMG-CATALOG was re-homed off these ids by E9.C1.
         "CL-27" or "CL-30" or "CL-47" => ChecklistTier.Bank,
         // Rows: CL-35, CL-37, CL-45, CL-49, CL-50, CL-51, CL-52, CL-53
         "CL-35" => ChecklistTier.Bank,
@@ -121,24 +122,80 @@ internal static class ChecklistIds
         _ => ChecklistTier.Condusef,
     };
 
-    /// <summary>Returns the DOF regulation numeral for the given check, or an empty string.</summary>
+    /// <summary>
+    /// Returns the DOF regulation numeral for the given check, or an empty string.
+    /// Fixed by E9.C2 (2026-06-28): corrected §-map for CL-10, CL-17..27, CL-30, CL-32,
+    /// CL-36..37, CL-39, CL-44..47, CL-49..50. See audit:
+    /// docs/planning-artifacts/checklist-numbering-audit-2026-06.md
+    /// Flagged rows (labels also wrong, owner decision needed): CL-1..9, CL-11..16,
+    /// CL-28..29, CL-31, CL-33..35, CL-38, CL-40..41, CL-48, CL-51..55.
+    /// </summary>
     internal static string DofNumeral(string checkId) => checkId switch
     {
+        // ── Group 1: Identificación del emisor (CL-1…CL-5) ──────────────────────
+        // FLAG: CL-1 label≈ok (§4); CL-2 should be §3 (datos envío); CL-3..5 should be §3/§4.
+        // Labels are all mislabeled vs original checklist. Owner decision needed for mass relabel.
         "CL-1" or "CL-2" => "§4",
         "CL-3" or "CL-4" or "CL-5" => "§5",
-        "CL-6" or "CL-7" or "CL-8" or "CL-9" or "CL-10" => "§6",
+        // ── Group 2: Datos del período (CL-6…CL-10) ─────────────────────────────
+        // FLAG: CL-6..9 labels and §-maps both wrong (original: CLABE/núm.cliente/RFC/tasa → §4/§10).
+        // CL-10 FIXED §6→§9 (Cl10CatRule: CAT, §9).
+        "CL-6" or "CL-7" or "CL-8" or "CL-9" => "§6",
+        "CL-10" => "§9",
+        // ── Group 3a: Saldos aritmética — fields from §5 (CL-11…CL-16) ──────────
+        // FLAG: CL-11..15 should be §5 (Tu pago requerido), not §8 (indicadores costo anual).
+        // CL-16 should be §5 not §16. Labels all mislabeled vs original. Owner decision needed.
         "CL-11" or "CL-12" or "CL-13" or "CL-14" or "CL-15" => "§8",
         "CL-16" => "§16",
-        "CL-17" or "CL-18" or "CL-19" or "CL-20" or "CL-21" or "CL-22" => "§9",
-        "CL-23" or "CL-24" or "CL-25" or "CL-26" or "CL-27" => "§10",
-        "CL-28" or "CL-29" or "CL-30" => "§11",
-        "CL-31" or "CL-32" => "§12",
-        "CL-33" or "CL-34" or "CL-35" or "CL-36" or "CL-37" => "§20",
-        "CL-38" or "CL-39" or "CL-40" => "§21",
-        "CL-41" or "CL-42" or "CL-43" => "§22",
-        "CL-44" => "§23",
-        "CL-45" => "§24",
-        "CL-46" or "CL-47" or "CL-48" or "CL-49" or "CL-50" => "§25",
+        // ── Group 3b: Resumen de cargos y abonos (CL-17…CL-21) — §7 ─────────────
+        // FIXED §9→§7: rules Cl17..Cl21 all declare DofNumeral="Acuerdo §7".
+        "CL-17" or "CL-18" or "CL-19" or "CL-20" or "CL-21" => "§7",
+        // ── Group 3c: Nivel de uso (CL-22…CL-26) — §13 ──────────────────────────
+        // FIXED §9→§13 (CL-22) and §10→§13 (CL-23..26): rules Cl22..Cl26 declare DofNumeral="Acuerdo §13".
+        "CL-22" or "CL-23" or "CL-24" or "CL-25" or "CL-26" => "§13",
+        // ── Group 4: Movimientos (CL-27…CL-32) ───────────────────────────────────
+        // CL-27 FIXED §10→§7: E10.C3 will implement sign-coherence rule (§7 Resumen).
+        "CL-27" => "§7",
+        // FLAG: CL-28..29 — §11 retained pending owner decision (original: layout/bold form rules, not §11).
+        "CL-28" or "CL-29" => "§11",
+        // CL-30 FIXED §11→§23: E10.C4 will implement reversal linkage (§23 Cargos no reconocidos).
+        "CL-30" => "§23",
+        // FLAG: CL-31 — §12 wrong (should be §2, paginación); retained pending owner + LAW-SEC-PRESENCE overlap check.
+        "CL-31" => "§12",
+        // CL-32 FIXED §12→§11: Cl32ComparaTuTarjetaRule declares DofNumeral="Acuerdo §11".
+        "CL-32" => "§11",
+        // ── Group 5: Identidad visual (CL-33…CL-40) ──────────────────────────────
+        // FLAG: CL-33..35 — §20 wrong (original: §1/§15/CLIENT+); labels also wrong. Owner decision.
+        "CL-33" or "CL-34" or "CL-35" => "§20",
+        // CL-36,37 FIXED §20→§18: Cl36SaldoInicialRewardsPuntosRule + Cl37TipoCambioRewardsRule declare §18.
+        "CL-36" or "CL-37" => "§18",
+        // FLAG: CL-38 — §21 wrong (should be §18, Beneficios); no rule; label also wrong.
+        "CL-38" => "§21",
+        // CL-39 FIXED §21→§18: Cl39SaldoTotalPuntosRule declares DofNumeral="Acuerdo §18".
+        "CL-39" => "§18",
+        // FLAG: CL-40 — Cl40 rule says §13 but original/law suggest §22a; label wrong. Conflict → owner.
+        "CL-40" => "§21",
+        // ── Group 6: Leyendas regulatorias (CL-41…CL-50) ────────────────────────
+        // FLAG: CL-41 — Cl41 rule says §13 but original/ChecklistIds imply §22; label wrong. Conflict → owner.
+        "CL-41" => "§22",
+        // CL-42,43 OK: Cl42+Cl43 rules declare §22; §-map was already §22.
+        "CL-42" or "CL-43" => "§22",
+        // CL-44 FIXED §23→§22: Cl44DesgloseTotalsMatchRule declares DofNumeral="Acuerdo §22".
+        // CL-45 FIXED §24→§22: Cl45TransactionDescriptionMatchRule declares DofNumeral="Acuerdo §22".
+        "CL-44" or "CL-45" => "§22",
+        // CL-46 FIXED §25→§14/§17/§24: Cl46MandatoryLegendsRule declares DofNumeral="Acuerdo §14/§17/§24".
+        "CL-46" => "§14/§17/§24",
+        // CL-47 FIXED §25→Disposición Única Art. 27: E10.C5 GAT-legend rule (operaciones pasivas).
+        "CL-47" => "Disposición Única Art. 27",
+        // FLAG: CL-48 — §25 wrong (guía de llenado / form rule, no single §); label wrong vs original. Owner decision.
+        "CL-48" => "§25",
+        // CL-49 FIXED §25→§18: Cl49PromotionsCurrencyRule declares DofNumeral="Acuerdo §18".
+        "CL-49" => "§18",
+        // CL-50 FIXED §25→§4: Cl50FiscalQrRule declares DofNumeral="Acuerdo §4".
+        "CL-50" => "§4",
+        // ── Group 7: Campos opcionales / avanzados (CL-51…CL-55) ─────────────────
+        // FLAG: CL-51..53 rules declare §4 but labels wrong; no DofNumeral() arm. Defer to relabel story.
+        // CL-54..55: CLIENT+ reporting items, no law §.
         _ => string.Empty,
     };
 }
