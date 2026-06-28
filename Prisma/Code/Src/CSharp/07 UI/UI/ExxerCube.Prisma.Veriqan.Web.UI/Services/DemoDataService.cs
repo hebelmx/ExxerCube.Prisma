@@ -5,14 +5,20 @@ namespace ExxerCube.Prisma.Veriqan.Web.UI.Services;
 /// <summary>
 /// Provides hard-coded, pipeline-shaped demo data for the Veriqan visual demo UI.
 /// Returns four pre-built <see cref="DemoStatementCase"/> instances covering the
-/// four verdict classes: GREEN (all pass), YELLOW (bank-tier improvement
+/// main verdict and non-verdict signals: GREEN (all pass), YELLOW (bank-tier improvement
 /// opportunities only, CONDUSEF clean), RED (arithmetic + font failures),
-/// and BLOCKED (image-only statement, insufficient text layer).
+/// and EXTRACTION-GAP (image-only statement — system could not read the document).
 /// </summary>
 /// <remarks>
 /// This service is intentionally non-production. It does not connect to the pipeline
 /// or database. Its sole purpose is to let the demo pages render meaningful content
 /// without a live Veriqan worker. Wiring to the real pipeline can come later.
+/// <para>
+/// The EXTRACTION-GAP case replaces the former BLOCKED case (Story 4.2 reframe):
+/// an image-only / no-text-layer PDF is a permanent <em>system</em> extraction gap,
+/// not a document defect requiring human callback. <see cref="VerdictSignal.Blocked"/>
+/// is reserved for genuine document defects (encrypted, corrupt, tampered).
+/// </para>
 /// </remarks>
 public sealed class DemoDataService
 {
@@ -21,16 +27,16 @@ public sealed class DemoDataService
     /// <summary>Initialises the service and builds the three demo cases in memory.</summary>
     public DemoDataService()
     {
-        var greenJobId   = new Guid("11111111-0000-0000-0000-000000000001");
-        var redJobId     = new Guid("22222222-0000-0000-0000-000000000002");
-        var blockedJobId = new Guid("33333333-0000-0000-0000-000000000003");
-        var yellowJobId  = new Guid("44444444-0000-0000-0000-000000000004");
+        var greenJobId          = new Guid("11111111-0000-0000-0000-000000000001");
+        var redJobId            = new Guid("22222222-0000-0000-0000-000000000002");
+        var extractionGapJobId  = new Guid("33333333-0000-0000-0000-000000000003");
+        var yellowJobId         = new Guid("44444444-0000-0000-0000-000000000004");
 
         _cases =
         [
             BuildGreenCase(greenJobId),
             BuildRedCase(redJobId),
-            BuildBlockedCase(blockedJobId),
+            BuildExtractionGapCase(extractionGapJobId),
             BuildYellowCase(yellowJobId),
         ];
     }
@@ -149,18 +155,25 @@ public sealed class DemoDataService
         };
     }
 
-    private static DemoStatementCase BuildBlockedCase(Guid jobId)
+    /// <summary>
+    /// Builds the EXTRACTION-GAP demo case: a scanned (image-only) PDF with no text layer.
+    /// The system could not extract any fields — this is a permanent system/engineering gap,
+    /// NOT a document defect requiring human callback.  <see cref="VerdictSignal.ExtractionGap"/>
+    /// is the correct signal (Story 4.2 reframe from former Blocked label).
+    /// </summary>
+    private static DemoStatementCase BuildExtractionGapCase(Guid jobId)
     {
         var receivedAt = DateTimeOffset.UtcNow.AddMinutes(-2);
-        // BLOCKED: image-only PDF, no extractable text layer
+        // EXTRACTION GAP: image-only PDF, no extractable text layer.
+        // All 55 checks yield InsufficientData — the engine abstained, no compliance verdict issued.
         var findings = BuildAllFindings(
             failCheckIds: [],
             insufficientCheckIds: ChecklistIds.AllIds);
         var fields = new DemoExtractedFields
         {
-            BankName = "(no extraído — documento escaneado)",
+            BankName = "(no extraído — PDF solo imagen, sin capa de texto)",
             MaskedAccount = "****????",
-            ProductType = "(desconocido)",
+            ProductType = "(no extraído)",
             Period = "(no extraído)",
             CutDate = default,
             OpeningBalance = 0m,
@@ -173,9 +186,9 @@ public sealed class DemoDataService
         return new DemoStatementCase
         {
             JobId = jobId,
-            CaseName = "Caso BLOCKED — Solo imagen, requiere revisión humana",
+            CaseName = "Caso BRECHA DE EXTRACCIÓN — PDF escaneado sin capa de texto",
             FileName = "estado-cuenta-escaneado.pdf",
-            Signal = VerdictSignal.Blocked,
+            Signal = VerdictSignal.ExtractionGap,
             CondusefTierVerdict = ComputeCondusefTierVerdict(findings),
             BankTierVerdict = ComputeBankTierVerdict(findings),
             TotalChecks = 55,
@@ -184,15 +197,16 @@ public sealed class DemoDataService
             InsufficientDataCount = 55,
             FailCheckIds = [],
             BlockReason = ExxerCube.Prisma.Veriqan.Domain.Enums.BlockReason.InsufficientTextLayer,
-            BlockDetail = "PDF word count 4 is below the minimum floor of 50. " +
-                          "The document appears to be a scanned image. " +
-                          "Automatic verification cannot proceed; route to manual review.",
+            BlockDetail = "Recuento de palabras en el PDF: 4 (mínimo requerido: 50). " +
+                          "El documento parece ser una imagen escaneada sin capa de texto digital. " +
+                          "El sistema no puede extraer campos ni emitir un veredicto de cumplimiento. " +
+                          "Acción requerida: enviar el PDF con texto digital o habilitar OCR en el pipeline.",
             Findings = findings,
             ExtractedFields = fields,
             ProcessingDuration = TimeSpan.FromMilliseconds(210),
             ReceivedAtUtc = receivedAt,
             MarkedPdfPath = null,
-            AuditRows = BuildAuditRows(jobId, receivedAt, VerdictSignal.Blocked),
+            AuditRows = BuildAuditRows(jobId, receivedAt, VerdictSignal.ExtractionGap),
             Dispositions = [],
         };
     }
@@ -413,6 +427,20 @@ public sealed class DemoDataService
                 Actor = "Pipeline",
                 Description = "CL-35 y CL-37 marcados como oportunidades de mejora (nivel banco). " +
                               "Sin incumplimiento CONDUSEF detectado.",
+            });
+        }
+
+        if (signal == VerdictSignal.ExtractionGap)
+        {
+            rows.Add(new DemoAuditRow
+            {
+                JobId = jobId,
+                OccurredAtUtc = receivedAt.AddMilliseconds(215),
+                EventType = "ExtractionGap",
+                Actor = "Pipeline",
+                Description = "Brecha de extracción detectada: PDF sin capa de texto (recuento de palabras: 4 < 50). " +
+                              "No se emitió veredicto de cumplimiento. " +
+                              "Acción de ingeniería requerida — el caso no se cuenta como cerrado.",
             });
         }
 

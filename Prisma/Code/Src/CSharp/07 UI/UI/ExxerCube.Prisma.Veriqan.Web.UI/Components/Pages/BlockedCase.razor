@@ -2,18 +2,18 @@
 @rendermode InteractiveServer
 @inject DemoDataService Demo
 
-<PageTitle>Caso BLOCKED — Veriqan Demo</PageTitle>
+<PageTitle>Caso Brecha de Extracción — Veriqan Demo</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-1">Captura 5 — Degradación Segura (BLOCKED)</MudText>
+<MudText Typo="Typo.h5" Class="mb-1">Captura 5 — Brecha de Extracción del Sistema (EXTRACTION GAP)</MudText>
 <MudText Typo="Typo.body2" Class="mb-4 mud-text-secondary">
-    Documento solo-imagen · CL-1…CL-55 → InsufficientData · Archivo: <em>@_case.FileName</em>
+    PDF solo-imagen · sin capa de texto · CL-1…CL-55 → InsufficientData · Archivo: <em>@_case.FileName</em>
 </MudText>
 
-<!-- Verdict banner -->
-<VerdictBanner Signal="VerdictSignal.Blocked">
+<!-- Verdict banner (non-verdict / non-compliance styling via ExtractionGap) -->
+<VerdictBanner Signal="VerdictSignal.ExtractionGap">
     <MudGrid Justify="Justify.Center">
         <MudItem>
-            <MudChip T="string" Color="Color.Warning">
+            <MudChip T="string" Color="Color.Info">
                 Razón: @_case.BlockReason
             </MudChip>
         </MudItem>
@@ -23,54 +23,66 @@
     </MudGrid>
 </VerdictBanner>
 
-<!-- Block detail -->
-<MudAlert Severity="Severity.Warning" Class="mb-6">
-    <MudText Typo="Typo.subtitle2" Class="mb-1">Detalle técnico del bloqueo</MudText>
+<!-- Extraction-gap technical detail -->
+<MudAlert Severity="Severity.Info" Class="mb-6">
+    <MudText Typo="Typo.subtitle2" Class="mb-1">Detalle técnico — brecha de extracción</MudText>
     <MudText Typo="Typo.body2">@_case.BlockDetail</MudText>
 </MudAlert>
 
-<!-- Human-review CTA -->
+<!-- What ExtractionGap means (NOT a compliance verdict) -->
 <MudPaper Class="pa-4 mb-6" Elevation="1">
     <MudText Typo="Typo.h6" Class="mb-2">
-        <MudIcon Icon="@Icons.Material.Filled.PersonSearch" Class="mr-2" Color="Color.Warning" />
-        Ruteo a revisión humana
+        <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Class="mr-2" Color="Color.Info" />
+        ¿Qué significa una Brecha de Extracción?
     </MudText>
+    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+        <strong>Este resultado NO es un veredicto de cumplimiento.</strong>
+        El sistema no pudo leer el documento — no se evaluó ninguna regla regulatoria.
+    </MudAlert>
     <MudText Typo="Typo.body2" Class="mb-3">
-        Veriqan nunca rechaza silenciosamente un documento bloqueado. El job es enrutado
-        a la cola de revisión manual con el contexto completo disponible para el analista.
+        Una Brecha de Extracción (<em>ExtractionGap</em>) indica una limitación permanente del
+        sistema, no un defecto del documento ni un incumplimiento regulatorio:
     </MudText>
     <MudGrid>
         <MudItem xs="12" sm="4">
             <MudPaper Class="pa-3 text-center" Elevation="0" Style="border:1px solid var(--mud-palette-divider);">
-                <MudIcon Icon="@Icons.Material.Filled.Queue" Color="Color.Warning" Size="Size.Large" />
-                <MudText Typo="Typo.body2" Class="mt-1">Cola de revisión manual</MudText>
+                <MudIcon Icon="@Icons.Material.Outlined.Engineering" Color="Color.Info" Size="Size.Large" />
+                <MudText Typo="Typo.body2" Class="mt-1">Acción de ingeniería requerida</MudText>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="4">
             <MudPaper Class="pa-3 text-center" Elevation="0" Style="border:1px solid var(--mud-palette-divider);">
-                <MudIcon Icon="@Icons.Material.Filled.Notifications" Color="Color.Info" Size="Size.Large" />
-                <MudText Typo="Typo.body2" Class="mt-1">Notificación al analista</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.DoNotDisturb" Color="Color.Default" Size="Size.Large" />
+                <MudText Typo="Typo.body2" Class="mt-1">No cuenta como caso cerrado</MudText>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" sm="4">
             <MudPaper Class="pa-3 text-center" Elevation="0" Style="border:1px solid var(--mud-palette-divider);">
                 <MudIcon Icon="@Icons.Material.Filled.Gavel" Color="Color.Secondary" Size="Size.Large" />
-                <MudText Typo="Typo.body2" Class="mt-1">Disposición registrada en auditoría</MudText>
+                <MudText Typo="Typo.body2" Class="mt-1">Gap registrado en auditoría</MudText>
             </MudPaper>
         </MudItem>
     </MudGrid>
+    <MudDivider Class="my-3" />
+    <MudText Typo="Typo.caption" Class="mud-text-secondary">
+        <strong>Diferencia respecto a BLOCKED (reservado):</strong>
+        BLOCKED se usará para defectos genuinos del documento (PDF cifrado, corrupto, manipulado)
+        donde se requiere intervención humana. ExtractionGap es una brecha de capacidad del sistema
+        — reenviar el mismo documento con texto digital resolvería el problema.
+    </MudText>
 </MudPaper>
 
 <!-- Check grid — all gray (InsufficientData) -->
 <MudText Typo="Typo.h6" Class="mb-2">Grilla de verificación — todos en InsufficientData</MudText>
 <MudText Typo="Typo.caption" Class="mb-3 mud-text-secondary">
     Gris = InsufficientData. Ningún check se ejecutó porque el documento no tiene capa de texto extraíble.
+    No se emite veredicto de cumplimiento.
 </MudText>
 <MudPaper Class="pa-4" Elevation="1">
     <div style="display:flex; flex-wrap:wrap; gap:6px;">
         @foreach (var f in _case.Findings)
         {
-            <MudTooltip Text="@($"{f.CheckId}: {f.Label} — InsufficientData")">
+            <MudTooltip Text="@($"{f.CheckId}: {f.Label} — InsufficientData (brecha de extracción)")">
                 <div class="vec-check-cell vec-check-insufficient">@f.CheckId.Replace("CL-", "")</div>
             </MudTooltip>
         }
@@ -82,6 +94,6 @@
 
     protected override void OnInitialized()
     {
-        _case = Demo.GetBySignal(VerdictSignal.Blocked)!;
+        _case = Demo.GetBySignal(VerdictSignal.ExtractionGap)!;
     }
 }

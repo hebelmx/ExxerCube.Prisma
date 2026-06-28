@@ -67,7 +67,11 @@
                         <MudTh>Esperado</MudTh>
                         <MudTh>Observado</MudTh>
                         <MudTh>DOF</MudTh>
-                        <MudTh>Confianza</MudTh>
+                        <MudTh>
+                            <MudTooltip Text="Confianza = certeza del valor leído (extracción), no del veredicto.">
+                                Confianza
+                            </MudTooltip>
+                        </MudTh>
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd>
@@ -81,7 +85,13 @@
                         <MudTd><code>@context.Expected</code></MudTd>
                         <MudTd><code style="color:var(--mud-palette-error);">@context.Observed</code></MudTd>
                         <MudTd><MudText Typo="Typo.caption">@context.DofNumeral</MudText></MudTd>
-                        <MudTd><MudText Typo="Typo.caption">@($"{context.Confidence * 100:F0}%")</MudText></MudTd>
+                        <MudTd>
+                            <MudText Typo="Typo.caption">
+                                @(context.Verdict == FindingVerdict.InsufficientData
+                                    ? "—"
+                                    : $"{context.Confidence * 100:F0}%")
+                            </MudText>
+                        </MudTd>
                     </RowTemplate>
                 </MudTable>
             }
@@ -107,7 +117,11 @@
                         <MudTh>Esperado</MudTh>
                         <MudTh>Observado</MudTh>
                         <MudTh>DOF</MudTh>
-                        <MudTh>Confianza</MudTh>
+                        <MudTh>
+                            <MudTooltip Text="Confianza = certeza del valor leído (extracción), no del veredicto.">
+                                Confianza
+                            </MudTooltip>
+                        </MudTh>
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd>
@@ -118,7 +132,13 @@
                         <MudTd><code>@context.Expected</code></MudTd>
                         <MudTd><code style="color:var(--mud-palette-warning);">@context.Observed</code></MudTd>
                         <MudTd><MudText Typo="Typo.caption">@context.DofNumeral</MudText></MudTd>
-                        <MudTd><MudText Typo="Typo.caption">@($"{context.Confidence * 100:F0}%")</MudText></MudTd>
+                        <MudTd>
+                            <MudText Typo="Typo.caption">
+                                @(context.Verdict == FindingVerdict.InsufficientData
+                                    ? "—"
+                                    : $"{context.Confidence * 100:F0}%")
+                            </MudText>
+                        </MudTd>
                     </RowTemplate>
                 </MudTable>
             }

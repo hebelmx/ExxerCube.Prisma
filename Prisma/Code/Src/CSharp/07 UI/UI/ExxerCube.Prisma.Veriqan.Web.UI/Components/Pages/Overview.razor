@@ -95,7 +95,7 @@
         new("Extracción", "Extracción de texto con PdfPig; parsing de campos (encabezado, saldos, movimientos).", Color.Secondary),
         new("Binding", "Vinculación del bundle de referencia (saldo anterior, imágenes secuenciales, tasas).", Color.Info),
         new("Validación", "Ejecución de las 55 reglas VEC; generación de RuleFinding por regla.", Color.Warning),
-        new("Veredicto", "Agregación: BLOCKED > RED > GREEN. InsufficientData nunca escala a RED.", Color.Success),
+        new("Veredicto", "Agregación: ExtractionGap/Blocked toman precedencia absoluta. Entre verdicts: RED > YELLOW > GREEN. InsufficientData nunca escala a RED.", Color.Success),
         new("Persistencia", "Persistencia del Job + Findings + Veredicto en PostgreSQL (veriqan.* schema).", Color.Dark),
         new("Reporte", "Generación del PDF marcado con anotaciones visuales en las zonas fallidas.", Color.Primary),
         new("Disposición", "El analista acepta, anula o escala; la acción se registra en el ledger de auditoría.", Color.Secondary),
@@ -103,9 +103,23 @@
 
     private readonly IReadOnlyList<VerdictRow> _verdicts =
     [
+        // ── Compliance verdicts ────────────────────────────────────────────────────────────
         new("GREEN", "Todos los checks pasan (Pass o InsufficientData). Estado conforme.", Severity.Success),
+        new("YELLOW", "Conforme a CONDUSEF; el banco tiene oportunidades de mejora en su estándar interno.", Severity.Warning),
         new("RED", "Uno o más checks fallaron (Fail). Estado no conforme; genera PDF marcado.", Severity.Error),
-        new("BLOCKED", "Pre-condición no cumplida (p.ej. PDF solo-imagen). Se rutea a revisión manual.", Severity.Warning),
+        // ── Non-verdict operational signals (NOT compliance colours) ──────────────────────
+        new("BRECHA DE EXTRACCIÓN (ExtractionGap)",
+            "Limitación permanente del sistema — el PDF no tiene capa de texto extraíble. " +
+            "No es un veredicto de cumplimiento. Requiere acción de ingeniería.",
+            Severity.Info),
+        new("FALLO TEMPORAL (TransientFailure)",
+            "Fallo transitorio de infraestructura — se reintentará automáticamente. " +
+            "No es un veredicto de cumplimiento. No cuenta como caso cerrado.",
+            Severity.Normal),
+        new("BLOCKED (reservado)",
+            "Defecto genuino del documento (cifrado, corrupto, manipulado). " +
+            "Se rutea a revisión humana. Reservado — sin emisor activo hoy.",
+            Severity.Warning),
     ];
 
     private IReadOnlyList<CheckRow> _allFindings = [];

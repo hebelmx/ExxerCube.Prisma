@@ -18,6 +18,18 @@
     border-left: 6px solid #FF9800;
 }
 
+/* ExtractionGap — neutral/info (NOT a compliance color).
+   Blue-info border signals "system/engineering issue", never a compliance verdict. */
+.vec-signal-gap {
+    border-left: 6px solid #2196F3;
+}
+
+/* TransientFailure — neutral/slate (NOT a compliance color).
+   Blue-grey border signals "retryable operational issue", never a compliance verdict. */
+.vec-signal-transient {
+    border-left: 6px solid #607D8B;
+}
+
 /* Check grid: compact cells */
 .vec-check-cell {
     width: 48px;

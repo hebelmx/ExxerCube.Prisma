@@ -1,4 +1,7 @@
-@* Reusable tri-state verdict banner: GREEN / YELLOW / RED / BLOCKED.
+@* Reusable verdict banner: GREEN / YELLOW / RED (compliance verdicts) and
+   EXTRACTION-GAP / TRANSIENT-FAILURE / BLOCKED (non-verdict operational signals).
+   ExtractionGap and TransientFailure use neutral/info styling — they are NOT compliance
+   verdicts and must never be displayed with Success/Warning/Error compliance colours.
    Accepts a VerdictSignal and optional child content (metric chips, block reason, etc.)
    rendered below the divider. Always shows a one-line tier legend at the bottom.
    Usage:
@@ -43,6 +46,7 @@
     {
         (_signalCss, _icon, _color, _label, _tagline) = Signal switch
         {
+            // ── Compliance verdicts ───────────────────────────────────────────
             VerdictSignal.Green => (
                 "vec-signal-green",
                 Icons.Material.Filled.CheckCircle,
@@ -61,12 +65,34 @@
                 Color.Error,
                 "RED",
                 "No conforme — incumplimiento regulatorio CONDUSEF"),
-            _ => (
+
+            // ── Non-verdict operational signals (NOT compliance colours) ──────
+            VerdictSignal.ExtractionGap => (
+                "vec-signal-gap",
+                Icons.Material.Filled.ImageNotSupported,
+                Color.Info,
+                "SIN VERIFICAR — BRECHA DE EXTRACCIÓN",
+                "El sistema no pudo leer el documento — revisión de ingeniería. No es un veredicto de cumplimiento."),
+            VerdictSignal.TransientFailure => (
+                "vec-signal-transient",
+                Icons.Material.Filled.Replay,
+                Color.Default,
+                "FALLO TEMPORAL",
+                "Fallo temporal de procesamiento — se reintentará automáticamente."),
+            VerdictSignal.Blocked => (
                 "vec-signal-blocked",
                 Icons.Material.Filled.Block,
                 Color.Warning,
                 "BLOCKED",
-                "Pre-condición no cumplida — verificación automática detenida, se requiere revisión humana"),
+                "Defecto del documento — devolución a revisión humana (reservado)."),
+
+            // ── Safe fallback (defensive — should never be reached) ───────────
+            _ => (
+                "vec-signal-blocked",
+                Icons.Material.Filled.HelpOutline,
+                Color.Default,
+                "DESCONOCIDO",
+                "Estado desconocido — contacte con soporte técnico."),
         };
     }
 }
