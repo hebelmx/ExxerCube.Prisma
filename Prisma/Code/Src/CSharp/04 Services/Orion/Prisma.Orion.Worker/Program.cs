@@ -11,6 +11,7 @@ using ExxerCube.Prisma.Infrastructure.FileSystem;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.NavigationTargets;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.Siara;
+using ExxerCube.Prisma.Infrastructure.Calendar.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using ExxerCube.Prisma.Domain.Serialization;
 using IndFusion.Ember.Abstractions.Hubs;
@@ -102,6 +103,9 @@ namespace Prisma.Orion.Worker
                 && !auditConnectionString.StartsWith("DEV-PLACEHOLDER", StringComparison.OrdinalIgnoreCase))
             {
                 builder.Services.AddDatabaseServices(auditConnectionString, builder.Configuration, registerEventPersistence: false);
+                // ADR-023: the Database adapter no longer self-registers IBusinessDayCalculator; the host wires
+                // the Calendar adapter so SLAEnforcerService can resolve the holiday-aware calculator.
+                builder.Services.AddCalendarServices();
             }
             else
             {

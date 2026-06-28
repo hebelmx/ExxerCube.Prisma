@@ -5,6 +5,7 @@ using ExxerCube.Prisma.Infrastructure.Database.Startup;
 using ExxerCube.Prisma.Domain.Interfaces;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.BrowserAutomation.ProcessIdentity;
+using ExxerCube.Prisma.Infrastructure.Calendar.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Classification;
 using ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Events;
@@ -96,6 +97,9 @@ namespace Prisma.Reconciliator.Worker
                 && !auditConnectionString.StartsWith("DEV-PLACEHOLDER", StringComparison.OrdinalIgnoreCase))
             {
                 builder.Services.AddDatabaseServices(auditConnectionString, builder.Configuration);
+                // ADR-023: host wires the Calendar adapter (Database/Classification no longer reference it)
+                // so SLAEnforcerService / FusionExpedienteService can resolve IBusinessDayCalculator.
+                builder.Services.AddCalendarServices();
             }
             else
             {

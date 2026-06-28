@@ -66,6 +66,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
+    <!-- ADR-023: Classification no longer transitively exposes Infrastructure.Calendar; this test
+         instantiates the real MexicoBusinessDayCalculator, so reference the Calendar adapter directly. -->
+    <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Calendar\ExxerCube.Prisma.Infrastructure.Calendar.csproj" />
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Imaging\ExxerCube.Prisma.Infrastructure.Imaging.csproj" />
     <ProjectReference Include="..\..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Abstractions\ExxerCube.Prisma.Testing.Abstractions.csproj" />

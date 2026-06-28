@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ExxerCube.Prisma.Application;
 using ExxerCube.Prisma.Infrastructure.DependencyInjection;
+using ExxerCube.Prisma.Infrastructure.Calendar.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
 using ExxerCube.Prisma.Infrastructure.Extraction.Adaptive.DependencyInjection;
@@ -75,6 +76,10 @@ public static class PrismaServiceCollectionExtensions
 
         // 3. Adaptive DOCX extraction (5 strategies)
         services.AddAdaptiveDocxExtraction();
+
+        // 3b. Holiday-aware business-day calculator (ADR-023): registered here at the composition root so
+        // the Classification and Database adapters no longer reference the Calendar adapter directly.
+        services.AddCalendarServices();
 
         // 4. Data fusion and CNBV classification
         services.AddClassificationServices();

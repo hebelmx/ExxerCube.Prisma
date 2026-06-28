@@ -319,6 +319,11 @@ Inner Stack Trace:
         // Application database connection (Prisma - for all application tables)
         var applicationConnectionString = configuration.GetConnectionString("ApplicationConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationConnection' not found.");
 
+        // ADR-023: register the Calendar adapter at the host so the Database and Classification adapters
+        // no longer reference it directly. Required before AddDatabaseServices / AddClassificationServices,
+        // whose SLAEnforcerService / FusionExpedienteService factories resolve IBusinessDayCalculator.
+        ExxerCube.Prisma.Infrastructure.Calendar.DependencyInjection.ServiceCollectionExtensions.AddCalendarServices(services);
+
         // Add Story 1.1 services: Browser Automation, File Storage, and Database services
         services.AddDatabaseServices(applicationConnectionString, configuration);
         services.AddBrowserAutomationServices(options =>

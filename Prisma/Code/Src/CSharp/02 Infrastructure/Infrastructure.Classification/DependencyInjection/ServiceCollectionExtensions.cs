@@ -1,8 +1,6 @@
 using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Calendar;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace ExxerCube.Prisma.Infrastructure.Classification.DependencyInjection;
@@ -70,10 +68,9 @@ public static class ServiceCollectionExtensions
         // This allows DecisionLogicService to use the new fuzzy matching implementation
         services.AddScoped<ILegalDirectiveClassifier, SemanticAnalyzerAdapter>();
 
-        // Register holiday-aware business-day calculator (Mexico federal holidays via PublicHoliday package).
-        // TryAddSingleton: MexicoPublicHoliday is stateless calendar math, one instance per host. Using
-        // TryAdd avoids a double-registration when AddDatabaseServices also runs in the same host.
-        services.TryAddSingleton<IBusinessDayCalculator, MexicoBusinessDayCalculator>();
+        // IBusinessDayCalculator (MexicoBusinessDayCalculator) is registered by the host / composition root
+        // via AddCalendarServices() — see ADR-023. Any host that wires AddClassificationServices must also
+        // call AddCalendarServices() so the FusionExpedienteService factory below can resolve the port.
 
         // Register data fusion services — FusionExpedienteService receives IBusinessDayCalculator via DI.
         services.AddScoped<IFusionExpediente>(sp =>

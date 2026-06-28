@@ -1,8 +1,6 @@
 using ExxerCube.Prisma.Application.Services;
 using ExxerCube.Prisma.Domain.Interfaces;
-using ExxerCube.Prisma.Infrastructure.Calendar;
 using ExxerCube.Prisma.Infrastructure.Database.Repositories;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.DependencyInjection;
 
@@ -54,11 +52,9 @@ public static class ServiceCollectionExtensions
             return new Services.QueuedAuditLoggerService(processorService, scopeFactory, logger);
         });
 
-        // Register holiday-aware business-day calculator (Mexico federal holidays via PublicHoliday package).
-        // Registered as singleton — MexicoPublicHoliday is stateless calendar math, one instance per host.
-        // TryAddSingleton so a composition root that already registered IBusinessDayCalculator (e.g. when
-        // AddClassificationServices runs first) is not overwritten with a second instance.
-        services.TryAddSingleton<IBusinessDayCalculator, MexicoBusinessDayCalculator>();
+        // IBusinessDayCalculator (MexicoBusinessDayCalculator) is registered by the host / composition root
+        // via AddCalendarServices() — see ADR-023. The SLAEnforcerService factory below resolves the Domain
+        // port; any host that wires AddDatabaseServices must also call AddCalendarServices().
 
         // Register SLA metrics collector (singleton for metrics consistency)
         services.AddSingleton<SLAMetricsCollector>();

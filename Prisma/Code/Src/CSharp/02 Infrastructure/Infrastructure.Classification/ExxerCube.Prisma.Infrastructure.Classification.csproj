@@ -21,7 +21,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
-    <ProjectReference Include="..\Infrastructure.Calendar\ExxerCube.Prisma.Infrastructure.Calendar.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- Allow test assembly to access internal helpers (RequirementDetailExtractor). -->

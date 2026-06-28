@@ -514,43 +514,62 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
     [Fact]
     public void Infrastructure_Projects_Should_Not_Depend_On_Each_Other()
     {
-        var infrastructureNamespaces = new[]
+        // ADR-023: derive the adapter set DYNAMICALLY from the loaded infrastructure assemblies so this
+        // rule self-extends as adapters are added and can never again have the blind spot that previously
+        // hid the Infrastructure.Database → Infrastructure.Calendar coupling. Each adapter assembly
+        // (ExxerCube.Prisma.Infrastructure.<Adapter>[.<Sub>]) is collapsed to its top-level adapter "bucket"
+        // namespace — e.g. .Extraction.Txt and .Extraction.Adaptive both map to .Extraction — which both
+        // generalises the former hand-maintained list AND avoids false positives between sub-adapters of the
+        // same family (a type always "depends on" its own namespace, which a naive prefix match would flag).
+        // The base coordinator assembly (ExxerCube.Prisma.Infrastructure, no suffix) and the Orion/Athena
+        // service assemblies that GetInfrastructureAssemblies also loads are excluded.
+        const string adapterPrefix = "ExxerCube.Prisma.Infrastructure.";
+
+        // Known, ADR-referenced cross-adapter edges that are accepted/deferred (NOT yet resolved). Keep this
+        // EMPTY unless an edge has an ADR + tracking issue; format "<SourceBucket> -> <TargetBucket>".
+        // Database -> Calendar is intentionally absent: it is resolved by ADR-023 and must stay green.
+        var allowedEdges = new HashSet<string>(StringComparer.Ordinal);
+
+        string? BucketOf(Assembly a)
         {
-            "ExxerCube.Prisma.Infrastructure.Database",
-            "ExxerCube.Prisma.Infrastructure.Classification",
-            "ExxerCube.Prisma.Infrastructure.Extraction",
-            "ExxerCube.Prisma.Infrastructure.Export",
-            "ExxerCube.Prisma.Infrastructure.FileStorage",
-            "ExxerCube.Prisma.Infrastructure.BrowserAutomation",
-            "ExxerCube.Prisma.Infrastructure.FileSystem",
-            "ExxerCube.Prisma.Infrastructure.Metrics",
-        };
+            var name = a.GetName().Name ?? string.Empty;
+            if (!name.StartsWith(adapterPrefix, StringComparison.Ordinal)) return null;
+            var firstSegment = name[adapterPrefix.Length..].Split('.')[0];
+            return adapterPrefix + firstSegment;
+        }
+
+        var adapterAssemblies = InfrastructureAssemblies
+            .Where(a => BucketOf(a) is not null)
+            .ToArray();
+
+        var buckets = adapterAssemblies
+            .Select(a => BucketOf(a)!)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
 
         var violations = new List<string>();
 
-        for (int i = 0; i < InfrastructureAssemblies.Length; i++)
+        foreach (var sourceAssembly in adapterAssemblies)
         {
-            var sourceAssembly = InfrastructureAssemblies[i];
-            var sourceNamespace = infrastructureNamespaces
-                .FirstOrDefault(ns => sourceAssembly.GetName().Name?.StartsWith(ns, StringComparison.OrdinalIgnoreCase) == true);
-            if (string.IsNullOrEmpty(sourceNamespace)) continue;
+            var sourceBucket = BucketOf(sourceAssembly)!;
+            var sourceName = sourceAssembly.GetName().Name ?? string.Empty;
 
-            for (int j = 0; j < infrastructureNamespaces.Length; j++)
+            foreach (var targetBucket in buckets)
             {
-                var targetNamespace = infrastructureNamespaces[j];
-
-                if (sourceNamespace == targetNamespace) continue; // Skip self
+                if (string.Equals(sourceBucket, targetBucket, StringComparison.Ordinal)) continue; // same adapter family
 
                 var result = Types.InAssembly(sourceAssembly)
                     .ShouldNot()
-                    .HaveDependencyOn(targetNamespace)
+                    .HaveDependencyOn(targetBucket)
                     .GetResult();
 
                 if (!result.IsSuccessful)
                 {
-                    var sourceName = sourceAssembly.GetName().Name ?? string.Empty;
+                    var edge = $"{sourceBucket} -> {targetBucket}";
+                    if (allowedEdges.Contains(edge)) continue;
+
                     var failingTypes = string.Join(", ", result.FailingTypes?.Select(t => t.FullName) ?? Array.Empty<string>());
-                    violations.Add($"{sourceName} → {targetNamespace}: {failingTypes}");
+                    violations.Add($"{sourceName} → {targetBucket}: {failingTypes}");
                 }
             }
         }
