@@ -228,7 +228,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         if (extractedFieldCount < coverageFloor)
         {
             _logger.LogWarning(
-                "Extraction coverage below floor for {FileName}: {ExtractedFieldCount} < {CoverageFloor} — emitting BLOCKED/{Reason}",
+                "Extraction coverage below floor for {FileName}: {ExtractedFieldCount} < {CoverageFloor} — emitting ExtractionGap/{Reason}",
                 submission.FileName,
                 extractedFieldCount,
                 coverageFloor,
@@ -370,7 +370,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         if (textLayerWordCount < textLayerFloor)
         {
             _logger.LogWarning(
-                "Text-layer density below floor for {FileName}: {WordCount} < {TextLayerFloor} — emitting BLOCKED/{Reason}",
+                "Text-layer density below floor for {FileName}: {WordCount} < {TextLayerFloor} — emitting ExtractionGap/{Reason}",
                 submission.FileName,
                 textLayerWordCount,
                 textLayerFloor,
@@ -525,7 +525,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         if (boundarySignalCount > maxBoundarySignals)
         {
             _logger.LogWarning(
-                "Ambiguous document scope for {FileName}: {BoundarySignalCount} page(s) exceeds max={MaxBoundarySignals} — emitting BLOCKED/{Reason}",
+                "Ambiguous document scope for {FileName}: {BoundarySignalCount} page(s) exceeds max={MaxBoundarySignals} — emitting ExtractionGap/{Reason}",
                 submission.FileName,
                 boundarySignalCount,
                 maxBoundarySignals,

@@ -139,14 +139,23 @@ public sealed record VerdictSummary
     /// <summary>
     /// The minimum extraction confidence across all <see cref="Domain.Verification.RuleFinding"/>
     /// items that contributed to this verdict.  Ranges from <c>0.0</c> (fully uncertain) to
-    /// <c>1.0</c> (fully confident).
+    /// <c>1.0</c> (no low-confidence guarded field consumed by any rule).
     /// </summary>
     /// <remarks>
     /// <para>
     /// Computed by <see cref="VerdictAggregator"/> as
     /// <c>findings.Min(f =&gt; f.Confidence)</c>.  An empty findings list yields <c>1.0</c>
-    /// (no evidence of low confidence).  A <see cref="VerdictSignal.Blocked"/> summary also
-    /// carries <c>1.0</c> because no rules were evaluated.
+    /// (no evidence of low confidence).  A <see cref="VerdictSignal.Blocked"/> or
+    /// <see cref="VerdictSignal.ExtractionGap"/> summary also carries <c>1.0</c> because
+    /// no rules were evaluated.
+    /// </para>
+    /// <para>
+    /// <b>Semantics of 1.0 (important):</b> a value of <c>1.0</c> means no rule consumed a
+    /// confidence-guarded field with low fidelity — it is <em>not</em> a verdict-level
+    /// certainty attestation.  Rules that evaluate presence, structural layout, document
+    /// movement, section structure, or legend elements always produce per-finding
+    /// <c>1.0</c> regardless of extraction fidelity (see
+    /// <see cref="Domain.Verification.RuleFinding.Confidence"/>).
     /// </para>
     /// <para>
     /// Consumer note: a low <c>Confidence</c> alongside <see cref="VerdictSignal.Green"/> means

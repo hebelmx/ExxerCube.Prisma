@@ -210,9 +210,12 @@ internal sealed class BatchProcessor : IBatchProcessor
 
                         Interlocked.Increment(ref completed);
 
-                        // Story 4.2: count both Blocked and ExtractionGap in the progress non-verdict
-                    // counter (granularity not needed during live progress; see BatchReport for split).
-                    if (outcome.Summary.Signal is VerdictSignal.Blocked or VerdictSignal.ExtractionGap)
+                        // Story 4.2: the live-progress "blocked" counter intentionally groups both
+                        // VerdictSignal.Blocked and VerdictSignal.ExtractionGap for coarse progress
+                        // reporting.  TransientFailure is not counted here (no current emitter).
+                        // The final BatchReport splits all six signals into individual counts —
+                        // use BatchReport for per-signal breakdowns, not this counter.
+                        if (outcome.Summary.Signal is VerdictSignal.Blocked or VerdictSignal.ExtractionGap)
                             Interlocked.Increment(ref blocked);
 
                         // Persist the completed outcome when in resume mode

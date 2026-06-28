@@ -18,7 +18,8 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// <param name="TotalSubmitted">Total number of submissions in the original batch.</param>
 /// <param name="CompletedCount">
 /// Number of items that produced a <see cref="VerificationOutcome"/> during this run
-/// (Green + Yellow + Red + Blocked).  Does not include <see cref="AlreadyCompletedCount"/>.
+/// (Green + Yellow + Red + Blocked + ExtractionGap + TransientFailure).
+/// Does not include <see cref="AlreadyCompletedCount"/>.
 /// </param>
 /// <param name="BlockedCount">
 /// Subset of <see cref="CompletedCount"/> where the verdict is

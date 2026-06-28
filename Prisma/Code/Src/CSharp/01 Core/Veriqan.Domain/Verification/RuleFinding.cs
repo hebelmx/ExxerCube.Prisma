@@ -96,21 +96,28 @@ public sealed record RuleFinding(
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// The minimum extraction confidence of all fields consumed by the rule that produced
-    /// this finding.  Ranges from <c>0.0</c> (fully uncertain) to <c>1.0</c> (fully
-    /// confident).
+    /// The minimum extraction confidence of all confidence-guarded scalar fields the rule
+    /// consumed.  Ranges from <c>0.0</c> (fully uncertain) to <c>1.0</c> (no low-confidence
+    /// guarded field consumed by this rule).
     /// </summary>
     /// <remarks>
     /// <para>
     /// Stamped by <c>VecValidationEngine</c> at the same central locus as
     /// <see cref="DofNumeral"/>: after the rule returns its finding, the engine reads
     /// <c>VerificationContext.ConsumedConfidenceOrFull()</c> — the minimum confidence
-    /// of every <c>ExtractedField</c> the rule checked via
+    /// of every <c>ExtractedField&lt;T&gt;</c> the rule checked via
     /// <c>VerificationContext.ConfidenceBelowThreshold</c> — and applies it here.
     /// </para>
     /// <para>
-    /// Rules that never guard a field (e.g. presence checks that never call
-    /// <c>ConfidenceBelowThreshold</c>) default to <c>1.0</c> (full confidence).
+    /// <b>Semantics of 1.0 (important):</b> a value of <c>1.0</c> means the rule consumed
+    /// no confidence-guarded field — it does <em>not</em> attest that every input was
+    /// confidence-checked.  Rules that evaluate presence, structural layout, document
+    /// movement, section structure, or legend elements never route through
+    /// <c>ConfidenceBelowThreshold</c> and therefore always produce <c>1.0</c>,
+    /// regardless of extraction fidelity.  The deeper fix — guarding non-scalar evidence
+    /// or using a sub-1.0 sentinel — is deferred to Epic 6.
+    /// </para>
+    /// <para>
     /// Rules that abstain (<see cref="FindingVerdict.InsufficientData"/>) carry the
     /// confidence of the field that caused them to abstain.
     /// </para>
