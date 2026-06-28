@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
@@ -44,12 +45,18 @@ internal sealed class InMemoryVerdictPersistenceService : IVerdictPersistenceSer
         ArgumentNullException.ThrowIfNull(findings);
         ArgumentException.ThrowIfNullOrWhiteSpace(engineVersion);
 
+        // Story 4.1: min confidence across all findings, mirroring VerdictSummary.Confidence.
+        var verdictConfidence = findings.Count > 0
+            ? findings.Min(f => f.Confidence)
+            : 1.0;
+
         var verdict = new JobVerdict(
             id: Guid.NewGuid(),
             verificationJobId: jobId,
             signal: signal,
             bankTierVerdict: bankTierVerdict,
-            condusefTierVerdict: condusefTierVerdict);
+            condusefTierVerdict: condusefTierVerdict,
+            confidence: verdictConfidence);
 
         _verdicts[jobId] = verdict;
 
@@ -68,7 +75,8 @@ internal sealed class InMemoryVerdictPersistenceService : IVerdictPersistenceSer
                 engineVersion: engineVersion,
                 expected: rf.Expected,
                 observed: rf.Observed,
-                tier: tier));
+                tier: tier,
+                confidence: rf.Confidence));
         }
 
         _findings[jobId] = findingEntities;

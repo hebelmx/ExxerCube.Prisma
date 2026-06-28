@@ -25,18 +25,25 @@ public sealed class JobVerdict
     /// CONDUSEF-tier verdict (Story 1.4). Defaults to <c>VerdictSignal.Green</c> for
     /// pre-migration rows; see <c>VerdictSummary.ToJobVerdict</c> for the live mapping.
     /// </param>
+    /// <param name="confidence">
+    /// Minimum extraction confidence across all <see cref="Finding"/> items for this verdict
+    /// (Story 4.1). Ranges from <c>0.0</c> (fully uncertain) to <c>1.0</c> (fully confident).
+    /// Defaults to <c>1.0</c> for pre-migration rows and blocked verdicts where no rules ran.
+    /// </param>
     public JobVerdict(
         Guid id,
         Guid verificationJobId,
         VerdictSignal signal,
         VerdictSignal bankTierVerdict = VerdictSignal.Green,
-        VerdictSignal condusefTierVerdict = VerdictSignal.Green)
+        VerdictSignal condusefTierVerdict = VerdictSignal.Green,
+        double confidence = 1.0)
     {
         Id = id;
         VerificationJobId = verificationJobId;
         Signal = signal;
         BankTierVerdict = bankTierVerdict;
         CondusefTierVerdict = condusefTierVerdict;
+        Confidence = confidence;
     }
 
     /// <summary>Gets the unique identifier for this verdict record.</summary>
@@ -71,6 +78,18 @@ public sealed class JobVerdict
     /// default of <c>Green</c> (integer value 0).
     /// </remarks>
     public VerdictSignal CondusefTierVerdict { get; private set; }
+
+    /// <summary>
+    /// Gets the minimum extraction confidence across all <see cref="Finding"/> items for this
+    /// verdict (Story 4.1). Ranges from <c>0.0</c> (fully uncertain) to <c>1.0</c> (fully
+    /// confident).
+    /// </summary>
+    /// <remarks>
+    /// Stamped at persist time as <c>findings.Min(f =&gt; f.Confidence)</c>.
+    /// <c>1.0</c> for blocked verdicts (no rules ran) and pre-existing rows (before migration
+    /// <c>AddConfidenceColumns</c>).
+    /// </remarks>
+    public double Confidence { get; private set; } = 1.0;
 
     /// <summary>
     /// Gets the UTC timestamp at which a RED-alert email was sent for this verdict,

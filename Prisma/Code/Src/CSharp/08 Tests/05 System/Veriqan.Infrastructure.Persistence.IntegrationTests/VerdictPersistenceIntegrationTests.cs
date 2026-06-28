@@ -1,5 +1,6 @@
 // Story: VERIQAN-E1-S5 — Persist stage (Stage 8: JobVerdict + Findings persistence).
 // Story 1.4 — Persist + expose two-tier verdict (BankTierVerdict, CondusefTierVerdict, Finding.Tier).
+// Story 4.1 — Persist + round-trip extraction confidence (JobVerdict.Confidence, Finding.Confidence).
 // Docker IS available in this session; these tests run LIVE on a SQL Server Testcontainer.
 
 using System.Collections.Generic;
@@ -317,6 +318,100 @@ public sealed class VerdictPersistenceIntegrationTests
                 storedVerdict.Id,
                 storedVerdict.BankTierVerdict,
                 storedVerdict.CondusefTierVerdict,
+                storedFindings.Count);
+        }
+    }
+
+    /// <summary>
+    /// Story 4.1 round-trip: non-default <see cref="JobVerdict.Confidence"/> and
+    /// <see cref="Finding.Confidence"/> survive a write-then-read against SQL Server.
+    /// Persists findings with <c>Confidence = 0.82</c>, reads the JobVerdict and Finding rows
+    /// back, and asserts both equal <c>0.82</c>.
+    /// </summary>
+    [Fact]
+    public async Task PersistAsync_ConfidenceRoundTrip_StoredAndReadBackCorrectly()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var (scope, _) = await BuildScopeAsync("verdict_persist_confidence", ct);
+
+        await using (scope)
+        {
+            var svc = scope.ServiceProvider.GetRequiredService<EfVerdictPersistenceService>();
+            var ctx = scope.ServiceProvider.GetRequiredService<VeriqanDbContext>();
+
+            var jobId = Guid.NewGuid();
+            const string engineVersion = "1.0.0";
+            const double expectedConfidence = 0.82;
+
+            // Seed the parent VerificationJob (FK required by real SQL).
+            var parentJob = new VerificationJob(
+                id: jobId,
+                contentHash: jobId.ToString("N") + "conf",
+                receivedAtUtc: DateTimeOffset.UtcNow,
+                status: VerificationJobStatus.Pending);
+            await ctx.VerificationJobs.AddAsync(parentJob, ct);
+            await ctx.SaveChangesAsync(ct);
+
+            // Two findings both carrying Confidence = 0.82 (non-default).
+            // Story 4.1: confidence is set as a RuleFinding init property — the factory methods
+            // leave it at the 1.0 default, so we use the object-initialiser to override.
+            IReadOnlyList<RuleFinding> ruleFindings =
+            [
+                RuleFinding.Pass("CL-CONF-P", TechniqueClass.Deterministic, engineVersion, "ok")
+                    with { Confidence = expectedConfidence },
+                RuleFinding.Fail(
+                    "CL-CONF-F",
+                    TechniqueClass.Deterministic,
+                    FindingSeverity.Critical,
+                    engineVersion,
+                    expected: "exp",
+                    observed: "obs")
+                    with { Confidence = expectedConfidence },
+            ];
+
+            // Act
+            var result = await svc.PersistAsync(
+                jobId: jobId,
+                signal: VerdictSignal.Red,
+                findings: ruleFindings,
+                engineVersion: engineVersion,
+                cancellationToken: ct);
+
+            // Assert — service call succeeded
+            result.IsSuccess.ShouldBeTrue(
+                $"PersistAsync returned failure: {result.Error}");
+
+            // Assert — JobVerdict.Confidence round-trips from the database
+            var storedVerdict = await ctx.JobVerdicts
+                .AsNoTracking()
+                .Where(v => v.VerificationJobId == jobId)
+                .SingleOrDefaultAsync(ct);
+
+            storedVerdict.ShouldNotBeNull("A JobVerdict row must exist.");
+            storedVerdict.Confidence.ShouldBe(
+                expectedConfidence,
+                $"JobVerdict.Confidence must persist as {expectedConfidence} (Story 4.1).");
+
+            // Assert — Finding.Confidence round-trips from the database (both rows)
+            var storedFindings = await ctx.Findings
+                .AsNoTracking()
+                .Where(f => f.VerificationJobId == jobId)
+                .ToListAsync(ct);
+
+            storedFindings.Count.ShouldBe(2, "Expected exactly 2 Finding rows.");
+
+            foreach (var finding in storedFindings)
+            {
+                finding.Confidence.ShouldBe(
+                    expectedConfidence,
+                    $"Finding {finding.CheckId} Confidence must persist as {expectedConfidence} (Story 4.1).");
+            }
+
+            _logger.LogInformation(
+                "Confidence round-trip passed: VerdictId={VerdictId} VerdictConf={VConf} FindingCount={Count}",
+                storedVerdict.Id,
+                storedVerdict.Confidence,
                 storedFindings.Count);
         }
     }

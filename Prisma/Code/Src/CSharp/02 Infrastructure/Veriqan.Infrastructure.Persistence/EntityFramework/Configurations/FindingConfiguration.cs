@@ -61,5 +61,19 @@ internal sealed class FindingConfiguration : IEntityTypeConfiguration<Finding>
             .HasConversion<int>()
             .HasDefaultValue(ChecklistTier.Condusef)
             .HasSentinel((ChecklistTier)(-1));
+
+        // Confidence: extraction confidence of the rule's consumed field(s) (Story 4.1).
+        // Stored as SQL float (double-precision). DB default = 1.0 for pre-migration rows.
+        //
+        // HasSentinel(-1.0): EF's CLR sentinel defaults to the CLR default for double (0.0).
+        // Without an explicit sentinel, EF treats Confidence=0.0 as "not set" and lets the DB
+        // default (1.0) override it, silently storing the wrong value for fully uncertain fields.
+        // Setting the sentinel to -1.0 — outside the valid 0.0–1.0 range — forces EF to always
+        // include the explicit Confidence value in every INSERT.
+        builder.Property(f => f.Confidence)
+            .IsRequired()
+            .HasColumnType("float")
+            .HasDefaultValue(1.0)
+            .HasSentinel(-1.0);
     }
 }

@@ -54,5 +54,17 @@ internal sealed class JobVerdictConfiguration : IEntityTypeConfiguration<JobVerd
             .IsRequired(false)
             .HasColumnType("datetimeoffset")
             .IsConcurrencyToken();
+
+        // Confidence: minimum extraction confidence across all findings for this verdict (Story 4.1).
+        // Stored as SQL float (double-precision). DB default = 1.0 for pre-migration rows.
+        //
+        // HasSentinel(-1.0): same sentinel pattern as Finding.Confidence — prevents EF from
+        // treating a legitimate confidence of 0.0 as "not set" and silently promoting it to the
+        // DB default of 1.0.
+        builder.Property(v => v.Confidence)
+            .IsRequired()
+            .HasColumnType("float")
+            .HasDefaultValue(1.0)
+            .HasSentinel(-1.0);
     }
 }

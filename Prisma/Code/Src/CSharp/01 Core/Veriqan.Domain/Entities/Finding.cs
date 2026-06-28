@@ -27,6 +27,11 @@ public sealed class Finding
     /// Defaults to <c>ChecklistTier.Condusef</c> — the conservative fallback when no tier map
     /// is available, ensuring unmapped checks are never silently dropped from a RED outcome.
     /// </param>
+    /// <param name="confidence">
+    /// Extraction confidence of the field(s) consumed by the rule that produced this finding
+    /// (Story 4.1). Ranges from <c>0.0</c> (fully uncertain) to <c>1.0</c> (fully confident).
+    /// Defaults to <c>1.0</c> for findings not constructed through the production engine.
+    /// </param>
     public Finding(
         Guid id,
         Guid verificationJobId,
@@ -35,7 +40,8 @@ public sealed class Finding
         string engineVersion,
         string? expected = null,
         string? observed = null,
-        ChecklistTier tier = ChecklistTier.Condusef)
+        ChecklistTier tier = ChecklistTier.Condusef,
+        double confidence = 1.0)
     {
         ArgumentNullException.ThrowIfNull(checkId);
         ArgumentNullException.ThrowIfNull(engineVersion);
@@ -47,6 +53,7 @@ public sealed class Finding
         Expected = expected;
         Observed = observed;
         Tier = tier;
+        Confidence = confidence;
     }
 
     /// <summary>Gets the unique identifier for this finding.</summary>
@@ -83,4 +90,17 @@ public sealed class Finding
     /// default of <c>Condusef</c> (integer value 1).
     /// </remarks>
     public ChecklistTier Tier { get; private set; }
+
+    /// <summary>
+    /// Gets the extraction confidence of the field(s) consumed by the rule that produced
+    /// this finding (Story 4.1). Ranges from <c>0.0</c> (fully uncertain) to <c>1.0</c>
+    /// (fully confident).
+    /// </summary>
+    /// <remarks>
+    /// Stamped from <see cref="Domain.Verification.RuleFinding.Confidence"/> at persist time.
+    /// Defaults to <c>1.0</c> for pre-existing rows (before migration
+    /// <c>AddConfidenceColumns</c>) — the conservative assumption that older findings were
+    /// produced with full extraction fidelity.
+    /// </remarks>
+    public double Confidence { get; private set; } = 1.0;
 }
