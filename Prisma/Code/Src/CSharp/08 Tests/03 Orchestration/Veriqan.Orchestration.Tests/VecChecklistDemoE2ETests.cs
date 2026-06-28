@@ -218,6 +218,16 @@ public sealed class VecChecklistDemoE2ETests
 
         // scanned.pdf: ExtractionGap (Story 4.2) — text-layer floor fires before rules; tier verdicts = ExtractionGap.
         ["scanned.pdf",       VerdictSignal.ExtractionGap, null,         VerdictSignal.ExtractionGap, VerdictSignal.ExtractionGap],
+
+        // compliant-master.pdf: RED / 6 structural failures — honest verdict after Epic 3 corpus injection.
+        // §11 / §17 / §26 / §27 pages added → CL-32, LAW-§26-NOTAS, LAW-§27-GLOSARIO PASS.
+        // Fiscal page added → CL-50, CL-51, CL-52, CL-53 PASS.
+        // Remaining 6 failures are all pre-existing in good.pdf (CL-31, CL-46, CL-48,
+        // LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-TYPO-MINSIZE) — not regressions.
+        // BankTierVerdict=Yellow (BankFail: CL-31, CL-46, CL-48).
+        // CondusefTierVerdict=Red (CondusefFail: all 6 above).
+        // Verified 2026-06-28 via DiagnosticCompliantMaster run on the real pipeline.
+        ["compliant-master.pdf", VerdictSignal.Red, "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
     ];
 
     // -----------------------------------------------------------------------
