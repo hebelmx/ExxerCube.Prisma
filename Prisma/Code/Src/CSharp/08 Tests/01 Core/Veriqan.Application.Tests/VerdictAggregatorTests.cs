@@ -118,31 +118,35 @@ public sealed class VerdictAggregatorTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Aggregate_Blocked_ReturnsBlocked_WithReasonSurfaced()
+    public void Aggregate_Blocked_ReturnsExtractionGap_WithReasonSurfaced()
     {
+        // Story 4.2: UnknownProduct is an ExtractionGap reason — routing changed from Blocked.
         var blocked = ABlockedOutcome(BlockReason.UnknownProduct);
-        // Even pass-only findings: Blocked wins.
+        // Even pass-only findings: ExtractionGap wins (absolute precedence).
         var findings = new[] { APass("CL-01") };
 
         var result = _sut.Aggregate(findings, blocked, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         var summary = result.Value!;
-        summary.Signal.ShouldBe(VerdictSignal.Blocked);
+        summary.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "UnknownProduct routes to ExtractionGap (permanent system gap), not Blocked (Story 4.2).");
         summary.BlockedOutcome.ShouldNotBeNull();
         summary.BlockedOutcome!.Reason.ShouldBe(BlockReason.UnknownProduct);
     }
 
     [Fact]
-    public void Aggregate_Blocked_WinsEvenWhenFindingsWouldBeRed()
+    public void Aggregate_ExtractionGap_WinsEvenWhenFindingsWouldBeRed()
     {
+        // Story 4.2: InvalidBundle is an ExtractionGap reason.
         var blocked = ABlockedOutcome(BlockReason.InvalidBundle);
         var findings = new[] { AFail("CL-FAIL-1") };
 
         var result = _sut.Aggregate(findings, blocked, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.Signal.ShouldBe(VerdictSignal.Blocked);
+        result.Value!.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "ExtractionGap must take absolute precedence over Red findings (Story 4.2).");
         result.Value.BlockedOutcome!.Reason.ShouldBe(BlockReason.InvalidBundle);
         result.Value.BlockedOutcome.Detail.ShouldBe("Test block detail.");
     }
@@ -304,20 +308,23 @@ public sealed class VerdictAggregatorTests
     }
 
     /// <summary>
-    /// A Blocked summary must have <c>LegalBaselineSignal = Blocked</c> to match the
-    /// statement's overall blocked state (no findings were evaluated).
+    /// An ExtractionGap summary must have <c>LegalBaselineSignal = ExtractionGap</c> to match the
+    /// statement's overall non-verdict state (no findings were evaluated).
     /// </summary>
     [Fact]
-    public void Aggregate_Blocked_LegalBaselineSignal_IsBlocked()
+    public void Aggregate_ExtractionGap_LegalBaselineSignal_IsExtractionGap()
     {
+        // Story 4.2: UnknownProduct → ExtractionGap; LegalBaselineSignal must mirror.
         var blocked = ABlockedOutcome();
 
         var result = _sut.Aggregate([], blocked, TestContext.Current.CancellationToken);
 
         result.IsSuccess.ShouldBeTrue();
         var summary = result.Value!;
-        summary.Signal.ShouldBe(VerdictSignal.Blocked);
-        summary.LegalBaselineSignal.ShouldBe(VerdictSignal.Blocked);
+        summary.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "UnknownProduct routes to ExtractionGap (Story 4.2).");
+        summary.LegalBaselineSignal.ShouldBe(VerdictSignal.ExtractionGap,
+            "LegalBaselineSignal mirrors Signal for all non-verdict outcomes.");
         summary.LegalBreachCheckIds.ShouldBeEmpty();
         summary.TenantOnlyFailCheckIds.ShouldBeEmpty();
     }
@@ -365,6 +372,113 @@ public sealed class VerdictAggregatorTests
         // The key assertion is that PassCount is 0 and the check is in InsufficientData.
         summary.Signal.ShouldNotBe(VerdictSignal.Red,
             "Unrecognised verdict must not escalate to RED (abstain-safety).");
+    }
+
+    // -----------------------------------------------------------------------
+    // Story 4.2: ExtractionGap / TransientFailure taxonomy + routing
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// All four currently-wired <see cref="BlockReason"/> values must route to
+    /// <see cref="VerdictSignal.ExtractionGap"/> (not <see cref="VerdictSignal.Blocked"/>).
+    /// ExtractionGap takes absolute precedence — even passing findings cannot produce GREEN.
+    /// </summary>
+    [Theory]
+    [InlineData(BlockReason.UnknownProduct)]
+    [InlineData(BlockReason.InvalidBundle)]
+    [InlineData(BlockReason.InsufficientExtractionCoverage)]
+    [InlineData(BlockReason.InsufficientTextLayer)]
+    public void Aggregate_AllFourCurrentBlockReasons_YieldExtractionGap(BlockReason reason)
+    {
+        var blocked = new BlockedOutcome(reason, "test detail");
+        var findings = new[] { APass("CL-PASS") }; // would be Green without the non-verdict override
+
+        var result = _sut.Aggregate(findings, blocked, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var summary = result.Value!;
+        summary.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            $"BlockReason.{reason} must route to ExtractionGap (Story 4.2).");
+        summary.BlockedOutcome.ShouldNotBeNull();
+        summary.BlockedOutcome!.Reason.ShouldBe(reason);
+        // ExtractionGap is not a compliance verdict: these must remain zero.
+        summary.FailCount.ShouldBe(0);
+        summary.PassCount.ShouldBe(0);
+        summary.Total.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// ExtractionGap must take absolute precedence over any findings — even a batch of
+    /// pure-pass findings must not produce GREEN when an ExtractionGap reason is supplied.
+    /// </summary>
+    [Fact]
+    public void Aggregate_ExtractionGap_TakesAbsolutePrecedence_NeverGreen()
+    {
+        // All passing findings — would be Green without the non-verdict override.
+        var findings = new[] { APass("CL-01"), APass("CL-02"), APass("CL-03") };
+        var blocked = new BlockedOutcome(BlockReason.InsufficientTextLayer, "zero words");
+
+        var result = _sut.Aggregate(findings, blocked, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "ExtractionGap must never collapse to Green even when all findings pass (abstain-safety).");
+        result.Value.Signal.ShouldNotBe(VerdictSignal.Green);
+    }
+
+    /// <summary>
+    /// <see cref="VerdictSummary.TransientFailure"/> factory must produce a summary with
+    /// <see cref="VerdictSignal.TransientFailure"/> signal and carry the detail string.
+    /// TransientFailure must be distinct from ExtractionGap.
+    /// </summary>
+    [Fact]
+    public void TransientFailure_Factory_ProducesCorrectSummary_DistinctFromExtractionGap()
+    {
+        // Use the factory directly — no aggregator path for TransientFailure yet (Story 4.2).
+        const string detail = "DB connection timed out after 3 retries";
+        var summary = VerdictSummary.TransientFailure(detail);
+
+        summary.Signal.ShouldBe(VerdictSignal.TransientFailure,
+            "TransientFailure factory must produce Signal = TransientFailure.");
+        summary.TransientDetail.ShouldBe(detail,
+            "TransientDetail carries the retryable failure description.");
+        summary.BlockedOutcome.ShouldBeNull(
+            "TransientFailure does not carry a BlockedOutcome (no machine-readable reason needed).");
+        summary.Signal.ShouldNotBe(VerdictSignal.ExtractionGap,
+            "TransientFailure is distinct from ExtractionGap.");
+        summary.Signal.ShouldNotBe(VerdictSignal.Green,
+            "TransientFailure must never be mistaken for a compliance pass.");
+        summary.LegalBaselineSignal.ShouldBe(VerdictSignal.TransientFailure,
+            "LegalBaselineSignal mirrors Signal for non-verdict outcomes.");
+        // No compliance findings in a TransientFailure summary.
+        summary.FailCount.ShouldBe(0);
+        summary.PassCount.ShouldBe(0);
+        summary.Total.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// <see cref="VerdictSummary.ExtractionGap"/> factory must produce a summary with
+    /// <see cref="VerdictSignal.ExtractionGap"/> signal, carry the <see cref="BlockedOutcome"/>,
+    /// and mirror ExtractionGap on both tier verdicts (absolute precedence).
+    /// </summary>
+    [Fact]
+    public void ExtractionGap_Factory_ProducesCorrectSummary_WithBlockedOutcomeCarried()
+    {
+        var outcome = new BlockedOutcome(BlockReason.InsufficientExtractionCoverage, "only 2 fields extracted");
+        var summary = VerdictSummary.ExtractionGap(outcome);
+
+        summary.Signal.ShouldBe(VerdictSignal.ExtractionGap);
+        summary.BlockedOutcome.ShouldNotBeNull();
+        summary.BlockedOutcome!.Reason.ShouldBe(BlockReason.InsufficientExtractionCoverage);
+        summary.BlockedOutcome.Detail.ShouldBe("only 2 fields extracted");
+        summary.BankTierVerdict.ShouldBe(VerdictSignal.ExtractionGap,
+            "Both tier verdicts must mirror ExtractionGap (absolute precedence).");
+        summary.CondusefTierVerdict.ShouldBe(VerdictSignal.ExtractionGap,
+            "Both tier verdicts must mirror ExtractionGap (absolute precedence).");
+        summary.LegalBaselineSignal.ShouldBe(VerdictSignal.ExtractionGap);
+        summary.FailCount.ShouldBe(0);
+        summary.PassCount.ShouldBe(0);
+        summary.Total.ShouldBe(0);
     }
 
     /// <summary>

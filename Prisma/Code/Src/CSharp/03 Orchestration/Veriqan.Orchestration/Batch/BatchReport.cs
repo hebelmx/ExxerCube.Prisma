@@ -23,6 +23,22 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// <param name="BlockedCount">
 /// Subset of <see cref="CompletedCount"/> where the verdict is
 /// <see cref="ExxerCube.Prisma.Veriqan.Domain.Enums.VerdictSignal.Blocked"/>.
+/// Reserved — always zero after Story 4.2 until document-defect detection is wired.
+/// </param>
+/// <param name="ExtractionGapCount">
+/// Subset of <see cref="CompletedCount"/> where the outcome is
+/// <see cref="ExxerCube.Prisma.Veriqan.Domain.Enums.VerdictSignal.ExtractionGap"/>
+/// (permanent system/capability gap; not a compliance verdict).
+/// These items are persisted as a final non-verdict outcome but excluded from
+/// compliance pass/fail tallies (<see cref="GreenCount"/>, <see cref="RedCount"/>,
+/// <see cref="YellowCount"/>).
+/// </param>
+/// <param name="TransientFailureCount">
+/// Subset of <see cref="CompletedCount"/> where the outcome is
+/// <see cref="ExxerCube.Prisma.Veriqan.Domain.Enums.VerdictSignal.TransientFailure"/>
+/// (retryable operational failure; not a compliance verdict).
+/// These items are retryable and excluded from compliance tallies.
+/// Always zero after Story 4.2 until transient-failure detection is wired.
 /// </param>
 /// <param name="FailedCount">Number of items placed on the exception queue.</param>
 /// <param name="GreenCount">
@@ -62,6 +78,8 @@ public sealed record BatchReport(
     int TotalSubmitted,
     int CompletedCount,
     int BlockedCount,
+    int ExtractionGapCount,
+    int TransientFailureCount,
     int FailedCount,
     int GreenCount,
     int YellowCount,

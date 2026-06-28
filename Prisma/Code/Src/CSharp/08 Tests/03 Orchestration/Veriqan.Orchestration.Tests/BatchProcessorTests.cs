@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
@@ -55,6 +56,18 @@ public sealed class BatchProcessorTests
         };
         var summary = aggregator.Aggregate(findings, checklistTiers: tiers).Value!;
         return new VerificationOutcome(job, summary, findings);
+    }
+
+    private static VerificationOutcome MakeExtractionGapOutcome()
+    {
+        var job = new VerificationJob(
+            Guid.NewGuid(), "abc-gap", DateTimeOffset.UtcNow, VerificationJobStatus.Pending);
+        var aggregator = new VerdictAggregator();
+        // InsufficientTextLayer → ExtractionGap (Story 4.2)
+        var blocked = new BlockedOutcome(
+            BlockReason.InsufficientTextLayer, "zero words in text layer");
+        var summary = aggregator.Aggregate(Array.Empty<RuleFinding>(), blocked).Value!;
+        return new VerificationOutcome(job, summary, Array.Empty<RuleFinding>());
     }
 
     private static IBatchProcessor BuildBatchProcessor(IVerificationPipeline pipeline)
@@ -336,7 +349,108 @@ public sealed class BatchProcessorTests
         report.YellowCount.ShouldBe(1, "Exactly one Yellow outcome must increment YellowCount.");
         report.RedCount.ShouldBe(0, "Red counter must not be affected by a Yellow outcome.");
         report.BlockedCount.ShouldBe(0, "Blocked counter must not be affected by a Yellow outcome.");
+        report.ExtractionGapCount.ShouldBe(0, "ExtractionGapCount must not be affected by a Yellow outcome.");
+        report.TransientFailureCount.ShouldBe(0, "TransientFailureCount must not be affected by a Yellow outcome.");
         report.FailedCount.ShouldBe(0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Story 4.2 — ExtractionGap / TransientFailure tally tests
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// ExtractionGap outcomes must increment <see cref="BatchReport.ExtractionGapCount"/>
+    /// and NOT affect <see cref="BatchReport.GreenCount"/>, <see cref="BatchReport.RedCount"/>,
+    /// or <see cref="BatchReport.BlockedCount"/>.
+    /// Abstain-safety: ExtractionGap must never be counted as a compliance pass or fail.
+    /// </summary>
+    [Fact]
+    public async Task ProcessBatch_ExtractionGapOutcome_IncrementsExtractionGapCountAndNotOthers()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var greenOutcome = MakeGreenOutcome();
+        var gapOutcome = MakeExtractionGapOutcome();
+
+        gapOutcome.Summary.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "Pre-condition: MakeExtractionGapOutcome must produce an ExtractionGap summary.");
+
+        int callCount = 0;
+        var fakePipeline = Substitute.For<IVerificationPipeline>();
+        fakePipeline
+            .ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                // item 1 → Green, item 2 → ExtractionGap, item 3 → Green
+                var n = Interlocked.Increment(ref callCount);
+                return n == 2
+                    ? Task.FromResult(Result<VerificationOutcome>.WithSuccess(gapOutcome))
+                    : Task.FromResult(Result<VerificationOutcome>.WithSuccess(greenOutcome));
+            });
+
+        var batch = new List<StatementSubmission>
+        {
+            MakeSubmission("a.pdf"),
+            MakeSubmission("b-gap.pdf"),
+            MakeSubmission("c.pdf"),
+        };
+
+        var processor = BuildBatchProcessor(fakePipeline);
+
+        // Act — serial to keep call order deterministic
+        var result = await processor.ProcessBatchAsync(
+            batch, new BatchOptions(MaxDegreeOfParallelism: 1), progress: null, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        var report = result.Value!;
+        report.CompletedCount.ShouldBe(3);
+        report.GreenCount.ShouldBe(2, "Two Green outcomes.");
+        report.ExtractionGapCount.ShouldBe(1, "Exactly one ExtractionGap outcome must increment ExtractionGapCount.");
+        report.RedCount.ShouldBe(0, "Red counter must not be affected by an ExtractionGap outcome.");
+        report.BlockedCount.ShouldBe(0, "Blocked counter must not be affected by an ExtractionGap outcome.");
+        report.YellowCount.ShouldBe(0, "Yellow counter must not be affected by an ExtractionGap outcome.");
+        report.TransientFailureCount.ShouldBe(0, "TransientFailureCount must not be affected by an ExtractionGap outcome.");
+        report.FailedCount.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// ExtractionGap must be excluded from compliance tallies — it is a non-verdict
+    /// ("could this document, resubmitted tomorrow unchanged, produce a verdict? No.")
+    /// and must never make a batch appear to pass compliance.
+    /// </summary>
+    [Fact]
+    public async Task ProcessBatch_ExtractionGapOutcome_IsNeverCountedAsGreenOrRed()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var gapOutcome = MakeExtractionGapOutcome();
+
+        var fakePipeline = Substitute.For<IVerificationPipeline>();
+        fakePipeline
+            .ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<VerificationOutcome>.WithSuccess(gapOutcome)));
+
+        var batch = new List<StatementSubmission>
+        {
+            MakeSubmission("scanned-1.pdf"),
+            MakeSubmission("scanned-2.pdf"),
+        };
+
+        var processor = BuildBatchProcessor(fakePipeline);
+
+        // Act
+        var result = await processor.ProcessBatchAsync(batch, new BatchOptions(), progress: null, ct);
+
+        // Assert — ExtractionGap items must NOT appear in Green or Red
+        result.IsSuccess.ShouldBeTrue();
+        var report = result.Value!;
+        report.ExtractionGapCount.ShouldBe(2, "Both items must be counted as ExtractionGap.");
+        report.GreenCount.ShouldBe(0, "ExtractionGap must never be counted as Green (abstain-safety).");
+        report.RedCount.ShouldBe(0, "ExtractionGap must never be counted as Red (abstain-safety).");
+        report.YellowCount.ShouldBe(0);
+        report.BlockedCount.ShouldBe(0);
+        report.TransientFailureCount.ShouldBe(0);
     }
 
     // -----------------------------------------------------------------------

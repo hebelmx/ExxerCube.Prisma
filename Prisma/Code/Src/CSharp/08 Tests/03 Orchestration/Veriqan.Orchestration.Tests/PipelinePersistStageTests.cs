@@ -433,17 +433,18 @@ public sealed class PipelinePersistStageTests
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// BLOCKED-from-binder path: <see cref="IVerdictPersistenceService.PersistAsync"/> must be
-    /// called exactly once even when the pipeline exits early via the binder BLOCKED outcome.
-    /// This verifies the VERIQAN-E1-S5 invariant ("persist is non-optional") on the BLOCKED path.
+    /// ExtractionGap-from-binder path (Story 4.2): <see cref="IVerdictPersistenceService.PersistAsync"/>
+    /// must be called exactly once even when the pipeline exits early via the binder
+    /// <see cref="BlockReason.InvalidBundle"/> outcome (which now routes to ExtractionGap).
+    /// This verifies the VERIQAN-E1-S5 invariant ("persist is non-optional") on the ExtractionGap path.
     /// </summary>
     [Fact]
-    public async Task ProcessAsync_BlockedFromBinder_CallsPersistExactlyOnce()
+    public async Task ProcessAsync_ExtractionGapFromBinder_CallsPersistExactlyOnce()
     {
         // Arrange
         var ct = TestContext.Current.CancellationToken;
 
-        var fakeVerdict = new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked);
+        var fakeVerdict = new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.ExtractionGap);
         var verdictPersistence = Substitute.For<IVerdictPersistenceService>();
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
@@ -466,20 +467,20 @@ public sealed class PipelinePersistStageTests
         // Act
         var result = await pipeline.ProcessAsync(submission, ct);
 
-        // Assert — pipeline returns success with BLOCKED signal
-        result.IsSuccess.ShouldBeTrue("Pipeline should return success on BLOCKED verdict.");
+        // Assert — pipeline returns success with ExtractionGap signal (Story 4.2)
+        result.IsSuccess.ShouldBeTrue("Pipeline should return success on ExtractionGap verdict.");
         result.Value.ShouldNotBeNull();
-        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.Blocked,
-            "The outcome signal must be BLOCKED.");
+        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "The outcome signal must be ExtractionGap (Story 4.2 — InvalidBundle routes to ExtractionGap).");
 
-        // Assert — persist was called exactly once on the BLOCKED path
+        // Assert — persist was called exactly once with ExtractionGap signal
         await verdictPersistence.Received(1).PersistAsync(
             Arg.Any<Guid>(),
-            VerdictSignal.Blocked,
+            VerdictSignal.ExtractionGap,
             Arg.Any<IReadOnlyList<RuleFinding>>(),
             Arg.Any<string>(),
-            VerdictSignal.Blocked,
-            VerdictSignal.Blocked,
+            VerdictSignal.ExtractionGap,
+            VerdictSignal.ExtractionGap,
             Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
             Arg.Any<CancellationToken>());
     }

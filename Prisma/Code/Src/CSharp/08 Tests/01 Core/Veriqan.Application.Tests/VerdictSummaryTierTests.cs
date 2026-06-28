@@ -95,12 +95,13 @@ public sealed class VerdictSummaryTierTests
     }
 
     // -----------------------------------------------------------------------
-    // Tier properties on Blocked summaries (via aggregator)
+    // Tier properties on ExtractionGap summaries (via aggregator)
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Aggregate_Blocked_BothTierVerdicts_AreBlocked()
+    public void Aggregate_ExtractionGap_BothTierVerdicts_AreExtractionGap()
     {
+        // Story 4.2: UnknownProduct routes to ExtractionGap (not Blocked anymore).
         var result = _sut.Aggregate(
             findings: [],
             blocked: ABlockedOutcome(),
@@ -108,11 +109,12 @@ public sealed class VerdictSummaryTierTests
 
         result.IsSuccess.ShouldBeTrue();
         var summary = result.Value!;
-        summary.Signal.ShouldBe(VerdictSignal.Blocked);
-        summary.BankTierVerdict.ShouldBe(VerdictSignal.Blocked,
-            "Story 1.1: Blocked takes absolute precedence — BankTierVerdict mirrors Blocked.");
-        summary.CondusefTierVerdict.ShouldBe(VerdictSignal.Blocked,
-            "Story 1.1: Blocked takes absolute precedence — CondusefTierVerdict mirrors Blocked.");
+        summary.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "Story 4.2: UnknownProduct routes to ExtractionGap.");
+        summary.BankTierVerdict.ShouldBe(VerdictSignal.ExtractionGap,
+            "Story 4.2: ExtractionGap takes absolute precedence — BankTierVerdict mirrors ExtractionGap.");
+        summary.CondusefTierVerdict.ShouldBe(VerdictSignal.ExtractionGap,
+            "Story 4.2: ExtractionGap takes absolute precedence — CondusefTierVerdict mirrors ExtractionGap.");
     }
 
     // -----------------------------------------------------------------------
@@ -180,12 +182,13 @@ public sealed class VerdictSummaryTierTests
             ct: TestContext.Current.CancellationToken);
         redResult.Value!.Signal.ShouldBe(VerdictSignal.Red);
 
-        // Blocked regression
+        // ExtractionGap regression (Story 4.2: UnknownProduct → ExtractionGap, not Blocked)
         var blockedResult = _sut.Aggregate(
             findings: [],
             blocked: ABlockedOutcome(),
             ct: TestContext.Current.CancellationToken);
-        blockedResult.Value!.Signal.ShouldBe(VerdictSignal.Blocked);
+        blockedResult.Value!.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "Story 4.2: UnknownProduct routes to ExtractionGap.");
     }
 
     // -----------------------------------------------------------------------

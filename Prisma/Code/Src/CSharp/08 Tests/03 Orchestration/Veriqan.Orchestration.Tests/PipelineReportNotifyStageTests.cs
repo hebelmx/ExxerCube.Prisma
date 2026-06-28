@@ -301,7 +301,7 @@ public sealed class PipelineReportNotifyStageTests
                 Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(
-                Result<JobVerdict>.WithSuccess(new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked))));
+                Result<JobVerdict>.WithSuccess(new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.ExtractionGap))));
         services.Replace(ServiceDescriptor.Scoped<IVerdictPersistenceService>(_ => persist));
 
         services.AddSingleton(reportGenerator);
@@ -425,13 +425,14 @@ public sealed class PipelineReportNotifyStageTests
     }
 
     /// <summary>
-    /// BLOCKED verdict → <see cref="IMarkedPdfGenerator.Generate"/> IS called (reviewer needs the copy);
-    /// <see cref="IVecAlertService.SendRedAlertAsync"/> is NOT called (BLOCKED is not RED).
-    /// The BLOCKED path exits the pipeline early (before the engine), so we trigger it via
-    /// a binder that returns a <see cref="BlockedOutcome"/> failure.
+    /// ExtractionGap verdict (Story 4.2) → <see cref="IMarkedPdfGenerator.Generate"/> IS called
+    /// (reviewer needs the copy); <see cref="IVecAlertService.SendRedAlertAsync"/> is NOT called
+    /// (ExtractionGap is not RED).
+    /// The ExtractionGap path exits the pipeline early (before the engine), so we trigger it via
+    /// a binder that returns a <see cref="BlockedOutcome"/> failure (InvalidBundle → ExtractionGap).
     /// </summary>
     [Fact]
-    public async Task ProcessAsync_BlockedVerdict_CallsReportButNotAlert()
+    public async Task ProcessAsync_ExtractionGapVerdict_CallsReportButNotAlert()
     {
         var ct = TestContext.Current.CancellationToken;
 
@@ -450,17 +451,17 @@ public sealed class PipelineReportNotifyStageTests
 
         var result = await pipeline.ProcessAsync(MakeSubmission(), ct);
 
-        result.IsSuccess.ShouldBeTrue("Pipeline should succeed on BLOCKED verdict.");
-        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.Blocked,
-            "The outcome signal must be BLOCKED.");
+        result.IsSuccess.ShouldBeTrue("Pipeline should succeed on ExtractionGap verdict.");
+        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "The outcome signal must be ExtractionGap (Story 4.2 — InvalidBundle routes to ExtractionGap).");
 
-        // Report: called for BLOCKED
+        // Report: called for ExtractionGap (reviewers need the annotated copy)
         reportGenerator.Received(1).Generate(
             Arg.Any<byte[]>(),
             Arg.Any<IReadOnlyList<RuleFinding>>(),
             Arg.Any<CancellationToken>());
 
-        // Alert: NOT called for BLOCKED
+        // Alert: NOT called for ExtractionGap (non-verdict, not RED)
         await alertService.DidNotReceive().SendRedAlertAsync(
             Arg.Any<VerdictSummary>(),
             Arg.Any<AlertContext>(),

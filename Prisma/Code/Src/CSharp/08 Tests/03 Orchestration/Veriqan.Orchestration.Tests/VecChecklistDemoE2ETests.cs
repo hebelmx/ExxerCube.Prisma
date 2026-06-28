@@ -216,8 +216,8 @@ public sealed class VecChecklistDemoE2ETests
         // CL-35 adds to bankFailIds but not condusefFailIds — tier split is the same as the others.
         ["bad-font-cl35.pdf", VerdictSignal.Red,     "CL-35",            VerdictSignal.Yellow, VerdictSignal.Red],
 
-        // scanned.pdf: BLOCKED — text-layer floor fires before rules; both tier verdicts are Blocked.
-        ["scanned.pdf",       VerdictSignal.Blocked, null,               VerdictSignal.Blocked, VerdictSignal.Blocked],
+        // scanned.pdf: ExtractionGap (Story 4.2) — text-layer floor fires before rules; tier verdicts = ExtractionGap.
+        ["scanned.pdf",       VerdictSignal.ExtractionGap, null,         VerdictSignal.ExtractionGap, VerdictSignal.ExtractionGap],
     ];
 
     // -----------------------------------------------------------------------
@@ -446,11 +446,18 @@ public sealed class VecChecklistDemoE2ETests
                 }
                 break;
 
-            case VerdictSignal.Blocked:
-                // BLOCKED: the pipeline halted before rules ran (e.g. insufficient text layer).
+            case VerdictSignal.ExtractionGap:
+                // ExtractionGap (Story 4.2): the pipeline halted before rules ran (e.g. insufficient text layer).
+                // BlockedOutcome carrier is reused for ExtractionGap — it carries the reason + detail.
                 outcome.Summary.BlockedOutcome.ShouldNotBeNull(
-                    $"'{fixtureName}': BLOCKED verdict must carry a non-null BlockedOutcome " +
-                    "identifying the reason (InsufficientTextLayer, ProductNotFound, etc.).");
+                    $"'{fixtureName}': ExtractionGap outcome must carry a non-null BlockedOutcome " +
+                    "identifying the reason (InsufficientTextLayer, UnknownProduct, etc.).");
+                break;
+
+            case VerdictSignal.Blocked:
+                // Blocked (reserved — no emitter after Story 4.2): document defect requiring human review.
+                outcome.Summary.BlockedOutcome.ShouldNotBeNull(
+                    $"'{fixtureName}': Blocked verdict must carry a non-null BlockedOutcome.");
                 break;
         }
     }

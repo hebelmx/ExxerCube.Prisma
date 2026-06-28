@@ -15,8 +15,11 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 /// Items that could not be processed (placed on the exception queue).
 /// </param>
 /// <param name="Blocked">
-/// Subset of <see cref="Completed"/> where the verdict signal is
-/// <see cref="ExxerCube.Prisma.Veriqan.Domain.Enums.VerdictSignal.Blocked"/>.
+/// Subset of <see cref="Completed"/> where the outcome signal is a non-verdict
+/// (<see cref="ExxerCube.Prisma.Veriqan.Domain.Enums.VerdictSignal.Blocked"/> or
+/// <see cref="ExxerCube.Prisma.Veriqan.Domain.Enums.VerdictSignal.ExtractionGap"/>).
+/// Progress-tracking granularity: both are counted here for simplicity.
+/// Use <see cref="BatchReport"/> for the per-signal breakdown.
 /// </param>
 /// <param name="AlreadyCompleted">
 /// Items skipped because their content hash was already recorded as completed in the

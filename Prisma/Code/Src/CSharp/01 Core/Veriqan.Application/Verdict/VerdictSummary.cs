@@ -53,7 +53,8 @@ public sealed record VerdictSummary
         VerdictSignal condusefTierVerdict = VerdictSignal.Green,
         IReadOnlyList<string>? bankFailCheckIds = null,
         IReadOnlyList<string>? condusefFailCheckIds = null,
-        double confidence = 1.0)
+        double confidence = 1.0,
+        string? transientDetail = null)
     {
         Signal = signal;
         FailCount = failCount;
@@ -71,6 +72,7 @@ public sealed record VerdictSummary
         BankFailCheckIds = bankFailCheckIds ?? [];
         CondusefFailCheckIds = condusefFailCheckIds ?? [];
         Confidence = confidence;
+        TransientDetail = transientDetail;
     }
 
     // -----------------------------------------------------------------------
@@ -207,9 +209,24 @@ public sealed record VerdictSummary
 
     /// <summary>
     /// Gets the <see cref="Binding.BlockedOutcome"/> when <see cref="Signal"/> is
-    /// <see cref="VerdictSignal.Blocked"/>; otherwise <see langword="null"/>.
+    /// <see cref="VerdictSignal.Blocked"/> or <see cref="VerdictSignal.ExtractionGap"/>;
+    /// otherwise <see langword="null"/>.
     /// </summary>
     public BlockedOutcome? BlockedOutcome { get; }
+
+    /// <summary>
+    /// Gets a human-readable detail string when <see cref="Signal"/> is
+    /// <see cref="VerdictSignal.TransientFailure"/>; <see langword="null"/> for all other signals.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This is the carrier for transient-failure context (Story 4.2). Unlike
+    /// <see cref="BlockedOutcome"/> (which carries a typed <see cref="Domain.Enums.BlockReason"/>
+    /// for routing), a transient failure does not require machine-readable reason routing —
+    /// callers should simply retry.  The detail string is surfaced for logging and diagnostics.
+    /// </para>
+    /// </remarks>
+    public string? TransientDetail { get; }
 
     /// <summary>
     /// Gets the list of rejected tenant override deviations produced during tenant-profile
@@ -262,13 +279,14 @@ public sealed record VerdictSummary
     /// (the effective, possibly-stricter tenant verdict) and this value must NOT change that.
     /// </para>
     /// <para>
-    /// When <see cref="Signal"/> is <see cref="VerdictSignal.Blocked"/> this property is
-    /// also <see cref="VerdictSignal.Blocked"/> to match the statement's overall state.
+    /// When <see cref="Signal"/> is a non-verdict signal (<see cref="VerdictSignal.Blocked"/>,
+    /// <see cref="VerdictSignal.ExtractionGap"/>, or <see cref="VerdictSignal.TransientFailure"/>)
+    /// this property mirrors <see cref="Signal"/> — no legal-floor ruling was made.
     /// </para>
     /// </remarks>
     public VerdictSignal LegalBaselineSignal =>
-        Signal == VerdictSignal.Blocked
-            ? VerdictSignal.Blocked
+        Signal is VerdictSignal.Blocked or VerdictSignal.ExtractionGap or VerdictSignal.TransientFailure
+            ? Signal
             : LegalBreachCheckIds.Count > 0
                 ? VerdictSignal.Red
                 : VerdictSignal.Green;
@@ -414,7 +432,15 @@ public sealed record VerdictSummary
             // Story 4.1: min confidence across all findings
             confidence: confidence);
 
-    /// <summary>Creates a <see cref="VerdictSignal.Blocked"/> summary from a binding failure.</summary>
+    /// <summary>
+    /// Creates a <see cref="VerdictSignal.Blocked"/> summary from a binding failure.
+    /// </summary>
+    /// <remarks>
+    /// <b>RESERVED — no production emitter after Story 4.2.</b>
+    /// The pipeline routes all currently-wired reasons to <see cref="ExtractionGap"/> instead.
+    /// This factory is kept for future use when genuine document-defect detection
+    /// (EncryptedDocument, CorruptDocument, TamperedDocument, etc.) is wired.
+    /// </remarks>
     /// <param name="blockedOutcome">The blocking outcome from the binder.</param>
     /// <param name="tenantDeviations">Rejected tenant override deviations, if any.</param>
     internal static VerdictSummary Blocked(
@@ -435,6 +461,87 @@ public sealed record VerdictSummary
             // Story 1.1: Blocked takes absolute precedence — both tier verdicts mirror Blocked.
             bankTierVerdict: VerdictSignal.Blocked,
             condusefTierVerdict: VerdictSignal.Blocked);
+
+    /// <summary>
+    /// Creates a <see cref="VerdictSignal.ExtractionGap"/> summary from a permanent
+    /// system/engineering capability gap (Story 4.2).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Abstain-safety:</b> ExtractionGap is a non-verdict and takes absolute precedence —
+    /// it must never be treated as a compliance pass.
+    /// </para>
+    /// <para>
+    /// All four currently-wired <see cref="Domain.Enums.BlockReason"/> values
+    /// (<see cref="Domain.Enums.BlockReason.UnknownProduct"/>,
+    /// <see cref="Domain.Enums.BlockReason.InvalidBundle"/>,
+    /// <see cref="Domain.Enums.BlockReason.InsufficientExtractionCoverage"/>,
+    /// <see cref="Domain.Enums.BlockReason.InsufficientTextLayer"/>) route here via
+    /// <c>VerdictAggregator</c>.
+    /// </para>
+    /// </remarks>
+    /// <param name="extractionGapOutcome">The blocking outcome carrying the gap reason and detail.</param>
+    /// <param name="tenantDeviations">Rejected tenant override deviations, if any.</param>
+    internal static VerdictSummary ExtractionGap(
+        BlockedOutcome extractionGapOutcome,
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null) =>
+        new(
+            signal: VerdictSignal.ExtractionGap,
+            failCount: 0,
+            passCount: 0,
+            insufficientDataCount: 0,
+            total: 0,
+            failCheckIds: [],
+            insufficientDataCheckIds: [],
+            blockedOutcome: extractionGapOutcome,
+            tenantDeviations: tenantDeviations,
+            legalBreachCheckIds: null,
+            tenantOnlyFailCheckIds: null,
+            // Story 4.2: ExtractionGap takes absolute precedence — both tier verdicts mirror ExtractionGap.
+            bankTierVerdict: VerdictSignal.ExtractionGap,
+            condusefTierVerdict: VerdictSignal.ExtractionGap);
+
+    /// <summary>
+    /// Creates a <see cref="VerdictSignal.TransientFailure"/> summary for a retryable
+    /// operational failure (Story 4.2).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Abstain-safety:</b> TransientFailure is a non-verdict and takes absolute precedence —
+    /// it must never be treated as a compliance pass.
+    /// </para>
+    /// <para>
+    /// Unlike <see cref="ExtractionGap"/> (which carries a typed
+    /// <see cref="Domain.Enums.BlockReason"/>), a transient failure does not require
+    /// machine-readable reason routing.  The <paramref name="detail"/> string is used for
+    /// logging and diagnostics only; callers should simply retry.
+    /// </para>
+    /// <para>
+    /// <b>Current emitters:</b> none.  This factory is reserved for future wiring when the
+    /// pipeline can distinguish transient infra/DB failures from permanent gaps.
+    /// </para>
+    /// </remarks>
+    /// <param name="detail">Human-readable description of the transient failure.</param>
+    /// <param name="tenantDeviations">Rejected tenant override deviations, if any.</param>
+    internal static VerdictSummary TransientFailure(
+        string detail,
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null) =>
+        new(
+            signal: VerdictSignal.TransientFailure,
+            failCount: 0,
+            passCount: 0,
+            insufficientDataCount: 0,
+            total: 0,
+            failCheckIds: [],
+            insufficientDataCheckIds: [],
+            blockedOutcome: null,
+            tenantDeviations: tenantDeviations,
+            legalBreachCheckIds: null,
+            tenantOnlyFailCheckIds: null,
+            // Story 4.2: TransientFailure takes absolute precedence — both tier verdicts mirror TransientFailure.
+            bankTierVerdict: VerdictSignal.TransientFailure,
+            condusefTierVerdict: VerdictSignal.TransientFailure,
+            transientDetail: detail);
 
     // -----------------------------------------------------------------------
     // Two-tier signal combination rule (Story 1.1)

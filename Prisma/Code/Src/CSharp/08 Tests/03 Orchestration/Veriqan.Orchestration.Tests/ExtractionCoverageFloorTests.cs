@@ -154,12 +154,12 @@ public sealed class ExtractionCoverageFloorTests
     /// When the extractor returns a model with fewer extracted fields than the tenant's
     /// configured floor, the pipeline must return a successful
     /// <see cref="Result{T}"/> whose <see cref="VerdictSignal"/> is
-    /// <see cref="VerdictSignal.Blocked"/> with reason
-    /// <see cref="BlockReason.InsufficientExtractionCoverage"/>.
+    /// <see cref="VerdictSignal.ExtractionGap"/> with reason
+    /// <see cref="BlockReason.InsufficientExtractionCoverage"/> (Story 4.2).
     /// The binder must NOT have been called (guard fires before bind).
     /// </summary>
     [Fact]
-    public async Task ProcessAsync_BelowExtractionCoverageFloor_EmitsBlockedVerdictAndDoesNotReachBinder()
+    public async Task ProcessAsync_BelowExtractionCoverageFloor_EmitsExtractionGapAndDoesNotReachBinder()
     {
         // Arrange
         var ct = TestContext.Current.CancellationToken;
@@ -176,7 +176,7 @@ public sealed class ExtractionCoverageFloorTests
         var zeroFieldModel = BuildAllMissingModel();
 
         var binder = Substitute.For<IBundleBinder>();
-        var persistResult = new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked);
+        var persistResult = new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.ExtractionGap);
         var verdictPersistence = Substitute.For<IVerdictPersistenceService>();
         verdictPersistence
             .PersistAsync(Arg.Any<Guid>(), Arg.Any<VerdictSignal>(),
@@ -204,15 +204,15 @@ public sealed class ExtractionCoverageFloorTests
         // Act
         var result = await pipeline.ProcessAsync(submission, ct);
 
-        // Assert — pipeline returns success (BLOCKED is a valid business outcome)
+        // Assert — pipeline returns success (ExtractionGap is a valid non-verdict outcome)
         result.IsSuccess.ShouldBeTrue(
-            $"Pipeline must return success on BLOCKED verdict. Error: {result.Error ?? "<none>"}");
+            $"Pipeline must return success on ExtractionGap verdict. Error: {result.Error ?? "<none>"}");
 
-        // Assert — signal is BLOCKED
+        // Assert — signal is ExtractionGap (Story 4.2: was Blocked before S4.2)
         var outcome = result.Value!;
         outcome.Summary.Signal.ShouldBe(
-            VerdictSignal.Blocked,
-            "A near-zero-field extraction must produce VerdictSignal.Blocked, not Green or Red.");
+            VerdictSignal.ExtractionGap,
+            "A near-zero-field extraction must produce VerdictSignal.ExtractionGap (Story 4.2), not Green or Red.");
 
         // Assert — binder was NOT called (guard fired before bind stage)
         await binder.DidNotReceive().BindAsync(
@@ -221,14 +221,14 @@ public sealed class ExtractionCoverageFloorTests
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
 
-        // Assert — persist WAS called once with BLOCKED signal (persist is non-optional)
+        // Assert — persist WAS called once with ExtractionGap signal (persist is non-optional)
         await verdictPersistence.Received(1).PersistAsync(
             Arg.Any<Guid>(),
-            VerdictSignal.Blocked,
+            VerdictSignal.ExtractionGap,
             Arg.Any<IReadOnlyList<RuleFinding>>(),
             Arg.Any<string>(),
-            VerdictSignal.Blocked,
-            VerdictSignal.Blocked,
+            VerdictSignal.ExtractionGap,
+            VerdictSignal.ExtractionGap,
             Arg.Any<IReadOnlyDictionary<string, ChecklistTier>>(),
             Arg.Any<CancellationToken>());
     }
@@ -286,7 +286,7 @@ public sealed class ExtractionCoverageFloorTests
                 Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(
                 Result<JobVerdict>.WithSuccess(
-                    new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.Blocked))));
+                    new JobVerdict(Guid.NewGuid(), Guid.NewGuid(), VerdictSignal.ExtractionGap))));
 
         var services = BuildCoverageTestServices(
             tenantProfile,
@@ -313,12 +313,12 @@ public sealed class ExtractionCoverageFloorTests
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
 
-        // The binder returned UnknownProduct BLOCKED → pipeline outcome is still BLOCKED
-        // but for a different reason (UnknownProduct, not InsufficientExtractionCoverage).
+        // The binder returned UnknownProduct → pipeline outcome is ExtractionGap (Story 4.2)
+        // for a different reason (UnknownProduct, not InsufficientExtractionCoverage).
         // We only need to confirm the binder was reached; the specific signal is a bonus assert.
-        result.IsSuccess.ShouldBeTrue("Pipeline should succeed even when binder returns BLOCKED.");
-        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.Blocked,
-            "Binder BLOCKED outcome produces VerdictSignal.Blocked.");
+        result.IsSuccess.ShouldBeTrue("Pipeline should succeed even when binder returns ExtractionGap.");
+        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.ExtractionGap,
+            "Binder UnknownProduct produces VerdictSignal.ExtractionGap (Story 4.2).");
     }
 
     // =========================================================================

@@ -18,9 +18,11 @@ namespace ExxerCube.Prisma.Veriqan.Application.Ports;
 ///     typed failure and an error is logged — the failure is <b>never silently dropped</b>.
 ///   </description></item>
 ///   <item><description>
-///     <see cref="Domain.Enums.VerdictSignal.Green"/> or
-///     <see cref="Domain.Enums.VerdictSignal.Blocked"/> — no email is sent.
-///     A success result is returned with a diagnostic note in the error field.
+///     <see cref="Domain.Enums.VerdictSignal.Green"/>,
+///     <see cref="Domain.Enums.VerdictSignal.Blocked"/>,
+///     <see cref="Domain.Enums.VerdictSignal.ExtractionGap"/>, or
+///     <see cref="Domain.Enums.VerdictSignal.TransientFailure"/> — no email is sent.
+///     A success result is returned; non-verdict signals do not trigger alerts.
 ///   </description></item>
 /// </list>
 /// </para>

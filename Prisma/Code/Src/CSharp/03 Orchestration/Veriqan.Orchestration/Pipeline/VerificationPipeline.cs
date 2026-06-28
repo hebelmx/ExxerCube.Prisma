@@ -252,10 +252,11 @@ internal sealed class VerificationPipeline : IVerificationPipeline
 
             sw.Stop();
             var coverageBlockedDuration = sw.Elapsed;
-            _metrics.RecordStatement(coverageBlockedDuration.TotalMilliseconds, VerdictSignal.Blocked);
+            // Story 4.2: ExtractionGap (not Blocked) — permanent system/capability gap.
+            _metrics.RecordStatement(coverageBlockedDuration.TotalMilliseconds, coverageBlockedVerdictResult.Value!.Signal);
 
             _logger.LogInformation(
-                "Pipeline blocked (InsufficientExtractionCoverage) for {FileName} in {DurationMs:F1} ms JobId={JobId}",
+                "Pipeline ExtractionGap (InsufficientExtractionCoverage) for {FileName} in {DurationMs:F1} ms JobId={JobId}",
                 submission.FileName,
                 coverageBlockedDuration.TotalMilliseconds,
                 job.Id);
@@ -265,11 +266,11 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
                 coveragePersistResult = await _verdictPersistence.PersistAsync(
                     jobId: job.Id,
-                    signal: VerdictSignal.Blocked,
+                    signal: coverageBlockedVerdictResult.Value!.Signal,
                     findings: Array.Empty<RuleFinding>(),
                     engineVersion: EngineVersion,
-                    bankTierVerdict: VerdictSignal.Blocked,
-                    condusefTierVerdict: VerdictSignal.Blocked,
+                    bankTierVerdict: coverageBlockedVerdictResult.Value!.BankTierVerdict,
+                    condusefTierVerdict: coverageBlockedVerdictResult.Value!.CondusefTierVerdict,
                     cancellationToken: ct).ConfigureAwait(false);
 
             if (coveragePersistResult.IsCancelled())
@@ -393,10 +394,11 @@ internal sealed class VerificationPipeline : IVerificationPipeline
 
             sw.Stop();
             var textLayerBlockedDuration = sw.Elapsed;
-            _metrics.RecordStatement(textLayerBlockedDuration.TotalMilliseconds, VerdictSignal.Blocked);
+            // Story 4.2: ExtractionGap (not Blocked) — permanent system/capability gap.
+            _metrics.RecordStatement(textLayerBlockedDuration.TotalMilliseconds, textLayerBlockedVerdictResult.Value!.Signal);
 
             _logger.LogInformation(
-                "Pipeline blocked (InsufficientTextLayer) for {FileName} in {DurationMs:F1} ms JobId={JobId}",
+                "Pipeline ExtractionGap (InsufficientTextLayer) for {FileName} in {DurationMs:F1} ms JobId={JobId}",
                 submission.FileName,
                 textLayerBlockedDuration.TotalMilliseconds,
                 job.Id);
@@ -406,11 +408,11 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
                 textLayerPersistResult = await _verdictPersistence.PersistAsync(
                     jobId: job.Id,
-                    signal: VerdictSignal.Blocked,
+                    signal: textLayerBlockedVerdictResult.Value!.Signal,
                     findings: Array.Empty<RuleFinding>(),
                     engineVersion: EngineVersion,
-                    bankTierVerdict: VerdictSignal.Blocked,
-                    condusefTierVerdict: VerdictSignal.Blocked,
+                    bankTierVerdict: textLayerBlockedVerdictResult.Value!.BankTierVerdict,
+                    condusefTierVerdict: textLayerBlockedVerdictResult.Value!.CondusefTierVerdict,
                     cancellationToken: ct).ConfigureAwait(false);
 
             if (textLayerPersistResult.IsCancelled())
@@ -540,26 +542,30 @@ internal sealed class VerificationPipeline : IVerificationPipeline
 
                 sw.Stop();
                 var blockedDuration = sw.Elapsed;
-                _metrics.RecordStatement(blockedDuration.TotalMilliseconds, VerdictSignal.Blocked);
+                // Story 4.2: ExtractionGap (not Blocked) for all currently-wired bind reasons
+                // (UnknownProduct, InvalidBundle). Signal is read from the aggregated summary.
+                _metrics.RecordStatement(blockedDuration.TotalMilliseconds, blockedVerdictResult.Value!.Signal);
                 _logger.LogInformation(
-                    "Pipeline blocked for {FileName} in {DurationMs:F1} ms JobId={JobId}",
+                    "Pipeline {Signal} (bind: {BlockReason}) for {FileName} in {DurationMs:F1} ms JobId={JobId}",
+                    blockedVerdictResult.Value!.Signal,
+                    blocked!.Reason,
                     submission.FileName,
                     blockedDuration.TotalMilliseconds,
                     job.Id);
 
-                // Stage 8 — Persist (BLOCKED path): fatal, same as the main path.
-                // A BLOCKED verdict is a computed business outcome and must be durable.
+                // Stage 8 — Persist (ExtractionGap path): fatal, same as the main path.
+                // An ExtractionGap verdict is a computed business outcome and must be durable.
                 // Never silently discard it — a persist failure returns Result.WithFailure
                 // so the caller knows the verdict was NOT written.
                 Result<JobVerdict> blockedPersistResult;
                 using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
                     blockedPersistResult = await _verdictPersistence.PersistAsync(
                         jobId: job.Id,
-                        signal: VerdictSignal.Blocked,
+                        signal: blockedVerdictResult.Value!.Signal,
                         findings: Array.Empty<RuleFinding>(),
                         engineVersion: EngineVersion,
-                        bankTierVerdict: VerdictSignal.Blocked,
-                        condusefTierVerdict: VerdictSignal.Blocked,
+                        bankTierVerdict: blockedVerdictResult.Value!.BankTierVerdict,
+                        condusefTierVerdict: blockedVerdictResult.Value!.CondusefTierVerdict,
                         cancellationToken: ct).ConfigureAwait(false);
 
                 if (blockedPersistResult.IsCancelled())
@@ -848,14 +854,16 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             job.Id);
 
         // Stage 9 — Report (marked PDF): best-effort, non-fatal.
-        // Run on RED, YELLOW, or BLOCKED so reviewers always get an annotated copy when
+        // Run on RED, YELLOW, or EXTRACTION_GAP so reviewers always get an annotated copy when
         // the verdict is non-green.  Owner policy: YELLOW (bank improvement opportunities)
-        // generates the same marked-PDF report as RED.  A generator failure appends a
-        // diagnostic finding but does NOT change the already-determined verdict or make
-        // the pipeline fail.
+        // generates the same marked-PDF report as RED.  ExtractionGap (e.g. scanned PDF) also
+        // generates a report so reviewers see why the verdict could not be reached.
+        // TransientFailure does NOT generate a report — it is retryable, not a final outcome.
+        // A generator failure appends a diagnostic finding but does NOT change the
+        // already-determined verdict or make the pipeline fail.
         var reportFindings = new List<RuleFinding>(findings);
 
-        if (summary.Signal is VerdictSignal.Red or VerdictSignal.Yellow or VerdictSignal.Blocked)
+        if (summary.Signal is VerdictSignal.Red or VerdictSignal.Yellow or VerdictSignal.ExtractionGap)
         {
             using var reportActivity = PipelineActivitySource.StartActivity("pipeline.stage.report");
             try

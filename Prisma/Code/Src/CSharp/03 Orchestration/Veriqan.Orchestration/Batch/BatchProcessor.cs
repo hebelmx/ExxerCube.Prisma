@@ -210,7 +210,9 @@ internal sealed class BatchProcessor : IBatchProcessor
 
                         Interlocked.Increment(ref completed);
 
-                        if (outcome.Summary.Signal == VerdictSignal.Blocked)
+                        // Story 4.2: count both Blocked and ExtractionGap in the progress non-verdict
+                    // counter (granularity not needed during live progress; see BatchReport for split).
+                    if (outcome.Summary.Signal is VerdictSignal.Blocked or VerdictSignal.ExtractionGap)
                             Interlocked.Increment(ref blocked);
 
                         // Persist the completed outcome when in resume mode
@@ -287,6 +289,8 @@ internal sealed class BatchProcessor : IBatchProcessor
         int yellowCount = 0;
         int redCount = 0;
         int blockedCount = 0;
+        int extractionGapCount = 0;
+        int transientFailureCount = 0;
 
         foreach (var o in outcomeList)
         {
@@ -302,7 +306,17 @@ internal sealed class BatchProcessor : IBatchProcessor
                     redCount++;
                     break;
                 case VerdictSignal.Blocked:
+                    // Reserved — no emitter after Story 4.2; kept for future document-defect detection.
                     blockedCount++;
+                    break;
+                case VerdictSignal.ExtractionGap:
+                    // Story 4.2: permanent system/capability gap — persisted, non-verdict, non-compliance.
+                    extractionGapCount++;
+                    break;
+                case VerdictSignal.TransientFailure:
+                    // Story 4.2: retryable operational failure — non-verdict, non-compliance.
+                    // Currently no emitter; counted here as a final-report category if ever emitted.
+                    transientFailureCount++;
                     break;
             }
         }
@@ -324,6 +338,8 @@ internal sealed class BatchProcessor : IBatchProcessor
             TotalSubmitted: total,
             CompletedCount: outcomeList.Count,
             BlockedCount: blockedCount,
+            ExtractionGapCount: extractionGapCount,
+            TransientFailureCount: transientFailureCount,
             FailedCount: exceptionList.Count,
             GreenCount: greenCount,
             YellowCount: yellowCount,
@@ -333,14 +349,16 @@ internal sealed class BatchProcessor : IBatchProcessor
             P95LatencyMs: p95Ms);
 
         _logger.LogInformation(
-            "Batch complete: Total={Total} Completed={Completed} AlreadyCompleted={AlreadyCompleted} Green={Green} Yellow={Yellow} Red={Red} Blocked={Blocked} Failed={Failed} ThroughputPerSecond={ThroughputPerSecond:F2} P95LatencyMs={P95LatencyMs}",
+            "Batch complete: Total={Total} Completed={Completed} AlreadyCompleted={AlreadyCompleted} Green={Green} Yellow={Yellow} Red={Red} ExtractionGap={ExtractionGap} Blocked={Blocked} TransientFailure={TransientFailure} Failed={Failed} ThroughputPerSecond={ThroughputPerSecond:F2} P95LatencyMs={P95LatencyMs}",
             report.TotalSubmitted,
             report.CompletedCount,
             report.AlreadyCompletedCount,
             report.GreenCount,
             report.YellowCount,
             report.RedCount,
+            report.ExtractionGapCount,
             report.BlockedCount,
+            report.TransientFailureCount,
             report.FailedCount,
             report.ThroughputPerSecond,
             report.P95LatencyMs);

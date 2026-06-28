@@ -85,11 +85,17 @@ public sealed class VerdictAggregator : IVerdictAggregator
             return Result<VerdictSummary>.WithFailure("findings must not be null.");
 
         // ------------------------------------------------------------------
-        // Precedence 1: BLOCKED (binding never completed)
+        // Precedence 1: non-verdict (binding never completed)
+        // Story 4.2: route to ExtractionGap or Blocked depending on reason.
+        // All four currently-wired BlockReason values map to ExtractionGap.
+        // The Blocked factory is reserved for future document-defect reasons
+        // (EncryptedDocument, CorruptDocument, TamperedDocument, etc.) once wired.
         // ------------------------------------------------------------------
         if (blocked is not null)
             return Result<VerdictSummary>.WithSuccess(
-                VerdictSummary.Blocked(blocked, tenantDeviations));
+                IsExtractionGapReason(blocked.Reason)
+                    ? VerdictSummary.ExtractionGap(blocked, tenantDeviations)
+                    : VerdictSummary.Blocked(blocked, tenantDeviations));
 
         // ------------------------------------------------------------------
         // Partition findings by verdict category and legal-signal separation
@@ -228,4 +234,41 @@ public sealed class VerdictAggregator : IVerdictAggregator
                 tenantOnlyFailCheckIds: tenantOnlyFailIds,
                 confidence: minConfidence));
     }
+
+    // -----------------------------------------------------------------------
+    // Story 4.2: reason-to-signal routing
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="reason"/> maps to
+    /// <see cref="VerdictSignal.ExtractionGap"/> (permanent system/engineering capability gap).
+    /// Returns <see langword="false"/> for future document-defect reasons that will route to
+    /// <see cref="VerdictSignal.Blocked"/> once detection is wired.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Routing decision rule (Story 4.2): "Could the same document bytes, resubmitted tomorrow
+    /// with NO human action, produce a verdict?"
+    /// <list type="bullet">
+    ///   <item>ExtractionGap reasons — No, but engineering could fix the system.</item>
+    ///   <item>Blocked reasons (future) — No, and only human action on the document would help.</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// All four currently-wired <see cref="BlockReason"/> values are ExtractionGap reasons.
+    /// Future taxonomy members that represent capability/config gaps
+    /// (<see cref="BlockReason.AmbiguousDocumentScope"/>,
+    /// <see cref="BlockReason.MissingMandatoryAnchorFields"/>,
+    /// <see cref="BlockReason.RefDataVersionMismatch"/>) are also included here even though
+    /// their detection is not yet wired.
+    /// </para>
+    /// </remarks>
+    private static bool IsExtractionGapReason(BlockReason reason) =>
+        reason is BlockReason.UnknownProduct
+               or BlockReason.InvalidBundle
+               or BlockReason.InsufficientExtractionCoverage
+               or BlockReason.InsufficientTextLayer
+               or BlockReason.AmbiguousDocumentScope
+               or BlockReason.MissingMandatoryAnchorFields
+               or BlockReason.RefDataVersionMismatch;
 }

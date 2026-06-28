@@ -18,14 +18,33 @@ status: IN PROGRESS (orchestrated)
   exactly like it already stamps `DofNumeral` (`RuleFinding.cs:79-91`). Pure structural
   rules that never guard a field default to `1.0`. Verdict-level rollup = `min` of finding
   confidences. Persist + surface a REAL number in the UI (fills the Epic-2 deferred column).
-- **S4.2 BLOCKED model = new `ExtractionGap` state; both floors route to it.**
-  Add `VerdictSignal.ExtractionGap`. The extraction-coverage floor (`MinExtractionCoverageCount`)
-  AND the text-layer/scanned floor (`MinTextLayerWordCount`) now emit `ExtractionGap` —
-  an honest "our system could not read this → engineering" signal, NOT a compliance verdict.
-  `Blocked` is **reserved** for a genuine document defect / deliberate human callback
-  (no current emitter — document this). The demo's `scanned` case reframes from BLOCKED →
-  ExtractionGap (aligns with §5c honesty). ExtractionGap must NOT count as a compliance
-  pass/fail anywhere (batch tally, report gate, alerts).
+- **S4.2 BLOCKED model — EXPANDED after BMAD party (2026-06-28).** Three non-verdict states:
+  - **`VerdictSignal.ExtractionGap`** (=4) — PERMANENT system/engineering capability gap; not retryable
+    without engineering action. The 4 known reasons route here: InsufficientExtractionCoverage,
+    InsufficientTextLayer, InvalidBundle, UnknownProduct. The demo's `scanned` case reframes
+    BLOCKED → ExtractionGap.
+  - **`VerdictSignal.TransientFailure`** (=5, NEW per party) — RETRYABLE operational failure
+    (cancellation, transient infra/DB, extractor crash/timeout). MUST NOT be ExtractionGap —
+    lumping them is a latent bug (caller retry-logic abandons a never-processed doc; split audit codes).
+  - **`VerdictSignal.Blocked`** — RESERVED for genuine document defects / human callback. No current
+    emitter (documented). The full taxonomy of future Blocked reasons added as documented BlockReason
+    enum values WITHOUT wiring detection this epic.
+  - **Decision rule (Winston, adopted):** "Could the same document bytes, resubmitted tomorrow with no
+    human action, produce a verdict?" Yes-maybe → TransientFailure; No-but-engineering-fixable →
+    ExtractionGap; No-document-must-change → Blocked.
+  - **Cardinal guard (John/Mary):** a CONDUSEF-required field CONFIDENTLY ABSENT = RED verdict, NOT a
+    gap. Routing confident-absence to a gap hides a real compliance violation (false-safe). Add explicit
+    guard; VERIFY current behavior first (a missing mandatory field must not abstain→GREEN).
+  - **Multi-statement stub-guard (owner pulled IN):** cheap heuristic (count statement-boundary anchors
+    / account numbers / "ESTADO DE CUENTA"); if >1 suspected → ExtractionGap (BlockReason.AmbiguousDocumentScope),
+    never a wrong-statement GREEN. Full detection deferred.
+  - **DEFERRED + documented as known-risk trust boundary:** tamper detection; FilePreflightGuard
+    (zero-byte/oversized/magic-bytes); password/corrupt PDF exception inspection (= Epic 6 S6.7/N1);
+    unsupported-language; ref-data version-mismatch; persist/infra dead-letter. Logged for Epic 6 / new passes.
+  - ExtractionGap & TransientFailure must NOT count as a compliance pass/fail anywhere
+    (batch tally, report gate, alerts) — mirror the YELLOW handling Epic 1 added.
+  - Party transcript synthesis: see commit message + this tracker. Full enumeration (Mary's 6-band MECE)
+    is the design-of-record for the deferred work.
 
 ## Global constraints (carried from handoffs)
 - §5c golden-master honesty: corpus = production-quality master. No guard bypass, no forced verdicts.
@@ -54,12 +73,16 @@ status: IN PROGRESS (orchestrated)
 ## Story / chunk tracker
 | # | Chunk | Story | Status | Commit | Verification |
 |---|-------|-------|--------|--------|--------------|
-| 1 | A1 confidence domain+app | S4.1 | pending | | Application.Tests + Validation.Tests green via dotnet exec; build 0/0 |
-| 2 | A2 confidence persistence | S4.1 | pending | | Persistence.IntegrationTests green; migration added |
-| 3 | A3 confidence UI | S4.1 | pending | | Web.UI build 0/0; real confidence shown, placeholder comment removed |
+| 1 | A1 confidence domain+app | S4.1 | DONE `b76927c6` | App.Tests 134/134, Validation.Tests 479/479; build 0/0 |
+| 2 | A2 confidence persistence | S4.1 | DONE `d68d2df8` | Persistence.IntegrationTests 8/8 (Testcontainers SQL); migration AddConfidenceColumns |
+| 3 | A3 confidence UI | S4.1 | DONE `a5ad1738` | Web.UI build 0/0; real Confianza % column; placeholder retired |
 | 4 | B1 ExtractionGap core | S4.2 | pending | | Application + Orchestration.Tests green; floors emit ExtractionGap; Blocked special-cases handled |
 | 5 | B2 ExtractionGap UI | S4.2 | pending | | Web.UI build 0/0; scanned case reframed; banner renders ExtractionGap |
 | R | Adversarial review | epic | pending | | refute against this tracker + epic doc; triage |
+
+### Review items to scrutinize at gate R (do NOT lose)
+- **A3 InsufficientData confidence = 1.0.** DemoDataService shows 1.0 on InsufficientData rows (rationale: confidence = input-read certainty, not verdict certainty). But A1's recorder records the LOW field confidence on the below-threshold abstain path, so a real low-confidence abstain yields <0.8, not 1.0. Verify the demo's InsufficientData rows represent non-low-confidence abstains (missing reference data / cannot-determine) — and consider a column legend/tooltip clarifying "confidence = certainty of the value read, not of the verdict." Also: the scanned case's 55 synthesized InsufficientData findings become moot once B2 reframes it to ExtractionGap.
+- **A2 verdict-confidence recomputed in 2 persistence services** (min of findings) rather than reading VerdictSummary.Confidence — DRY/drift risk if the rollup rule ever changes. Currently identical; low priority.
 
 ## Notes / carried flags (do NOT lose)
 - LATENT (Epic 1 flag, NOT Epic 4): `checklist-tiers.csv` row 2 compound key `CL-27/CL-30/CL-47`
