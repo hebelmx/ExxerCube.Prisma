@@ -407,6 +407,45 @@ public sealed class StatementModel
     public IReadOnlyList<FinancialTable> FinancialTables { get; init; } = [];
 
     // -----------------------------------------------------------------------
+    // §23 Cargos no reconocidos — structured dispute rows (Story E10.C4′)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Structured dispute rows extracted from the §23 <i>Cargos no reconocidos</i>
+    /// section of the statement (Story E10.C4′).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Populated by <c>ExtractFullAsync</c> (Story E10.C4′).  Always non-null; empty when
+    /// <see cref="DisputeRowsStatus"/> is not <see cref="DisputeRowsExtractionStatus.Extracted"/>.
+    /// </para>
+    /// <para>
+    /// Extraction is best-effort: only <see cref="DisputeRow.Amount"/> and
+    /// <see cref="DisputeRow.Status"/> are guaranteed reliable; <see cref="DisputeRow.OperationDate"/>
+    /// and <see cref="DisputeRow.Description"/> may be <see langword="null"/> when the
+    /// normalized section text does not allow reliable per-row field extraction.
+    /// </para>
+    /// <para>
+    /// Validation rules consuming this list MUST guard on
+    /// <see cref="DisputeRowsStatus"/> == <see cref="DisputeRowsExtractionStatus.Extracted"/>
+    /// before producing a Fail verdict — returning InsufficientData otherwise.
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<DisputeRow> DisputeRows { get; init; } = [];
+
+    /// <summary>
+    /// Indicates the outcome of extracting §23 dispute rows (Story E10.C4′).
+    /// </summary>
+    /// <remarks>
+    /// <see cref="DisputeRowsExtractionStatus.SectionNotFound"/> when §23 is absent or not
+    /// applicable.
+    /// <see cref="DisputeRowsExtractionStatus.Extracted"/> when at least one row was parsed.
+    /// <see cref="DisputeRowsExtractionStatus.NoRowsParsed"/> when §23 was present but no
+    /// rows with parseable amounts and status tokens could be extracted.
+    /// </remarks>
+    public DisputeRowsExtractionStatus DisputeRowsStatus { get; init; } = DisputeRowsExtractionStatus.SectionNotFound;
+
+    // -----------------------------------------------------------------------
     // Per-page perceptual hashes (VERIQAN-E2-S4 — CLIENT-IMG-CATALOG)
     // -----------------------------------------------------------------------
 

@@ -150,6 +150,17 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         @"^(\d+(?:\.\d+)?)%$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+    /// <summary>
+    /// Inline currency amount: an optional "$" followed by digit groups (comma-separated)
+    /// and a mandatory two-decimal-place fraction.
+    /// Used by the §23 best-effort dispute-row extractor to locate amounts within the
+    /// normalized, whitespace-collapsed SectionText (e.g. "500.00", "1,234.56", "$99.00").
+    /// The regex is NOT anchored so it can match amounts embedded in a longer text string.
+    /// </summary>
+    private static readonly Regex DisputeRowAmountPattern = new(
+        @"\$?([\d,]+\.\d{2})",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     private readonly ILogger<PdfPigStatementFieldExtractor> _logger;
     private readonly PdfExtractionOptions _options;
     private readonly IPasswordProvider _passwordProvider;
@@ -616,6 +627,12 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Collect rendered point-size and font-name per word across all pages.
             var (typographySamples, typographyExtractionStatus) = ExtractTypographySamples(doc);
 
+            // ---- §23 structured dispute rows — Story E10.C4′ -------------------
+            // Best-effort extraction from §23 SectionText (normalized, whitespace-collapsed).
+            // Uses status-token scanning + backward amount lookup.  Returns NoRowsParsed
+            // when the section is absent/not-applicable or when no row pairs are found.
+            var (disputeRows, disputeRowsStatus) = ExtractDisputeRows(detectedSections);
+
             // ---- Per-page perceptual hashes — VERIQAN-E2-S4 (CLIENT-IMG-CATALOG) ----
             // Only when the opt-in flag is enabled — rendering every page is expensive.
             // Leave the list empty (rule abstains) when the flag is off.
@@ -677,6 +694,8 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 TypographySamples = typographySamples,
                 TypographyExtractionStatus = typographyExtractionStatus,
                 PagePerceptualHashes = pagePerceptualHashes,
+                DisputeRows = disputeRows,
+                DisputeRowsStatus = disputeRowsStatus,
             };
 
             return Result<StatementModel>.WithSuccess(model);
@@ -5153,6 +5172,200 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
 
         var stripped = text.TrimStart('+', '-', '−', '=').TrimStart('$');
         return AmountPattern.IsMatch(stripped) || AmountPattern.IsMatch(text.TrimStart('+', '-', '−', '='));
+    }
+
+    // -----------------------------------------------------------------------
+    // §23 dispute-row extraction — Story E10.C4′
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Best-effort extraction of structured §23 <i>Cargos no reconocidos</i> dispute rows
+    /// from the normalized <see cref="DetectedSection.SectionText"/> of the §23 section.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Approach:</b> the SectionText is the normalized (upper-case, accent-stripped,
+    /// whitespace-collapsed) concatenation of all horizontal word bands in the §23 section.
+    /// Because line boundaries are replaced with single spaces during normalization, row
+    /// structure is NOT directly recoverable from the SectionText string.  Instead, the
+    /// method uses a status-token / backward-amount scan:
+    /// <list type="number">
+    ///   <item>
+    ///     Find every occurrence of the three CONDUSEF status tokens
+    ///     (PENDIENTE EN REVISION, CONCLUIDA PROCEDENTE, CONCLUIDA IMPROCEDENTE) in
+    ///     the SectionText, ordered by their character position.
+    ///   </item>
+    ///   <item>
+    ///     For each token, look backward in the text segment between the previous token
+    ///     end and the current token start, and extract the last amount matching
+    ///     <c>\$?([\d,]+\.\d{2})</c>.
+    ///   </item>
+    ///   <item>
+    ///     If both an amount and a status token are found, emit one
+    ///     <see cref="DisputeRow"/> (amount, status, null date, null description, section locator).
+    ///   </item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// <b>Limitations (acknowledged):</b>
+    /// <list type="bullet">
+    ///   <item>
+    ///     <see cref="DisputeRow.OperationDate"/> is always <see langword="null"/> — date
+    ///     tokens in the normalized text cannot be reliably linked to a specific row because
+    ///     the line structure is lost.
+    ///   </item>
+    ///   <item>
+    ///     <see cref="DisputeRow.Description"/> is always <see langword="null"/> for the
+    ///     same reason.
+    ///   </item>
+    ///   <item>
+    ///     <see cref="DisputeRow.Locator"/> is the §23 section-level locator, not a
+    ///     per-row bounding box.
+    ///   </item>
+    ///   <item>
+    ///     If no amount precedes a status token in its segment, that token is silently
+    ///     skipped.  The method returns <see cref="DisputeRowsExtractionStatus.NoRowsParsed"/>
+    ///     when all tokens are skipped.
+    ///   </item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// <b>Safety:</b> never throws; all parsing is guarded by try-parse and null checks.
+    /// </para>
+    /// </remarks>
+    /// <param name="detectedSections">
+    /// The 28-entry list produced by <see cref="ExtractDetectedSections"/>.
+    /// </param>
+    /// <returns>
+    /// A tuple of (dispute rows, extraction status).  Rows is always non-null; status is
+    /// one of <see cref="DisputeRowsExtractionStatus"/>.
+    /// </returns>
+    private static (IReadOnlyList<DisputeRow> Rows, DisputeRowsExtractionStatus Status)
+        ExtractDisputeRows(IReadOnlyList<DetectedSection> detectedSections)
+    {
+        static (IReadOnlyList<DisputeRow>, DisputeRowsExtractionStatus) NotFound()
+            => ([], DisputeRowsExtractionStatus.SectionNotFound);
+
+        static (IReadOnlyList<DisputeRow>, DisputeRowsExtractionStatus) NoRows()
+            => ([], DisputeRowsExtractionStatus.NoRowsParsed);
+
+        // Locate §23 in the detected-section list.
+        DetectedSection? section23 = null;
+        foreach (var s in detectedSections)
+        {
+            if (s.SectionNumber == 23)
+            {
+                section23 = s;
+                break;
+            }
+        }
+
+        // Section absent, not applicable, or indeterminate → SectionNotFound.
+        if (section23 is null
+            || !section23.IsApplicable
+            || section23.DetectionStatus == SectionDetectionStatus.Indeterminate
+            || !section23.IsPresent)
+        {
+            return NotFound();
+        }
+
+        var sectionText = section23.SectionText;
+        if (string.IsNullOrWhiteSpace(sectionText))
+            return NoRows();
+
+        // Status tokens (normalized — upper-case, accent-stripped, reuse from Section23 rule).
+        // Defined inline to avoid a hard compile-time dependency on the Validation assembly;
+        // these are simply the string literals the Acuerdo §23 mandates.
+        const string tokenPendiente    = "PENDIENTE EN REVISION";
+        const string tokenProcedente   = "CONCLUIDA PROCEDENTE";
+        const string tokenImprocedente = "CONCLUIDA IMPROCEDENTE";
+
+        // Build a list of (charPosition, statusToken, DisputeStatus) for every occurrence
+        // in the section text, then sort by position.
+        var hits = new List<(int Position, string Token, DisputeStatus Status)>();
+
+        AddHits(hits, sectionText, tokenPendiente,    DisputeStatus.Pendiente);
+        AddHits(hits, sectionText, tokenProcedente,   DisputeStatus.ConcluidaProcedente);
+        AddHits(hits, sectionText, tokenImprocedente, DisputeStatus.ConcluidaImprocedente);
+
+        if (hits.Count == 0)
+            return NoRows();
+
+        hits.Sort(static (a, b) => a.Position.CompareTo(b.Position));
+
+        // Section-level locator — per-row locators are not recoverable from normalized text.
+        var sectionLocator = section23.Locator;
+
+        var rows = new List<DisputeRow>(hits.Count);
+        var segmentStart = 0;
+
+        foreach (var (pos, token, status) in hits)
+        {
+            // The "segment" for this token is the text between the previous token end
+            // and the start of the current token.
+            var segment = sectionText[segmentStart..pos];
+
+            // Find the last amount in the segment (US/MX format: comma-thousands, dot-decimal,
+            // optional leading "$"; the normalized text preserves these characters verbatim).
+            var amountMatches = DisputeRowAmountPattern.Matches(segment);
+            if (amountMatches.Count == 0)
+            {
+                // No amount found before this status token — skip the row (conservative).
+                segmentStart = pos + token.Length;
+                continue;
+            }
+
+            var lastMatch = amountMatches[amountMatches.Count - 1];
+            var rawAmount = lastMatch.Groups[1].Value; // captured group (no "$")
+
+            // Parse US/MX format: remove thousands commas, then decimal parse.
+            var normalised = rawAmount.Replace(",", string.Empty, StringComparison.Ordinal);
+            if (!decimal.TryParse(
+                    normalised,
+                    System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out var amount))
+            {
+                // Unparseable amount — skip (conservative).
+                segmentStart = pos + token.Length;
+                continue;
+            }
+
+            rows.Add(new DisputeRow(
+                Amount: amount,
+                Status: status,
+                OperationDate: null,   // not recoverable from normalized text
+                Description: null,     // not recoverable from normalized text
+                Locator: sectionLocator));
+
+            // Advance the segment boundary past the current token.
+            segmentStart = pos + token.Length;
+        }
+
+        return rows.Count > 0
+            ? (rows, DisputeRowsExtractionStatus.Extracted)
+            : NoRows();
+    }
+
+    /// <summary>
+    /// Appends all (position, token, status) hits for <paramref name="token"/> found in
+    /// <paramref name="text"/> to <paramref name="hits"/>.
+    /// </summary>
+    private static void AddHits(
+        List<(int Position, string Token, DisputeStatus Status)> hits,
+        string text,
+        string token,
+        DisputeStatus status)
+    {
+        var idx = 0;
+        while (true)
+        {
+            var pos = text.IndexOf(token, idx, StringComparison.Ordinal);
+            if (pos < 0)
+                break;
+            hits.Add((pos, token, status));
+            idx = pos + token.Length;
+        }
     }
 
     // -----------------------------------------------------------------------
