@@ -526,8 +526,17 @@ public sealed class ObservabilityTests : IDisposable
             .SendRedAlertAsync(Arg.Any<VerdictSummary>(), Arg.Any<AlertContext>(), Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(Result.Success()));
 
+        // Tier-map provider: returns empty map so the pipeline degrades to single-tier
+        // (this test only cares about log scopes, not tier verdict values).
+        var referenceDataProvider = Substitute.For<IVecReferenceDataProvider>();
+        referenceDataProvider
+            .GetChecklistTiersAsync(Arg.Any<StatementContextKey>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(
+                Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(
+                    new Dictionary<string, ChecklistTier>() as IReadOnlyDictionary<string, ChecklistTier>)));
+
         var pipeline = new VerificationPipeline(
-            ingestion, extractor, binder, engine, aggregator,
+            ingestion, extractor, binder, engine, aggregator, referenceDataProvider,
             tenantResolver, defaultProfile,
             Array.Empty<IVecValidationRule>(), toleranceProvider,
             verdictPersistence, reportGenerator, alertService,

@@ -69,6 +69,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
     private readonly IBundleBinder _binder;
     private readonly IVecValidationEngine _engine;
     private readonly IVerdictAggregator _aggregator;
+    private readonly IVecReferenceDataProvider _referenceDataProvider;
     private readonly ITenantProfileResolver _tenantResolver;
     private readonly TenantProfile _activeTenantProfile;
     private readonly IReadOnlyList<IVecValidationRule> _rules;
@@ -89,6 +90,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         IBundleBinder binder,
         IVecValidationEngine engine,
         IVerdictAggregator aggregator,
+        IVecReferenceDataProvider referenceDataProvider,
         ITenantProfileResolver tenantResolver,
         TenantProfile activeTenantProfile,
         IEnumerable<IVecValidationRule> rules,
@@ -105,6 +107,7 @@ internal sealed class VerificationPipeline : IVerificationPipeline
         _binder = binder ?? throw new ArgumentNullException(nameof(binder));
         _engine = engine ?? throw new ArgumentNullException(nameof(engine));
         _aggregator = aggregator ?? throw new ArgumentNullException(nameof(aggregator));
+        _referenceDataProvider = referenceDataProvider ?? throw new ArgumentNullException(nameof(referenceDataProvider));
         _tenantResolver = tenantResolver ?? throw new ArgumentNullException(nameof(tenantResolver));
         _activeTenantProfile = activeTenantProfile ?? throw new ArgumentNullException(nameof(activeTenantProfile));
         _rules = (rules ?? throw new ArgumentNullException(nameof(rules))).ToList();
@@ -714,16 +717,55 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             findings.Count,
             submission.FileName);
 
+        // Stage 6b — Fetch per-tenant checklist-tier map (Story 1.3).
+        // Partitions Fail findings into Bank / CONDUSEF tiers so BankTierVerdict and
+        // CondusefTierVerdict can be computed independently.
+        // Conservative fallback: any failure or empty map → pass null to Aggregate (legacy
+        // single-tier path), treating all failures as CONDUSEF (regulatory-safe default).
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null;
+
+        using (PipelineActivitySource.StartActivity("pipeline.stage.tier-map"))
+        {
+            var tierResult = await _referenceDataProvider
+                .GetChecklistTiersAsync(submission.ContextKey, ct)
+                .ConfigureAwait(false);
+
+            if (tierResult is null || tierResult.IsFailure || tierResult.IsCancelled())
+            {
+                _logger.LogWarning(
+                    "Checklist-tier data unavailable for {Institution} — verdict falls back to single-tier aggregation. Error={TierError}",
+                    submission.ContextKey.Institution,
+                    tierResult?.Error ?? "<null result>");
+            }
+            else if (tierResult.Value is null || tierResult.Value.Count == 0)
+            {
+                _logger.LogWarning(
+                    "Checklist-tier map is empty for {Institution} — verdict falls back to single-tier aggregation.",
+                    submission.ContextKey.Institution);
+            }
+            else
+            {
+                checklistTiers = tierResult.Value;
+                _logger.LogInformation(
+                    "Checklist-tier map loaded for {Institution}: {TierCount} entries.",
+                    submission.ContextKey.Institution,
+                    checklistTiers.Count);
+            }
+        }
+
         // Stage 7 — Verdict Aggregation
         // Thread resolved.Deviations into the aggregator so compliance reviewers can see
         // which tenant overrides were reverted to the legal baseline.
+        // Thread checklistTiers (Story 1.3): non-null when tier data was available;
+        // null triggers the legacy single-tier fallback inside the aggregator.
         Result<VerdictSummary> verdictResult;
         using (PipelineActivitySource.StartActivity("pipeline.stage.verdict"))
             verdictResult = _aggregator.Aggregate(
                 findings,
                 blocked: null,
                 ct: ct,
-                tenantDeviations: resolvedProfile.Deviations);
+                tenantDeviations: resolvedProfile.Deviations,
+                checklistTiers: checklistTiers);
 
         if (verdictResult.IsCancelled())
         {

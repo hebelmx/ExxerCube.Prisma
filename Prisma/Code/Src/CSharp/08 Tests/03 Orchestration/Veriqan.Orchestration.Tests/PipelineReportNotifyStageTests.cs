@@ -195,6 +195,16 @@ public sealed class PipelineReportNotifyStageTests
 
         // Metrics + pipeline.
         services.AddSingleton<VeriqanMetrics>();
+
+        // Stub: tier-map provider — returns empty map so the pipeline degrades to single-tier.
+        var tierProvider = Substitute.For<IVecReferenceDataProvider>();
+        tierProvider
+            .GetChecklistTiersAsync(Arg.Any<StatementContextKey>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(
+                Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(
+                    new Dictionary<string, ChecklistTier>() as IReadOnlyDictionary<string, ChecklistTier>)));
+        services.AddSingleton<IVecReferenceDataProvider>(tierProvider);
+
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
 
         return services;
@@ -296,6 +306,16 @@ public sealed class PipelineReportNotifyStageTests
             Options.Create(new AlertOptions { Recipients = ["test@example.com"] }));
 
         services.AddSingleton<VeriqanMetrics>();
+
+        // Stub: tier-map provider — returns empty map so the pipeline degrades to single-tier.
+        var tierProvider = Substitute.For<IVecReferenceDataProvider>();
+        tierProvider
+            .GetChecklistTiersAsync(Arg.Any<StatementContextKey>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(
+                Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(
+                    new Dictionary<string, ChecklistTier>() as IReadOnlyDictionary<string, ChecklistTier>)));
+        services.AddSingleton<IVecReferenceDataProvider>(tierProvider);
+
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
 
         return services;

@@ -166,22 +166,58 @@ public sealed class VecChecklistDemoE2ETests
     /// 13 structural failures as good.pdf.  The separate assertion on CL-21 in
     /// InsufficientDataCheckIds confirms the math-error path is inert.
     /// </remarks>
+    /// <summary>
+    /// MemberData source for <see cref="Pipeline_DemoFixture_ProducesExpectedVerdict"/>.
+    /// </summary>
+    /// <remarks>
+    /// Columns (6):
+    /// <list type="number">
+    ///   <item>fixture file name</item>
+    ///   <item>expected overall <see cref="VerdictSignal"/></item>
+    ///   <item>optional check ID that MUST appear in <see cref="VerdictSummary.FailCheckIds"/> (null for BLOCKED)</item>
+    ///   <item>expected <see cref="VerdictSummary.BankTierVerdict"/> (Story 1.3)</item>
+    ///   <item>expected <see cref="VerdictSummary.CondusefTierVerdict"/> (Story 1.3)</item>
+    /// </list>
+    ///
+    /// <b>Tier partition analysis for the 13 structural failures (from checklist-tiers.csv):</b>
+    /// <list type="table">
+    ///   <listheader><term>CheckId</term><description>CSV tier → partition(s)</description></listheader>
+    ///   <item><term>CL-31</term><description>Both → condusef + bank</description></item>
+    ///   <item><term>CL-32</term><description>Both → condusef + bank</description></item>
+    ///   <item><term>CL-46</term><description>Both → condusef + bank</description></item>
+    ///   <item><term>CL-48</term><description>Both → condusef + bank</description></item>
+    ///   <item><term>CL-50</term><description>Bank → bank only (anonymization artifact)</description></item>
+    ///   <item><term>CL-51</term><description>Bank → bank only (anonymization artifact)</description></item>
+    ///   <item><term>CL-52</term><description>Bank → bank only (anonymization artifact)</description></item>
+    ///   <item><term>CL-53</term><description>Bank → bank only (anonymization artifact)</description></item>
+    ///   <item><term>LAW-SEC-ORDER-GAP</term><description>Condusef → condusef only</description></item>
+    ///   <item><term>LAW-SEC-PRESENCE</term><description>Condusef → condusef only</description></item>
+    ///   <item><term>LAW-TYPO-MINSIZE</term><description>Condusef → condusef only</description></item>
+    ///   <item><term>LAW-§26-NOTAS</term><description>Condusef → condusef only</description></item>
+    ///   <item><term>LAW-§27-GLOSARIO</term><description>Condusef → condusef only</description></item>
+    /// </list>
+    ///
+    /// Result: condusefFailIds is non-empty → CondusefTierVerdict=Red; bankFailIds is non-empty → BankTierVerdict=Yellow.
+    /// Combined overall = Red (Condusef=Red takes precedence via <see cref="VerdictSummary.CombineOverallSignal"/>).
+    /// BLOCKED fixtures carry Blocked on both tier properties (no rules ran).
+    /// </remarks>
     public static IEnumerable<object?[]> DemoFixtures =>
     [
-        // good.pdf: RED — 13 structural CONDUSEF failures (see classification above).
-        // LAW-SEC-PRESENCE is asserted as a representative mandatory-sections check.
-        ["good.pdf",          VerdictSignal.Red,   "LAW-SEC-PRESENCE"],
+        // good.pdf: RED — 13 structural failures; condusef-tier = Red, bank-tier = Yellow.
+        // CondusefTierVerdict=Red because LAW-SEC-PRESENCE/LAW-§26-NOTAS/LAW-§27-GLOSARIO/etc. are Condusef/Both.
+        // BankTierVerdict=Yellow because CL-50/CL-51/CL-52/CL-53 are Bank and CL-31/CL-32/CL-46/CL-48 are Both.
+        ["good.pdf",          VerdictSignal.Red,     "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
 
-        // bad-math-cl21.pdf: RED (structural failures same as good.pdf; CL-21 = InsufficientData).
-        // See special assertion below that confirms CL-21 is InsufficientData, not Fail.
-        ["bad-math-cl21.pdf", VerdictSignal.Red,   "LAW-SEC-PRESENCE"],
+        // bad-math-cl21.pdf: RED (same 13 structural failures as good.pdf; CL-21 = InsufficientData).
+        // Tier partition is identical to good.pdf.
+        ["bad-math-cl21.pdf", VerdictSignal.Red,     "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
 
-        // bad-font-cl35.pdf: RED / CL-35 — Courier font present; bundle requires Helvetica.
-        // Also fires the same 13 structural failures, but CL-35 is what differentiates it.
-        ["bad-font-cl35.pdf", VerdictSignal.Red,     "CL-35"],
+        // bad-font-cl35.pdf: RED / CL-35 (Bank tier) + same 13 structural failures.
+        // CL-35 adds to bankFailIds but not condusefFailIds — tier split is the same as the others.
+        ["bad-font-cl35.pdf", VerdictSignal.Red,     "CL-35",            VerdictSignal.Yellow, VerdictSignal.Red],
 
-        // scanned.pdf: BLOCKED — image-only PDF; text-layer floor guard fires before rules run.
-        ["scanned.pdf",       VerdictSignal.Blocked, null   ],
+        // scanned.pdf: BLOCKED — text-layer floor fires before rules; both tier verdicts are Blocked.
+        ["scanned.pdf",       VerdictSignal.Blocked, null,               VerdictSignal.Blocked, VerdictSignal.Blocked],
     ];
 
     // -----------------------------------------------------------------------
@@ -203,20 +239,28 @@ public sealed class VecChecklistDemoE2ETests
 
     /// <summary>
     /// Drives the full ingest → extract → bind → engine → verdict pipeline against each demo
-    /// corpus fixture and asserts the actual VEC verdict signal.
+    /// corpus fixture and asserts the actual VEC verdict signal and two-tier verdicts (Story 1.3).
     /// </summary>
     /// <param name="fixtureName">PDF file name inside the demo corpus directory.</param>
-    /// <param name="expectedSignal">Expected <see cref="VerdictSignal"/> traffic-light.</param>
+    /// <param name="expectedSignal">Expected overall <see cref="VerdictSignal"/> traffic-light.</param>
     /// <param name="expectedFailCheckId">
     /// When non-<see langword="null"/> the specified check ID must appear in
     /// <see cref="VerdictSummary.FailCheckIds"/> (proves the specific RED-triggering rule fired).
+    /// </param>
+    /// <param name="expectedBankTierVerdict">
+    /// Expected <see cref="VerdictSummary.BankTierVerdict"/> produced by the two-tier aggregation.
+    /// </param>
+    /// <param name="expectedCondusefTierVerdict">
+    /// Expected <see cref="VerdictSummary.CondusefTierVerdict"/> produced by the two-tier aggregation.
     /// </param>
     [Theory]
     [MemberData(nameof(DemoFixtures))]
     public async Task Pipeline_DemoFixture_ProducesExpectedVerdict(
         string fixtureName,
         VerdictSignal expectedSignal,
-        string? expectedFailCheckId)
+        string? expectedFailCheckId,
+        VerdictSignal expectedBankTierVerdict,
+        VerdictSignal expectedCondusefTierVerdict)
     {
         // ------------------------------------------------------------------
         // Fixture guard — skip if the demo corpus hasn't landed yet.
@@ -333,6 +377,25 @@ public sealed class VecChecklistDemoE2ETests
             $"InsufficientDataCheckIds=[{string.Join(", ", outcome.Summary.InsufficientDataCheckIds)}]. " +
             $"BlockedReason={outcome.Summary.BlockedOutcome?.Reason}. " +
             $"BlockedDetail={outcome.Summary.BlockedOutcome?.Detail}.");
+
+        // ------------------------------------------------------------------
+        // Two-tier verdict assertions (Story 1.3)
+        // The pipeline fetches checklist-tiers.csv and passes it to the aggregator so
+        // BankTierVerdict and CondusefTierVerdict are computed from the real tier map.
+        // ------------------------------------------------------------------
+        outcome.Summary.BankTierVerdict.ShouldBe(
+            expectedBankTierVerdict,
+            $"'{fixtureName}': BankTierVerdict expected {expectedBankTierVerdict} but got " +
+            $"{outcome.Summary.BankTierVerdict}. " +
+            $"BankFailCheckIds=[{string.Join(", ", outcome.Summary.BankFailCheckIds)}]. " +
+            $"Overall FailCheckIds=[{string.Join(", ", outcome.Summary.FailCheckIds)}].");
+
+        outcome.Summary.CondusefTierVerdict.ShouldBe(
+            expectedCondusefTierVerdict,
+            $"'{fixtureName}': CondusefTierVerdict expected {expectedCondusefTierVerdict} but got " +
+            $"{outcome.Summary.CondusefTierVerdict}. " +
+            $"CondusefFailCheckIds=[{string.Join(", ", outcome.Summary.CondusefFailCheckIds)}]. " +
+            $"Overall FailCheckIds=[{string.Join(", ", outcome.Summary.FailCheckIds)}].");
 
         // ------------------------------------------------------------------
         // Signal-specific assertions

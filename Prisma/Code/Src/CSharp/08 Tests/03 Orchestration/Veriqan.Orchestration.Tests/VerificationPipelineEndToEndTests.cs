@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Extraction.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting.DependencyInjection;
@@ -171,11 +172,18 @@ public sealed class VerificationPipelineEndToEndTests
             return;
 
         // Arrange — fake IVecReferenceDataProvider that always returns the pre-built bundle.
+        // GetChecklistTiersAsync returns an empty map (no tier CSV alongside this fixture),
+        // so the pipeline degrades gracefully to single-tier aggregation for this test.
         var fakeProvider = Substitute.For<IVecReferenceDataProvider>();
         fakeProvider
             .GetBundleAsync(Arg.Any<StatementContextKey>(), Arg.Any<CancellationToken>())
             .Returns(ci => Task.FromResult(
                 Result<VecReferenceBundle>.WithSuccess(BuildFakeBundle())));
+        fakeProvider
+            .GetChecklistTiersAsync(Arg.Any<StatementContextKey>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(
+                Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(
+                    new Dictionary<string, ChecklistTier>() as IReadOnlyDictionary<string, ChecklistTier>)));
 
         var services = new ServiceCollection();
         services.AddLogging();
