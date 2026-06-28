@@ -78,8 +78,31 @@ status: IN PROGRESS (orchestrated)
 | 3 | A3 confidence UI | S4.1 | DONE `a5ad1738` | Web.UI build 0/0; real Confianza % column; placeholder retired |
 | 4a | B1a ExtractionGap+TransientFailure taxonomy | S4.2 | DONE `e796f02c` | App 134/134, Orch 81/81, Validation 479/479; 3 floors emit ExtractionGap; Blocked reserved |
 | 4b | B1b correctness guards | S4.2 | DONE `e49ec905` | confident-absent=RED (verified+test); multi-statement stub. Orch 90/90, Validation 483/483, App 151/151 |
-| 5 | B2 ExtractionGap UI | S4.2 | pending | | Web.UI build 0/0; scanned case -> ExtractionGap; banner renders ExtractionGap; confidence legend |
-| R | Adversarial review | epic | pending | | refute against this tracker + epic doc; triage |
+| 5 | B2 ExtractionGap UI | S4.2 | DONE `19e8ebda` | Web.UI build 0/0; scanned case -> ExtractionGap; banner + nav + overview; confidence legend + InsufficientData "—" |
+| R | Adversarial review + cleanup | epic | DONE `eec52c98` | 2 skeptics: abstain-safety HOLDS, no CRITICAL, epic complete. Cleanup committed. |
+
+## Epic 4 — DONE (2026-06-28). Verdict from the boundary review
+Two independent skeptics (completeness auditor + abstain-safety hunter) ran the suites for real
+(App 151/151, Validation 483/483, Orchestration 90/90; A2 persistence 8/8 vs Testcontainers SQL)
+and both concluded: **no CRITICAL, no new spurious-GREEN path, abstain-safety holds, all S4.1+S4.2
+acceptance criteria met.** Cleanup commit `eec52c98` applied the cheap honesty/observability fixes.
+
+**Deferred (logged, NOT lost) — for Epic 6 / dedicated passes:**
+- M1 deeper fix: confidence stamps 1.0 for rules deciding on non-scalar evidence (movement/section/
+  legend) — semantics now documented honestly (1.0 = "no low-confidence GUARDED field consumed", not
+  "fully confident verdict"); guarding those evidence classes / a sub-1.0 sentinel is the deeper fix.
+- M2 framing correction: the confident-absent=RED guard is SECTION-scoped (MandatorySectionsPresenceRule).
+  Mandatory FIELD absence → InsufficientData by design, backstopped by the 3 pre-validation floors
+  (coverage/text-layer/page-count). This is intended/pre-existing; the B1b "ALL mandatory rules" phrasing
+  was overstated — real protection = floors + section-presence.
+- M3: multi-statement guard is a coarse PageCount>20 stub; misses 2-short-concatenated; real detection
+  (account-number anchors) needs extractor plumbing → Epic 6.
+- TransientFailure has no emitter (transient = Result.WithFailure for caller retry; no misrouting bug).
+- A2 DRY: JobVerdict.Confidence recomputed in persistence vs read from summary (latent, currently agree).
+- ExtractionGap persistence lacks a dedicated integration test (low risk, enum→int).
+- Epic-1 LATENT: CL-27/CL-30/CL-47 compound-key mis-tier (can downgrade a section RED→YELLOW).
+- Full deferred taxonomy (tamper, FilePreflight, password/corrupt=Epic6 S6.7, language, version-mismatch,
+  dead-letter): Mary's 6-band MECE map is the design-of-record.
 
 ### More review items for gate R (do NOT lose)
 - **TransientFailure has NO emitter (by design).** Verified the pipeline surfaces transient failures as Result.WithFailure (extraction stage `VerificationPipeline.cs:190-205`) / Cancelled<T> — never a persisted permanent verdict, so there was no misrouting bug. Residual risk = extractor swallowing a crash into empty-success → coverage floor → ExtractionGap; lives in the extractor impl = Epic 6 S6.7. Review should confirm this reasoning + that no batch path silently drops transient-failed items.
