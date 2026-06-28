@@ -863,7 +863,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 var reportResult = _reportGenerator.Generate(
                     submission.Pdf,
                     findings,
-                    ct);
+                    ct,
+                    checklistTiers: checklistTiers);
 
                 if (reportResult.IsFailure)
                 {

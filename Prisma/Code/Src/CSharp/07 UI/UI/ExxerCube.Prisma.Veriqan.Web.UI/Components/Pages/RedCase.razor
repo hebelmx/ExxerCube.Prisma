@@ -63,6 +63,7 @@
                         <MudTh>Check</MudTh>
                         <MudTh>Tier</MudTh>
                         <MudTh>Verificación</MudTh>
+                        <MudTh>Severidad</MudTh>
                         <MudTh>Esperado</MudTh>
                         <MudTh>Observado</MudTh>
                         <MudTh>DOF</MudTh>
@@ -75,6 +76,7 @@
                             <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.Tier</MudChip>
                         </MudTd>
                         <MudTd>@context.Label</MudTd>
+                        <MudTd><MudText Typo="Typo.caption">@context.Severity</MudText></MudTd>
                         <MudTd><code>@context.Expected</code></MudTd>
                         <MudTd><code style="color:var(--mud-palette-error);">@context.Observed</code></MudTd>
                         <MudTd><MudText Typo="Typo.caption">@context.DofNumeral</MudText></MudTd>
@@ -99,6 +101,7 @@
                     <HeaderContent>
                         <MudTh>Check</MudTh>
                         <MudTh>Verificación</MudTh>
+                        <MudTh>Severidad</MudTh>
                         <MudTh>Esperado</MudTh>
                         <MudTh>Observado</MudTh>
                         <MudTh>DOF</MudTh>
@@ -108,6 +111,7 @@
                             <MudChip T="string" Size="Size.Small" Color="Color.Warning">@context.CheckId</MudChip>
                         </MudTd>
                         <MudTd>@context.Label</MudTd>
+                        <MudTd><MudText Typo="Typo.caption">@context.Severity</MudText></MudTd>
                         <MudTd><code>@context.Expected</code></MudTd>
                         <MudTd><code style="color:var(--mud-palette-warning);">@context.Observed</code></MudTd>
                         <MudTd><MudText Typo="Typo.caption">@context.DofNumeral</MudText></MudTd>

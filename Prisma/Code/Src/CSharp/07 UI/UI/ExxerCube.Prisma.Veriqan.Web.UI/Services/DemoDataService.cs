@@ -4,8 +4,9 @@ namespace ExxerCube.Prisma.Veriqan.Web.UI.Services;
 
 /// <summary>
 /// Provides hard-coded, pipeline-shaped demo data for the Veriqan visual demo UI.
-/// Returns three pre-built <see cref="DemoStatementCase"/> instances covering the
-/// three verdict classes: GREEN (all pass), RED (arithmetic + font failures),
+/// Returns four pre-built <see cref="DemoStatementCase"/> instances covering the
+/// four verdict classes: GREEN (all pass), YELLOW (bank-tier improvement
+/// opportunities only, CONDUSEF clean), RED (arithmetic + font failures),
 /// and BLOCKED (image-only statement, insufficient text layer).
 /// </summary>
 /// <remarks>
@@ -328,12 +329,16 @@ public sealed class DemoDataService
 
     /// <summary>
     /// Returns <see cref="VerdictSignal.Yellow"/> when at least one Fail finding belongs to
-    /// <see cref="ChecklistTier.Bank"/>; otherwise <see cref="VerdictSignal.Green"/>.
+    /// the bank tier (<see cref="ChecklistTier.Bank"/> or <see cref="ChecklistTier.Both"/>);
+    /// otherwise <see cref="VerdictSignal.Green"/>. Mirrors the canonical
+    /// <c>VerdictAggregator</c> rule (a <see cref="ChecklistTier.Both"/> check belongs to
+    /// both tiers).
     /// </summary>
     private static VerdictSignal ComputeBankTierVerdict(IReadOnlyList<DemoFinding> findings)
     {
         bool hasBankFail = findings.Any(f =>
-            f.Verdict == FindingVerdict.Fail && f.Tier == ChecklistTier.Bank);
+            f.Verdict == FindingVerdict.Fail
+            && (f.Tier == ChecklistTier.Bank || f.Tier == ChecklistTier.Both));
         return hasBankFail ? VerdictSignal.Yellow : VerdictSignal.Green;
     }
 

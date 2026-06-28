@@ -38,4 +38,12 @@ public sealed class DemoFinding
     /// <see cref="ExxerCube.Prisma.Veriqan.Web.UI.Services.ChecklistIds.Tier"/>.
     /// </summary>
     public ChecklistTier Tier { get; init; }
+
+    // DEFERRED (Epic 2 review): the S2.2 acceptance criteria also list a per-finding
+    // "locator/page" and "confidence" column. Neither is shown today because the demo
+    // model carries no honest source for them:
+    //   - locator/page → arrives only from a real marked-PDF run (real-pipeline data);
+    //   - confidence   → owned by Epic 4 Story 4.1 (confidence degree on findings).
+    // Adding placeholder values would be misleading in a client demo, so these are
+    // deferred rather than fabricated. Wire them when Epic 4 / the real pipeline lands.
 }
