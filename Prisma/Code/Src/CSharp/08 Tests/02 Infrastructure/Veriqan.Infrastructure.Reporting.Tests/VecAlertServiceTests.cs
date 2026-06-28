@@ -86,6 +86,10 @@ public sealed class VecAlertServiceTests
     private static VerdictSummary BuildBlockedVerdict() =>
         VerdictTestHelpers.BlockedVerdict();
 
+    /// <summary>Builds a YELLOW <see cref="VerdictSummary"/> (bank improvement opportunities).</summary>
+    private static VerdictSummary BuildYellowVerdict() =>
+        VerdictTestHelpers.YellowVerdict();
+
     /// <summary>Default alert recipients for tests.</summary>
     private static readonly IReadOnlyList<string> DefaultRecipients = ["compliance@example.com", "ops@example.com"];
 
@@ -204,6 +208,84 @@ public sealed class VecAlertServiceTests
 
         result.IsSuccess.ShouldBeTrue("BLOCKED verdict must return success (no-op).");
         fake.CallCount.ShouldBe(0, "BLOCKED verdict must not invoke IEmailSender at all.");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 3b: YELLOW verdict → alert IS sent with bank-improvement wording (adversarial fix)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A YELLOW verdict must trigger exactly one alert email.
+    /// The subject must contain "YELLOW" (not "RED"), and the body must NOT claim
+    /// regulatory failure — it must describe bank improvement opportunities.
+    /// Owner policy: Yellow = bank improvement opportunities; must not mislead recipients
+    /// into treating a bank-tier gap as a CONDUSEF non-compliance.
+    /// </summary>
+    [Fact]
+    public async Task SendRedAlertAsync_YellowVerdict_SendsAlertWithBankImprovementWording()
+    {
+        var verdict = BuildYellowVerdict();
+        var context = MakeContext("STMT-YELLOW-001");
+
+        verdict.Signal.ShouldBe(VerdictSignal.Yellow,
+            "Pre-condition: BuildYellowVerdict must produce a Yellow verdict.");
+
+        var fake = new FakeEmailSender(Result.Success());
+        var sut = BuildSut(fake);
+
+        var result = await sut.SendRedAlertAsync(verdict, context, TestContext.Current.CancellationToken);
+
+        // Overall result is success
+        result.IsSuccess.ShouldBeTrue("Yellow alert must return success when the email was delivered.");
+
+        // Exactly one email dispatched
+        fake.CallCount.ShouldBe(1, "Exactly one send attempt must occur for a first-try success.");
+        fake.SentMessages.Count.ShouldBe(1, "Exactly one email message must be recorded.");
+
+        var email = fake.SentMessages[0];
+
+        // Subject must name the signal accurately (no false "RED" claim)
+        email.Subject.Contains("YELLOW").ShouldBeTrue(
+            "Subject must contain YELLOW to accurately identify the signal.");
+        email.Subject.Contains("RED").ShouldBeFalse(
+            "Subject must NOT claim RED for a Yellow outcome.");
+        email.Subject.Contains("STMT-YELLOW-001").ShouldBeTrue(
+            "Subject must identify the statement.");
+
+        // Body must name the Yellow signal
+        email.Body.Contains(VerdictSignal.Yellow.ToString()).ShouldBeTrue(
+            "Body must name the Yellow signal.");
+
+        // Body must NOT claim regulatory failure
+        email.Body.Contains("regulatory non-compliance").ShouldBeFalse(
+            "Yellow body must NOT claim CONDUSEF regulatory non-compliance.");
+
+        // Body must describe bank improvement opportunities
+        email.Body.Contains("improvement").ShouldBeTrue(
+            "Yellow body must describe bank improvement opportunities.");
+
+        // Recipients wired correctly
+        email.To.ShouldBe(DefaultRecipients, "Recipients must match the alert context.");
+    }
+
+    /// <summary>
+    /// A GREEN verdict must not trigger any email.
+    /// Regression guard: after the Yellow-allowance guard change the Green-is-silent
+    /// invariant must still hold.
+    /// </summary>
+    [Fact]
+    public async Task SendRedAlertAsync_GreenVerdictAfterYellowFix_SendsNoEmail()
+    {
+        var verdict = BuildGreenVerdict();
+        var context = MakeContext("STMT-GREEN-REGRESSION");
+
+        var fake = new FakeEmailSender(Result.Success());
+        var sut = BuildSut(fake);
+
+        var result = await sut.SendRedAlertAsync(verdict, context, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue("GREEN verdict must return success (no-op) after Yellow fix.");
+        fake.CallCount.ShouldBe(0, "GREEN verdict must still not invoke IEmailSender after Yellow fix.");
     }
 
     // -----------------------------------------------------------------------
@@ -493,6 +575,35 @@ internal static class VerdictTestHelpers
             "Test blocking condition");
         // Pass the BlockedOutcome to drive the BLOCKED branch.
         var result = Aggregator.Aggregate(findings: [], blocked: blockedOutcome);
+        return result.Value!;
+    }
+
+    /// <summary>
+    /// Builds a YELLOW <see cref="VerdictSummary"/> by supplying a Bank-only tier map so the
+    /// aggregator's two-tier combination rule yields Yellow (bankTier=Yellow, condusefTier=Green).
+    /// </summary>
+    public static VerdictSummary YellowVerdict()
+    {
+        // The failing check is mapped to Bank only → condusefFails stays empty → overall = Yellow.
+        var tiers = new Dictionary<string, ChecklistTier>
+        {
+            ["CL-BANK-ONLY"] = ChecklistTier.Bank,
+        };
+        var findings = new List<RuleFinding>
+        {
+            RuleFinding.Fail(
+                checkId: "CL-BANK-ONLY",
+                technique: TechniqueClass.Deterministic,
+                severity: FindingSeverity.Critical,
+                engineVersion: "1.0",
+                expected: "e",
+                observed: "o"),
+            RuleFinding.Pass(
+                checkId: "CL-PASS-1",
+                technique: TechniqueClass.Deterministic,
+                engineVersion: "1.0"),
+        };
+        var result = Aggregator.Aggregate(findings, checklistTiers: tiers);
         return result.Value!;
     }
 }

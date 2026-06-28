@@ -20,13 +20,20 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 /// <remarks>
 /// <para>
 /// <b>RED policy:</b> exactly one alert email is composed and dispatched via
-/// <see cref="IEmailSender"/>.  Transient failures are retried using an exponential
-/// back-off Polly pipeline (up to <see cref="AlertOptions.MaxRetryAttempts"/> total attempts).
+/// <see cref="IEmailSender"/> with wording that accurately describes CONDUSEF regulatory
+/// non-compliance.  Transient failures are retried using an exponential back-off Polly
+/// pipeline (up to <see cref="AlertOptions.MaxRetryAttempts"/> total attempts).
 /// If all attempts fail the error is logged at <c>Error</c> level and a typed
 /// <see cref="Result"/> failure is returned — the failure is <b>never silently dropped</b>.
 /// </para>
 /// <para>
-/// <b>Non-RED policy:</b> GREEN and BLOCKED verdicts produce no email.
+/// <b>YELLOW policy:</b> exactly one alert email is dispatched with wording that accurately
+/// describes bank improvement opportunities (NOT regulatory failure).  The email subject
+/// and body explicitly name the Yellow signal so recipients are never misled into treating
+/// a bank-tier gap as a CONDUSEF violation.
+/// </para>
+/// <para>
+/// <b>Green/Blocked policy:</b> GREEN and BLOCKED verdicts produce no email.
 /// A <see cref="Result.Success"/> is returned immediately; the caller can inspect
 /// the outcome by checking <see cref="Result.IsSuccess"/>.
 /// </para>
@@ -102,20 +109,21 @@ public sealed class VecAlertService : IVecAlertService
             return ResultExtensions.Cancelled();
 
         // -----------------------------------------------------------------------
-        // Non-RED: no email — return success with a diagnostic note.
+        // Green / Blocked: no email — return success with a diagnostic note.
+        // Yellow and Red both proceed to send an alert (owner policy).
         // -----------------------------------------------------------------------
-        if (verdict.Signal != VerdictSignal.Red)
+        if (verdict.Signal is not (VerdictSignal.Red or VerdictSignal.Yellow))
         {
             _logger.LogDebug(
                 "VecAlertService: signal is {Signal} for statement {StatementId} — no alert email sent.",
                 verdict.Signal, context.StatementId);
 
-            // Success: no alert is the correct outcome for non-RED verdicts.
+            // Success: no alert is the correct outcome for Green/Blocked verdicts.
             return Result.Success();
         }
 
         // -----------------------------------------------------------------------
-        // RED: duplicate-alert guard — check AlertSentAt before sending (Story E2-S15).
+        // RED / YELLOW: duplicate-alert guard — check AlertSentAt before sending (Story E2-S15).
         // -----------------------------------------------------------------------
         // DESIGN (deliberate at-least-once): this is a check-then-send-then-stamp
         // sequence, not an atomic claim-before-send. The common reprocess/retry path is
@@ -157,17 +165,18 @@ public sealed class VecAlertService : IVecAlertService
         }
 
         // -----------------------------------------------------------------------
-        // RED: compose exactly one email, dispatch with retry.
+        // RED / YELLOW: compose exactly one email, dispatch with retry.
         // -----------------------------------------------------------------------
-        var message = ComposeRedAlert(verdict, context);
+        var message = ComposeAlert(verdict, context);
 
         _logger.LogInformation(
-            "VEC RED alert triggered for statement {StatementId}: FailCount={FailCount}, FailCheckIds=[{FailCheckIds}].",
+            "VEC {Signal} alert triggered for statement {StatementId}: FailCount={FailCount}, FailCheckIds=[{FailCheckIds}].",
+            verdict.Signal,
             context.StatementId,
             verdict.FailCount,
             string.Join(", ", verdict.FailCheckIds));
 
-        var pipeline = BuildRetryPipeline(context.StatementId, cancellationToken);
+        var pipeline = BuildRetryPipeline(verdict.Signal, context.StatementId, cancellationToken);
 
         Result sendResult = Result.WithFailure("Alert not attempted.");
 
@@ -180,7 +189,8 @@ public sealed class VecAlertService : IVecAlertService
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             _logger.LogDebug(
-                "VecAlertService: RED alert for statement {StatementId} was cancelled during retry pipeline.",
+                "VecAlertService: {Signal} alert for statement {StatementId} was cancelled during retry pipeline.",
+                verdict.Signal,
                 context.StatementId);
             return ResultExtensions.Cancelled();
         }
@@ -192,13 +202,14 @@ public sealed class VecAlertService : IVecAlertService
         {
             // Permanent failure after all retries — log at Error level (never silently dropped).
             _logger.LogError(
-                "VEC RED alert FAILED permanently for statement {StatementId} after {MaxAttempts} attempt(s): {Error}",
+                "VEC {Signal} alert FAILED permanently for statement {StatementId} after {MaxAttempts} attempt(s): {Error}",
+                verdict.Signal,
                 context.StatementId,
                 _options.MaxRetryAttempts,
                 sendResult.Error);
 
             return Result.WithFailure(
-                $"RED alert for statement '{context.StatementId}' could not be delivered after {_options.MaxRetryAttempts} attempt(s): {sendResult.Error}");
+                $"{verdict.Signal} alert for statement '{context.StatementId}' could not be delivered after {_options.MaxRetryAttempts} attempt(s): {sendResult.Error}");
         }
 
         // -----------------------------------------------------------------------
@@ -239,7 +250,8 @@ public sealed class VecAlertService : IVecAlertService
         }
 
         _logger.LogInformation(
-            "VEC RED alert delivered successfully for statement {StatementId}.",
+            "VEC {Signal} alert delivered successfully for statement {StatementId}.",
+            verdict.Signal,
             context.StatementId);
 
         return Result.Success();
@@ -250,16 +262,24 @@ public sealed class VecAlertService : IVecAlertService
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Composes the RED-alert <see cref="EmailMessage"/> from the verdict and context.
+    /// Composes the alert <see cref="EmailMessage"/> from the verdict and context.
+    /// The subject and body wording are accurate for the actual signal:
+    /// Red → CONDUSEF regulatory non-compliance; Yellow → bank improvement opportunities.
     /// </summary>
-    private static EmailMessage ComposeRedAlert(VerdictSummary verdict, AlertContext context)
+    private static EmailMessage ComposeAlert(VerdictSummary verdict, AlertContext context)
     {
         var failIds = verdict.FailCheckIds.Any()
             ? string.Join(", ", verdict.FailCheckIds)
             : "(none recorded)";
 
+        var signalLabel = verdict.Signal.ToString().ToUpperInvariant();
+
+        var closingLine = verdict.Signal == VerdictSignal.Yellow
+            ? "Bank improvement opportunities identified; CONDUSEF regulatory compliance is GREEN."
+            : "CONDUSEF regulatory non-compliance detected. Review the marked PDF and initiate corrective action as required.";
+
         var body =
-            $"VEC RED ALERT — Statement: {context.StatementId}\r\n" +
+            $"VEC {signalLabel} ALERT — Statement: {context.StatementId}\r\n" +
             $"\r\n" +
             $"Signal          : {verdict.Signal}\r\n" +
             $"Failed checks   : {verdict.FailCount}  [{failIds}]\r\n" +
@@ -268,11 +288,11 @@ public sealed class VecAlertService : IVecAlertService
             $"Total evaluated : {verdict.Total}\r\n" +
             $"\r\n" +
             $"This alert was generated automatically by the VEC verification engine.\r\n" +
-            $"Review the marked PDF and initiate corrective action as required.";
+            $"{closingLine}";
 
         return new EmailMessage(
             To: context.Recipients,
-            Subject: $"VEC RED — {context.StatementId}",
+            Subject: $"VEC {signalLabel} — {context.StatementId}",
             Body: body);
     }
 
@@ -280,6 +300,9 @@ public sealed class VecAlertService : IVecAlertService
     /// Builds a Polly <see cref="ResiliencePipeline"/> that retries on a failed (non-cancelled)
     /// <see cref="Result"/> return value, using exponential back-off.
     /// </summary>
+    /// <param name="signal">The verdict signal (<see cref="VerdictSignal.Red"/> or <see cref="VerdictSignal.Yellow"/>); used in retry log messages.</param>
+    /// <param name="statementId">Statement identifier for structured log properties.</param>
+    /// <param name="cancellationToken">Token used to suppress retries when cancelled.</param>
     /// <remarks>
     /// The pipeline treats a <see cref="Result.IsFailure"/> return as a handled outcome and
     /// retries up to <c>MaxRetryAttempts - 1</c> additional times (total attempts =
@@ -287,6 +310,7 @@ public sealed class VecAlertService : IVecAlertService
     /// are not retried.
     /// </remarks>
     private ResiliencePipeline<Result> BuildRetryPipeline(
+        VerdictSignal signal,
         string statementId,
         CancellationToken cancellationToken)
     {
@@ -309,7 +333,8 @@ public sealed class VecAlertService : IVecAlertService
                 OnRetry = args =>
                 {
                     _logger.LogWarning(
-                        "VEC RED alert send attempt {Attempt} of {Max} failed for statement {StatementId}: {Error} — retrying in {Delay}.",
+                        "VEC {Signal} alert send attempt {Attempt} of {Max} failed for statement {StatementId}: {Error} — retrying in {Delay}.",
+                        signal,
                         args.AttemptNumber + 1,
                         _options.MaxRetryAttempts,
                         statementId,

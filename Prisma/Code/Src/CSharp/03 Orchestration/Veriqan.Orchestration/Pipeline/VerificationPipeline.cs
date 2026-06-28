@@ -837,12 +837,14 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             job.Id);
 
         // Stage 9 — Report (marked PDF): best-effort, non-fatal.
-        // Run on RED or BLOCKED so reviewers always get an annotated copy when the
-        // verdict is non-green.  A generator failure appends a diagnostic finding but
-        // does NOT change the already-determined verdict or make the pipeline fail.
+        // Run on RED, YELLOW, or BLOCKED so reviewers always get an annotated copy when
+        // the verdict is non-green.  Owner policy: YELLOW (bank improvement opportunities)
+        // generates the same marked-PDF report as RED.  A generator failure appends a
+        // diagnostic finding but does NOT change the already-determined verdict or make
+        // the pipeline fail.
         var reportFindings = new List<RuleFinding>(findings);
 
-        if (summary.Signal is VerdictSignal.Red or VerdictSignal.Blocked)
+        if (summary.Signal is VerdictSignal.Red or VerdictSignal.Yellow or VerdictSignal.Blocked)
         {
             using var reportActivity = PipelineActivitySource.StartActivity("pipeline.stage.report");
             try
@@ -895,10 +897,12 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             }
         }
 
-        // Stage 10 — Notify (RED alert email): best-effort, non-fatal.
-        // Only RED verdicts trigger an email; BLOCKED and GREEN are silent.
+        // Stage 10 — Notify (alert email): best-effort, non-fatal.
+        // RED and YELLOW verdicts trigger an email; BLOCKED and GREEN are silent.
+        // Owner policy: YELLOW (bank improvement opportunities) sends an alert just like RED,
+        // but the email wording must not claim regulatory failure (handled in VecAlertService).
         // Duplicate-alert guard implemented in VecAlertService via AlertSentAt flag (Story E2-S15).
-        if (summary.Signal == VerdictSignal.Red)
+        if (summary.Signal is VerdictSignal.Red or VerdictSignal.Yellow)
         {
             using var notifyActivity = PipelineActivitySource.StartActivity("pipeline.stage.notify");
             try
@@ -914,7 +918,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 if (alertResult.IsCancelled())
                 {
                     _logger.LogWarning(
-                        "Pipeline cancelled during RED alert for {FileName} JobId={JobId}",
+                        "Pipeline cancelled during {Signal} alert for {FileName} JobId={JobId}",
+                        summary.Signal,
                         submission.FileName,
                         job.Id);
 
@@ -927,7 +932,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 if (alertResult.IsFailure)
                 {
                     _logger.LogWarning(
-                        "RED alert send failed for {FileName} JobId={JobId}: {Error} — continuing (best-effort)",
+                        "{Signal} alert send failed for {FileName} JobId={JobId}: {Error} — continuing (best-effort)",
+                        summary.Signal,
                         submission.FileName,
                         job.Id,
                         alertResult.Error);
@@ -943,7 +949,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 else
                 {
                     _logger.LogInformation(
-                        "RED alert dispatched for {FileName} JobId={JobId}",
+                        "{Signal} alert dispatched for {FileName} JobId={JobId}",
+                        summary.Signal,
                         submission.FileName,
                         job.Id);
                 }
@@ -952,7 +959,8 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             {
                 _logger.LogWarning(
                     ex,
-                    "RED alert threw an exception for {FileName} JobId={JobId} — continuing (best-effort)",
+                    "{Signal} alert threw an exception for {FileName} JobId={JobId} — continuing (best-effort)",
+                    summary.Signal,
                     submission.FileName,
                     job.Id);
 

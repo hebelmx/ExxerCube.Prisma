@@ -284,6 +284,7 @@ internal sealed class BatchProcessor : IBatchProcessor
         var exceptionList = new List<ExceptionQueueEntry>(exceptionQueue);
 
         int greenCount = 0;
+        int yellowCount = 0;
         int redCount = 0;
         int blockedCount = 0;
 
@@ -293,6 +294,9 @@ internal sealed class BatchProcessor : IBatchProcessor
             {
                 case VerdictSignal.Green:
                     greenCount++;
+                    break;
+                case VerdictSignal.Yellow:
+                    yellowCount++;
                     break;
                 case VerdictSignal.Red:
                     redCount++;
@@ -322,17 +326,19 @@ internal sealed class BatchProcessor : IBatchProcessor
             BlockedCount: blockedCount,
             FailedCount: exceptionList.Count,
             GreenCount: greenCount,
+            YellowCount: yellowCount,
             RedCount: redCount,
             AlreadyCompletedCount: Volatile.Read(ref alreadyCompleted),
             ThroughputPerSecond: throughput,
             P95LatencyMs: p95Ms);
 
         _logger.LogInformation(
-            "Batch complete: Total={Total} Completed={Completed} AlreadyCompleted={AlreadyCompleted} Green={Green} Red={Red} Blocked={Blocked} Failed={Failed} ThroughputPerSecond={ThroughputPerSecond:F2} P95LatencyMs={P95LatencyMs}",
+            "Batch complete: Total={Total} Completed={Completed} AlreadyCompleted={AlreadyCompleted} Green={Green} Yellow={Yellow} Red={Red} Blocked={Blocked} Failed={Failed} ThroughputPerSecond={ThroughputPerSecond:F2} P95LatencyMs={P95LatencyMs}",
             report.TotalSubmitted,
             report.CompletedCount,
             report.AlreadyCompletedCount,
             report.GreenCount,
+            report.YellowCount,
             report.RedCount,
             report.BlockedCount,
             report.FailedCount,

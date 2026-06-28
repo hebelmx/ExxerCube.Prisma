@@ -41,6 +41,22 @@ public sealed class BatchProcessorTests
         return new VerificationOutcome(job, summary, Array.Empty<RuleFinding>());
     }
 
+    private static VerificationOutcome MakeYellowOutcome()
+    {
+        var job = new VerificationJob(
+            Guid.NewGuid(), "abc-yellow", DateTimeOffset.UtcNow, VerificationJobStatus.Pending);
+        var aggregator = new VerdictAggregator();
+        // Bank-only tier map: the fail is mapped to ChecklistTier.Bank, so condusefFails is empty
+        // → bankTier=Yellow, condusefTier=Green, overall=Yellow.
+        var tiers = new Dictionary<string, ChecklistTier> { ["CL-BANK-ONLY"] = ChecklistTier.Bank };
+        var findings = new List<RuleFinding>
+        {
+            RuleFinding.Fail("CL-BANK-ONLY", TechniqueClass.Deterministic, FindingSeverity.Critical, "1.0", "e", "o"),
+        };
+        var summary = aggregator.Aggregate(findings, checklistTiers: tiers).Value!;
+        return new VerificationOutcome(job, summary, findings);
+    }
+
     private static IBatchProcessor BuildBatchProcessor(IVerificationPipeline pipeline)
     {
         var services = new ServiceCollection();
@@ -264,6 +280,63 @@ public sealed class BatchProcessorTests
 
         // Assert
         result.IsCancelled().ShouldBeTrue();
+    }
+
+    // -----------------------------------------------------------------------
+    // Yellow signal — counter correctness (adversarial fix)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When a batch contains a YELLOW outcome, <see cref="BatchReport.YellowCount"/> must
+    /// increment and the Green/Red/Blocked counters must remain unchanged.
+    /// Regression guard: before this fix the switch had no Yellow case and the count was lost.
+    /// </summary>
+    [Fact]
+    public async Task ProcessBatch_YellowOutcome_IncrementsYellowCountAndNotOthers()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        var greenOutcome = MakeGreenOutcome();
+        var yellowOutcome = MakeYellowOutcome();
+
+        yellowOutcome.Summary.Signal.ShouldBe(VerdictSignal.Yellow,
+            "Pre-condition: MakeYellowOutcome must produce a Yellow summary.");
+
+        int callCount = 0;
+        var fakePipeline = Substitute.For<IVerificationPipeline>();
+        fakePipeline
+            .ProcessAsync(Arg.Any<StatementSubmission>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                // item 1 → Green, item 2 → Yellow, item 3 → Green
+                var n = Interlocked.Increment(ref callCount);
+                return n == 2
+                    ? Task.FromResult(Result<VerificationOutcome>.WithSuccess(yellowOutcome))
+                    : Task.FromResult(Result<VerificationOutcome>.WithSuccess(greenOutcome));
+            });
+
+        var batch = new List<StatementSubmission>
+        {
+            MakeSubmission("a.pdf"),
+            MakeSubmission("b-yellow.pdf"),
+            MakeSubmission("c.pdf"),
+        };
+
+        var processor = BuildBatchProcessor(fakePipeline);
+
+        // Act — serial to keep call order deterministic
+        var result = await processor.ProcessBatchAsync(
+            batch, new BatchOptions(MaxDegreeOfParallelism: 1), progress: null, ct);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        var report = result.Value!;
+        report.CompletedCount.ShouldBe(3);
+        report.GreenCount.ShouldBe(2);
+        report.YellowCount.ShouldBe(1, "Exactly one Yellow outcome must increment YellowCount.");
+        report.RedCount.ShouldBe(0, "Red counter must not be affected by a Yellow outcome.");
+        report.BlockedCount.ShouldBe(0, "Blocked counter must not be affected by a Yellow outcome.");
+        report.FailedCount.ShouldBe(0);
     }
 
     // -----------------------------------------------------------------------

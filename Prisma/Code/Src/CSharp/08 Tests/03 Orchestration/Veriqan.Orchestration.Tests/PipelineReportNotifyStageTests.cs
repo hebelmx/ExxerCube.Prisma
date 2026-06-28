@@ -64,7 +64,8 @@ public sealed class PipelineReportNotifyStageTests
     private static ServiceCollection BuildServices(
         IReadOnlyList<RuleFinding> engineFindings,
         IMarkedPdfGenerator reportGenerator,
-        IVecAlertService alertService)
+        IVecAlertService alertService,
+        IReadOnlyDictionary<string, ChecklistTier>? tierMap = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -196,13 +197,13 @@ public sealed class PipelineReportNotifyStageTests
         // Metrics + pipeline.
         services.AddSingleton<VeriqanMetrics>();
 
-        // Stub: tier-map provider — returns empty map so the pipeline degrades to single-tier.
+        // Stub: tier-map provider — returns the caller-supplied map (or empty = single-tier degraded).
         var tierProvider = Substitute.For<IVecReferenceDataProvider>();
         tierProvider
             .GetChecklistTiersAsync(Arg.Any<StatementContextKey>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(
                 Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(
-                    new Dictionary<string, ChecklistTier>() as IReadOnlyDictionary<string, ChecklistTier>)));
+                    tierMap ?? (new Dictionary<string, ChecklistTier>() as IReadOnlyDictionary<string, ChecklistTier>))));
         services.AddSingleton<IVecReferenceDataProvider>(tierProvider);
 
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
@@ -332,7 +333,7 @@ public sealed class PipelineReportNotifyStageTests
         new(Pdf: FakePdf, FileName: fileName,
             ContextKey: new StatementContextKey("Test Bank", "Jan 2025"));
 
-    /// <summary>Findings that cause a RED verdict (one Fail).</summary>
+    /// <summary>Findings that cause a RED verdict (one Fail, empty/condusef tier map).</summary>
     private static IReadOnlyList<RuleFinding> RedFindings() =>
     [
         RuleFinding.Pass("CL-TEST-P", TechniqueClass.Deterministic, "1.0.0", "ok"),
@@ -345,6 +346,14 @@ public sealed class PipelineReportNotifyStageTests
     [
         RuleFinding.Pass("CL-TEST-P", TechniqueClass.Deterministic, "1.0.0", "ok"),
     ];
+
+    /// <summary>
+    /// Tier map that, combined with <see cref="RedFindings"/>, produces a YELLOW verdict:
+    /// the only failing check is mapped to Bank-only, so condusefFails is empty.
+    /// bankTier=Yellow, condusefTier=Green, overall=Yellow.
+    /// </summary>
+    private static IReadOnlyDictionary<string, ChecklistTier> BankOnlyTierMap =>
+        new Dictionary<string, ChecklistTier> { ["CL-TEST-F"] = ChecklistTier.Bank };
 
     // -----------------------------------------------------------------------
     // Stage 8 (Report) tests
@@ -595,5 +604,90 @@ public sealed class PipelineReportNotifyStageTests
         result.Value!.Findings
             .Any(f => f.CheckId == "NotificationFailure")
             .ShouldBeTrue("Outcome findings should include a NotificationFailure diagnostic.");
+    }
+
+    // -----------------------------------------------------------------------
+    // Stage 9 + 10 Yellow gate tests (adversarial fix — owner policy)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// YELLOW verdict → <see cref="IMarkedPdfGenerator.Generate"/> called exactly once.
+    /// Owner policy: Yellow (bank improvement opportunities) must generate a marked-PDF
+    /// report just like RED.  Regression guard: before the fix, the report gate only
+    /// matched <c>Red or Blocked</c>, silently skipping Yellow.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_YellowVerdict_CallsReportGeneratorExactlyOnce()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var reportGenerator = Substitute.For<IMarkedPdfGenerator>();
+        reportGenerator
+            .Generate(Arg.Any<byte[]>(), Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<byte[]>.WithSuccess(Array.Empty<byte>()));
+
+        var alertService = Substitute.For<IVecAlertService>();
+        alertService
+            .SendRedAlertAsync(Arg.Any<VerdictSummary>(), Arg.Any<AlertContext>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result.Success()));
+
+        // Supply a Bank-only tier map so the engine's one Fail → bankTier=Yellow, overall=Yellow.
+        var services = BuildServices(RedFindings(), reportGenerator, alertService, BankOnlyTierMap);
+        await using var sp = services.BuildServiceProvider();
+        await using var scope = sp.CreateAsyncScope();
+
+        var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+
+        var result = await pipeline.ProcessAsync(MakeSubmission(), ct);
+
+        result.IsSuccess.ShouldBeTrue("Pipeline should succeed on YELLOW verdict.");
+        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.Yellow,
+            "The outcome signal must be YELLOW (pre-condition: tier map correctly wired).");
+
+        // Stage 9 (report): called for YELLOW
+        reportGenerator.Received(1).Generate(
+            Arg.Any<byte[]>(),
+            Arg.Any<IReadOnlyList<RuleFinding>>(),
+            Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// YELLOW verdict → <see cref="IVecAlertService.SendRedAlertAsync"/> called exactly once.
+    /// Owner policy: Yellow must send an alert (same trigger point as RED; VecAlertService
+    /// is responsible for using accurate non-regulatory wording in the email).
+    /// Regression guard: before the fix, Stage 10 only matched <c>signal == Red</c>.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_YellowVerdict_CallsAlertServiceExactlyOnce()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var reportGenerator = Substitute.For<IMarkedPdfGenerator>();
+        reportGenerator
+            .Generate(Arg.Any<byte[]>(), Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Result<byte[]>.WithSuccess(Array.Empty<byte>()));
+
+        var alertService = Substitute.For<IVecAlertService>();
+        alertService
+            .SendRedAlertAsync(Arg.Any<VerdictSummary>(), Arg.Any<AlertContext>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult(Result.Success()));
+
+        var services = BuildServices(RedFindings(), reportGenerator, alertService, BankOnlyTierMap);
+        await using var sp = services.BuildServiceProvider();
+        await using var scope = sp.CreateAsyncScope();
+
+        var pipeline = scope.ServiceProvider.GetRequiredService<IVerificationPipeline>();
+
+        var result = await pipeline.ProcessAsync(MakeSubmission(), ct);
+
+        result.IsSuccess.ShouldBeTrue("Pipeline should succeed on YELLOW verdict.");
+        result.Value!.Summary.Signal.ShouldBe(VerdictSignal.Yellow,
+            "The outcome signal must be YELLOW.");
+
+        // Stage 10 (notify): called for YELLOW
+        await alertService.Received(1).SendRedAlertAsync(
+            Arg.Is<VerdictSummary>(s => s.Signal == VerdictSignal.Yellow),
+            Arg.Any<AlertContext>(),
+            Arg.Any<CancellationToken>());
     }
 }
