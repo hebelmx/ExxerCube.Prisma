@@ -616,7 +616,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             // Collect rendered point-size and font-name per word across all pages.
             var (typographySamples, typographyExtractionStatus) = ExtractTypographySamples(doc);
 
-            // ---- Per-page perceptual hashes — VERIQAN-E2-S4 (CL-27/CL-30/CL-47) ----
+            // ---- Per-page perceptual hashes — VERIQAN-E2-S4 (CLIENT-IMG-CATALOG) ----
             // Only when the opt-in flag is enabled — rendering every page is expensive.
             // Leave the list empty (rule abstains) when the flag is off.
             var pagePerceptualHashes = _enableCatalogImageHashing
@@ -3321,7 +3321,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     // -----------------------------------------------------------------------
 
     // -----------------------------------------------------------------------
-    // Per-page perceptual hashing (VERIQAN-E2-S4 — CL-27/CL-30/CL-47)
+    // Per-page perceptual hashing (VERIQAN-E2-S4 — CLIENT-IMG-CATALOG)
     // -----------------------------------------------------------------------
 
     /// <summary>

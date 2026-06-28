@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Tests;
 
 /// <summary>
-/// Unit tests for <c>CatalogImagePresenceRule</c> (VERIQAN-E2-S4 / CL-27/CL-30/CL-47 / FR-12).
+/// Unit tests for <c>CatalogImagePresenceRule</c> (VERIQAN-E2-S4 / CLIENT-IMG-CATALOG / FR-12).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -141,7 +141,7 @@ public sealed class CatalogImagePresenceRuleTests
             statementModel: model);
 
     /// <summary>
-    /// Resolves <c>CL-27/CL-30/CL-47</c> from the DI-registered rules (Scrutor scan path).
+    /// Resolves <c>CLIENT-IMG-CATALOG</c> from the DI-registered rules (Scrutor scan path).
     /// </summary>
     private static IVecValidationRule GetRule()
     {
@@ -151,10 +151,10 @@ public sealed class CatalogImagePresenceRuleTests
         var sp = services.BuildServiceProvider();
 
         foreach (var rule in sp.GetServices<IVecValidationRule>())
-            if (rule.CheckId == "CL-27/CL-30/CL-47")
+            if (rule.CheckId == "CLIENT-IMG-CATALOG")
                 return rule;
 
-        throw new InvalidOperationException("CatalogImagePresenceRule (CL-27/CL-30/CL-47) not found in DI.");
+        throw new InvalidOperationException("CatalogImagePresenceRule (CLIENT-IMG-CATALOG) not found in DI.");
     }
 
     // -----------------------------------------------------------------------
@@ -192,7 +192,7 @@ public sealed class CatalogImagePresenceRuleTests
         var result = rule.Evaluate(ctx, ct);
 
         result.IsSuccess.ShouldBeTrue($"Rule failed unexpectedly: {result.Error}");
-        result.Value!.CheckId.ShouldBe("CL-27/CL-30/CL-47");
+        result.Value!.CheckId.ShouldBe("CLIENT-IMG-CATALOG");
         result.Value.Verdict.ShouldBe(FindingVerdict.Pass,
             "A page whose hash matches the bundle reference within Hamming threshold must yield Pass.");
     }
@@ -240,7 +240,7 @@ public sealed class CatalogImagePresenceRuleTests
         var result = rule.Evaluate(ctx, ct);
 
         result.IsSuccess.ShouldBeTrue($"Rule threw unexpectedly: {result.Error}");
-        result.Value!.CheckId.ShouldBe("CL-27/CL-30/CL-47");
+        result.Value!.CheckId.ShouldBe("CLIENT-IMG-CATALOG");
         result.Value.Verdict.ShouldBe(FindingVerdict.Fail,
             "When no page hash matches the catalog image, the rule must return Fail.");
         result.Value.Severity.ShouldBe(FindingSeverity.Critical,
@@ -276,7 +276,7 @@ public sealed class CatalogImagePresenceRuleTests
         var result = rule.Evaluate(ctx, ct);
 
         result.IsSuccess.ShouldBeTrue($"Rule threw unexpectedly: {result.Error}");
-        result.Value!.CheckId.ShouldBe("CL-27/CL-30/CL-47");
+        result.Value!.CheckId.ShouldBe("CLIENT-IMG-CATALOG");
         result.Value.Verdict.ShouldBe(FindingVerdict.InsufficientData,
             "A bundle with no ImageRef perceptualHash entries must produce InsufficientData — " +
             "the rule must never red-flag on missing reference data.");

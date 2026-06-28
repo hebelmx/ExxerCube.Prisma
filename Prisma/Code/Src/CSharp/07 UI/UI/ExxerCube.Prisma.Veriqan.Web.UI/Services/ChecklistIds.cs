@@ -98,7 +98,7 @@ internal static class ChecklistIds
     internal static ChecklistTier Tier(string checkId) => checkId switch
     {
         // ── Bank tier (from CSV rows marked "Bank") ─────────────────────────────
-        // Row: CL-27/CL-30/CL-47
+        // Row: CLIENT-IMG-CATALOG (brand image catalog — Bank tier)
         "CL-27" or "CL-30" or "CL-47" => ChecklistTier.Bank,
         // Rows: CL-35, CL-37, CL-45, CL-49, CL-50, CL-51, CL-52, CL-53
         "CL-35" => ChecklistTier.Bank,

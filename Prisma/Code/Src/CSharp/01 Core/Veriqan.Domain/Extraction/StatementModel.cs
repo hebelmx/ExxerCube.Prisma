@@ -407,7 +407,7 @@ public sealed class StatementModel
     public IReadOnlyList<FinancialTable> FinancialTables { get; init; } = [];
 
     // -----------------------------------------------------------------------
-    // Per-page perceptual hashes (VERIQAN-E2-S4 — CL-27/CL-30/CL-47)
+    // Per-page perceptual hashes (VERIQAN-E2-S4 — CLIENT-IMG-CATALOG)
     // -----------------------------------------------------------------------
 
     /// <summary>

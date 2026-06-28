@@ -13,11 +13,12 @@ using IndQuestResults.Operations;
 namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 
 /// <summary>
-/// CL-27 / CL-30 / CL-47 (FR-12): Catalog-image presence rule — verifies that every
-/// catalog image referenced in the bundle's <c>products[].cardImage</c>,
+/// CLIENT-IMG-CATALOG (FR-12): Client/brand catalog-image presence rule — verifies that
+/// every catalog image referenced in the bundle's <c>products[].cardImage</c>,
 /// <c>products[].importantMessageImage</c>, and <c>sequentialImages[].image</c>
 /// sections with a <c>perceptualHash</c> is visually present on at least one page of
-/// the submitted statement PDF.
+/// the submitted statement PDF.  Anchored to Acuerdo §1 (SIPRES logo required;
+/// product/card imagery optional per tenant brand catalog).
 /// </summary>
 /// <remarks>
 /// <para>
@@ -62,10 +63,10 @@ internal sealed class CatalogImagePresenceRule : IVecValidationRule
     internal const int DefaultHammingThreshold = 5;
 
     /// <inheritdoc />
-    public string CheckId => "CL-27/CL-30/CL-47";
+    public string CheckId => "CLIENT-IMG-CATALOG";
 
     /// <inheritdoc />
-    public string DofNumeral => "Acuerdo §9/§14/§15";
+    public string DofNumeral => "Acuerdo §1 (logo SIPRES) + tenant brand catalog";
 
     /// <inheritdoc />
     public TechniqueClass Technique => TechniqueClass.Deterministic;

@@ -118,9 +118,9 @@ public sealed class ChecklistTierCsvAdapterTests
     }
 
     [Fact]
-    public async Task GetChecklistTiersAsync_DemoBundle_SlashCheckId_ResolvesCorrectly()
+    public async Task GetChecklistTiersAsync_DemoBundle_BrandImageCheckId_ResolvesCorrectly()
     {
-        // CL-27/CL-30/CL-47 is a single CheckId with literal slashes (Bank tier)
+        // CLIENT-IMG-CATALOG is the brand/image-catalog presence check (Bank tier)
         var ct = TestContext.Current.CancellationToken;
         var adapter = CreateAdapter();
         var key = new StatementContextKey("Demo Bank (Iqubica)");
@@ -128,10 +128,10 @@ public sealed class ChecklistTierCsvAdapterTests
         var result = await adapter.GetChecklistTiersAsync(key, ct);
 
         result.IsSuccess.ShouldBeTrue();
-        result.Value!.TryGetValue("CL-27/CL-30/CL-47", out var tier).ShouldBeTrue(
-            "CL-27/CL-30/CL-47 (literal slashes) must be present in the tier map.");
+        result.Value!.TryGetValue("CLIENT-IMG-CATALOG", out var tier).ShouldBeTrue(
+            "CLIENT-IMG-CATALOG must be present in the tier map.");
         tier.ShouldBe(ChecklistTier.Bank,
-            "CL-27/CL-30/CL-47 is declared as Bank tier in checklist-tiers.csv.");
+            "CLIENT-IMG-CATALOG is declared as Bank tier in checklist-tiers.csv.");
     }
 
     // -----------------------------------------------------------------------
