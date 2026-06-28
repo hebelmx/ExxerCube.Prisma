@@ -19,4 +19,24 @@ public enum VerdictSignal
     /// alone (with no explicit fail) correctly yields <see cref="Green"/>, not Blocked.
     /// </summary>
     Blocked = 2,
+
+    /// <summary>
+    /// The statement is acceptable at the bank's own bar but has non-blocking improvement
+    /// opportunities relative to the bank's full ruleset (bank-tier passes with gaps).
+    /// <para>
+    /// Two-tier combination rule (Story 1.1):
+    /// <list type="bullet">
+    ///   <item><see cref="Blocked"/> — takes absolute precedence over both tier verdicts.</item>
+    ///   <item><see cref="Red"/> overall — when the CONDUSEF tier verdict is <see cref="Red"/>.</item>
+    ///   <item><see cref="Yellow"/> overall — when the bank tier verdict is <see cref="Yellow"/>
+    ///     and the CONDUSEF tier verdict is not <see cref="Red"/>.</item>
+    ///   <item><see cref="Green"/> overall — both tiers are <see cref="Green"/>.</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// See <c>VerdictSummary.BankTierVerdict</c>, <c>VerdictSummary.CondusefTierVerdict</c>, and
+    /// <c>VerdictSummary.CombineOverallSignal</c> in <c>Veriqan.Application</c>.
+    /// </para>
+    /// </summary>
+    Yellow = 3,
 }

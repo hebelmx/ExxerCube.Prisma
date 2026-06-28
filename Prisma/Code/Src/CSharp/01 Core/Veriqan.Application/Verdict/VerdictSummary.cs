@@ -48,7 +48,9 @@ public sealed record VerdictSummary
         BlockedOutcome? blockedOutcome,
         IReadOnlyList<TenantDeviation>? tenantDeviations = null,
         IReadOnlyList<string>? legalBreachCheckIds = null,
-        IReadOnlyList<string>? tenantOnlyFailCheckIds = null)
+        IReadOnlyList<string>? tenantOnlyFailCheckIds = null,
+        VerdictSignal bankTierVerdict = VerdictSignal.Green,
+        VerdictSignal condusefTierVerdict = VerdictSignal.Green)
     {
         Signal = signal;
         FailCount = failCount;
@@ -61,6 +63,8 @@ public sealed record VerdictSummary
         TenantDeviations = tenantDeviations ?? [];
         LegalBreachCheckIds = legalBreachCheckIds ?? [];
         TenantOnlyFailCheckIds = tenantOnlyFailCheckIds ?? [];
+        BankTierVerdict = bankTierVerdict;
+        CondusefTierVerdict = condusefTierVerdict;
     }
 
     // -----------------------------------------------------------------------
@@ -68,7 +72,57 @@ public sealed record VerdictSummary
     // -----------------------------------------------------------------------
 
     /// <summary>Gets the traffic-light signal that summarises all findings.</summary>
+    /// <remarks>
+    /// <b>Two-tier combination rule (Story 1.1 — FR-15 extension):</b>
+    /// <list type="number">
+    ///   <item><b>BLOCKED</b> — takes absolute precedence over tier verdicts.</item>
+    ///   <item><b>RED</b> — <see cref="CondusefTierVerdict"/> is <see cref="VerdictSignal.Red"/>.</item>
+    ///   <item><b>YELLOW</b> — <see cref="BankTierVerdict"/> is <see cref="VerdictSignal.Yellow"/>
+    ///     and <see cref="CondusefTierVerdict"/> is not <see cref="VerdictSignal.Red"/>.</item>
+    ///   <item><b>GREEN</b> — both <see cref="BankTierVerdict"/> and <see cref="CondusefTierVerdict"/>
+    ///     are <see cref="VerdictSignal.Green"/>.</item>
+    /// </list>
+    /// Use <see cref="CombineOverallSignal"/> to compute this from tier verdicts directly.
+    /// </remarks>
     public VerdictSignal Signal { get; }
+
+    // -----------------------------------------------------------------------
+    // Two-tier verdict surface (Story 1.1)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets the verdict from the bank's own ruleset tier.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="VerdictSignal.Green"/> — no bank-tier failures.
+    /// <see cref="VerdictSignal.Yellow"/> — bank-tier passes with improvement opportunities
+    /// (non-blocking gaps relative to the bank's full ruleset).
+    /// </para>
+    /// <para>
+    /// Until bank-tier rule classification is wired (Story 1.2 / 1.3), this property
+    /// defaults to <see cref="VerdictSignal.Green"/> for all non-blocked summaries and
+    /// <see cref="VerdictSignal.Blocked"/> for blocked summaries.
+    /// </para>
+    /// </remarks>
+    public VerdictSignal BankTierVerdict { get; }
+
+    /// <summary>
+    /// Gets the verdict from the CONDUSEF regulatory tier (the legal compliance floor).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="VerdictSignal.Green"/> — no CONDUSEF-mandated failures.
+    /// <see cref="VerdictSignal.Red"/> — at least one CONDUSEF-mandated rule failed.
+    /// </para>
+    /// <para>
+    /// Until tier classification is wired (Story 1.2 / 1.3), every rule is treated as
+    /// CONDUSEF-mandated, so this property mirrors the overall <see cref="Signal"/>
+    /// for Green/Red outcomes.  Blocked summaries carry
+    /// <see cref="VerdictSignal.Blocked"/> here as well.
+    /// </para>
+    /// </remarks>
+    public VerdictSignal CondusefTierVerdict { get; }
 
     /// <summary>Gets the count of <see cref="FindingVerdict.Fail"/> findings.</summary>
     public int FailCount { get; }
@@ -198,7 +252,10 @@ public sealed record VerdictSummary
             blockedOutcome: null,
             tenantDeviations: tenantDeviations,
             legalBreachCheckIds: legalBreachCheckIds,
-            tenantOnlyFailCheckIds: tenantOnlyFailCheckIds);
+            tenantOnlyFailCheckIds: tenantOnlyFailCheckIds,
+            // Story 1.1: no tier data yet — both tiers default Green (combination rule: Green ∧ Green = Green)
+            bankTierVerdict: VerdictSignal.Green,
+            condusefTierVerdict: VerdictSignal.Green);
 
     /// <summary>Creates a <see cref="VerdictSignal.Red"/> summary from aggregated counts.</summary>
     /// <param name="failCount">Count of failing findings.</param>
@@ -237,7 +294,11 @@ public sealed record VerdictSummary
             blockedOutcome: null,
             tenantDeviations: tenantDeviations,
             legalBreachCheckIds: legalBreachCheckIds,
-            tenantOnlyFailCheckIds: tenantOnlyFailCheckIds);
+            tenantOnlyFailCheckIds: tenantOnlyFailCheckIds,
+            // Story 1.1: no tier data yet — bank defaults Green; CONDUSEF mirrors overall Red
+            // (combination rule: Green ∧ Red → Red).
+            bankTierVerdict: VerdictSignal.Green,
+            condusefTierVerdict: VerdictSignal.Red);
 
     /// <summary>Creates a <see cref="VerdictSignal.Blocked"/> summary from a binding failure.</summary>
     /// <param name="blockedOutcome">The blocking outcome from the binder.</param>
@@ -256,7 +317,40 @@ public sealed record VerdictSummary
             blockedOutcome: blockedOutcome,
             tenantDeviations: tenantDeviations,
             legalBreachCheckIds: null,
-            tenantOnlyFailCheckIds: null);
+            tenantOnlyFailCheckIds: null,
+            // Story 1.1: Blocked takes absolute precedence — both tier verdicts mirror Blocked.
+            bankTierVerdict: VerdictSignal.Blocked,
+            condusefTierVerdict: VerdictSignal.Blocked);
+
+    // -----------------------------------------------------------------------
+    // Two-tier signal combination rule (Story 1.1)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Computes the overall <see cref="VerdictSignal"/> from the two per-tier verdicts,
+    /// applying the FR-15 two-tier combination rule:
+    /// <list type="number">
+    ///   <item><b>BLOCKED</b> — callers must use the <see cref="Blocked"/> factory directly;
+    ///     this method does not accept <see cref="VerdictSignal.Blocked"/> as a tier input.</item>
+    ///   <item><b>RED</b> — <paramref name="condusefTier"/> is <see cref="VerdictSignal.Red"/>.</item>
+    ///   <item><b>YELLOW</b> — <paramref name="bankTier"/> is <see cref="VerdictSignal.Yellow"/>
+    ///     and <paramref name="condusefTier"/> is not <see cref="VerdictSignal.Red"/>.</item>
+    ///   <item><b>GREEN</b> — both tiers are <see cref="VerdictSignal.Green"/>.</item>
+    /// </list>
+    /// </summary>
+    /// <param name="bankTier">The bank-tier verdict (<see cref="BankTierVerdict"/>).</param>
+    /// <param name="condusefTier">The CONDUSEF-tier verdict (<see cref="CondusefTierVerdict"/>).</param>
+    /// <returns>The combined overall <see cref="VerdictSignal"/>.</returns>
+    internal static VerdictSignal CombineOverallSignal(VerdictSignal bankTier, VerdictSignal condusefTier)
+    {
+        if (condusefTier == VerdictSignal.Red)
+            return VerdictSignal.Red;
+
+        if (bankTier == VerdictSignal.Yellow)
+            return VerdictSignal.Yellow;
+
+        return VerdictSignal.Green;
+    }
 
     // -----------------------------------------------------------------------
     // Projection
