@@ -353,6 +353,27 @@ public sealed class Section23AbonoLinkageRuleTests
     }
 
     [Fact]
+    public void Evaluate_MatchWithinTolerance_NegativeDirection_ReturnsPass()
+    {
+        // Movement is BELOW the dispute amount by exactly the tolerance — Math.Abs makes the
+        // match symmetric, so this must Pass too (guards against an asymmetric comparison).
+        var rule  = GetRule();
+        var model = ModelWith(
+            disputeRows:     [DisputeRow(100.00m, DisputeStatus.ConcluidaProcedente)],
+            disputeStatus:   DisputeRowsExtractionStatus.Extracted,
+            movements:       [Movement(99.98m)],
+            movementsStatus: MovementsExtractionStatus.Extracted);
+        var ctx = Ctx(model);
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            $"Amount below the dispute by ≤ {Section23AbonoLinkageRule.AmountMatchTolerance} MXN " +
+            "must also match — the tolerance is symmetric.");
+    }
+
+    [Fact]
     public void Evaluate_PendienteRowsOnly_ReturnsPass_NothingToLink()
     {
         // Pendiente rows are excluded from the linkage check — no concluded rows → Pass.

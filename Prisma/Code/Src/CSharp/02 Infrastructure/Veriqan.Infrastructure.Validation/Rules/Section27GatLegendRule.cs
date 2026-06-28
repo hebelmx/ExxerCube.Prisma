@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
@@ -25,10 +26,10 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </para>
 /// <para>
 /// <b>Matching strategy:</b> searches <see cref="StatementModel.NormalizedFullText"/>
-/// (already upper-case and accent-stripped by the extraction stage) for either of the
-/// substrings "GAT" or "GANANCIA ANUAL TOTAL" after normalizing both tokens through
-/// <see cref="TextNormalizer.Normalize"/>.  The check is therefore accent- and
-/// case-insensitive by construction.
+/// (already upper-case and accent-stripped by the extraction stage) for the whole-word
+/// token "GAT" (regex <c>\bGAT\b</c>, never a bare substring — that would false-match
+/// merchant names like "GATORADE" or words like "DELEGATARIO") OR the long form
+/// "GANANCIA ANUAL TOTAL".  The check is accent- and case-insensitive by construction.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
@@ -46,8 +47,14 @@ internal sealed class Section27GatLegendRule : IVecValidationRule
 
     // Normalized at class-init time; consistent with the legend-rule pattern and guards
     // future normalizer changes (these tokens are ASCII-clean so normalization is a no-op today).
-    private static readonly string NormalizedGat = TextNormalizer.Normalize("GAT");
     private static readonly string NormalizedLongForm = TextNormalizer.Normalize("GANANCIA ANUAL TOTAL");
+
+    // The "GAT" abbreviation is matched as a WHOLE WORD (\bGAT\b), never as a bare substring:
+    // an unanchored Contains("GAT") false-Passes on common merchant names ("GATORADE") and on
+    // normalized words that embed the trigram ("DELEGATARIO"). NormalizedFullText is upper-case,
+    // accent-stripped and whitespace-collapsed, so a word-boundary match is both safe and sufficient.
+    private static readonly Regex GatTokenRegex =
+        new(@"\bGAT\b", RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     /// <inheritdoc />
     public string CheckId => "LAW-DUC-ART27-GAT";
@@ -75,7 +82,7 @@ internal sealed class Section27GatLegendRule : IVecValidationRule
 
         var text = model.NormalizedFullText;
 
-        var gatPresent = text.Contains(NormalizedGat, System.StringComparison.Ordinal);
+        var gatPresent = GatTokenRegex.IsMatch(text);
         var longFormPresent = text.Contains(NormalizedLongForm, System.StringComparison.Ordinal);
 
         if (gatPresent || longFormPresent)

@@ -206,6 +206,36 @@ public sealed class Section27GatLegendRuleTests
     }
 
     // -----------------------------------------------------------------------
+    // Test 3b — "GAT" embedded in an unrelated word/merchant name → InsufficientData
+    //           (regression: word-boundary match, not bare substring)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The "GAT" abbreviation must be matched as a WHOLE WORD.  A credit-card statement whose
+    /// DESGLOSE contains a merchant name like "GATORADE" — or a normalized word such as
+    /// "DELEGATARIO" — embeds the trigram "GAT" but is NOT a GAT legend.  The rule must abstain
+    /// (InsufficientData), never report a false Pass ("GAT legend found").
+    /// </summary>
+    [Theory]
+    [InlineData("SALDO ANTERIOR 1000.00 GATORADE OXXO 85.00 PAGO MINIMO 100.00")]
+    [InlineData("DELEGATARIO FIDUCIARIO COMPRAS 500.00 INTERESES 25.00")]
+    [InlineData("AGUA GATO NEGRO 120.00 SUPERGAT TIENDA 60.00")]
+    public void Evaluate_GatOnlyAsSubstringOfAnotherWord_ReturnsInsufficientData_NotPass(string text)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var model = ModelWithText(text);
+        var ctx = Ctx(model);
+        var rule = GetRule();
+
+        var result = rule.Evaluate(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue($"Rule threw unexpectedly: {result.Error}");
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "'GAT' embedded inside another word (GATORADE / DELEGATARIO / SUPERGAT) is not a GAT " +
+            "legend — the rule must abstain, not report a false Pass.");
+    }
+
+    // -----------------------------------------------------------------------
     // Test 4a — null StatementModel → InsufficientData
     // -----------------------------------------------------------------------
 

@@ -97,8 +97,11 @@ internal sealed class Section23AbonoLinkageRule : IVecValidationRule
         if (model is null)
             return InsufficientData("StatementModel is not populated; extraction pass did not run.");
 
-        // Guard: check §23 applicability (mirrors Section23CargosNoReconocidosRule).
-        // If Sections list is populated, confirm §23 is applicable.
+        // Guard: check §23 applicability (mirrors Section23CargosNoReconocidosRule's applicability
+        // gate). Note this rule does NOT need the Sections list itself: unlike LAW-§23-STATUS (which
+        // reads SectionText), our real dependency is DisputeRowsStatus below — the extractor sets it
+        // to SectionNotFound whenever §23 is absent, so an empty Sections list is caught there. We only
+        // consult Sections here to honour an explicit IsApplicable=false (trigger absent) → Pass.
         var sections = model.Sections;
         if (sections.Count > 0)
         {
