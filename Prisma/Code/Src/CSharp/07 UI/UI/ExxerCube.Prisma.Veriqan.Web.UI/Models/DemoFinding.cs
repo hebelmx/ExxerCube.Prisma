@@ -39,11 +39,30 @@ public sealed class DemoFinding
     /// </summary>
     public ChecklistTier Tier { get; init; }
 
+    /// <summary>
+    /// Gets the engine's confidence in this finding (0.0–1.0, inclusive).
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>
+    ///       <c>1.0</c> for deterministic / structural / presence / format rules — these rules
+    ///       consume no confidence-guarded extracted field; the verdict is certain.
+    ///     </description>
+    ///   </item>
+    ///   <item>
+    ///     <description>
+    ///       Values in the <c>0.90–0.98</c> range for arithmetic and field-value rules that
+    ///       consume saldo or amount fields extracted from the document text layer.
+    ///       These mirror the real engine's "min consumed field confidence" for a
+    ///       digital (non-scanned) statement and are representative, not measured.
+    ///     </description>
+    ///   </item>
+    /// </list>
+    /// Wired by Epic 4 Story 4.1.
+    /// </summary>
+    public double Confidence { get; init; } = 1.0;
+
     // DEFERRED (Epic 2 review): the S2.2 acceptance criteria also list a per-finding
-    // "locator/page" and "confidence" column. Neither is shown today because the demo
-    // model carries no honest source for them:
-    //   - locator/page → arrives only from a real marked-PDF run (real-pipeline data);
-    //   - confidence   → owned by Epic 4 Story 4.1 (confidence degree on findings).
-    // Adding placeholder values would be misleading in a client demo, so these are
-    // deferred rather than fabricated. Wire them when Epic 4 / the real pipeline lands.
+    // "locator/page" column. This is not shown today because the demo model carries no
+    // honest source for it — locator/page arrives only from a real marked-PDF run
+    // (real-pipeline data). Wire it when the real pipeline lands.
 }

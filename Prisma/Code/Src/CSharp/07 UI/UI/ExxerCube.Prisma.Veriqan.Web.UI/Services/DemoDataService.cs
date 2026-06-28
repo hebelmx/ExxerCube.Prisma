@@ -230,6 +230,7 @@ public sealed class DemoDataService
         Label = ChecklistIds.Label(checkId),
         DofNumeral = ChecklistIds.DofNumeral(checkId),
         Tier = ChecklistIds.Tier(checkId),
+        Confidence = FindingConfidence(checkId),
     };
 
     private static DemoFinding BuildFailFinding(string checkId)
@@ -252,6 +253,7 @@ public sealed class DemoDataService
             Observed = observed,
             DofNumeral = ChecklistIds.DofNumeral(checkId),
             Tier = ChecklistIds.Tier(checkId),
+            Confidence = FindingConfidence(checkId),
         };
     }
 
@@ -264,6 +266,34 @@ public sealed class DemoDataService
         Label = ChecklistIds.Label(checkId),
         DofNumeral = ChecklistIds.DofNumeral(checkId),
         Tier = ChecklistIds.Tier(checkId),
+        Confidence = 1.0, // InsufficientData is itself deterministic — the engine is certain it cannot read the field.
+    };
+
+    /// <summary>
+    /// Returns the representative engine confidence for a finding by check identifier.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Deterministic / structural / presence / format rules (missing section, missing legend,
+    /// typography, format, contrast measurement) produce <c>1.0</c> — these rules consume no
+    /// confidence-guarded extracted field.
+    /// </para>
+    /// <para>
+    /// Arithmetic and field-value rules in Group 3 (CL-11..CL-22, saldos y aritmética) consume
+    /// numeric fields extracted from the document text layer. <c>0.94</c> is representative of
+    /// the real engine's "min consumed field confidence" for a clean digital (non-scanned)
+    /// statement and is a representative value, not a measured one.
+    /// </para>
+    /// </remarks>
+    private static double FindingConfidence(string checkId) => checkId switch
+    {
+        // Group 3 — Saldos y aritmética: field values read from the text layer.
+        // 0.94 mirrors a clean digital-PDF extraction confidence (representative, not measured).
+        "CL-11" or "CL-12" or "CL-13" or "CL-14" or "CL-15" or
+        "CL-17" or "CL-18" or "CL-19" or "CL-20" or "CL-21" or "CL-22" => 0.94,
+
+        // All other checks: structural, presence, legend, typography, format — no confidence-guarded field consumed.
+        _ => 1.0,
     };
 
     private static DemoStatementCase BuildYellowCase(Guid jobId)
