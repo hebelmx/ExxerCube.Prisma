@@ -95,10 +95,10 @@ internal sealed class Cl25CreditoDisponibleRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.CreditoDisponible, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.CreditoDisponible, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "CreditoDisponible", ps.CreditoDisponible.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.SaldoDeudorTotal, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.SaldoDeudorTotal, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "SaldoDeudorTotal", ps.SaldoDeudorTotal.Confidence, confidenceThreshold));
 

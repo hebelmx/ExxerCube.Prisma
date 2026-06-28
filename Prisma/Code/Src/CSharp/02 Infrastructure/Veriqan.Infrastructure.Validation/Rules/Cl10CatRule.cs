@@ -115,10 +115,10 @@ internal sealed class Cl10CatRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.Cat, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.Cat, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason("CAT", ps.Cat.Confidence, confidenceThreshold));
 
-        if (ConfidenceGuard.BelowThreshold(ps.Tasa, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.Tasa, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason("TASA", ps.Tasa.Confidence, confidenceThreshold));
 
         var extractedCat = ps.Cat.Value;     // decimal fraction (e.g. 0.2886 for 28.86%)

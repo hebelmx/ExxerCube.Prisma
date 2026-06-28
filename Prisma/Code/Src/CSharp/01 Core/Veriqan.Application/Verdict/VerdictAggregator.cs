@@ -100,8 +100,19 @@ public sealed class VerdictAggregator : IVerdictAggregator
         List<string> tenantOnlyFailIds = [];
         int passCount = 0;
 
+        // Story 4.1: track the minimum confidence across all findings for the verdict rollup.
+        double minConfidence = 1.0;
+        bool hasAnyFinding = false;
+
         foreach (var finding in findings)
         {
+            // Story 4.1: accumulate minimum confidence across all findings.
+            if (!hasAnyFinding || finding.Confidence < minConfidence)
+            {
+                minConfidence = finding.Confidence;
+                hasAnyFinding = true;
+            }
+
             switch (finding.Verdict)
             {
                 case FindingVerdict.Fail:
@@ -186,7 +197,8 @@ public sealed class VerdictAggregator : IVerdictAggregator
                         condusefFailCheckIds: condusefFailIds,
                         bankTierVerdict: bankTier,
                         condusefTierVerdict: condusefTier,
-                        signal: overall));
+                        signal: overall,
+                        confidence: minConfidence));
             }
 
             // Legacy (null-map) path — behavior unchanged.
@@ -199,7 +211,8 @@ public sealed class VerdictAggregator : IVerdictAggregator
                     insufficientDataCheckIds: insufficientIds,
                     tenantDeviations: tenantDeviations,
                     legalBreachCheckIds: legalBreachIds,
-                    tenantOnlyFailCheckIds: tenantOnlyFailIds));
+                    tenantOnlyFailCheckIds: tenantOnlyFailIds,
+                    confidence: minConfidence));
         }
 
         // ------------------------------------------------------------------
@@ -212,6 +225,7 @@ public sealed class VerdictAggregator : IVerdictAggregator
                 insufficientDataCheckIds: insufficientIds,
                 tenantDeviations: tenantDeviations,
                 legalBreachCheckIds: legalBreachIds,
-                tenantOnlyFailCheckIds: tenantOnlyFailIds));
+                tenantOnlyFailCheckIds: tenantOnlyFailIds,
+                confidence: minConfidence));
     }
 }

@@ -111,7 +111,7 @@ internal sealed class Cl17AdeudoPeriodoAnteriorRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "AdeudoPeriodoAnterior", ps.AdeudoPeriodoAnterior.Confidence, confidenceThreshold));
 

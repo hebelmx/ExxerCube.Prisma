@@ -92,6 +92,36 @@ public sealed record RuleFinding(
     public string DofNumeral { get; init; } = string.Empty;
 
     // -----------------------------------------------------------------------
+    // Extraction confidence (Story 4.1 — Epic 4 confidence degree)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The minimum extraction confidence of all fields consumed by the rule that produced
+    /// this finding.  Ranges from <c>0.0</c> (fully uncertain) to <c>1.0</c> (fully
+    /// confident).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Stamped by <c>VecValidationEngine</c> at the same central locus as
+    /// <see cref="DofNumeral"/>: after the rule returns its finding, the engine reads
+    /// <c>VerificationContext.ConsumedConfidenceOrFull()</c> — the minimum confidence
+    /// of every <c>ExtractedField</c> the rule checked via
+    /// <c>VerificationContext.ConfidenceBelowThreshold</c> — and applies it here.
+    /// </para>
+    /// <para>
+    /// Rules that never guard a field (e.g. presence checks that never call
+    /// <c>ConfidenceBelowThreshold</c>) default to <c>1.0</c> (full confidence).
+    /// Rules that abstain (<see cref="FindingVerdict.InsufficientData"/>) carry the
+    /// confidence of the field that caused them to abstain.
+    /// </para>
+    /// <para>
+    /// Defaults to <c>1.0</c> for findings constructed directly in tests or by code
+    /// paths that do not go through the production engine.
+    /// </para>
+    /// </remarks>
+    public double Confidence { get; init; } = 1.0;
+
+    // -----------------------------------------------------------------------
     // Dual-verdict contract (Story 9.1)
     // -----------------------------------------------------------------------
 

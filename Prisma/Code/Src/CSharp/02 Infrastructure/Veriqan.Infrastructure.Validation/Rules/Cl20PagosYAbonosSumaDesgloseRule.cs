@@ -109,7 +109,7 @@ internal sealed class Cl20PagosYAbonosSumaDesgloseRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.PagosYAbonos, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.PagosYAbonos, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "PagosYAbonos", ps.PagosYAbonos.Confidence, confidenceThreshold));
 

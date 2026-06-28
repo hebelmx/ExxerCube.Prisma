@@ -397,4 +397,178 @@ public sealed class VecValidationEngineTests
                     technique: Technique,
                     engineVersion: "test-1.0.0"));
     }
+
+    // -----------------------------------------------------------------------
+    // Story 4.1: engine stamps finding.Confidence from ctx.ConsumedConfidenceOrFull()
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A rule that never calls <c>ConfidenceBelowThreshold</c> (no guarded fields)
+    /// must receive Confidence = 1.0 — "full confidence by default".
+    /// </summary>
+    [Fact]
+    public async Task Engine_RuleThatConsumesNoFields_StampsFullConfidence()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var services = new ServiceCollection();
+        services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
+        services.AddTransient<IVecValidationEngine, VecValidationEngine>();
+        services.AddTransient<IVecValidationRule, NoFieldConsumerRule>();
+
+        await using var sp = services.BuildServiceProvider();
+        var engine = sp.GetRequiredService<IVecValidationEngine>();
+        var ctx = BuildContext(BundleWithRate());
+
+        var result = await engine.RunAsync(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!.Single(f => f.CheckId == NoFieldConsumerRule.Id);
+        finding.Confidence.ShouldBe(1.0,
+            "A rule that consumes no guarded fields must receive Confidence = 1.0");
+    }
+
+    /// <summary>
+    /// A rule that consumes a field at confidence 0.82 via
+    /// <c>ctx.ConfidenceBelowThreshold</c> (field passes the threshold) must receive
+    /// Confidence ≈ 0.82 stamped by the engine.
+    /// </summary>
+    [Fact]
+    public async Task Engine_RuleThatConsumesFieldAt0_82_StampsConfidence0_82()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var services = new ServiceCollection();
+        services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
+        services.AddTransient<IVecValidationEngine, VecValidationEngine>();
+        services.AddTransient<IVecValidationRule, FieldAt082ConsumerRule>();
+
+        await using var sp = services.BuildServiceProvider();
+        var engine = sp.GetRequiredService<IVecValidationEngine>();
+        var ctx = BuildContext(BundleWithRate());
+
+        var result = await engine.RunAsync(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!.Single(f => f.CheckId == FieldAt082ConsumerRule.Id);
+        finding.Confidence.ShouldBe(0.82,
+            "Engine must stamp Confidence = 0.82 from the single field consumed at that confidence");
+    }
+
+    /// <summary>
+    /// A rule that abstains (InsufficientData) because a field is below threshold must
+    /// carry the low field confidence in the finding's Confidence property.
+    /// </summary>
+    [Fact]
+    public async Task Engine_AbstainRule_LowConfidenceField_StampsLowConfidence()
+    {
+        var ct = TestContext.Current.CancellationToken;
+
+        var services = new ServiceCollection();
+        services.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
+        services.AddTransient<IVecValidationEngine, VecValidationEngine>();
+        services.AddTransient<IVecValidationRule, LowConfidenceAbstainRule>();
+
+        await using var sp = services.BuildServiceProvider();
+        var engine = sp.GetRequiredService<IVecValidationEngine>();
+        var ctx = BuildContext(BundleWithRate());
+
+        var result = await engine.RunAsync(ctx, ct);
+
+        result.IsSuccess.ShouldBeTrue();
+        var finding = result.Value!.Single(f => f.CheckId == LowConfidenceAbstainRule.Id);
+        finding.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "Rule must abstain because the field confidence is below the threshold");
+        finding.Confidence.ShouldBe(0.40,
+            "Engine must stamp the low field confidence even on an abstain finding");
+    }
+
+    // -----------------------------------------------------------------------
+    // Inline helper rules for Story 4.1 engine-stamp tests
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A rule that passes without consuming any guarded field — exercises the "no field consumed → 1.0" path.
+    /// </summary>
+    private sealed class NoFieldConsumerRule : IVecValidationRule
+    {
+        public const string Id = "TEST-NO-FIELD-CONSUMER";
+
+        public string CheckId => Id;
+        public string DofNumeral => "Acuerdo §1";
+        public RuleClassification Classification => RuleClassification.BaselineLocked;
+        public TechniqueClass Technique => TechniqueClass.Deterministic;
+
+        public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default) =>
+            // Deliberately never calls ctx.ConfidenceBelowThreshold — no fields consumed.
+            Result<RuleFinding>.WithSuccess(
+                RuleFinding.Pass(CheckId, Technique, "test-1.0.0"));
+    }
+
+    /// <summary>
+    /// A rule that consumes one field at confidence 0.82 (above threshold) and passes.
+    /// </summary>
+    private sealed class FieldAt082ConsumerRule : IVecValidationRule
+    {
+        public const string Id = "TEST-FIELD-AT-082";
+
+        private const double TestConfidence = 0.82;
+        private const double Threshold = 0.80;
+
+        public string CheckId => Id;
+        public string DofNumeral => "Acuerdo §1";
+        public RuleClassification Classification => RuleClassification.BaselineLocked;
+        public TechniqueClass Technique => TechniqueClass.Deterministic;
+
+        public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default)
+        {
+            // Construct a field at confidence 0.82 — passes the 0.80 threshold.
+            var field = new Domain.Extraction.ExtractedField<decimal>(
+                value: 42m,
+                confidence: TestConfidence,
+                locator: Domain.Extraction.FieldLocator.PageHint(1),
+                status: Domain.Extraction.ExtractionStatus.Extracted);
+
+            if (ctx.ConfidenceBelowThreshold(field, Threshold))
+                return Result<RuleFinding>.WithSuccess(
+                    RuleFinding.InsufficientData(CheckId, Technique, "test-1.0.0", "low confidence"));
+
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.Pass(CheckId, Technique, "test-1.0.0", observed: "42"));
+        }
+    }
+
+    /// <summary>
+    /// A rule that consumes one field at confidence 0.40 (below default threshold 0.80)
+    /// and abstains (InsufficientData).
+    /// </summary>
+    private sealed class LowConfidenceAbstainRule : IVecValidationRule
+    {
+        public const string Id = "TEST-LOW-CONFIDENCE-ABSTAIN";
+
+        private const double TestConfidence = 0.40;
+        private const double Threshold = 0.80;
+
+        public string CheckId => Id;
+        public string DofNumeral => "Acuerdo §1";
+        public RuleClassification Classification => RuleClassification.BaselineLocked;
+        public TechniqueClass Technique => TechniqueClass.Deterministic;
+
+        public Result<RuleFinding> Evaluate(VerificationContext ctx, CancellationToken ct = default)
+        {
+            var field = new Domain.Extraction.ExtractedField<decimal>(
+                value: 7m,
+                confidence: TestConfidence,
+                locator: Domain.Extraction.FieldLocator.PageHint(1),
+                status: Domain.Extraction.ExtractionStatus.Extracted);
+
+            if (ctx.ConfidenceBelowThreshold(field, Threshold))
+                return Result<RuleFinding>.WithSuccess(
+                    RuleFinding.InsufficientData(CheckId, Technique, "test-1.0.0",
+                        reason: ConfidenceGuard.Reason("FIELD", TestConfidence, Threshold)));
+
+            return Result<RuleFinding>.WithSuccess(
+                RuleFinding.Pass(CheckId, Technique, "test-1.0.0", observed: "7"));
+        }
+    }
 }

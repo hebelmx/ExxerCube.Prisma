@@ -113,10 +113,10 @@ internal sealed class Cl44DesgloseTotalsMatchRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.TotalCargos, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.TotalCargos, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "TotalCargos", ps.TotalCargos.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.TotalAbonos, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.TotalAbonos, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "TotalAbonos", ps.TotalAbonos.Confidence, confidenceThreshold));
 

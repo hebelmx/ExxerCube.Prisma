@@ -98,13 +98,13 @@ internal sealed class Cl24SaldoDeudorTotalRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.SaldoCargosRegulares, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.SaldoCargosRegulares, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "SaldoCargosRegulares", ps.SaldoCargosRegulares.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.SaldoCargosAMeses, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.SaldoCargosAMeses, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "SaldoCargosAMeses", ps.SaldoCargosAMeses.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.SaldoDeudorTotal, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.SaldoDeudorTotal, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "SaldoDeudorTotal", ps.SaldoDeudorTotal.Confidence, confidenceThreshold));
 

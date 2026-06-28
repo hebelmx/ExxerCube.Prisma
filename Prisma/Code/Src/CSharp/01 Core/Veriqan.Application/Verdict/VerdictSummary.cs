@@ -52,7 +52,8 @@ public sealed record VerdictSummary
         VerdictSignal bankTierVerdict = VerdictSignal.Green,
         VerdictSignal condusefTierVerdict = VerdictSignal.Green,
         IReadOnlyList<string>? bankFailCheckIds = null,
-        IReadOnlyList<string>? condusefFailCheckIds = null)
+        IReadOnlyList<string>? condusefFailCheckIds = null,
+        double confidence = 1.0)
     {
         Signal = signal;
         FailCount = failCount;
@@ -69,6 +70,7 @@ public sealed record VerdictSummary
         CondusefTierVerdict = condusefTierVerdict;
         BankFailCheckIds = bankFailCheckIds ?? [];
         CondusefFailCheckIds = condusefFailCheckIds ?? [];
+        Confidence = confidence;
     }
 
     // -----------------------------------------------------------------------
@@ -127,6 +129,30 @@ public sealed record VerdictSummary
     /// </para>
     /// </remarks>
     public VerdictSignal CondusefTierVerdict { get; }
+
+    // -----------------------------------------------------------------------
+    // Verdict-level extraction confidence (Story 4.1 — Epic 4 confidence degree)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// The minimum extraction confidence across all <see cref="Domain.Verification.RuleFinding"/>
+    /// items that contributed to this verdict.  Ranges from <c>0.0</c> (fully uncertain) to
+    /// <c>1.0</c> (fully confident).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Computed by <see cref="VerdictAggregator"/> as
+    /// <c>findings.Min(f =&gt; f.Confidence)</c>.  An empty findings list yields <c>1.0</c>
+    /// (no evidence of low confidence).  A <see cref="VerdictSignal.Blocked"/> summary also
+    /// carries <c>1.0</c> because no rules were evaluated.
+    /// </para>
+    /// <para>
+    /// Consumer note: a low <c>Confidence</c> alongside <see cref="VerdictSignal.Green"/> means
+    /// all rules passed but some fields were extracted with low fidelity — the verdict is correct
+    /// under the data available, but should be treated with appropriate caution.
+    /// </para>
+    /// </remarks>
+    public double Confidence { get; }
 
     // -----------------------------------------------------------------------
     // Two-tier fail partitions (Story 1.2)
@@ -274,6 +300,9 @@ public sealed record VerdictSummary
     /// Check IDs of fail findings in the CONDUSEF tier (Story 1.2). Empty when no tier map was
     /// supplied or when no CONDUSEF-tier checks failed. Always empty for Green summaries.
     /// </param>
+    /// <param name="confidence">
+    /// Minimum extraction confidence across all findings (Story 4.1). Defaults to <c>1.0</c>.
+    /// </param>
     internal static VerdictSummary Green(
         int passCount,
         int insufficientDataCount,
@@ -282,7 +311,8 @@ public sealed record VerdictSummary
         IReadOnlyList<string>? legalBreachCheckIds = null,
         IReadOnlyList<string>? tenantOnlyFailCheckIds = null,
         IReadOnlyList<string>? bankFailCheckIds = null,
-        IReadOnlyList<string>? condusefFailCheckIds = null) =>
+        IReadOnlyList<string>? condusefFailCheckIds = null,
+        double confidence = 1.0) =>
         new(
             signal: VerdictSignal.Green,
             failCount: 0,
@@ -300,7 +330,9 @@ public sealed record VerdictSummary
             condusefTierVerdict: VerdictSignal.Green,
             // Story 1.2: partition lists (always empty for Green summaries; carried for API completeness)
             bankFailCheckIds: bankFailCheckIds,
-            condusefFailCheckIds: condusefFailCheckIds);
+            condusefFailCheckIds: condusefFailCheckIds,
+            // Story 4.1: min confidence across all findings
+            confidence: confidence);
 
     /// <summary>
     /// Creates a fail summary (default: <see cref="VerdictSignal.Red"/>) from aggregated counts.
@@ -342,6 +374,9 @@ public sealed record VerdictSummary
     /// Pass <see cref="VerdictSignal.Yellow"/> when the two-tier combination rule yields Yellow
     /// (i.e. bank-only fails, CONDUSEF tier is Green).
     /// </param>
+    /// <param name="confidence">
+    /// Minimum extraction confidence across all findings (Story 4.1). Defaults to <c>1.0</c>.
+    /// </param>
     internal static VerdictSummary Red(
         int failCount,
         int passCount,
@@ -355,7 +390,8 @@ public sealed record VerdictSummary
         IReadOnlyList<string>? condusefFailCheckIds = null,
         VerdictSignal bankTierVerdict = VerdictSignal.Green,
         VerdictSignal condusefTierVerdict = VerdictSignal.Red,
-        VerdictSignal signal = VerdictSignal.Red) =>
+        VerdictSignal signal = VerdictSignal.Red,
+        double confidence = 1.0) =>
         new(
             signal: signal,
             failCount: failCount,
@@ -374,7 +410,9 @@ public sealed record VerdictSummary
             condusefTierVerdict: condusefTierVerdict,
             // Story 1.2: tier partition lists
             bankFailCheckIds: bankFailCheckIds,
-            condusefFailCheckIds: condusefFailCheckIds);
+            condusefFailCheckIds: condusefFailCheckIds,
+            // Story 4.1: min confidence across all findings
+            confidence: confidence);
 
     /// <summary>Creates a <see cref="VerdictSignal.Blocked"/> summary from a binding failure.</summary>
     /// <param name="blockedOutcome">The blocking outcome from the binder.</param>

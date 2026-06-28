@@ -111,28 +111,28 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "AdeudoPeriodoAnterior", ps.AdeudoPeriodoAnterior.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.CargosRegularesNoMeses, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.CargosRegularesNoMeses, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "CargosRegularesNoMeses", ps.CargosRegularesNoMeses.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.CargosComprasAMesesCapital, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.CargosComprasAMesesCapital, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "CargosComprasAMesesCapital", ps.CargosComprasAMesesCapital.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.MontoIntereses, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.MontoIntereses, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "MontoIntereses", ps.MontoIntereses.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.MontoComisiones, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.MontoComisiones, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "MontoComisiones", ps.MontoComisiones.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.IvaInteresesYComisiones, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.IvaInteresesYComisiones, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "IvaInteresesYComisiones", ps.IvaInteresesYComisiones.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.PagosYAbonos, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.PagosYAbonos, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "PagosYAbonos", ps.PagosYAbonos.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.PagoParaNoGenerarIntereses, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.PagoParaNoGenerarIntereses, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "PagoParaNoGenerarIntereses", ps.PagoParaNoGenerarIntereses.Confidence, confidenceThreshold));
 

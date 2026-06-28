@@ -96,7 +96,7 @@ internal sealed class Cl19CargosAMesesCapitalSumaDesgloseRule : IVecValidationRu
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.CargosComprasAMesesCapital, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.CargosComprasAMesesCapital, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "CargosComprasAMesesCapital", ps.CargosComprasAMesesCapital.Confidence, confidenceThreshold));
 

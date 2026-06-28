@@ -99,10 +99,10 @@ internal sealed class Cl22SaldoCargosRegularesRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.SaldoCargosRegulares, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.SaldoCargosRegulares, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "SaldoCargosRegulares", ps.SaldoCargosRegulares.Confidence, confidenceThreshold));
-        if (ConfidenceGuard.BelowThreshold(ps.PagoParaNoGenerarIntereses, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.PagoParaNoGenerarIntereses, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "PagoParaNoGenerarIntereses", ps.PagoParaNoGenerarIntereses.Confidence, confidenceThreshold));
 

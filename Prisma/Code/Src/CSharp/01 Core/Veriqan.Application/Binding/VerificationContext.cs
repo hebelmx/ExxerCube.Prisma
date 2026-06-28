@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using ExxerCube.Prisma.Veriqan.Domain.Tenant;
+using ExxerCube.Prisma.Veriqan.Domain.Verification;
 
 namespace ExxerCube.Prisma.Veriqan.Application.Binding;
 
@@ -130,4 +131,75 @@ public sealed class VerificationContext
     /// Rules that do not use tolerance bands need not consult this property.
     /// </remarks>
     public ResolvedTenantProfile? TenantProfile { get; }
+
+    // -----------------------------------------------------------------------
+    // Per-rule confidence accumulator (Story 4.1 — Epic 4 confidence degree)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Minimum confidence seen across all <see cref="ExtractedField{T}"/> values
+    /// recorded via <see cref="ConfidenceBelowThreshold{T}"/> since the last
+    /// <see cref="ResetConsumedConfidence"/> call; <see langword="null"/> when no
+    /// field has been recorded in the current rule evaluation.
+    /// </summary>
+    private double? _minConsumedConfidence;
+
+    /// <summary>
+    /// Resets the per-rule confidence accumulator.
+    /// Called by <c>VecValidationEngine</c> immediately before each rule is evaluated
+    /// so that the accumulated min is scoped to exactly one rule's execution.
+    /// </summary>
+    public void ResetConsumedConfidence() => _minConsumedConfidence = null;
+
+    /// <summary>
+    /// Records the extraction confidence of <paramref name="field"/> into the per-rule
+    /// minimum accumulator and returns whether the field is below the confidence threshold,
+    /// delegating the comparison to <see cref="ConfidenceGuard.BelowThreshold{T}"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the extracted field value.</typeparam>
+    /// <param name="field">The extracted field whose confidence should be recorded.</param>
+    /// <param name="threshold">
+    /// The minimum confidence required for the field to be used in verification logic.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> when the field's confidence is strictly below
+    /// <paramref name="threshold"/> (the rule should abstain for this field);
+    /// <see langword="false"/> when the field passes the guard.
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// <b>Recording semantics:</b> the field's confidence is always recorded into the
+    /// accumulator regardless of whether it is below the threshold. This ensures that
+    /// <see cref="ConsumedConfidenceOrFull"/> accurately reflects the lowest confidence
+    /// seen across all fields the rule examined, even for fields that passed the guard.
+    /// </para>
+    /// <para>
+    /// <see cref="ConfidenceGuard.BelowThreshold{T}"/> remains the single authority for
+    /// the threshold comparison — this method delegates to it and does not duplicate
+    /// the <c>field.Confidence &lt; threshold</c> logic.
+    /// </para>
+    /// </remarks>
+    public bool ConfidenceBelowThreshold<T>(ExtractedField<T> field, double threshold)
+    {
+        ArgumentNullException.ThrowIfNull(field);
+
+        // Always record the field's confidence into the accumulator (regardless of pass/fail).
+        _minConsumedConfidence = _minConsumedConfidence.HasValue
+            ? Math.Min(_minConsumedConfidence.Value, field.Confidence)
+            : field.Confidence;
+
+        // Delegate the comparison to ConfidenceGuard — single authority.
+        return ConfidenceGuard.BelowThreshold(field, threshold);
+    }
+
+    /// <summary>
+    /// Returns the minimum extraction confidence recorded across all fields consumed by
+    /// the current rule evaluation (since the last <see cref="ResetConsumedConfidence"/>
+    /// call), or <c>1.0</c> when no field has been recorded.
+    /// </summary>
+    /// <returns>
+    /// The accumulated minimum confidence in <c>[0.0, 1.0]</c>, or <c>1.0</c> when
+    /// the rule consumed no guarded fields (presence-only checks, non-field checks, etc.).
+    /// </returns>
+    public double ConsumedConfidenceOrFull() => _minConsumedConfidence ?? 1.0;
 }

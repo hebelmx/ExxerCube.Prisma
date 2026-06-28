@@ -72,6 +72,9 @@ internal sealed class VecValidationEngine : IVecValidationEngine
             if (ct.IsCancellationRequested)
                 return Task.FromResult(ResultExtensions.Cancelled<IReadOnlyList<RuleFinding>>());
 
+            // Reset the per-rule confidence accumulator so each rule starts fresh (Story 4.1).
+            ctx.ResetConsumedConfidence();
+
             RuleFinding finding;
             try
             {
@@ -114,9 +117,14 @@ internal sealed class VecValidationEngine : IVecValidationEngine
                     reason: $"Unexpected exception: {ex.GetType().Name}");
             }
 
-            // Stamp the DOF numeral onto the finding (NFR-7 — single central point, Story 9.2).
-            // Applied here so rule authors never need to pass the numeral through their factory calls.
-            finding = finding with { DofNumeral = rule.DofNumeral };
+            // Stamp the DOF numeral and the consumed confidence onto the finding (Story 9.2 / 4.1).
+            // Both are applied at this single central point so rule authors never need to set them
+            // inside their Pass/Fail/InsufficientData factory calls.
+            finding = finding with
+            {
+                DofNumeral = rule.DofNumeral,
+                Confidence = ctx.ConsumedConfidenceOrFull(),
+            };
 
             findings.Add(finding);
         }

@@ -96,7 +96,7 @@ internal sealed class Cl18CargosRegularesSumaDesgloseRule : IVecValidationRule
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ConfidenceGuard.BelowThreshold(ps.CargosRegularesNoMeses, confidenceThreshold))
+        if (ctx.ConfidenceBelowThreshold(ps.CargosRegularesNoMeses, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "CargosRegularesNoMeses", ps.CargosRegularesNoMeses.Confidence, confidenceThreshold));
 

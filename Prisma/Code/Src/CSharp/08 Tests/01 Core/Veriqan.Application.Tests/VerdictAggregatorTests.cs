@@ -396,4 +396,89 @@ public sealed class VerdictAggregatorTests
         summary.InsufficientDataCheckIds.ShouldContain("CL-I1");
         summary.Total.ShouldBe(4);
     }
+
+    // -----------------------------------------------------------------------
+    // Story 4.1: verdict-level confidence rollup
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Empty findings list → Confidence = 1.0 (no evidence of low confidence).
+    /// </summary>
+    [Fact]
+    public void Aggregate_EmptyFindings_Confidence_IsOne()
+    {
+        var result = _sut.Aggregate([], ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Confidence.ShouldBe(1.0, "empty findings → Confidence must be 1.0");
+    }
+
+    /// <summary>
+    /// All findings have default Confidence = 1.0 → verdict-level Confidence = 1.0.
+    /// </summary>
+    [Fact]
+    public void Aggregate_AllFindingsFullConfidence_VerdictConfidenceIsOne()
+    {
+        // RuleFinding factories default Confidence to 1.0.
+        var findings = new[] { APass("CL-01"), APass("CL-02"), AFail("CL-03") };
+
+        var result = _sut.Aggregate(findings, ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Confidence.ShouldBe(1.0, "all findings at 1.0 → verdict Confidence = 1.0");
+    }
+
+    /// <summary>
+    /// Verdict-level Confidence = minimum across all finding Confidence values.
+    /// </summary>
+    [Fact]
+    public void Aggregate_MixedConfidences_ReturnsMinimum()
+    {
+        var findings = new[]
+        {
+            APass("CL-01") with { Confidence = 1.0 },
+            APass("CL-02") with { Confidence = 0.82 },
+            AFail("CL-03") with { Confidence = 0.91 },
+        };
+
+        var result = _sut.Aggregate(findings, ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Confidence.ShouldBe(0.82,
+            "verdict Confidence must be the minimum of all finding Confidence values");
+    }
+
+    /// <summary>
+    /// A single InsufficientData finding with low Confidence propagates to the verdict.
+    /// </summary>
+    [Fact]
+    public void Aggregate_SingleInsufficientDataWithLowConfidence_PropagatesMin()
+    {
+        var findings = new[]
+        {
+            AnInsufficient("CL-10") with { Confidence = 0.55 },
+        };
+
+        var result = _sut.Aggregate(findings, ct: TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        var summary = result.Value!;
+        summary.Signal.ShouldBe(VerdictSignal.Green, "InsufficientData alone is not Red");
+        summary.Confidence.ShouldBe(0.55, "low-confidence InsufficientData finding propagates to verdict");
+    }
+
+    /// <summary>
+    /// Blocked summary always carries Confidence = 1.0 (no rules were evaluated).
+    /// </summary>
+    [Fact]
+    public void Aggregate_Blocked_Confidence_IsOne()
+    {
+        var blocked = ABlockedOutcome();
+
+        var result = _sut.Aggregate([], blocked, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Confidence.ShouldBe(1.0,
+            "Blocked summary has no findings — Confidence must default to 1.0");
+    }
 }
