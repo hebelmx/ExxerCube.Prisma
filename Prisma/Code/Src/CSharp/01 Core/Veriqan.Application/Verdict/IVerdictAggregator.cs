@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
@@ -53,6 +54,32 @@ public interface IVerdictAggregator
     /// resolution (Story 9.3b). Pass <see langword="null"/> (or omit) when no tenant profile
     /// was applied; treated as an empty list in the resulting <see cref="VerdictSummary"/>.
     /// </param>
+    /// <param name="checklistTiers">
+    /// Optional per-tenant tier membership map (Story 1.2 / 1.3), keyed by
+    /// <see cref="RuleFinding.CheckId"/>, value is the <see cref="ChecklistTier"/> for that check.
+    /// <para>
+    /// When <see langword="null"/> (default) the aggregator uses the <b>legacy single-tier path</b>:
+    /// every fail is treated as CONDUSEF-mandated; <see cref="VerdictSummary.BankTierVerdict"/>
+    /// is Green; <see cref="VerdictSummary.CondusefTierVerdict"/> mirrors the overall signal.
+    /// Existing call sites that omit this parameter are guaranteed byte-for-byte legacy behavior.
+    /// </para>
+    /// <para>
+    /// When non-null the aggregator partitions fail findings by tier, computing
+    /// <see cref="VerdictSummary.BankTierVerdict"/>, <see cref="VerdictSummary.CondusefTierVerdict"/>,
+    /// <see cref="VerdictSummary.BankFailCheckIds"/>, and <see cref="VerdictSummary.CondusefFailCheckIds"/>.
+    /// The overall <see cref="VerdictSummary.Signal"/> is computed via
+    /// <see cref="VerdictSummary.CombineOverallSignal"/> so it may differ from the legacy path
+    /// (e.g. bank-only fails yield Yellow instead of Red).
+    /// </para>
+    /// <para>
+    /// A <see cref="RuleFinding.CheckId"/> absent from the map is conservatively treated as
+    /// <see cref="ChecklistTier.Condusef"/> so no new rule is silently dropped from a RED outcome.
+    /// </para>
+    /// <para>
+    /// <see cref="Domain.Enums.FindingVerdict.InsufficientData"/> findings never escalate to a tier
+    /// fail (abstain-safety) regardless of tier membership.
+    /// </para>
+    /// </param>
     /// <returns>
     /// A successful <see cref="Result{T}"/> wrapping a <see cref="VerdictSummary"/>;
     /// a cancelled result if <paramref name="ct"/> was cancelled; or a failure result
@@ -62,5 +89,6 @@ public interface IVerdictAggregator
         IReadOnlyList<RuleFinding> findings,
         BlockedOutcome? blocked = null,
         CancellationToken ct = default,
-        IReadOnlyList<TenantDeviation>? tenantDeviations = null);
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null);
 }

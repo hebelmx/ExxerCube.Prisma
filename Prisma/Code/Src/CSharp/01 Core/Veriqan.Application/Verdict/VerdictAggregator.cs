@@ -75,7 +75,8 @@ public sealed class VerdictAggregator : IVerdictAggregator
         IReadOnlyList<RuleFinding> findings,
         BlockedOutcome? blocked = null,
         CancellationToken ct = default,
-        IReadOnlyList<TenantDeviation>? tenantDeviations = null)
+        IReadOnlyList<TenantDeviation>? tenantDeviations = null,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null)
     {
         if (ct.IsCancellationRequested)
             return ResultExtensions.Cancelled<VerdictSummary>();
@@ -136,10 +137,59 @@ public sealed class VerdictAggregator : IVerdictAggregator
         }
 
         // ------------------------------------------------------------------
-        // Precedence 2: RED — at least one Fail finding
+        // Precedence 2: RED (or YELLOW with tier map) — at least one Fail
         // ------------------------------------------------------------------
         if (failIds.Count > 0)
         {
+            // Story 1.2: when a tier map is supplied, partition the fails and compute
+            // per-tier verdicts.  With a null map the legacy path is preserved exactly.
+            if (checklistTiers is not null)
+            {
+                List<string> bankFailIds = [];
+                List<string> condusefFailIds = [];
+
+                foreach (var checkId in failIds)
+                {
+                    // Missing key → Condusef (conservative: never silently drop from RED).
+                    ChecklistTier tier = checklistTiers.TryGetValue(checkId, out var t)
+                        ? t
+                        : ChecklistTier.Condusef;
+
+                    if (tier is ChecklistTier.Bank or ChecklistTier.Both)
+                        bankFailIds.Add(checkId);
+
+                    if (tier is ChecklistTier.Condusef or ChecklistTier.Both)
+                        condusefFailIds.Add(checkId);
+                }
+
+                VerdictSignal bankTier = bankFailIds.Count > 0
+                    ? VerdictSignal.Yellow
+                    : VerdictSignal.Green;
+
+                VerdictSignal condusefTier = condusefFailIds.Count > 0
+                    ? VerdictSignal.Red
+                    : VerdictSignal.Green;
+
+                VerdictSignal overall = VerdictSummary.CombineOverallSignal(bankTier, condusefTier);
+
+                return Result<VerdictSummary>.WithSuccess(
+                    VerdictSummary.Red(
+                        failCount: failIds.Count,
+                        passCount: passCount,
+                        insufficientDataCount: insufficientIds.Count,
+                        failCheckIds: failIds,
+                        insufficientDataCheckIds: insufficientIds,
+                        tenantDeviations: tenantDeviations,
+                        legalBreachCheckIds: legalBreachIds,
+                        tenantOnlyFailCheckIds: tenantOnlyFailIds,
+                        bankFailCheckIds: bankFailIds,
+                        condusefFailCheckIds: condusefFailIds,
+                        bankTierVerdict: bankTier,
+                        condusefTierVerdict: condusefTier,
+                        signal: overall));
+            }
+
+            // Legacy (null-map) path — behavior unchanged.
             return Result<VerdictSummary>.WithSuccess(
                 VerdictSummary.Red(
                     failCount: failIds.Count,

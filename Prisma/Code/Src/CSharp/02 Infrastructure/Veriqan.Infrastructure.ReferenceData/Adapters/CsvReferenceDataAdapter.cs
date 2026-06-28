@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
 using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Validation;
 using IndQuestResults;
@@ -165,6 +166,75 @@ public sealed class CsvReferenceDataAdapter : IVecReferenceDataProvider
             key.Institution);
 
         return Result<VecReferenceBundle>.WithSuccess(validationResult.Value!);
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<IReadOnlyDictionary<string, ChecklistTier>>> GetChecklistTiersAsync(
+        StatementContextKey key,
+        CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+
+        if (ct.IsCancellationRequested)
+            return ResultExtensions.Cancelled<IReadOnlyDictionary<string, ChecklistTier>>();
+
+        string dataDir = ResolveDataDirectory(key);
+        string path = Path.Combine(dataDir, "checklist-tiers.csv");
+
+        if (!File.Exists(path))
+        {
+            _logger.LogDebug(
+                "CsvReferenceDataAdapter: checklist-tiers.csv not found at '{Path}'; returning empty tier map. " +
+                "Callers must treat missing keys as Condusef (conservative default).",
+                path);
+            return Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(
+                new Dictionary<string, ChecklistTier>(StringComparer.OrdinalIgnoreCase));
+        }
+
+        try
+        {
+            var map = new Dictionary<string, ChecklistTier>(StringComparer.OrdinalIgnoreCase);
+            using var reader = new StreamReader(path);
+            using var csv = new CsvReader(reader, CsvConfig());
+            await csv.ReadAsync().ConfigureAwait(false);
+            csv.ReadHeader();
+
+            while (await csv.ReadAsync().ConfigureAwait(false))
+            {
+                if (ct.IsCancellationRequested)
+                    return ResultExtensions.Cancelled<IReadOnlyDictionary<string, ChecklistTier>>();
+
+                var checkId = csv.GetField("checkId");
+                var tierRaw = csv.GetField("tier");
+
+                if (string.IsNullOrWhiteSpace(checkId) || string.IsNullOrWhiteSpace(tierRaw))
+                    continue;
+
+                if (!Enum.TryParse<ChecklistTier>(tierRaw.Trim(), ignoreCase: true, out var tier))
+                {
+                    _logger.LogWarning(
+                        "CsvReferenceDataAdapter: unrecognised tier value '{Tier}' for checkId '{CheckId}' in {Path}; row skipped.",
+                        tierRaw, checkId, path);
+                    continue;
+                }
+
+                map[checkId.Trim()] = tier;
+            }
+
+            _logger.LogDebug(
+                "CsvReferenceDataAdapter: loaded {Count} checklist-tier entries from '{Path}'.",
+                map.Count, path);
+
+            return Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(map);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex,
+                "CsvReferenceDataAdapter: error reading checklist-tiers.csv at '{Path}'; returning empty map.",
+                path);
+            return Result<IReadOnlyDictionary<string, ChecklistTier>>.WithSuccess(
+                new Dictionary<string, ChecklistTier>(StringComparer.OrdinalIgnoreCase));
+        }
     }
 
     // ── private helpers ──────────────────────────────────────────────────────

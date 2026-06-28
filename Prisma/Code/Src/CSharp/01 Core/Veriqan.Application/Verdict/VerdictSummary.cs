@@ -50,7 +50,9 @@ public sealed record VerdictSummary
         IReadOnlyList<string>? legalBreachCheckIds = null,
         IReadOnlyList<string>? tenantOnlyFailCheckIds = null,
         VerdictSignal bankTierVerdict = VerdictSignal.Green,
-        VerdictSignal condusefTierVerdict = VerdictSignal.Green)
+        VerdictSignal condusefTierVerdict = VerdictSignal.Green,
+        IReadOnlyList<string>? bankFailCheckIds = null,
+        IReadOnlyList<string>? condusefFailCheckIds = null)
     {
         Signal = signal;
         FailCount = failCount;
@@ -65,6 +67,8 @@ public sealed record VerdictSummary
         TenantOnlyFailCheckIds = tenantOnlyFailCheckIds ?? [];
         BankTierVerdict = bankTierVerdict;
         CondusefTierVerdict = condusefTierVerdict;
+        BankFailCheckIds = bankFailCheckIds ?? [];
+        CondusefFailCheckIds = condusefFailCheckIds ?? [];
     }
 
     // -----------------------------------------------------------------------
@@ -123,6 +127,34 @@ public sealed record VerdictSummary
     /// </para>
     /// </remarks>
     public VerdictSignal CondusefTierVerdict { get; }
+
+    // -----------------------------------------------------------------------
+    // Two-tier fail partitions (Story 1.2)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets the <see cref="Domain.Verification.RuleFinding.CheckId"/> values of fail findings
+    /// that belong to the bank tier (<c>ChecklistTier.Bank</c> or <c>ChecklistTier.Both</c>).
+    /// </summary>
+    /// <remarks>
+    /// Empty when no tier map was supplied to the aggregator (null-map / legacy path),
+    /// or when no bank-tier checks failed.
+    /// Populated only by <c>VerdictAggregator.Aggregate</c> when a non-null
+    /// <c>checklistTiers</c> map is provided (Story 1.2 / 1.3).
+    /// </remarks>
+    public IReadOnlyList<string> BankFailCheckIds { get; }
+
+    /// <summary>
+    /// Gets the <see cref="Domain.Verification.RuleFinding.CheckId"/> values of fail findings
+    /// that belong to the CONDUSEF tier (<c>ChecklistTier.Condusef</c> or <c>ChecklistTier.Both</c>).
+    /// </summary>
+    /// <remarks>
+    /// Empty when no tier map was supplied to the aggregator (null-map / legacy path),
+    /// or when no CONDUSEF-tier checks failed.
+    /// Populated only by <c>VerdictAggregator.Aggregate</c> when a non-null
+    /// <c>checklistTiers</c> map is provided (Story 1.2 / 1.3).
+    /// </remarks>
+    public IReadOnlyList<string> CondusefFailCheckIds { get; }
 
     /// <summary>Gets the count of <see cref="FindingVerdict.Fail"/> findings.</summary>
     public int FailCount { get; }
@@ -234,13 +266,23 @@ public sealed record VerdictSummary
     /// <see cref="Domain.Verification.RuleFinding.LegalBaselineVerdict"/> is Pass.
     /// Pass <see langword="null"/> or omit when there are none.
     /// </param>
+    /// <param name="bankFailCheckIds">
+    /// Check IDs of fail findings in the bank tier (Story 1.2). Empty when no tier map was supplied
+    /// or when no bank-tier checks failed. Always empty for Green summaries.
+    /// </param>
+    /// <param name="condusefFailCheckIds">
+    /// Check IDs of fail findings in the CONDUSEF tier (Story 1.2). Empty when no tier map was
+    /// supplied or when no CONDUSEF-tier checks failed. Always empty for Green summaries.
+    /// </param>
     internal static VerdictSummary Green(
         int passCount,
         int insufficientDataCount,
         IReadOnlyList<string> insufficientDataCheckIds,
         IReadOnlyList<TenantDeviation>? tenantDeviations = null,
         IReadOnlyList<string>? legalBreachCheckIds = null,
-        IReadOnlyList<string>? tenantOnlyFailCheckIds = null) =>
+        IReadOnlyList<string>? tenantOnlyFailCheckIds = null,
+        IReadOnlyList<string>? bankFailCheckIds = null,
+        IReadOnlyList<string>? condusefFailCheckIds = null) =>
         new(
             signal: VerdictSignal.Green,
             failCount: 0,
@@ -255,9 +297,14 @@ public sealed record VerdictSummary
             tenantOnlyFailCheckIds: tenantOnlyFailCheckIds,
             // Story 1.1: no tier data yet — both tiers default Green (combination rule: Green ∧ Green = Green)
             bankTierVerdict: VerdictSignal.Green,
-            condusefTierVerdict: VerdictSignal.Green);
+            condusefTierVerdict: VerdictSignal.Green,
+            // Story 1.2: partition lists (always empty for Green summaries; carried for API completeness)
+            bankFailCheckIds: bankFailCheckIds,
+            condusefFailCheckIds: condusefFailCheckIds);
 
-    /// <summary>Creates a <see cref="VerdictSignal.Red"/> summary from aggregated counts.</summary>
+    /// <summary>
+    /// Creates a fail summary (default: <see cref="VerdictSignal.Red"/>) from aggregated counts.
+    /// </summary>
     /// <param name="failCount">Count of failing findings.</param>
     /// <param name="passCount">Count of passing findings.</param>
     /// <param name="insufficientDataCount">Count of InsufficientData findings.</param>
@@ -274,6 +321,27 @@ public sealed record VerdictSummary
     /// but <see cref="Domain.Verification.RuleFinding.LegalBaselineVerdict"/> is Pass.
     /// Pass <see langword="null"/> or omit when there are none.
     /// </param>
+    /// <param name="bankFailCheckIds">
+    /// Check IDs of fail findings in the bank tier (Story 1.2). Empty when no tier map was supplied.
+    /// </param>
+    /// <param name="condusefFailCheckIds">
+    /// Check IDs of fail findings in the CONDUSEF tier (Story 1.2). Empty when no tier map was supplied.
+    /// </param>
+    /// <param name="bankTierVerdict">
+    /// Bank-tier verdict to store on the summary (Story 1.2).
+    /// Defaults to <see cref="VerdictSignal.Green"/> (legacy: no bank-tier data).
+    /// Pass <see cref="VerdictSignal.Yellow"/> when bank-tier fails are present.
+    /// </param>
+    /// <param name="condusefTierVerdict">
+    /// CONDUSEF-tier verdict to store on the summary (Story 1.2).
+    /// Defaults to <see cref="VerdictSignal.Red"/> (legacy: every fail is a regulatory breach).
+    /// Pass <see cref="VerdictSignal.Green"/> when only bank-tier fails are present.
+    /// </param>
+    /// <param name="signal">
+    /// Overall traffic-light signal.  Defaults to <see cref="VerdictSignal.Red"/> (legacy path).
+    /// Pass <see cref="VerdictSignal.Yellow"/> when the two-tier combination rule yields Yellow
+    /// (i.e. bank-only fails, CONDUSEF tier is Green).
+    /// </param>
     internal static VerdictSummary Red(
         int failCount,
         int passCount,
@@ -282,9 +350,14 @@ public sealed record VerdictSummary
         IReadOnlyList<string> insufficientDataCheckIds,
         IReadOnlyList<TenantDeviation>? tenantDeviations = null,
         IReadOnlyList<string>? legalBreachCheckIds = null,
-        IReadOnlyList<string>? tenantOnlyFailCheckIds = null) =>
+        IReadOnlyList<string>? tenantOnlyFailCheckIds = null,
+        IReadOnlyList<string>? bankFailCheckIds = null,
+        IReadOnlyList<string>? condusefFailCheckIds = null,
+        VerdictSignal bankTierVerdict = VerdictSignal.Green,
+        VerdictSignal condusefTierVerdict = VerdictSignal.Red,
+        VerdictSignal signal = VerdictSignal.Red) =>
         new(
-            signal: VerdictSignal.Red,
+            signal: signal,
             failCount: failCount,
             passCount: passCount,
             insufficientDataCount: insufficientDataCount,
@@ -295,10 +368,13 @@ public sealed record VerdictSummary
             tenantDeviations: tenantDeviations,
             legalBreachCheckIds: legalBreachCheckIds,
             tenantOnlyFailCheckIds: tenantOnlyFailCheckIds,
-            // Story 1.1: no tier data yet — bank defaults Green; CONDUSEF mirrors overall Red
-            // (combination rule: Green ∧ Red → Red).
-            bankTierVerdict: VerdictSignal.Green,
-            condusefTierVerdict: VerdictSignal.Red);
+            // Story 1.1 defaults (Green/Red): override via bankTierVerdict / condusefTierVerdict params.
+            // Story 1.2: tier map path supplies partitioned values via those params.
+            bankTierVerdict: bankTierVerdict,
+            condusefTierVerdict: condusefTierVerdict,
+            // Story 1.2: tier partition lists
+            bankFailCheckIds: bankFailCheckIds,
+            condusefFailCheckIds: condusefFailCheckIds);
 
     /// <summary>Creates a <see cref="VerdictSignal.Blocked"/> summary from a binding failure.</summary>
     /// <param name="blockedOutcome">The blocking outcome from the binder.</param>
