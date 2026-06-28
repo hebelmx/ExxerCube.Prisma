@@ -40,10 +40,16 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
 /// </remarks>
 public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
 {
-    // Semi-transparent highlight colour (red, ~35 % opacity).
+    // Semi-transparent highlight colour (red, ~35 % opacity) — Condusef/Both/unmapped FAIL findings.
     // XColor.FromArgb(alpha, r, g, b): alpha 0 = fully transparent, 255 = opaque.
     private static readonly XColor HighlightFill = XColor.FromArgb(90, 220, 50, 50);
     private static readonly XColor HighlightBorder = XColor.FromArgb(200, 180, 20, 20);
+
+    // Amber highlight colour (~35 % opacity) — Bank-tier-only FAIL findings.
+    // RGB(255, 193, 7) is Material Design amber, distinct from the orange page-marker
+    // RGB(255, 165, 0) by its higher green channel (193 vs 165).
+    private static readonly XColor AmberHighlightFill   = XColor.FromArgb( 90, 255, 193,  7);
+    private static readonly XColor AmberHighlightBorder = XColor.FromArgb(200, 200, 150,  5);
 
     // Page-margin marker colour (orange, for page-hint-only findings).
     private static readonly XColor MarkerFill = XColor.FromArgb(100, 255, 165, 0);
@@ -88,7 +94,8 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
     public Result<byte[]> Generate(
         byte[] originalPdf,
         IReadOnlyList<RuleFinding> findings,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null)
     {
         if (cancellationToken.IsCancellationRequested)
         {
@@ -108,7 +115,7 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
 
         try
         {
-            return GenerateCore(originalPdf, findings, cancellationToken);
+            return GenerateCore(originalPdf, findings, cancellationToken, checklistTiers);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -129,7 +136,8 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
     private Result<byte[]> GenerateCore(
         byte[] originalPdf,
         IReadOnlyList<RuleFinding> findings,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers)
     {
         PdfDocument document;
         try
@@ -158,6 +166,9 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
                 "{Total} total findings; {Fail} FAIL findings to process.",
                 findings.Count, failFindings.Count);
 
+            // Sequential callout number, incremented only when a highlight is actually drawn.
+            var calloutIndex = 0;
+
             foreach (var finding in failFindings)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -166,7 +177,7 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
                     return ResultExtensions.Cancelled<byte[]>();
                 }
 
-                DrawFinding(document, finding, pageCount);
+                DrawFinding(document, finding, pageCount, ref calloutIndex, checklistTiers);
             }
 
             // Serialize to a new byte array — never mutate the caller's input.
@@ -186,7 +197,12 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
     // Drawing helpers
     // -----------------------------------------------------------------------
 
-    private void DrawFinding(PdfDocument document, RuleFinding finding, int pageCount)
+    private void DrawFinding(
+        PdfDocument document,
+        RuleFinding finding,
+        int pageCount,
+        ref int calloutIndex,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers)
     {
         var locator = finding.Locator;
 
@@ -217,15 +233,17 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
             return;
         }
 
+        // A highlight will be drawn — assign the next sequential callout number.
+        calloutIndex++;
         var page = document.Pages[pageIndex];
 
         if (locator.HasBoundingBox)
         {
-            DrawBoundingBoxHighlight(page, finding, locator);
+            DrawBoundingBoxHighlight(page, finding, locator, calloutIndex, checklistTiers);
         }
         else
         {
-            DrawPageMarker(page, finding);
+            DrawPageMarker(page, finding, calloutIndex);
         }
     }
 
@@ -265,7 +283,12 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
     /// </code>
     /// </para>
     /// </remarks>
-    private void DrawBoundingBoxHighlight(PdfPage page, RuleFinding finding, FieldLocator locator)
+    private void DrawBoundingBoxHighlight(
+        PdfPage page,
+        RuleFinding finding,
+        FieldLocator locator,
+        int calloutNumber,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers)
     {
         // All four components are non-null when HasBoundingBox is true.
         var vx = locator.Left!.Value;      // visual left (PdfPig)
@@ -284,34 +307,46 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
 
         var rect = ComputeHighlightRect(page.Rotate, mh, cx1, cy1, cw, ch, vx, vy, vw, vh);
 
+        // Conservative colour rule:
+        // - Bank-only tier → amber (improvement opportunity, non-regulatory).
+        // - Condusef, Both, unmapped key, or null map → red (regulatory / default).
+        var isBankOnly = checklistTiers is not null
+            && checklistTiers.TryGetValue(finding.CheckId, out var tier)
+            && tier == ChecklistTier.Bank;
+
+        var fillColor   = isBankOnly ? AmberHighlightFill   : HighlightFill;
+        var borderColor = isBankOnly ? AmberHighlightBorder : HighlightBorder;
+        var labelBrush  = isBankOnly ? XBrushes.DarkOrange  : XBrushes.DarkRed;
+
         using var gfx = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
 
         // Semi-transparent fill. XSolidBrush does not implement IDisposable in PdfSharp 6.x.
-        var fillBrush = new XSolidBrush(HighlightFill);
+        var fillBrush = new XSolidBrush(fillColor);
         gfx.DrawRectangle(fillBrush, rect);
 
         // Solid border. XPen does not implement IDisposable in PdfSharp 6.x.
-        var borderPen = new XPen(HighlightBorder, 1.0);
+        var borderPen = new XPen(borderColor, 1.0);
         gfx.DrawRectangle(borderPen, rect);
 
-        // CheckId label just above the box (or inside if box is tall enough).
+        // Numbered callout label: "<N>. <CheckId>" just above (or inside) the box.
+        // The sequential number ties the visual annotation to the UI compliance-report list.
         // LabelFont may be null when no font resolver is configured — skip label gracefully.
         var labelFont = LazyLabelFont.Value;
         if (labelFont is not null)
         {
             var labelY = rect.Top >= 10.0 ? rect.Top - 8.0 : rect.Top + 1.0;
             gfx.DrawString(
-                finding.CheckId,
+                $"{calloutNumber}. {finding.CheckId}",
                 labelFont,
-                XBrushes.DarkRed,
+                labelBrush,
                 new XRect(rect.X, labelY, rect.Width, 10.0),
                 XStringFormats.TopLeft);
         }
 
         _logger.LogDebug(
-            "Drew bounding-box highlight for {CheckId} on page {Page} (rotate={Rotate}): " +
+            "Drew bounding-box highlight for {CheckId} on page {Page} (rotate={Rotate}, callout={Callout}, bank={IsBank}): " +
             "PdfPig(left={L}, bottom={B}, w={W}, h={H}) → PdfSharp(x={X}, y={Y}, w={DW}, h={DH}).",
-            finding.CheckId, locator.PageNumber, page.Rotate,
+            finding.CheckId, locator.PageNumber, page.Rotate, calloutNumber, isBankOnly,
             vx, vy, vw, vh, rect.X, rect.Y, rect.Width, rect.Height);
     }
 
@@ -407,12 +442,12 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
     /// Draws a small coloured square in the top-left margin for findings that have a
     /// page number but no precise bounding box.
     /// </summary>
-    private void DrawPageMarker(PdfPage page, RuleFinding finding)
+    private void DrawPageMarker(PdfPage page, RuleFinding finding, int calloutNumber)
     {
         // Stack markers down the left edge if multiple findings land on the same page.
         // Because we process findings in order, the first marker always draws at the
         // top-left corner. Subsequent ones on the same page will overlap — acceptable
-        // since each carries its CheckId label and the use-case (page-hint-only) is rare.
+        // since each carries its numbered label and the use-case (page-hint-only) is rare.
         var rect = new XRect(MarkerLeftOffset, MarkerTopOffset, MarkerSide, MarkerSide);
 
         using var gfx = XGraphics.FromPdfPage(page, XGraphicsPdfPageOptions.Append);
@@ -427,7 +462,7 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
         if (labelFont is not null)
         {
             gfx.DrawString(
-                finding.CheckId,
+                $"{calloutNumber}. {finding.CheckId}",
                 labelFont,
                 XBrushes.DarkOrange,
                 new XRect(MarkerLeftOffset + MarkerSide + 2.0, MarkerTopOffset + 4.0, 80.0, 12.0),
@@ -435,7 +470,7 @@ public sealed class MarkedPdfGenerator : IMarkedPdfGenerator
         }
 
         _logger.LogDebug(
-            "Drew page-margin marker for {CheckId} on page {Page} (no bounding box).",
-            finding.CheckId, finding.Locator!.PageNumber);
+            "Drew page-margin marker for {CheckId} on page {Page} (no bounding box, callout={Callout}).",
+            finding.CheckId, finding.Locator!.PageNumber, calloutNumber);
     }
 }

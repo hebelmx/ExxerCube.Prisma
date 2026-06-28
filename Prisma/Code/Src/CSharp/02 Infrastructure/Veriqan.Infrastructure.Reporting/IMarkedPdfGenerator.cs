@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using IndQuestResults;
 
@@ -18,6 +19,8 @@ public interface IMarkedPdfGenerator
     /// Draws colour highlights on the pages of <paramref name="originalPdf"/> for every
     /// <see cref="Domain.Enums.FindingVerdict.Fail"/> finding in <paramref name="findings"/>
     /// that carries a bounding-box locator, then returns the annotated PDF as a byte array.
+    /// Each drawn highlight is labelled with a sequential callout number (1, 2, 3 …) so
+    /// it can be cross-referenced with the UI compliance-report list.
     /// </summary>
     /// <param name="originalPdf">
     /// Raw bytes of the source PDF. Must be a valid, non-empty PDF.
@@ -31,6 +34,17 @@ public interface IMarkedPdfGenerator
     /// <param name="cancellationToken">
     /// Token used to observe cancellation.
     /// </param>
+    /// <param name="checklistTiers">
+    /// Optional map from <c>CheckId</c> to <see cref="ChecklistTier"/>.
+    /// When a FAIL finding's <c>CheckId</c> maps to <see cref="ChecklistTier.Bank"/> the
+    /// highlight is drawn in <b>amber</b> (bank improvement-opportunity colour).
+    /// Findings mapped to <see cref="ChecklistTier.Condusef"/> or
+    /// <see cref="ChecklistTier.Both"/>, findings whose <c>CheckId</c> is absent from the
+    /// map, and any call where this parameter is <see langword="null"/> all receive the
+    /// default <b>red</b> highlight — this is the conservative, abstain-safe default so
+    /// regulatory findings are never silently downgraded.
+    /// When <see langword="null"/>, behaviour is identical to prior versions (all red).
+    /// </param>
     /// <returns>
     /// <list type="bullet">
     ///   <item><description>Success — the annotated PDF bytes (may equal the input if there are no FAIL findings with a bounding box).</description></item>
@@ -41,5 +55,6 @@ public interface IMarkedPdfGenerator
     Result<byte[]> Generate(
         byte[] originalPdf,
         IReadOnlyList<RuleFinding> findings,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        IReadOnlyDictionary<string, ChecklistTier>? checklistTiers = null);
 }

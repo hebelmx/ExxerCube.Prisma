@@ -766,4 +766,225 @@ public sealed class MarkedPdfGeneratorTests
         using var outputDoc = PdfReader.Open(outputStream, PdfDocumentOpenMode.Import);
         outputDoc.PageCount.ShouldBe(1, "Page count must be preserved.");
     }
+
+    // -----------------------------------------------------------------------
+    // Tests 24–29: tier-coded colour + numbered callouts (Story 2.1, Epic 2)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A Bank-tier FAIL finding must render an amber highlight, NOT red.
+    /// Amber fill RGB(255,193,7) at 90/255 alpha over white yields R≈255, G≈233, B≈168.
+    /// Key invariant: G > B (amber's blue is suppressed; this distinguishes amber from red,
+    /// which blends to R=243, G=183, B=183 — nearly equal G and B).
+    /// </summary>
+    [Fact]
+#pragma warning disable CA1416
+    public void Generate_BankTierCheckId_HighlightPixelIsAmberTinted()
+    {
+        const double pdfPigLeft = 100, pdfPigBottom = 400, boxWidth = 200, boxHeight = 30, pageH = 842;
+        var inputPdf = BuildTestPdf(1);
+        var finding  = FailFindingWithBox("CL-BANK", left: pdfPigLeft, bottom: pdfPigBottom, width: boxWidth, height: boxHeight);
+        var tiers    = new Dictionary<string, ChecklistTier> { ["CL-BANK"] = ChecklistTier.Bank };
+
+        var result = _generator.Generate(inputPdf, new[] { finding }, TestContext.Current.CancellationToken, tiers);
+        result.IsSuccess.ShouldBeTrue("Generate must succeed with a Bank-tier map.");
+
+        const int dpi = 150;
+        const double ptPerInch = 72.0;
+        double scale = dpi / ptPerInch;
+
+        using var stream = new MemoryStream(result.Value!);
+        using var bitmap = Conversion.ToImage(stream, leaveOpen: false, page: 0, options: new RenderOptions(Dpi: dpi));
+        bitmap.ShouldNotBeNull();
+
+        var sampleXPx = (int)((pdfPigLeft + boxWidth  / 2.0) * scale);
+        var sampleYPx = (int)(((pageH - pdfPigBottom - boxHeight) + boxHeight / 2.0) * scale);
+        sampleXPx = Math.Clamp(sampleXPx, 0, bitmap.Width  - 1);
+        sampleYPx = Math.Clamp(sampleYPx, 0, bitmap.Height - 1);
+
+        var pixel = bitmap.GetPixel(sampleXPx, sampleYPx);
+
+        // Amber blends to R≈255, G≈233, B≈168 over white — blue is distinctly lower than green.
+        pixel.Green.ShouldBeGreaterThan(
+            pixel.Blue,
+            $"Bank-tier amber pixel at ({sampleXPx},{sampleYPx}) must have G>B: R={pixel.Red} G={pixel.Green} B={pixel.Blue}.");
+    }
+#pragma warning restore CA1416
+
+    /// <summary>
+    /// A Condusef-tier FAIL finding must still render red (regulatory default), even though
+    /// a tier map is explicitly provided.  Asserts R > G just as the baseline Test 3 does.
+    /// </summary>
+    [Fact]
+#pragma warning disable CA1416
+    public void Generate_CondusefTierCheckId_HighlightPixelIsRedTinted()
+    {
+        const double pdfPigLeft = 100, pdfPigBottom = 400, boxWidth = 200, boxHeight = 30, pageH = 842;
+        var inputPdf = BuildTestPdf(1);
+        var finding  = FailFindingWithBox("CL-COND", left: pdfPigLeft, bottom: pdfPigBottom, width: boxWidth, height: boxHeight);
+        var tiers    = new Dictionary<string, ChecklistTier> { ["CL-COND"] = ChecklistTier.Condusef };
+
+        var result = _generator.Generate(inputPdf, new[] { finding }, TestContext.Current.CancellationToken, tiers);
+        result.IsSuccess.ShouldBeTrue();
+
+        const int dpi = 150;
+        const double ptPerInch = 72.0;
+        double scale = dpi / ptPerInch;
+
+        using var stream = new MemoryStream(result.Value!);
+        using var bitmap = Conversion.ToImage(stream, leaveOpen: false, page: 0, options: new RenderOptions(Dpi: dpi));
+
+        var sampleXPx = (int)((pdfPigLeft + boxWidth  / 2.0) * scale);
+        var sampleYPx = (int)(((pageH - pdfPigBottom - boxHeight) + boxHeight / 2.0) * scale);
+        sampleXPx = Math.Clamp(sampleXPx, 0, bitmap.Width  - 1);
+        sampleYPx = Math.Clamp(sampleYPx, 0, bitmap.Height - 1);
+
+        var pixel = bitmap.GetPixel(sampleXPx, sampleYPx);
+
+        pixel.Red.ShouldBeGreaterThan(
+            pixel.Green,
+            $"Condusef-tier must be red (R>G) at ({sampleXPx},{sampleYPx}): R={pixel.Red} G={pixel.Green} B={pixel.Blue}.");
+    }
+#pragma warning restore CA1416
+
+    /// <summary>
+    /// When a non-null tier map is supplied but the CheckId is not present in the map,
+    /// the highlight must fall back to red (conservative / abstain-safe default).
+    /// </summary>
+    [Fact]
+#pragma warning disable CA1416
+    public void Generate_UnmappedCheckIdWithNonNullMap_HighlightPixelIsRedTinted()
+    {
+        const double pdfPigLeft = 100, pdfPigBottom = 400, boxWidth = 200, boxHeight = 30, pageH = 842;
+        var inputPdf = BuildTestPdf(1);
+        var finding  = FailFindingWithBox("CL-UNMAP", left: pdfPigLeft, bottom: pdfPigBottom, width: boxWidth, height: boxHeight);
+        // Map exists but does not contain "CL-UNMAP" — must default to red.
+        var tiers = new Dictionary<string, ChecklistTier> { ["SOME-OTHER"] = ChecklistTier.Bank };
+
+        var result = _generator.Generate(inputPdf, new[] { finding }, TestContext.Current.CancellationToken, tiers);
+        result.IsSuccess.ShouldBeTrue();
+
+        const int dpi = 150;
+        const double ptPerInch = 72.0;
+        double scale = dpi / ptPerInch;
+
+        using var stream = new MemoryStream(result.Value!);
+        using var bitmap = Conversion.ToImage(stream, leaveOpen: false, page: 0, options: new RenderOptions(Dpi: dpi));
+
+        var sampleXPx = (int)((pdfPigLeft + boxWidth  / 2.0) * scale);
+        var sampleYPx = (int)(((pageH - pdfPigBottom - boxHeight) + boxHeight / 2.0) * scale);
+        sampleXPx = Math.Clamp(sampleXPx, 0, bitmap.Width  - 1);
+        sampleYPx = Math.Clamp(sampleYPx, 0, bitmap.Height - 1);
+
+        var pixel = bitmap.GetPixel(sampleXPx, sampleYPx);
+
+        pixel.Red.ShouldBeGreaterThan(
+            pixel.Green,
+            $"Unmapped CheckId must default to red (R>G) at ({sampleXPx},{sampleYPx}): R={pixel.Red} G={pixel.Green} B={pixel.Blue}.");
+    }
+#pragma warning restore CA1416
+
+    /// <summary>
+    /// Null <c>checklistTiers</c> must produce exactly the same red highlight as
+    /// calling the original 3-parameter Generate — backward compatibility regression.
+    /// </summary>
+    [Fact]
+#pragma warning disable CA1416
+    public void Generate_NullChecklistTiers_HighlightPixelIsRedTinted()
+    {
+        const double pdfPigLeft = 100, pdfPigBottom = 400, boxWidth = 200, boxHeight = 30, pageH = 842;
+        var inputPdf = BuildTestPdf(1);
+        var finding  = FailFindingWithBox("CL-NULL-MAP", left: pdfPigLeft, bottom: pdfPigBottom, width: boxWidth, height: boxHeight);
+
+        // Explicitly pass null for checklistTiers — must reproduce original behaviour.
+        var result = _generator.Generate(inputPdf, new[] { finding }, TestContext.Current.CancellationToken, checklistTiers: null);
+        result.IsSuccess.ShouldBeTrue();
+
+        const int dpi = 150;
+        const double ptPerInch = 72.0;
+        double scale = dpi / ptPerInch;
+
+        using var stream = new MemoryStream(result.Value!);
+        using var bitmap = Conversion.ToImage(stream, leaveOpen: false, page: 0, options: new RenderOptions(Dpi: dpi));
+
+        var sampleXPx = (int)((pdfPigLeft + boxWidth  / 2.0) * scale);
+        var sampleYPx = (int)(((pageH - pdfPigBottom - boxHeight) + boxHeight / 2.0) * scale);
+        sampleXPx = Math.Clamp(sampleXPx, 0, bitmap.Width  - 1);
+        sampleYPx = Math.Clamp(sampleYPx, 0, bitmap.Height - 1);
+
+        var pixel = bitmap.GetPixel(sampleXPx, sampleYPx);
+
+        pixel.Red.ShouldBeGreaterThan(
+            pixel.Green,
+            $"Null tier map must produce red (R>G) at ({sampleXPx},{sampleYPx}): R={pixel.Red} G={pixel.Green} B={pixel.Blue}.");
+    }
+#pragma warning restore CA1416
+
+    /// <summary>
+    /// A Both-tier FAIL finding must render red, not amber, because it belongs to the
+    /// regulatory CONDUSEF floor (conservative default).
+    /// </summary>
+    [Fact]
+#pragma warning disable CA1416
+    public void Generate_BothTierCheckId_HighlightPixelIsRedTinted()
+    {
+        const double pdfPigLeft = 100, pdfPigBottom = 400, boxWidth = 200, boxHeight = 30, pageH = 842;
+        var inputPdf = BuildTestPdf(1);
+        var finding  = FailFindingWithBox("CL-BOTH", left: pdfPigLeft, bottom: pdfPigBottom, width: boxWidth, height: boxHeight);
+        var tiers    = new Dictionary<string, ChecklistTier> { ["CL-BOTH"] = ChecklistTier.Both };
+
+        var result = _generator.Generate(inputPdf, new[] { finding }, TestContext.Current.CancellationToken, tiers);
+        result.IsSuccess.ShouldBeTrue();
+
+        const int dpi = 150;
+        const double ptPerInch = 72.0;
+        double scale = dpi / ptPerInch;
+
+        using var stream = new MemoryStream(result.Value!);
+        using var bitmap = Conversion.ToImage(stream, leaveOpen: false, page: 0, options: new RenderOptions(Dpi: dpi));
+
+        var sampleXPx = (int)((pdfPigLeft + boxWidth  / 2.0) * scale);
+        var sampleYPx = (int)(((pageH - pdfPigBottom - boxHeight) + boxHeight / 2.0) * scale);
+        sampleXPx = Math.Clamp(sampleXPx, 0, bitmap.Width  - 1);
+        sampleYPx = Math.Clamp(sampleYPx, 0, bitmap.Height - 1);
+
+        var pixel = bitmap.GetPixel(sampleXPx, sampleYPx);
+
+        pixel.Red.ShouldBeGreaterThan(
+            pixel.Green,
+            $"Both-tier must be red (R>G) at ({sampleXPx},{sampleYPx}): R={pixel.Red} G={pixel.Green} B={pixel.Blue}.");
+    }
+#pragma warning restore CA1416
+
+    /// <summary>
+    /// Multiple FAIL findings (mix of bbox + page-hint) produce a valid PDF with
+    /// sequential callout numbers — structural verification that the callout counter
+    /// advances and no crash occurs across 3 annotated findings.
+    /// </summary>
+    [Fact]
+    public void Generate_MultipleFailFindings_ValidPdfWithCallouts()
+    {
+        var inputPdf = BuildTestPdf(2);
+        var tiers = new Dictionary<string, ChecklistTier>
+        {
+            ["CL-C1"] = ChecklistTier.Condusef,
+            ["CL-B2"] = ChecklistTier.Bank,
+        };
+        var findings = new[]
+        {
+            FailFindingWithBox("CL-C1",  pageNumber: 1, left: 50,  bottom: 600, width: 100, height: 20),
+            FailFindingWithBox("CL-B2",  pageNumber: 2, left: 100, bottom: 400, width: 200, height: 30),
+            FailFindingPageHint("CL-P3", page: 1),
+        };
+
+        var result = _generator.Generate(inputPdf, findings, TestContext.Current.CancellationToken, tiers);
+
+        result.IsSuccess.ShouldBeTrue("Mixed-tier findings with 3 callouts must succeed.");
+        result.Value.ShouldNotBeNull();
+        result.Value!.SequenceEqual(inputPdf).ShouldBeFalse("Callouts must modify the PDF.");
+
+        using var outputStream = new MemoryStream(result.Value);
+        using var outputDoc = PdfReader.Open(outputStream, PdfDocumentOpenMode.Import);
+        outputDoc.PageCount.ShouldBe(2, "Page count must be preserved with callouts.");
+    }
 }
