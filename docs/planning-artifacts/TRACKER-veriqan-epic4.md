@@ -100,7 +100,7 @@ acceptance criteria met.** Cleanup commit `eec52c98` applied the cheap honesty/o
 - TransientFailure has no emitter (transient = Result.WithFailure for caller retry; no misrouting bug).
 - A2 DRY: JobVerdict.Confidence recomputed in persistence vs read from summary (latent, currently agree).
 - ExtractionGap persistence lacks a dedicated integration test (low risk, enum→int).
-- Epic-1 LATENT: CL-27/CL-30/CL-47 compound-key mis-tier (can downgrade a section RED→YELLOW).
+- Epic-1 "LATENT CL-27/30/47 mis-tier" → RESOLVED (false alarm); real checklist-integrity finding tracked in GH #19.
 - Full deferred taxonomy (tamper, FilePreflight, password/corrupt=Epic6 S6.7, language, version-mismatch,
   dead-letter): Mary's 6-band MECE map is the design-of-record.
 
@@ -114,6 +114,10 @@ acceptance criteria met.** Cleanup commit `eec52c98` applied the cheap honesty/o
 - **A2 verdict-confidence recomputed in 2 persistence services** (min of findings) rather than reading VerdictSummary.Confidence — DRY/drift risk if the rollup rule ever changes. Currently identical; low priority.
 
 ## Notes / carried flags (do NOT lose)
-- LATENT (Epic 1 flag, NOT Epic 4): `checklist-tiers.csv` row 2 compound key `CL-27/CL-30/CL-47`
-  stored literally; production aggregator lookup misses → those 3 mis-tiered to Condusef floor.
-  Owner decision still pending on canonical CheckId format. Leave alone unless it blocks Epic 4.
+- ~~LATENT compound-key mis-tier~~ **RESOLVED 2026-06-28 — false alarm → now GH issue #19.**
+  The rule `CatalogImagePresenceRule` emits a single compound `CheckId "CL-27/CL-30/CL-47"`; the CSV
+  row uses the same compound key → `VerdictAggregator` `TryGetValue` matches → resolves Bank correctly.
+  **Do NOT split the CSV** (would break the match). Law-grounded investigation (Acuerdo PDF) found the
+  REAL issue: the brand-image rule squats on 3 IDs whose UI labels name different, real, UNIMPLEMENTED
+  requirements (CL-27 sign-coherence §7/§22/§20; CL-30 reversals→§23 cargos no reconocidos; CL-47
+  CETES/GAT = another product's regulation/client). Full systematic follow-up tracked in **GH #19**.

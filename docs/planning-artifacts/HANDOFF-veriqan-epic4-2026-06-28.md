@@ -51,7 +51,7 @@ pre-validation floors, not on the confidence number. See the tracker's "DONE" se
 - **M3:** multi-statement guard is a coarse PageCount>20 stub; misses 2-short-concatenated; real detection (account anchors) needs extractor plumbing → Epic 6.
 - **TransientFailure has no emitter** by design (transient = Result.WithFailure for caller retry; verified no misrouting bug; residual = extractor swallowing a crash into empty-success = Epic 6 S6.7).
 - A2 DRY (confidence recomputed in persistence vs summary); ExtractionGap lacks a persistence integration test (low risk).
-- **Epic-1 LATENT:** CL-27/CL-30/CL-47 compound-key mis-tier can downgrade a section RED→YELLOW. Still pending owner decision on canonical CheckId format.
+- **~~Epic-1 LATENT CL-27/30/47 mis-tier~~ RESOLVED 2026-06-28 → GH issue #19.** False alarm (compound CheckId matches the CSV row; resolves Bank correctly — do NOT split the CSV). Law-grounded review found the real issue: the brand-image rule squats on 3 IDs whose UI labels name different, real, unimplemented requirements (sign-coherence §7/§22/§20; reversals→§23; CETES/GAT = another product/client). Systematic fix tracked in #19.
 
 ## Gotchas for the next agent (carried + new)
 - Tests: `dotnet test <csproj>` falsely reports "Zero tests ran". Build, then `dotnet exec /home/abel/ExxerProjects/IndFusion/BuildArtifacts/Prisma/bin/<Asm>/Debug/net10.0/<Asm>.dll`.
