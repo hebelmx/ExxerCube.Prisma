@@ -178,6 +178,46 @@ public sealed record TenantProfile
     /// </summary>
     public const int DefaultMinTextLayerWordCount = 20;
 
+    // -----------------------------------------------------------------------
+    // Ambiguous-document-scope guard (Story 4.2-B — U4 guard)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets the maximum PDF page count a statement PDF may have before the pipeline treats
+    /// the document as a multi-statement bundle and routes to
+    /// <c>VerdictSignal.ExtractionGap</c> / <c>BlockReason.AmbiguousDocumentScope</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Default: 20.</b>  A typical CONDUSEF single credit-card statement is 8–15 pages.
+    /// An archive PDF bundling multiple monthly statements tends to exceed 20 pages.
+    /// When <see cref="Domain.Extraction.StatementModel.PageCount"/> exceeds this limit the
+    /// pipeline aborts BEFORE binding or running any rules, preventing a confident-but-wrong
+    /// verdict caused by fields being read from the wrong statement scope.
+    /// </para>
+    /// <para>
+    /// <b>STUB limitation (Story 4.2-B):</b> page count is a cheap proxy only.  A legitimate
+    /// single-statement PDF with more than the configured threshold of pages would
+    /// false-positive; equally, a bundle of two very short statements might not be caught.
+    /// Full detection (page-level structural analysis, distinct account-number anchors,
+    /// period boundary comparison) is deferred to a future story.
+    /// </para>
+    /// <para>
+    /// Set to <see cref="int.MaxValue"/> to disable the guard entirely in test scenarios
+    /// that need to exercise later pipeline stages without triggering this check.
+    /// Must be ≥ 1.
+    /// </para>
+    /// </remarks>
+    public int MaxStatementBoundarySignalCount { get; }
+
+    /// <summary>
+    /// The default value for <see cref="MaxStatementBoundarySignalCount"/>.
+    /// A typical CONDUSEF statement is 8–15 pages; 20 is a conservative ceiling that
+    /// allows for longer-than-average single statements while still flagging most
+    /// multi-statement archive bundles (which tend to exceed 20 pages).
+    /// </summary>
+    public const int DefaultMaxStatementBoundarySignalCount = 20;
+
     /// <summary>
     /// Initializes a <see cref="TenantProfile"/> with the specified identifiers, override map,
     /// and optional confidence threshold.
@@ -203,13 +243,19 @@ public sealed record TenantProfile
     /// bind and validate. Defaults to <see cref="DefaultMinTextLayerWordCount"/> (20).
     /// Must be ≥ 0.
     /// </param>
+    /// <param name="maxStatementBoundarySignalCount">
+    /// Maximum PDF page count before the pipeline treats the document as a multi-statement
+    /// bundle and routes to <c>BlockReason.AmbiguousDocumentScope</c>. Defaults to
+    /// <see cref="DefaultMaxStatementBoundarySignalCount"/> (20). Must be ≥ 1.
+    /// Pass <see cref="int.MaxValue"/> to disable the guard.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="tenantId"/> or <paramref name="tenantName"/> is null or white-space.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
     /// Thrown when <paramref name="minFieldConfidence"/> is outside [0.0, 1.0], or when
     /// <paramref name="minExtractionCoverageCount"/> or <paramref name="minTextLayerWordCount"/>
-    /// is negative.
+    /// is negative, or when <paramref name="maxStatementBoundarySignalCount"/> is less than 1.
     /// </exception>
     public TenantProfile(
         string tenantId,
@@ -217,7 +263,8 @@ public sealed record TenantProfile
         IReadOnlyDictionary<string, decimal>? toleranceOverrides = null,
         double minFieldConfidence = LegalMinFieldConfidenceDefault,
         int minExtractionCoverageCount = DefaultMinExtractionCoverageCount,
-        int minTextLayerWordCount = DefaultMinTextLayerWordCount)
+        int minTextLayerWordCount = DefaultMinTextLayerWordCount,
+        int maxStatementBoundarySignalCount = DefaultMaxStatementBoundarySignalCount)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantName);
@@ -236,6 +283,11 @@ public sealed record TenantProfile
                 nameof(minTextLayerWordCount),
                 minTextLayerWordCount,
                 "MinTextLayerWordCount must be >= 0.");
+        if (maxStatementBoundarySignalCount < 1)
+            throw new ArgumentOutOfRangeException(
+                nameof(maxStatementBoundarySignalCount),
+                maxStatementBoundarySignalCount,
+                "MaxStatementBoundarySignalCount must be >= 1. Pass int.MaxValue to disable the guard.");
 
         TenantId = tenantId;
         TenantName = tenantName;
@@ -244,6 +296,7 @@ public sealed record TenantProfile
         MinFieldConfidence = minFieldConfidence;
         MinExtractionCoverageCount = minExtractionCoverageCount;
         MinTextLayerWordCount = minTextLayerWordCount;
+        MaxStatementBoundarySignalCount = maxStatementBoundarySignalCount;
     }
 
     /// <summary>
@@ -263,5 +316,6 @@ public sealed record TenantProfile
             toleranceOverrides: new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
             minFieldConfidence: LegalMinFieldConfidenceDefault,
             minExtractionCoverageCount: DefaultMinExtractionCoverageCount,
-            minTextLayerWordCount: DefaultMinTextLayerWordCount);
+            minTextLayerWordCount: DefaultMinTextLayerWordCount,
+            maxStatementBoundarySignalCount: DefaultMaxStatementBoundarySignalCount);
 }

@@ -495,6 +495,164 @@ internal sealed class VerificationPipeline : IVerificationPipeline
                 new VerificationOutcome(job, textLayerBlockedVerdictResult.Value!, textLayerFindings, textLayerBlockedDuration));
         }
 
+        // Stage 2d — Ambiguous-document-scope guard (U4 defence, Story 4.2-B).
+        // A PDF containing multiple credit-card statements (e.g. a monthly archive) can cause
+        // the extractor to read fields from the WRONG statement, producing a confident but wrong
+        // verdict.  The coverage floor does NOT catch this (field yield is fine when any statement
+        // is parseable).
+        //
+        // Heuristic (STUB — see TenantProfile.MaxStatementBoundarySignalCount XML doc):
+        //   Use PDF page count as a cheap proxy for multi-statement detection.  A typical
+        //   CONDUSEF single-statement PDF is 8–15 pages; a multi-statement archive bundle tends
+        //   to exceed 20 pages.  If PageCount exceeds MaxStatementBoundarySignalCount (default: 20)
+        //   the pipeline routes to ExtractionGap / AmbiguousDocumentScope before bind/validate.
+        //
+        // STUB LIMITATION: page count is a proxy only.  A legitimate single-statement PDF with
+        //   more pages than the configured threshold would false-positive; a 2-statement bundle of
+        //   very short statements might stay under the threshold.  Full detection (page-level
+        //   structural analysis, distinct account-number anchors, period boundary cross-check) is
+        //   deferred.  The threshold is configurable via TenantProfile so tests can disable the
+        //   guard by passing int.MaxValue.
+        var boundarySignalCount = CountStatementBoundarySignals(statementModel);
+        var maxBoundarySignals = _activeTenantProfile.MaxStatementBoundarySignalCount;
+
+        _logger.LogInformation(
+            "Statement-boundary signal (page count): {BoundarySignalCount} page(s), max={MaxBoundarySignals} for {FileName}",
+            boundarySignalCount,
+            maxBoundarySignals,
+            submission.FileName);
+
+        if (boundarySignalCount > maxBoundarySignals)
+        {
+            _logger.LogWarning(
+                "Ambiguous document scope for {FileName}: {BoundarySignalCount} page(s) exceeds max={MaxBoundarySignals} — emitting BLOCKED/{Reason}",
+                submission.FileName,
+                boundarySignalCount,
+                maxBoundarySignals,
+                BlockReason.AmbiguousDocumentScope);
+
+            var ambiguousBlocked = new BlockedOutcome(
+                BlockReason.AmbiguousDocumentScope,
+                $"PDF page count ({boundarySignalCount}) exceeds threshold ({maxBoundarySignals}); " +
+                "document likely contains multiple statements — cannot safely isolate a single statement scope. " +
+                "Full multi-statement detection deferred.");
+
+            var ambiguousVerdictResult = _aggregator.Aggregate(
+                findings: Array.Empty<RuleFinding>(),
+                blocked: ambiguousBlocked,
+                ct: ct);
+
+            if (ambiguousVerdictResult.IsCancelled())
+                return ResultExtensions.Cancelled<VerificationOutcome>();
+
+            if (ambiguousVerdictResult.IsFailure)
+                return Result<VerificationOutcome>.WithFailure(
+                    ambiguousVerdictResult.Error ?? "Verdict aggregation failed (ambiguous document scope)");
+
+            sw.Stop();
+            var ambiguousDuration = sw.Elapsed;
+            // Story 4.2: ExtractionGap (not Blocked) — AmbiguousDocumentScope is an
+            // extraction/capability gap, not a document defect.
+            _metrics.RecordStatement(ambiguousDuration.TotalMilliseconds, ambiguousVerdictResult.Value!.Signal);
+
+            _logger.LogInformation(
+                "Pipeline ExtractionGap (AmbiguousDocumentScope) for {FileName} in {DurationMs:F1} ms JobId={JobId}",
+                submission.FileName,
+                ambiguousDuration.TotalMilliseconds,
+                job.Id);
+
+            // Persist — fatal / non-optional on all paths.
+            Result<JobVerdict> ambiguousPersistResult;
+            using (PipelineActivitySource.StartActivity("pipeline.stage.persist"))
+                ambiguousPersistResult = await _verdictPersistence.PersistAsync(
+                    jobId: job.Id,
+                    signal: ambiguousVerdictResult.Value!.Signal,
+                    findings: Array.Empty<RuleFinding>(),
+                    engineVersion: EngineVersion,
+                    bankTierVerdict: ambiguousVerdictResult.Value!.BankTierVerdict,
+                    condusefTierVerdict: ambiguousVerdictResult.Value!.CondusefTierVerdict,
+                    cancellationToken: ct).ConfigureAwait(false);
+
+            if (ambiguousPersistResult.IsCancelled())
+            {
+                _logger.LogWarning(
+                    "Pipeline cancelled during persist (AmbiguousDocumentScope) for {FileName} JobId={JobId}",
+                    submission.FileName,
+                    job.Id);
+                return ResultExtensions.Cancelled<VerificationOutcome>();
+            }
+
+            if (ambiguousPersistResult.IsFailure)
+            {
+                _logger.LogError(
+                    "Verdict persist failed (AmbiguousDocumentScope) for {FileName} JobId={JobId}: {Error}",
+                    submission.FileName,
+                    job.Id,
+                    ambiguousPersistResult.Error);
+                return Result<VerificationOutcome>.WithFailure(
+                    ambiguousPersistResult.Error ?? "Verdict persistence failed");
+            }
+
+            _logger.LogInformation(
+                "Verdict persisted (AmbiguousDocumentScope) for {FileName} JobId={JobId}",
+                submission.FileName,
+                job.Id);
+
+            // Report — best-effort.
+            var ambiguousFindings = new List<RuleFinding>();
+            try
+            {
+                var ambiguousReportResult = _reportGenerator.Generate(
+                    submission.Pdf,
+                    ambiguousFindings,
+                    ct);
+
+                if (ambiguousReportResult.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Marked-PDF generation failed (AmbiguousDocumentScope) for {FileName} JobId={JobId}: {Error} — continuing (best-effort)",
+                        submission.FileName,
+                        job.Id,
+                        ambiguousReportResult.Error);
+
+                    ambiguousFindings.Add(new RuleFinding(
+                        CheckId: "ReportGenerationFailure",
+                        Verdict: FindingVerdict.InsufficientData,
+                        Technique: TechniqueClass.Deterministic,
+                        Severity: FindingSeverity.Warning,
+                        EngineVersion: EngineVersion,
+                        Observed: ambiguousReportResult.Error));
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Marked-PDF generated (AmbiguousDocumentScope) for {FileName} JobId={JobId} ({Bytes} bytes)",
+                        submission.FileName,
+                        job.Id,
+                        ambiguousReportResult.Value?.Length ?? 0);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Marked-PDF generation threw an exception (AmbiguousDocumentScope) for {FileName} JobId={JobId} — continuing (best-effort)",
+                    submission.FileName,
+                    job.Id);
+
+                ambiguousFindings.Add(new RuleFinding(
+                    CheckId: "ReportGenerationFailure",
+                    Verdict: FindingVerdict.InsufficientData,
+                    Technique: TechniqueClass.Deterministic,
+                    Severity: FindingSeverity.Warning,
+                    EngineVersion: EngineVersion,
+                    Observed: ex.Message));
+            }
+
+            return Result<VerificationOutcome>.WithSuccess(
+                new VerificationOutcome(job, ambiguousVerdictResult.Value!, ambiguousFindings, ambiguousDuration));
+        }
+
         // Stage 3 — Resolve product token from extracted model, with fallback to context key
         var productToken = statementModel.PeriodSummary?.Product.Value
                            ?? submission.ContextKey.ProductId
@@ -1109,4 +1267,44 @@ internal sealed class VerificationPipeline : IVerificationPipeline
             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
             .Length;
     }
+
+    // -----------------------------------------------------------------------
+    // Ambiguous-document-scope helper (Story 4.2-B)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns the PDF page count of <paramref name="model"/> as the heuristic
+    /// multi-statement boundary signal.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>STUB heuristic (Story 4.2-B):</b> page count is a cheap proxy for detecting
+    /// archive-bundle PDFs that concatenate multiple monthly credit-card statements.  A typical
+    /// CONDUSEF single-statement PDF is 8–15 pages; a bundle of two or more statements tends
+    /// to exceed 20 pages.  When the page count exceeds
+    /// <see cref="TenantProfile.MaxStatementBoundarySignalCount"/> the pipeline routes to
+    /// <c>VerdictSignal.ExtractionGap</c> / <c>BlockReason.AmbiguousDocumentScope</c> BEFORE
+    /// binding or running any rules.
+    /// </para>
+    /// <para>
+    /// <b>Known limitation:</b> a legitimate single-statement PDF with more pages than the
+    /// configured threshold would false-positive; a bundle of two very short statements might
+    /// stay under the threshold.  Full detection (page-level structural analysis, distinct
+    /// account-number anchors, period boundary cross-check) is deferred to a future story.
+    /// The threshold is configurable via <see cref="TenantProfile.MaxStatementBoundarySignalCount"/>
+    /// so integration tests can exercise later pipeline stages without triggering this guard.
+    /// </para>
+    /// <para>
+    /// This is a <c>static</c> method so it can be tested independently of the pipeline
+    /// instance without constructing all ctor dependencies.
+    /// </para>
+    /// </remarks>
+    /// <param name="model">The extracted statement model.</param>
+    /// <returns>
+    /// <see cref="StatementModel.PageCount"/> of <paramref name="model"/>.
+    /// Returns 0 when the model has not been fully extracted yet (before
+    /// <c>IStatementFieldExtractor.ExtractFullAsync</c> completes).
+    /// </returns>
+    internal static int CountStatementBoundarySignals(StatementModel model)
+        => model.PageCount;
 }

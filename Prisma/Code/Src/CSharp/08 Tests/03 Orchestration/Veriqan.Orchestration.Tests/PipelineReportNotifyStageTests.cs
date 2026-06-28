@@ -628,7 +628,11 @@ public sealed class PipelineReportNotifyStageTests
 
         var reportGenerator = Substitute.For<IMarkedPdfGenerator>();
         reportGenerator
-            .Generate(Arg.Any<byte[]>(), Arg.Any<IReadOnlyList<RuleFinding>>(), Arg.Any<CancellationToken>())
+            .Generate(
+                Arg.Any<byte[]>(),
+                Arg.Any<IReadOnlyList<RuleFinding>>(),
+                Arg.Any<CancellationToken>(),
+                Arg.Any<IReadOnlyDictionary<string, ChecklistTier>?>())
             .Returns(ci => Result<byte[]>.WithSuccess(Array.Empty<byte>()));
 
         var alertService = Substitute.For<IVecAlertService>();
@@ -649,11 +653,12 @@ public sealed class PipelineReportNotifyStageTests
         result.Value!.Summary.Signal.ShouldBe(VerdictSignal.Yellow,
             "The outcome signal must be YELLOW (pre-condition: tier map correctly wired).");
 
-        // Stage 9 (report): called for YELLOW
+        // Stage 9 (report): called for YELLOW — 4-arg signature (checklistTiers is non-null on this path)
         reportGenerator.Received(1).Generate(
             Arg.Any<byte[]>(),
             Arg.Any<IReadOnlyList<RuleFinding>>(),
-            Arg.Any<CancellationToken>());
+            Arg.Any<CancellationToken>(),
+            Arg.Any<IReadOnlyDictionary<string, ChecklistTier>?>());
     }
 
     /// <summary>

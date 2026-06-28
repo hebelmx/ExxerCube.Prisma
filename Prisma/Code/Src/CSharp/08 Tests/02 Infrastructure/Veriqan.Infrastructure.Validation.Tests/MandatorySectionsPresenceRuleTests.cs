@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExxerCube.Prisma.Veriqan.Application.Binding;
+using ExxerCube.Prisma.Veriqan.Application.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Application.Validation;
+using ExxerCube.Prisma.Veriqan.Application.Verdict;
 using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
@@ -438,5 +440,77 @@ public sealed class MandatorySectionsPresenceRuleTests
         // Indeterminate §1 must NOT be listed.
         observed.Contains("§1").ShouldBeFalse(
             "Indeterminate §1 must not be counted missing (R2 Finding 2).");
+    }
+
+    // -----------------------------------------------------------------------
+    // Guard #1 regression — Story 4.2-B
+    // Invariant: confidently absent mandatory section ⇒ Fail ⇒ VerdictSignal.Red, NOT Green.
+    // This locks in the abstain-safety corollary for presence rules: only genuinely
+    // un-readable sections may abstain (InsufficientData); a section the extractor has
+    // positively detected as absent must always escalate to Fail so the aggregator emits Red.
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A CONDUSEF-mandatory section that is confidently detected as ABSENT from the document
+    /// must produce <see cref="FindingVerdict.Fail"/> → <see cref="VerdictSignal.Red"/>,
+    /// never <see cref="FindingVerdict.InsufficientData"/> → <see cref="VerdictSignal.Green"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This is the abstain-safety corollary for presence rules (Guard #1, Story 4.2-B).
+    /// The critical distinction:
+    /// <list type="bullet">
+    ///   <item>"Confidently absent" — the extractor positively detected the section is NOT present
+    ///     (<see cref="DetectedSection.IsPresent"/> == false,
+    ///      <see cref="DetectedSection.IsApplicable"/> == true,
+    ///      <see cref="DetectedSection.DetectionStatus"/> != Indeterminate) →
+    ///     MUST produce Fail → Red.  A missing mandatory section is a genuine compliance failure.</item>
+    ///   <item>"Cannot determine" — the text layer was unreadable, sections list is empty,
+    ///     or section status is Indeterminate →
+    ///     MUST produce InsufficientData → abstain (not Red, not Green).</item>
+    /// </list>
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void ConfidentlyAbsentMandatorySection_AggregatesRed_NeverGreen()
+    {
+        // INVARIANT: confident absence (IsPresent=false, IsApplicable=true,
+        // DetectionStatus != Indeterminate) must NOT produce GREEN.
+        var rule = GetRule();
+        var ct = TestContext.Current.CancellationToken;
+
+        // §6 ("¿Cuánto pagarías?") is an unconditional mandatory section.
+        // WithAbsent sets IsPresent=false, IsApplicable=true, DetectionStatus=default (Absent).
+        var model = ModelWithSections(WithAbsent(6));
+        var ctx = Ctx(model);
+
+        // Step 1 — rule produces Fail for a confidently absent mandatory section.
+        var ruleResult = rule.Evaluate(ctx, ct);
+        ruleResult.IsSuccess.ShouldBeTrue();
+        ruleResult.Value!.Verdict.ShouldBe(
+            FindingVerdict.Fail,
+            "Confidently absent mandatory §6 must yield FindingVerdict.Fail — " +
+            "NOT InsufficientData (which would route to GREEN via the aggregator).");
+
+        // Step 2 — aggregate through the real VerdictAggregator.
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddVeriqanVerdict();
+        using var sp = services.BuildServiceProvider();
+        var aggregator = sp.GetRequiredService<IVerdictAggregator>();
+
+        var verdictResult = aggregator.Aggregate([ruleResult.Value!], blocked: null, ct: ct);
+        verdictResult.IsSuccess.ShouldBeTrue();
+
+        // Step 3 — overall signal must be Red, not Green or InsufficientData.
+        verdictResult.Value!.Signal.ShouldBe(
+            VerdictSignal.Red,
+            "A Fail finding from a confidently absent mandatory section must aggregate to " +
+            "VerdictSignal.Red — a spurious GREEN here would be an abstain-safety violation " +
+            "(Guard #1, Story 4.2-B).");
+
+        // Step 4 — InsufficientData count must be zero (the finding is Fail, not abstain).
+        verdictResult.Value!.InsufficientDataCount.ShouldBe(0,
+            "A confidently absent mandatory section must not increment the InsufficientData count.");
     }
 }
