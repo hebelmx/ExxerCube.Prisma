@@ -57,7 +57,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// <list type="table">
 ///   <listheader><term>File</term><description>Actual verdict / notes</description></listheader>
 ///   <item><term>good.pdf</term><description>RED / LAW-SEC-PRESENCE — 13 structural failures. 21 fields extracted; floor cleared without bypass.</description></item>
-///   <item><term>bad-math-cl21.pdf</term><description>RED / LAW-SEC-PRESENCE + CL-21 — same 13 structural failures; CL-21 = Fail (guarded implied-zero: Adeudo/Pagos absent → 0m, delta=$11.00 &gt; tol=$0.50). Math error exceeds tolerance → CL-21 fires RED.</description></item>
+///   <item><term>bad-math-cl21.pdf</term><description>RED / LAW-SEC-PRESENCE + CL-21 + CL-22 — same 13 structural failures; CL-21 AND CL-22 = Fail (guarded implied-zero: Adeudo/Pagos absent → 0m, delta=$11.00 &gt; tol=$0.50). Single +$11.00 injection breaks both arithmetic identities.</description></item>
 ///   <item><term>bad-font-cl35.pdf</term><description>RED / CL-35 — Courier font detected; Helvetica required by bundle (plus same 13 structural failures).</description></item>
 ///   <item><term>scanned.pdf</term><description>BLOCKED — image-only PDF, text-layer floor not met.</description></item>
 /// </list>
@@ -161,14 +161,17 @@ public sealed class VecChecklistDemoE2ETests
     ///   LAW-§26-NOTAS                — (a) genuine: 13 mandatory "Notas aclaratorias" texts absent
     ///   LAW-§27-GLOSARIO             — (a) genuine: 15 mandatory "Glosario de términos" texts absent
     ///
-    /// <b>Why bad-math-cl21.pdf is Red (CL-21 fires + 13 structural failures, after Epic 5):</b>
+    /// <b>Why bad-math-cl21.pdf is Red (CL-21 + CL-22 fire + 13 structural failures, after Epic 5):</b>
     /// After the guarded-implied-zero rule change (Epic 5), AdeudoPeriodoAnterior and PagosYAbonos
     /// are treated as 0m when absent (zero-row suppressed on page 1 of this layout).
-    /// The five CORE operands ARE extracted, so CL-21 evaluates: computed=$12,604.55,
-    /// observed=$12,615.55, delta=$11.00 &gt; legal tolerance $0.50 → <b>Fail/Critical</b>.
-    /// The Red signal comes from both CL-21 (math error) and the same 13 structural failures as good.pdf.
-    /// The assertion on CL-21 confirms it IS in FailCheckIds (error exceeds tolerance)
-    /// and is NOT in InsufficientDataCheckIds.
+    /// The +$11.00 injection changes PagoParaNoGenerarIntereses: $12,604.55 → $12,615.55.
+    /// This single fat-finger entry legitimately breaks TWO arithmetic identities:
+    /// <list type="bullet">
+    ///   <item>CL-21: computed(5-core-sum)=$12,604.55 vs observed=$12,615.55, delta=$11.00 &gt; $0.50 → <b>Fail/Critical</b>.</item>
+    ///   <item>CL-22: SaldoCargosRegulares(untouched)=$12,604.55 vs PagoParaNoGenerarIntereses(injected)=$12,615.55, delta=$11.00 &gt; $0.50 → <b>Fail/Critical</b>.</item>
+    /// </list>
+    /// The Red signal comes from both CL-21 + CL-22 (math errors) and the same 13 structural failures.
+    /// The assertions confirm CL-21 and CL-22 are both in FailCheckIds and neither is InsufficientData.
     /// </remarks>
     /// <summary>
     /// MemberData source for <see cref="Pipeline_DemoFixture_ProducesExpectedVerdict"/>.
@@ -212,9 +215,11 @@ public sealed class VecChecklistDemoE2ETests
         // BankTierVerdict=Yellow because CL-50/CL-51/CL-52/CL-53 are Bank and CL-31/CL-32/CL-46/CL-48 are Both.
         ["good.pdf",          VerdictSignal.Red,     "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
 
-        // bad-math-cl21.pdf: RED (13 structural failures + CL-21 Fail; delta=$11.00 > tol=$0.50).
-        // Tier partition: CL-21 is a "Both" tier check → adds to both condusef and bank fail sets.
+        // bad-math-cl21.pdf: RED (13 structural failures + CL-21 Fail + CL-22 Fail; delta=$11.00 > tol=$0.50).
+        // Single +$11.00 injection on PagoParaNoGenerarIntereses breaks both arithmetic identities.
+        // Tier partition: CL-21 and CL-22 are both "Both" tier → add to condusef + bank fail sets.
         // CondusefTierVerdict remains Red; BankTierVerdict remains Yellow (non-empty bankFailIds).
+        // Note: expectedFailCheckId column uses "CL-21" — CL-22 is asserted in-branch below.
         ["bad-math-cl21.pdf", VerdictSignal.Red,     "CL-21",            VerdictSignal.Yellow, VerdictSignal.Red],
 
         // bad-font-cl35.pdf: RED / CL-35 (Bank tier) + same 13 structural failures.
@@ -448,8 +453,13 @@ public sealed class VecChecklistDemoE2ETests
                 // For bad-math-cl21.pdf specifically (after Epic 5 — guarded implied-zero rule):
                 // AdeudoPeriodoAnterior and PagosYAbonos are legitimately absent (zero-row
                 // suppressed); the rule now treats them as 0m rather than returning InsufficientData.
-                // computed = 5-core-sum = $12,604.55, observed = $12,615.55, delta = $11.00.
-                // $11.00 >> legal tolerance ($0.50) → CL-21 evaluates to Fail/Critical.
+                // The +$11.00 injection changes PagoParaNoGenerarIntereses: $12,604.55 → $12,615.55.
+                // This single fat-finger entry breaks TWO arithmetic identities:
+                //   CL-21: computed(5-core-sum) = $12,604.55, observed = $12,615.55, delta = $11.00
+                //          >> $0.50 legal tolerance → Fail/Critical.
+                //   CL-22: SaldoCargosRegulares (NIVEL DE USO, untouched) = $12,604.55
+                //          vs PagoParaNoGenerarIntereses (injected) = $12,615.55, delta = $11.00
+                //          >> $0.50 → Fail/Critical.
                 if (fixtureName == "bad-math-cl21.pdf")
                 {
                     outcome.Summary.InsufficientDataCheckIds.ShouldNotContain(
@@ -461,6 +471,13 @@ public sealed class VecChecklistDemoE2ETests
                         "CL-21",
                         "CL-21 must be Fail for bad-math-cl21.pdf — the +$11.00 injected error " +
                         "(delta=$11.00) exceeds the $0.50 legal tolerance.");
+                    outcome.Summary.FailCheckIds.ShouldContain(
+                        "CL-22",
+                        "CL-22 must also be Fail for bad-math-cl21.pdf — the same +$11.00 injection " +
+                        "that breaks CL-21 also violates the SaldoCargosRegulares==PagoParaNoGenerarIntereses " +
+                        "identity (SaldoCargosRegulares=$12,604.55 untouched vs injected $12,615.55, " +
+                        "delta=$11.00 >> $0.50 tolerance).  One fat-finger entry legitimately breaks " +
+                        "both arithmetic checks.");
                 }
                 break;
 

@@ -621,6 +621,36 @@ public sealed class ArithmeticRulesTests
             "present but low-confidence PagosYAbonos must cause abstention");
     }
 
+    /// <summary>
+    /// Present-but-low-confidence AdeudoPeriodoAnterior: the field IS extracted (Status == Extracted)
+    /// but its confidence is below the threshold. The rule must abstain (InsufficientData)
+    /// because a misread digit in a non-zero Adeudo row could corrupt the formula silently.
+    /// PagosYAbonos is absent (implied 0) to isolate the Adeudo guard.
+    /// </summary>
+    [Fact]
+    public void Cl21_AdeudoExtractedBelowConfidenceThreshold_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-21");
+        // Confidence 0.5 < threshold 0.8 (LegalMinFieldConfidenceDefault)
+        var lowConfidenceAdeudo = new ExtractedField<decimal>(
+            5000.00m, 0.5, P1(), ExtractionStatus.Extracted);
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: lowConfidenceAdeudo,      // ← present but low-confidence
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: null);                             // ← absent → implied 0
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "present but low-confidence AdeudoPeriodoAnterior must cause abstention");
+    }
+
     [Fact]
     public void Cl21_ComputedDiffersByMoreThanTolerance_ReturnsFail()
     {
