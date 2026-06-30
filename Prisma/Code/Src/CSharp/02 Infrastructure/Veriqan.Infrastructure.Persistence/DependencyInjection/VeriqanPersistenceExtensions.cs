@@ -76,11 +76,25 @@ public static class VeriqanPersistenceExtensions
         services.AddScoped<IVerdictPersistenceService, EfVerdictPersistenceService>();
         services.AddScoped<IJobVerdictAlertRepository, EfJobVerdictAlertRepository>();
 
-        // Crypto key provider — reads from configuration key "Veriqan:LegalBaseline:EncryptionKey"
+        // ISecretProvider fallback: register the default config-backed implementation only if no
+        // prior registration exists. This allows AddVeriqanPersistence to be called standalone
+        // (MigrateCommand, direct integration-test hosts) without requiring AddVeriqan.
+        // When AddVeriqan IS used it registers ISecretProvider first with TryAddSingleton, so that
+        // registration wins and this TryAdd becomes a no-op.
+        // A Key Vault adapter is plugged in by registering ISecretProvider before calling AddVeriqan
+        // or AddVeriqanPersistence — both use TryAdd, so the first registration always wins.
+        services.TryAddSingleton<ISecretProvider>(sp =>
+            new ConfigurationSecretProvider(sp.GetRequiredService<IConfiguration>()));
+
+        // Crypto key provider — resolves "Veriqan:LegalBaseline:EncryptionKey" via ISecretProvider.
+        // The default ConfigurationSecretProvider reads from IConfiguration (env vars / appsettings).
+        // A future Key Vault implementation is plugged in by registering a different ISecretProvider
+        // before AddVeriqanPersistence is called.  Fails loudly at startup if the key is absent or
+        // not a valid 32-byte Base64 value — the host must never boot without a valid AES key.
         services.AddSingleton<ILegalBaselineCryptoKeyProvider>(sp =>
         {
-            var config = sp.GetRequiredService<IConfiguration>();
-            return new ConfigurationCryptoKeyProvider(config);
+            var secretProvider = sp.GetRequiredService<ISecretProvider>();
+            return new ConfigurationCryptoKeyProvider(secretProvider);
         });
 
         // AES converter — singleton; shares key-material for the process lifetime.

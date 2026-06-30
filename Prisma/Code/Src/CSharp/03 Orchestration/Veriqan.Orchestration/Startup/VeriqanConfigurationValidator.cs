@@ -33,6 +33,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Startup;
 ///   <item><c>Veriqan:CsvReferenceData:RootDirectory</c> — reference-data CSV root</item>
 ///   <item><c>Veriqan:Smtp:Host</c> — SMTP relay for RED-verdict alerts</item>
 ///   <item><c>Veriqan:LegalBaseline:EncryptionKey</c> — AES-256 key for at-rest encryption</item>
+///   <item><c>Veriqan:Auth:Jwt:SigningKey</c> — HMAC-SHA256 key for JWT bearer token validation</item>
 /// </list>
 /// </para>
 /// </remarks>
@@ -51,6 +52,8 @@ public sealed class VeriqanConfigurationValidator : IHostedService
             "SMTP host — RED-verdict alert emails cannot be dispatched without it"),
         ("Veriqan:LegalBaseline:EncryptionKey",
             "AES-256 encryption key — required for the encrypted SQL legal-baseline store"),
+        ("Veriqan:Auth:Jwt:SigningKey",
+            "HMAC-SHA256 JWT signing key — bearer token validation will reject all tokens without it"),
     ];
 
     private readonly IConfiguration _configuration;

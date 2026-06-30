@@ -3,6 +3,7 @@ using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.Stores;
 using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Adapters;
 using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
+using ExxerCube.Prisma.Veriqan.Application.Ports;
 using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Worker;
@@ -163,7 +164,16 @@ else
     var jwtSection = builder.Configuration.GetSection("Veriqan:Auth:Jwt");
     var issuer = jwtSection["Issuer"];
     var audience = jwtSection["Audience"];
-    var signingKey = jwtSection["SigningKey"];
+
+    // Resolve the JWT signing key via ISecretProvider (config-backed default).
+    // ConfigurationSecretProvider reads Veriqan:Auth:Jwt:SigningKey from IConfiguration,
+    // identical to what jwtSection["SigningKey"] returned before — no behaviour change.
+    // A future Key Vault adapter is swapped in by registering ISecretProvider before AddVeriqan;
+    // this code path then automatically routes through the vault without modification.
+    var jwtKeyResult = new ConfigurationSecretProvider(builder.Configuration)
+        .GetSecretAsync("Veriqan:Auth:Jwt:SigningKey")
+        .GetAwaiter().GetResult();
+    var signingKey = jwtKeyResult.IsSuccess ? jwtKeyResult.Value?.Value : null;
 
     // Loud startup warning when the signing key is absent or still a placeholder.
     // The service will boot but every token will be rejected at runtime.

@@ -86,6 +86,7 @@ public sealed class VeriqanConfigurationValidatorTests
                 ["Veriqan:CsvReferenceData:RootDirectory"] = "/opt/reference-data/csv/",
                 ["Veriqan:Smtp:Host"] = "smtp.example.com",
                 ["Veriqan:LegalBaseline:EncryptionKey"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                ["Veriqan:Auth:Jwt:SigningKey"] = "jwt-signing-key-at-least-32-chars-long-for-hmac256",
             })
             .Build();
 
@@ -118,6 +119,7 @@ public sealed class VeriqanConfigurationValidatorTests
                 ["Veriqan:CsvReferenceData:RootDirectory"] = "/opt/reference-data/csv/",
                 ["Veriqan:Smtp:Host"] = "smtp.example.com",
                 ["Veriqan:LegalBaseline:EncryptionKey"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                ["Veriqan:Auth:Jwt:SigningKey"] = "jwt-signing-key-at-least-32-chars-long-for-hmac256",
             })
             .Build();
 
@@ -198,5 +200,7 @@ public sealed class VeriqanConfigurationValidatorTests
             "RootDirectory is absent — must be flagged.");
         missingKeys.ShouldContain("Veriqan:LegalBaseline:EncryptionKey",
             "EncryptionKey is absent — must be flagged.");
+        missingKeys.ShouldContain("Veriqan:Auth:Jwt:SigningKey",
+            "JWT signing key is absent — must be flagged (Story 6.3).");
     }
 }

@@ -13,6 +13,8 @@ using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Orchestration.Repositories;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
+using ExxerCube.Prisma.Veriqan.Infrastructure.Reporting;
+using ExxerCube.Prisma.Veriqan.Orchestration.Secrets;
 using ExxerCube.Prisma.Veriqan.Orchestration.Startup;
 using ExxerCube.Prisma.Veriqan.Orchestration.Stores;
 using IndQuestResults;
@@ -63,6 +65,13 @@ public static class VeriqanOrchestrationExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(config);
 
+        // ── Secret provider (Story 6.3) ───────────────────────────────────────────
+        // Register the default configuration-backed implementation with TryAddSingleton so
+        // a caller can plug in a Key Vault / KMS adapter by registering ISecretProvider BEFORE
+        // calling AddVeriqan — the prior registration wins automatically.
+        services.TryAddSingleton<ISecretProvider>(sp =>
+            new ConfigurationSecretProvider(sp.GetRequiredService<IConfiguration>()));
+
         // Application layer
         services.AddVeriqanIngestion();
         services.AddVeriqanBinding();
@@ -79,6 +88,14 @@ public static class VeriqanOrchestrationExtensions
         services.AddVeriqanValidation();
         services.AddVeriqanVisual();
         services.AddVeriqanReporting(config);
+
+        // SMTP password from secret provider (Story 6.3).
+        // Registered here (not inside AddVeriqanReporting) so that ISecretProvider is available
+        // via DI at the point SmtpOptions are first resolved. Keeps AddVeriqanReporting free of
+        // ISecretProvider dependencies, so tests that call AddVeriqanReporting directly continue
+        // to work without registering ISecretProvider.
+        services.AddSingleton<IPostConfigureOptions<SmtpOptions>>(sp =>
+            new SmtpPasswordSecretPopulator(sp.GetRequiredService<ISecretProvider>()));
 
         // Startup config validator — runs before persistence so the DB-absent warning is
         // emitted before any persistence-path decision.  Registered unconditionally (both
