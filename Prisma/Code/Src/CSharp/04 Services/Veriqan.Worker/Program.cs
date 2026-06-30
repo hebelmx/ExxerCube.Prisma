@@ -279,6 +279,15 @@ app.MapPost("/verify", async (
 
     var result = await pipeline.ProcessAsync(submission, ct);
 
+    // Gate system-unavailability (timeout, circuit-breaker open, unhandled inner exception)
+    // is distinguished from a normal business-failure verdict by the "Gate." error prefix
+    // set by ResilientVerificationPipeline (Story 6.6 fail-closed policy).
+    // HTTP 503 Service Unavailable signals that the verification service itself is down,
+    // not that the submitted statement failed compliance checks.
+    if (result.IsFailure &&
+        result.Error?.StartsWith("Gate.", StringComparison.Ordinal) == true)
+        return Results.StatusCode(503);
+
     if (!result.IsSuccess)
         return Results.UnprocessableEntity(new { error = result.Error });
 

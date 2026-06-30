@@ -15,10 +15,14 @@ using ExxerCube.Prisma.Veriqan.Orchestration.Repositories;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
 using ExxerCube.Prisma.Veriqan.Orchestration.Startup;
 using ExxerCube.Prisma.Veriqan.Orchestration.Stores;
+using IndQuestResults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Polly;
 
 namespace ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
 
@@ -120,8 +124,36 @@ public static class VeriqanOrchestrationExtensions
         services.Configure<BatchProcessorOptions>(
             config.GetSection(BatchProcessorOptions.Section));
 
-        // Pipeline + batch + resume/reprocess
-        services.AddScoped<IVerificationPipeline, VerificationPipeline>();
+        // ── Gate resilience (Story 6.6) ──────────────────────────────────────────
+        // Bind options from config (Veriqan:Gate:Resilience); defaults are used when the
+        // section is absent so the gate still has a 30 s timeout and an 80 % fail-ratio
+        // circuit breaker even without explicit configuration.
+        services.Configure<GateResilienceOptions>(
+            config.GetSection(GateResilienceOptions.Section));
+
+        // The Polly ResiliencePipeline is a Singleton: the circuit-breaker state must be
+        // shared across all scoped pipeline instances so failures from different requests
+        // accumulate toward the trip threshold.
+        services.AddSingleton(static sp =>
+        {
+            var opts = sp.GetRequiredService<IOptions<GateResilienceOptions>>().Value;
+            var logger = sp.GetRequiredService<ILogger<ResilientVerificationPipeline>>();
+            return ResilientVerificationPipeline.BuildResiliencePipeline(opts, logger);
+        });
+
+        // Inner (concrete) pipeline registered as Scoped under its concrete type so the
+        // decorator can resolve it via the service provider without going through the
+        // IVerificationPipeline key (which now resolves the decorator).
+        services.AddScoped<VerificationPipeline>();
+
+        // Decorator registered as the public interface.  Injects the scoped inner pipeline
+        // and the singleton Polly pipeline.
+        services.AddScoped<IVerificationPipeline>(static sp => new ResilientVerificationPipeline(
+            sp.GetRequiredService<VerificationPipeline>(),
+            sp.GetRequiredService<ResiliencePipeline<Result<VerificationOutcome>>>(),
+            sp.GetRequiredService<IOptions<GateResilienceOptions>>().Value,
+            sp.GetRequiredService<ILogger<ResilientVerificationPipeline>>()));
+
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
 
         // IVerificationResultStore and IReprocessAuditRepository are registered by whichever
