@@ -43,9 +43,12 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// DayCountPrinted, PagoMinimo), RESUMEN amounts (CargosRegularesNoMeses, CargosComprasAMeses,
 /// MontoIntereses, MontoComisiones, IvaInteresesYComisiones), and NIVEL-DE-USO totals
 /// (SaldoCargosRegulares, SaldoCargosAMeses, CreditoDisponible) are all now extracted.
-/// AdeudoPeriodoAnterior and PagosYAbonos remain NotExtracted (not present on page 1 of this
-/// layout) so CL-21 is still InsufficientData for these fixtures; the injected 0.44 delta in
-/// <c>bad-math-cl21.pdf</c> cannot be detected without those two fields.
+/// AdeudoPeriodoAnterior and PagosYAbonos remain NotExtracted (zero-row suppressed on
+/// page 1 of this layout). After the Epic 5 guarded-implied-zero rule change, CL-21 treats
+/// their absence as 0m and evaluates the formula with the 5 CORE operands.
+/// For good.pdf: computed=$12,604.55, observed=$12,604.55 → CL-21 returns <b>Pass</b>.
+/// For bad-math-cl21.pdf: computed=$12,604.55, observed=$12,615.55, delta=$11.00 &gt; tol=$0.50
+/// → CL-21 returns <b>Fail/Critical</b> (injected error exceeds tolerance).
 /// </para>
 /// <para>
 /// <b>Demo corpus</b> — 4 anonymized PDFs under:<br/>
@@ -54,7 +57,7 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Tests;
 /// <list type="table">
 ///   <listheader><term>File</term><description>Actual verdict / notes</description></listheader>
 ///   <item><term>good.pdf</term><description>RED / LAW-SEC-PRESENCE — 13 structural failures. 21 fields extracted; floor cleared without bypass.</description></item>
-///   <item><term>bad-math-cl21.pdf</term><description>RED / LAW-SEC-PRESENCE — same 13 structural failures; CL-21 = InsufficientData (AdeudoPeriodoAnterior and PagosYAbonos not present on page 1 of this layout). Math error undetected at this level.</description></item>
+///   <item><term>bad-math-cl21.pdf</term><description>RED / LAW-SEC-PRESENCE + CL-21 — same 13 structural failures; CL-21 = Fail (guarded implied-zero: Adeudo/Pagos absent → 0m, delta=$11.00 &gt; tol=$0.50). Math error exceeds tolerance → CL-21 fires RED.</description></item>
 ///   <item><term>bad-font-cl35.pdf</term><description>RED / CL-35 — Courier font detected; Helvetica required by bundle (plus same 13 structural failures).</description></item>
 ///   <item><term>scanned.pdf</term><description>BLOCKED — image-only PDF, text-layer floor not met.</description></item>
 /// </list>
@@ -158,13 +161,14 @@ public sealed class VecChecklistDemoE2ETests
     ///   LAW-§26-NOTAS                — (a) genuine: 13 mandatory "Notas aclaratorias" texts absent
     ///   LAW-§27-GLOSARIO             — (a) genuine: 15 mandatory "Glosario de términos" texts absent
     ///
-    /// <b>Why bad-math-cl21.pdf is also Red (NOT because of CL-21):</b>
-    /// The RESUMEN fields required by CL-21 (AdeudoPeriodoAnterior, CargosRegularesNoMeses, etc.)
-    /// are all <see cref="Domain.Extraction.ExtractionStatus.NotExtracted"/> from this PDF family.
-    /// CL-21 therefore returns InsufficientData for both good.pdf and bad-math-cl21.pdf —
-    /// the math error (12604.99 vs 12604.55) is undetected.  The Red signal comes from the same
-    /// 13 structural failures as good.pdf.  The separate assertion on CL-21 in
-    /// InsufficientDataCheckIds confirms the math-error path is inert.
+    /// <b>Why bad-math-cl21.pdf is Red (CL-21 fires + 13 structural failures, after Epic 5):</b>
+    /// After the guarded-implied-zero rule change (Epic 5), AdeudoPeriodoAnterior and PagosYAbonos
+    /// are treated as 0m when absent (zero-row suppressed on page 1 of this layout).
+    /// The five CORE operands ARE extracted, so CL-21 evaluates: computed=$12,604.55,
+    /// observed=$12,615.55, delta=$11.00 &gt; legal tolerance $0.50 → <b>Fail/Critical</b>.
+    /// The Red signal comes from both CL-21 (math error) and the same 13 structural failures as good.pdf.
+    /// The assertion on CL-21 confirms it IS in FailCheckIds (error exceeds tolerance)
+    /// and is NOT in InsufficientDataCheckIds.
     /// </remarks>
     /// <summary>
     /// MemberData source for <see cref="Pipeline_DemoFixture_ProducesExpectedVerdict"/>.
@@ -208,9 +212,10 @@ public sealed class VecChecklistDemoE2ETests
         // BankTierVerdict=Yellow because CL-50/CL-51/CL-52/CL-53 are Bank and CL-31/CL-32/CL-46/CL-48 are Both.
         ["good.pdf",          VerdictSignal.Red,     "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
 
-        // bad-math-cl21.pdf: RED (same 13 structural failures as good.pdf; CL-21 = InsufficientData).
-        // Tier partition is identical to good.pdf.
-        ["bad-math-cl21.pdf", VerdictSignal.Red,     "LAW-SEC-PRESENCE", VerdictSignal.Yellow, VerdictSignal.Red],
+        // bad-math-cl21.pdf: RED (13 structural failures + CL-21 Fail; delta=$11.00 > tol=$0.50).
+        // Tier partition: CL-21 is a "Both" tier check → adds to both condusef and bank fail sets.
+        // CondusefTierVerdict remains Red; BankTierVerdict remains Yellow (non-empty bankFailIds).
+        ["bad-math-cl21.pdf", VerdictSignal.Red,     "CL-21",            VerdictSignal.Yellow, VerdictSignal.Red],
 
         // bad-font-cl35.pdf: RED / CL-35 (Bank tier) + same 13 structural failures.
         // CL-35 adds to bankFailIds but not condusefFailIds — tier split is the same as the others.
@@ -440,19 +445,22 @@ public sealed class VecChecklistDemoE2ETests
                     0,
                     $"'{fixtureName}': RED outcome must carry at least one RuleFinding.");
 
-                // For bad-math-cl21.pdf specifically: CL-21 must be InsufficientData (not Fail),
-                // proving the injected math error was NOT the cause of Red — the Red signal comes
-                // from 13 structural failures (same as good.pdf).  The 0.44 delta in
-                // PagoParaNoGenerarIntereses is undetected because AdeudoPeriodoAnterior is
-                // NotExtracted from this PDF layout (type b: extraction gap).
+                // For bad-math-cl21.pdf specifically (after Epic 5 — guarded implied-zero rule):
+                // AdeudoPeriodoAnterior and PagosYAbonos are legitimately absent (zero-row
+                // suppressed); the rule now treats them as 0m rather than returning InsufficientData.
+                // computed = 5-core-sum = $12,604.55, observed = $12,615.55, delta = $11.00.
+                // $11.00 >> legal tolerance ($0.50) → CL-21 evaluates to Fail/Critical.
                 if (fixtureName == "bad-math-cl21.pdf")
                 {
-                    outcome.Summary.InsufficientDataCheckIds.ShouldContain(
+                    outcome.Summary.InsufficientDataCheckIds.ShouldNotContain(
                         "CL-21",
-                        "CL-21 must be in InsufficientDataCheckIds for bad-math-cl21.pdf — proves " +
-                        "the rule was evaluated but returned InsufficientData (not Fail) due to " +
-                        "missing RESUMEN field extraction.  The Red signal comes from structural " +
-                        "failures shared with good.pdf, NOT from the injected arithmetic error.");
+                        "CL-21 must NOT be InsufficientData for bad-math-cl21.pdf after the " +
+                        "guarded-implied-zero change (Epic 5) — absent Adeudo/Pagos rows are " +
+                        "now treated as 0m so the formula runs.");
+                    outcome.Summary.FailCheckIds.ShouldContain(
+                        "CL-21",
+                        "CL-21 must be Fail for bad-math-cl21.pdf — the +$11.00 injected error " +
+                        "(delta=$11.00) exceeds the $0.50 legal tolerance.");
                 }
                 break;
 

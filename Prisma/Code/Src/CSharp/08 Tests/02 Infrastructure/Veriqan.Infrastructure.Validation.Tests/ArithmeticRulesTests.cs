@@ -474,25 +474,151 @@ public sealed class ArithmeticRulesTests
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
     }
 
+    /// <summary>
+    /// A missing CORE operand (MontoIntereses) must still short-circuit to InsufficientData,
+    /// regardless of whether AdeudoPeriodoAnterior or PagosYAbonos are present.
+    /// (AdeudoPeriodoAnterior and PagosYAbonos are no longer hard-guarded — their absence
+    /// is treated as implied zero by the guarded-implied-zero rule change, Epic 5.)
+    /// </summary>
     [Fact]
-    public void Cl21_AnyInputFieldMissing_ReturnsInsufficientData()
+    public void Cl21_CoreOperandMissing_ReturnsInsufficientData()
     {
         var rule = GetRule("CL-21");
-        // PagosYAbonos is Missing — should short-circuit to InsufficientData
+        // MontoIntereses is Missing — core operand absent signals real extraction failure.
         var ps = MakeSummary(
             pagoParaNoGenerarIntereses: Found(32446.69m),
             adeudoPeriodoAnterior: Found(67796.35m),
             cargosRegularesNoMeses: Found(31461.30m),
             cargosComprasAMesesCapital: Found(985.39m),
-            montoIntereses: Found(0m),
+            montoIntereses: null,          // ← null → Missing (core operand)
             montoComisiones: Found(0m),
             ivaInteresesYComisiones: Found(0m),
-            pagosYAbonos: null);   // ← null → Missing
+            pagosYAbonos: Found(67796.35m));
         var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
 
         var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
 
         result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData);
+    }
+
+    // -----------------------------------------------------------------------
+    // CL-21 guarded implied-zero tests (Epic 5)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Implied-zero FAIL: AdeudoPeriodoAnterior and PagosYAbonos are absent (not extracted);
+    /// both are treated as 0. The five core operands plus target are extracted. The target is
+    /// inflated beyond tolerance — rule must fire Fail.
+    /// </summary>
+    [Fact]
+    public void Cl21_ImpliedZero_AdeudoAndPagosAbsent_TargetInflated_ReturnsFail()
+    {
+        var rule = GetRule("CL-21");
+        // computed = 0 + 5000 + 2500 + 1000 + 500 + 100 - 0 = 9100.00
+        // target   = 9101.00  →  diff = 1.00 > 0.50 (Tol) → Fail
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9101.00m), // injected bad value
+            adeudoPeriodoAnterior: null,                 // ← absent → implied 0
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: null);                         // ← absent → implied 0
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.CheckId.ShouldBe("CL-21");
+        result.Value.Verdict.ShouldBe(FindingVerdict.Fail,
+            "implied-zero path must evaluate the formula and detect the arithmetic error");
+        result.Value.Severity.ShouldBe(FindingSeverity.Critical);
+    }
+
+    /// <summary>
+    /// Implied-zero PASS: AdeudoPeriodoAnterior and PagosYAbonos are absent; both implied 0.
+    /// Target matches the sum of the five core operands exactly → Pass.
+    /// </summary>
+    [Fact]
+    public void Cl21_ImpliedZero_AdeudoAndPagosAbsent_TargetMatchesSum_ReturnsPass()
+    {
+        var rule = GetRule("CL-21");
+        // computed = 0 + 5000 + 2500 + 1000 + 500 + 100 - 0 = 9100.00
+        // target   = 9100.00  →  diff = 0 < 0.50 → Pass
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: null,                  // ← absent → implied 0
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: null);                          // ← absent → implied 0
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.CheckId.ShouldBe("CL-21");
+        result.Value.Verdict.ShouldBe(FindingVerdict.Pass,
+            "implied-zero path: zero-suppressed Adeudo/Pagos rows + correct target → Pass");
+        result.Value.ToleranceApplied.ShouldBe(Tol);
+    }
+
+    /// <summary>
+    /// Block-not-located: target (PagoParaNoGenerarIntereses) is not extracted.
+    /// The payment block was not found — rule must return InsufficientData regardless
+    /// of whether Adeudo/Pagos are absent.
+    /// </summary>
+    [Fact]
+    public void Cl21_TargetNotExtracted_AdeudoPagosAbsent_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-21");
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: null,            // ← absent → target not located
+            adeudoPeriodoAnterior: null,                 // ← absent
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: null);                         // ← absent
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "absent target means the payment block was not located — must abstain");
+    }
+
+    /// <summary>
+    /// Present-but-low-confidence PagosYAbonos: the field IS extracted (Status == Extracted)
+    /// but its confidence is below the threshold. The rule must abstain (InsufficientData)
+    /// because a misread digit in a non-zero Pagos row could corrupt the formula silently.
+    /// </summary>
+    [Fact]
+    public void Cl21_PagosExtractedBelowConfidenceThreshold_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-21");
+        // Confidence 0.5 < threshold 0.8 (LegalMinFieldConfidenceDefault)
+        var lowConfidencePagos = new ExtractedField<decimal>(
+            5000.00m, 0.5, P1(), ExtractionStatus.Extracted);
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: null,                  // ← absent → implied 0
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: lowConfidencePagos);            // ← present but low-confidence
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "present but low-confidence PagosYAbonos must cause abstention");
     }
 
     [Fact]

@@ -30,15 +30,28 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// </para>
 /// <para>
 /// <b>Confidence guard (Story 9.5 / 9.6):</b> each RESUMEN subtotal input field is checked
-/// for extraction confidence. If any confidence-bearing field is below the threshold the rule
+/// for extraction confidence. If a PRESENT (Extracted) field is below the threshold the rule
 /// abstains (InsufficientData) to prevent a false verdict from a misread digit.
+/// </para>
+/// <para>
+/// <b>Guarded implied-zero (Epic 5):</b> <see cref="PeriodSummary.AdeudoPeriodoAnterior"/> and
+/// <see cref="PeriodSummary.PagosYAbonos"/> may be legitimately absent because Banamex suppresses
+/// zero-value RESUMEN rows in certain PDF layouts. Their absence is treated as an implied <c>0</c>
+/// rather than an extraction failure. A PRESENT but low-confidence field still causes abstention
+/// (InsufficientData) because a misread digit in either row is dangerous.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
 /// <list type="bullet">
-///   <item>Any required RESUMEN subtotal field is <see cref="ExtractionStatus.NotExtracted"/>.</item>
-///   <item>Any confidence-bearing field is below the confidence threshold.</item>
-///   <item><see cref="PeriodSummary.PagoParaNoGenerarIntereses"/> is NotExtracted.</item>
+///   <item>Any of the five CORE operands (CargosRegularesNoMeses, CargosComprasAMesesCapital,
+///     MontoIntereses, MontoComisiones, IvaInteresesYComisiones) is
+///     <see cref="ExtractionStatus.NotExtracted"/> — signals a genuine RESUMEN parse failure.</item>
+///   <item><see cref="PeriodSummary.PagoParaNoGenerarIntereses"/> is NotExtracted — the payment
+///     block was not located, so there is nothing to compare against.</item>
+///   <item>AdeudoPeriodoAnterior or PagosYAbonos is <b>present</b> (Extracted) but below the
+///     confidence threshold — a low-confidence value in a zero-row that is actually non-zero
+///     could silently corrupt the formula.</item>
+///   <item>Any other confidence-bearing field is below the confidence threshold.</item>
 /// </list>
 /// </para>
 /// </remarks>
@@ -87,9 +100,10 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
         if (ps is null)
             return InsufficientData("StatementModel or PeriodSummary is not populated.");
 
-        // All RESUMEN subtotal inputs must be extracted
-        if (ps.AdeudoPeriodoAnterior.Status != ExtractionStatus.Extracted)
-            return InsufficientData($"AdeudoPeriodoAnterior is {ps.AdeudoPeriodoAnterior.Status}.");
+        // Five CORE operands must be Extracted — any absence signals that the RESUMEN block
+        // genuinely failed to parse (not a zero-row suppression scenario).
+        // AdeudoPeriodoAnterior and PagosYAbonos are intentionally excluded from this hard guard;
+        // see the guarded implied-zero blocks below.
         if (ps.CargosRegularesNoMeses.Status != ExtractionStatus.Extracted)
             return InsufficientData($"CargosRegularesNoMeses is {ps.CargosRegularesNoMeses.Status}.");
         if (ps.CargosComprasAMesesCapital.Status != ExtractionStatus.Extracted)
@@ -100,20 +114,34 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
             return InsufficientData($"MontoComisiones is {ps.MontoComisiones.Status}.");
         if (ps.IvaInteresesYComisiones.Status != ExtractionStatus.Extracted)
             return InsufficientData($"IvaInteresesYComisiones is {ps.IvaInteresesYComisiones.Status}.");
-        if (ps.PagosYAbonos.Status != ExtractionStatus.Extracted)
-            return InsufficientData($"PagosYAbonos is {ps.PagosYAbonos.Status}.");
 
-        // Target field to compare against
+        // Target field — its presence anchors the payment block; absence means the block was not located.
         if (ps.PagoParaNoGenerarIntereses.Status != ExtractionStatus.Extracted)
             return InsufficientData($"PagoParaNoGenerarIntereses is {ps.PagoParaNoGenerarIntereses.Status}.");
 
-        // Confidence guard (Story 9.5) — check each confidence-bearing input field
+        // Confidence guard (Story 9.5) — check each confidence-bearing input field.
         var confidenceThreshold = ctx.TenantProfile?.MinFieldConfidence
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
-        if (ctx.ConfidenceBelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
-            return InsufficientData(ConfidenceGuard.Reason(
-                "AdeudoPeriodoAnterior", ps.AdeudoPeriodoAnterior.Confidence, confidenceThreshold));
+        // AdeudoPeriodoAnterior + PagosYAbonos may be zero-suppressed rows (Banamex omits zero-value
+        // RESUMEN lines). Treat genuine absence as 0; abstain only if PRESENT but low-confidence.
+        decimal adeudoValue = 0m;
+        if (ps.AdeudoPeriodoAnterior.Status == ExtractionStatus.Extracted)
+        {
+            if (ctx.ConfidenceBelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
+                return InsufficientData(ConfidenceGuard.Reason(
+                    "AdeudoPeriodoAnterior", ps.AdeudoPeriodoAnterior.Confidence, confidenceThreshold));
+            adeudoValue = ps.AdeudoPeriodoAnterior.Value;
+        }
+        decimal pagosValue = 0m;
+        if (ps.PagosYAbonos.Status == ExtractionStatus.Extracted)
+        {
+            if (ctx.ConfidenceBelowThreshold(ps.PagosYAbonos, confidenceThreshold))
+                return InsufficientData(ConfidenceGuard.Reason(
+                    "PagosYAbonos", ps.PagosYAbonos.Confidence, confidenceThreshold));
+            pagosValue = ps.PagosYAbonos.Value;
+        }
+
         if (ctx.ConfidenceBelowThreshold(ps.CargosRegularesNoMeses, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "CargosRegularesNoMeses", ps.CargosRegularesNoMeses.Confidence, confidenceThreshold));
@@ -129,22 +157,19 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
         if (ctx.ConfidenceBelowThreshold(ps.IvaInteresesYComisiones, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "IvaInteresesYComisiones", ps.IvaInteresesYComisiones.Confidence, confidenceThreshold));
-        if (ctx.ConfidenceBelowThreshold(ps.PagosYAbonos, confidenceThreshold))
-            return InsufficientData(ConfidenceGuard.Reason(
-                "PagosYAbonos", ps.PagosYAbonos.Confidence, confidenceThreshold));
         if (ctx.ConfidenceBelowThreshold(ps.PagoParaNoGenerarIntereses, confidenceThreshold))
             return InsufficientData(ConfidenceGuard.Reason(
                 "PagoParaNoGenerarIntereses", ps.PagoParaNoGenerarIntereses.Confidence, confidenceThreshold));
 
-        // CL-21 formula
+        // CL-21 formula — AdeudoPeriodoAnterior and PagosYAbonos use implied-zero local variables.
         var computed =
-            ps.AdeudoPeriodoAnterior.Value
+            adeudoValue
             + ps.CargosRegularesNoMeses.Value
             + ps.CargosComprasAMesesCapital.Value
             + ps.MontoIntereses.Value
             + ps.MontoComisiones.Value
             + ps.IvaInteresesYComisiones.Value
-            - ps.PagosYAbonos.Value;
+            - pagosValue;
 
         var observed = ps.PagoParaNoGenerarIntereses.Value;
         var diff = Math.Abs(computed - observed);

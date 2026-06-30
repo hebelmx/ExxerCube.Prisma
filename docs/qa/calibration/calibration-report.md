@@ -1,6 +1,6 @@
 ﻿# Veriqan Corpus Calibration Report
 
-**Generated:** 2026-06-20 17:02 UTC  
+**Generated:** 2026-06-30 16:34 UTC  
 **Corpus size:** 3 specimen(s)  
 **KnownGood:** 0 · **KnownSynthetic:** 3 (non-compliant placeholders — NOT compliance evidence) · **KnownBroken:** 0
 
@@ -16,9 +16,9 @@
 
 | Specimen | Label | Skipped | Signal | Findings | NewFails | AllowedFails (ref-data gaps) | KnownFixtureDefects (PDF non-compliance) |
 |----------|-------|---------|--------|----------|----------|------------------------------|------------------------------------------|
-| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | no | Red | 57 | none | CL-42 | CL-31, CL-34, CL-35, CL-48, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
-| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | no | Red | 57 | none | CL-18, CL-42, CL-52, CL-53 | CL-28, CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§23-STATUS, CL-48, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
-| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | no | Red | 57 | none | CL-42 | CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§26-NOTAS, LAW-§27-GLOSARIO, CL-48 |
+| 01+Dummie+VEC+jul_ago+20252.pdf | KnownSynthetic | no | Red | 59 | none | CL-42 | CL-31, CL-34, CL-35, CL-48, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
+| 02+Dummie+VEC+ago_sep+2025.pdf | KnownSynthetic | no | Red | 59 | none | CL-18, CL-42, CL-52, CL-53 | CL-28, CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§23-STATUS, CL-48, LAW-§26-NOTAS, LAW-§27-GLOSARIO |
+| 03+Dummie+VEC+sep_oct+2025.pdf | KnownSynthetic | no | Red | 59 | none | CL-42 | CL-31, CL-34, CL-35, LAW-TYPO-MINSIZE, LAW-SEC-ORDER-GAP, LAW-SEC-PRESENCE, LAW-§13-TRANSFERENCIA, LAW-§17-LEGENDS, LAW-§18-COMPLETE, LAW-§20-WATERFALL, LAW-§26-NOTAS, LAW-§27-GLOSARIO, CL-48 |
 
 ## Fail CheckIds per Specimen
 

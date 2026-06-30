@@ -763,7 +763,9 @@ def _inject_math(doc: fitz.Document) -> None:
     """
     Break a CL-21 arithmetic identity by altering the
     'El pago para no generar intereses' figure on page 1.
-    The balance table shows $X but the payment table shows $X + $0.44.
+    A fixed +$11.00 offset is added so the delta (Δ = $11.00) is well above the
+    $0.50 legal tolerance — CL-21 must fire RED, not be within-tolerance PASS.
+    e.g. $12,604.55 → $12,615.55
     """
     page = doc[0]
     # Find the line containing the payment-to-avoid-interest figure
@@ -802,14 +804,19 @@ def _inject_math(doc: fitz.Document) -> None:
         log.warning("math-inject: could not locate target amount on page 1; skipping")
         return
 
-    # Alter the last two cents digits to create a mismatch
-    # e.g. $12,604.55 → $12,604.99
-    altered = re.sub(r"\.\d{2}$", ".99", target_text)
-    if altered == target_text:
-        altered = re.sub(r"\.\d{2}$", ".01", target_text)
+    # Add a fixed +$11.00 offset — deterministic "fat-finger" entry that is well
+    # above the $0.50 legal tolerance so CL-21 fires RED without ambiguity.
+    # e.g. $12,604.55 → $12,615.55
+    raw = target_text.replace("$", "").replace(",", "")
+    try:
+        numeric = float(raw)
+    except ValueError:
+        log.warning("math-inject: could not parse amount %r; skipping", target_text)
+        return
+    altered = "$" + f"{numeric + 11.00:,.2f}"
 
     count = _redact_and_replace(page, target_text, altered)
-    log.info("math-inject: %s → %s (%d hit(s))", target_text, altered, count)
+    log.info("math-inject: %s → %s (+$11.00, %d hit(s))", target_text, altered, count)
 
 
 def _inject_font(doc: fitz.Document) -> None:
