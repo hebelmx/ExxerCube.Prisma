@@ -96,6 +96,10 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         @"[Xx\*•·●]{4}[\s\-–][Xx\*•·●]{4}[\s\-–][Xx\*•·●]{4}[\s\-–](\d{4})",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+    // Shared sentinel used by both the full-extract and header-only paths.
+    private const string PasswordProtectedFailureMessage =
+        "PasswordProtected — add institution password to config.";
+
     // Header layout constants (PDF points, origin bottom-left).
     private const double HeaderYMin = 530.0;
     private const double HeaderYMax = 700.0;
@@ -381,6 +385,14 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             var model = ExtractHeaderOnly(pdf);
             return Task.FromResult(Result<StatementModel>.WithSuccess(model));
         }
+        catch (Exception ex) when (IsPasswordException(ex))
+        {
+            _logger.LogWarning(
+                "PDF is password-protected (header path) — no password retry on header extraction ({ByteCount} bytes).",
+                pdf.Length);
+            return Task.FromResult(
+                Result<StatementModel>.WithFailure(PasswordProtectedFailureMessage));
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to extract header fields from PDF ({ByteCount} bytes).", pdf.Length);
@@ -458,7 +470,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             {
                 // Password exception was caught inside TryOpenDocument — propagate as failure.
                 return passwordFailure
-                    ?? Result<StatementModel>.WithFailure("PasswordProtected — add institution password to config.");
+                    ?? Result<StatementModel>.WithFailure(PasswordProtectedFailureMessage);
             }
 
             return ExtractFromOpenDocument(doc, pdf);
@@ -516,8 +528,7 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
             _logger.LogWarning(
                 "PDF is password-protected and no institution password is configured ({ByteCount} bytes).",
                 pdf.Length);
-            failure = Result<StatementModel>.WithFailure(
-                "PasswordProtected — add institution password to config.");
+            failure = Result<StatementModel>.WithFailure(PasswordProtectedFailureMessage);
             return null;
         }
     }
