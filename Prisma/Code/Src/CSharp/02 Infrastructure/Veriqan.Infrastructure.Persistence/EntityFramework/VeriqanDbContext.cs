@@ -54,6 +54,12 @@ public sealed class VeriqanDbContext : DbContext
     /// </summary>
     public DbSet<LegalBaselineToleranceRecord> LegalBaselineTolerances { get; set; } = null!;
 
+    /// <summary>Gets or sets the JSON snapshots of completed <c>VerificationOutcome</c> objects.</summary>
+    public DbSet<VerificationOutcomeSnapshotEntity> OutcomeSnapshots { get; set; } = null!;
+
+    /// <summary>Gets or sets the append-only reprocess audit log.</summary>
+    public DbSet<ReprocessAuditLogEntity> ReprocessAuditLog { get; set; } = null!;
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +78,9 @@ public sealed class VeriqanDbContext : DbContext
         // actual encryption only occurs at runtime when a real key is provided.
         var converter = _decimalConverter ?? CreateNoOpConverter();
         modelBuilder.ApplyConfiguration(new LegalBaselineToleranceConfiguration(converter));
+
+        modelBuilder.ApplyConfiguration(new VerificationOutcomeSnapshotConfiguration());
+        modelBuilder.ApplyConfiguration(new ReprocessAuditLogConfiguration());
     }
 
     /// <summary>

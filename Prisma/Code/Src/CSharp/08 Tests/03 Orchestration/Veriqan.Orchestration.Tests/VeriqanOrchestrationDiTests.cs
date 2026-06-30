@@ -1,7 +1,10 @@
 using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Adapters;
 using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
+using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
+using ExxerCube.Prisma.Veriqan.Orchestration.Repositories;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
 using ExxerCube.Prisma.Veriqan.Orchestration.Startup;
+using ExxerCube.Prisma.Veriqan.Orchestration.Stores;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -196,5 +199,76 @@ public sealed class VeriqanOrchestrationDiTests
 
         auditRepoDescriptors.Count.ShouldBe(1,
             "IReprocessAuditRepository must appear once when AddVeriqanInMemoryPersistence is called.");
+    }
+
+    // ── Story 6.1: durable EF store registration path ────────────────────────────
+
+    /// <summary>
+    /// When a connection string is present, <see cref="VeriqanOrchestrationExtensions.AddVeriqan"/>
+    /// must register the EF-backed <c>EfVerificationResultStore</c> and
+    /// <c>EfReprocessAuditRepository</c> (Story 6.1 — durable persistence).
+    /// </summary>
+    [Fact]
+    public void AddVeriqan_WithConnectionString_RegistersEfImpls()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:VeriqanDb"] = "Server=fake;Database=fake;",
+            })
+            .Build();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddVeriqan(config);
+
+        // EF implementations must be the registered types when a connection string is present.
+        var resultStoreDescriptor = services
+            .FirstOrDefault(d => d.ServiceType == typeof(IVerificationResultStore));
+
+        resultStoreDescriptor.ShouldNotBeNull(
+            "IVerificationResultStore must be registered when a connection string is present.");
+        resultStoreDescriptor!.ImplementationType.ShouldBe(
+            typeof(EfVerificationResultStore),
+            "IVerificationResultStore must be backed by EfVerificationResultStore (durable EF store, Story 6.1).");
+
+        var auditRepoDescriptor = services
+            .FirstOrDefault(d => d.ServiceType == typeof(IReprocessAuditRepository));
+
+        auditRepoDescriptor.ShouldNotBeNull(
+            "IReprocessAuditRepository must be registered when a connection string is present.");
+        auditRepoDescriptor!.ImplementationType.ShouldBe(
+            typeof(EfReprocessAuditRepository),
+            "IReprocessAuditRepository must be backed by EfReprocessAuditRepository (durable EF store, Story 6.1).");
+    }
+
+    /// <summary>
+    /// Without a connection string, <see cref="VeriqanOrchestrationExtensions.AddVeriqan"/>
+    /// must fall back to the in-memory implementations.
+    /// </summary>
+    [Fact]
+    public void AddVeriqan_NoConnectionString_RegistersInMemoryImpls()
+    {
+        var config = new ConfigurationBuilder().Build();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddVeriqan(config);
+
+        var resultStoreDescriptor = services
+            .FirstOrDefault(d => d.ServiceType == typeof(IVerificationResultStore));
+
+        resultStoreDescriptor.ShouldNotBeNull();
+        resultStoreDescriptor!.ImplementationType.ShouldBe(
+            typeof(InMemoryVerificationResultStore),
+            "IVerificationResultStore must fall back to InMemoryVerificationResultStore when no connection string is present.");
+
+        var auditRepoDescriptor = services
+            .FirstOrDefault(d => d.ServiceType == typeof(IReprocessAuditRepository));
+
+        auditRepoDescriptor.ShouldNotBeNull();
+        auditRepoDescriptor!.ImplementationType.ShouldBe(
+            typeof(InMemoryReprocessAuditRepository),
+            "IReprocessAuditRepository must fall back to InMemoryReprocessAuditRepository when no connection string is present.");
     }
 }

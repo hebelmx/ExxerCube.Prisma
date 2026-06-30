@@ -11,8 +11,10 @@ using ExxerCube.Prisma.Veriqan.Orchestration.Batch;
 using ExxerCube.Prisma.Veriqan.Orchestration.InMemory;
 using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
+using ExxerCube.Prisma.Veriqan.Orchestration.Repositories;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
 using ExxerCube.Prisma.Veriqan.Orchestration.Startup;
+using ExxerCube.Prisma.Veriqan.Orchestration.Stores;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -96,6 +98,14 @@ public static class VeriqanOrchestrationExtensions
             // CI sets it false and runs `--migrate` as a separate pre-step.
             // Fail-loud: DB unreachable or empty cache after seed → host startup aborted.
             services.AddHostedService<VeriqanLegalBaselineStartupService>();
+
+            // Durable EF-backed stores for the reprocess/resume pipeline (Story 6.1).
+            // Registered here (not in AddVeriqanPersistence) because IVerificationResultStore
+            // and IReprocessAuditRepository are defined in this Orchestration assembly, and
+            // putting the registrations in the Persistence project would create a circular
+            // project reference.
+            services.AddSingleton<IVerificationResultStore, EfVerificationResultStore>();
+            services.AddSingleton<IReprocessAuditRepository, EfReprocessAuditRepository>();
         }
         else
         {
@@ -114,13 +124,13 @@ public static class VeriqanOrchestrationExtensions
         services.AddScoped<IVerificationPipeline, VerificationPipeline>();
         services.AddSingleton<IBatchProcessor, BatchProcessor>();
 
-        // Use TryAdd so that AddVeriqanInMemoryPersistence (called above when no connection
-        // string is present) wins and a second descriptor is never registered.  Without Try*
-        // semantics both the unconditional registration here and the TryAdd inside
-        // AddVeriqanInMemoryPersistence produce two descriptors for the same interface,
-        // leaving one singleton orphaned.
-        services.TryAddSingleton<IVerificationResultStore, InMemoryVerificationResultStore>();
-        services.TryAddSingleton<IReprocessAuditRepository, InMemoryReprocessAuditRepository>();
+        // IVerificationResultStore and IReprocessAuditRepository are registered by whichever
+        // persistence branch ran above:
+        //   • SQL path  → EfVerificationResultStore / EfReprocessAuditRepository (AddSingleton,
+        //                  registered in the if-block immediately after AddVeriqanPersistence).
+        //   • In-memory → InMemoryVerificationResultStore / InMemoryReprocessAuditRepository
+        //                  (TryAddSingleton inside AddVeriqanInMemoryPersistence).
+        // Both branches register exactly one descriptor each — no duplicate fallback here.
         services.AddScoped<IReprocessService, ReprocessService>();
 
         return services;

@@ -89,6 +89,8 @@
     <ProjectReference Include="..\..\..\09 Testing\01 Abstractions\Testing\Infrastructure\ExxerCube.Prisma.Testing.Infrastructure.csproj" />
     <!-- Veriqan Worker — exposes MigrateCommand for Story 6.8 migration CLI tests -->
     <ProjectReference Include="..\..\..\04 Services\Veriqan.Worker\ExxerCube.Prisma.Veriqan.Worker.csproj" />
+    <!-- Veriqan Orchestration — exposes EfVerificationResultStore / EfReprocessAuditRepository (Story 6.1 durable stores) -->
+    <ProjectReference Include="..\..\..\03 Orchestration\Veriqan.Orchestration\ExxerCube.Prisma.Veriqan.Orchestration.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Testing Platform Capabilities">

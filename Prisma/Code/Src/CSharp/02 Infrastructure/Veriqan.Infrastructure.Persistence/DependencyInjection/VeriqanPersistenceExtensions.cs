@@ -104,6 +104,11 @@ public static class VeriqanPersistenceExtensions
         // Persistence project does not reference Microsoft.Extensions.Hosting.Abstractions.
         // Callers that embed AddVeriqanPersistence directly (integration tests) must either
         // call SqlLegalToleranceProvider.InitialiseAsync themselves or call the startup hook.
+        //
+        // NOTE: IVerificationResultStore / IReprocessAuditRepository (durable EF stores, Story 6.1)
+        // are also registered by the Orchestration layer (VeriqanOrchestrationExtensions.AddVeriqan)
+        // because those interfaces are defined in the Orchestration assembly, and registering them
+        // from Persistence would create a circular project reference.
 
         return services;
     }
