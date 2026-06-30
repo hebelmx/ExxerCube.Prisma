@@ -6,6 +6,7 @@ using ExxerCube.Prisma.Testing.Infrastructure.Fixtures;
 using ExxerCube.Prisma.Veriqan.Application.Verdict;
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Persistence.EntityFramework;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
@@ -309,5 +310,127 @@ public sealed class DurableStoresIntegrationTests
         entries[0].Actor.ShouldBe("system");
         entries[0].Reason.ShouldBe("initial reprocess");
         entries[1].Actor.ShouldBe("reviewer");
+    }
+
+    // -----------------------------------------------------------------------
+    // F-2: Non-default RuleFinding + VerdictSummary fields survive round-trip
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Saves a <see cref="VerificationOutcome"/> whose <see cref="RuleFinding"/> and
+    /// <see cref="VerdictSummary"/> carry non-default values for the fields most at risk of
+    /// silent drop on JSON deserialise:
+    /// <list type="bullet">
+    ///   <item><see cref="RuleFinding.DofNumeral"/> — non-empty string.</item>
+    ///   <item><see cref="RuleFinding.Confidence"/> — below 1.0.</item>
+    ///   <item><see cref="RuleFinding.LegalBaselineVerdict"/> — diverges from primary verdict
+    ///     (tenant-stricter scenario: primary=Fail, baseline=Pass).</item>
+    ///   <item><see cref="VerdictSummary.CondusefTierVerdict"/> — explicit non-default value.</item>
+    ///   <item><see cref="VerdictSummary.TenantDeviations"/> — non-empty collection.</item>
+    ///   <item><see cref="VerdictSummary.TenantOnlyFailCheckIds"/> — non-empty list.</item>
+    ///   <item><see cref="VerdictSummary.Confidence"/> — below 1.0.</item>
+    /// </list>
+    /// If any field drops silently on deserialise this test catches it as a real serialisation
+    /// defect in the converter that must be fixed — not papered over.
+    /// </summary>
+    [Fact]
+    public async Task EfResultStore_NonDefaultValues_SurviveJsonRoundTrip()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (sp, _) = await BuildProviderAsync("durable_result_nondefault", ct);
+        await using var scope = ((ServiceProvider)sp).CreateAsyncScope();
+
+        var store = scope.ServiceProvider.GetRequiredService<IVerificationResultStore>();
+
+        const string hash = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+
+        // RuleFinding: Fail with DofNumeral, Confidence < 1.0, and a diverging LegalBaselineVerdict
+        // (tenant threshold is stricter than the CONDUSEF legal floor).
+        var failFinding = RuleFinding.Fail(
+            "CL-21",
+            TechniqueClass.Deterministic,
+            FindingSeverity.Critical,
+            "1.0.0",
+            expected: "$500.00",
+            observed: "$488.56",
+            toleranceApplied: 0.50m,
+            legalBaselineVerdict: FindingVerdict.Pass)  // legal floor = Pass; tenant bar = Fail
+        with
+        {
+            DofNumeral = "Acuerdo §21",
+            Confidence = 0.72,
+        };
+
+        // VerdictSummary: Yellow signal (bank-only fail, CONDUSEF tier is Green),
+        // with a TenantDeviation and a non-empty TenantOnlyFailCheckIds list.
+        var deviation = new TenantDeviation(
+            CheckId: "CL-21",
+            RequestedValue: 0.25m,
+            LegalDefaultUsed: 0.50m,
+            Reason: "Tenant threshold below legal minimum — reverted to CONDUSEF floor.");
+
+        var summary = VerdictSummary.Red(
+            failCount: 1,
+            passCount: 1,
+            insufficientDataCount: 0,
+            failCheckIds: ["CL-21"],
+            insufficientDataCheckIds: [],
+            tenantDeviations: [deviation],
+            legalBreachCheckIds: [],
+            tenantOnlyFailCheckIds: ["CL-21"],
+            bankFailCheckIds: ["CL-21"],
+            condusefFailCheckIds: [],
+            bankTierVerdict: VerdictSignal.Yellow,
+            condusefTierVerdict: VerdictSignal.Green,
+            signal: VerdictSignal.Yellow,
+            confidence: 0.72);
+
+        IReadOnlyList<RuleFinding> findings =
+        [
+            failFinding,
+            RuleFinding.Pass("CL-PASS-X", TechniqueClass.Deterministic, "1.0.0"),
+        ];
+
+        var job = new VerificationJob(
+            id: Guid.NewGuid(),
+            contentHash: hash,
+            receivedAtUtc: DateTimeOffset.UtcNow,
+            status: VerificationJobStatus.Completed);
+
+        var original = new VerificationOutcome(job, summary, findings, TimeSpan.FromSeconds(4.25));
+
+        // Act — save then retrieve in a fresh scope.
+        var saveResult = await store.SaveOutcomeAsync(hash, original, ct);
+        saveResult.IsSuccess.ShouldBeTrue($"SaveOutcomeAsync failed: {saveResult.Error}");
+
+        var getResult = await store.GetOutcomeAsync(hash, ct);
+        getResult.IsSuccess.ShouldBeTrue($"GetOutcomeAsync failed: {getResult.Error}");
+
+        var restored = getResult.Value;
+        restored.ShouldNotBeNull("GetOutcomeAsync must return the saved outcome.");
+
+        // --- VerdictSummary non-default fields ---
+        restored!.Summary.Signal.ShouldBe(VerdictSignal.Yellow,
+            "Non-Green Signal must survive JSON round-trip.");
+        restored.Summary.BankTierVerdict.ShouldBe(VerdictSignal.Yellow,
+            "BankTierVerdict must survive JSON round-trip.");
+        restored.Summary.CondusefTierVerdict.ShouldBe(VerdictSignal.Green,
+            "CondusefTierVerdict must survive JSON round-trip.");
+        restored.Summary.Confidence.ShouldBe(0.72,
+            "VerdictSummary.Confidence must survive JSON round-trip.");
+        restored.Summary.TenantDeviations.Count.ShouldBe(1,
+            "TenantDeviations collection must survive JSON round-trip with correct count.");
+        restored.Summary.TenantOnlyFailCheckIds.ShouldContain("CL-21",
+            "TenantOnlyFailCheckIds must survive JSON round-trip.");
+
+        // --- RuleFinding non-default fields (located by CheckId) ---
+        var restoredFail = restored.Findings.FirstOrDefault(f => f.CheckId == "CL-21");
+        restoredFail.ShouldNotBeNull("CL-21 RuleFinding must survive JSON round-trip.");
+        restoredFail!.DofNumeral.ShouldBe("Acuerdo §21",
+            "RuleFinding.DofNumeral must survive JSON round-trip.");
+        restoredFail.Confidence.ShouldBe(0.72,
+            "RuleFinding.Confidence must survive JSON round-trip.");
+        restoredFail.LegalBaselineVerdict.ShouldBe(FindingVerdict.Pass,
+            "RuleFinding.LegalBaselineVerdict must survive JSON round-trip (diverges from primary Fail).");
     }
 }

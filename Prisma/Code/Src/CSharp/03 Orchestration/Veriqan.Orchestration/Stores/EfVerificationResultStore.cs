@@ -146,20 +146,46 @@ internal sealed class EfVerificationResultStore : IVerificationResultStore
 
             if (existing is null)
             {
+                // First-writer path: insert a new snapshot.
                 ctx.OutcomeSnapshots.Add(new VerificationOutcomeSnapshotEntity
                 {
                     ContentHash = contentHash,
                     OutcomeJson = json,
                     SavedAtUtc = DateTimeOffset.UtcNow,
                 });
+
+                try
+                {
+                    await ctx.SaveChangesAsync(ct).ConfigureAwait(false);
+                }
+                catch (DbUpdateException dbEx) when (dbEx.InnerException is SqlException sqlEx && sqlEx.Number == 2627)
+                {
+                    // Concurrent-insert race: two ReplaceOutcomeAsync calls both found no existing
+                    // row, staged an Add, and the second SaveChanges hit a PK violation (error 2627).
+                    // Retry once as an update: the row now exists — re-find it and overwrite.
+                    // If the retry also fails, the exception propagates to the outer handler.
+                    _logger.LogDebug(
+                        "ReplaceOutcomeAsync concurrent-insert race for hash {ContentHash}; retrying as update.",
+                        contentHash);
+                    ctx.ChangeTracker.Clear();
+                    var raceWinner = await ctx.OutcomeSnapshots
+                        .FindAsync(new object?[] { contentHash }, ct)
+                        .ConfigureAwait(false);
+                    if (raceWinner is not null)
+                    {
+                        raceWinner.OutcomeJson = json;
+                        raceWinner.ReplacedAtUtc = DateTimeOffset.UtcNow;
+                        await ctx.SaveChangesAsync(ct).ConfigureAwait(false);
+                    }
+                }
             }
             else
             {
                 existing.OutcomeJson = json;
                 existing.ReplacedAtUtc = DateTimeOffset.UtcNow;
+                await ctx.SaveChangesAsync(ct).ConfigureAwait(false);
             }
 
-            await ctx.SaveChangesAsync(ct).ConfigureAwait(false);
             return Result.Success();
         }
         catch (OperationCanceledException)

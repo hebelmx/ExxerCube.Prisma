@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -52,8 +53,13 @@ internal sealed class VerdictSummaryJsonConverter : JsonConverter<VerdictSummary
         if (root.TryGetProperty("TransientDetail", out var td) && td.ValueKind != JsonValueKind.Null)
             transientDetail = td.GetString();
 
+        // Select the explicit 17-parameter user-defined constructor.
+        // Sealed records also synthesize a 1-parameter copy constructor for 'with' expressions;
+        // indexing with [0] is fragile if the runtime emits the copy-constructor before the
+        // user-defined one. Single() with a parameter-count predicate is unambiguous.
         var ctor = typeof(VerdictSummary)
-            .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)[0];
+            .GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Single(c => c.GetParameters().Length == 17);
 
         return (VerdictSummary)ctor.Invoke(
         [

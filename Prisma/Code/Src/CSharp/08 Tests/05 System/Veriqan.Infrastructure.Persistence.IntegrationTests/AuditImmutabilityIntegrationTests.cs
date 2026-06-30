@@ -66,8 +66,7 @@ public sealed class AuditImmutabilityIntegrationTests
         string dbName,
         CancellationToken ct)
     {
-        var connectionString = await _fixture.CreateIsolatedDatabaseAsync(dbName, ct)
-            ;
+        var connectionString = await _fixture.CreateIsolatedDatabaseAsync(dbName, ct);
 
         var options = new DbContextOptionsBuilder<VeriqanDbContext>()
             .UseSqlServer(
@@ -92,8 +91,7 @@ public sealed class AuditImmutabilityIntegrationTests
         string dbName,
         CancellationToken ct)
     {
-        var connectionString = await _fixture.CreateIsolatedDatabaseAsync(dbName, ct)
-            ;
+        var connectionString = await _fixture.CreateIsolatedDatabaseAsync(dbName, ct);
 
         var options = new DbContextOptionsBuilder<VeriqanDbContext>()
             .UseSqlServer(
@@ -532,5 +530,77 @@ public sealed class AuditImmutabilityIntegrationTests
         getResult.Value!.ProcessingDuration.ShouldBe(
             TimeSpan.FromSeconds(9),
             "ReplaceOutcomeAsync must overwrite the snapshot — the table must remain mutable.");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 11: DB trigger backstops EF bulk-update (ExecuteUpdateAsync)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// <c>ExecuteUpdateAsync</c> generates a raw SQL UPDATE that bypasses <c>SaveChanges</c>
+    /// and therefore bypasses the <see cref="ImmutableEntityInterceptor"/>.
+    /// The DB trigger is the defence-in-depth backstop — it must still raise
+    /// a <see cref="SqlException"/> with "immutable" in the message.
+    /// </summary>
+    [Fact]
+    public async Task Trigger_Dispositions_ExecuteUpdateAsync_ThrowsSqlExceptionWithImmutableMessage()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        // Use the plain context (no interceptor) so the test proves the TRIGGER, not the interceptor.
+        var (ctx, _) = await BuildPlainContextAsync("imm_disp_exec_update_async", ct);
+        await using (ctx)
+        {
+            // Seed one row — INSERT must succeed.
+            var disposition = BuildDisposition();
+            await ctx.Dispositions.AddAsync(disposition, ct);
+            await ctx.SaveChangesAsync(ct);
+
+            // Act — ExecuteUpdateAsync bypasses SaveChanges/interceptor and hits the trigger.
+            var ex = await Should.ThrowAsync<SqlException>(async () =>
+                await ctx.Dispositions
+                    .ExecuteUpdateAsync(
+                        s => s.SetProperty(d => d.Actor, "tampered"),
+                        ct));
+
+            ex.Message.ShouldContain("immutable",
+                Case.Insensitive,
+                "DB trigger must block ExecuteUpdateAsync (which bypasses the SaveChanges interceptor).");
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 12: DB trigger blocks full-table DELETE (bulk wipe — most likely attack vector)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A <c>DELETE FROM veriqan.Dispositions</c> with no WHERE clause (full-table wipe)
+    /// is rejected by the DB trigger with a <see cref="SqlException"/> whose message contains
+    /// "immutable". This proves the trigger fires on the most likely real-world bulk attack.
+    /// </summary>
+    [Fact]
+    public async Task Trigger_Dispositions_BulkDelete_NoWhere_ThrowsSqlExceptionWithImmutableMessage()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var (ctx, _) = await BuildPlainContextAsync("imm_disp_bulk_delete", ct);
+        await using (ctx)
+        {
+            // Seed 5 rows.
+            for (var i = 0; i < 5; i++)
+            {
+                await ctx.Dispositions.AddAsync(BuildDisposition(), ct);
+            }
+            await ctx.SaveChangesAsync(ct);
+
+            // Act — full-table DELETE with no WHERE; trigger fires on the first row processed.
+            var ex = await Should.ThrowAsync<SqlException>(async () =>
+                await ctx.Database
+                    .ExecuteSqlAsync(
+                        $"DELETE FROM veriqan.Dispositions",
+                        ct));
+
+            ex.Message.ShouldContain("immutable",
+                Case.Insensitive,
+                "DB trigger must block a full-table DELETE (bulk-wipe attack vector).");
+        }
     }
 }
