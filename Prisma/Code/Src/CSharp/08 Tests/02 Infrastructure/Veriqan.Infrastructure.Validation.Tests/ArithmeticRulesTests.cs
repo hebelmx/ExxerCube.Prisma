@@ -651,6 +651,95 @@ public sealed class ArithmeticRulesTests
             "present but low-confidence AdeudoPeriodoAnterior must cause abstention");
     }
 
+    // -----------------------------------------------------------------------
+    // CL-21 F1 honesty fix: ExtractedInvalidFormat must abstain, not imply zero
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// AdeudoPeriodoAnterior status = ExtractedInvalidFormat (label found, amount unreadable).
+    /// CL-21 must NOT substitute 0m and must abstain (InsufficientData).
+    /// All five CORE operands and the target are Extracted / valid.
+    /// </summary>
+    [Fact]
+    public void Cl21_AdeudoExtractedInvalidFormat_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-21");
+        var invalidFormatAdeudo = ExtractedField<decimal>.InvalidFormat(0m, P1());
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: invalidFormatAdeudo,   // ← label found, amount unreadable
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: null);                          // ← absent → would be implied 0
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "a printed-but-unreadable AdeudoPeriodoAnterior must not be silently substituted by 0m");
+    }
+
+    /// <summary>
+    /// PagosYAbonos status = ExtractedInvalidFormat (label found, amount unreadable).
+    /// CL-21 must NOT substitute 0m and must abstain (InsufficientData).
+    /// All five CORE operands and the target are Extracted / valid.
+    /// </summary>
+    [Fact]
+    public void Cl21_PagosExtractedInvalidFormat_ReturnsInsufficientData()
+    {
+        var rule = GetRule("CL-21");
+        var invalidFormatPagos = ExtractedField<decimal>.InvalidFormat(0m, P1());
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: null,                  // ← absent → would be implied 0
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: invalidFormatPagos);            // ← label found, amount unreadable
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.InsufficientData,
+            "a printed-but-unreadable PagosYAbonos must not be silently substituted by 0m");
+    }
+
+    /// <summary>
+    /// Regression: genuinely absent Adeudo and Pagos (NotExtracted / null → Missing) must
+    /// STILL apply implied-zero and allow the rule to yield Pass or Fail.
+    /// This confirms the F1 fix did not break the Epic-5 guarded-implied-zero path.
+    /// </summary>
+    [Fact]
+    public void Cl21_NotExtracted_AdeudoAndPagos_StillAppliesImpliedZero_ReturnsPass()
+    {
+        var rule = GetRule("CL-21");
+        // computed = 0 + 5000 + 2500 + 1000 + 500 + 100 - 0 = 9100.00
+        // target   = 9100.00  →  diff = 0 ≤ 0.50 → Pass
+        var ps = MakeSummary(
+            pagoParaNoGenerarIntereses: Found(9100.00m),
+            adeudoPeriodoAnterior: null,                  // ← NotExtracted → implied 0
+            cargosRegularesNoMeses: Found(5000.00m),
+            cargosComprasAMesesCapital: Found(2500.00m),
+            montoIntereses: Found(1000.00m),
+            montoComisiones: Found(500.00m),
+            ivaInteresesYComisiones: Found(100.00m),
+            pagosYAbonos: null);                          // ← NotExtracted → implied 0
+        var ctx = Ctx(BundleWithAccount(), ModelWith(ps));
+
+        var result = rule.Evaluate(ctx, TestContext.Current.CancellationToken);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "NotExtracted (genuine Banamex zero-suppression) must still imply 0 and allow a Pass");
+    }
+
     [Fact]
     public void Cl21_ComputedDiffersByMoreThanTolerance_ReturnsFail()
     {

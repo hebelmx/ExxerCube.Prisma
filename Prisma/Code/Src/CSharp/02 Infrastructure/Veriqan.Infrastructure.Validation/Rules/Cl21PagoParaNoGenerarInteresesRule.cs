@@ -34,11 +34,15 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// abstains (InsufficientData) to prevent a false verdict from a misread digit.
 /// </para>
 /// <para>
-/// <b>Guarded implied-zero (Epic 5):</b> <see cref="PeriodSummary.AdeudoPeriodoAnterior"/> and
-/// <see cref="PeriodSummary.PagosYAbonos"/> may be legitimately absent because Banamex suppresses
-/// zero-value RESUMEN rows in certain PDF layouts. Their absence is treated as an implied <c>0</c>
-/// rather than an extraction failure. A PRESENT but low-confidence field still causes abstention
-/// (InsufficientData) because a misread digit in either row is dangerous.
+/// <b>Guarded implied-zero (Epic 5 / F1):</b> <see cref="PeriodSummary.AdeudoPeriodoAnterior"/>
+/// and <see cref="PeriodSummary.PagosYAbonos"/> may be legitimately absent because Banamex
+/// suppresses zero-value RESUMEN rows in certain PDF layouts. <see cref="ExtractionStatus.NotExtracted"/>
+/// (label never typeset) is treated as an implied <c>0</c>. However,
+/// <see cref="ExtractionStatus.ExtractedInvalidFormat"/> (label IS typeset but the amount is
+/// unparseable — e.g. OCR-corrupted digit) causes abstention (InsufficientData) rather than a
+/// silent implied-zero: substituting 0m for a printed-but-unreadable amount is dishonest.
+/// A PRESENT (<see cref="ExtractionStatus.Extracted"/>) but low-confidence field also causes
+/// abstention because a misread digit in a non-zero row could corrupt the formula silently.
 /// </para>
 /// <para>
 /// <b>InsufficientData paths:</b>
@@ -48,6 +52,8 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 ///     <see cref="ExtractionStatus.NotExtracted"/> — signals a genuine RESUMEN parse failure.</item>
 ///   <item><see cref="PeriodSummary.PagoParaNoGenerarIntereses"/> is NotExtracted — the payment
 ///     block was not located, so there is nothing to compare against.</item>
+///   <item>AdeudoPeriodoAnterior or PagosYAbonos is <see cref="ExtractionStatus.ExtractedInvalidFormat"/>
+///     — the label was found but the amount could not be parsed; implying zero would be dishonest.</item>
 ///   <item>AdeudoPeriodoAnterior or PagosYAbonos is <b>present</b> (Extracted) but below the
 ///     confidence threshold — a low-confidence value in a zero-row that is actually non-zero
 ///     could silently corrupt the formula.</item>
@@ -124,8 +130,13 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
             ?? TenantProfile.LegalMinFieldConfidenceDefault;
 
         // AdeudoPeriodoAnterior + PagosYAbonos may be zero-suppressed rows (Banamex omits zero-value
-        // RESUMEN lines). Treat genuine absence as 0; abstain only if PRESENT but low-confidence.
+        // RESUMEN lines). Treat genuine absence (NotExtracted) as 0; abstain if PRESENT but
+        // low-confidence, or if the label was found but the amount is unreadable (InvalidFormat —
+        // F1 honesty fix: a printed-but-unreadable amount must not be silently substituted by 0m).
         decimal adeudoValue = 0m;
+        if (ps.AdeudoPeriodoAnterior.Status == ExtractionStatus.ExtractedInvalidFormat)
+            return InsufficientData(
+                "AdeudoPeriodoAnterior amount present but unparseable; cannot imply zero.");
         if (ps.AdeudoPeriodoAnterior.Status == ExtractionStatus.Extracted)
         {
             if (ctx.ConfidenceBelowThreshold(ps.AdeudoPeriodoAnterior, confidenceThreshold))
@@ -134,6 +145,9 @@ internal sealed class Cl21PagoParaNoGenerarInteresesRule : IVecValidationRule
             adeudoValue = ps.AdeudoPeriodoAnterior.Value;
         }
         decimal pagosValue = 0m;
+        if (ps.PagosYAbonos.Status == ExtractionStatus.ExtractedInvalidFormat)
+            return InsufficientData(
+                "PagosYAbonos amount present but unparseable; cannot imply zero.");
         if (ps.PagosYAbonos.Status == ExtractionStatus.Extracted)
         {
             if (ctx.ConfidenceBelowThreshold(ps.PagosYAbonos, confidenceThreshold))

@@ -1345,9 +1345,12 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// </param>
     /// <param name="amtFmt">Session-scoped number-format detector.</param>
     /// <returns>
-    /// An <see cref="ExtractedField{T}"/> containing the parsed amount, or
-    /// <see cref="ExtractedField{T}.Missing"/> if the label is not found or the amount
-    /// cannot be parsed.
+    /// An <see cref="ExtractedField{T}"/> containing the parsed amount
+    /// (<see cref="ExtractionStatus.Extracted"/>), or
+    /// <see cref="ExtractedField{T}.InvalidFormat"/> when the label was found but the
+    /// adjacent amount could not be parsed (e.g. OCR-corrupted digit or unusual locale),
+    /// or <see cref="ExtractedField{T}.Missing"/> only when the label was not found in
+    /// either column.
     /// </returns>
     private static ExtractedField<decimal> ExtractResumenField(
         List<Word> sorted,
@@ -1364,14 +1367,33 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         //   Pass 2 — LEFT column (real Banamex Visa fallback): label at X < 280, amount
         //            capped at X ≤ 280 so we don't accidentally pick up a right-column amount
         //            that leaked into the band via Y-band tolerance.
+        //
+        // Result precedence (F1 honesty fix):
+        //   Extracted         → return immediately (short-circuit after pass 1).
+        //   ExtractedInvalidFormat → label was seen but amount unparseable; remember and continue.
+        //   NotExtracted      → label absent in this column; continue to next pass.
+        //   If EITHER pass produced ExtractedInvalidFormat and NEITHER was Extracted, return
+        //   the InvalidFormat result so the caller knows "label found, amount unreadable" —
+        //   distinct from "label never appeared" (NotExtracted/Missing).
 
         var rightResult = ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
             labelMinX: 280.0, labelMaxX: double.MaxValue, amtMaxX: double.MaxValue);
         if (rightResult.Status == ExtractionStatus.Extracted)
             return rightResult;
 
-        return ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
+        var leftResult = ScanResumenColumn(sorted, bands, labelTokens, amtFmt,
             labelMinX: 0.0, labelMaxX: 280.0, amtMaxX: 280.0);
+        if (leftResult.Status == ExtractionStatus.Extracted)
+            return leftResult;
+
+        // Neither pass produced a clean Extracted value.  Prefer InvalidFormat over Missing
+        // so the distinction is not lost: "label present, amount unreadable" ≠ "label absent".
+        if (rightResult.Status == ExtractionStatus.ExtractedInvalidFormat)
+            return rightResult;
+        if (leftResult.Status == ExtractionStatus.ExtractedInvalidFormat)
+            return leftResult;
+
+        return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
     }
 
     /// <summary>
@@ -1379,6 +1401,14 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
     /// for a RESUMEN label within [labelMinX, labelMaxX) and returns the first leftmost amount
     /// in [labelRight, amtMaxX].
     /// </summary>
+    /// <returns>
+    /// <see cref="ExtractionStatus.Extracted"/> when the label and a parseable amount were found.
+    /// <see cref="ExtractionStatus.ExtractedInvalidFormat"/> when the label was matched at least
+    /// once but no parseable amount was found in any matching band — the raw value is <c>0m</c>
+    /// (not consumed by callers in this path; chosen to satisfy the non-null type constraint).
+    /// <see cref="ExtractionStatus.NotExtracted"/> (<see cref="ExtractedField{T}.Missing"/>) when
+    /// the label did not appear in this column at all.
+    /// </returns>
     private static ExtractedField<decimal> ScanResumenColumn(
         List<Word> sorted,
         Dictionary<double, List<Word>> bands,
@@ -1388,6 +1418,11 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
         double labelMaxX,
         double amtMaxX)
     {
+        // Track whether we found at least one complete label match but could not parse the amount
+        // (case b: label typeset, amount OCR-corrupted or locale-unrecognisable).
+        // Distinct from case (a): label never appeared (Banamex zero-row suppression → NotExtracted).
+        FieldLocator? invalidFormatLocator = null;
+
         for (var i = 0; i + labelTokens.Length - 1 < sorted.Count; i++)
         {
             if (sorted[i].BoundingBox.Left < labelMinX || sorted[i].BoundingBox.Left >= labelMaxX)
@@ -1436,7 +1471,17 @@ public sealed class PdfPigStatementFieldExtractor : IStatementFieldExtractor
                 minX: labelRight, maxX: amtMaxX, findLeftmost: true);
             if (result.Status == ExtractionStatus.Extracted)
                 return result;
+
+            // Label matched but amount did not parse.  Remember the locator so we can
+            // return InvalidFormat at the end rather than Missing (F1 honesty fix).
+            invalidFormatLocator ??= locator;
         }
+
+        // If any label match was found without a parseable amount, signal InvalidFormat.
+        // The raw value 0m is a placeholder — callers (CL-21 rule) check Status first and
+        // abstain on InvalidFormat before ever reading the value.
+        if (invalidFormatLocator is not null)
+            return ExtractedField<decimal>.InvalidFormat(0m, invalidFormatLocator);
 
         return ExtractedField<decimal>.Missing(FieldLocator.PageHint(1));
     }
