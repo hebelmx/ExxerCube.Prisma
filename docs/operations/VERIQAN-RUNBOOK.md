@@ -2,8 +2,8 @@
 
 **Service:** `ExxerCube.Prisma.Veriqan.Worker`
 **Code path:** `Prisma/Code/Src/CSharp/04 Services/Veriqan.Worker/`
-**Story:** VERIQAN-E1-S9 (Wave-0)
-**Last updated:** 2026-06-19
+**Story:** VERIQAN-E1-S9 (Wave-0); §§8–10 + auth/triage updates from Stories 6.1, 6.2, 6.5, 6.7, 6.8
+**Last updated:** 2026-06-30
 
 ---
 
@@ -16,6 +16,9 @@
 5. [Mid-batch resume](#5-mid-batch-resume)
 6. [On-call escalation path](#6-on-call-escalation-path)
 7. [SMTP configuration verification](#7-smtp-configuration-verification)
+8. [Database migrations](#8-database-migrations)
+9. [Durable result and reprocess-audit stores](#9-durable-result-and-reprocess-audit-stores)
+10. [Audit immutability and required DB permissions](#10-audit-immutability-and-required-db-permissions)
 
 ---
 
@@ -31,9 +34,21 @@
 | `GET` | `/health/ready` | Readiness probe — 503 if any readiness check fails |
 | `GET` | `/health` | Combined (liveness + readiness); 503 when not ready |
 
-> **Auth note:** `POST /verify` and `POST /batch` have no authentication as of Wave-0.
-> Production gating (E4) is deferred. Do not expose these endpoints to untrusted networks
-> before E4 is implemented.
+> **Auth note:** `POST /verify` and `POST /batch` are **JWT-bearer authenticated**
+> (`Program.cs` adds `JwtBearer` authentication and decorates both endpoints with
+> `.RequireAuthorization()`). Auth is **secure-by-default**: it is ON unless
+> `Veriqan:Auth:Enabled` is explicitly set to `false`. The health endpoints
+> (`/health`, `/health/live`, `/health/ready`) are always `AllowAnonymous`.
+> Tokens are validated against the `Veriqan:Auth:Jwt` section (`Issuer`, `Audience`,
+> `SigningKey` — HMAC-SHA256; issuer/audience validation is skipped when the
+> corresponding key is omitted). A missing/placeholder `SigningKey` fails closed
+> (every token rejected with 401) and is logged loudly at startup. A `FallbackPolicy`
+> requires an authenticated user, so any future undecorated endpoint is not exposed
+> anonymously by omission.
+>
+> The escape hatch `Veriqan:Auth:Enabled = false` installs a permissive allow-all
+> policy for local/demo runs and emits a SECURITY WARNING — **never use it in an
+> environment that handles real legal documents.**
 
 ### Required configuration keys
 
@@ -220,7 +235,7 @@ reason prefix:
 |---|---|---|
 | `FileSizeLimitExceeded:` | PDF exceeds `Veriqan:PdfExtraction:MaxSizeBytes` (50 MB default) | Compress or split the PDF; or raise `MaxSizeBytes` if justified |
 | `Timeout:` | PDF parse exceeded `Veriqan:PdfExtraction:ParseTimeoutSeconds` (30 s default) | PDF may be malformed or pathologically large; investigate the file; raise `ParseTimeoutSeconds` if justified |
-| `PasswordProtected` | PDF is encrypted and no password is configured for the institution | Decrypt the PDF before submission, or configure an institution password (not yet exposed via config in Wave-0) |
+| `PasswordProtected` | PDF is encrypted/password-protected and no password is configured for the institution (Story 6.7 — surfaced on both full and header extraction paths) | Supply the institution password via the configured password provider (`PasswordProtected — add institution password to config`), or route the document for manual handling |
 | `InsufficientExtractionCoverage` (BlockReason) | Fewer fields extracted than the configured minimum floor | PDF is blank, corrupt, or too layout-drifted; investigate the source document |
 | `UnknownProduct` (BlockReason) | Product token from PDF did not match any entry in the reference bundle | Update `products.csv` in the bundle with the correct alias, or fix the source document |
 | `InvalidBundle` (BlockReason) | Reference bundle failed to load | Check `Veriqan:CsvReferenceData:RootDirectory` and bundle CSVs; see Section 4 |
@@ -230,6 +245,12 @@ Note: `Blocked` verdicts (BlockReason codes above) are **completed** items — t
 `completedCount` and `blockedCount`, not `failedCount`. Only items where the pipeline
 returned `Result.Failure` or threw an unhandled exception are placed on the exception queue
 and counted in `failedCount`.
+
+> **Password-protected PDFs (Story 6.7):** an encrypted/password-protected input statement
+> now surfaces a clear `PasswordProtected — add institution password to config` failure on
+> **both** the full and header extraction paths, instead of a generic parse error. Operator
+> action: supply the institution password via the configured password provider, or route the
+> document for manual handling.
 
 ### How to retry failed statements (Wave-0)
 
@@ -527,6 +548,109 @@ WARNING at startup but does not block the worker. Alert emails will silently fai
 > **Note:** In the current Wave-0 implementation there is no dry-run or test-email endpoint.
 > The only way to trigger an alert is to process a statement that produces a RED verdict.
 > A dedicated `/notify/test` endpoint is not yet implemented.
+
+---
+
+## 8. Database migrations
+
+### Operational model (Story 6.8)
+
+EF Core migrations + the legal-baseline seed can be applied in one of two ways:
+
+1. **At host boot (default)** — for dev / standalone deployments. The host migrates and seeds
+   on every startup.
+2. **As a separate CI / pre-deploy step (12-factor)** — migrations run *before* the live
+   server process starts, and the host does NOT run DDL at boot.
+
+The mode is selected by a single config flag:
+
+| Config key | Type | Default | Behaviour |
+|---|---|---|---|
+| `Veriqan:RunMigrationsAtStartup` | bool | `true` | `true` (dev/standalone): host applies EF Core migrations + seeds the legal baseline at startup. `false` (CI/12-factor): host does NOT run DDL — you must apply migrations separately first (see below). |
+
+### Migrate-only command
+
+To apply migrations + seed without starting the web host:
+
+```bash
+dotnet ExxerCube.Prisma.Veriqan.Worker.dll --migrate
+```
+
+- Applies EF Core migrations, seeds the legal baseline, warms the cache, then **exits** — it
+  does NOT start the web host.
+- Exit code `0` = success; non-zero = failure (`2` when `ConnectionStrings:VeriqanDb` is
+  absent; `1` on cancellation or unexpected error). Wire this into CI as a gated pre-deploy
+  step and abort the deploy on a non-zero exit.
+- Reads `ConnectionStrings:VeriqanDb` (and `Veriqan:LegalBaseline:EncryptionKey` to seed the
+  encrypted tolerance store) from the same config sources as the host.
+
+### IMPORTANT — cache warming is NOT gated by the flag
+
+`Veriqan:RunMigrationsAtStartup` gates **only the DDL migrate+seed**. The host **always**
+warms the `SqlLegalToleranceProvider` in-process at startup (so the first verification
+request does not fail). This means:
+
+> Even with `Veriqan:RunMigrationsAtStartup = false`, the host still requires the database to
+> be **already migrated and seeded** (by the `--migrate` step) before it boots. If the schema
+> or legal baseline is missing, the host **fails loud at startup** — it does not silently fall
+> back to in-code defaults. Run `--migrate` to completion (exit 0) before starting the host.
+
+---
+
+## 9. Durable result and reprocess-audit stores
+
+### What is now persisted (Story 6.1)
+
+Two SQL tables (schema `veriqan`) persist verification idempotency and the reprocess audit
+trail so they **survive a process restart**:
+
+| Table | Role |
+|---|---|
+| `veriqan.VerificationOutcomeSnapshots` | Idempotency / result cache, keyed by the document **content-hash** (SHA-256). Backs mid-batch resume (Section 5) and single-statement idempotency. |
+| `veriqan.ReprocessAuditLog` | Append-only log of reprocess events (the reprocess audit trail). |
+
+These **replace the former in-memory stores**. They are active **only when
+`ConnectionStrings:VeriqanDb` is configured**. With no connection string the worker falls back
+to in-memory, non-durable stores (and is **NOT READY / 503** — see Section 6); resume and the
+reprocess audit trail do not survive a restart in that mode.
+
+---
+
+## 10. Audit immutability and required DB permissions
+
+### Append-only audit protection (Story 6.2)
+
+The append-only audit tables `veriqan.Dispositions` and `veriqan.ReprocessAuditLog` are
+protected at two levels:
+
+- **Database engine:** `AFTER UPDATE, DELETE` triggers that `THROW` (error 51000) and roll the
+  transaction back — UPDATE and DELETE are prohibited.
+- **Application:** an EF Core `SaveChanges` interceptor (`ImmutableEntityInterceptor`) rejects
+  mutations early.
+
+`veriqan.VerificationOutcomeSnapshots` is **intentionally mutable** (reprocess legitimately
+UPDATEs it) and is **NOT** trigger-protected.
+
+### Known limitation
+
+The triggers do **not** fire on `TRUNCATE TABLE`, and a principal with `ALTER TABLE`,
+`CONTROL`, or `db_owner` membership can `DISABLE TRIGGER` and bypass them entirely. The
+engine-level tamper-evidence therefore holds **only** under a least-privilege deployment.
+
+### Deployment checklist item (hard requirement)
+
+> The application's runtime DB principal MUST be granted least privilege on the `veriqan`
+> schema — `INSERT` and `SELECT` (and `UPDATE` only where legitimately needed, e.g.
+> `veriqan.VerificationOutcomeSnapshots`) — and MUST NOT be a member of `db_owner` and MUST
+> NOT be granted `ALTER TABLE` or `CONTROL` on the audit tables `veriqan.Dispositions` and
+> `veriqan.ReprocessAuditLog`. Without this, the append-only audit guarantee is void
+> (`TRUNCATE`/`DISABLE TRIGGER` bypass). Operational `TRUNCATE`/restore on the audit tables
+> (DR only) must run under a privileged DBA role, never under the application principal.
+
+Note: this least-privilege requirement is stricter than the `db_ddladmin` grant mentioned for
+migrations in Section 6 Step 4 — grant `db_ddladmin` (or the broader rights needed for DDL)
+to the **migration/`--migrate` principal**, and run the live host under the restricted
+application principal described above.
 
 ---
 
