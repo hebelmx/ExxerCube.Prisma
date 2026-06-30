@@ -1,6 +1,7 @@
 using ExxerCube.Prisma.Veriqan.Infrastructure.ReferenceData.Adapters;
 using ExxerCube.Prisma.Veriqan.Orchestration.DependencyInjection;
 using ExxerCube.Prisma.Veriqan.Orchestration.Reprocess;
+using ExxerCube.Prisma.Veriqan.Orchestration.Startup;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -88,6 +89,87 @@ public sealed class VeriqanOrchestrationDiTests
             "AddVeriqan must bind CsvReferenceDataOptions.RootDirectory from " +
             "Veriqan:CsvReferenceData:RootDirectory so the worker readiness probe can find the bundle mount.");
     }
+
+    // ── Story 6.8: RunMigrationsAtStartup config gate ────────────────────────────────
+
+    /// <summary>
+    /// <see cref="VeriqanLegalBaselineStartupService"/> must be registered whenever a SQL
+    /// connection string is present, regardless of <c>Veriqan:RunMigrationsAtStartup</c>.
+    /// Cache warming is unconditional — <see cref="SqlLegalToleranceProvider.For"/> throws on
+    /// cold-cache access, so the service can never be skipped.
+    /// </summary>
+    [Theory]
+    [InlineData("true")]
+    [InlineData("false")]
+    public void AddVeriqan_WithConnectionString_AlwaysRegistersStartupService(string flagValue)
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:VeriqanDb"] = "Server=fake;Database=fake;",
+                ["Veriqan:RunMigrationsAtStartup"] = flagValue,
+            })
+            .Build();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddVeriqan(config);
+
+        services
+            .Any(d => d.ImplementationType == typeof(VeriqanLegalBaselineStartupService))
+            .ShouldBeTrue(
+                $"VeriqanLegalBaselineStartupService must always be registered when a " +
+                $"connection string is present (RunMigrationsAtStartup={flagValue}). " +
+                "The service warms the SqlLegalToleranceProvider cache regardless of the flag.");
+    }
+
+    /// <summary>
+    /// When <c>Veriqan:RunMigrationsAtStartup</c> is absent, the service is still registered
+    /// (backward-compat: the startup service has always been present in the SQL path).
+    /// </summary>
+    [Fact]
+    public void AddVeriqan_RunMigrationsAtStartupAbsent_RegistersStartupService()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:VeriqanDb"] = "Server=fake;Database=fake;",
+            })
+            .Build();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddVeriqan(config);
+
+        services
+            .Any(d => d.ImplementationType == typeof(VeriqanLegalBaselineStartupService))
+            .ShouldBeTrue(
+                "VeriqanLegalBaselineStartupService must be registered when " +
+                "Veriqan:RunMigrationsAtStartup is absent (SQL path always registers it).");
+    }
+
+    /// <summary>
+    /// When no SQL connection string is present, <see cref="VeriqanLegalBaselineStartupService"/>
+    /// must NOT be registered — the in-memory path uses <c>DefaultLegalToleranceProvider</c> and
+    /// needs no startup hook.
+    /// </summary>
+    [Fact]
+    public void AddVeriqan_NoConnectionString_DoesNotRegisterStartupService()
+    {
+        var config = new ConfigurationBuilder().Build();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddVeriqan(config);
+
+        services
+            .Any(d => d.ImplementationType == typeof(VeriqanLegalBaselineStartupService))
+            .ShouldBeFalse(
+                "VeriqanLegalBaselineStartupService must NOT be registered when no " +
+                "connection string is present (in-memory path).");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Calling <see cref="VeriqanOrchestrationExtensions.AddVeriqanInMemoryPersistence"/> directly

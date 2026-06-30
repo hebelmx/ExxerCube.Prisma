@@ -18,6 +18,24 @@ using OpenTelemetry.Trace;
 using Serilog;
 using System.Text;
 
+// ── Migrate-only mode ─────────────────────────────────────────────────────────
+// When invoked with --migrate, apply EF Core migrations without starting the web host.
+// Usage: dotnet ExxerCube.Prisma.Veriqan.Worker.dll --migrate
+// CI sets Veriqan:RunMigrationsAtStartup=false and runs this command separately before
+// launching the host, so migrations never execute inside the live server process.
+if (args.Contains(MigrateCommand.Flag, StringComparer.OrdinalIgnoreCase))
+{
+    Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Information()
+        .Enrich.FromLogContext()
+        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+        .CreateLogger();
+
+    var migrateExitCode = await MigrateCommand.RunMigrateAsync(args);
+    await Log.CloseAndFlushAsync();
+    Environment.Exit(migrateExitCode);
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Serilog ──────────────────────────────────────────────────────────────────

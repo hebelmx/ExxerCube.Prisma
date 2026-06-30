@@ -86,9 +86,15 @@ public static class VeriqanOrchestrationExtensions
         if (!string.IsNullOrWhiteSpace(cs))
         {
             services.AddVeriqanPersistence(cs);
-            // Startup hook: migrate DB → seed legal baseline → warm SqlLegalToleranceProvider.
-            // Fail-loud: if the DB is unreachable or the cache is empty after seeding the host
-            // aborts.  Never silently fall back to in-code defaults.
+
+            // Startup hook: always registered when SQL persistence is active.
+            // Unconditional because SqlLegalToleranceProvider.For() throws
+            // InvalidOperationException on cold-cache access — warming the cache is
+            // mandatory for the host to serve any verification request.
+            // The service reads Veriqan:RunMigrationsAtStartup internally to decide
+            // whether to also run EF Core migrate+seed (default true = backward compat);
+            // CI sets it false and runs `--migrate` as a separate pre-step.
+            // Fail-loud: DB unreachable or empty cache after seed → host startup aborted.
             services.AddHostedService<VeriqanLegalBaselineStartupService>();
         }
         else
