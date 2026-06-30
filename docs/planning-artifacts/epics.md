@@ -566,6 +566,22 @@ So that the ≥1 stmt/s/worker target is validated, not assumed.
 
 ## Epic 9: Compliance Verdict Core & Traceability Seam
 
+> **✅ DONE — verified 2026-06-30 (orchestrator ground-truth pass, branch `Liv`).** All 6 stories
+> (9.1–9.6) are implemented in production code and tested; this spec **predates** the code — the
+> work landed incrementally during Epics 4–6 under the `Story 9.x` tags already in the source.
+> Evidence: dual-verdict `RuleFinding.LegalBaselineVerdict`/`TenantProfileVerdict` + `InsufficientData`
+> (9.1); `IVecValidationRule.DofNumeral` + queryable `VecValidationEngine.GetCoverageMap()` (9.2);
+> `RuleClassification` + `TenantProfileResolver` config-time sub-legal refusal (9.3); typed range-bounded
+> `Tolerance` + `DefaultLegalToleranceProvider` (9.4); `VerificationContext.ConfidenceBelowThreshold` +
+> per-tenant `MinFieldConfidence` abstain (9.5); all **58 concrete rules** (47 validation + 11 visual)
+> carry real DOF numerals + deliberate classifications, 0 on stubs (9.6). **Build-failing enforcement
+> gates green:** `Veriqan.Orchestration.Tests/DofNumeralRegistryTests` 5/5 (empty-numeral +
+> undefined-classification fail the build via real DI-container enumeration of both rule assemblies).
+> Baselines: Validation.Tests 519/519, Application.Tests 151/151, build 0/0. Non-AC tails logged for
+> downstream epics: (1) non-scalar confidence sentinel (deferred to Epic 6, `RuleFinding.cs:118`);
+> (2) per-rule confidence threshold (currently per-tenant — AC says "rule/tenant", satisfied);
+> (3) tolerance ceilings are `⚠️ ESTIMATED` pending legal sign-off (`DefaultLegalToleranceProvider.cs`).
+
 The rule-evaluation contract every Tranche-2 rule (and the retrofitted E4/E5 rules) is authored against.
 Realizes FR-39 (seam half), NFR-7, NFR-8. Drive it with two genuinely different real tenant profiles.
 
