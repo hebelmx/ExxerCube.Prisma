@@ -60,10 +60,16 @@ public static class VeriqanPersistenceExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
-        services.AddDbContext<VeriqanDbContext>(options =>
-            options.UseSqlServer(
-                connectionString,
-                b => b.MigrationsHistoryTable("__EFMigrationsHistory", "veriqan")));
+        // Interceptor — singleton; added to the DbContext options below.
+        // Must be registered before AddDbContext so the (sp, o) factory can resolve it.
+        services.AddSingleton<ImmutableEntityInterceptor>();
+
+        services.AddDbContext<VeriqanDbContext>((sp, options) =>
+            options
+                .UseSqlServer(
+                    connectionString,
+                    b => b.MigrationsHistoryTable("__EFMigrationsHistory", "veriqan"))
+                .AddInterceptors(sp.GetRequiredService<ImmutableEntityInterceptor>()));
 
         services.AddScoped<IVerificationJobRepository, EfVerificationJobRepository>();
         services.AddScoped<IDispositionRepository, EfDispositionRepository>();
