@@ -241,21 +241,30 @@ Replace in-memory `IVerificationResultStore`/`IReprocessAuditRepository` (DI lin
 Convert the Disposition/verdict audit to a tamper-evident ledger (trigger/temporal table/deny-grant),
 not app-convention. AC: a DB-level mutation attempt is rejected; covered by an integration test.
 
-### Story 6.3: Secrets / Key Vault (#21)
+### Story 6.3: Secrets / Key Vault (#21) — ✅ DONE 2026-06-30 (commit e76905d9 + follow-ups 88dd4a5e)
 Move AES key + JWT signing key + SMTP creds out of plaintext config into a provider abstraction
 (Key Vault/KMS); key-id + rotation. (Business-gated on infra choice — design + wire the abstraction.)
+Delivered: unified `ISecretProvider` (Veriqan.Application/Ports) + env/config-backed `ConfigurationSecretProvider`
+default; AES + JWT + SMTP rewired through the seam; KeyId/Version rotation surface; future Key-Vault adapter
+plugs in via TryAddSingleton (vendor still business-gated, no cloud SDK referenced).
 
-### Story 6.4: LFPDPPP retention / erasure (#22)
+### Story 6.4: LFPDPPP retention / erasure (#22) — ⏸️ DEFERRED → GH issue #20
 Design + implement retention TTL + ARCO erasure path for stored statements/PII. (Legal-gated — produce
 the design + the data-model hooks.)
+Deferred 2026-06-30 (owner call): ARCO right-to-erasure collides with the 6.2 DB-enforced immutable audit
+ledger — a real constraint collision requiring an architectural decision, not orchestrator-loop work.
+Tracked with the PII inventory + candidate resolutions in https://github.com/hebelmx/ExxerCube.Prisma/issues/20.
 
 ### Story 6.5: Operational runbook (#25)
 Author the Worker ops runbook: batch start, exception-queue triage, reference-bundle update, mid-batch
 resume, on-call escalation.
 
-### Story 6.6: Fail-open/closed policy + circuit breaker (#26)
+### Story 6.6: Fail-open/closed policy + circuit breaker (#26) — ✅ DONE 2026-06-30 (commit f394fab8 + follow-ups 88dd4a5e)
 Define + implement the host→gate failure policy with a documented decision + a circuit breaker + entry
 timeout.
+Delivered: FAIL-CLOSED decision (gate fault never yields a passing verdict → HTTP 503); `ResilientVerificationPipeline`
+Polly v8 decorator (CircuitBreaker-outer/Timeout-inner) over `IVerificationPipeline`; config `Veriqan:Gate:Resilience`.
+Design note: `docs/planning-artifacts/veriqan-epic6-s6.6-fail-closed-circuit-breaker.md`.
 
 ### Story 6.7: Password-protected PDF handling (N1)
 `PdfDocument.Open` currently has no password param → silent failure. AC: a password-protected input is
