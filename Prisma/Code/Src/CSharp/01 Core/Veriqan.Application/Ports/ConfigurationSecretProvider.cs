@@ -1,3 +1,6 @@
+// Intentionally lives in Application/Ports (not Infrastructure) so the MigrateCommand
+// standalone path can resolve a default ISecretProvider without referencing Orchestration.
+// A future Veriqan architecture test must grant this placement as an explicit exception.
 using System;
 using System.Security.Cryptography;
 using System.Text;

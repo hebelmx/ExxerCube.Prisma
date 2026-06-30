@@ -1,8 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ExxerCube.Prisma.Veriqan.Application.Ports;
+using ExxerCube.Prisma.Veriqan.Application.Verdict;
 using ExxerCube.Prisma.Veriqan.Domain.Entities;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
+using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using IndQuestResults;
 using IndQuestResults.Operations;
@@ -249,6 +251,126 @@ public sealed class ResilientVerificationPipelineTests
 
         // Inner must never be called when already cancelled
         await inner.DidNotReceiveWithAnyArgs().ProcessAsync(default!, TestContext.Current.CancellationToken);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 7 (A2): RED business verdict must NOT trip the circuit breaker
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// A business RED verdict (inner returns <c>Result.WithSuccess</c> carrying a RED
+    /// <see cref="VerdictSummary"/>) must NEVER count as a circuit-breaker failure.
+    /// The breaker's <c>ShouldHandle</c> predicate is keyed on <see cref="Result.IsFailure"/>,
+    /// not on the business-verdict signal inside the outcome.  Repeated RED verdicts must not
+    /// open the circuit.
+    /// </summary>
+    [Fact]
+    public async Task ProcessAsync_InnerReturnsRedVerdict_CircuitBreakerDoesNotTrip()
+    {
+        // Arrange — low thresholds: would open quickly if RED verdicts tripped the breaker
+        var options = new GateResilienceOptions
+        {
+            TimeoutPerRequest = TimeSpan.FromSeconds(30),
+            FailureRatio = 0.5,
+            MinimumThroughput = 5,
+            SamplingDuration = TimeSpan.FromSeconds(10),
+            BreakDuration = TimeSpan.FromSeconds(60),
+        };
+
+        var (decorator, inner) = BuildDecorator(options);
+        var submission = MakeSubmission();
+        var ct = TestContext.Current.CancellationToken;
+
+        // Build a RED outcome using the same VerdictAggregator path as production code.
+        var job = new VerificationJob(
+            Guid.NewGuid(), "hash-red", DateTimeOffset.UtcNow, VerificationJobStatus.Pending);
+        var aggregator = new VerdictAggregator();
+        var findings = new List<RuleFinding>
+        {
+            RuleFinding.Fail(
+                "CL-01", TechniqueClass.Deterministic, FindingSeverity.Critical,
+                "1.0", "expected value", "actual value"),
+        };
+        // Pass the test's cancellation token so the aggregator respects test timeout.
+        var redSummary = aggregator.Aggregate(findings, ct: ct).Value!;
+        var redOutcome = new VerificationOutcome(job, redSummary, findings);
+
+        // Inner always returns a success result wrapping a RED verdict.
+        inner.ProcessAsync(submission, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result<VerificationOutcome>.WithSuccess(redOutcome)));
+
+        // Act — exceed MinimumThroughput to give the circuit breaker the chance to open.
+        const int callCount = 8;
+        var results = new List<Result<VerificationOutcome>>();
+        for (var i = 0; i < callCount; i++)
+            results.Add(await decorator.ProcessAsync(submission, ct));
+
+        // Assert — every call must return the red success outcome unchanged.
+        // A circuit-open result would be a failure, so checking IsSuccess is sufficient.
+        foreach (var r in results)
+            r.IsSuccess.ShouldBeTrue(
+                "a RED business verdict is a success Result — the circuit must never open for it");
+
+        // Inner must be invoked on every call (circuit never opened).
+        inner.ReceivedCalls().Count().ShouldBe(callCount,
+            "inner must be called every time when the circuit is not open");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 8 (A3): timeout-via-Cancelled-Result — decorator surfaces Gate.Timeout
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// When the inner pipeline follows the project convention of catching
+    /// <see cref="OperationCanceledException"/> and returning a Cancelled
+    /// <see cref="Result{T}"/> (rather than letting OCE propagate), Polly's inner Timeout
+    /// strategy does NOT throw <see cref="Polly.Timeout.TimeoutRejectedException"/> because
+    /// the task completed "successfully".  The decorator's post-execution guard must detect
+    /// this case (outer CT not cancelled, but outcome is Cancelled) and surface it as
+    /// <c>Gate.Timeout</c>, not as a user-initiated cancellation.
+    /// </summary>
+    [Fact(Timeout = 5_000)]
+    public async Task ProcessAsync_InnerAbsorbsTimeoutCancellationReturningCancelled_SurfacesGateTimeout()
+    {
+        // Arrange — very short timeout so the test does not block.
+        var options = DefaultOptions();
+        options.TimeoutPerRequest = TimeSpan.FromMilliseconds(200);
+
+        var (decorator, inner) = BuildDecorator(options);
+        var submission = MakeSubmission();
+
+        // Outer CT is NOT cancelled — any cancellation detected by the decorator is from Polly.
+        var ct = TestContext.Current.CancellationToken;
+
+        // Inner: follows project convention — absorbs OCE from Polly's linked token and
+        // returns a Cancelled Result instead of throwing.
+        inner.ProcessAsync(submission, Arg.Any<CancellationToken>())
+            .Returns(async ci =>
+            {
+                var innerCt = ci.Arg<CancellationToken>();
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(10), innerCt).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Project convention: return Cancelled Result rather than throwing.
+                    return ResultExtensions.Cancelled<VerificationOutcome>();
+                }
+                return Result<VerificationOutcome>.WithSuccess(default!);
+            });
+
+        // Act
+        var result = await decorator.ProcessAsync(submission, ct);
+
+        // Assert — must be Gate.Timeout, not a Cancelled result and not a success.
+        result.IsFailure.ShouldBeTrue(
+            "decorator must fail-closed when Polly timeout fires even if inner absorbed the cancellation");
+        result.Error.ShouldNotBeNull();
+        // Must start with Gate.Timeout: — not a cancelled result and not a generic error.
+        result.Error.ShouldStartWith("Gate.Timeout:");
+        result.IsCancelled().ShouldBeFalse(
+            "a Polly-timeout must not be misreported as a user-initiated cancellation");
     }
 
     // -----------------------------------------------------------------------

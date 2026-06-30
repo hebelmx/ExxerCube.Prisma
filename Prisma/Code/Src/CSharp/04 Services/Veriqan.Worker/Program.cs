@@ -8,6 +8,7 @@ using ExxerCube.Prisma.Veriqan.Orchestration.Observability;
 using ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 using ExxerCube.Prisma.Veriqan.Worker;
 using ExxerCube.Prisma.Veriqan.Worker.HealthChecks;
+using IndQuestResults.Operations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -165,28 +166,13 @@ else
     var issuer = jwtSection["Issuer"];
     var audience = jwtSection["Audience"];
 
-    // Resolve the JWT signing key via ISecretProvider (config-backed default).
-    // ConfigurationSecretProvider reads Veriqan:Auth:Jwt:SigningKey from IConfiguration,
-    // identical to what jwtSection["SigningKey"] returned before — no behaviour change.
-    // A future Key Vault adapter is swapped in by registering ISecretProvider before AddVeriqan;
-    // this code path then automatically routes through the vault without modification.
-    var jwtKeyResult = new ConfigurationSecretProvider(builder.Configuration)
-        .GetSecretAsync("Veriqan:Auth:Jwt:SigningKey")
-        .GetAwaiter().GetResult();
-    var signingKey = jwtKeyResult.IsSuccess ? jwtKeyResult.Value?.Value : null;
-
-    // Loud startup warning when the signing key is absent or still a placeholder.
-    // The service will boot but every token will be rejected at runtime.
-    if (string.IsNullOrWhiteSpace(signingKey) ||
-        signingKey.StartsWith("<REPLACE", StringComparison.Ordinal))
-    {
-        Log.Warning(
-            "SECURITY WARNING: {ConfigKey} is absent or contains a placeholder value. " +
-            "JWT bearer validation will reject all tokens until a real key is supplied. " +
-            "Set the key via an environment variable (Veriqan__Auth__Jwt__SigningKey) or Key Vault.",
-            "Veriqan:Auth:Jwt:SigningKey");
-    }
-
+    // The JWT signing key is resolved via the DI-registered ISecretProvider through
+    // JwtSigningKeySecretPostConfigure (IPostConfigureOptions<JwtBearerOptions>).
+    // This ensures that a custom Key Vault adapter registered before AddVeriqan is
+    // automatically used for the JWT key — the same seam covers AES, SMTP, and JWT.
+    // IssuerSigningKey is deliberately NOT set here; the post-configure sets it.
+    // When the secret is absent, the post-configure logs a loud warning and leaves the
+    // key null → ValidateIssuerSigningKey = true causes all tokens to be rejected (fail-closed).
     builder.Services
         .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(opts =>
@@ -198,20 +184,22 @@ else
                 ValidateAudience = !string.IsNullOrWhiteSpace(audience),
                 ValidAudience = audience,
                 // ALWAYS validate the token signature against the configured key.
-                // When no key is configured, IssuerSigningKey is null, so the handler has
-                // no key to verify against and rejects every token — which is the intended
-                // fail-closed behaviour. Keeping this true (never conditional on the key
-                // being present) removes any ambiguity about signature verification being
-                // skipped, and forged tokens are rejected with 401.
+                // When no key is configured, IssuerSigningKey is null (set by post-configure),
+                // so the handler has no key to verify against and rejects every token — which
+                // is the intended fail-closed behaviour.  Keeping this true removes any
+                // ambiguity about signature verification being skipped.
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = string.IsNullOrWhiteSpace(signingKey)
-                    ? null
-                    : new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
+                // IssuerSigningKey is set by JwtSigningKeySecretPostConfigure via ISecretProvider.
                 ValidateLifetime = true,
                 // 30-second clock skew tolerates modest server-clock drift.
                 ClockSkew = TimeSpan.FromSeconds(30),
             };
         });
+
+    // Register the post-configure that resolves IssuerSigningKey via ISecretProvider.
+    // Runs after all Configure<JwtBearerOptions> calls, lazily on first options resolution.
+    builder.Services.AddSingleton<IPostConfigureOptions<JwtBearerOptions>,
+        JwtSigningKeySecretPostConfigure>();
 
     builder.Services.AddAuthorization(opts =>
     {
@@ -297,6 +285,11 @@ app.MapPost("/verify", async (
     if (result.IsFailure &&
         result.Error?.StartsWith("Gate.", StringComparison.Ordinal) == true)
         return Results.StatusCode(503);
+
+    // Mid-flight cancellation (client closed the connection after the pipeline started).
+    // Return 499 Client Closed Request — consistent with the pre-flight 499 guard above.
+    if (result.IsCancelled())
+        return Results.StatusCode(499);
 
     if (!result.IsSuccess)
         return Results.UnprocessableEntity(new { error = result.Error });

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 
 namespace ExxerCube.Prisma.Veriqan.Application.Ports;
 
@@ -34,4 +35,25 @@ public sealed record SecretValue(
     string Value,
     string KeyId,
     string Version,
-    DateTimeOffset RetrievedAtUtc);
+    DateTimeOffset RetrievedAtUtc)
+{
+    /// <summary>
+    /// Returns a safe string representation that deliberately omits the plaintext
+    /// <see cref="Value"/> so that accidental logging of this record cannot leak secrets.
+    /// </summary>
+    public override string ToString() =>
+        $"SecretValue {{ KeyId = {KeyId}, Version = {Version}, RetrievedAtUtc = {RetrievedAtUtc:O} }}";
+
+    /// <summary>
+    /// Suppresses the compiler-generated <c>PrintMembers</c> to prevent <see cref="Value"/>
+    /// from appearing in interpolated strings or nested record printing.
+    /// Appends only the safe members (<see cref="KeyId"/>, <see cref="Version"/>,
+    /// <see cref="RetrievedAtUtc"/>) and returns <see langword="true"/>.
+    /// </summary>
+    private bool PrintMembers(StringBuilder builder)
+    {
+        builder.Append(
+            $"KeyId = {KeyId}, Version = {Version}, RetrievedAtUtc = {RetrievedAtUtc:O}");
+        return true;
+    }
+}

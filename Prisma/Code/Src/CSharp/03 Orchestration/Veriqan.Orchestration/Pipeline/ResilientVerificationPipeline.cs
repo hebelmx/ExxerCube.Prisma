@@ -28,17 +28,24 @@ namespace ExxerCube.Prisma.Veriqan.Orchestration.Pipeline;
 /// <para>
 /// <b>Resilience pipeline order (Polly v8 — outermost to innermost):</b>
 /// <list type="number">
-///   <item>Timeout — enforces a wall-clock limit for the entire operation.</item>
-///   <item>Circuit breaker — opens after repeated failures, blocking further calls until
-///         the configured break duration elapses.</item>
+///   <item>Circuit breaker — opens after repeated failures (including
+///         <see cref="Polly.Timeout.TimeoutRejectedException"/> from the inner timeout),
+///         blocking further calls until the configured break duration elapses.</item>
+///   <item>Timeout — enforces a wall-clock limit for each individual operation.
+///         Fires as <see cref="Polly.Timeout.TimeoutRejectedException"/>, which the outer
+///         circuit breaker sees and counts toward the failure ratio.</item>
 /// </list>
+/// With circuit-breaker outer and timeout inner, sustained timeouts DO open the circuit.
+/// The reversed order (timeout outer) was wrong: Polly's timeout fires as
+/// <see cref="OperationCanceledException"/>, which the circuit-breaker's predicate
+/// excludes, so repeated timeouts would never open the circuit.
 /// </para>
 /// <para>
-/// <b>Circuit-breaker predicate:</b> counts both thrown exceptions (excluding
-/// <see cref="OperationCanceledException"/>, which indicates user-initiated cancellation
-/// rather than infra fault) and <see cref="Result.IsFailure"/> return values that are not
-/// cancelled.  This means repeated business-logic failures (e.g. DB unreachable at persist)
-/// also contribute to the failure ratio, protecting downstream systems from hammering.
+/// <b>Circuit-breaker predicate:</b> counts <see cref="Polly.Timeout.TimeoutRejectedException"/>
+/// (from the inner timeout strategy) and any other non-OCE exception, plus
+/// <see cref="Result.IsFailure"/> return values that are not cancelled.
+/// <see cref="OperationCanceledException"/> is excluded because it indicates
+/// user-initiated cancellation rather than an infra fault.
 /// </para>
 /// <para>
 /// <b>Registration:</b> scoped (one instance per DI scope / HTTP request), while the
@@ -101,11 +108,31 @@ internal sealed class ResilientVerificationPipeline : IVerificationPipeline
 
         try
         {
-            return await _resiliencePipeline
+            var outcome = await _resiliencePipeline
                 .ExecuteAsync(
                     async innerCt => await _inner.ProcessAsync(submission, innerCt).ConfigureAwait(false),
                     ct)
                 .ConfigureAwait(false);
+
+            // A3 guard: Polly's inner Timeout strategy cancels its linked token when the
+            // deadline fires.  If the inner pipeline follows the project convention of
+            // catching OperationCanceledException and returning a Cancelled Result (rather
+            // than letting it propagate), Polly sees a successful task completion and does
+            // NOT throw TimeoutRejectedException.  Detect this case: outer CT was NOT
+            // cancelled but we received a Cancelled Result → the inner timeout fired and
+            // was absorbed.  Surface it as Gate.Timeout so the circuit breaker can count it
+            // and callers receive the correct 503 signal.
+            if (outcome.IsCancelled() && !ct.IsCancellationRequested)
+            {
+                _logger.LogError(
+                    "Gate.Timeout: inner pipeline absorbed Polly timeout cancellation for {FileName}",
+                    submission.FileName);
+
+                return Result<VerificationOutcome>.WithFailure(
+                    $"Gate.Timeout: verification gate exceeded {_options.TimeoutPerRequest.TotalSeconds:F0} s timeout");
+            }
+
+            return outcome;
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -154,9 +181,15 @@ internal sealed class ResilientVerificationPipeline : IVerificationPipeline
     /// <para>
     /// Pipeline strategy order (outermost → innermost):
     /// <list type="number">
-    ///   <item>Timeout — enforces <see cref="GateResilienceOptions.TimeoutPerRequest"/>.</item>
-    ///   <item>Circuit breaker — opens after the configured failure ratio / throughput
-    ///         threshold is exceeded within the sampling window.</item>
+    ///   <item>Circuit breaker (outer) — opens after the configured failure ratio /
+    ///         throughput threshold is exceeded within the sampling window.  Placed outermost
+    ///         so it sees <see cref="Polly.Timeout.TimeoutRejectedException"/> thrown by the
+    ///         inner timeout strategy and counts those toward the failure ratio.  A
+    ///         circuit-open condition also short-circuits before the timeout starts.</item>
+    ///   <item>Timeout (inner) — enforces <see cref="GateResilienceOptions.TimeoutPerRequest"/>.
+    ///         When the deadline fires it throws <see cref="Polly.Timeout.TimeoutRejectedException"/>
+    ///         (not <see cref="OperationCanceledException"/>), which the outer circuit
+    ///         breaker handles and counts as a failure.</item>
     /// </list>
     /// </para>
     /// <para>
@@ -178,19 +211,10 @@ internal sealed class ResilientVerificationPipeline : IVerificationPipeline
         ArgumentNullException.ThrowIfNull(logger);
 
         return new ResiliencePipelineBuilder<Result<VerificationOutcome>>()
-            // ── Strategy 1 (outermost): Entry timeout ────────────────────────────
-            .AddTimeout(new TimeoutStrategyOptions
-            {
-                Timeout = options.TimeoutPerRequest,
-                OnTimeout = args =>
-                {
-                    logger.LogWarning(
-                        "Gate timeout strategy fired after {Timeout}",
-                        args.Timeout);
-                    return default;
-                },
-            })
-            // ── Strategy 2 (innermost): Circuit breaker ───────────────────────────
+            // ── Strategy 1 (outermost): Circuit breaker ──────────────────────────
+            // Placed outermost so it sees TimeoutRejectedException thrown by the
+            // inner timeout strategy.  A circuit-open state also short-circuits
+            // before the timeout strategy even starts.
             .AddCircuitBreaker(new CircuitBreakerStrategyOptions<Result<VerificationOutcome>>
             {
                 FailureRatio = options.FailureRatio,
@@ -199,7 +223,9 @@ internal sealed class ResilientVerificationPipeline : IVerificationPipeline
                 BreakDuration = options.BreakDuration,
 
                 // Trip on:
-                //  • Any exception except user-initiated cancellation.
+                //  • TimeoutRejectedException from the inner timeout strategy — sustained
+                //    timeouts will now open the circuit.
+                //  • Any other exception except user-initiated cancellation (OCE).
                 //  • A Result.IsFailure return that is not a cancellation result.
                 ShouldHandle = args => new ValueTask<bool>(
                     (args.Outcome.Exception is not null &&
@@ -222,6 +248,20 @@ internal sealed class ResilientVerificationPipeline : IVerificationPipeline
                 OnHalfOpened = _ =>
                 {
                     logger.LogInformation("Gate circuit breaker HALF-OPEN (sending probe request)");
+                    return default;
+                },
+            })
+            // ── Strategy 2 (innermost): Entry timeout ────────────────────────────
+            // Fires as TimeoutRejectedException (not OperationCanceledException), which
+            // the outer circuit breaker's ShouldHandle predicate counts as a failure.
+            .AddTimeout(new TimeoutStrategyOptions
+            {
+                Timeout = options.TimeoutPerRequest,
+                OnTimeout = args =>
+                {
+                    logger.LogWarning(
+                        "Gate timeout strategy fired after {Timeout}",
+                        args.Timeout);
                     return default;
                 },
             })
