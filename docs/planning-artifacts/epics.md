@@ -925,6 +925,37 @@ So that the per-disposition figures (saldo pendiente, intereses, IVA, pago reque
 
 ## Epic 12: Legal Form & Typography
 
+> **✅ DONE — verified 2026-06-30 (orchestrator ground-truth pass, branch `Liv`).** Like Epics 9, 10 & 11,
+> the whole epic was already built ahead of this spec — this pass was **verify-only, zero greenfield code**.
+> All 4 stories are real, live in the dedicated `Veriqan.Infrastructure.Visual` project, DI-registered
+> (Scrutor scan of `IVecValidationRule` via `AddVeriqanVisual()`, wired into orchestration), and green —
+> verified via build + the fixture/model-driven suites, not prose:
+> - **12.1 typography point-size floor** — `TypographyPointSizeFloorRule` (`LAW-TYPO-MINSIZE`): body ≥8pt,
+>   *fecha límite de pago* ≥10pt using CTM-accounted `TextTypographySample.PointSize`, 0.25pt bias-to-Pass;
+>   abstains on null model / `TypographyExtractionStatus.NotFound` / no real-word samples / unlocatable
+>   fecha-límite label (two-column X-proximity safe).
+> - **12.2 mandated bold fields** — `MandatedBoldFieldsRule` (`LAW-TYPO-BOLD`): 9 locator-addressable
+>   mandated fields, tri-state `WeightClass` (Bold/NotBold/Indeterminate/NotLocated), bare-family-name →
+>   Indeterminate (never Fail), quorum ≥3. Last-page fiscal block intentionally NOT assessed (no locator).
+> - **12.3 advertising placement** — `AdvertisingPlacementRule` (`LAW-ADS-PLACEMENT`): §12 700-char cap
+>   (×1.15 extraction-uncertainty margin), promotional-marker allowlist, ad-detection outside permitted
+>   free sections (§21/§28); abstains when `model.Sections` null/empty.
+> - **12.4 section size caps** — `SectionSizeCapRule` (`LAW-SEC-SIZECAP`): §17 ¼-page, §21/§28 ⅓-page,
+>   measured positionally (heading→nearest same-page heading below, two-column safe) against
+>   `PageInspectionFacts.Width/Height`; abstains per-section when unmeasurable.
+>
+> Baselines: build 0/0, `Veriqan.Infrastructure.Visual.Tests` **164/164**, Orchestration.Tests **122/122**
+> (the `DofNumeralRegistryTests` gate — 5/5 — proves all 4 LAW-* rules carry DofNumeral + Classification
+> and are engine-registered). All four rules are `BaselineLocked` + `Deterministic` (no tunable tolerance).
+>
+> **Deliberately NOT built — corpus/infra-gated, abstain-safe today (never false-Fail):** the residual is
+> the rules' own documented future-work, NOT an acceptance-criterion gap, and building it now without a
+> ground-truth corpus/locator would violate the cardinal "a preventive gate never false-Fails" rule.
+> Logged: (a) **last-page fiscal-block bold check** (12.2) — no extracted locator, so the block is not
+> assessed. (b) **página-cero permitted-zone modeling** (12.3) — §0 is not modeled in the domain, so ads
+> on page-zero are not yet zoned. (c) **advertising-marker corpus calibration** (12.3) — the promotional
+> allowlist is conservative pending a real ad corpus. All three abstain rather than false-Fail today.
+
 Verify the document's *form* obeys the law — typography floor, mandated bold fields, advertising
 placement, section size caps. Realizes FR-36, FR-37. **Gated on Epic 5 (visual/print-quality) finishing,
 since it reuses PdfPig geometry + render infra.** Kept separate from the client Aptos brand rule (CL-35),

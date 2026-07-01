@@ -70,7 +70,7 @@ on low-confidence inputs (E9).
   §8 12-month indicators, §16 other credit lines.
 **FRs:** FR-29, FR-30, FR-31, FR-32, FR-33.  **NFR:** NFR-8.
 
-### Epic 12 — Legal Form & Typography  *(gated on E5 visual, which is WIP)*
+### Epic 12 — Legal Form & Typography  *(✅ DONE — verified 2026-06-30; already built ahead of spec, see epics.md §12)*
 - Typography legal floor (≥8 pt Arial-equiv; fecha límite ≥10 pt bold; ~10 specific bold fields).
   **Point-size via PdfPig is reliable; "bold" is a heuristic** (font-name/weight, mangled by subset
   embedding) → return `InsufficientData` when weight is indeterminate, never a false FAIL.
