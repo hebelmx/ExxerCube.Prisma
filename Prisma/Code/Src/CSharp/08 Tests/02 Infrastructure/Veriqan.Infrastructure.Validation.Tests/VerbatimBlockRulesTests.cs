@@ -4,6 +4,7 @@ using ExxerCube.Prisma.Veriqan.Domain.Binding;
 using ExxerCube.Prisma.Veriqan.Domain.Enums;
 using ExxerCube.Prisma.Veriqan.Domain.Extraction;
 using ExxerCube.Prisma.Veriqan.Domain.ReferenceData;
+using ExxerCube.Prisma.Veriqan.Domain.Tenant;
 using ExxerCube.Prisma.Veriqan.Domain.Verification;
 using ExxerCube.Prisma.Veriqan.Infrastructure.Validation.DependencyInjection;
 using IndQuestResults;
@@ -965,4 +966,118 @@ public sealed class VerbatimBlockRulesTests
         result.IsSuccess.ShouldBeTrue();
         result.Value!.Verdict.ShouldBe(FindingVerdict.Pass);
     }
+
+    // -----------------------------------------------------------------------
+    // Story 10.3 AC: VerbatimSimilarityThreshold tenant-configurable wiring
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Proves that <c>ResolveThreshold</c> in each verbatim rule reads the threshold
+    /// from <c>ctx.TenantProfile?.VerbatimSimilarityThreshold</c> rather than always
+    /// returning the catalog default.
+    ///
+    /// Strategy: supply all §17 legends verbatim (BestWindowSimilarity fast-path → 1.0),
+    /// then assert that <see cref="RuleFinding.ToleranceApplied"/> reflects the value
+    /// from the <see cref="ResolvedTenantProfile"/> rather than the hard-coded 0.82.
+    /// Both threshold values (default and custom) yield a Pass because the legends are
+    /// present; the test is about the THRESHOLD WIRING, not the pass/fail gate.
+    /// </summary>
+    [Theory]
+    [InlineData("LAW-§11-URLS")]
+    [InlineData("LAW-§17-LEGENDS")]
+    [InlineData("LAW-§24-QUEJAS")]
+    [InlineData("LAW-§26-NOTAS")]
+    [InlineData("LAW-§27-GLOSARIO")]
+    public void AllVerbatimRules_TenantThreshold_IsUsed_ReflectedInToleranceApplied(string checkId)
+    {
+        // Arrange
+        const double CustomThreshold = 0.70;
+
+        var rule = GetRule(checkId);
+
+        // Build a document that passes all checks for this rule (all blocks verbatim present).
+        var (sectionNumber, docText) = BuildPassingDocForRule(checkId);
+        var sections = SectionsWithPresent(sectionNumber);
+        var model = ModelWithTextAndSectionText(docText, sectionNumber, "SECCION HEADING", sections);
+
+        // Act — without tenant profile: threshold should be the catalog default (0.82).
+        var ctxNoProfile = Ctx(model);
+        var resultNoProfile = rule.Evaluate(ctxNoProfile, TestContext.Current.CancellationToken);
+
+        // Act — with tenant profile carrying custom threshold 0.70.
+        var ctxWithProfile = CtxWithVerbatimThreshold(model, CustomThreshold);
+        var resultWithProfile = rule.Evaluate(ctxWithProfile, TestContext.Current.CancellationToken);
+
+        // Assert — both pass (all blocks present).
+        resultNoProfile.IsSuccess.ShouldBeTrue();
+        resultNoProfile.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "rule with no tenant profile should pass when all blocks are present");
+
+        resultWithProfile.IsSuccess.ShouldBeTrue();
+        resultWithProfile.Value!.Verdict.ShouldBe(FindingVerdict.Pass,
+            "rule with custom tenant threshold should pass when all blocks are present");
+
+        // Assert — the threshold applied DIFFERS: default vs tenant-configured.
+        // This is the key wiring assertion: ResolveThreshold reads TenantProfile.
+        resultNoProfile.Value!.ToleranceApplied.ShouldBe(0.82m,
+            "without TenantProfile, rule must use the catalog default (0.82)");
+
+        resultWithProfile.Value!.ToleranceApplied.ShouldBe((decimal)CustomThreshold,
+            "with TenantProfile.VerbatimSimilarityThreshold = 0.70, rule must apply 0.70");
+    }
+
+    // -----------------------------------------------------------------------
+    // Helper: CtxWithVerbatimThreshold — builds a VerificationContext that carries
+    // a ResolvedTenantProfile with the specified VerbatimSimilarityThreshold.
+    // -----------------------------------------------------------------------
+
+    private static VerificationContext CtxWithVerbatimThreshold(StatementModel model, double verbatimThreshold)
+    {
+        var tenantProfile = new ResolvedTenantProfile(
+            tenantId: "TEST-TENANT-VERBATIM",
+            tenantName: "Test Tenant (Verbatim Threshold)",
+            effectiveTolerances: new Dictionary<string, decimal>(),
+            deviations: [],
+            verbatimSimilarityThreshold: verbatimThreshold);
+
+        return new VerificationContext(
+            bundle: EmptyBundle(),
+            resolvedProduct: Product(),
+            availability: ReferenceDataAvailability.FromBundle(EmptyBundle()),
+            priorStatement: null,
+            toleranceConfig: null,
+            statementModel: model,
+            tenantProfile: tenantProfile);
+    }
+
+    // -----------------------------------------------------------------------
+    // Helper: BuildPassingDocForRule — returns (hostSectionNumber, fullDocText)
+    // with all required blocks verbatim-present for the given CheckId.
+    // -----------------------------------------------------------------------
+
+    private static (int SectionNumber, string DocText) BuildPassingDocForRule(string checkId) =>
+        checkId switch
+        {
+            "LAW-§11-URLS" => (11,
+                $"COMPARA TU TARJETA CON OTRAS EN: {VecTextMatcher.Normalize(Url1)} " +
+                $"{VecTextMatcher.Normalize(Url2)} NOTAS ACLARATORIAS"),
+
+            "LAW-§17-LEGENDS" => (17,
+                string.Join(" SEPARADOR ",
+                    new[] { Legend17A, Legend17B, Legend17C, Legend17D }
+                        .Select(VecTextMatcher.Normalize))),
+
+            "LAW-§24-QUEJAS" => (24,
+                $"BANCO DEMO UNE. {VecTextMatcher.Normalize(Quejas24Fragment)} REESTRUCTURA"),
+
+            "LAW-§26-NOTAS" => (26,
+                "NOTAS ACLARATORIAS " +
+                string.Join(" NOTA ", AllSection26Notes.Select(VecTextMatcher.Normalize))),
+
+            "LAW-§27-GLOSARIO" => (27,
+                "GLOSARIO DE TERMINOS Y ABREVIATURAS " +
+                string.Join(" TERMINO ", AllSection27Terms.Select(VecTextMatcher.Normalize))),
+
+            _ => throw new InvalidOperationException($"Unknown checkId '{checkId}' in test helper.")
+        };
 }

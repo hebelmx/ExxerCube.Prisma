@@ -175,6 +175,78 @@ public sealed class ConfidenceGuardTests
     }
 
     // -----------------------------------------------------------------------
+    // TenantProfile.VerbatimSimilarityThreshold — property, default, and bounds
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void TenantProfile_DefaultVerbatimSimilarityThreshold_Is0_82()
+    {
+        var profile = new TenantProfile("T-001", "Test Tenant");
+
+        profile.VerbatimSimilarityThreshold.ShouldBe(TenantProfile.LegalVerbatimSimilarityThresholdDefault,
+            "omitting verbatimSimilarityThreshold must default to 0.82");
+    }
+
+    [Fact]
+    public void TenantProfile_CustomVerbatimSimilarityThreshold_IsStored()
+    {
+        var profile = new TenantProfile("T-001", "Test Tenant", verbatimSimilarityThreshold: 0.95);
+
+        profile.VerbatimSimilarityThreshold.ShouldBe(0.95);
+    }
+
+    [Fact]
+    public void TenantProfile_VerbatimSimilarityThresholdBelowZero_Throws()
+    {
+        Should.Throw<ArgumentOutOfRangeException>(
+            () => new TenantProfile("T-001", "Test Tenant", verbatimSimilarityThreshold: -0.01));
+    }
+
+    [Fact]
+    public void TenantProfile_VerbatimSimilarityThresholdAboveOne_Throws()
+    {
+        Should.Throw<ArgumentOutOfRangeException>(
+            () => new TenantProfile("T-001", "Test Tenant", verbatimSimilarityThreshold: 1.01));
+    }
+
+    [Fact]
+    public void TenantProfile_LegalBaseline_HasDefaultVerbatimSimilarityThreshold()
+    {
+        var profile = TenantProfile.LegalBaseline();
+
+        profile.VerbatimSimilarityThreshold.ShouldBe(TenantProfile.LegalVerbatimSimilarityThresholdDefault);
+    }
+
+    // -----------------------------------------------------------------------
+    // ResolvedTenantProfile.VerbatimSimilarityThreshold — property and default
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void ResolvedTenantProfile_DefaultVerbatimSimilarityThreshold_Is0_82()
+    {
+        var resolved = new ResolvedTenantProfile(
+            tenantId: "T-001",
+            tenantName: "Test",
+            effectiveTolerances: new Dictionary<string, decimal>(),
+            deviations: []);
+
+        resolved.VerbatimSimilarityThreshold.ShouldBe(TenantProfile.LegalVerbatimSimilarityThresholdDefault);
+    }
+
+    [Fact]
+    public void ResolvedTenantProfile_CustomVerbatimSimilarityThreshold_IsStored()
+    {
+        var resolved = new ResolvedTenantProfile(
+            tenantId: "T-001",
+            tenantName: "Test",
+            effectiveTolerances: new Dictionary<string, decimal>(),
+            deviations: [],
+            verbatimSimilarityThreshold: 0.90);
+
+        resolved.VerbatimSimilarityThreshold.ShouldBe(0.90);
+    }
+
+    // -----------------------------------------------------------------------
     // CL-10 confidence-guard integration tests
     // -----------------------------------------------------------------------
 

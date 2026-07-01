@@ -136,18 +136,12 @@ internal sealed class Section11ComparaUrlsRule : IVecValidationRule
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// Resolves the similarity threshold. Currently returns the catalog default
-    /// (<see cref="CondusefVerbatimCatalog.DefaultSimilarityThreshold"/>).
-    /// A future story may expose a per-tenant verbatim threshold via <c>ToleranceConfig</c>;
-    /// this method is the single point to add that override.
+    /// Resolves the similarity threshold for this rule.
+    /// Returns the tenant-configured value when available (Story 10.3 AC);
+    /// falls back to <see cref="CondusefVerbatimCatalog.DefaultSimilarityThreshold"/> (0.82) otherwise.
     /// </summary>
     private static double ResolveThreshold(VerificationContext ctx)
-    {
-        // ToleranceConfig currently carries currency/points tolerances only;
-        // verbatim-text threshold is not yet a per-tenant knob.
-        _ = ctx; // parameter reserved for future tenant-profile lookup.
-        return CondusefVerbatimCatalog.DefaultSimilarityThreshold;
-    }
+        => ctx.TenantProfile?.VerbatimSimilarityThreshold ?? CondusefVerbatimCatalog.DefaultSimilarityThreshold;
 
     private static DetectedSection? FindSection(
         System.Collections.Generic.IReadOnlyList<DetectedSection> sections,

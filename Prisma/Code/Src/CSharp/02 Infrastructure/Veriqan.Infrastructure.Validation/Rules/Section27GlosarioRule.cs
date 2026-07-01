@@ -116,10 +116,7 @@ internal sealed class Section27GlosarioRule : IVecValidationRule
     }
 
     private static double ResolveThreshold(VerificationContext ctx)
-    {
-        _ = ctx;
-        return CondusefVerbatimCatalog.DefaultSimilarityThreshold;
-    }
+        => ctx.TenantProfile?.VerbatimSimilarityThreshold ?? CondusefVerbatimCatalog.DefaultSimilarityThreshold;
 
     private static DetectedSection? FindSection(
         System.Collections.Generic.IReadOnlyList<DetectedSection> sections,

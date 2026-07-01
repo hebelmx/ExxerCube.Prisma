@@ -65,6 +65,19 @@ public sealed record ResolvedTenantProfile
     public double MinFieldConfidence { get; }
 
     /// <summary>
+    /// Gets the minimum similarity score required for a verbatim text block
+    /// (e.g. CONDUSEF mandatory legends §11/§17/§24/§26/§27) to be considered
+    /// present. Copied from the tenant profile after resolver validation.
+    /// </summary>
+    /// <remarks>
+    /// Always in [0.0, 1.0]. Defaults to <see cref="TenantProfile.LegalVerbatimSimilarityThresholdDefault"/>
+    /// (0.82) when the tenant profile specified no custom threshold or when no profile is available.
+    /// Rules read this value from the context via
+    /// <c>ctx.TenantProfile?.VerbatimSimilarityThreshold ?? CondusefVerbatimCatalog.DefaultSimilarityThreshold</c>.
+    /// </remarks>
+    public double VerbatimSimilarityThreshold { get; }
+
+    /// <summary>
     /// Initializes a <see cref="ResolvedTenantProfile"/>.
     /// </summary>
     /// <param name="tenantId">Tenant identifier.</param>
@@ -75,18 +88,25 @@ public sealed record ResolvedTenantProfile
     /// Minimum extraction-confidence threshold in [0.0, 1.0].
     /// Defaults to <see cref="TenantProfile.LegalMinFieldConfidenceDefault"/> (0.8).
     /// </param>
+    /// <param name="verbatimSimilarityThreshold">
+    /// Minimum similarity score in [0.0, 1.0] required for a verbatim text block to be
+    /// considered present. Defaults to
+    /// <see cref="TenantProfile.LegalVerbatimSimilarityThresholdDefault"/> (0.82).
+    /// </param>
     /// <exception cref="ArgumentNullException">
     /// Thrown when <paramref name="effectiveTolerances"/> or <paramref name="deviations"/> is null.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="minFieldConfidence"/> is outside [0.0, 1.0].
+    /// Thrown when <paramref name="minFieldConfidence"/> or <paramref name="verbatimSimilarityThreshold"/>
+    /// is outside [0.0, 1.0].
     /// </exception>
     public ResolvedTenantProfile(
         string tenantId,
         string tenantName,
         IReadOnlyDictionary<string, decimal> effectiveTolerances,
         IReadOnlyList<TenantDeviation> deviations,
-        double minFieldConfidence = TenantProfile.LegalMinFieldConfidenceDefault)
+        double minFieldConfidence = TenantProfile.LegalMinFieldConfidenceDefault,
+        double verbatimSimilarityThreshold = TenantProfile.LegalVerbatimSimilarityThresholdDefault)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantName);
@@ -97,6 +117,13 @@ public sealed record ResolvedTenantProfile
                 minFieldConfidence,
                 $"MinFieldConfidence must be in [{TenantProfile.MinFieldConfidenceLowerBound}, " +
                 $"{TenantProfile.MinFieldConfidenceUpperBound}].");
+        if (verbatimSimilarityThreshold is < TenantProfile.VerbatimSimilarityThresholdLowerBound
+                                        or > TenantProfile.VerbatimSimilarityThresholdUpperBound)
+            throw new ArgumentOutOfRangeException(
+                nameof(verbatimSimilarityThreshold),
+                verbatimSimilarityThreshold,
+                $"VerbatimSimilarityThreshold must be in [{TenantProfile.VerbatimSimilarityThresholdLowerBound}, " +
+                $"{TenantProfile.VerbatimSimilarityThresholdUpperBound}].");
 
         TenantId = tenantId;
         TenantName = tenantName;
@@ -105,6 +132,7 @@ public sealed record ResolvedTenantProfile
         Deviations = deviations
             ?? throw new ArgumentNullException(nameof(deviations));
         MinFieldConfidence = minFieldConfidence;
+        VerbatimSimilarityThreshold = verbatimSimilarityThreshold;
     }
 
     /// <summary>

@@ -98,6 +98,50 @@ public sealed record TenantProfile
     public const double MinFieldConfidenceLegalFloor = 0.8;
 
     // -----------------------------------------------------------------------
+    // Verbatim-text similarity threshold (Story 10.3 — AC completion)
+    // -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Gets the minimum similarity score required for a verbatim text block
+    /// (e.g. CONDUSEF mandatory legends §11/§17/§24/§26/§27) to be considered
+    /// present in the statement.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Default: 0.82.</b>  This value mirrors
+    /// <c>CondusefVerbatimCatalog.DefaultSimilarityThreshold</c> in
+    /// <c>Veriqan.Infrastructure.Validation</c>.  The Domain layer cannot reference
+    /// Infrastructure, so the value is intentionally duplicated here; both must be
+    /// updated in lockstep if the default ever changes.
+    /// </para>
+    /// <para>
+    /// A tenant may tighten (raise) this value to require stricter verbatim matching.
+    /// The resolver validates and enforces the [0.0, 1.0] bounds.
+    /// </para>
+    /// </remarks>
+    public double VerbatimSimilarityThreshold { get; }
+
+    /// <summary>
+    /// The legal minimum value for <see cref="VerbatimSimilarityThreshold"/>.
+    /// A tenant-supplied value below this is rejected.
+    /// </summary>
+    public const double VerbatimSimilarityThresholdLowerBound = 0.0;
+
+    /// <summary>
+    /// The legal maximum value for <see cref="VerbatimSimilarityThreshold"/>.
+    /// A tenant-supplied value above this is rejected.
+    /// </summary>
+    public const double VerbatimSimilarityThresholdUpperBound = 1.0;
+
+    /// <summary>
+    /// The default verbatim similarity threshold (Story 10.3).
+    /// Mirrors <c>CondusefVerbatimCatalog.DefaultSimilarityThreshold</c> = 0.82 in
+    /// <c>Veriqan.Infrastructure.Validation</c>.  Domain cannot reference Infrastructure,
+    /// so the value is duplicated deliberately; update both in lockstep when this changes.
+    /// </summary>
+    public const double LegalVerbatimSimilarityThresholdDefault = 0.82;
+
+    // -----------------------------------------------------------------------
     // Extraction-coverage floor (Story E1-S10 — U2 guard)
     // -----------------------------------------------------------------------
 
@@ -233,6 +277,11 @@ public sealed record TenantProfile
     /// <see cref="LegalMinFieldConfidenceDefault"/> (0.8) when omitted.
     /// A tenant may tighten (raise) this value; it is validated and clamped by the resolver.
     /// </param>
+    /// <param name="verbatimSimilarityThreshold">
+    /// Minimum similarity score in [0.0, 1.0] required for a verbatim text block to be
+    /// considered present. Defaults to <see cref="LegalVerbatimSimilarityThresholdDefault"/> (0.82)
+    /// when omitted. A tenant may tighten (raise) this value; it is validated by the resolver.
+    /// </param>
     /// <param name="minExtractionCoverageCount">
     /// Minimum number of extracted (or invalid-format) fields required before the pipeline
     /// proceeds to bind and validate. Defaults to <see cref="DefaultMinExtractionCoverageCount"/> (10).
@@ -253,15 +302,17 @@ public sealed record TenantProfile
     /// Thrown when <paramref name="tenantId"/> or <paramref name="tenantName"/> is null or white-space.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// Thrown when <paramref name="minFieldConfidence"/> is outside [0.0, 1.0], or when
-    /// <paramref name="minExtractionCoverageCount"/> or <paramref name="minTextLayerWordCount"/>
-    /// is negative, or when <paramref name="maxStatementBoundarySignalCount"/> is less than 1.
+    /// Thrown when <paramref name="minFieldConfidence"/> or <paramref name="verbatimSimilarityThreshold"/>
+    /// is outside [0.0, 1.0], or when <paramref name="minExtractionCoverageCount"/> or
+    /// <paramref name="minTextLayerWordCount"/> is negative, or when
+    /// <paramref name="maxStatementBoundarySignalCount"/> is less than 1.
     /// </exception>
     public TenantProfile(
         string tenantId,
         string tenantName,
         IReadOnlyDictionary<string, decimal>? toleranceOverrides = null,
         double minFieldConfidence = LegalMinFieldConfidenceDefault,
+        double verbatimSimilarityThreshold = LegalVerbatimSimilarityThresholdDefault,
         int minExtractionCoverageCount = DefaultMinExtractionCoverageCount,
         int minTextLayerWordCount = DefaultMinTextLayerWordCount,
         int maxStatementBoundarySignalCount = DefaultMaxStatementBoundarySignalCount)
@@ -273,6 +324,11 @@ public sealed record TenantProfile
                 nameof(minFieldConfidence),
                 minFieldConfidence,
                 $"MinFieldConfidence must be in [{MinFieldConfidenceLowerBound}, {MinFieldConfidenceUpperBound}].");
+        if (verbatimSimilarityThreshold is < VerbatimSimilarityThresholdLowerBound or > VerbatimSimilarityThresholdUpperBound)
+            throw new ArgumentOutOfRangeException(
+                nameof(verbatimSimilarityThreshold),
+                verbatimSimilarityThreshold,
+                $"VerbatimSimilarityThreshold must be in [{VerbatimSimilarityThresholdLowerBound}, {VerbatimSimilarityThresholdUpperBound}].");
         if (minExtractionCoverageCount < 0)
             throw new ArgumentOutOfRangeException(
                 nameof(minExtractionCoverageCount),
@@ -294,6 +350,7 @@ public sealed record TenantProfile
         ToleranceOverrides = toleranceOverrides
             ?? new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         MinFieldConfidence = minFieldConfidence;
+        VerbatimSimilarityThreshold = verbatimSimilarityThreshold;
         MinExtractionCoverageCount = minExtractionCoverageCount;
         MinTextLayerWordCount = minTextLayerWordCount;
         MaxStatementBoundarySignalCount = maxStatementBoundarySignalCount;
@@ -315,6 +372,7 @@ public sealed record TenantProfile
             tenantName: "Legal Baseline (CONDUSEF)",
             toleranceOverrides: new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase),
             minFieldConfidence: LegalMinFieldConfidenceDefault,
+            verbatimSimilarityThreshold: LegalVerbatimSimilarityThresholdDefault,
             minExtractionCoverageCount: DefaultMinExtractionCoverageCount,
             minTextLayerWordCount: DefaultMinTextLayerWordCount,
             maxStatementBoundarySignalCount: DefaultMaxStatementBoundarySignalCount);
