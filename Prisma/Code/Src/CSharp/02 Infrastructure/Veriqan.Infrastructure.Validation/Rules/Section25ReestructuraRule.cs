@@ -29,6 +29,14 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// conditional section.
 /// </para>
 /// <para>
+/// <b>Accepted limitation (AC 10.5, owner ruling 2026-06-30 — "trigger = heading"):</b>
+/// because the restructure trigger is heading-derived, an account that is genuinely
+/// restructured but <em>omits the §25 heading entirely</em> is treated as not-applicable and
+/// cannot be flagged. Detecting a restructure independently of the §25 heading (e.g. from
+/// evidence elsewhere in the statement) is a separate extraction spike, deliberately deferred;
+/// the abstain-safe posture (never false-Fail) is preserved in the meantime.
+/// </para>
+/// <para>
 /// <b>Verdict logic (when triggered):</b>
 /// <list type="bullet">
 ///   <item>§25 present (<see cref="DetectedSection.IsPresent"/> == <c>true</c>) → <b>Pass</b>.</item>

@@ -50,6 +50,18 @@ namespace ExxerCube.Prisma.Veriqan.Infrastructure.Validation.Rules;
 /// If none is found (and text is non-empty) → <b>Fail</b> Critical.
 /// If the section is present but text is empty → <b>InsufficientData</b>.
 /// </para>
+/// <para>
+/// <b>Accepted limitation (AC 10.5, owner ruling 2026-06-30):</b> this rule verifies
+/// status <em>presence</em> at the §23-section-text level, not per individual row. A true
+/// per-row check is currently not meaningful because the §23 extractor
+/// (<c>PdfPigStatementFieldExtractor.ExtractDisputeRows</c>) <em>keys</em> each
+/// <see cref="DisputeRow"/> off one of the three valid status tokens — so a
+/// <see cref="DisputeStatus.Unknown"/> row is unreachable by construction, and a
+/// per-row "fail on Unknown" check would be dead code. Detecting a charge row whose status
+/// is <em>invalid/absent</em> requires row detection independent of the status token (amount +
+/// date heuristics), which is the same deferred extraction spike as the §25 trigger above.
+/// The section-scoped check remains abstain-safe (never false-Fail).
+/// </para>
 /// </remarks>
 internal sealed class Section23CargosNoReconocidosRule : IVecValidationRule
 {

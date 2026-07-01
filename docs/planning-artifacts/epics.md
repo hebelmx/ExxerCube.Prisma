@@ -683,6 +683,26 @@ So that the whole rule set is uniform before ~30 new rules are authored against 
 
 ## Epic 10: Regulatory Structural & Textual Completeness
 
+> **✅ DONE — verified + tail-closed 2026-06-30 (orchestrator pass, branch `Liv`).** Like Epic 9,
+> the bulk of Epic 10 was already built (spec predates code): 10.1 real geometry segmenter
+> (`PdfPigStatementFieldExtractor.ExtractDetectedSections`, 28-anchor table, page+bbox); 10.2 order +
+> PdfPig blank-gap >2cm (`SectionOrderAndGapRule` + `ComputeSectionGaps`, `SectionGap.TwoCmInPoints`);
+> **10.3 shared normalize+match primitive DONE** (`VecTextNormalizer` + `VecTextMatcher`
+> Levenshtein/Jaccard + `VerbatimBlockMatcher`); 10.4 verbatim blocks with exact mandated counts
+> (§26=13, §27=15) + similarity score; 10.5 conditional N/A semantics + `DisputeStatus` enum; 10.6
+> §18/§13 completeness incl. explicit-0. Baselines: Validation.Tests 531/531, Application 151/151,
+> Orchestration 122/122, build 0/0.
+>
+> **Tail closed this pass:** (a) **S10.3 threshold now tenant-configurable** — `ResolveThreshold(ctx)`
+> was a `_ = ctx;` stub returning the 0.82 constant; wired to `TenantProfile.VerbatimSimilarityThreshold`
+> (commit `1f0de6a3`). (b) **Two accepted limitations documented (owner ruling 2026-06-30 "trigger =
+> heading"):** §25 restructure trigger is heading-derived, so an account that *omits* §25 entirely
+> can't be flagged; and §23 row-status is checked at section level — a per-row `Unknown` check would be
+> **dead code** because `ExtractDisputeRows` keys rows off the 3 valid tokens (an `Unknown` row is
+> unreachable). Catching an invalid/absent-status row needs status-token-independent row detection =
+> a deferred extraction spike. Both noted in `Section25ReestructuraRule`/`Section23CargosNoReconocidosRule`.
+> **Not done (deliberate):** CL-38 UI label / `ChecklistIds.cs` relabel — owner-gated checklist backlog.
+
 Confirm every legally-required section is present, in the fixed order, with the exact mandated wording.
 Realizes FR-28, FR-34, FR-35, FR-38. All rules authored against the Epic-9 seam.
 
