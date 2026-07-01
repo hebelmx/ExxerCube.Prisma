@@ -56,6 +56,10 @@
 		<!-- ASP.NET Core MVC and SignalR -->
 		<PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
 		<PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+		<!-- Transitive pin: Microsoft.AspNetCore.OpenApi 10.0.8 pulls Microsoft.OpenApi 2.0.0,
+		     which has high-severity advisory GHSA-v5pm-xwqc-g5wc (circular-schema parse hang,
+		     vulnerable <= 2.7.4). Pin to the first patched 2.x. Requires CentralPackageTransitivePinningEnabled. -->
+		<PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
 		<PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.8" />
 		<PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.8" />
 		<!-- ASP.NET Core Authentication and JWT -->
