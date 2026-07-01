@@ -794,6 +794,41 @@ So that all mandated benefit concepts are shown (including "0") and the card-usa
 
 ## Epic 11: Regulatory Computation Verification
 
+> **✅ DONE — verified 2026-06-30 (orchestrator ground-truth pass, branch `Liv`).** Like Epics 9 & 10,
+> the whole epic was already built ahead of this spec (work landed during Epics 4–6). All 6 stories are
+> real, DI-registered (Scrutor scan of `IVecValidationRule`), tolerance-aware
+> (`ILegalToleranceProvider` + tenant tightening), and green — verified via build + the fixture-driven
+> suites, not prose:
+> - **11.1 structured table extraction** — `PdfPigStatementFieldExtractor.ExtractFinancialTables`
+>   fans out to `ExtractSection8/19/20/16/6Table` → `IReadOnlyList<FinancialTable>` on
+>   `StatementModel.FinancialTables`; typed `TableCell` with per-cell `Confidence` + `CellKind`
+>   (Amount/Rate/Days/NotApplicable/ParseFailure/Missing) and abstain contract
+>   (`FinancialTable.NotFound/Indeterminate/NoRows`). Fixture-driven `FinancialTableExtractionTests`.
+> - **11.2 §20 waterfall** — `Section20PaymentDistributionRule` (`LAW-§20-WATERFALL`): 7-column identity
+>   `pagosYAbonos = Σ(components) − saldoAFavor`, both sign conventions, per-cell confidence gate.
+> - **11.3 §19 per-row interest** — `Section19InterestPerRowRule` (`LAW-§19-INTERES`):
+>   `monto ≈ saldoBase × (tasa/360) × días` per row + §10 ordinary-rate cross-check.
+> - **11.4 §6 recursion** — `Section6PaymentSimulationRule` (`LAW-§6-SIMULACION`): revolving-balance
+>   recursion, scenarios k∈{1,2,5}, months ±1 + pre-IVA interest, IVA from provider (0.16).
+> - **11.5 §8 indicators** — `Section8AnnualCostIndicatorsRule` (`LAW-§8-INDICADORES`): presence +
+>   non-negative on the 3 indicators.
+> - **11.6 §16 other lines** — `Section16OtherCreditLinesRule` (`LAW-§16-OTRASLINEAS`): per-row
+>   interest + IVA reconcile + §16-total-vs-§19 tie; not-applicable when §16 absent.
+>
+> Baselines: build 0/0, Extraction.Tests **187/187**, Validation.Tests **531/531**, Orchestration.Tests
+> **122/122** (the `DofNumeralRegistryTests` gate proves all 5 Section rules carry DofNumeral +
+> Classification and are wired).
+>
+> **Deliberately NOT built — corpus-gated, owner ruling (same class as Epic 10's deferred spikes):**
+> the residual is **calibration, not code**, and building it now would *violate* this epic's own rule
+> ("a misread digit must never produce a false non-compliant verdict") absent a ground-truth corpus to
+> validate against. Logged: (a) **§6 has no fixture** — §6 is absent from all 3 PRP2 Dummie VEC PDFs, so
+> `ExtractSection6Table` returns `NotFound` and the rule abstains; end-to-end unverified until a real §6
+> specimen exists. (b) **§20 saldo-a-favor sign convention** `TODO(corpus)` — logic already handles both
+> signs; only calibration pending. (c) **§16 column-map** calibration guard (abstains if observed column
+> count ≠ expected map). (d) **§8 derivable-coherence** cross-check (beyond presence) — tolerance stored
+> "for future use"; deferred pending corpus. All four are abstain-safe today (never false-Fail).
+
 Recompute the law's mandated calculations from the statement's OWN reported figures and confirm the
 printed values reconcile. Realizes FR-29, FR-30, FR-31, FR-32, FR-33; NFR-8. All rules abstain (Epic 9)
 on low-confidence inputs — a misread digit must never produce a false "bank non-compliant" verdict.
