@@ -976,7 +976,12 @@ public sealed class HexagonalArchitectureTests(ITestOutputHelper output)
                                 "ExxerCube.Prisma.Infrastructure.FileSystem.FileSystemLoader.GetSupportedExtensions",
                                 "ExxerCube.Prisma.Infrastructure.DependencyInjection.OcrProcessingServiceAdapter.ProcessDocumentAsync",
                                 "ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.ComplementExtractionStrategy.CanHandle",
-                                "ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.CanHandle"
+                                "ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Strategies.SearchExtractionStrategy.CanHandle",
+                                // In-memory fallback resolver: FindOrCreateAsync is a one-line delegation to the
+                                // fully-implemented ResolveIdentityAsync (persistence lives in the DB-backed
+                                // DbPersonIdentityResolverService, PRISMA-E4-S1). The delegation compiles to ~14 bytes
+                                // IL — a genuine forwarder, not a stub.
+                                "ExxerCube.Prisma.Infrastructure.Classification.PersonIdentityResolverService.FindOrCreateAsync"
                             };
 
                             var fullMethodName = $"{type.FullName}.{method.Name}";

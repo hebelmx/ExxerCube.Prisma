@@ -51,6 +51,13 @@ public class ManualReviewIntegrationTests
         _personIdentityResolver.ResolveIdentityAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
             .Returns(Result<Persona>.Success(resolvedPerson));
 
+        // DecisionLogicService resolves canonical identity via FindOrCreateAsync (PRISMA-E4-S1,
+        // DecisionLogicService.cs:141) — the persistence-aware entry point that superseded the direct
+        // ResolveIdentityAsync call. Without this stub the mock returns an unconfigured (failure) Result
+        // and the whole workflow short-circuits to IsSuccess == false.
+        _personIdentityResolver.FindOrCreateAsync(Arg.Any<Persona>(), Arg.Any<CancellationToken>())
+            .Returns(Result<Persona>.Success(resolvedPerson));
+
         _personIdentityResolver.DeduplicatePersonsAsync(Arg.Any<List<Persona>>(), Arg.Any<CancellationToken>())
             .Returns(Result<List<Persona>>.Success(resolvedList));
 
