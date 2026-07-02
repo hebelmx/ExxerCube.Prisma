@@ -5,7 +5,16 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ExxerCube.Prisma.Infrastructure.Database.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Creates the UnifiedMetadataRecords table (persisted unified metadata store).
+    /// </summary>
+    /// <remarks>
+    /// GH#32: supersedes the orphaned <c>20260613200000_AddUnifiedMetadataRecords</c> migration, which
+    /// shipped without a <c>.Designer.cs</c> — so it carried no <c>[Migration]</c> attribute, was invisible
+    /// to the migrations assembly, and was never applied (the table was missing everywhere migrations run).
+    /// Re-authored as a terminal migration whose target model equals the current model snapshot, so it is
+    /// design-time consistent and <c>MigrateAsync</c> creates the table on any DB that lacks it.
+    /// </remarks>
     public partial class AddUnifiedMetadataRecords : Migration
     {
         /// <inheritdoc />
