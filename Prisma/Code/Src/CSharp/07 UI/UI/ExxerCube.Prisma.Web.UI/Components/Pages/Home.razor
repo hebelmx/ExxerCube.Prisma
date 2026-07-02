@@ -207,10 +207,14 @@
     {
         var options = NavigationTargetOptions.Value;
 
-        // Get URL from configuration based on source ID
+        // Get URL from configuration based on source ID.
+        // GH#21: "Open SIARA" redirects the USER'S browser, so it must use the browser-facing
+        // (host-reachable) URL — NOT SiaraUrl, which is the Docker-internal service name
+        // (http://siara-simulator:8080) that does not resolve from the browser. Fall back to
+        // SiaraUrl, then to the known host-published port, so dev (non-container) still works.
         var url = sourceId.ToLower() switch
         {
-            "siara" => options.SiaraUrl ?? "https://localhost:5002",
+            "siara" => options.SiaraBrowserUrl ?? options.SiaraUrl ?? "http://localhost:8084",
             "archive" => options.ArchiveUrl ?? "https://archive.org",
             "gutenberg" => options.GutenbergUrl ?? "https://www.gutenberg.org",
             _ => null

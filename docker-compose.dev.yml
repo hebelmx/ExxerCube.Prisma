@@ -317,8 +317,12 @@ services:
       ConnectionStrings__ApplicationConnection: >-
         Server=sqlserver,1433;Database=Prisma;User Id=sa;Password=${SA_PASSWORD};
         Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true
-      # SIARA Simulator URL — resolved by service name inside the network.
+      # SIARA Simulator URL — resolved by service name inside the network (server-facing:
+      # used by the Web.UI process and the container-hosted Playwright agent).
       NavigationTargets__SiaraUrl: "http://siara-simulator:8080"
+      # GH#21: browser-facing SIARA URL for redirecting the USER'S browser (Home "Open SIARA").
+      # siara-simulator:8080 is not resolvable from the browser; the sim is host-published on 8084.
+      NavigationTargets__SiaraBrowserUrl: "http://localhost:8084"
       Siara__BaseUrl: "http://siara-simulator:8080"
       Storage__BasePath: "/data/documents"
       SEQ_URL: "http://seq:80"
