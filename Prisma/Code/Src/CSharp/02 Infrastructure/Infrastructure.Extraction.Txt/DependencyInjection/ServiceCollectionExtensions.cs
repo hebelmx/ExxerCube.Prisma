@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Infrastructure.Extraction.Txt.Llm;
+
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Txt.DependencyInjection;
 
 /// <summary>
@@ -20,7 +22,14 @@ public static class ServiceCollectionExtensions
     /// </remarks>
     public static IServiceCollection AddTxtFieldExtraction(this IServiceCollection services)
     {
+        // Deterministic extractor — remains the active IFieldExtractor<TxtSource> binding.
         services.AddScoped<IFieldExtractor<TxtSource>, AdaptiveTxtFieldExtractor>();
+
+        // LLM extractor — registered as a CONCRETE scoped service so it can be resolved
+        // directly (e.g. for demo override or future A/B routing) without replacing the
+        // deterministic binding above.  Ships DARK: LlmProviders:TextExtractorEnabled=false.
+        services.AddScoped<LlmTxtFieldExtractor>();
+
         return services;
     }
 }

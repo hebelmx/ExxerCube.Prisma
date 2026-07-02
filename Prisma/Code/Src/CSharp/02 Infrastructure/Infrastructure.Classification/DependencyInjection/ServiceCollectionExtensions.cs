@@ -1,4 +1,5 @@
 using ExxerCube.Prisma.Domain.Interfaces;
+using ExxerCube.Prisma.Infrastructure.Classification.Llm;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -109,6 +110,41 @@ public static class ServiceCollectionExtensions
             services.Configure<MatchingPolicyOptions>(_ => { });
             services.Configure<NameMatchingOptions>(_ => { });
         }
+
+        // ----------------------------------------------------------------
+        // LLM provider subsystem — registered DARK (flags default false).
+        // S1: OllamaProvider + LlmProviderFactory + ConfigSecretProvider.
+        // Registering the types is always safe; nothing changes at runtime
+        // until LlmProviders:TextExtractorEnabled or VisionExtractorEnabled=true.
+        // ----------------------------------------------------------------
+        if (configuration != null)
+        {
+            var llmSection = configuration.GetSection(LlmProvidersOptions.SectionName);
+            if (llmSection.Exists())
+            {
+                services.Configure<LlmProvidersOptions>(llmSection);
+            }
+            else
+            {
+                services.Configure<LlmProvidersOptions>(_ => { });
+            }
+        }
+        else
+        {
+            services.Configure<LlmProvidersOptions>(_ => { });
+        }
+
+        // Named HttpClient for OllamaProvider (base address is resolved per-call from options).
+        services.AddHttpClient(OllamaProvider.HttpClientName);
+
+        // Register the provider implementations (singleton — stateless HTTP adapters).
+        services.AddSingleton<ILlmProvider, OllamaProvider>();
+
+        // Singleton factory that holds all registered providers.
+        services.AddSingleton<ILlmProviderFactory, LlmProviderFactory>();
+
+        // Secret resolution from IConfiguration (user-secrets / env vars).
+        services.AddSingleton<ISecretProvider, ConfigSecretProvider>();
 
         return services;
     }
