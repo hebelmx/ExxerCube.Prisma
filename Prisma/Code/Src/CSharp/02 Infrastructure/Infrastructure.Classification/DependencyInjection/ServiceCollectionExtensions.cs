@@ -137,8 +137,15 @@ public static class ServiceCollectionExtensions
         // Named HttpClient for OllamaProvider (base address is resolved per-call from options).
         services.AddHttpClient(OllamaProvider.HttpClientName);
 
+        // Named HttpClient for GeminiProvider (base URL is hard-coded in the provider).
+        services.AddHttpClient(GeminiProvider.HttpClientName);
+
         // Register the provider implementations (singleton — stateless HTTP adapters).
         services.AddSingleton<ILlmProvider, OllamaProvider>();
+
+        // S2: Gemini provider — registered DARK alongside Ollama so the factory sees both.
+        // The active provider remains "Ollama" (config default) until LlmProviders:Active is flipped.
+        services.AddSingleton<ILlmProvider, GeminiProvider>();
 
         // Singleton factory that holds all registered providers.
         services.AddSingleton<ILlmProviderFactory, LlmProviderFactory>();

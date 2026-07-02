@@ -33,5 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\01 Core\Domain\ExxerCube.Prisma.Domain.csproj" />
     <ProjectReference Include="..\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
+    <!-- S2: LlmVisionFieldExtractor reuses the shared DTO/gate/mapper from the Txt extractor. -->
+    <ProjectReference Include="..\Infrastructure.Extraction.Txt\ExxerCube.Prisma.Infrastructure.Extraction.Txt.csproj" />
   </ItemGroup>
 </Project>

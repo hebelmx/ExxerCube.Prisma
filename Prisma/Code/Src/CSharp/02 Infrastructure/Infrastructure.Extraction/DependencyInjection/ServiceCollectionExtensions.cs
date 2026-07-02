@@ -1,3 +1,5 @@
+using ExxerCube.Prisma.Infrastructure.Extraction.Ocr.Llm;
+
 namespace ExxerCube.Prisma.Infrastructure.Extraction.Ocr.DependencyInjection;
 
 /// <summary>
@@ -79,6 +81,15 @@ public static class ServiceCollectionExtensions
 
         // OCR session repository for data collection and model retraining
         services.AddSingleton<IOcrSessionRepository, Repositories.OcrSessionRepository>();
+
+        // ----------------------------------------------------------------
+        // S2: LLM vision track + reconciler — registered DARK.
+        // LlmVisionFieldExtractor is a concrete scoped type (not bound to IFieldExtractor<ImageSource>)
+        // so the deterministic pipeline is untouched until an orchestrator explicitly routes images to it.
+        // IExtractionReconciler is wired but nothing calls it until S3 wiring.
+        // ----------------------------------------------------------------
+        services.AddScoped<LlmVisionFieldExtractor>();
+        services.AddScoped<IExtractionReconciler, ExtractionReconciler>();
 
         return services;
     }
