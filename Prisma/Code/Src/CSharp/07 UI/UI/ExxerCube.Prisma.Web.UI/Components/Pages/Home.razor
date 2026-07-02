@@ -121,14 +121,14 @@
                             Digital library of free books, movies, music, and more
                         </MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            Demo navigation to archive.org for document processing pipeline
+                            Demo the IDownloader ingestion pipeline (browser automation)
                         </MudText>
                     </MudCardContent>
                     <MudCardActions>
                         <MudButton Variant="Variant.Outlined" Color="Color.Secondary"
                                    OnClick="@(() => NavigateToSource("archive"))"
-                                   StartIcon="@Icons.Material.Filled.Launch">
-                            Open Archive
+                                   StartIcon="@Icons.Material.Filled.Download">
+                            Download Demo
                         </MudButton>
                     </MudCardActions>
                 </MudCard>
@@ -147,14 +147,14 @@
                             Free eBooks - Over 70,000 free books available
                         </MudText>
                         <MudText Typo="Typo.caption" Color="Color.Secondary">
-                            Demo navigation to gutenberg.org for document extraction testing
+                            Demo the IDownloader extraction pipeline (browser automation)
                         </MudText>
                     </MudCardContent>
                     <MudCardActions>
                         <MudButton Variant="Variant.Outlined" Color="Color.Tertiary"
                                    OnClick="@(() => NavigateToSource("gutenberg"))"
-                                   StartIcon="@Icons.Material.Filled.Launch">
-                            Open Gutenberg
+                                   StartIcon="@Icons.Material.Filled.Download">
+                            Download Demo
                         </MudButton>
                     </MudCardActions>
                 </MudCard>
@@ -207,27 +207,29 @@
     {
         var options = NavigationTargetOptions.Value;
 
-        // Get URL from configuration based on source ID.
-        // GH#21: "Open SIARA" redirects the USER'S browser, so it must use the browser-facing
-        // (host-reachable) URL — NOT SiaraUrl, which is the Docker-internal service name
-        // (http://siara-simulator:8080) that does not resolve from the browser. Fall back to
-        // SiaraUrl, then to the known host-published port, so dev (non-container) still works.
-        var url = sourceId.ToLower() switch
+        switch (sourceId.ToLower())
         {
-            "siara" => options.SiaraBrowserUrl ?? options.SiaraUrl ?? "http://localhost:8084",
-            "archive" => options.ArchiveUrl ?? "https://archive.org",
-            "gutenberg" => options.GutenbergUrl ?? "https://www.gutenberg.org",
-            _ => null
-        };
+            // GH#22: Internet Archive / Project Gutenberg cards demo the IDownloader ingestion
+            // path — route to the internal browser-automation downloader demo with the source
+            // preselected, instead of a raw external redirect.
+            case "archive":
+            case "gutenberg":
+                Snackbar.Add($"Opening the {sourceId} download demo...", Severity.Info);
+                NavigationManager.NavigateTo($"/browser-automation?source={sourceId.ToLower()}");
+                break;
 
-        if (!string.IsNullOrEmpty(url))
-        {
-            Snackbar.Add($"Opening {sourceId.ToUpper()} in new window...", Severity.Info);
-            NavigationManager.NavigateTo(url, forceLoad: true);
-        }
-        else
-        {
-            Snackbar.Add($"Navigation target '{sourceId}' not configured", Severity.Error);
+            // GH#21: "Open SIARA" redirects the USER'S browser to the SIARA portal, so it must use
+            // the browser-facing (host-reachable) URL — NOT SiaraUrl, which is the Docker-internal
+            // service name (http://siara-simulator:8080) that does not resolve from the browser.
+            case "siara":
+                var siaraUrl = options.SiaraBrowserUrl ?? options.SiaraUrl ?? "http://localhost:8084";
+                Snackbar.Add("Opening SIARA...", Severity.Info);
+                NavigationManager.NavigateTo(siaraUrl, forceLoad: true);
+                break;
+
+            default:
+                Snackbar.Add($"Navigation target '{sourceId}' not configured", Severity.Error);
+                break;
         }
     }
 }

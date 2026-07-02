@@ -191,6 +191,13 @@
 @inject IOptions<NavigationTargetOptions> NavigationTargetOptions
 
 @code {
+    // GH#22: allow deep-linking with a preselected source, e.g. /browser-automation?source=archive.
+    // The Home "Internet Archive" / "Project Gutenberg" cards route here (the real IDownloader/
+    // browser-automation demo) with the source preselected, instead of a raw external link.
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "source")]
+    public string? SourceQuery { get; set; }
+
     private string _selectedSource = "gutenberg";
     private int _downloadCount = 3;
     private bool _isDownloading = false;
@@ -226,6 +233,13 @@
         _archiveUrl = NavigationTargetOptions.Value.ArchiveUrl ?? "https://archive.org";
         _browserTimeoutMs = BrowserOptions.Value.BrowserLaunchTimeoutMs;
         _pageTimeoutMs = BrowserOptions.Value.PageTimeoutMs;
+
+        // GH#22: honor ?source=gutenberg|archive|siara deep-links from the Home cards.
+        var requested = SourceQuery?.Trim().ToLowerInvariant();
+        if (requested is "gutenberg" or "archive" or "siara")
+        {
+            _selectedSource = requested;
+        }
 
         // Check if SIARA simulator is already running
         _isSimulatorRunning = await IsSimulatorRunningAsync();
