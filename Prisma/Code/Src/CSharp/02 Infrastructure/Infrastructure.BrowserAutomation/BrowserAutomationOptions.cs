@@ -11,6 +11,15 @@ public class BrowserAutomationOptions
     public bool Headless { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets the Chromium launch arguments. Defaults to the flags a headed browser
+    /// needs when running as root inside a container (e.g. the /browser-automation demo with
+    /// X11 forwarding): <c>--no-sandbox</c> (root cannot use the sandbox), <c>--disable-dev-shm-usage</c>
+    /// (small container /dev/shm), and <c>--disable-gpu</c> (no GPU in the container). Harmless
+    /// on a desktop / in headless CI.
+    /// </summary>
+    public List<string> LaunchArgs { get; set; } = new() { "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu" };
+
+    /// <summary>
     /// Gets or sets the browser launch timeout in milliseconds.
     /// </summary>
     public int BrowserLaunchTimeoutMs { get; set; } = 30000;

@@ -37,6 +37,21 @@ curl -s localhost:8080/health/ready   # Veriqan worker    -> Healthy
 
 Browser: Prisma UI <http://localhost:8085> · Seq logs <http://localhost:15341> · Veriqan worker <http://localhost:8080>
 
+### Visible browser-automation demo (X11)
+
+The `/browser-automation` page launches a **real Chromium window on your desktop**
+via X11 forwarding (configured in `docker-compose.staging.override.yml`). On a Linux
+host (X11 or Wayland+Xwayland), grant the container access to your X server **once**
+before the demo:
+
+```bash
+xhost +local:        # demo-only: loosens local X access control; revoke later with `xhost -local:`
+```
+
+Then open <http://localhost:8085/browser-automation> and start automation — the
+Chromium window appears on your desktop (record it with OBS/any screen recorder).
+Without `xhost +local:` the launch fails with "cannot open display :0".
+
 ## 3. Run the E2E tests
 
 The suites self-host (WebApplicationFactory + Testcontainers), so they spin up their

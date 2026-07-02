@@ -48,6 +48,7 @@ public class PlaywrightBrowserAutomationAdapter : IBrowserAutomationAgent, IBrow
             _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
             {
                 Headless = _options.Headless,
+                Args = _options.LaunchArgs,
                 Timeout = _options.BrowserLaunchTimeoutMs
             });
 

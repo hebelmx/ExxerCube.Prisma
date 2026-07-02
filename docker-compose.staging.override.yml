@@ -37,3 +37,15 @@ services:
   orion:
     ports: !override
       - "18081:8080"
+
+  # GH#24: X11-forward the Web.UI container to the host desktop so the
+  # /browser-automation demo can launch a VISIBLE, recordable Chromium window.
+  # Host prerequisite (once, demo-only): `xhost +local:` — see QUICKSTART.md.
+  # These entries MERGE with the base web-ui service (no !override): the DISPLAY
+  # env is added to the existing environment map, the socket mount is appended.
+  web-ui:
+    environment:
+      # Inherit the host's X display (SSH X-forward / seat 1 may be :1, etc.); fall back to :0.
+      DISPLAY: "${DISPLAY:-:0}"
+    volumes:
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"

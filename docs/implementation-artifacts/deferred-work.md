@@ -19,3 +19,18 @@ triggering story. Not caused by the change under review.
   equals `/app` only because Docker defaults CWD to WORKDIR; a compose `working_dir:` /
   k8s `workingDir:` override would break it. Currently robust by redundancy (Strategy 2 =
   `AppDomain.BaseDirectory` = `/app`). Noting only.
+
+## From GH#24 review (2026-07-01) — spec-gh-24-webui-playwright-browsers
+
+- **[low] Demo page ignores config-supplied `LaunchArgs`.** `BrowserAutomationDemo.razor:246`
+  builds its own `BrowserAutomationOptions` and copies only Headless/timeouts, so it always uses
+  the default `LaunchArgs`. Fine today (the default is what makes the container path work), but a
+  `BrowserAutomation:LaunchArgs` override in config would be ignored on the demo path (the
+  DI-registered adapter still honors it).
+- **[med/security] X11 demo exposure.** Mounting `/tmp/.X11-unix` + `xhost +local:` + `--no-sandbox`
+  Chromium as root grants the container access to the host X server (keystroke injection / screen
+  scraping). Acceptable for a local demo box; must NOT load `docker-compose.staging.override.yml`
+  on shared/CI hosts. Broader gating tracked in GH#27 (auth on demo pages).
+- **[low] web-ui root-user assumption.** The Chromium `--no-sandbox` default and `/root/.cache/ms-playwright`
+  path assume the container runs as root (no `USER` directive today). If a `user:` is added to web-ui,
+  revisit both.

@@ -58,4 +58,12 @@ COPY --from=build /app/publish .
 # re-includes just Prisma/Fixtures/PRP1/** for this COPY.
 COPY Prisma/Fixtures/PRP1/ ./Fixtures/PRP1/
 
+# GH#24: install the Chromium build Playwright needs for the /browser-automation demo.
+# Use the bundled Playwright CLI (node + cli.js from the publish output) so the browser
+# version matches the pinned Microsoft.Playwright exactly (no hard-coded build number).
+# The `node/*/node` glob picks the arch-specific node bundle (linux-x64 / linux-arm64)
+# so the build is not pinned to one architecture. --with-deps installs the OS libraries
+# Chromium needs (runtime is Ubuntu 24.04 noble).
+RUN /app/.playwright/node/*/node /app/.playwright/package/cli.js install --with-deps chromium
+
 ENTRYPOINT ["dotnet", "ExxerCube.Prisma.Web.UI.dll"]
