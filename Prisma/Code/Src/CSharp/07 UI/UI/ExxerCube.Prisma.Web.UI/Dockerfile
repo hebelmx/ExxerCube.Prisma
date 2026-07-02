@@ -51,12 +51,35 @@ EXPOSE 8080
 
 COPY --from=build /app/publish .
 
+# GH#28: install the Tesseract OCR native stack for the /document-processing PDF-OCR path.
+# The Tesseract.NET (charlesw) NuGet ships ONLY Windows natives (x64/tesseract50.dll,
+# x64/leptonica-1.82.0.dll) and on Linux P/Invokes the sonames `libtesseract50.so` /
+# `libleptonica-1.82.0.so` — which apt does not provide (noble ships libtesseract.so.5 /
+# liblept.so.5). So: (1) apt-install tesseract + spa/eng language data (tessdata lands at
+# /usr/share/tesseract-ocr/5/tessdata, which TesseractOcrExecutor already probes); (2) run
+# the repo's link shim to symlink the ABI-compatible system libs to the wrapper's expected
+# names under /app/x64. Without this, PDF OCR fails "OCR failed for all pages".
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
+COPY "Prisma/Code/Src/CSharp/eng/link-tesseract-natives.sh" /tmp/link-tesseract-natives.sh
+RUN bash /tmp/link-tesseract-natives.sh /app && rm /tmp/link-tesseract-natives.sh
+
 # GH#23: bake the PRP1 fixture set into the image for the /document-processing demo.
 # FixtureFinder resolves fixtures by walking up from CWD / AppDomain.BaseDirectory
 # (both = WORKDIR /app here) looking for a "Fixtures" dir, so this lands them where
 # it looks. The Prisma/Fixtures tree is otherwise excluded by .dockerignore, which
 # re-includes just Prisma/Fixtures/PRP1/** for this COPY.
 COPY Prisma/Fixtures/PRP1/ ./Fixtures/PRP1/
+
+# GH#29: bake the bulk-document sample set (pdf/docx/xml) so the /document-processing
+# "Batch processing" demo can locate it. FixtureFinder.FindBulkDocumentsPath walks up from
+# WORKDIR (/app) looking for a child "bulk_generated_documents_all_formats" dir, so land it
+# directly under /app. Without this the demo errors "Failed to locate bulk documents directory".
+# (The adaptive-extractor DOCX fixtures themselves already ship via the PRP1 COPY above; GH#29
+# also fixes AdaptiveDocxFixtureService's path resolution to find them at /app/Fixtures/PRP1.)
+COPY "Prisma/Deployments/Siara.Simulator/bulk_generated_documents_all_formats/" ./bulk_generated_documents_all_formats/
 
 # GH#24: install the Chromium build Playwright needs for the /browser-automation demo.
 # Use the bundled Playwright CLI (node + cli.js from the publish output) so the browser

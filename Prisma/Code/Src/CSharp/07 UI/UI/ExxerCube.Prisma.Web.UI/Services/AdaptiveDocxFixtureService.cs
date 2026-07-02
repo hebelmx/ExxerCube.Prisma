@@ -121,8 +121,19 @@ public sealed class AdaptiveDocxFixtureService
     /// </remarks>
     private string GetFixturePath(string fileName)
     {
-        // ContentRootPath is .../Prisma/Code/Src/CSharp/03-UI/UI/ExxerCube.Prisma.Web.UI
-        // Fixtures live under Prisma/Fixtures/PRP1/<file>
+        // GH#29: resolve the PRP1 DOCX fixtures for BOTH the container and the dev box.
+        //   1. Container: the image bakes the fixtures at <ContentRoot>/Fixtures/PRP1 (GH#23
+        //      Dockerfile COPY; ContentRootPath = /app). Six "../" off /app clamps to "/" and
+        //      resolves to /Fixtures/PRP1 which does not exist — the old dev-box-only path.
+        //   2. Dev box: ContentRootPath is .../Web.UI, six "../" lands on Prisma/Fixtures/PRP1.
+        // Prefer the container-baked path, fall back to the dev-box-relative path.
+        var containerPath = Path.GetFullPath(Path.Combine(
+            _environment.ContentRootPath, "Fixtures", "PRP1", fileName));
+        if (File.Exists(containerPath))
+        {
+            return containerPath;
+        }
+
         return Path.GetFullPath(Path.Combine(
             _environment.ContentRootPath,
             "..", "..", "..", "..", "..", "..",

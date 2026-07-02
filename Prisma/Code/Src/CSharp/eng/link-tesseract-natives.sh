@@ -18,7 +18,12 @@ dir="${1:?usage: link-tesseract-natives.sh <TargetDir>}"
 [ -f "${dir}/x64/leptonica-1.82.0.dll" ] || exit 0   # not a Tesseract-consuming project
 
 soname() { ldconfig -p | awk -v re="$1" '$0 ~ re {print $NF; exit}'; }
-lept=$(soname 'libleptonica\.so')
+# Match BOTH leptonica sonames seen across distros: the older `liblept.so.5`
+# (Ubuntu 24.04/noble — what dotnet/aspnet:10.0 ships) and the newer
+# `libleptonica.so.6`. The bare stem `liblept` matches both; the previous
+# `libleptonica\.so` regex silently missed `liblept.so.5`, leaving the wrapper
+# without a leptonica symlink and throwing DllNotFoundException at OCR time.
+lept=$(soname 'liblept')
 tess=$(soname 'libtesseract\.so')
 dl=$(soname 'libdl\.so\.2')
 
