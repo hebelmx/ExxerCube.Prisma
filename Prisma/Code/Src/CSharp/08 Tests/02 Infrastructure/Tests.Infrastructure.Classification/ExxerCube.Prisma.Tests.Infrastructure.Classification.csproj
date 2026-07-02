@@ -64,6 +64,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup Label="GH#31 oficio-classification corpus">
+    <!-- Copied to output so OficioClassificationEvalHarness can load it at runtime. Reusable by the
+         synthetic generator and the future agent-classifier track (same schema). -->
+    <Content Include="OficioClassificationCorpus.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\02 Infrastructure\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
     <!-- ADR-023: Classification no longer transitively exposes Infrastructure.Calendar; this test
