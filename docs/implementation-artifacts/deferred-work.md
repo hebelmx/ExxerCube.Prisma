@@ -34,3 +34,19 @@ triggering story. Not caused by the change under review.
 - **[low] web-ui root-user assumption.** The Chromium `--no-sandbox` default and `/root/.cache/ms-playwright`
   path assume the container runs as root (no `USER` directive today). If a `user:` is added to web-ui,
   revisit both.
+
+## From GH#26 implementation (2026-07-02) — spec-gh-26-webui-appdb-migration
+
+- **[med] Orphaned migration `AddUnifiedMetadataRecords` (→ GH#32).** Migration
+  `20260613200000_AddUnifiedMetadataRecords.cs` has no `.Designer.cs`, so it carries no
+  `[Migration]` attribute and is excluded from the `PrismaDbContext` migrations assembly.
+  `MigrateAsync` skips it → the `UnifiedMetadataRecords` table is never created even though the
+  model snapshot expects it. On-demand consumers (`ManualReviewerService`, `DecisionLogicService`)
+  will hit `Invalid object name 'UnifiedMetadataRecords'` when exercised. Not a background loop, so
+  no continuous Seq spam. Proper fix needs EF `dotnet ef` tooling to regenerate the designer — do
+  NOT hand-craft the snapshot. Filed as GH#32.
+- **[low] Two DbContexts, one DB, mixed create strategies.** `TemplateDbContext.EnsureCreatedAsync`
+  (Templates/FieldMapping, no history) + `PrismaDbContext.MigrateAsync` (everything else) share the
+  `Prisma` DB. Works because the table sets are disjoint and EnsureCreated runs first. Fragile if
+  either context ever grows a table the other owns; the clean long-term fix is to give
+  `TemplateDbContext` its own migrations (or fold `Templates` into `PrismaDbContext`).

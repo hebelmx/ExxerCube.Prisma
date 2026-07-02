@@ -213,6 +213,32 @@ Inner Stack Trace:
                 Log.Error(ex, "Failed to seed adaptive export templates - application will continue but exports may fail");
             }
 
+            // GH#26: apply PrismaDbContext (application DB) EF Core migrations at startup.
+            // Runs AFTER template seeding on purpose: TemplateSeeder.EnsureCreatedAsync creates the
+            // Prisma database with only the disjoint Templates tables (no __EFMigrationsHistory); the
+            // migration runner then applies every PrismaDbContext migration, creating OutboxEvents and
+            // the audit/review/SLA tables. Without this the app DB has no OutboxEvents table and
+            // OutboxRetryWorker error-loops on every poll ("Invalid object name 'OutboxEvents'").
+            // Fail-open (log, do not throw) to match the Identity/template blocks above.
+            try
+            {
+                Log.Information("Applying PrismaDbContext (application DB) EF Core migrations...");
+                var migrationExitCode = await ExxerCube.Prisma.Infrastructure.Database.Startup.PrismaDbMigrationRunner
+                    .RunMigrationsAsync(app);
+                if (migrationExitCode != 0)
+                {
+                    Log.Warning("PrismaDbContext migration runner returned {ExitCode} — OutboxEvents/audit tables may be missing; the app will continue", migrationExitCode);
+                }
+                else
+                {
+                    Log.Information("PrismaDbContext migrations applied successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PrismaDbContext migration failed — application will continue but audit/outbox features may error");
+            }
+
             Log.Information("Application started successfully");
             app.Run();
         }
