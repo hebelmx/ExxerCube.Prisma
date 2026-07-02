@@ -51,4 +51,11 @@ EXPOSE 8080
 
 COPY --from=build /app/publish .
 
+# GH#23: bake the PRP1 fixture set into the image for the /document-processing demo.
+# FixtureFinder resolves fixtures by walking up from CWD / AppDomain.BaseDirectory
+# (both = WORKDIR /app here) looking for a "Fixtures" dir, so this lands them where
+# it looks. The Prisma/Fixtures tree is otherwise excluded by .dockerignore, which
+# re-includes just Prisma/Fixtures/PRP1/** for this COPY.
+COPY Prisma/Fixtures/PRP1/ ./Fixtures/PRP1/
+
 ENTRYPOINT ["dotnet", "ExxerCube.Prisma.Web.UI.dll"]

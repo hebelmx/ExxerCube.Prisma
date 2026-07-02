@@ -10,6 +10,15 @@
 # Test assets and fixtures that are not needed in production images.
 **/TestAssets/
 **/Fixtures/
+# Exception: the Web.UI document-processing demo bakes the PRP1 fixture set into
+# the image (see Web.UI/Dockerfile). Re-include ONLY that subtree (GH#23): descend
+# into Prisma/Fixtures, re-exclude every sibling, then re-include just PRP1. Without
+# the `Prisma/Fixtures/*` re-exclude, `!Prisma/Fixtures/` drags the whole ~78M tree
+# (PRP2, PRP1_Degraded/Enhanced) into the build context.
+!Prisma/Fixtures/
+Prisma/Fixtures/*
+!Prisma/Fixtures/PRP1/
+!Prisma/Fixtures/PRP1/**
 
 # Git history
 .git/
