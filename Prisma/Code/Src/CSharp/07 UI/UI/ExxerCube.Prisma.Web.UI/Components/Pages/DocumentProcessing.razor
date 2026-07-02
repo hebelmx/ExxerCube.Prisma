@@ -124,7 +124,10 @@
         {
             var (pdfBytes, canvasId) = request;
             var base64Pdf = Convert.ToBase64String(pdfBytes);
-            await JSRuntime.InvokeVoidAsync("renderPdf", base64Pdf, canvasId);
+            // JS signature is renderPdf(canvasId, base64Data) — pass canvasId FIRST. The args were
+            // previously swapped, so getElementById received the base64 string → canvas never found →
+            // blank preview widget.
+            await JSRuntime.InvokeVoidAsync("renderPdf", canvasId, base64Pdf);
             Logger.LogDebug("PDF rendered on canvas: {CanvasId}", canvasId);
         }
         catch (Exception ex)

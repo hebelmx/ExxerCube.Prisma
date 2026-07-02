@@ -21,33 +21,41 @@
         <MudGrid>
             <MudItem xs="12" sm="6" md="3">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
-                           OnClick="@(() => LoadFixture("222AAA-44444444442025.pdf"))" Disabled="@IsProcessing">
+                           OnClick="@(() => LoadFixture("222AAA-44444444442025.pdf"))" Disabled="@(_busy || IsProcessing)">
                     <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
                     PRP1: 222AAA PDF
                 </MudButton>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth="true" Size="Size.Large"
-                           OnClick="@(() => LoadFixture("333BBB-44444444442025.pdf"))" Disabled="@IsProcessing">
+                           OnClick="@(() => LoadFixture("333BBB-44444444442025.pdf"))" Disabled="@(_busy || IsProcessing)">
                     <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
                     PRP1: 333BBB PDF
                 </MudButton>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudButton Variant="Variant.Filled" Color="Color.Tertiary" FullWidth="true" Size="Size.Large"
-                           OnClick="@(() => LoadFixture("333ccc-6666666662025.pdf"))" Disabled="@IsProcessing">
+                           OnClick="@(() => LoadFixture("333ccc-6666666662025.pdf"))" Disabled="@(_busy || IsProcessing)">
                     <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
                     PRP1: 333CCCC PDF
                 </MudButton>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
                 <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth="true" Size="Size.Large"
-                           OnClick="@(() => LoadFixture("555CCC-6666662025.pdf"))" Disabled="@IsProcessing">
+                           OnClick="@(() => LoadFixture("555CCC-6666662025.pdf"))" Disabled="@(_busy || IsProcessing)">
                     <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf" Class="mr-2" />
                     PRP1: 555CCC PDF
                 </MudButton>
             </MudItem>
         </MudGrid>
+
+        @if (_busy)
+        {
+            <MudPaper Class="mt-4 pa-4 d-flex align-center" Elevation="0" Outlined="true">
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-3" />
+                <MudText Typo="Typo.body1">Rasterizing PDF and running OCR (Tesseract)… this can take a few seconds.</MudText>
+            </MudPaper>
+        }
 
         @if (State.OcrResult != null)
         {
@@ -405,10 +413,20 @@
     public bool IsProcessing { get; set; }
 
     /// <summary>
+    /// Local busy flag driven by <see cref="LoadFixture"/> so the UI shows a spinner while the
+    /// (slow) rasterize → OCR → field-extraction backend runs. The parent's <see cref="IsProcessing"/>
+    /// was never toggled on the fixture-button path, so clicks looked unresponsive.
+    /// </summary>
+    private bool _busy;
+
+    /// <summary>
     /// Loads a PDF fixture file using the PdfProcessingService.
     /// </summary>
     private async Task LoadFixture(string fixtureName)
     {
+        _busy = true;
+        StateHasChanged(); // paint the "processing…" banner before the long-running await
+
         try
         {
             var result = await PdfService.LoadFixtureAsync(fixtureName);
@@ -430,6 +448,11 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Error processing PDF: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _busy = false;
+            StateHasChanged();
         }
     }
 

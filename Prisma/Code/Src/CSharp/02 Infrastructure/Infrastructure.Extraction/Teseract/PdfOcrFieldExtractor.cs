@@ -102,8 +102,16 @@ public class PdfOcrFieldExtractor : IFieldExtractor<PdfSource>
             _logger.LogInformation("Delegating field extraction to AdaptiveTxtFieldExtractor");
             var extractionResult = await _txtFieldExtractor.ExtractFieldsAsync(txtSource, fieldDefinitions);
 
-            if (extractionResult.IsSuccess)
+            if (extractionResult.IsSuccess && extractionResult.Value is not null)
             {
+                // Surface OCR provenance the UI expects. PdfProcessingService reads AdditionalFields
+                // ["_OcrText"]/["_OcrConfidence"] to show the REAL characters-extracted + OCR confidence;
+                // without these it falls back to 0 chars and a hardcoded 80%. The txt extractor consumes
+                // the OCR text but does not echo it back, so we attach it here.
+                extractionResult.Value.AdditionalFields["_OcrText"] = ocrText ?? string.Empty;
+                extractionResult.Value.AdditionalFields["_OcrConfidence"] =
+                    confidence.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
                 _logger.LogInformation("Successfully extracted {Count} fields from PDF document", fieldDefinitions.Length);
             }
 
