@@ -173,11 +173,13 @@
                                         <td>
                                             @if (fieldResult.WinningSource != null)
                                             {
-                                                <MudText Typo="Typo.caption">@fieldResult.WinningSource.Value.ToString()</MudText>
+                                                @* Show the source's friendly name (e.g. "PDF CNBV"), not the int code. *@
+                                                <MudText Typo="Typo.caption">@fieldResult.WinningSource.DisplayName</MudText>
                                             }
                                             else if (fieldResult.ContributingSources.Any())
                                             {
-                                                <MudText Typo="Typo.caption">All</MudText>
+                                                @* Render the actual contributing sources joined (e.g. "XML Manual + PDF CNBV") instead of a bare "All". *@
+                                                <MudText Typo="Typo.caption">@string.Join(" + ", fieldResult.ContributingSources.Select(s => s.DisplayName))</MudText>
                                             }
                                             else
                                             {
