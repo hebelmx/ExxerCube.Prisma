@@ -35,5 +35,7 @@
     <ProjectReference Include="..\Infrastructure.Python.GotOcr2\ExxerCube.Prisma.Infrastructure.Python.GotOcr2.csproj" />
     <!-- S2: LlmVisionFieldExtractor reuses the shared DTO/gate/mapper from the Txt extractor. -->
     <ProjectReference Include="..\Infrastructure.Extraction.Txt\ExxerCube.Prisma.Infrastructure.Extraction.Txt.csproj" />
+    <!-- S3a: HybridExtractionService reads LlmProvidersOptions from Infrastructure.Classification. -->
+    <ProjectReference Include="..\Infrastructure.Classification\ExxerCube.Prisma.Infrastructure.Classification.csproj" />
   </ItemGroup>
 </Project>
